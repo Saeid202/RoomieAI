@@ -12,15 +12,32 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSignupOpen, setIsSignupOpen] = useState(false);
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const { toast } = useToast();
 
   const handleSignupSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     console.log("Signup form submitted");
     setIsSignupOpen(false);
+    toast({
+      title: "Account created",
+      description: "You've successfully created an account!",
+    });
+  };
+
+  const handleLoginSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log("Login form submitted");
+    setIsLoginOpen(false);
+    toast({
+      title: "Logged in",
+      description: "You've successfully logged in!",
+    });
   };
 
   return (
@@ -98,9 +115,34 @@ const Navbar = () => {
 
         {/* Login / Sign Up Buttons */}
         <div className="hidden md:flex items-center space-x-4">
-          <Button variant="outline" className="border-roomie-purple text-roomie-purple">
-            Login
-          </Button>
+          <Dialog open={isLoginOpen} onOpenChange={setIsLoginOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="border-roomie-purple text-roomie-purple">
+                Login
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Login to your account</DialogTitle>
+                <DialogDescription>
+                  Welcome back to RoomieMatch! Enter your credentials to continue.
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleLoginSubmit} className="space-y-4 mt-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input id="email" type="email" placeholder="Enter your email" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <Input id="password" type="password" placeholder="Enter your password" />
+                </div>
+                <Button type="submit" className="w-full bg-roomie-purple hover:bg-roomie-dark text-white">
+                  Login
+                </Button>
+              </form>
+            </DialogContent>
+          </Dialog>
           <Dialog open={isSignupOpen} onOpenChange={setIsSignupOpen}>
             <DialogTrigger asChild>
               <Button className="bg-roomie-purple hover:bg-roomie-dark text-white">
@@ -177,9 +219,34 @@ const Navbar = () => {
               FAQ
             </a>
             <div className="flex flex-col space-y-2 pt-2">
-              <Button variant="outline" className="border-roomie-purple text-roomie-purple">
-                Login
-              </Button>
+              <Dialog open={isLoginOpen} onOpenChange={setIsLoginOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" className="border-roomie-purple text-roomie-purple">
+                    Login
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                  <DialogHeader>
+                    <DialogTitle>Login to your account</DialogTitle>
+                    <DialogDescription>
+                      Welcome back to RoomieMatch! Enter your credentials to continue.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <form onSubmit={handleLoginSubmit} className="space-y-4 mt-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="mobile-login-email">Email</Label>
+                      <Input id="mobile-login-email" type="email" placeholder="Enter your email" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="mobile-login-password">Password</Label>
+                      <Input id="mobile-login-password" type="password" placeholder="Enter your password" />
+                    </div>
+                    <Button type="submit" className="w-full bg-roomie-purple hover:bg-roomie-dark text-white">
+                      Login
+                    </Button>
+                  </form>
+                </DialogContent>
+              </Dialog>
               <Dialog open={isSignupOpen} onOpenChange={setIsSignupOpen}>
                 <DialogTrigger asChild>
                   <Button className="bg-roomie-purple hover:bg-roomie-dark text-white">
