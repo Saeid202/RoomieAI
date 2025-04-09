@@ -2,9 +2,26 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isSignupOpen, setIsSignupOpen] = useState(false);
+
+  const handleSignupSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log("Signup form submitted");
+    setIsSignupOpen(false);
+  };
 
   return (
     <nav className="w-full py-4 bg-white/80 backdrop-blur-sm fixed top-0 z-50 shadow-sm">
@@ -84,9 +101,38 @@ const Navbar = () => {
           <Button variant="outline" className="border-roomie-purple text-roomie-purple">
             Login
           </Button>
-          <Button className="bg-roomie-purple hover:bg-roomie-dark text-white">
-            Sign Up
-          </Button>
+          <Dialog open={isSignupOpen} onOpenChange={setIsSignupOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-roomie-purple hover:bg-roomie-dark text-white">
+                Sign Up
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Create an account</DialogTitle>
+                <DialogDescription>
+                  Join RoomieMatch to find your perfect roommate match.
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleSignupSubmit} className="space-y-4 mt-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Full Name</Label>
+                  <Input id="name" placeholder="Enter your full name" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input id="email" type="email" placeholder="Enter your email" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <Input id="password" type="password" placeholder="Create a password" />
+                </div>
+                <Button type="submit" className="w-full bg-roomie-purple hover:bg-roomie-dark text-white">
+                  Create Account
+                </Button>
+              </form>
+            </DialogContent>
+          </Dialog>
         </div>
 
         {/* Mobile Menu Button */}
@@ -134,9 +180,38 @@ const Navbar = () => {
               <Button variant="outline" className="border-roomie-purple text-roomie-purple">
                 Login
               </Button>
-              <Button className="bg-roomie-purple hover:bg-roomie-dark text-white">
-                Sign Up
-              </Button>
+              <Dialog open={isSignupOpen} onOpenChange={setIsSignupOpen}>
+                <DialogTrigger asChild>
+                  <Button className="bg-roomie-purple hover:bg-roomie-dark text-white">
+                    Sign Up
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                  <DialogHeader>
+                    <DialogTitle>Create an account</DialogTitle>
+                    <DialogDescription>
+                      Join RoomieMatch to find your perfect roommate match.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <form onSubmit={handleSignupSubmit} className="space-y-4 mt-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="mobile-name">Full Name</Label>
+                      <Input id="mobile-name" placeholder="Enter your full name" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="mobile-email">Email</Label>
+                      <Input id="mobile-email" type="email" placeholder="Enter your email" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="mobile-password">Password</Label>
+                      <Input id="mobile-password" type="password" placeholder="Create a password" />
+                    </div>
+                    <Button type="submit" className="w-full bg-roomie-purple hover:bg-roomie-dark text-white">
+                      Create Account
+                    </Button>
+                  </form>
+                </DialogContent>
+              </Dialog>
             </div>
           </div>
         </div>
