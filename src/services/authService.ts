@@ -1,22 +1,19 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { ToastProps } from '@/components/ui/toast';
+import { toast } from '@/hooks/use-toast';
 
 // Sign up with email and password
-export async function signUpWithEmail(
-  email: string, 
-  password: string,
-  showToast: (props: ToastProps) => void
-) {
+export async function signUpWithEmail(email: string, password: string) {
   try {
     const { error } = await supabase.auth.signUp({ email, password });
     if (error) throw error;
-    showToast({
+    
+    toast({
       title: "Success",
       description: "Check your email for the confirmation link",
     });
   } catch (error: any) {
-    showToast({
+    toast({
       title: "Error",
       description: error.message,
       variant: "destructive",
@@ -26,20 +23,17 @@ export async function signUpWithEmail(
 }
 
 // Sign in with email and password
-export async function signInWithEmail(
-  email: string, 
-  password: string,
-  showToast: (props: ToastProps) => void
-) {
+export async function signInWithEmail(email: string, password: string) {
   try {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;
-    showToast({
+    
+    toast({
       title: "Success",
       description: "You've signed in successfully",
     });
   } catch (error: any) {
-    showToast({
+    toast({
       title: "Error",
       description: error.message,
       variant: "destructive",
@@ -49,10 +43,7 @@ export async function signInWithEmail(
 }
 
 // Sign in with OAuth providers
-export async function signInWithOAuth(
-  provider: 'google' | 'facebook' | 'linkedin',
-  showToast: (props: ToastProps) => void
-) {
+export async function signInWithOAuth(provider: 'google' | 'facebook' | 'linkedin') {
   try {
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
@@ -62,7 +53,7 @@ export async function signInWithOAuth(
     });
     if (error) throw error;
   } catch (error: any) {
-    showToast({
+    toast({
       title: "Error",
       description: error.message,
       variant: "destructive",
@@ -71,21 +62,19 @@ export async function signInWithOAuth(
 }
 
 // Reset password
-export async function resetPasswordForEmail(
-  email: string,
-  showToast: (props: ToastProps) => void
-) {
+export async function resetPasswordForEmail(email: string) {
   try {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/reset-password`,
     });
     if (error) throw error;
-    showToast({
+    
+    toast({
       title: "Success",
       description: "Check your email for the password reset link",
     });
   } catch (error: any) {
-    showToast({
+    toast({
       title: "Error",
       description: error.message,
       variant: "destructive",
@@ -94,16 +83,17 @@ export async function resetPasswordForEmail(
 }
 
 // Sign out
-export async function signOutUser(showToast: (props: ToastProps) => void) {
+export async function signOutUser() {
   try {
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
-    showToast({
+    
+    toast({
       title: "Success",
       description: "You've signed out successfully",
     });
   } catch (error: any) {
-    showToast({
+    toast({
       title: "Error",
       description: error.message,
       variant: "destructive",

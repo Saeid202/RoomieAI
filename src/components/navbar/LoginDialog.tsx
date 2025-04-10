@@ -11,9 +11,9 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { Facebook, Linkedin, Mail } from "lucide-react";
+import { Facebook, Linkedin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface LoginDialogProps {
@@ -22,7 +22,6 @@ interface LoginDialogProps {
 }
 
 export const LoginDialog = ({ isOpen, setIsOpen }: LoginDialogProps) => {
-  const { toast } = useToast();
   const navigate = useNavigate();
   const { signIn, signInWithGoogle, signInWithFacebook, signInWithLinkedIn } = useAuth();
   

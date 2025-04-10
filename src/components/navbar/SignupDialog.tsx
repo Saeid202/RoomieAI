@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -11,7 +10,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,7 +21,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -40,7 +38,6 @@ const formSchema = z.object({
 });
 
 export function SignupDialog({ isOpen, setIsOpen }: SignupDialogProps) {
-  const { toast } = useToast();
   const { signUp } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();

@@ -2,7 +2,6 @@
 import { useState, useEffect, ReactNode } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
 import { AuthContext } from '@/contexts/AuthContext';
 import { 
   signUpWithEmail, 
@@ -16,7 +15,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
 
   useEffect(() => {
     // Get initial session
@@ -39,31 +37,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signUp = async (email: string, password: string) => {
-    return signUpWithEmail(email, password, toast);
+    return signUpWithEmail(email, password);
   };
 
   const signIn = async (email: string, password: string) => {
-    return signInWithEmail(email, password, toast);
+    return signInWithEmail(email, password);
   };
 
   const signInWithGoogle = async () => {
-    return signInWithOAuth('google', toast);
+    return signInWithOAuth('google');
   };
 
   const signInWithFacebook = async () => {
-    return signInWithOAuth('facebook', toast);
+    return signInWithOAuth('facebook');
   };
 
   const signInWithLinkedIn = async () => {
-    return signInWithOAuth('linkedin', toast);
+    return signInWithOAuth('linkedin');
   };
 
   const resetPassword = async (email: string) => {
-    return resetPasswordForEmail(email, toast);
+    return resetPasswordForEmail(email);
   };
 
   const signOut = async () => {
-    return signOutUser(toast);
+    return signOutUser();
   };
 
   return (
