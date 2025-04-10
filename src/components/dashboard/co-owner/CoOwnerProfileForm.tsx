@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -76,7 +75,11 @@ export function CoOwnerProfileForm({ initialData, onSave }: CoOwnerProfileFormPr
     if (initialData) {
       console.log("Updating form with initial data:", initialData);
       Object.keys(initialData).forEach(key => {
-        form.setValue(key as any, initialData[key]);
+        const value = initialData[key];
+        if (value !== undefined && value !== null) {
+          console.log(`Setting form value for ${key}:`, value);
+          form.setValue(key as any, value);
+        }
       });
     }
   }, [form, initialData]);
@@ -87,12 +90,14 @@ export function CoOwnerProfileForm({ initialData, onSave }: CoOwnerProfileFormPr
       console.log("Form submitted with values:", values);
       
       if (onSave) {
+        console.log("Calling onSave with form values");
         await onSave(values);
         toast({
           title: "Profile saved",
           description: "Your co-owner profile has been updated successfully.",
         });
       } else {
+        console.warn("No onSave function provided");
         toast({
           title: "Form submitted",
           description: "This is a preview. No data was saved.",

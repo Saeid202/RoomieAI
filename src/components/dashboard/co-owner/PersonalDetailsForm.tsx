@@ -23,10 +23,11 @@ export function PersonalDetailsForm() {
         setLoading(true);
         console.log("Fetching co-owner profile for user:", user.id);
         
-        // Check if the co-owner table exists
-        const { data: tables, error: tableError } = await supabase
+        // First check if the co-owner table exists and is accessible
+        console.log("Checking co-owner table");
+        const { data: tableInfo, error: tableError } = await supabase
           .from('co-owner')
-          .select('*')
+          .select('count(*)')
           .limit(1);
           
         if (tableError) {
@@ -34,7 +35,7 @@ export function PersonalDetailsForm() {
           throw tableError;
         }
         
-        console.log("Co-owner table exists, tables sample:", tables);
+        console.log("Co-owner table check result:", tableInfo);
         
         // Now fetch user profile
         const { data, error } = await supabase
@@ -45,9 +46,7 @@ export function PersonalDetailsForm() {
 
         if (error) {
           console.error('Error fetching co-owner profile:', error);
-          if (error.code !== 'PGRST116') { // PGRST116 is "Not found" error, which is expected for new users
-            throw error;
-          }
+          throw error;
         }
 
         console.log("Co-owner profile data:", data);
@@ -93,42 +92,20 @@ export function PersonalDetailsForm() {
         updated_at: new Date().toISOString()
       };
 
-      // Check if profile already exists
-      const { data: existingProfile, error: checkError } = await supabase
+      // Here we first insert if it doesn't exist, then update if it does (upsert)
+      const { data, error } = await supabase
         .from('co-owner')
-        .select('id')
-        .eq('user_id', user.id)
-        .maybeSingle();
+        .upsert(profileData, { 
+          onConflict: 'user_id',
+          ignoreDuplicates: false
+        });
         
-      if (checkError && checkError.code !== 'PGRST116') {
-        console.error("Error checking existing profile:", checkError);
-        throw checkError;
-      }
-
-      console.log("Existing profile check result:", existingProfile);
-
-      let result;
-      if (existingProfile) {
-        console.log("Updating existing profile:", existingProfile);
-        // Update existing profile
-        result = await supabase
-          .from('co-owner')
-          .update(profileData)
-          .eq('user_id', user.id);
-      } else {
-        console.log("Creating new profile");
-        // Insert new profile
-        result = await supabase
-          .from('co-owner')
-          .insert(profileData);
-      }
-
-      if (result.error) {
-        console.error("Error saving profile:", result.error);
-        throw result.error;
+      if (error) {
+        console.error("Error saving profile:", error);
+        throw error;
       }
       
-      console.log("Profile save result:", result);
+      console.log("Profile save result:", data);
 
       toast({
         title: 'Success',
@@ -136,12 +113,16 @@ export function PersonalDetailsForm() {
       });
       
       // Refresh data
-      const { data: updatedData } = await supabase
+      const { data: updatedData, error: fetchError } = await supabase
         .from('co-owner')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
         
+      if (fetchError) {
+        console.error("Error fetching updated profile:", fetchError);
+      }
+      
       if (updatedData) {
         console.log("Updated profile data:", updatedData);
         setProfileData(updatedData);
