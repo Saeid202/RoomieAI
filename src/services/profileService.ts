@@ -79,7 +79,7 @@ export async function saveProfileData(
     console.log("Inserting new record");
     result = await supabase
       .from(tableName)
-      .insert(dbData);
+      .insert([dbData]); // Wrap dbData in an array to match the expected input type
   }
   
   return result;
