@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ProfileForm from "@/components/ProfileForm";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client"; // Updated import
+import { supabase } from "@/integrations/supabase/client"; 
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PostgrestError } from "@supabase/supabase-js";
@@ -25,6 +25,7 @@ export function ProfileContent() {
     // Load profile data from Supabase
     const fetchProfileData = async () => {
       try {
+        // Use the correct query to fetch profile data
         const { data, error } = await supabase
           .from('profiles')
           .select('*')

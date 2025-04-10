@@ -11,6 +11,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,9 +27,10 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 
-interface SignupDialogProps {
+// Updated interface to match the props being passed in Navbar.tsx and MobileMenu.tsx
+export interface SignupDialogProps {
   isOpen: boolean;
-  onOpenChange: (open: boolean) => void;
+  setIsOpen: (isOpen: boolean) => void;
 }
 
 const formSchema = z.object({
@@ -37,7 +39,7 @@ const formSchema = z.object({
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
-export function SignupDialog({ isOpen, onOpenChange }: SignupDialogProps) {
+export function SignupDialog({ isOpen, setIsOpen }: SignupDialogProps) {
   const { toast } = useToast();
   const { signUp } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
@@ -71,7 +73,7 @@ export function SignupDialog({ isOpen, onOpenChange }: SignupDialogProps) {
       });
       
       form.reset();
-      onOpenChange(false);
+      setIsOpen(false);
       navigate("/dashboard");
     } catch (error: any) {
       toast({
@@ -85,7 +87,7 @@ export function SignupDialog({ isOpen, onOpenChange }: SignupDialogProps) {
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Create an account</DialogTitle>
