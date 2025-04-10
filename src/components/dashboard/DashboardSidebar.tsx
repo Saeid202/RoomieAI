@@ -1,16 +1,12 @@
-import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+
+import { useLocation, Link } from "react-router-dom";
 import {
   User,
   Home,
-  Users,
   Wallet,
   MessageSquare,
-  ChevronDown,
   Building,
-  Handshake,
   GraduationCap,
-  UserPlus,
 } from "lucide-react";
 import {
   Sidebar,
@@ -20,25 +16,38 @@ import {
   SidebarGroupLabel,
   SidebarGroupContent,
   SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-  SidebarMenuSub,
-  SidebarMenuSubItem,
-  SidebarMenuSubButton,
   SidebarSeparator,
   SidebarFooter,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
+import { SidebarMenuSection } from "./sidebar/SidebarMenuSection";
+import { SidebarSimpleMenuItem } from "./sidebar/SidebarSimpleMenuItem";
 
 export function DashboardSidebar() {
   const location = useLocation();
-  const [profileExpanded, setProfileExpanded] = useState(true);
-  const [rentExpanded, setRentExpanded] = useState(true);
-  const [coOwnershipExpanded, setCoOwnershipExpanded] = useState(true);
 
   const isActive = (path: string) => {
     return location.pathname === path;
   };
+
+  // Profile section sub-items
+  const profileSubItems = [
+    { label: "Roommate", path: "/dashboard/profile?tab=roommate" },
+    { label: "Co-owner", path: "/dashboard/profile?tab=co-owner" }
+  ];
+
+  // Rent section sub-items
+  const rentSubItems = [
+    { label: "Roommate Recommendations", path: "/dashboard/roommate-recommendations" },
+    { label: "Rent Savings", path: "/dashboard/rent-savings" },
+    { label: "Opportunities", path: "/dashboard/rent-opportunities" }
+  ];
+
+  // Co-ownership section sub-items
+  const coOwnershipSubItems = [
+    { label: "Co-owner Recommendations", path: "/dashboard/co-owner-recommendations" },
+    { label: "Opportunities", path: "/dashboard/co-ownership-opportunities" }
+  ];
 
   return (
     <Sidebar>
@@ -51,147 +60,51 @@ export function DashboardSidebar() {
           <SidebarGroupLabel>Main</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {/* Profile Section with Sub-items */}
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  onClick={() => setProfileExpanded(!profileExpanded)}
-                  className="justify-between"
-                >
-                  <div className="flex items-center gap-2">
-                    <User size={20} />
-                    <span>Profile</span>
-                  </div>
-                  <ChevronDown
-                    size={16}
-                    className={`transition-transform ${profileExpanded ? "rotate-180" : ""}`}
-                  />
-                </SidebarMenuButton>
+              {/* Profile Section */}
+              <SidebarMenuSection 
+                title="Profile" 
+                icon={User} 
+                subItems={profileSubItems} 
+                isActive={isActive} 
+              />
 
-                {profileExpanded && (
-                  <SidebarMenuSub>
-                    <SidebarMenuSubItem>
-                      <SidebarMenuSubButton asChild isActive={isActive("/dashboard/profile/roommate")}>
-                        <Link to="/dashboard/profile?tab=roommate">
-                          <span>Roommate</span>
-                        </Link>
-                      </SidebarMenuSubButton>
-                    </SidebarMenuSubItem>
-                    <SidebarMenuSubItem>
-                      <SidebarMenuSubButton asChild isActive={isActive("/dashboard/profile/co-owner")}>
-                        <Link to="/dashboard/profile?tab=co-owner">
-                          <span>Co-owner</span>
-                        </Link>
-                      </SidebarMenuSubButton>
-                    </SidebarMenuSubItem>
-                  </SidebarMenuSub>
-                )}
-              </SidebarMenuItem>
+              {/* Rent Section */}
+              <SidebarMenuSection 
+                title="Rent" 
+                icon={Home} 
+                subItems={rentSubItems} 
+                isActive={isActive} 
+              />
 
-              {/* Rent Section with Sub-items */}
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  onClick={() => setRentExpanded(!rentExpanded)}
-                  className="justify-between"
-                >
-                  <div className="flex items-center gap-2">
-                    <Home size={20} />
-                    <span>Rent</span>
-                  </div>
-                  <ChevronDown
-                    size={16}
-                    className={`transition-transform ${rentExpanded ? "rotate-180" : ""}`}
-                  />
-                </SidebarMenuButton>
+              {/* Co-ownership Section */}
+              <SidebarMenuSection 
+                title="Co-ownership" 
+                icon={Building} 
+                subItems={coOwnershipSubItems} 
+                isActive={isActive} 
+              />
 
-                {rentExpanded && (
-                  <SidebarMenuSub>
-                    <SidebarMenuSubItem>
-                      <SidebarMenuSubButton asChild isActive={isActive("/dashboard/roommate-recommendations")}>
-                        <Link to="/dashboard/roommate-recommendations">
-                          <span>Roommate Recommendations</span>
-                        </Link>
-                      </SidebarMenuSubButton>
-                    </SidebarMenuSubItem>
-                    <SidebarMenuSubItem>
-                      <SidebarMenuSubButton asChild isActive={isActive("/dashboard/rent-savings")}>
-                        <Link to="/dashboard/rent-savings">
-                          <span>Rent Savings</span>
-                        </Link>
-                      </SidebarMenuSubButton>
-                    </SidebarMenuSubItem>
-                    <SidebarMenuSubItem>
-                      <SidebarMenuSubButton asChild isActive={isActive("/dashboard/rent-opportunities")}>
-                        <Link to="/dashboard/rent-opportunities">
-                          <span>Opportunities</span>
-                        </Link>
-                      </SidebarMenuSubButton>
-                    </SidebarMenuSubItem>
-                  </SidebarMenuSub>
-                )}
-              </SidebarMenuItem>
+              {/* Simple menu items */}
+              <SidebarSimpleMenuItem 
+                title="Wallet" 
+                icon={Wallet} 
+                path="/dashboard/wallet" 
+                isActive={isActive} 
+              />
 
-              {/* Co-ownership Section with Sub-items */}
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  onClick={() => setCoOwnershipExpanded(!coOwnershipExpanded)}
-                  className="justify-between"
-                >
-                  <div className="flex items-center gap-2">
-                    <Building size={20} />
-                    <span>Co-ownership</span>
-                  </div>
-                  <ChevronDown
-                    size={16}
-                    className={`transition-transform ${coOwnershipExpanded ? "rotate-180" : ""}`}
-                  />
-                </SidebarMenuButton>
+              <SidebarSimpleMenuItem 
+                title="AI Legal Assistant" 
+                icon={GraduationCap} 
+                path="/dashboard/legal-assistant" 
+                isActive={isActive} 
+              />
 
-                {coOwnershipExpanded && (
-                  <SidebarMenuSub>
-                    <SidebarMenuSubItem>
-                      <SidebarMenuSubButton asChild isActive={isActive("/dashboard/co-owner-recommendations")}>
-                        <Link to="/dashboard/co-owner-recommendations">
-                          <span>Co-owner Recommendations</span>
-                        </Link>
-                      </SidebarMenuSubButton>
-                    </SidebarMenuSubItem>
-                    <SidebarMenuSubItem>
-                      <SidebarMenuSubButton asChild isActive={isActive("/dashboard/co-ownership-opportunities")}>
-                        <Link to="/dashboard/co-ownership-opportunities">
-                          <span>Opportunities</span>
-                        </Link>
-                      </SidebarMenuSubButton>
-                    </SidebarMenuSubItem>
-                  </SidebarMenuSub>
-                )}
-              </SidebarMenuItem>
-
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={isActive("/dashboard/wallet")}>
-                  <Link to="/dashboard/wallet">
-                    <Wallet size={20} />
-                    <span>Wallet</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={isActive("/dashboard/legal-assistant")}>
-                  <Link to="/dashboard/legal-assistant">
-                    <GraduationCap size={20} />
-                    <span>AI Legal Assistant</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={isActive("/dashboard/chats")}>
-                  <Link to="/dashboard/chats">
-                    <MessageSquare size={20} />
-                    <span>Chats</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+              <SidebarSimpleMenuItem 
+                title="Chats" 
+                icon={MessageSquare} 
+                path="/dashboard/chats" 
+                isActive={isActive} 
+              />
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
