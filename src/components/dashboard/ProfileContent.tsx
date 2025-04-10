@@ -33,6 +33,12 @@ export function ProfileContent() {
     title = "Co-Owner Profile";
   }
 
+  // Log the current path and forced view for debugging
+  console.log("Current path:", path);
+  console.log("Is roommate page:", isRoommatePage);
+  console.log("Is co-owner page:", isCoOwnerPage);
+  console.log("User preference:", userPreference);
+
   return (
     <div className="space-y-8">
       <h1 className="text-3xl font-bold tracking-tight mb-4">{title}</h1>

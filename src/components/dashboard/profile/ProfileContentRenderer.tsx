@@ -42,6 +42,14 @@ export function ProfileContentRenderer({
       ? 'co-owner' 
       : forcedView || userPreference;
 
+  // Add debugging logs
+  console.log("ProfileContentRenderer - path:", path);
+  console.log("ProfileContentRenderer - isRoommatePage:", isRoommatePage);
+  console.log("ProfileContentRenderer - isCoOwnerPage:", isCoOwnerPage);
+  console.log("ProfileContentRenderer - forcedView:", forcedView);
+  console.log("ProfileContentRenderer - userPreference:", userPreference);
+  console.log("ProfileContentRenderer - displayView:", displayView);
+
   if (loading) {
     return <ProfileLoadingState />;
   }
@@ -50,8 +58,6 @@ export function ProfileContentRenderer({
   if (!displayView) {
     return <EmptyProfileState />;
   }
-
-  console.log("ProfileContentRenderer - displayView:", displayView);
   
   if (displayView === 'roommate') {
     console.log("Rendering roommate form based on displayView");

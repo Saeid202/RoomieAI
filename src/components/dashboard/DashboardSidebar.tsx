@@ -36,6 +36,9 @@ export function DashboardSidebar() {
     { label: "Co-owner", path: "/dashboard/profile/co-owner" }
   ];
 
+  // Log current location for debugging
+  console.log("Current location:", location.pathname);
+
   // Rent section sub-items
   const rentSubItems = [
     { label: "Roommate Recommendations", path: "/dashboard/roommate-recommendations" },
