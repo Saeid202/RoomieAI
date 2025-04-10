@@ -12,14 +12,16 @@ export default function Dashboard() {
         <Navbar />
       </div>
       <SidebarProvider>
-        <div className="flex w-full flex-1 pt-16"> {/* Added padding top to prevent overlap with navbar */}
+        <div className="flex w-full flex-1 pt-16"> {/* Padding top matches navbar height */}
           <DashboardSidebar />
-          <main className="flex-1 p-6 mb-8"> {/* Added margin bottom to prevent overlap with footer */}
+          <main className="flex-1 p-6 pb-16"> {/* Added bottom padding to make space for footer */}
             <Outlet />
           </main>
         </div>
       </SidebarProvider>
-      <Footer />
+      <div className="mt-auto"> {/* This ensures footer stays at the bottom without overlapping */}
+        <Footer />
+      </div>
     </div>
   );
 }
