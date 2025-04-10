@@ -3,7 +3,6 @@ import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
 import HowItWorks from "@/components/HowItWorks";
 import FeaturesSection from "@/components/FeaturesSection";
-import ProfileForm from "@/components/ProfileForm";
 import Footer from "@/components/Footer";
 
 const Index = () => {
@@ -12,7 +11,6 @@ const Index = () => {
       <Navbar />
       <main className="flex-grow">
         <HeroSection />
-        <ProfileForm />
         <HowItWorks />
         <FeaturesSection />
       </main>

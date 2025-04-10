@@ -28,6 +28,12 @@ export const MobileMenu = ({
       <div className="flex flex-col space-y-4">
         <NavLinks isMobile={true} onClickMobile={() => setIsMenuOpen(false)} />
         <div className="flex flex-col space-y-2 pt-2">
+          <Button variant="outline" className="w-full" onClick={() => setIsLoginOpen(true)}>
+            Log in
+          </Button>
+          <Button className="w-full" onClick={() => setIsSignupOpen(true)}>
+            Sign up
+          </Button>
           <LoginDialog isOpen={isLoginOpen} setIsOpen={setIsLoginOpen} />
           <SignupDialog isOpen={isSignupOpen} setIsOpen={setIsSignupOpen} />
         </div>

@@ -6,6 +6,7 @@ import { NavLinks } from "./navbar/NavLinks";
 import { LoginDialog } from "./navbar/LoginDialog";
 import { SignupDialog } from "./navbar/SignupDialog";
 import { MobileMenu } from "./navbar/MobileMenu";
+import { Button } from "./ui/button";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -22,6 +23,12 @@ const Navbar = () => {
         </div>
 
         <div className="hidden md:flex items-center space-x-4">
+          <Button variant="outline" onClick={() => setIsLoginOpen(true)}>
+            Log in
+          </Button>
+          <Button onClick={() => setIsSignupOpen(true)}>
+            Sign up
+          </Button>
           <LoginDialog isOpen={isLoginOpen} setIsOpen={setIsLoginOpen} />
           <SignupDialog isOpen={isSignupOpen} setIsOpen={setIsSignupOpen} />
         </div>
