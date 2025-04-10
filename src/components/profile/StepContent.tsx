@@ -11,6 +11,7 @@ import { CookingMealsSection } from "./CookingMealsSection";
 import { LeaseTermsSection } from "./LeaseTermsSection";
 import { RoommatePreferencesSection } from "./RoommatePreferencesSection";
 import { hobbiesList, roommateTraitsList } from "@/utils/formSteps";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface StepContentProps {
   form: UseFormReturn<ProfileFormValues>;
@@ -26,61 +27,75 @@ export function StepContent({
   handleTraitToggle 
 }: StepContentProps) {
   return (
-    <div className="w-full h-[370px] overflow-y-auto px-2">
-      <div className="w-full space-y-4 py-4">
-        {step === 1 && (
+    <div className="w-full h-[420px] overflow-y-auto px-2">
+      {step === 1 && (
+        <div className="w-full space-y-4 py-4">
           <BasicInformationSection form={form} />
-        )}
-        
-        {step === 2 && (
-          <>
-            <h3 className="text-lg font-medium mb-3">Housing Preferences</h3>
+        </div>
+      )}
+      
+      {step === 2 && (
+        <Tabs defaultValue="housing" className="w-full">
+          <TabsList className="w-full mb-6">
+            <TabsTrigger value="housing" className="flex-1">Housing Preferences</TabsTrigger>
+            <TabsTrigger value="lease" className="flex-1">Lease Terms</TabsTrigger>
+          </TabsList>
+          <TabsContent value="housing" className="space-y-4">
             <HousingPreferencesSection form={form} />
-            <div className="mt-6">
-              <h3 className="text-lg font-medium mb-3">Lease Terms</h3>
-              <LeaseTermsSection form={form} />
-            </div>
-          </>
-        )}
-        
-        {step === 3 && (
-          <>
-            <h3 className="text-lg font-medium mb-3">Lifestyle & Habits</h3>
+          </TabsContent>
+          <TabsContent value="lease" className="space-y-4">
+            <LeaseTermsSection form={form} />
+          </TabsContent>
+        </Tabs>
+      )}
+      
+      {step === 3 && (
+        <Tabs defaultValue="lifestyle" className="w-full">
+          <TabsList className="w-full mb-6">
+            <TabsTrigger value="lifestyle" className="flex-1">Lifestyle & Habits</TabsTrigger>
+            <TabsTrigger value="schedule" className="flex-1">Work & Sleep</TabsTrigger>
+          </TabsList>
+          <TabsContent value="lifestyle" className="space-y-4">
             <LifestyleHabitsSection 
               form={form} 
               handleHobbyToggle={handleHobbyToggle} 
               hobbiesList={hobbiesList} 
             />
-            <div className="mt-6">
-              <h3 className="text-lg font-medium mb-3">Work & Sleep Schedule</h3>
-              <WorkSleepScheduleSection form={form} />
-            </div>
-          </>
-        )}
-        
-        {step === 4 && (
-          <>
-            <h3 className="text-lg font-medium mb-3">Cleanliness & Organization</h3>
+          </TabsContent>
+          <TabsContent value="schedule" className="space-y-4">
+            <WorkSleepScheduleSection form={form} />
+          </TabsContent>
+        </Tabs>
+      )}
+      
+      {step === 4 && (
+        <Tabs defaultValue="cleanliness" className="w-full">
+          <TabsList className="w-full mb-6">
+            <TabsTrigger value="cleanliness" className="flex-1">Cleanliness</TabsTrigger>
+            <TabsTrigger value="social" className="flex-1">Social</TabsTrigger>
+            <TabsTrigger value="cooking" className="flex-1">Cooking</TabsTrigger>
+          </TabsList>
+          <TabsContent value="cleanliness" className="space-y-4">
             <CleanlinessSection form={form} />
-            <div className="mt-6">
-              <h3 className="text-lg font-medium mb-3">Social Preferences</h3>
-              <SocialPreferencesSection form={form} />
-            </div>
-            <div className="mt-6">
-              <h3 className="text-lg font-medium mb-3">Cooking & Meals</h3>
-              <CookingMealsSection form={form} />
-            </div>
-          </>
-        )}
-        
-        {step === 5 && (
+          </TabsContent>
+          <TabsContent value="social" className="space-y-4">
+            <SocialPreferencesSection form={form} />
+          </TabsContent>
+          <TabsContent value="cooking" className="space-y-4">
+            <CookingMealsSection form={form} />
+          </TabsContent>
+        </Tabs>
+      )}
+      
+      {step === 5 && (
+        <div className="w-full space-y-4 py-4">
           <RoommatePreferencesSection 
             form={form} 
             handleTraitToggle={handleTraitToggle} 
             traitsList={roommateTraitsList} 
           />
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

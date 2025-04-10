@@ -16,7 +16,7 @@ export function LeaseTermsSection({ form }: LeaseTermsSectionProps) {
         name="stayDuration"
         render={({ field }) => (
           <FormItem className="space-y-3">
-            <FormLabel>How long do you plan to stay?</FormLabel>
+            <FormLabel className="text-lg font-bold text-primary">How long do you plan to stay?</FormLabel>
             <FormControl>
               <RadioGroup
                 onValueChange={field.onChange}
@@ -67,7 +67,7 @@ export function LeaseTermsSection({ form }: LeaseTermsSectionProps) {
         name="leaseTerm"
         render={({ field }) => (
           <FormItem className="space-y-3">
-            <FormLabel>What is your ideal lease duration?</FormLabel>
+            <FormLabel className="text-lg font-bold text-primary">What is your ideal lease duration?</FormLabel>
             <FormControl>
               <RadioGroup
                 onValueChange={field.onChange}
@@ -99,4 +99,3 @@ export function LeaseTermsSection({ form }: LeaseTermsSectionProps) {
     </div>
   );
 }
-
