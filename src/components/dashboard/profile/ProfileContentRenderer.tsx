@@ -33,28 +33,31 @@ export function ProfileContentRenderer({
     return <EmptyProfileState />;
   }
 
-  // For co-owner preference, show the tabbed interface
-  if (userPreference === 'co-owner' || userPreference === 'both') {
-    return (
-      <div className="space-y-8">
-        {userPreference === 'both' && (
-          <div className="mb-8">
-            <h2 className="text-xl font-bold mb-4">Roommate Profile</h2>
-            <ProfileForm initialData={profileData} onSave={onSave} />
-          </div>
-        )}
-        
-        <div>
-          {userPreference === 'both' && (
-            <h2 className="text-xl font-bold mb-4">Co-Owner Profile</h2>
-          )}
-          
-          <CoOwnerProfileTabs activeTab={activeTab} setActiveTab={setActiveTab} />
-        </div>
-      </div>
-    );
+  // Show only the roommate form for roommate preference
+  if (userPreference === 'roommate') {
+    return <ProfileForm initialData={profileData} onSave={onSave} />;
   }
 
-  // Default for roommate preference
+  // Show only the co-owner form for co-owner preference
+  if (userPreference === 'co-owner') {
+    return <CoOwnerProfileTabs activeTab={activeTab} setActiveTab={setActiveTab} />;
+  }
+
+  // For users with 'both' preference, show appropriate form based on the current path
+  // This can be enhanced later with tabs to switch between the two forms
+  if (userPreference === 'both') {
+    // Determine which page we're on from the URL
+    const path = window.location.pathname;
+    if (path.includes('roommate')) {
+      return <ProfileForm initialData={profileData} onSave={onSave} />;
+    } else if (path.includes('co-owner')) {
+      return <CoOwnerProfileTabs activeTab={activeTab} setActiveTab={setActiveTab} />;
+    } else {
+      // Default to roommate form if path doesn't indicate preference
+      return <ProfileForm initialData={profileData} onSave={onSave} />;
+    }
+  }
+
+  // Fallback to roommate form as default
   return <ProfileForm initialData={profileData} onSave={onSave} />;
 }

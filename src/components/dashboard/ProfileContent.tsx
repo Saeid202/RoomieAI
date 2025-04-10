@@ -13,9 +13,26 @@ export function ProfileContent() {
     handleSaveProfile 
   } = useProfileData();
 
+  // Determine if we're on a specific profile page
+  const path = window.location.pathname;
+  const isRoommatePage = path.includes('roommate');
+  const isCoOwnerPage = path.includes('co-owner');
+
+  // Set the title based on the current page or preference
+  let title = "My Profile";
+  if (isRoommatePage) {
+    title = "Roommate Profile";
+  } else if (isCoOwnerPage) {
+    title = "Co-Owner Profile";
+  } else if (userPreference === 'roommate') {
+    title = "Roommate Profile";
+  } else if (userPreference === 'co-owner') {
+    title = "Co-Owner Profile";
+  }
+
   return (
     <div className="space-y-8">
-      <h1 className="text-3xl font-bold tracking-tight mb-4">My Profile</h1>
+      <h1 className="text-3xl font-bold tracking-tight mb-4">{title}</h1>
       
       <div className="space-y-6">
         <div className="bg-white p-6 rounded-lg shadow-sm border">
