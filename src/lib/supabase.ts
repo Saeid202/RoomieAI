@@ -48,6 +48,10 @@ function createMockSupabaseClient() {
       signOut: () => {
         console.warn("Supabase credentials missing: auth.signOut called with mock client");
         return Promise.resolve({ error: new Error("Supabase credentials not configured") });
+      },
+      updateUser: () => {
+        console.warn("Supabase credentials missing: auth.updateUser called with mock client");
+        return Promise.resolve({ error: new Error("Supabase credentials not configured") });
       }
     },
     from: () => ({

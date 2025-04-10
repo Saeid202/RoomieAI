@@ -36,6 +36,7 @@ export default function ResetPassword() {
     setLoading(true);
     
     try {
+      // Use updateUser from Supabase Auth API
       const { error } = await supabase.auth.updateUser({ password });
       
       if (error) throw error;
