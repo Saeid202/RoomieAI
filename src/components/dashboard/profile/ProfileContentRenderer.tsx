@@ -31,41 +31,41 @@ export function ProfileContentRenderer({
     return <ProfileLoadingState />;
   }
 
-  if (!userPreference) {
+  if (!userPreference && !forcedView) {
     return <EmptyProfileState />;
   }
 
+  console.log("ProfileContentRenderer - forcedView:", forcedView);
+  
   // If forcedView is provided, it overrides everything else
   if (forcedView === 'roommate') {
+    console.log("Rendering roommate form based on forcedView");
     return <ProfileForm initialData={profileData} onSave={onSave} />;
   }
 
   if (forcedView === 'co-owner') {
+    console.log("Rendering co-owner tabs based on forcedView");
     return <CoOwnerProfileTabs activeTab={activeTab} setActiveTab={setActiveTab} />;
   }
 
   // If no forcedView, use userPreference
   if (userPreference === 'roommate') {
+    console.log("Rendering roommate form based on userPreference");
     return <ProfileForm initialData={profileData} onSave={onSave} />;
   }
 
   if (userPreference === 'co-owner') {
+    console.log("Rendering co-owner tabs based on userPreference");
     return <CoOwnerProfileTabs activeTab={activeTab} setActiveTab={setActiveTab} />;
   }
 
-  // For users with 'both' preference, handle based on current URL path
+  // For users with 'both' preference, show the roommate form by default
   if (userPreference === 'both') {
-    const path = window.location.pathname;
-    if (path.includes('roommate')) {
-      return <ProfileForm initialData={profileData} onSave={onSave} />;
-    } else if (path.includes('co-owner')) {
-      return <CoOwnerProfileTabs activeTab={activeTab} setActiveTab={setActiveTab} />;
-    } else {
-      // Default to roommate form if path doesn't indicate preference
-      return <ProfileForm initialData={profileData} onSave={onSave} />;
-    }
+    console.log("User has 'both' preference, defaulting to roommate form");
+    return <ProfileForm initialData={profileData} onSave={onSave} />;
   }
 
   // Fallback to roommate form as default
+  console.log("Fallback to roommate form");
   return <ProfileForm initialData={profileData} onSave={onSave} />;
 }
