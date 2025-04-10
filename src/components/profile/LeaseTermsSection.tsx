@@ -10,7 +10,7 @@ interface LeaseTermsSectionProps {
 
 export function LeaseTermsSection({ form }: LeaseTermsSectionProps) {
   return (
-    <>
+    <div className="grid grid-cols-2 gap-6">
       <FormField
         control={form.control}
         name="stayDuration"
@@ -96,6 +96,7 @@ export function LeaseTermsSection({ form }: LeaseTermsSectionProps) {
           </FormItem>
         )}
       />
-    </>
+    </div>
   );
 }
+
