@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -63,17 +63,28 @@ export function CoOwnerProfileForm({ initialData, onSave }: CoOwnerProfileFormPr
     propertyType: "Any",
     preferredLocation: "",
     coOwnershipExperience: "None",
-    ...initialData,
   };
 
+  // Create form with merged values
   const form = useForm<CoOwnerFormValues>({
     resolver: zodResolver(coOwnerFormSchema),
-    defaultValues,
+    defaultValues: { ...defaultValues, ...initialData },
   });
+
+  // Update form when initialData changes
+  useEffect(() => {
+    if (initialData) {
+      console.log("Updating form with initial data:", initialData);
+      Object.keys(initialData).forEach(key => {
+        form.setValue(key as any, initialData[key]);
+      });
+    }
+  }, [form, initialData]);
 
   async function onSubmit(values: CoOwnerFormValues) {
     try {
       setIsSubmitting(true);
+      console.log("Form submitted with values:", values);
       
       if (onSave) {
         await onSave(values);

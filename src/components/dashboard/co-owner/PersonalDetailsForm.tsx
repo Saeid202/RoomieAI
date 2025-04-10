@@ -13,11 +13,30 @@ export function PersonalDetailsForm() {
 
   useEffect(() => {
     async function fetchCoOwnerProfile() {
-      if (!user) return;
+      if (!user) {
+        console.log("No user found when trying to fetch profile");
+        setLoading(false);
+        return;
+      }
 
       try {
         setLoading(true);
         console.log("Fetching co-owner profile for user:", user.id);
+        
+        // Check if the co-owner table exists
+        const { data: tables, error: tableError } = await supabase
+          .from('co-owner')
+          .select('*')
+          .limit(1);
+          
+        if (tableError) {
+          console.error('Error checking co-owner table:', tableError);
+          throw tableError;
+        }
+        
+        console.log("Co-owner table exists, tables sample:", tables);
+        
+        // Now fetch user profile
         const { data, error } = await supabase
           .from('co-owner')
           .select('*')
@@ -26,7 +45,7 @@ export function PersonalDetailsForm() {
 
         if (error) {
           console.error('Error fetching co-owner profile:', error);
-          if (error.code !== 'PGRST116') {
+          if (error.code !== 'PGRST116') { // PGRST116 is "Not found" error, which is expected for new users
             throw error;
           }
         }
@@ -34,12 +53,14 @@ export function PersonalDetailsForm() {
         console.log("Co-owner profile data:", data);
         if (data) {
           setProfileData(data);
+        } else {
+          console.log("No profile data found for user:", user.id);
         }
       } catch (error) {
         console.error('Error fetching co-owner profile:', error);
         toast({
           title: 'Error',
-          description: 'Failed to load your co-owner profile.',
+          description: 'Failed to load your co-owner profile. ' + (error.message || ''),
           variant: 'destructive',
         });
       } finally {
@@ -65,6 +86,13 @@ export function PersonalDetailsForm() {
       console.log("Saving co-owner profile for user:", user.id);
       console.log("Form data to save:", formData);
       
+      // Prepare data for insert/update with user_id
+      const profileData = {
+        ...formData,
+        user_id: user.id,
+        updated_at: new Date().toISOString()
+      };
+
       // Check if profile already exists
       const { data: existingProfile, error: checkError } = await supabase
         .from('co-owner')
@@ -77,11 +105,7 @@ export function PersonalDetailsForm() {
         throw checkError;
       }
 
-      // Prepare data for insert/update
-      const profileData = {
-        ...formData,
-        user_id: user.id,
-      };
+      console.log("Existing profile check result:", existingProfile);
 
       let result;
       if (existingProfile) {
@@ -104,7 +128,7 @@ export function PersonalDetailsForm() {
         throw result.error;
       }
       
-      console.log("Profile saved successfully:", result);
+      console.log("Profile save result:", result);
 
       toast({
         title: 'Success',
@@ -119,6 +143,7 @@ export function PersonalDetailsForm() {
         .single();
         
       if (updatedData) {
+        console.log("Updated profile data:", updatedData);
         setProfileData(updatedData);
       }
       
@@ -126,7 +151,7 @@ export function PersonalDetailsForm() {
       console.error('Error saving co-owner profile:', error);
       toast({
         title: 'Error',
-        description: 'Failed to save your co-owner profile. ' + error.message,
+        description: 'Failed to save your co-owner profile. ' + (error.message || ''),
         variant: 'destructive',
       });
     }
