@@ -1,30 +1,17 @@
 
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { SocialLoginButtons } from "@/components/auth/SocialLoginButtons";
+import { SignupForm, SignupFormValues } from "@/components/auth/SignupForm";
 
 // Updated interface to match the props being passed in Navbar.tsx and MobileMenu.tsx
 export interface SignupDialogProps {
@@ -32,27 +19,12 @@ export interface SignupDialogProps {
   setIsOpen: (isOpen: boolean) => void;
 }
 
-const formSchema = z.object({
-  fullName: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.string().email("Please enter a valid email"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-});
-
 export function SignupDialog({ isOpen, setIsOpen }: SignupDialogProps) {
   const { signUp, signInWithGoogle, signInWithFacebook, signInWithLinkedIn } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      fullName: "",
-      email: "",
-      password: "",
-    },
-  });
-
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+  const handleSubmit = async (values: SignupFormValues) => {
     setIsLoading(true);
     try {
       await signUp(values.email, values.password);
@@ -65,7 +37,6 @@ export function SignupDialog({ isOpen, setIsOpen }: SignupDialogProps) {
         }
       });
       
-      form.reset();
       setIsOpen(false);
       navigate("/dashboard");
     } catch (error: any) {
@@ -85,61 +56,10 @@ export function SignupDialog({ isOpen, setIsOpen }: SignupDialogProps) {
           </DialogDescription>
         </DialogHeader>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 mt-4">
-            <FormField
-              control={form.control}
-              name="fullName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="font-medium">Full Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Your full name" {...field} className="h-11" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="font-medium">Email</FormLabel>
-                  <FormControl>
-                    <Input type="email" placeholder="your@email.com" {...field} className="h-11" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="font-medium">Password</FormLabel>
-                  <FormControl>
-                    <Input type="password" placeholder="••••••••" {...field} className="h-11" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <DialogFooter className="pt-4">
-              <Button 
-                type="submit" 
-                className="w-full h-11 bg-roomie-purple hover:bg-roomie-dark text-white font-medium" 
-                disabled={isLoading}
-              >
-                {isLoading ? "Creating account..." : "Sign Up"}
-              </Button>
-            </DialogFooter>
-          </form>
-        </Form>
+        <SignupForm 
+          onSubmit={handleSubmit}
+          isLoading={isLoading}
+        />
 
         <div className="relative mt-2 mb-4">
           <div className="absolute inset-0 flex items-center">
