@@ -9,6 +9,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { PostgrestError } from "@supabase/supabase-js";
 import { ProfileFormValues } from "@/types/profile";
 import { UserPreference } from "./types";
+import { 
+  Tabs, 
+  TabsList, 
+  TabsTrigger, 
+  TabsContent 
+} from "@/components/ui/tabs";
+import { Card } from "@/components/ui/card";
+import { PersonalDetailsForm } from "@/components/dashboard/co-owner/PersonalDetailsForm";
 
 // Define the types for our database tables with user_id for RLS
 type RoommateTableRow = {
@@ -113,6 +121,7 @@ export function ProfileContent() {
   const [profileData, setProfileData] = useState<Partial<ProfileFormValues> | null>(null);
   const [loading, setLoading] = useState(true);
   const [userPreference, setUserPreference] = useState<UserPreference>(null);
+  const [activeTab, setActiveTab] = useState("personal-details");
 
   useEffect(() => {
     // Redirect to login if not authenticated
@@ -521,33 +530,180 @@ export function ProfileContent() {
     }
   };
 
+  // Render different content based on the user preference
+  const renderContent = () => {
+    if (loading) {
+      return (
+        <div className="space-y-4">
+          <Skeleton className="h-8 w-64" />
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-16 w-full" />
+          <Skeleton className="h-16 w-full" />
+        </div>
+      );
+    }
+
+    if (!userPreference) {
+      return (
+        <div className="text-center py-8">
+          <p className="text-lg text-gray-600">Please select your preference (roommate, co-owner, or both) before filling out your profile.</p>
+          <button 
+            onClick={() => navigate('/dashboard')}
+            className="mt-4 px-4 py-2 bg-roomie-purple text-white rounded-md hover:bg-roomie-purple/90 transition-colors"
+          >
+            Go to Dashboard
+          </button>
+        </div>
+      );
+    }
+
+    // For co-owner preference, show the tabbed interface
+    if (userPreference === 'co-owner' || userPreference === 'both') {
+      return (
+        <div className="space-y-8">
+          {userPreference === 'both' && (
+            <div className="mb-8">
+              <h2 className="text-xl font-bold mb-4">Roommate Profile</h2>
+              <ProfileForm initialData={profileData} onSave={handleSaveProfile} />
+            </div>
+          )}
+          
+          <div>
+            {userPreference === 'both' && (
+              <h2 className="text-xl font-bold mb-4">Co-Owner Profile</h2>
+            )}
+            
+            <Card className="p-6">
+              <Tabs
+                defaultValue="personal-details"
+                value={activeTab}
+                onValueChange={setActiveTab}
+                className="w-full"
+              >
+                <div className="overflow-x-auto pb-2">
+                  <TabsList className="w-full bg-muted inline-flex h-auto p-1 gap-2 flex-nowrap">
+                    <TabsTrigger 
+                      value="personal-details"
+                      className="whitespace-nowrap py-2"
+                    >
+                      Personal Details
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="residence-citizenship"
+                      className="whitespace-nowrap py-2"
+                    >
+                      Residence & Citizenship
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="employment"
+                      className="whitespace-nowrap py-2"
+                    >
+                      Employment
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="financial-situation"
+                      className="whitespace-nowrap py-2"
+                    >
+                      Financial Situation
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="investment-capacity"
+                      className="whitespace-nowrap py-2"
+                    >
+                      Investment Capacity
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="investment-preferences"
+                      className="whitespace-nowrap py-2"
+                    >
+                      Investment Preferences
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="risk-management"
+                      className="whitespace-nowrap py-2"
+                    >
+                      Risk Management
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="identity-verification"
+                      className="whitespace-nowrap py-2"
+                    >
+                      Identity Verification
+                    </TabsTrigger>
+                  </TabsList>
+                </div>
+
+                <TabsContent value="personal-details" className="mt-6">
+                  <PersonalDetailsForm />
+                </TabsContent>
+                
+                <TabsContent value="residence-citizenship" className="mt-6">
+                  <div className="text-center py-12">
+                    <h3 className="text-lg font-medium">Residence & Citizenship Form</h3>
+                    <p className="text-muted-foreground mt-2">This section will be implemented in the next phase.</p>
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="employment" className="mt-6">
+                  <div className="text-center py-12">
+                    <h3 className="text-lg font-medium">Employment Information</h3>
+                    <p className="text-muted-foreground mt-2">This section will be implemented in the next phase.</p>
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="financial-situation" className="mt-6">
+                  <div className="text-center py-12">
+                    <h3 className="text-lg font-medium">Financial Situation</h3>
+                    <p className="text-muted-foreground mt-2">This section will be implemented in the next phase.</p>
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="investment-capacity" className="mt-6">
+                  <div className="text-center py-12">
+                    <h3 className="text-lg font-medium">Investment Capacity</h3>
+                    <p className="text-muted-foreground mt-2">This section will be implemented in the next phase.</p>
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="investment-preferences" className="mt-6">
+                  <div className="text-center py-12">
+                    <h3 className="text-lg font-medium">Investment Preferences</h3>
+                    <p className="text-muted-foreground mt-2">This section will be implemented in the next phase.</p>
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="risk-management" className="mt-6">
+                  <div className="text-center py-12">
+                    <h3 className="text-lg font-medium">Risk Management</h3>
+                    <p className="text-muted-foreground mt-2">This section will be implemented in the next phase.</p>
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="identity-verification" className="mt-6">
+                  <div className="text-center py-12">
+                    <h3 className="text-lg font-medium">Identity Verification</h3>
+                    <p className="text-muted-foreground mt-2">This section will be implemented in the next phase.</p>
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </Card>
+          </div>
+        </div>
+      );
+    }
+
+    // Default for roommate preference
+    return <ProfileForm initialData={profileData} onSave={handleSaveProfile} />;
+  };
+
   return (
     <div className="space-y-8">
       <h1 className="text-3xl font-bold tracking-tight mb-4">My Profile</h1>
       
       <div className="space-y-6">
         <div className="bg-white p-6 rounded-lg shadow-sm border">
-          {loading ? (
-            <div className="space-y-4">
-              <Skeleton className="h-8 w-64" />
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-16 w-full" />
-              <Skeleton className="h-16 w-full" />
-            </div>
-          ) : userPreference ? (
-            <ProfileForm initialData={profileData} onSave={handleSaveProfile} />
-          ) : (
-            <div className="text-center py-8">
-              <p className="text-lg text-gray-600">Please select your preference (roommate, co-owner, or both) before filling out your profile.</p>
-              <button 
-                onClick={() => navigate('/dashboard')}
-                className="mt-4 px-4 py-2 bg-roomie-purple text-white rounded-md hover:bg-roomie-purple/90 transition-colors"
-              >
-                Go to Dashboard
-              </button>
-            </div>
-          )}
+          {renderContent()}
         </div>
       </div>
     </div>
