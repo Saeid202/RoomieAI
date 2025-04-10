@@ -7,6 +7,8 @@ import { Users, Home, UserPlus, ChevronDown, ChevronUp } from "lucide-react";
 import { UserPreference } from "./types";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import ProfileForm from "@/components/ProfileForm";
+import { Card, CardContent } from "@/components/ui/card";
 
 export function ProfileContent() {
   const location = useLocation();
@@ -47,6 +49,42 @@ export function ProfileContent() {
       ...sectionsOpen,
       [section]: !sectionsOpen[section]
     });
+  };
+
+  // Render the appropriate form based on preference
+  const renderForm = (preference: UserPreference) => {
+    if (!preference) return null;
+
+    if (preference === "roommate" || preference === "both") {
+      return (
+        <div className="mb-8">
+          {preference === "both" && (
+            <h2 className="text-xl font-semibold mb-4 text-roomie-purple">Roommate Matching Form</h2>
+          )}
+          <ProfileForm />
+        </div>
+      );
+    }
+    
+    return null;
+  };
+
+  // Render the Co-owner form
+  const renderCoOwnerForm = (preference: UserPreference) => {
+    if (preference !== "co-owner" && preference !== "both") return null;
+
+    return (
+      <div className="mb-8">
+        {preference === "both" && (
+          <h2 className="text-xl font-semibold mb-4 text-roomie-purple">Co-owner Matching Form</h2>
+        )}
+        <Card>
+          <CardContent className="p-6">
+            <p className="text-center py-8 text-gray-500">Co-owner form will be implemented in the future update.</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
   };
   
   return (
@@ -90,7 +128,7 @@ export function ProfileContent() {
                     </div>
                   </AccordionTrigger>
                   <AccordionContent className="pt-4 px-1">
-                    <PreferenceSelector defaultPreference="roommate" />
+                    {renderForm("roommate")}
                   </AccordionContent>
                 </AccordionItem>
               </TabsContent>
@@ -104,7 +142,7 @@ export function ProfileContent() {
                     </div>
                   </AccordionTrigger>
                   <AccordionContent className="pt-4 px-1">
-                    <PreferenceSelector defaultPreference="co-owner" />
+                    {renderCoOwnerForm("co-owner")}
                   </AccordionContent>
                 </AccordionItem>
               </TabsContent>
@@ -118,7 +156,10 @@ export function ProfileContent() {
                     </div>
                   </AccordionTrigger>
                   <AccordionContent className="pt-4 px-1">
-                    <PreferenceSelector defaultPreference="both" />
+                    <div className="space-y-8">
+                      {renderForm("both")}
+                      {renderCoOwnerForm("both")}
+                    </div>
                   </AccordionContent>
                 </AccordionItem>
               </TabsContent>
