@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -15,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { Facebook, Linkedin, Mail } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
 interface LoginDialogProps {
   isOpen: boolean;
