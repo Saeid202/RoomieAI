@@ -43,12 +43,46 @@ export function ProfileContent() {
         }
 
         if (data) {
-          // Convert date string to Date object if it exists
-          const formattedData = {
-            ...data,
+          // Map database field names to ProfileFormValues properties
+          const formattedData: Partial<ProfileFormValues> = {
+            fullName: data.full_name || "",
+            age: data.age || "",
+            gender: data.gender || "",
+            phoneNumber: data.phone_number || "",
+            email: data.email || "",
+            linkedinProfile: data.linkedin_profile || "",
+            preferredLocation: data.preferred_location || "",
+            budgetRange: data.budget_range || [800, 1500],
             moveInDate: data.move_in_date ? new Date(data.move_in_date) : new Date(),
-            budgetRange: data.budget_range || [800, 1500]
+            housingType: (data.housing_type as "house" | "apartment") || "apartment",
+            livingSpace: (data.living_space as "privateRoom" | "sharedRoom" | "entirePlace") || "privateRoom",
+            smoking: !!data.smoking,
+            livesWithSmokers: !!data.lives_with_smokers,
+            hasPets: !!data.has_pets,
+            petPreference: (data.pet_preference as "noPets" | "onlyCats" | "onlyDogs" | "both") || "noPets",
+            workLocation: (data.work_location as "remote" | "office" | "hybrid") || "office",
+            dailyRoutine: (data.daily_routine as "morning" | "night" | "mixed") || "morning",
+            hobbies: data.hobbies || [],
+            workSchedule: data.work_schedule || "",
+            sleepSchedule: data.sleep_schedule || "",
+            overnightGuests: (data.overnight_guests as "yes" | "no" | "occasionally") || "occasionally",
+            cleanliness: (data.cleanliness as "veryTidy" | "somewhatTidy" | "doesntMindMess") || "somewhatTidy",
+            cleaningFrequency: (data.cleaning_frequency as "daily" | "weekly" | "biweekly" | "monthly" | "asNeeded") || "weekly",
+            socialLevel: (data.social_level as "extrovert" | "introvert" | "balanced") || "balanced",
+            guestsOver: (data.guests_over as "yes" | "no" | "occasionally") || "occasionally",
+            familyOver: (data.family_over as "yes" | "no" | "occasionally") || "occasionally",
+            atmosphere: (data.atmosphere as "quiet" | "lively" | "balanced") || "balanced",
+            hostingFriends: (data.hosting_friends as "yes" | "no" | "occasionally") || "occasionally",
+            diet: (data.diet as "vegetarian" | "vegan" | "omnivore" | "other") || "omnivore",
+            cookingSharing: (data.cooking_sharing as "share" | "separate") || "share",
+            stayDuration: (data.stay_duration as "threeMonths" | "sixMonths" | "oneYear" | "flexible") || "oneYear",
+            leaseTerm: (data.lease_term as "shortTerm" | "longTerm") || "longTerm",
+            roommateGenderPreference: (data.roommate_gender_preference as "sameGender" | "femaleOnly" | "maleOnly" | "noPreference") || "noPreference",
+            roommateAgePreference: (data.roommate_age_preference as "similar" | "younger" | "older" | "noAgePreference") || "similar",
+            roommateLifestylePreference: (data.roommate_lifestyle_preference as "similar" | "moreActive" | "quieter" | "noLifestylePreference") || "similar",
+            importantRoommateTraits: data.important_roommate_traits || [],
           };
+          
           setProfileData(formattedData);
         }
       } catch (error: any) {
@@ -131,12 +165,46 @@ export function ProfileContent() {
         .single();
 
       if (data) {
-        // Convert date string to Date object if it exists
-        const formattedData = {
-          ...data,
+        // Map database field names to ProfileFormValues properties using the same mapping function
+        const formattedData: Partial<ProfileFormValues> = {
+          fullName: data.full_name || "",
+          age: data.age || "",
+          gender: data.gender || "",
+          phoneNumber: data.phone_number || "",
+          email: data.email || "",
+          linkedinProfile: data.linkedin_profile || "",
+          preferredLocation: data.preferred_location || "",
+          budgetRange: data.budget_range || [800, 1500],
           moveInDate: data.move_in_date ? new Date(data.move_in_date) : new Date(),
-          budgetRange: data.budget_range || [800, 1500]
+          housingType: (data.housing_type as "house" | "apartment") || "apartment",
+          livingSpace: (data.living_space as "privateRoom" | "sharedRoom" | "entirePlace") || "privateRoom",
+          smoking: !!data.smoking,
+          livesWithSmokers: !!data.lives_with_smokers,
+          hasPets: !!data.has_pets,
+          petPreference: (data.pet_preference as "noPets" | "onlyCats" | "onlyDogs" | "both") || "noPets",
+          workLocation: (data.work_location as "remote" | "office" | "hybrid") || "office",
+          dailyRoutine: (data.daily_routine as "morning" | "night" | "mixed") || "morning",
+          hobbies: data.hobbies || [],
+          workSchedule: data.work_schedule || "",
+          sleepSchedule: data.sleep_schedule || "",
+          overnightGuests: (data.overnight_guests as "yes" | "no" | "occasionally") || "occasionally",
+          cleanliness: (data.cleanliness as "veryTidy" | "somewhatTidy" | "doesntMindMess") || "somewhatTidy",
+          cleaningFrequency: (data.cleaning_frequency as "daily" | "weekly" | "biweekly" | "monthly" | "asNeeded") || "weekly",
+          socialLevel: (data.social_level as "extrovert" | "introvert" | "balanced") || "balanced",
+          guestsOver: (data.guests_over as "yes" | "no" | "occasionally") || "occasionally",
+          familyOver: (data.family_over as "yes" | "no" | "occasionally") || "occasionally",
+          atmosphere: (data.atmosphere as "quiet" | "lively" | "balanced") || "balanced",
+          hostingFriends: (data.hosting_friends as "yes" | "no" | "occasionally") || "occasionally",
+          diet: (data.diet as "vegetarian" | "vegan" | "omnivore" | "other") || "omnivore",
+          cookingSharing: (data.cooking_sharing as "share" | "separate") || "share",
+          stayDuration: (data.stay_duration as "threeMonths" | "sixMonths" | "oneYear" | "flexible") || "oneYear",
+          leaseTerm: (data.lease_term as "shortTerm" | "longTerm") || "longTerm",
+          roommateGenderPreference: (data.roommate_gender_preference as "sameGender" | "femaleOnly" | "maleOnly" | "noPreference") || "noPreference",
+          roommateAgePreference: (data.roommate_age_preference as "similar" | "younger" | "older" | "noAgePreference") || "similar",
+          roommateLifestylePreference: (data.roommate_lifestyle_preference as "similar" | "moreActive" | "quieter" | "noLifestylePreference") || "similar",
+          importantRoommateTraits: data.important_roommate_traits || [],
         };
+        
         setProfileData(formattedData);
       }
     } catch (error: any) {
