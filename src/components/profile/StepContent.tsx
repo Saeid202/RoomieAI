@@ -26,7 +26,7 @@ export function StepContent({
   handleTraitToggle 
 }: StepContentProps) {
   return (
-    <div className="h-full">
+    <div className="w-full space-y-6">
       {step === 1 && (
         <BasicInformationSection form={form} />
       )}

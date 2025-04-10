@@ -17,7 +17,7 @@ export function FormButtons({
   isSubmitStep 
 }: FormButtonsProps) {
   return (
-    <div className="flex justify-between mt-4 pt-4 border-t">
+    <div className="flex justify-between mt-4 pt-4 border-t w-full">
       {step > 1 ? (
         <Button type="button" variant="outline" onClick={onPrev}>
           Back

@@ -86,8 +86,8 @@ const ProfileForm = () => {
   }
 
   return (
-    <section id="profile-form" className="py-20 bg-roomie-light">
-      <div className="container mx-auto px-4">
+    <section id="profile-form" className="py-20 bg-roomie-light w-full">
+      <div className="container mx-auto px-4 max-w-none">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">Find Your Perfect Roommate</h2>
           <p className="text-lg text-gray-700 max-w-2xl mx-auto">
@@ -95,7 +95,7 @@ const ProfileForm = () => {
           </p>
         </div>
 
-        <Card className="max-w-4xl mx-auto shadow-lg">
+        <Card className="mx-auto shadow-lg w-full max-w-6xl">
           <CardHeader>
             <FormStepHeader 
               step={step} 
@@ -106,13 +106,15 @@ const ProfileForm = () => {
           
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>
-              <CardContent className="min-h-[400px]">
-                <StepContent
-                  form={form}
-                  step={step}
-                  handleHobbyToggle={handleHobbyToggle}
-                  handleTraitToggle={handleTraitToggle}
-                />
+              <CardContent className="min-h-[500px] flex items-center">
+                <div className="w-full">
+                  <StepContent
+                    form={form}
+                    step={step}
+                    handleHobbyToggle={handleHobbyToggle}
+                    handleTraitToggle={handleTraitToggle}
+                  />
+                </div>
               </CardContent>
               
               <CardFooter>
