@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 import {
@@ -96,7 +97,6 @@ const Navbar = () => {
           </h1>
         </div>
 
-        {/* Desktop Navigation */}
         <div className="hidden md:flex items-center space-x-8">
           <a href="#how-it-works" className="text-gray-700 hover:text-roomie-purple font-medium">
             How It Works
@@ -115,7 +115,6 @@ const Navbar = () => {
           </Link>
         </div>
 
-        {/* Login / Sign Up Buttons */}
         <div className="hidden md:flex items-center space-x-4">
           <Dialog open={isLoginOpen} onOpenChange={setIsLoginOpen}>
             <DialogTrigger asChild>
@@ -179,7 +178,6 @@ const Navbar = () => {
           </Dialog>
         </div>
 
-        {/* Mobile Menu Button */}
         <button
           className="md:hidden text-gray-700"
           onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -188,7 +186,6 @@ const Navbar = () => {
         </button>
       </div>
 
-      {/* Mobile Menu */}
       {isMenuOpen && (
         <div className="md:hidden bg-white w-full py-4 px-6 shadow-md">
           <div className="flex flex-col space-y-4">
