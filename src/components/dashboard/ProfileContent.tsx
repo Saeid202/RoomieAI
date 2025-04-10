@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ProfileForm from "@/components/ProfileForm";
@@ -53,9 +54,10 @@ type RoommateTableRow = {
   user_id: string | null;
 };
 
-// Define simpler types for other tables which have fewer fields
-type CoOwnerTableRow = {
-  id: string;
+// Define common type for all tables to avoid redundancy
+type ProfileTableRow = {
+  id?: string;
+  user_id?: string | null;
   full_name?: string | null;
   age?: string | null;
   gender?: string | null;
@@ -67,30 +69,39 @@ type CoOwnerTableRow = {
   move_in_date?: string | null;
   housing_type?: string | null;
   living_space?: string | null;
+  smoking?: boolean | null;
+  lives_with_smokers?: boolean | null;
+  has_pets?: boolean | null;
+  pet_preference?: string | null;
+  work_location?: string | null;
+  daily_routine?: string | null;
+  hobbies?: string[] | null;
+  work_schedule?: string | null;
+  sleep_schedule?: string | null;
+  overnight_guests?: string | null;
+  cleanliness?: string | null;
+  cleaning_frequency?: string | null;
+  social_level?: string | null;
+  guests_over?: string | null;
+  family_over?: string | null;
+  atmosphere?: string | null;
+  hosting_friends?: string | null;
+  diet?: string | null;
+  cooking_sharing?: string | null;
+  stay_duration?: string | null;
+  lease_term?: string | null;
+  roommate_gender_preference?: string | null;
+  roommate_age_preference?: string | null;
+  roommate_lifestyle_preference?: string | null;
+  important_roommate_traits?: string[] | null;
   created_at?: string | null;
   updated_at?: string | null;
-  user_id?: string | null;
   [key: string]: any; // Allow dynamic properties
 };
 
-type BothTableRow = {
-  id: string;
-  full_name?: string | null;
-  age?: string | null;
-  gender?: string | null;
-  phone_number?: string | null;
-  email?: string | null;
-  linkedin_profile?: string | null;
-  preferred_location?: string | null;
-  budget_range?: number[] | null;
-  move_in_date?: string | null;
-  housing_type?: string | null;
-  living_space?: string | null;
-  created_at?: string | null;
-  updated_at?: string | null;
-  user_id?: string | null;
-  [key: string]: any; // Allow dynamic properties
-};
+// Use these type aliases for better readability
+type CoOwnerTableRow = ProfileTableRow;
+type BothTableRow = ProfileTableRow;
 
 export function ProfileContent() {
   const { user } = useAuth();
@@ -126,7 +137,7 @@ export function ProfileContent() {
         } else if (savedPreference === 'co-owner') {
           tableName = 'co-owner';
         } else if (savedPreference === 'both') {
-          tableName = 'Both';
+          tableName = 'Both'; // Note the capital 'B' in "Both" table name
         }
 
         if (!tableName) {
@@ -139,7 +150,7 @@ export function ProfileContent() {
 
         // Query by user_id field for user-specific data
         const { data, error } = await supabase
-          .from(tableName as any)
+          .from(tableName)
           .select('*')
           .eq('user_id', user.id)
           .single();
@@ -451,7 +462,7 @@ export function ProfileContent() {
       } else if (userPreference === 'co-owner') {
         tableName = 'co-owner';
       } else if (userPreference === 'both') {
-        tableName = 'Both';
+        tableName = 'Both'; // Note the capital 'B' in "Both" table name
       }
 
       if (!tableName) {
@@ -462,8 +473,8 @@ export function ProfileContent() {
 
       // First check if a record already exists with the user_id
       const { data: existingData, error: fetchError } = await supabase
-        .from(tableName as any)
-        .select('id')
+        .from(tableName)
+        .select('id, user_id')
         .eq('user_id', user.id)
         .maybeSingle();
       
@@ -475,14 +486,16 @@ export function ProfileContent() {
       let result;
       if (existingData) {
         // Update existing record
+        console.log("Updating existing record:", existingData);
         result = await supabase
-          .from(tableName as any)
+          .from(tableName)
           .update(dbData)
           .eq('user_id', user.id);
       } else {
         // Insert new record
+        console.log("Inserting new record");
         result = await supabase
-          .from(tableName as any)
+          .from(tableName)
           .insert(dbData);
       }
       

@@ -11,19 +11,130 @@ export type Database = {
     Tables: {
       Both: {
         Row: {
+          age: string | null
+          atmosphere: string | null
+          budget_range: number[] | null
+          cleaning_frequency: string | null
+          cleanliness: string | null
+          cooking_sharing: string | null
           created_at: string
+          daily_routine: string | null
+          diet: string | null
+          email: string | null
+          family_over: string | null
+          full_name: string | null
+          gender: string | null
+          guests_over: string | null
+          has_pets: boolean | null
+          hobbies: string[] | null
+          hosting_friends: string | null
+          housing_type: string | null
           id: number
+          important_roommate_traits: string[] | null
+          lease_term: string | null
+          linkedin_profile: string | null
+          lives_with_smokers: boolean | null
+          living_space: string | null
+          move_in_date: string | null
+          overnight_guests: string | null
+          pet_preference: string | null
+          phone_number: string | null
+          preferred_location: string | null
+          roommate_age_preference: string | null
+          roommate_gender_preference: string | null
+          roommate_lifestyle_preference: string | null
+          sleep_schedule: string | null
+          smoking: boolean | null
+          social_level: string | null
+          stay_duration: string | null
+          updated_at: string | null
           user_id: string | null
+          work_location: string | null
+          work_schedule: string | null
         }
         Insert: {
+          age?: string | null
+          atmosphere?: string | null
+          budget_range?: number[] | null
+          cleaning_frequency?: string | null
+          cleanliness?: string | null
+          cooking_sharing?: string | null
           created_at?: string
+          daily_routine?: string | null
+          diet?: string | null
+          email?: string | null
+          family_over?: string | null
+          full_name?: string | null
+          gender?: string | null
+          guests_over?: string | null
+          has_pets?: boolean | null
+          hobbies?: string[] | null
+          hosting_friends?: string | null
+          housing_type?: string | null
           id?: number
+          important_roommate_traits?: string[] | null
+          lease_term?: string | null
+          linkedin_profile?: string | null
+          lives_with_smokers?: boolean | null
+          living_space?: string | null
+          move_in_date?: string | null
+          overnight_guests?: string | null
+          pet_preference?: string | null
+          phone_number?: string | null
+          preferred_location?: string | null
+          roommate_age_preference?: string | null
+          roommate_gender_preference?: string | null
+          roommate_lifestyle_preference?: string | null
+          sleep_schedule?: string | null
+          smoking?: boolean | null
+          social_level?: string | null
+          stay_duration?: string | null
+          updated_at?: string | null
           user_id?: string | null
+          work_location?: string | null
+          work_schedule?: string | null
         }
         Update: {
+          age?: string | null
+          atmosphere?: string | null
+          budget_range?: number[] | null
+          cleaning_frequency?: string | null
+          cleanliness?: string | null
+          cooking_sharing?: string | null
           created_at?: string
+          daily_routine?: string | null
+          diet?: string | null
+          email?: string | null
+          family_over?: string | null
+          full_name?: string | null
+          gender?: string | null
+          guests_over?: string | null
+          has_pets?: boolean | null
+          hobbies?: string[] | null
+          hosting_friends?: string | null
+          housing_type?: string | null
           id?: number
+          important_roommate_traits?: string[] | null
+          lease_term?: string | null
+          linkedin_profile?: string | null
+          lives_with_smokers?: boolean | null
+          living_space?: string | null
+          move_in_date?: string | null
+          overnight_guests?: string | null
+          pet_preference?: string | null
+          phone_number?: string | null
+          preferred_location?: string | null
+          roommate_age_preference?: string | null
+          roommate_gender_preference?: string | null
+          roommate_lifestyle_preference?: string | null
+          sleep_schedule?: string | null
+          smoking?: boolean | null
+          social_level?: string | null
+          stay_duration?: string | null
+          updated_at?: string | null
           user_id?: string | null
+          work_location?: string | null
+          work_schedule?: string | null
         }
         Relationships: []
       }
