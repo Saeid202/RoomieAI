@@ -28,7 +28,7 @@ export function ProfileContent() {
         const { data, error } = await supabase
           .from('profiles')
           .select('*')
-          .eq('user_id', user.id)
+          .eq('id', user.id)
           .single();
 
         if (error) {
@@ -59,11 +59,13 @@ export function ProfileContent() {
 
   const handleSaveProfile = async (formData: any) => {
     try {
+      if (!user) return;
+      
       // Insert or update profile data
       const { error } = await supabase
         .from('profiles')
         .upsert({
-          user_id: user?.id,
+          id: user.id,
           ...formData,
           updated_at: new Date().toISOString(),
         });
@@ -79,7 +81,7 @@ export function ProfileContent() {
       const { data } = await supabase
         .from('profiles')
         .select('*')
-        .eq('user_id', user?.id)
+        .eq('id', user.id)
         .single();
 
       if (data) {
