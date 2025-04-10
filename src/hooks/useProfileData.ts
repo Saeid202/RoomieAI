@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -7,7 +6,7 @@ import { ProfileFormValues } from "@/types/profile";
 import { UserPreference } from "@/components/dashboard/types";
 import { fetchProfileData, getTableNameFromPreference, saveProfileData } from "@/services/profileService";
 import { TableName } from "@/components/dashboard/types/profileTypes";
-import { mapDbRowToFormValues } from "@/utils/profileDataMappers";
+import { mapDbRowToFormValues, mapCoOwnerDbRowToFormValues } from "@/utils/profileDataMappers";
 
 export function useProfileData() {
   const { user } = useAuth();
@@ -19,20 +18,16 @@ export function useProfileData() {
   const [activeTab, setActiveTab] = useState("personal-details");
 
   useEffect(() => {
-    // Redirect to login if not authenticated
     if (!user) {
       navigate('/');
       return;
     }
 
-    // Get user preference from localStorage
     const savedPreference = localStorage.getItem('userPreference') as UserPreference;
     
-    // Make sure savedPreference is valid (roommate or co-owner only, not "both")
     const validPreference = savedPreference === 'roommate' || savedPreference === 'co-owner' ? savedPreference : null;
     setUserPreference(validPreference);
 
-    // Load profile data from Supabase based on preference
     const loadProfileData = async () => {
       try {
         if (!validPreference) {
@@ -40,19 +35,16 @@ export function useProfileData() {
           return;
         }
 
-        // Determine which table to query based on user preference
         const tableName = getTableNameFromPreference(validPreference);
         if (!tableName) {
           setLoading(false);
           return;
         }
 
-        // Fetch the profile data
         const { data, error } = await fetchProfileData(user.id, tableName);
 
         if (error) {
-          // Check if it's a PostgrestError with a code property
-          if (error.code !== 'PGRST116') { // PGRST116 is "Not found" error, which is expected for new users
+          if (error.code !== 'PGRST116') {
             console.error("Error fetching profile data:", error);
             throw error;
           }
@@ -60,8 +52,14 @@ export function useProfileData() {
 
         if (data) {
           console.log("Fetched data:", data);
-          // Convert database row to form values format, ensuring any type conversions are handled
-          const formattedData = mapDbRowToFormValues(data);
+          let formattedData;
+          
+          if (validPreference === 'co-owner') {
+            formattedData = mapCoOwnerDbRowToFormValues(data);
+          } else {
+            formattedData = mapDbRowToFormValues(data);
+          }
+          
           setProfileData(formattedData);
         }
       } catch (error: any) {
@@ -87,13 +85,11 @@ export function useProfileData() {
       console.log("Selected preference:", userPreference);
       console.log("Form data to save:", formData);
       
-      // Determine which table to save to based on user preference
       const tableName = getTableNameFromPreference(userPreference);
       if (!tableName) {
         throw new Error("No table selected. Please select a preference (roommate or co-owner).");
       }
 
-      // Save the profile data
       const result = await saveProfileData(formData, user.id, tableName);
       
       if (result.error) {
@@ -106,7 +102,6 @@ export function useProfileData() {
         description: "Your profile has been updated successfully",
       });
 
-      // Refresh the page to show updated data
       window.location.reload();
       
     } catch (error: any) {
