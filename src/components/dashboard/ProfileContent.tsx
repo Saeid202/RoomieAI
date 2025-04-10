@@ -51,6 +51,7 @@ type RoommateTableRow = {
   important_roommate_traits: string[] | null;
   created_at: string | null;
   updated_at: string | null;
+  user_id?: string | null;
 };
 
 // Define simpler types for other tables which have fewer fields
@@ -132,6 +133,9 @@ export function ProfileContent() {
           return;
         }
 
+        console.log("Fetching from table:", tableName);
+        console.log("User ID:", user.id);
+
         // Use type assertion to help TypeScript understand this is a valid table name
         const { data, error } = await supabase
           .from(tableName as any)
@@ -144,11 +148,14 @@ export function ProfileContent() {
           const postgrestError = error as PostgrestError;
           // PGRST116 is "Not found" error, which is expected for new users
           if (postgrestError.code !== 'PGRST116') {
+            console.error("Error fetching profile data:", error);
             throw error;
           }
         }
 
         if (data) {
+          console.log("Fetched data:", data);
+          
           // Create default formattedData with safe defaults
           const formattedData: Partial<ProfileFormValues> = {
             fullName: "",
@@ -371,6 +378,7 @@ export function ProfileContent() {
           setProfileData(formattedData);
         }
       } catch (error: any) {
+        console.error("Profile loading error:", error);
         toast({
           title: "Error loading profile",
           description: error.message,
@@ -388,9 +396,13 @@ export function ProfileContent() {
     try {
       if (!user || !userPreference) return;
       
+      console.log("Saving profile for user:", user.id);
+      console.log("Selected preference:", userPreference);
+      console.log("Form data to save:", formData);
+      
       // Prepare data for Supabase - convert camelCase to snake_case for DB columns
       const dbData = {
-        id: user.id,
+        id: user.id, // Using the user's UUID as the record ID
         full_name: formData.fullName,
         age: formData.age,
         gender: formData.gender,
@@ -444,12 +456,17 @@ export function ProfileContent() {
         throw new Error("No table selected. Please select a preference (roommate, co-owner, or both).");
       }
 
+      console.log("Saving to table:", tableName);
+
       // Insert or update profile data in the appropriate table using type assertion for the table name
       const { error } = await supabase
         .from(tableName as any)
         .upsert(dbData);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error saving profile:", error);
+        throw error;
+      }
 
       toast({
         title: "Profile saved",
@@ -464,6 +481,8 @@ export function ProfileContent() {
         .single();
 
       if (data) {
+        console.log("Refreshed data after save:", data);
+        
         // Create a default formatted data object with default values
         const formattedData: Partial<ProfileFormValues> = {
           fullName: "",
@@ -679,6 +698,7 @@ export function ProfileContent() {
         setProfileData(formattedData);
       }
     } catch (error: any) {
+      console.error("Error saving profile:", error);
       toast({
         title: "Error saving profile",
         description: error.message,
