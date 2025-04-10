@@ -32,8 +32,8 @@ export function DashboardSidebar() {
 
   // Profile section sub-items
   const profileSubItems = [
-    { label: "Roommate", path: "/dashboard/profile?tab=roommate" },
-    { label: "Co-owner", path: "/dashboard/profile?tab=co-owner" }
+    { label: "Roommate", path: "/dashboard/profile/roommate" },
+    { label: "Co-owner", path: "/dashboard/profile/co-owner" }
   ];
 
   // Rent section sub-items
