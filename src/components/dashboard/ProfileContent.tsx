@@ -10,7 +10,7 @@ import { PostgrestError } from "@supabase/supabase-js";
 import { ProfileFormValues } from "@/types/profile";
 import { UserPreference } from "./types";
 
-// Define the types for our database tables
+// Define the types for our database tables - adjusting id to be number type for bigint
 type RoommateTableRow = {
   id: string;
   full_name: string | null;
@@ -137,10 +137,11 @@ export function ProfileContent() {
         console.log("User ID:", user.id);
 
         // Use type assertion to help TypeScript understand this is a valid table name
+        // Important change: Query by user_id instead of id for user-specific data
         const { data, error } = await supabase
           .from(tableName as any)
           .select('*')
-          .eq('id', user.id)
+          .eq('user_id', user.id)
           .single();
 
         if (error) {
@@ -207,7 +208,7 @@ export function ProfileContent() {
           
           // Handle arrays and special types properly
           if ('budget_range' in data && data.budget_range && Array.isArray(data.budget_range)) {
-            formattedData.budgetRange = data.budget_range;
+            formattedData.budgetRange = data.budget_range.map(Number);
           }
           
           if ('move_in_date' in data && data.move_in_date) {
@@ -258,7 +259,7 @@ export function ProfileContent() {
           
           // Handle arrays safely
           if ('hobbies' in data && data.hobbies && Array.isArray(data.hobbies)) {
-            formattedData.hobbies = data.hobbies;
+            formattedData.hobbies = data.hobbies.map(String);
           }
           
           // Handle simple string values
@@ -372,7 +373,7 @@ export function ProfileContent() {
           }
           
           if ('important_roommate_traits' in data && data.important_roommate_traits && Array.isArray(data.important_roommate_traits)) {
-            formattedData.importantRoommateTraits = data.important_roommate_traits;
+            formattedData.importantRoommateTraits = data.important_roommate_traits.map(String);
           }
           
           setProfileData(formattedData);
@@ -402,7 +403,8 @@ export function ProfileContent() {
       
       // Prepare data for Supabase - convert camelCase to snake_case for DB columns
       const dbData = {
-        id: user.id, // Using the user's UUID as the record ID
+        // Don't set ID directly as it's handled by Supabase
+        user_id: user.id, // Using the user's UUID as the user_id foreign key
         full_name: formData.fullName,
         age: formData.age,
         gender: formData.gender,
@@ -458,10 +460,10 @@ export function ProfileContent() {
 
       console.log("Saving to table:", tableName);
 
-      // Insert or update profile data in the appropriate table using type assertion for the table name
+      // Insert profile data in the appropriate table - using insert instead of upsert
       const { error } = await supabase
         .from(tableName as any)
-        .upsert(dbData);
+        .insert(dbData);
 
       if (error) {
         console.error("Error saving profile:", error);
@@ -477,7 +479,7 @@ export function ProfileContent() {
       const { data } = await supabase
         .from(tableName as any)
         .select('*')
-        .eq('id', user.id)
+        .eq('user_id', user.id)
         .single();
 
       if (data) {
@@ -533,7 +535,7 @@ export function ProfileContent() {
         if ('preferred_location' in data && data.preferred_location) formattedData.preferredLocation = String(data.preferred_location);
         
         if ('budget_range' in data && data.budget_range && Array.isArray(data.budget_range)) {
-          formattedData.budgetRange = data.budget_range;
+          formattedData.budgetRange = data.budget_range.map(Number);
         }
         
         if ('move_in_date' in data && data.move_in_date) {
@@ -580,7 +582,7 @@ export function ProfileContent() {
         }
         
         if ('hobbies' in data && data.hobbies && Array.isArray(data.hobbies)) {
-          formattedData.hobbies = data.hobbies;
+          formattedData.hobbies = data.hobbies.map(String);
         }
         
         if ('work_schedule' in data && data.work_schedule) formattedData.workSchedule = String(data.work_schedule);
@@ -692,7 +694,7 @@ export function ProfileContent() {
         }
         
         if ('important_roommate_traits' in data && data.important_roommate_traits && Array.isArray(data.important_roommate_traits)) {
-          formattedData.importantRoommateTraits = data.important_roommate_traits;
+          formattedData.importantRoommateTraits = data.important_roommate_traits.map(String);
         }
         
         setProfileData(formattedData);

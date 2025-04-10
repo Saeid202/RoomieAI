@@ -1,11 +1,11 @@
 
 import { useState, useEffect } from "react";
-import { Check, Edit } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { PreferenceSelectionSection } from "./preferences/PreferenceSelectionSection";
 import { FormDisplaySection } from "./preferences/FormDisplaySection";
 import { UserPreference } from "./types";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 
 interface PreferenceSelectorProps {
   defaultPreference?: UserPreference;
@@ -16,6 +16,7 @@ export function PreferenceSelector({ defaultPreference = null }: PreferenceSelec
   const [showForms, setShowForms] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { user } = useAuth();
   
   useEffect(() => {
     if (defaultPreference) {
@@ -52,6 +53,7 @@ export function PreferenceSelector({ defaultPreference = null }: PreferenceSelec
       return;
     }
     
+    // Store in localStorage that the user has completed the form
     setShowForms(true);
     localStorage.setItem(`formCompleted_${preference}`, 'true');
     
