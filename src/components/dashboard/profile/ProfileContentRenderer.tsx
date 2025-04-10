@@ -6,6 +6,7 @@ import { CoOwnerProfileTabs } from "@/components/dashboard/co-owner/CoOwnerProfi
 import { ProfileLoadingState } from "./ProfileLoadingState";
 import { EmptyProfileState } from "./EmptyProfileState";
 import { useLocation } from "react-router-dom";
+import { PersonalDetailsForm } from "@/components/dashboard/co-owner/PersonalDetailsForm";
 
 interface ProfileContentRendererProps {
   loading: boolean;
@@ -65,8 +66,9 @@ export function ProfileContentRenderer({
   }
 
   if (displayView === 'co-owner') {
-    console.log("Rendering co-owner tabs based on displayView");
-    return <CoOwnerProfileTabs activeTab={activeTab} setActiveTab={setActiveTab} />;
+    console.log("Rendering co-owner form based on displayView");
+    // Use the direct PersonalDetailsForm component that includes the co-owner form
+    return <PersonalDetailsForm />;
   }
 
   // Fallback to profile selection if no valid preference is found
