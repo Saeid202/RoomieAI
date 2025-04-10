@@ -6,21 +6,22 @@ export const getFieldsForStep = (currentStep: number): string[] => {
   switch (currentStep) {
     case 1: // Basic Information
       return ["fullName", "age", "gender", "phoneNumber", "email", "linkedinProfile"];
-    case 2: // Housing Preferences
-      return ["preferredLocation", "budgetRange", "moveInDate", "housingType", "livingSpace"];
-    case 3: // Lifestyle & Habits
-      return ["smoking", "livesWithSmokers", "hasPets", "petPreference", "workLocation", "dailyRoutine", "hobbies"];
-    case 4: // Work/Sleep Schedule
-      return ["workSchedule", "sleepSchedule", "overnightGuests"];
-    case 5: // Cleanliness & Organization
-      return ["cleanliness", "cleaningFrequency"];
-    case 6: // Social Preferences
-      return ["socialLevel", "guestsOver", "familyOver", "atmosphere", "hostingFriends"];
-    case 7: // Cooking & Meals
-      return ["diet", "cookingSharing"];
-    case 8: // Lease Terms
-      return ["stayDuration", "leaseTerm"];
-    case 9: // Roommate Preferences
+    case 2: // Housing Preferences + Lease Terms
+      return [
+        "preferredLocation", "budgetRange", "moveInDate", "housingType", "livingSpace",
+        "stayDuration", "leaseTerm"
+      ];
+    case 3: // Lifestyle & Habits + Work/Sleep Schedule
+      return [
+        "smoking", "livesWithSmokers", "hasPets", "petPreference", "workLocation", 
+        "dailyRoutine", "hobbies", "workSchedule", "sleepSchedule", "overnightGuests"
+      ];
+    case 4: // Cleanliness + Social + Cooking
+      return [
+        "cleanliness", "cleaningFrequency", "socialLevel", "guestsOver", 
+        "familyOver", "atmosphere", "hostingFriends", "diet", "cookingSharing"
+      ];
+    case 5: // Roommate Preferences
       return ["roommateGenderPreference", "roommateAgePreference", "roommateLifestylePreference", "importantRoommateTraits"];
     default:
       return [];

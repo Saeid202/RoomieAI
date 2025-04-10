@@ -1,4 +1,3 @@
-
 import { UseFormReturn } from "react-hook-form";
 import { ProfileFormValues } from "@/types/profile";
 import { BasicInformationSection } from "./BasicInformationSection";
@@ -33,38 +32,47 @@ export function StepContent({
         )}
         
         {step === 2 && (
-          <HousingPreferencesSection form={form} />
+          <>
+            <h3 className="text-lg font-medium mb-4">Housing Preferences</h3>
+            <HousingPreferencesSection form={form} />
+            <div className="mt-8">
+              <h3 className="text-lg font-medium mb-4">Lease Terms</h3>
+              <LeaseTermsSection form={form} />
+            </div>
+          </>
         )}
         
         {step === 3 && (
-          <LifestyleHabitsSection 
-            form={form} 
-            handleHobbyToggle={handleHobbyToggle} 
-            hobbiesList={hobbiesList} 
-          />
+          <>
+            <h3 className="text-lg font-medium mb-4">Lifestyle & Habits</h3>
+            <LifestyleHabitsSection 
+              form={form} 
+              handleHobbyToggle={handleHobbyToggle} 
+              hobbiesList={hobbiesList} 
+            />
+            <div className="mt-8">
+              <h3 className="text-lg font-medium mb-4">Work & Sleep Schedule</h3>
+              <WorkSleepScheduleSection form={form} />
+            </div>
+          </>
         )}
         
         {step === 4 && (
-          <WorkSleepScheduleSection form={form} />
+          <>
+            <h3 className="text-lg font-medium mb-4">Cleanliness & Organization</h3>
+            <CleanlinessSection form={form} />
+            <div className="mt-8">
+              <h3 className="text-lg font-medium mb-4">Social Preferences</h3>
+              <SocialPreferencesSection form={form} />
+            </div>
+            <div className="mt-8">
+              <h3 className="text-lg font-medium mb-4">Cooking & Meals</h3>
+              <CookingMealsSection form={form} />
+            </div>
+          </>
         )}
         
         {step === 5 && (
-          <CleanlinessSection form={form} />
-        )}
-        
-        {step === 6 && (
-          <SocialPreferencesSection form={form} />
-        )}
-        
-        {step === 7 && (
-          <CookingMealsSection form={form} />
-        )}
-        
-        {step === 8 && (
-          <LeaseTermsSection form={form} />
-        )}
-        
-        {step === 9 && (
           <RoommatePreferencesSection 
             form={form} 
             handleTraitToggle={handleTraitToggle} 

@@ -1,6 +1,8 @@
+
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { CheckCircle2 } from "lucide-react";
 
 import {
   Form,
@@ -25,7 +27,8 @@ const ProfileForm = () => {
   const [showResults, setShowResults] = useState(false);
   const [matchResults, setMatchResults] = useState([]);
   
-  const totalSteps = 9;
+  // Reduce total steps from 9 to 5
+  const totalSteps = 5;
   
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
@@ -83,6 +86,21 @@ const ProfileForm = () => {
     return <MatchResultsDisplay matchResults={matchResults} onBackToProfile={() => setShowResults(false)} />;
   }
 
+  const getCompletedSections = () => {
+    const sections = [
+      { id: 1, name: "Personal Info" },
+      { id: 2, name: "Housing" },
+      { id: 3, name: "Lifestyle" },
+      { id: 4, name: "Social & Cleaning" },
+      { id: 5, name: "Roommate Preferences" }
+    ];
+    
+    return sections.map(section => ({
+      ...section,
+      completed: section.id < step
+    }));
+  };
+
   return (
     <section id="profile-form" className="py-10 bg-roomie-light w-full">
       <div className="container mx-auto px-4 max-w-none">
@@ -93,11 +111,30 @@ const ProfileForm = () => {
               totalSteps={totalSteps} 
               onStepClick={goToStep} 
             />
+            
+            {/* Add completed sections summary */}
+            <div className="flex flex-wrap gap-2 mt-4">
+              {getCompletedSections().map(section => (
+                <div 
+                  key={section.id}
+                  onClick={() => section.completed && goToStep(section.id)}
+                  className={`flex items-center gap-1 px-3 py-1 rounded-full text-sm cursor-pointer transition-colors
+                    ${section.completed 
+                      ? "bg-green-100 text-green-800 hover:bg-green-200" 
+                      : section.id === step 
+                        ? "bg-blue-100 text-blue-800" 
+                        : "bg-gray-100 text-gray-500"}`}
+                >
+                  {section.completed && <CheckCircle2 size={14} />}
+                  {section.name}
+                </div>
+              ))}
+            </div>
           </CardHeader>
           
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>
-              <CardContent className="min-h-[500px] flex items-center">
+              <CardContent className="min-h-[450px] flex items-center">
                 <div className="w-full">
                   <StepContent
                     form={form}
