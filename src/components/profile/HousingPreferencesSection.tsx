@@ -19,7 +19,7 @@ interface HousingPreferencesSectionProps {
 
 export function HousingPreferencesSection({ form }: HousingPreferencesSectionProps) {
   return (
-    <>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <FormField
         control={form.control}
         name="preferredLocation"
@@ -31,35 +31,6 @@ export function HousingPreferencesSection({ form }: HousingPreferencesSectionPro
             </FormControl>
             <FormDescription>
               Where are you looking to live?
-            </FormDescription>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-      
-      <FormField
-        control={form.control}
-        name="budgetRange"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Monthly Budget Range ($)</FormLabel>
-            <FormControl>
-              <div className="pt-5 px-2">
-                <Slider
-                  defaultValue={field.value}
-                  min={500}
-                  max={3000}
-                  step={50}
-                  onValueChange={field.onChange}
-                />
-                <div className="flex justify-between mt-2 text-sm text-gray-500">
-                  <span>${field.value[0]}</span>
-                  <span>${field.value[1]}</span>
-                </div>
-              </div>
-            </FormControl>
-            <FormDescription>
-              Monthly rent you're comfortable with
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -112,29 +83,58 @@ export function HousingPreferencesSection({ form }: HousingPreferencesSectionPro
       
       <FormField
         control={form.control}
+        name="budgetRange"
+        render={({ field }) => (
+          <FormItem className="col-span-1 md:col-span-2">
+            <FormLabel>Monthly Budget Range ($)</FormLabel>
+            <FormControl>
+              <div className="pt-5 px-2">
+                <Slider
+                  defaultValue={field.value}
+                  min={500}
+                  max={3000}
+                  step={50}
+                  onValueChange={field.onChange}
+                />
+                <div className="flex justify-between mt-2 text-sm text-gray-500">
+                  <span>${field.value[0]}</span>
+                  <span>${field.value[1]}</span>
+                </div>
+              </div>
+            </FormControl>
+            <FormDescription>
+              Monthly rent you're comfortable with
+            </FormDescription>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+      
+      <FormField
+        control={form.control}
         name="housingType"
         render={({ field }) => (
           <FormItem className="space-y-3">
-            <FormLabel>Do you prefer to live in a house or apartment?</FormLabel>
+            <FormLabel>Housing Type Preference</FormLabel>
             <FormControl>
               <RadioGroup
                 onValueChange={field.onChange}
                 defaultValue={field.value}
-                className="flex flex-col space-y-1"
+                className="flex space-x-4"
               >
-                <FormItem className="flex items-center space-x-3 space-y-0">
+                <FormItem className="flex items-center space-x-2 space-y-0">
                   <FormControl>
                     <RadioGroupItem value="house" />
                   </FormControl>
-                  <FormLabel className="font-normal flex items-center gap-2">
+                  <FormLabel className="font-normal flex items-center gap-1">
                     <Home className="h-4 w-4" /> House
                   </FormLabel>
                 </FormItem>
-                <FormItem className="flex items-center space-x-3 space-y-0">
+                <FormItem className="flex items-center space-x-2 space-y-0">
                   <FormControl>
                     <RadioGroupItem value="apartment" />
                   </FormControl>
-                  <FormLabel className="font-normal flex items-center gap-2">
+                  <FormLabel className="font-normal flex items-center gap-1">
                     <Building className="h-4 w-4" /> Apartment
                   </FormLabel>
                 </FormItem>
@@ -150,43 +150,45 @@ export function HousingPreferencesSection({ form }: HousingPreferencesSectionPro
         name="livingSpace"
         render={({ field }) => (
           <FormItem className="space-y-3">
-            <FormLabel>What type of living space are you looking for?</FormLabel>
+            <FormLabel>Living Space Type</FormLabel>
             <FormControl>
               <RadioGroup
                 onValueChange={field.onChange}
                 defaultValue={field.value}
                 className="flex flex-col space-y-1"
               >
-                <FormItem className="flex items-center space-x-3 space-y-0">
-                  <FormControl>
-                    <RadioGroupItem value="privateRoom" />
-                  </FormControl>
-                  <FormLabel className="font-normal">
-                    Private room
-                  </FormLabel>
-                </FormItem>
-                <FormItem className="flex items-center space-x-3 space-y-0">
-                  <FormControl>
-                    <RadioGroupItem value="sharedRoom" />
-                  </FormControl>
-                  <FormLabel className="font-normal">
-                    Shared room
-                  </FormLabel>
-                </FormItem>
-                <FormItem className="flex items-center space-x-3 space-y-0">
-                  <FormControl>
-                    <RadioGroupItem value="entirePlace" />
-                  </FormControl>
-                  <FormLabel className="font-normal">
-                    Entire place
-                  </FormLabel>
-                </FormItem>
+                <div className="flex space-x-6">
+                  <FormItem className="flex items-center space-x-2 space-y-0">
+                    <FormControl>
+                      <RadioGroupItem value="privateRoom" />
+                    </FormControl>
+                    <FormLabel className="font-normal">
+                      Private room
+                    </FormLabel>
+                  </FormItem>
+                  <FormItem className="flex items-center space-x-2 space-y-0">
+                    <FormControl>
+                      <RadioGroupItem value="sharedRoom" />
+                    </FormControl>
+                    <FormLabel className="font-normal">
+                      Shared room
+                    </FormLabel>
+                  </FormItem>
+                  <FormItem className="flex items-center space-x-2 space-y-0">
+                    <FormControl>
+                      <RadioGroupItem value="entirePlace" />
+                    </FormControl>
+                    <FormLabel className="font-normal">
+                      Entire place
+                    </FormLabel>
+                  </FormItem>
+                </div>
               </RadioGroup>
             </FormControl>
             <FormMessage />
           </FormItem>
         )}
       />
-    </>
+    </div>
   );
 }
