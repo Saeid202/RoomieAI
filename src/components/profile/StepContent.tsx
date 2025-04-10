@@ -1,4 +1,5 @@
 
+import { useState } from "react";
 import { UseFormReturn } from "react-hook-form";
 import { ProfileFormValues } from "@/types/profile";
 import { BasicInformationSection } from "./BasicInformationSection";
@@ -26,6 +27,10 @@ export function StepContent({
   handleHobbyToggle, 
   handleTraitToggle 
 }: StepContentProps) {
+  const [activeHousingTab, setActiveHousingTab] = useState("housing");
+  const [activeLifestyleTab, setActiveLifestyleTab] = useState("lifestyle");
+  const [activeCleaningTab, setActiveCleaningTab] = useState("cleanliness");
+
   return (
     <div className="w-full h-[420px] overflow-y-auto px-2">
       {step === 1 && (
@@ -35,7 +40,11 @@ export function StepContent({
       )}
       
       {step === 2 && (
-        <Tabs defaultValue="housing" className="w-full">
+        <Tabs 
+          value={activeHousingTab} 
+          onValueChange={setActiveHousingTab} 
+          className="w-full"
+        >
           <TabsList className="w-full mb-6">
             <TabsTrigger value="housing" className="flex-1">Housing Preferences</TabsTrigger>
             <TabsTrigger value="lease" className="flex-1">Lease Terms</TabsTrigger>
@@ -50,7 +59,11 @@ export function StepContent({
       )}
       
       {step === 3 && (
-        <Tabs defaultValue="lifestyle" className="w-full">
+        <Tabs 
+          value={activeLifestyleTab} 
+          onValueChange={setActiveLifestyleTab} 
+          className="w-full"
+        >
           <TabsList className="w-full mb-6">
             <TabsTrigger value="lifestyle" className="flex-1">Lifestyle & Habits</TabsTrigger>
             <TabsTrigger value="schedule" className="flex-1">Work & Sleep</TabsTrigger>
@@ -69,7 +82,11 @@ export function StepContent({
       )}
       
       {step === 4 && (
-        <Tabs defaultValue="cleanliness" className="w-full">
+        <Tabs 
+          value={activeCleaningTab} 
+          onValueChange={setActiveCleaningTab} 
+          className="w-full"
+        >
           <TabsList className="w-full mb-6">
             <TabsTrigger value="cleanliness" className="flex-1">Cleanliness</TabsTrigger>
             <TabsTrigger value="social" className="flex-1">Social</TabsTrigger>
@@ -99,3 +116,4 @@ export function StepContent({
     </div>
   );
 }
+
