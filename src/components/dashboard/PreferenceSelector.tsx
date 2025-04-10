@@ -1,7 +1,7 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Home, Users, Check } from "lucide-react";
+import { Home, Users, Check, Edit } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import ProfileForm from "@/components/ProfileForm";
 import { useToast } from "@/components/ui/use-toast";
@@ -61,8 +61,23 @@ export function PreferenceSelector() {
   const [showForms, setShowForms] = useState(false);
   const { toast } = useToast();
   
+  // Load the saved preference from localStorage if it exists
+  useEffect(() => {
+    const savedPreference = localStorage.getItem('userPreference') as UserPreference;
+    const hadCompletedForm = localStorage.getItem('formCompleted');
+    
+    if (savedPreference) {
+      setPreference(savedPreference);
+      if (hadCompletedForm === 'true') {
+        setShowForms(true);
+      }
+    }
+  }, []);
+  
   const handlePreferenceSelect = (pref: UserPreference) => {
     setPreference(pref);
+    // Save the preference to localStorage
+    localStorage.setItem('userPreference', pref);
   };
   
   const handleContinue = () => {
@@ -76,27 +91,33 @@ export function PreferenceSelector() {
     }
     
     setShowForms(true);
+    localStorage.setItem('formCompleted', 'true');
   };
   
   const handleReset = () => {
     setShowForms(false);
-    setPreference(null);
+  };
+  
+  const handleEditPreference = () => {
+    setShowForms(false);
+    localStorage.removeItem('formCompleted');
   };
   
   if (showForms) {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold tracking-tight">
+          <h1 className="text-2xl font-bold tracking-tight">
             {preference === "roommate" && "Find Your Perfect Roommate"}
             {preference === "co-owner" && "Find Your Co-ownership Partner"}
             {preference === "both" && "Find Your Housing Partners"}
           </h1>
           <button 
-            onClick={handleReset}
-            className="text-sm text-roomie-purple hover:underline"
+            onClick={handleEditPreference}
+            className="flex items-center gap-1 text-sm text-roomie-purple hover:underline"
           >
-            Change my selection
+            <Edit size={14} />
+            Change my preference
           </button>
         </div>
         
@@ -127,14 +148,13 @@ export function PreferenceSelector() {
   
   return (
     <div className="space-y-8">
-      <div className="text-center space-y-2 max-w-2xl mx-auto">
-        <h1 className="text-3xl font-bold tracking-tight">What are you looking for?</h1>
-        <p className="text-muted-foreground text-lg">
+      <div className="space-y-2">
+        <p className="text-lg text-gray-700">
           Let us know what you're interested in so we can help find your perfect match
         </p>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-10">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
         <PreferenceCard
           title="Roommate"
           description="I'm looking for someone to share a rental with me"
@@ -163,11 +183,11 @@ export function PreferenceSelector() {
         />
       </div>
       
-      <div className="flex justify-center mt-10">
+      <div className="flex justify-end mt-6">
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          className={`px-10 py-3 rounded-lg font-medium text-white transition-colors ${
+          className={`px-6 py-2 rounded-lg font-medium text-white transition-colors ${
             preference ? "bg-roomie-purple" : "bg-gray-400"
           }`}
           onClick={handleContinue}
