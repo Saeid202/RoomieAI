@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Home, Users, Check, Edit } from "lucide-react";
@@ -6,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import ProfileForm from "@/components/ProfileForm";
 import { useToast } from "@/components/ui/use-toast";
 
-type UserPreference = "roommate" | "co-owner" | "both" | null;
+export type UserPreference = "roommate" | "co-owner" | "both" | null;
 
 const PreferenceCard = ({ 
   title, 
@@ -56,27 +55,33 @@ const PreferenceCard = ({
   );
 };
 
-export function PreferenceSelector() {
-  const [preference, setPreference] = useState<UserPreference>(null);
+export function PreferenceSelector({ defaultPreference = null }: { defaultPreference?: UserPreference }) {
+  const [preference, setPreference] = useState<UserPreference>(defaultPreference);
   const [showForms, setShowForms] = useState(false);
   const { toast } = useToast();
   
-  // Load the saved preference from localStorage if it exists
   useEffect(() => {
-    const savedPreference = localStorage.getItem('userPreference') as UserPreference;
-    const hadCompletedForm = localStorage.getItem('formCompleted');
-    
-    if (savedPreference) {
-      setPreference(savedPreference);
+    if (defaultPreference) {
+      setPreference(defaultPreference);
+      const hadCompletedForm = localStorage.getItem(`formCompleted_${defaultPreference}`);
       if (hadCompletedForm === 'true') {
         setShowForms(true);
       }
+    } else {
+      const savedPreference = localStorage.getItem('userPreference') as UserPreference;
+      const hadCompletedForm = localStorage.getItem(`formCompleted_${savedPreference}`);
+      
+      if (savedPreference) {
+        setPreference(savedPreference);
+        if (hadCompletedForm === 'true') {
+          setShowForms(true);
+        }
+      }
     }
-  }, []);
+  }, [defaultPreference]);
   
   const handlePreferenceSelect = (pref: UserPreference) => {
     setPreference(pref);
-    // Save the preference to localStorage
     localStorage.setItem('userPreference', pref);
   };
   
@@ -91,7 +96,7 @@ export function PreferenceSelector() {
     }
     
     setShowForms(true);
-    localStorage.setItem('formCompleted', 'true');
+    localStorage.setItem(`formCompleted_${preference}`, 'true');
   };
   
   const handleReset = () => {
@@ -100,7 +105,7 @@ export function PreferenceSelector() {
   
   const handleEditPreference = () => {
     setShowForms(false);
-    localStorage.removeItem('formCompleted');
+    localStorage.removeItem(`formCompleted_${preference}`);
   };
   
   if (showForms) {
