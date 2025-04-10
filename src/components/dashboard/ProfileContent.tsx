@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PostgrestError } from "@supabase/supabase-js";
 
 export function ProfileContent() {
   const { user } = useAuth();
@@ -30,8 +31,13 @@ export function ProfileContent() {
           .eq('user_id', user.id)
           .single();
 
-        if (error && error.code !== 'PGRST116') {
-          throw error;
+        if (error) {
+          // Check if it's a PostgrestError with a code property
+          const postgrestError = error as PostgrestError;
+          // PGRST116 is "Not found" error, which is expected for new users
+          if (postgrestError.code !== 'PGRST116') {
+            throw error;
+          }
         }
 
         if (data) {
