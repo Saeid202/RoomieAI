@@ -25,8 +25,20 @@ export function PersonalDetailsForm() {
         setLoading(true);
         console.log("Fetching co-owner profile for user:", user.id);
         
-        // Avoid using count(*) which is causing the parsing error
-        // Instead, directly query for the user's profile
+        // Get the table name exactly as it appears in Supabase
+        const { data: tableNames, error: tableError } = await supabase
+          .from('pg_tables')
+          .select('tablename')
+          .eq('schemaname', 'public')
+          .contains('tablename', 'co');
+          
+        if (tableError) {
+          console.error('Error fetching table names:', tableError);
+        } else {
+          console.log('Available tables:', tableNames);
+        }
+        
+        // Query for the user's profile with the exact table name
         const { data, error } = await supabase
           .from('co-owner')
           .select('*')
@@ -78,20 +90,42 @@ export function PersonalDetailsForm() {
       const dbData = mapCoOwnerFormToDbRow(formData, user.id);
       console.log("Mapped data for database:", dbData);
       
-      // Upsert the data into the co-owner table
-      const { data, error } = await supabase
-        .from('co-owner')
-        .upsert(dbData, { 
-          onConflict: 'user_id',
-          ignoreDuplicates: false
-        });
+      // First try to inspect the co-owner table structure
+      const { data: tableInfo, error: tableError } = await supabase
+        .rpc('get_table_info', { table_name: 'co-owner' });
         
-      if (error) {
-        console.error("Error saving profile:", error);
-        throw error;
+      if (tableError) {
+        console.error("Error getting table info:", tableError);
+      } else {
+        console.log("Co-owner table structure:", tableInfo);
       }
       
-      console.log("Profile save result:", data);
+      // Directly try inserting the data (not using upsert initially)
+      const { data, error } = await supabase
+        .from('co-owner')
+        .insert(dbData)
+        .select();
+        
+      if (error) {
+        console.error("Error saving profile (insert):", error);
+        
+        // If insert failed, try update instead
+        console.log("Trying update instead...");
+        const { data: updateData, error: updateError } = await supabase
+          .from('co-owner')
+          .update(dbData)
+          .eq('user_id', user.id)
+          .select();
+          
+        if (updateError) {
+          console.error("Error saving profile (update):", updateError);
+          throw updateError;
+        }
+        
+        console.log("Profile update result:", updateData);
+      } else {
+        console.log("Profile insert result:", data);
+      }
 
       toast({
         title: 'Success',
