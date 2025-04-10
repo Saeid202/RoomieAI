@@ -8,11 +8,11 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 
 interface PreferenceSelectorProps {
-  defaultPreference?: UserPreference;
+  defaultPreference?: UserPreference | null;
 }
 
 export function PreferenceSelector({ defaultPreference = null }: PreferenceSelectorProps) {
-  const [preference, setPreference] = useState<UserPreference>(defaultPreference);
+  const [preference, setPreference] = useState<UserPreference | null>(defaultPreference);
   const [showForms, setShowForms] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();

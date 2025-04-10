@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ProfileForm from "@/components/ProfileForm";
@@ -10,7 +9,7 @@ import { PostgrestError } from "@supabase/supabase-js";
 import { ProfileFormValues } from "@/types/profile";
 import { UserPreference } from "./types";
 
-// Define the types for our database tables - adjusting id to be number type for bigint
+// Define the types for our database tables with user_id for RLS
 type RoommateTableRow = {
   id: string;
   full_name: string | null;
@@ -51,7 +50,7 @@ type RoommateTableRow = {
   important_roommate_traits: string[] | null;
   created_at: string | null;
   updated_at: string | null;
-  user_id?: string | null;
+  user_id: string | null;
 };
 
 // Define simpler types for other tables which have fewer fields
@@ -70,6 +69,7 @@ type CoOwnerTableRow = {
   living_space?: string | null;
   created_at?: string | null;
   updated_at?: string | null;
+  user_id?: string | null;
   [key: string]: any; // Allow dynamic properties
 };
 
@@ -88,6 +88,7 @@ type BothTableRow = {
   living_space?: string | null;
   created_at?: string | null;
   updated_at?: string | null;
+  user_id?: string | null;
   [key: string]: any; // Allow dynamic properties
 };
 
@@ -136,8 +137,7 @@ export function ProfileContent() {
         console.log("Fetching from table:", tableName);
         console.log("User ID:", user.id);
 
-        // Use type assertion to help TypeScript understand this is a valid table name
-        // Important change: Query by user_id instead of id for user-specific data
+        // Query by user_id field for user-specific data
         const { data, error } = await supabase
           .from(tableName as any)
           .select('*')
@@ -403,8 +403,8 @@ export function ProfileContent() {
       
       // Prepare data for Supabase - convert camelCase to snake_case for DB columns
       const dbData = {
-        // Don't set ID directly as it's handled by Supabase
-        user_id: user.id, // Using the user's UUID as the user_id foreign key
+        // Set user_id to the authenticated user's ID
+        user_id: user.id,
         full_name: formData.fullName,
         age: formData.age,
         gender: formData.gender,
@@ -460,14 +460,35 @@ export function ProfileContent() {
 
       console.log("Saving to table:", tableName);
 
-      // Insert profile data in the appropriate table - using insert instead of upsert
-      const { error } = await supabase
+      // First check if a record already exists with the user_id
+      const { data: existingData, error: fetchError } = await supabase
         .from(tableName as any)
-        .insert(dbData);
-
-      if (error) {
-        console.error("Error saving profile:", error);
-        throw error;
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      
+      if (fetchError && fetchError.code !== 'PGRST116') {
+        console.error("Error checking existing profile:", fetchError);
+        throw fetchError;
+      }
+      
+      let result;
+      if (existingData) {
+        // Update existing record
+        result = await supabase
+          .from(tableName as any)
+          .update(dbData)
+          .eq('user_id', user.id);
+      } else {
+        // Insert new record
+        result = await supabase
+          .from(tableName as any)
+          .insert(dbData);
+      }
+      
+      if (result.error) {
+        console.error("Error saving profile:", result.error);
+        throw result.error;
       }
 
       toast({
@@ -475,230 +496,9 @@ export function ProfileContent() {
         description: "Your profile has been updated successfully",
       });
 
-      // Refresh the profile data from the appropriate table
-      const { data } = await supabase
-        .from(tableName as any)
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
-
-      if (data) {
-        console.log("Refreshed data after save:", data);
-        
-        // Create a default formatted data object with default values
-        const formattedData: Partial<ProfileFormValues> = {
-          fullName: "",
-          age: "",
-          gender: "",
-          phoneNumber: "",
-          email: "",
-          linkedinProfile: "",
-          preferredLocation: "",
-          budgetRange: [800, 1500],
-          moveInDate: new Date(),
-          housingType: "apartment",
-          livingSpace: "privateRoom",
-          smoking: false,
-          livesWithSmokers: false,
-          hasPets: false,
-          petPreference: "noPets",
-          workLocation: "office",
-          dailyRoutine: "morning",
-          hobbies: [],
-          workSchedule: "",
-          sleepSchedule: "",
-          overnightGuests: "occasionally",
-          cleanliness: "somewhatTidy",
-          cleaningFrequency: "weekly",
-          socialLevel: "balanced",
-          guestsOver: "occasionally",
-          familyOver: "occasionally",
-          atmosphere: "balanced",
-          hostingFriends: "occasionally",
-          diet: "omnivore",
-          cookingSharing: "share",
-          stayDuration: "oneYear",
-          leaseTerm: "longTerm",
-          roommateGenderPreference: "noPreference",
-          roommateAgePreference: "similar",
-          roommateLifestylePreference: "similar",
-          importantRoommateTraits: [],
-        };
-        
-        // Safely assign values from database with proper type checking (applying same pattern as above)
-        if ('full_name' in data && data.full_name) formattedData.fullName = String(data.full_name);
-        if ('age' in data && data.age) formattedData.age = String(data.age);
-        if ('gender' in data && data.gender) formattedData.gender = String(data.gender);
-        if ('phone_number' in data && data.phone_number) formattedData.phoneNumber = String(data.phone_number);
-        if ('email' in data && data.email) formattedData.email = String(data.email);
-        if ('linkedin_profile' in data && data.linkedin_profile) formattedData.linkedinProfile = String(data.linkedin_profile);
-        if ('preferred_location' in data && data.preferred_location) formattedData.preferredLocation = String(data.preferred_location);
-        
-        if ('budget_range' in data && data.budget_range && Array.isArray(data.budget_range)) {
-          formattedData.budgetRange = data.budget_range.map(Number);
-        }
-        
-        if ('move_in_date' in data && data.move_in_date) {
-          formattedData.moveInDate = new Date(String(data.move_in_date));
-        }
-        
-        if ('housing_type' in data && data.housing_type) {
-          const housingType = String(data.housing_type);
-          if (housingType === "house" || housingType === "apartment") {
-            formattedData.housingType = housingType;
-          }
-        }
-        
-        if ('living_space' in data && data.living_space) {
-          const livingSpace = String(data.living_space);
-          if (livingSpace === "privateRoom" || livingSpace === "sharedRoom" || livingSpace === "entirePlace") {
-            formattedData.livingSpace = livingSpace;
-          }
-        }
-        
-        if ('smoking' in data) formattedData.smoking = !!data.smoking;
-        if ('lives_with_smokers' in data) formattedData.livesWithSmokers = !!data.lives_with_smokers;
-        if ('has_pets' in data) formattedData.hasPets = !!data.has_pets;
-        
-        if ('pet_preference' in data && data.pet_preference) {
-          const petPref = String(data.pet_preference);
-          if (["noPets", "onlyCats", "onlyDogs", "both"].includes(petPref)) {
-            formattedData.petPreference = petPref as "noPets" | "onlyCats" | "onlyDogs" | "both";
-          }
-        }
-        
-        if ('work_location' in data && data.work_location) {
-          const workLoc = String(data.work_location);
-          if (["remote", "office", "hybrid"].includes(workLoc)) {
-            formattedData.workLocation = workLoc as "remote" | "office" | "hybrid";
-          }
-        }
-        
-        if ('daily_routine' in data && data.daily_routine) {
-          const routine = String(data.daily_routine);
-          if (["morning", "night", "mixed"].includes(routine)) {
-            formattedData.dailyRoutine = routine as "morning" | "night" | "mixed";
-          }
-        }
-        
-        if ('hobbies' in data && data.hobbies && Array.isArray(data.hobbies)) {
-          formattedData.hobbies = data.hobbies.map(String);
-        }
-        
-        if ('work_schedule' in data && data.work_schedule) formattedData.workSchedule = String(data.work_schedule);
-        if ('sleep_schedule' in data && data.sleep_schedule) formattedData.sleepSchedule = String(data.sleep_schedule);
-        
-        if ('overnight_guests' in data && data.overnight_guests) {
-          const guests = String(data.overnight_guests);
-          if (["yes", "no", "occasionally"].includes(guests)) {
-            formattedData.overnightGuests = guests as "yes" | "no" | "occasionally";
-          }
-        }
-        
-        if ('cleanliness' in data && data.cleanliness) {
-          const clean = String(data.cleanliness);
-          if (["veryTidy", "somewhatTidy", "doesntMindMess"].includes(clean)) {
-            formattedData.cleanliness = clean as "veryTidy" | "somewhatTidy" | "doesntMindMess";
-          }
-        }
-        
-        if ('cleaning_frequency' in data && data.cleaning_frequency) {
-          const freq = String(data.cleaning_frequency);
-          if (["daily", "weekly", "biweekly", "monthly", "asNeeded"].includes(freq)) {
-            formattedData.cleaningFrequency = freq as "daily" | "weekly" | "biweekly" | "monthly" | "asNeeded";
-          }
-        }
-        
-        if ('social_level' in data && data.social_level) {
-          const social = String(data.social_level);
-          if (["extrovert", "introvert", "balanced"].includes(social)) {
-            formattedData.socialLevel = social as "extrovert" | "introvert" | "balanced";
-          }
-        }
-        
-        if ('guests_over' in data && data.guests_over) {
-          const guests = String(data.guests_over);
-          if (["yes", "no", "occasionally"].includes(guests)) {
-            formattedData.guestsOver = guests as "yes" | "no" | "occasionally";
-          }
-        }
-        
-        if ('family_over' in data && data.family_over) {
-          const family = String(data.family_over);
-          if (["yes", "no", "occasionally"].includes(family)) {
-            formattedData.familyOver = family as "yes" | "no" | "occasionally";
-          }
-        }
-        
-        if ('atmosphere' in data && data.atmosphere) {
-          const atmos = String(data.atmosphere);
-          if (["quiet", "lively", "balanced"].includes(atmos)) {
-            formattedData.atmosphere = atmos as "quiet" | "lively" | "balanced";
-          }
-        }
-        
-        if ('hosting_friends' in data && data.hosting_friends) {
-          const hosting = String(data.hosting_friends);
-          if (["yes", "no", "occasionally"].includes(hosting)) {
-            formattedData.hostingFriends = hosting as "yes" | "no" | "occasionally";
-          }
-        }
-        
-        if ('diet' in data && data.diet) {
-          const diet = String(data.diet);
-          if (["vegetarian", "vegan", "omnivore", "other"].includes(diet)) {
-            formattedData.diet = diet as "vegetarian" | "vegan" | "omnivore" | "other";
-          }
-        }
-        
-        if ('cooking_sharing' in data && data.cooking_sharing) {
-          const cooking = String(data.cooking_sharing);
-          if (["share", "separate"].includes(cooking)) {
-            formattedData.cookingSharing = cooking as "share" | "separate";
-          }
-        }
-        
-        if ('stay_duration' in data && data.stay_duration) {
-          const duration = String(data.stay_duration);
-          if (["threeMonths", "sixMonths", "oneYear", "flexible"].includes(duration)) {
-            formattedData.stayDuration = duration as "threeMonths" | "sixMonths" | "oneYear" | "flexible";
-          }
-        }
-        
-        if ('lease_term' in data && data.lease_term) {
-          const lease = String(data.lease_term);
-          if (["shortTerm", "longTerm"].includes(lease)) {
-            formattedData.leaseTerm = lease as "shortTerm" | "longTerm";
-          }
-        }
-        
-        if ('roommate_gender_preference' in data && data.roommate_gender_preference) {
-          const gender = String(data.roommate_gender_preference);
-          if (["sameGender", "femaleOnly", "maleOnly", "noPreference"].includes(gender)) {
-            formattedData.roommateGenderPreference = gender as "sameGender" | "femaleOnly" | "maleOnly" | "noPreference";
-          }
-        }
-        
-        if ('roommate_age_preference' in data && data.roommate_age_preference) {
-          const age = String(data.roommate_age_preference);
-          if (["similar", "younger", "older", "noAgePreference"].includes(age)) {
-            formattedData.roommateAgePreference = age as "similar" | "younger" | "older" | "noAgePreference";
-          }
-        }
-        
-        if ('roommate_lifestyle_preference' in data && data.roommate_lifestyle_preference) {
-          const lifestyle = String(data.roommate_lifestyle_preference);
-          if (["similar", "moreActive", "quieter", "noLifestylePreference"].includes(lifestyle)) {
-            formattedData.roommateLifestylePreference = lifestyle as "similar" | "moreActive" | "quieter" | "noLifestylePreference";
-          }
-        }
-        
-        if ('important_roommate_traits' in data && data.important_roommate_traits && Array.isArray(data.important_roommate_traits)) {
-          formattedData.importantRoommateTraits = data.important_roommate_traits.map(String);
-        }
-        
-        setProfileData(formattedData);
-      }
+      // Refresh the page to show updated data
+      window.location.reload();
+      
     } catch (error: any) {
       console.error("Error saving profile:", error);
       toast({
