@@ -4,9 +4,10 @@ import { CardTitle, CardDescription } from "@/components/ui/card";
 interface FormStepHeaderProps {
   step: number;
   totalSteps: number;
+  onStepClick: (stepNumber: number) => void;
 }
 
-export function FormStepHeader({ step, totalSteps }: FormStepHeaderProps) {
+export function FormStepHeader({ step, totalSteps, onStepClick }: FormStepHeaderProps) {
   return (
     <>
       <div className="flex justify-between items-center mb-2">
@@ -14,9 +15,12 @@ export function FormStepHeader({ step, totalSteps }: FormStepHeaderProps) {
           {Array.from({ length: totalSteps }).map((_, i) => (
             <div
               key={i}
-              className={`w-8 h-1 rounded-full ${
+              className={`w-8 h-1 rounded-full cursor-pointer ${
                 i + 1 <= step ? "bg-roomie-purple" : "bg-gray-200"
               }`}
+              onClick={() => onStepClick(i + 1)}
+              role="button"
+              aria-label={`Go to step ${i + 1}`}
             />
           ))}
         </div>
@@ -31,6 +35,7 @@ export function FormStepHeader({ step, totalSteps }: FormStepHeaderProps) {
         {step === 6 && "Social Preferences"}
         {step === 7 && "Cooking & Meals"}
         {step === 8 && "Lease Terms"}
+        {step === 9 && "Roommate Preferences"}
       </CardTitle>
       <CardDescription>
         {step === 1 && "Tell us about yourself"}
@@ -41,6 +46,7 @@ export function FormStepHeader({ step, totalSteps }: FormStepHeaderProps) {
         {step === 6 && "Tell us about your social preferences"}
         {step === 7 && "Share your cooking and meal preferences"}
         {step === 8 && "What are your lease term preferences?"}
+        {step === 9 && "What kind of roommate are you looking for?"}
       </CardDescription>
     </>
   );

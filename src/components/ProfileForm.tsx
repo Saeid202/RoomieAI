@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -43,7 +42,7 @@ const ProfileForm = () => {
   const [showResults, setShowResults] = useState(false);
   const [matchResults, setMatchResults] = useState([]);
   
-  const totalSteps = 9; // Increased to include the new roommate preferences section
+  const totalSteps = 9;
   
   // Initialize form with default values
   const form = useForm<ProfileFormValues>({
@@ -81,7 +80,6 @@ const ProfileForm = () => {
       cookingSharing: "share",
       stayDuration: "oneYear",
       leaseTerm: "longTerm",
-      // New roommate preference fields
       roommateGenderPreference: "noPreference",
       roommateAgePreference: "similar",
       roommateLifestylePreference: "similar",
@@ -89,18 +87,17 @@ const ProfileForm = () => {
     },
   });
   
-  const nextStep = () => {
+  const validateCurrentStep = (currentStep: number) => {
+    const currentStepFields = getFieldsForStep(currentStep);
+    return form.trigger(currentStepFields as any);
+  };
+  
+  const nextStep = async () => {
     // Validate current step before moving forward
-    const currentStepFields = getFieldsForStep(step);
-    const isValid = currentStepFields.every(field => 
-      !form.formState.errors[field as keyof ProfileFormValues]
-    );
+    const isValid = await validateCurrentStep(step);
     
     if (isValid && step < totalSteps) {
       setStep(step + 1);
-    } else {
-      // Trigger validation to show errors
-      form.trigger(currentStepFields as any);
     }
   };
   
@@ -108,6 +105,23 @@ const ProfileForm = () => {
     if (step > 1) {
       setStep(step - 1);
     }
+  };
+  
+  const goToStep = async (stepNumber: number) => {
+    // If trying to go forward, validate all steps up to the target
+    if (stepNumber > step) {
+      for (let i = step; i < stepNumber; i++) {
+        const isValid = await validateCurrentStep(i);
+        if (!isValid) {
+          // Stop at the first invalid step
+          setStep(i);
+          return;
+        }
+      }
+    }
+    
+    // Either going backward or all previous steps validated successfully
+    setStep(stepNumber);
   };
   
   const onSubmit = (data: ProfileFormValues) => {
@@ -149,14 +163,12 @@ const ProfileForm = () => {
     "Crafting", "Gardening", "Writing", "Dancing", "Meditation"
   ];
   
-  // List of roommate traits for the new section
   const roommateTraitsList = [
     "Clean", "Respectful", "Quiet", "Organized", "Sociable",
     "Responsible", "Communicative", "Considerate", "Reliable", "Friendly",
     "Adaptable", "Easygoing", "Honest", "Tidy", "Punctual"
   ];
   
-  // Helper for handling hobbies selection
   const handleHobbyToggle = (hobby: string) => {
     const current = form.getValues("hobbies");
     if (current.includes(hobby)) {
@@ -166,7 +178,6 @@ const ProfileForm = () => {
     }
   };
   
-  // Helper for handling roommate traits selection
   const handleTraitToggle = (trait: string) => {
     const current = form.getValues("importantRoommateTraits");
     if (current.includes(trait)) {
@@ -190,60 +201,66 @@ const ProfileForm = () => {
           </p>
         </div>
 
-        <Card className="max-w-4xl mx-auto shadow-lg"> {/* Increased width from max-w-2xl to max-w-4xl */}
+        <Card className="max-w-4xl mx-auto shadow-lg">
           <CardHeader>
-            <FormStepHeader step={step} totalSteps={totalSteps} />
+            <FormStepHeader 
+              step={step} 
+              totalSteps={totalSteps} 
+              onStepClick={goToStep} 
+            />
           </CardHeader>
           
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>
-              <CardContent className="space-y-6">
-                {step === 1 && (
-                  <BasicInformationSection form={form} />
-                )}
-                
-                {step === 2 && (
-                  <HousingPreferencesSection form={form} />
-                )}
-                
-                {step === 3 && (
-                  <LifestyleHabitsSection 
-                    form={form} 
-                    handleHobbyToggle={handleHobbyToggle} 
-                    hobbiesList={hobbiesList} 
-                  />
-                )}
-                
-                {step === 4 && (
-                  <WorkSleepScheduleSection form={form} />
-                )}
-                
-                {step === 5 && (
-                  <CleanlinessSection form={form} />
-                )}
-                
-                {step === 6 && (
-                  <SocialPreferencesSection form={form} />
-                )}
-                
-                {step === 7 && (
-                  <CookingMealsSection form={form} />
-                )}
-                
-                {step === 8 && (
-                  <LeaseTermsSection form={form} />
-                )}
-                
-                {step === 9 && (
-                  <RoommatePreferencesSection 
-                    form={form} 
-                    handleTraitToggle={handleTraitToggle} 
-                    traitsList={roommateTraitsList} 
-                  />
-                )}
+              <CardContent className="min-h-[400px]">
+                <div className="h-full">
+                  {step === 1 && (
+                    <BasicInformationSection form={form} />
+                  )}
+                  
+                  {step === 2 && (
+                    <HousingPreferencesSection form={form} />
+                  )}
+                  
+                  {step === 3 && (
+                    <LifestyleHabitsSection 
+                      form={form} 
+                      handleHobbyToggle={handleHobbyToggle} 
+                      hobbiesList={hobbiesList} 
+                    />
+                  )}
+                  
+                  {step === 4 && (
+                    <WorkSleepScheduleSection form={form} />
+                  )}
+                  
+                  {step === 5 && (
+                    <CleanlinessSection form={form} />
+                  )}
+                  
+                  {step === 6 && (
+                    <SocialPreferencesSection form={form} />
+                  )}
+                  
+                  {step === 7 && (
+                    <CookingMealsSection form={form} />
+                  )}
+                  
+                  {step === 8 && (
+                    <LeaseTermsSection form={form} />
+                  )}
+                  
+                  {step === 9 && (
+                    <RoommatePreferencesSection 
+                      form={form} 
+                      handleTraitToggle={handleTraitToggle} 
+                      traitsList={roommateTraitsList} 
+                    />
+                  )}
+                </div>
               </CardContent>
               
-              <CardFooter className="flex justify-between">
+              <CardFooter className="flex justify-between mt-4 pt-4 border-t">
                 {step > 1 ? (
                   <Button type="button" variant="outline" onClick={prevStep}>
                     Back
