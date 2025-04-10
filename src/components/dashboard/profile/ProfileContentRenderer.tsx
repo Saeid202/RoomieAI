@@ -5,6 +5,7 @@ import { UserPreference } from "@/components/dashboard/types";
 import { CoOwnerProfileTabs } from "@/components/dashboard/co-owner/CoOwnerProfileTabs";
 import { ProfileLoadingState } from "./ProfileLoadingState";
 import { EmptyProfileState } from "./EmptyProfileState";
+import { useLocation } from "react-router-dom";
 
 interface ProfileContentRendererProps {
   loading: boolean;
@@ -27,35 +28,38 @@ export function ProfileContentRenderer({
   setActiveTab,
   forcedView = null
 }: ProfileContentRendererProps) {
+  const location = useLocation();
+  const path = location.pathname;
+
+  // Check if we're on a specific profile route
+  const isRoommatePage = path.includes('/profile/roommate');
+  const isCoOwnerPage = path.includes('/profile/co-owner');
+  
+  // Route-based view takes precedence over forcedView and userPreference
+  const displayView = isRoommatePage 
+    ? 'roommate' 
+    : isCoOwnerPage 
+      ? 'co-owner' 
+      : forcedView || userPreference;
+
   if (loading) {
     return <ProfileLoadingState />;
   }
 
-  if (!userPreference && !forcedView) {
+  // If no preference or forced view, show empty state
+  if (!displayView) {
     return <EmptyProfileState />;
   }
 
-  console.log("ProfileContentRenderer - forcedView:", forcedView);
+  console.log("ProfileContentRenderer - displayView:", displayView);
   
-  // If forcedView is provided, it overrides everything else
-  if (forcedView === 'roommate') {
-    console.log("Rendering roommate form based on forcedView");
+  if (displayView === 'roommate') {
+    console.log("Rendering roommate form based on displayView");
     return <ProfileForm initialData={profileData} onSave={onSave} />;
   }
 
-  if (forcedView === 'co-owner') {
-    console.log("Rendering co-owner tabs based on forcedView");
-    return <CoOwnerProfileTabs activeTab={activeTab} setActiveTab={setActiveTab} />;
-  }
-
-  // If no forcedView, use userPreference
-  if (userPreference === 'roommate') {
-    console.log("Rendering roommate form based on userPreference");
-    return <ProfileForm initialData={profileData} onSave={onSave} />;
-  }
-
-  if (userPreference === 'co-owner') {
-    console.log("Rendering co-owner tabs based on userPreference");
+  if (displayView === 'co-owner') {
+    console.log("Rendering co-owner tabs based on displayView");
     return <CoOwnerProfileTabs activeTab={activeTab} setActiveTab={setActiveTab} />;
   }
 

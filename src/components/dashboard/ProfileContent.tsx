@@ -1,6 +1,7 @@
 
 import { useProfileData } from "@/hooks/useProfileData";
 import { ProfileContentRenderer } from "@/components/dashboard/profile/ProfileContentRenderer";
+import { useLocation } from "react-router-dom";
 
 export function ProfileContent() {
   const { 
@@ -13,10 +14,12 @@ export function ProfileContent() {
     handleSaveProfile 
   } = useProfileData();
 
+  const location = useLocation();
+  const path = location.pathname;
+  
   // Determine if we're on a specific profile page
-  const path = window.location.pathname;
-  const isRoommatePage = path.includes('/roommate');
-  const isCoOwnerPage = path.includes('/co-owner');
+  const isRoommatePage = path.includes('/profile/roommate');
+  const isCoOwnerPage = path.includes('/profile/co-owner');
 
   // Set the title based on the current page or preference
   let title = "My Profile";
@@ -29,11 +32,6 @@ export function ProfileContent() {
   } else if (userPreference === 'co-owner') {
     title = "Co-Owner Profile";
   }
-
-  console.log("Path:", path);
-  console.log("isRoommatePage:", isRoommatePage);
-  console.log("isCoOwnerPage:", isCoOwnerPage);
-  console.log("forcedView:", isRoommatePage ? 'roommate' : (isCoOwnerPage ? 'co-owner' : null));
 
   return (
     <div className="space-y-8">
