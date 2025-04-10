@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CheckCircle2 } from "lucide-react";
@@ -22,64 +21,93 @@ import { StepContent } from "./profile/StepContent";
 import { FormButtons } from "./profile/FormButtons";
 import { useFormNavigation } from "@/hooks/useFormNavigation";
 import { useFormUtilities } from "@/hooks/useFormUtilities";
+import { useToast } from "@/hooks/use-toast";
 
-const ProfileForm = () => {
+interface ProfileFormProps {
+  initialData?: any;
+  onSave?: (data: ProfileFormValues) => void;
+}
+
+const ProfileForm = ({ initialData, onSave }: ProfileFormProps) => {
   const [showResults, setShowResults] = useState(false);
   const [matchResults, setMatchResults] = useState([]);
+  const { toast } = useToast();
   
   // Reduce total steps from 9 to 5
   const totalSteps = 5;
   
+  // Set default values, either from initialData or defaults
+  const defaultValues = {
+    fullName: "",
+    age: "",
+    gender: "",
+    phoneNumber: "",
+    email: "",
+    linkedinProfile: "",
+    preferredLocation: "",
+    budgetRange: [800, 1500],
+    moveInDate: new Date(),
+    housingType: "apartment",
+    livingSpace: "privateRoom",
+    smoking: false,
+    livesWithSmokers: false,
+    hasPets: false,
+    petPreference: "noPets",
+    workLocation: "office",
+    dailyRoutine: "morning",
+    hobbies: [],
+    workSchedule: "",
+    sleepSchedule: "",
+    overnightGuests: "occasionally",
+    cleanliness: "somewhatTidy",
+    cleaningFrequency: "weekly",
+    socialLevel: "balanced",
+    guestsOver: "occasionally",
+    familyOver: "occasionally",
+    atmosphere: "balanced",
+    hostingFriends: "occasionally",
+    diet: "omnivore",
+    cookingSharing: "share",
+    stayDuration: "oneYear",
+    leaseTerm: "longTerm",
+    roommateGenderPreference: "noPreference",
+    roommateAgePreference: "similar",
+    roommateLifestylePreference: "similar",
+    importantRoommateTraits: [],
+  };
+  
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
-    defaultValues: {
-      fullName: "",
-      age: "",
-      gender: "",
-      phoneNumber: "",
-      email: "",
-      linkedinProfile: "",
-      preferredLocation: "",
-      budgetRange: [800, 1500],
-      moveInDate: new Date(),
-      housingType: "apartment",
-      livingSpace: "privateRoom",
-      smoking: false,
-      livesWithSmokers: false,
-      hasPets: false,
-      petPreference: "noPets",
-      workLocation: "office",
-      dailyRoutine: "morning",
-      hobbies: [],
-      workSchedule: "",
-      sleepSchedule: "",
-      overnightGuests: "occasionally",
-      cleanliness: "somewhatTidy",
-      cleaningFrequency: "weekly",
-      socialLevel: "balanced",
-      guestsOver: "occasionally",
-      familyOver: "occasionally",
-      atmosphere: "balanced",
-      hostingFriends: "occasionally",
-      diet: "omnivore",
-      cookingSharing: "share",
-      stayDuration: "oneYear",
-      leaseTerm: "longTerm",
-      roommateGenderPreference: "noPreference",
-      roommateAgePreference: "similar",
-      roommateLifestylePreference: "similar",
-      importantRoommateTraits: [],
-    },
+    defaultValues: initialData ? { ...defaultValues, ...initialData } : defaultValues,
   });
+  
+  // Update form values when initialData changes
+  useEffect(() => {
+    if (initialData) {
+      // Reset form with new values
+      form.reset({ ...defaultValues, ...initialData });
+    }
+  }, [initialData, form]);
   
   const { step, nextStep, prevStep, goToStep } = useFormNavigation(form, totalSteps);
   const { handleHobbyToggle, handleTraitToggle } = useFormUtilities(form);
   
   const onSubmit = (data: ProfileFormValues) => {
     console.log("Form submitted:", data);
-    const matches = findMatches(data);
-    setMatchResults(matches);
-    setShowResults(true);
+    
+    if (onSave) {
+      // If we have an onSave prop, use it to save to Supabase
+      onSave(data);
+      toast({
+        title: "Profile updated",
+        description: "Your profile has been saved successfully",
+      });
+    } else {
+      // Otherwise, show the match results (public form behavior)
+      const matches = findMatches(data);
+      setMatchResults(matches);
+      setShowResults(true);
+    }
   };
 
   if (showResults) {
@@ -152,6 +180,7 @@ const ProfileForm = () => {
                   onPrev={prevStep}
                   onNext={nextStep}
                   isSubmitStep={step === totalSteps}
+                  submitLabel={onSave ? "Save Profile" : "Find Matches"}
                 />
               </CardFooter>
             </form>

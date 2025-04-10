@@ -1,5 +1,6 @@
 
 import { Button } from "@/components/ui/button";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 
 interface FormButtonsProps {
   step: number;
@@ -7,32 +8,38 @@ interface FormButtonsProps {
   onPrev: () => void;
   onNext: () => void;
   isSubmitStep: boolean;
+  submitLabel?: string;
 }
 
-export function FormButtons({ 
-  step, 
-  totalSteps, 
-  onPrev, 
-  onNext, 
-  isSubmitStep 
-}: FormButtonsProps) {
+export function FormButtons({ step, totalSteps, onPrev, onNext, isSubmitStep, submitLabel = "Find Matches" }: FormButtonsProps) {
   return (
-    <div className="flex justify-between mt-4 pt-4 border-t w-full">
+    <div className="w-full flex justify-between">
       {step > 1 ? (
-        <Button type="button" variant="outline" onClick={onPrev}>
-          Back
+        <Button 
+          type="button" 
+          variant="outline" 
+          onClick={onPrev}
+          className="flex items-center gap-2"
+        >
+          <ArrowLeft size={16} />
+          <span>Previous</span>
         </Button>
       ) : (
-        <div></div>
+        <div></div> // Empty div to maintain layout with flex justify-between
       )}
       
-      {step < totalSteps ? (
-        <Button type="button" className="bg-roomie-purple hover:bg-roomie-dark" onClick={onNext}>
-          Continue
+      {isSubmitStep ? (
+        <Button type="submit" className="bg-roomie-purple hover:bg-roomie-dark text-white">
+          {submitLabel}
         </Button>
       ) : (
-        <Button type="submit" className="bg-roomie-purple hover:bg-roomie-dark">
-          Find Matches
+        <Button 
+          type="button" 
+          onClick={onNext}
+          className="bg-roomie-purple hover:bg-roomie-dark text-white flex items-center gap-2"
+        >
+          <span>Next</span>
+          <ArrowRight size={16} />
         </Button>
       )}
     </div>
