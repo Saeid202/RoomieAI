@@ -103,6 +103,9 @@ type ProfileTableRow = {
 type CoOwnerTableRow = ProfileTableRow;
 type BothTableRow = ProfileTableRow;
 
+// Define a type for the table names accepted by Supabase
+type TableName = "roommate" | "co-owner" | "Both";
+
 export function ProfileContent() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -131,16 +134,14 @@ export function ProfileContent() {
         }
 
         // Determine which table to query based on user preference
-        let tableName = '';
+        let tableName: TableName;
         if (savedPreference === 'roommate') {
           tableName = 'roommate';
         } else if (savedPreference === 'co-owner') {
           tableName = 'co-owner';
         } else if (savedPreference === 'both') {
           tableName = 'Both'; // Note the capital 'B' in "Both" table name
-        }
-
-        if (!tableName) {
+        } else {
           setLoading(false);
           return;
         }
@@ -456,16 +457,14 @@ export function ProfileContent() {
       };
 
       // Determine which table to save to based on user preference
-      let tableName = '';
+      let tableName: TableName; 
       if (userPreference === 'roommate') {
         tableName = 'roommate';
       } else if (userPreference === 'co-owner') {
         tableName = 'co-owner';
       } else if (userPreference === 'both') {
         tableName = 'Both'; // Note the capital 'B' in "Both" table name
-      }
-
-      if (!tableName) {
+      } else {
         throw new Error("No table selected. Please select a preference (roommate, co-owner, or both).");
       }
 
