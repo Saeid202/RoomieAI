@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 import {
@@ -19,6 +19,7 @@ const Navbar = () => {
   const [isSignupOpen, setIsSignupOpen] = useState(false);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleSignupSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,6 +29,7 @@ const Navbar = () => {
       title: "Account created",
       description: "You've successfully created an account!",
     });
+    navigate("/dashboard");
   };
 
   const handleLoginSubmit = (e: React.FormEvent) => {
@@ -38,6 +40,7 @@ const Navbar = () => {
       title: "Logged in",
       description: "You've successfully logged in!",
     });
+    navigate("/dashboard");
   };
 
   return (

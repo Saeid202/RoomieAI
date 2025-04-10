@@ -13,6 +13,7 @@ import RentOpportunitiesPage from "./pages/dashboard/RentOpportunities";
 import CoOwnerRecommendationsPage from "./pages/dashboard/CoOwnerRecommendations";
 import WalletPage from "./pages/dashboard/Wallet";
 import LegalAssistantPage from "./pages/dashboard/LegalAssistant";
+import ChatsPage from "./pages/dashboard/Chats";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +35,7 @@ const App = () => (
             <Route path="co-owner-recommendations" element={<CoOwnerRecommendationsPage />} />
             <Route path="wallet" element={<WalletPage />} />
             <Route path="legal-assistant" element={<LegalAssistantPage />} />
+            <Route path="chats" element={<ChatsPage />} />
           </Route>
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
