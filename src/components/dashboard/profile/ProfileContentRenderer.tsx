@@ -1,12 +1,11 @@
 
-import ProfileForm from "@/components/ProfileForm";
 import { ProfileFormValues } from "@/types/profile";
 import { UserPreference } from "@/components/dashboard/types";
-import { CoOwnerProfileTabs } from "@/components/dashboard/co-owner/CoOwnerProfileTabs";
 import { ProfileLoadingState } from "./ProfileLoadingState";
 import { EmptyProfileState } from "./EmptyProfileState";
-import { useLocation } from "react-router-dom";
-import { PersonalDetailsForm } from "@/components/dashboard/co-owner/PersonalDetailsForm";
+import { useViewSelector } from "./ViewSelector";
+import { RoommateProfileView } from "./RoommateProfileView";
+import { CoOwnerProfileView } from "./CoOwnerProfileView";
 
 interface ProfileContentRendererProps {
   loading: boolean;
@@ -29,27 +28,11 @@ export function ProfileContentRenderer({
   setActiveTab,
   forcedView = null
 }: ProfileContentRendererProps) {
-  const location = useLocation();
-  const path = location.pathname;
-
-  // Check if we're on a specific profile route
-  const isRoommatePage = path.includes('/profile/roommate');
-  const isCoOwnerPage = path.includes('/profile/co-owner');
-  
-  // Route-based view takes precedence over forcedView and userPreference
-  const displayView = isRoommatePage 
-    ? 'roommate' 
-    : isCoOwnerPage 
-      ? 'co-owner' 
-      : forcedView || userPreference;
-
-  // Add debugging logs
-  console.log("ProfileContentRenderer - path:", path);
-  console.log("ProfileContentRenderer - isRoommatePage:", isRoommatePage);
-  console.log("ProfileContentRenderer - isCoOwnerPage:", isCoOwnerPage);
-  console.log("ProfileContentRenderer - forcedView:", forcedView);
-  console.log("ProfileContentRenderer - userPreference:", userPreference);
-  console.log("ProfileContentRenderer - displayView:", displayView);
+  // Use the view selector hook to determine which view to display
+  const { displayView } = useViewSelector({ 
+    userPreference, 
+    forcedView 
+  });
 
   if (loading) {
     return <ProfileLoadingState />;
@@ -60,15 +43,13 @@ export function ProfileContentRenderer({
     return <EmptyProfileState />;
   }
   
+  // Render the appropriate view based on the selected preference
   if (displayView === 'roommate') {
-    console.log("Rendering roommate form based on displayView");
-    return <ProfileForm initialData={profileData} onSave={onSave} />;
+    return <RoommateProfileView profileData={profileData} onSave={onSave} />;
   }
 
   if (displayView === 'co-owner') {
-    console.log("Rendering co-owner form based on displayView");
-    // Use the direct PersonalDetailsForm component that includes the co-owner form
-    return <PersonalDetailsForm />;
+    return <CoOwnerProfileView />;
   }
 
   // Fallback to profile selection if no valid preference is found
