@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -35,13 +36,14 @@ import { CookingMealsSection } from "./profile/CookingMealsSection";
 import { LeaseTermsSection } from "./profile/LeaseTermsSection";
 import { MatchResultsDisplay } from "./profile/MatchResultsDisplay";
 import { FormStepHeader } from "./profile/FormStepHeader";
+import { RoommatePreferencesSection } from "./profile/RoommatePreferencesSection";
 
 const ProfileForm = () => {
   const [step, setStep] = useState(1);
   const [showResults, setShowResults] = useState(false);
   const [matchResults, setMatchResults] = useState([]);
   
-  const totalSteps = 8;
+  const totalSteps = 9; // Increased to include the new roommate preferences section
   
   // Initialize form with default values
   const form = useForm<ProfileFormValues>({
@@ -79,6 +81,11 @@ const ProfileForm = () => {
       cookingSharing: "share",
       stayDuration: "oneYear",
       leaseTerm: "longTerm",
+      // New roommate preference fields
+      roommateGenderPreference: "noPreference",
+      roommateAgePreference: "similar",
+      roommateLifestylePreference: "similar",
+      importantRoommateTraits: [],
     },
   });
   
@@ -129,6 +136,8 @@ const ProfileForm = () => {
         return ["diet", "cookingSharing"];
       case 8: // Lease Terms
         return ["stayDuration", "leaseTerm"];
+      case 9: // Roommate Preferences (New)
+        return ["roommateGenderPreference", "roommateAgePreference", "roommateLifestylePreference", "importantRoommateTraits"];
       default:
         return [];
     }
@@ -140,6 +149,13 @@ const ProfileForm = () => {
     "Crafting", "Gardening", "Writing", "Dancing", "Meditation"
   ];
   
+  // List of roommate traits for the new section
+  const roommateTraitsList = [
+    "Clean", "Respectful", "Quiet", "Organized", "Sociable",
+    "Responsible", "Communicative", "Considerate", "Reliable", "Friendly",
+    "Adaptable", "Easygoing", "Honest", "Tidy", "Punctual"
+  ];
+  
   // Helper for handling hobbies selection
   const handleHobbyToggle = (hobby: string) => {
     const current = form.getValues("hobbies");
@@ -147,6 +163,16 @@ const ProfileForm = () => {
       form.setValue("hobbies", current.filter(h => h !== hobby));
     } else {
       form.setValue("hobbies", [...current, hobby]);
+    }
+  };
+  
+  // Helper for handling roommate traits selection
+  const handleTraitToggle = (trait: string) => {
+    const current = form.getValues("importantRoommateTraits");
+    if (current.includes(trait)) {
+      form.setValue("importantRoommateTraits", current.filter(t => t !== trait));
+    } else {
+      form.setValue("importantRoommateTraits", [...current, trait]);
     }
   };
 
@@ -164,7 +190,7 @@ const ProfileForm = () => {
           </p>
         </div>
 
-        <Card className="max-w-2xl mx-auto shadow-lg">
+        <Card className="max-w-4xl mx-auto shadow-lg"> {/* Increased width from max-w-2xl to max-w-4xl */}
           <CardHeader>
             <FormStepHeader step={step} totalSteps={totalSteps} />
           </CardHeader>
@@ -206,6 +232,14 @@ const ProfileForm = () => {
                 
                 {step === 8 && (
                   <LeaseTermsSection form={form} />
+                )}
+                
+                {step === 9 && (
+                  <RoommatePreferencesSection 
+                    form={form} 
+                    handleTraitToggle={handleTraitToggle} 
+                    traitsList={roommateTraitsList} 
+                  />
                 )}
               </CardContent>
               

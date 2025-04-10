@@ -1,3 +1,4 @@
+
 import { z } from "zod";
 
 // Define the validation schema
@@ -53,6 +54,12 @@ export const profileSchema = z.object({
   // Lease Terms
   stayDuration: z.enum(["threeMonths", "sixMonths", "oneYear", "flexible"]),
   leaseTerm: z.enum(["shortTerm", "longTerm"]),
+  
+  // Roommate Preferences (New)
+  roommateGenderPreference: z.enum(["sameGender", "femaleOnly", "maleOnly", "noPreference"]),
+  roommateAgePreference: z.enum(["similar", "younger", "older", "noAgePreference"]),
+  roommateLifestylePreference: z.enum(["similar", "moreActive", "quieter", "noLifestylePreference"]),
+  importantRoommateTraits: z.array(z.string()),
 });
 
 export type ProfileFormValues = z.infer<typeof profileSchema>;

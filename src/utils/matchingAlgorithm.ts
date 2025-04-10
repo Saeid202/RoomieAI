@@ -1,3 +1,4 @@
+
 // This is a simplified mock matching algorithm
 // In a real application, this would connect to a backend service
 
@@ -18,6 +19,8 @@ type ProfileData = {
   guests: string;
   sleepSchedule: string;
   interests: string[];
+  // Add new fields for roommate preferences
+  traits: string[];
 };
 
 export type MatchResult = ProfileData & {
@@ -41,6 +44,7 @@ const potentialRoommates: ProfileData[] = [
     guests: "rarely",
     sleepSchedule: "normal",
     interests: ["Fitness", "Tech", "Gaming", "Cooking"],
+    traits: ["Clean", "Responsible", "Quiet", "Organized", "Reliable"],
   },
   {
     name: "Jamie",
@@ -57,6 +61,7 @@ const potentialRoommates: ProfileData[] = [
     guests: "sometimes",
     sleepSchedule: "night",
     interests: ["Reading", "Movies", "Pets", "Music"],
+    traits: ["Adaptable", "Sociable", "Friendly", "Easygoing", "Considerate"],
   },
   {
     name: "Taylor",
@@ -73,6 +78,7 @@ const potentialRoommates: ProfileData[] = [
     guests: "sometimes",
     sleepSchedule: "early",
     interests: ["Fitness", "Travel", "Cooking", "Outdoors"],
+    traits: ["Clean", "Organized", "Punctual", "Responsible", "Communicative"],
   },
   {
     name: "Jordan",
@@ -89,6 +95,7 @@ const potentialRoommates: ProfileData[] = [
     guests: "often",
     sleepSchedule: "night",
     interests: ["Art", "Music", "Gaming", "Photography"],
+    traits: ["Creative", "Sociable", "Easygoing", "Adaptable", "Friendly"],
   },
   {
     name: "Morgan",
@@ -105,6 +112,7 @@ const potentialRoommates: ProfileData[] = [
     guests: "rarely",
     sleepSchedule: "variable",
     interests: ["Fitness", "Reading", "Cooking", "Travel"],
+    traits: ["Clean", "Quiet", "Respectful", "Reliable", "Considerate"],
   },
   {
     name: "Casey",
@@ -121,6 +129,7 @@ const potentialRoommates: ProfileData[] = [
     guests: "sometimes",
     sleepSchedule: "early",
     interests: ["Reading", "Sports", "Cooking", "Movies"],
+    traits: ["Patient", "Communicative", "Friendly", "Organized", "Reliable"],
   },
 ];
 
@@ -129,7 +138,7 @@ const calculateCompatibilityScore = (userProfile: ProfileData, potentialMatch: P
   let score = 0;
   const maxScore = 100;
   
-  // Budget compatibility (20%)
+  // Budget compatibility (15%)
   const userMinBudget = userProfile.budget[0];
   const userMaxBudget = userProfile.budget[1];
   const matchMinBudget = potentialMatch.budget[0];
@@ -139,7 +148,7 @@ const calculateCompatibilityScore = (userProfile: ProfileData, potentialMatch: P
   const budgetRange = Math.max(userMaxBudget - userMinBudget, matchMaxBudget - matchMinBudget);
   
   if (budgetOverlap > 0) {
-    score += 20 * (budgetOverlap / budgetRange);
+    score += 15 * (budgetOverlap / budgetRange);
   }
   
   // Cleanliness compatibility (15%)
@@ -195,12 +204,19 @@ const calculateCompatibilityScore = (userProfile: ProfileData, potentialMatch: P
     score += 5;
   }
   
-  // Interests compatibility (25%)
+  // Interests compatibility (15%)
   const commonInterests = userProfile.interests.filter(interest => 
     potentialMatch.interests.includes(interest)
   );
   
-  score += 25 * (commonInterests.length / Math.max(userProfile.interests.length, potentialMatch.interests.length, 1));
+  score += 15 * (commonInterests.length / Math.max(userProfile.interests.length, potentialMatch.interests.length, 1));
+  
+  // Traits compatibility (15%) - New
+  const commonTraits = userProfile.traits.filter(trait => 
+    potentialMatch.traits.includes(trait)
+  );
+  
+  score += 15 * (commonTraits.length / Math.max(userProfile.traits.length, 5, 1));
   
   // Round score to nearest whole number
   return Math.round(score);
@@ -226,6 +242,7 @@ const mapFormToProfileData = (formData: ProfileFormValues): ProfileData => {
     sleepSchedule: formData.dailyRoutine === "morning" ? "early" : 
                   formData.dailyRoutine === "night" ? "night" : "normal",
     interests: formData.hobbies || [],
+    traits: formData.importantRoommateTraits || [],
   };
 };
 
@@ -234,11 +251,28 @@ export const findMatches = (userProfile: ProfileFormValues): MatchResult[] => {
   const profileData = mapFormToProfileData(userProfile);
   
   // Calculate compatibility scores for all potential roommates
-  const matches = potentialRoommates.map(roommate => ({
-    ...roommate,
-    compatibilityScore: calculateCompatibilityScore(profileData, roommate)
-  }));
+  const matches = potentialRoommates.map(roommate => {
+    // Apply gender preference filter
+    let genderMatch = true;
+    if (userProfile.roommateGenderPreference === "sameGender") {
+      genderMatch = roommate.gender === profileData.gender;
+    } else if (userProfile.roommateGenderPreference === "femaleOnly") {
+      genderMatch = roommate.gender === "female";
+    } else if (userProfile.roommateGenderPreference === "maleOnly") {
+      genderMatch = roommate.gender === "male";
+    }
+    
+    // Calculate compatibility score if gender matches
+    const compatibilityScore = genderMatch ? calculateCompatibilityScore(profileData, roommate) : 0;
+    
+    return {
+      ...roommate,
+      compatibilityScore
+    };
+  });
   
-  // Sort by compatibility score (highest first)
-  return matches.sort((a, b) => b.compatibilityScore - a.compatibilityScore);
+  // Sort by compatibility score (highest first) and filter out non-matches (score of 0)
+  return matches
+    .filter(match => match.compatibilityScore > 0)
+    .sort((a, b) => b.compatibilityScore - a.compatibilityScore);
 };
