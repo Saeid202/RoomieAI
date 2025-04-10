@@ -9,7 +9,37 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      profiles: {
+      Both: {
+        Row: {
+          created_at: string
+          id: number
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+        }
+        Update: {
+          created_at?: string
+          id?: number
+        }
+        Relationships: []
+      }
+      "co-owner": {
+        Row: {
+          created_at: string
+          id: number
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+        }
+        Update: {
+          created_at?: string
+          id?: number
+        }
+        Relationships: []
+      }
+      roommate: {
         Row: {
           age: string | null
           atmosphere: string | null
@@ -135,21 +165,6 @@ export type Database = {
           user_id?: string | null
           work_location?: string | null
           work_schedule?: string | null
-        }
-        Relationships: []
-      }
-      "real estate": {
-        Row: {
-          created_at: string
-          id: number
-        }
-        Insert: {
-          created_at?: string
-          id?: number
-        }
-        Update: {
-          created_at?: string
-          id?: number
         }
         Relationships: []
       }

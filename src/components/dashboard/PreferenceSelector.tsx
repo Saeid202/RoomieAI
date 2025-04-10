@@ -5,6 +5,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { PreferenceSelectionSection } from "./preferences/PreferenceSelectionSection";
 import { FormDisplaySection } from "./preferences/FormDisplaySection";
 import { UserPreference } from "./types";
+import { useNavigate } from "react-router-dom";
 
 interface PreferenceSelectorProps {
   defaultPreference?: UserPreference;
@@ -14,6 +15,7 @@ export function PreferenceSelector({ defaultPreference = null }: PreferenceSelec
   const [preference, setPreference] = useState<UserPreference>(defaultPreference);
   const [showForms, setShowForms] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
   
   useEffect(() => {
     if (defaultPreference) {
@@ -52,6 +54,9 @@ export function PreferenceSelector({ defaultPreference = null }: PreferenceSelec
     
     setShowForms(true);
     localStorage.setItem(`formCompleted_${preference}`, 'true');
+    
+    // Navigate to profile page after selecting preference
+    navigate('/dashboard/profile');
   };
   
   const handleReset = () => {

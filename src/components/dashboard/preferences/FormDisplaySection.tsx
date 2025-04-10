@@ -1,8 +1,8 @@
 
 import { Edit } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import ProfileForm from "@/components/ProfileForm";
 import { UserPreference } from "../types";
+import { useNavigate } from "react-router-dom";
 
 interface FormDisplaySectionProps {
   preference: UserPreference;
@@ -13,6 +13,12 @@ export function FormDisplaySection({
   preference, 
   handleEditPreference 
 }: FormDisplaySectionProps) {
+  const navigate = useNavigate();
+  
+  const handleFillProfile = () => {
+    navigate('/dashboard/profile');
+  };
+  
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -35,7 +41,19 @@ export function FormDisplaySection({
           {preference === "both" && (
             <h2 className="text-xl font-semibold mb-4 text-roomie-purple">Roommate Matching Profile</h2>
           )}
-          <ProfileForm />
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex flex-col items-center">
+                <p className="text-gray-600 mb-4">Fill out your roommate profile to find matches</p>
+                <button 
+                  onClick={handleFillProfile}
+                  className="px-4 py-2 bg-roomie-purple text-white rounded-md hover:bg-roomie-purple/90 transition-colors"
+                >
+                  Fill Profile
+                </button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       )}
       
@@ -46,7 +64,19 @@ export function FormDisplaySection({
           )}
           <Card>
             <CardContent className="p-6">
-              <p className="text-center py-8 text-gray-500">Co-owner form will be implemented in the future update.</p>
+              {preference === "co-owner" ? (
+                <div className="flex flex-col items-center">
+                  <p className="text-gray-600 mb-4">Fill out your co-owner profile to find matches</p>
+                  <button 
+                    onClick={handleFillProfile}
+                    className="px-4 py-2 bg-roomie-purple text-white rounded-md hover:bg-roomie-purple/90 transition-colors"
+                  >
+                    Fill Profile
+                  </button>
+                </div>
+              ) : (
+                <p className="text-center py-8 text-gray-500">Co-owner form will be implemented in the future update.</p>
+              )}
             </CardContent>
           </Card>
         </div>

@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PostgrestError } from "@supabase/supabase-js";
 import { ProfileFormValues } from "@/types/profile";
+import { UserPreference } from "./types";
 
 export function ProfileContent() {
   const { user } = useAuth();
@@ -15,6 +16,7 @@ export function ProfileContent() {
   const navigate = useNavigate();
   const [profileData, setProfileData] = useState<Partial<ProfileFormValues> | null>(null);
   const [loading, setLoading] = useState(true);
+  const [userPreference, setUserPreference] = useState<UserPreference>(null);
 
   useEffect(() => {
     // Redirect to login if not authenticated
@@ -23,12 +25,36 @@ export function ProfileContent() {
       return;
     }
 
-    // Load profile data from Supabase
+    // Get user preference from localStorage
+    const savedPreference = localStorage.getItem('userPreference') as UserPreference;
+    setUserPreference(savedPreference);
+
+    // Load profile data from Supabase based on preference
     const fetchProfileData = async () => {
       try {
-        // Use the correct query to fetch profile data
+        if (!savedPreference) {
+          setLoading(false);
+          return;
+        }
+
+        // Determine which table to query based on user preference
+        let tableName = '';
+        if (savedPreference === 'roommate') {
+          tableName = 'roommate';
+        } else if (savedPreference === 'co-owner') {
+          tableName = 'co-owner';
+        } else if (savedPreference === 'both') {
+          tableName = 'Both';
+        }
+
+        if (!tableName) {
+          setLoading(false);
+          return;
+        }
+
+        // Query the appropriate table
         const { data, error } = await supabase
-          .from('profiles')
+          .from(tableName)
           .select('*')
           .eq('id', user.id)
           .single();
@@ -101,7 +127,7 @@ export function ProfileContent() {
 
   const handleSaveProfile = async (formData: ProfileFormValues) => {
     try {
-      if (!user) return;
+      if (!user || !userPreference) return;
       
       // Prepare data for Supabase - convert camelCase to snake_case for DB columns
       const dbData = {
@@ -145,9 +171,23 @@ export function ProfileContent() {
         updated_at: new Date().toISOString(),
       };
 
-      // Insert or update profile data
+      // Determine which table to save to based on user preference
+      let tableName = '';
+      if (userPreference === 'roommate') {
+        tableName = 'roommate';
+      } else if (userPreference === 'co-owner') {
+        tableName = 'co-owner';
+      } else if (userPreference === 'both') {
+        tableName = 'Both';
+      }
+
+      if (!tableName) {
+        throw new Error("No table selected. Please select a preference (roommate, co-owner, or both).");
+      }
+
+      // Insert or update profile data in the appropriate table
       const { error } = await supabase
-        .from('profiles')
+        .from(tableName)
         .upsert(dbData);
 
       if (error) throw error;
@@ -157,15 +197,15 @@ export function ProfileContent() {
         description: "Your profile has been updated successfully",
       });
 
-      // Refresh the profile data
+      // Refresh the profile data from the appropriate table
       const { data } = await supabase
-        .from('profiles')
+        .from(tableName)
         .select('*')
         .eq('id', user.id)
         .single();
 
       if (data) {
-        // Map database field names to ProfileFormValues properties using the same mapping function
+        // Map database field names to ProfileFormValues properties
         const formattedData: Partial<ProfileFormValues> = {
           fullName: data.full_name || "",
           age: data.age || "",
@@ -230,8 +270,18 @@ export function ProfileContent() {
               <Skeleton className="h-16 w-full" />
               <Skeleton className="h-16 w-full" />
             </div>
-          ) : (
+          ) : userPreference ? (
             <ProfileForm initialData={profileData} onSave={handleSaveProfile} />
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-lg text-gray-600">Please select your preference (roommate, co-owner, or both) before filling out your profile.</p>
+              <button 
+                onClick={() => navigate('/dashboard')}
+                className="mt-4 px-4 py-2 bg-roomie-purple text-white rounded-md hover:bg-roomie-purple/90 transition-colors"
+              >
+                Go to Dashboard
+              </button>
+            </div>
           )}
         </div>
       </div>
