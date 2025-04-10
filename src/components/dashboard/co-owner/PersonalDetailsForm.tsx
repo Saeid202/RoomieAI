@@ -80,10 +80,18 @@ export function PersonalDetailsForm() {
         throw result.error;
       }
 
-      return true;
+      // Changed from returning boolean to void
+      toast({
+        title: 'Success',
+        description: 'Your co-owner profile has been saved.',
+      });
     } catch (error) {
       console.error('Error saving co-owner profile:', error);
-      throw error;
+      toast({
+        title: 'Error',
+        description: 'Failed to save your co-owner profile.',
+        variant: 'destructive',
+      });
     }
   };
 
