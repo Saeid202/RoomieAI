@@ -57,7 +57,7 @@ export function useProfileData() {
 
         if (data) {
           console.log("Fetched data:", data);
-          // Convert database row to form values format
+          // Convert database row to form values format, ensuring any type conversions are handled
           const formattedData = mapDbRowToFormValues(data);
           setProfileData(formattedData);
         }

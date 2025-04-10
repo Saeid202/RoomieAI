@@ -78,11 +78,10 @@ export async function saveProfileData(
   } else {
     // Insert new record
     console.log("Inserting new record");
-    // For insert operations, Supabase expects an array or object based on the table structure
-    // We use a type cast here to ensure TypeScript is happy with the operation
+    // Type cast to any to avoid TypeScript strict checking since different tables have different id types
     result = await supabase
       .from(tableName)
-      .insert(dbData as any); // Cast to any to bypass TypeScript's strict checking
+      .insert(dbData as any);
   }
   
   return result;

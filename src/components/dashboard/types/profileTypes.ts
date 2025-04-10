@@ -47,8 +47,9 @@ export type RoommateTableRow = {
 };
 
 // Define common type for all tables to avoid redundancy
+// The id can be either string (for roommate table) or number (for Both table)
 export type ProfileTableRow = {
-  id?: string; // This is a string in the database schema, not a number
+  id?: string | number;
   user_id?: string | null;
   full_name?: string | null;
   age?: string | null;
