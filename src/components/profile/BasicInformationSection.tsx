@@ -12,6 +12,11 @@ interface BasicInformationSectionProps {
 export function BasicInformationSection({ form }: BasicInformationSectionProps) {
   return (
     <>
+      <div className="mb-4">
+        <h3 className="text-lg font-medium">Basic Information</h3>
+        <p className="text-sm text-gray-500">Tell us about yourself</p>
+      </div>
+      
       <FormField
         control={form.control}
         name="age"

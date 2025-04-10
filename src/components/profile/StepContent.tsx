@@ -26,8 +26,8 @@ export function StepContent({
   handleTraitToggle 
 }: StepContentProps) {
   return (
-    <div className="w-full h-[400px] overflow-y-auto px-2 flex items-center">
-      <div className="w-full space-y-6">
+    <div className="w-full h-[400px] overflow-y-auto px-2">
+      <div className="w-full space-y-6 py-4">
         {step === 1 && (
           <BasicInformationSection form={form} />
         )}
