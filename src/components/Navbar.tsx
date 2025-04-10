@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
@@ -111,6 +110,9 @@ const Navbar = () => {
           <a href="#faq" className="text-gray-700 hover:text-roomie-purple font-medium">
             FAQ
           </a>
+          <Link to="/dashboard" className="text-sm font-medium hover:text-primary">
+            Dashboard
+          </Link>
         </div>
 
         {/* Login / Sign Up Buttons */}

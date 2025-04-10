@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -5,6 +6,13 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
+import Dashboard from "./pages/Dashboard";
+import Profile from "./pages/dashboard/Profile";
+import RoommateRecommendationsPage from "./pages/dashboard/RoommateRecommendations";
+import RentOpportunitiesPage from "./pages/dashboard/RentOpportunities";
+import CoOwnerRecommendationsPage from "./pages/dashboard/CoOwnerRecommendations";
+import WalletPage from "./pages/dashboard/Wallet";
+import LegalAssistantPage from "./pages/dashboard/LegalAssistant";
 
 const queryClient = new QueryClient();
 
@@ -16,6 +24,18 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
+          
+          {/* Dashboard Routes */}
+          <Route path="/dashboard" element={<Dashboard />}>
+            <Route index element={<Profile />} />
+            <Route path="profile" element={<Profile />} />
+            <Route path="roommate-recommendations" element={<RoommateRecommendationsPage />} />
+            <Route path="rent-opportunities" element={<RentOpportunitiesPage />} />
+            <Route path="co-owner-recommendations" element={<CoOwnerRecommendationsPage />} />
+            <Route path="wallet" element={<WalletPage />} />
+            <Route path="legal-assistant" element={<LegalAssistantPage />} />
+          </Route>
+          
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
