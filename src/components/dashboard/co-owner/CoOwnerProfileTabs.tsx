@@ -7,6 +7,8 @@ import {
 } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import { PersonalDetailsForm } from "@/components/dashboard/co-owner/PersonalDetailsForm";
+import { ResidenceCitizenshipForm } from "@/components/dashboard/co-owner/ResidenceCitizenshipForm";
+import { EmploymentForm } from "@/components/dashboard/co-owner/EmploymentForm";
 import { 
   User, Home, Briefcase, FileText, 
   CreditCard, BarChart3, ShieldAlert, CheckCircle 
@@ -95,17 +97,11 @@ export function CoOwnerProfileTabs({
         </TabsContent>
         
         <TabsContent value="residence-citizenship" className="mt-6">
-          <div className="text-center py-12">
-            <h3 className="text-lg font-medium">Residence & Citizenship Form</h3>
-            <p className="text-muted-foreground mt-2">This section will be implemented in the next phase.</p>
-          </div>
+          <ResidenceCitizenshipForm />
         </TabsContent>
         
         <TabsContent value="employment" className="mt-6">
-          <div className="text-center py-12">
-            <h3 className="text-lg font-medium">Employment Information</h3>
-            <p className="text-muted-foreground mt-2">This section will be implemented in the next phase.</p>
-          </div>
+          <EmploymentForm />
         </TabsContent>
         
         <TabsContent value="financial-situation" className="mt-6">

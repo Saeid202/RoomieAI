@@ -1,7 +1,16 @@
 
-import { PersonalDetailsForm } from "@/components/dashboard/co-owner/PersonalDetailsForm";
+import { useState } from "react";
+import { CoOwnerProfileTabs } from "@/components/dashboard/co-owner/CoOwnerProfileTabs";
 
 export function CoOwnerProfileView() {
-  console.log("Rendering co-owner form");
-  return <PersonalDetailsForm />;
+  const [activeTab, setActiveTab] = useState("personal-details");
+  
+  console.log("Rendering co-owner form with active tab:", activeTab);
+  
+  return (
+    <CoOwnerProfileTabs
+      activeTab={activeTab}
+      setActiveTab={setActiveTab}
+    />
+  );
 }
