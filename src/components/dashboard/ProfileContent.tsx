@@ -1,5 +1,6 @@
 
 import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { PreferenceSelector } from "./PreferenceSelector";
 import { Users, Home, UserPlus, ChevronDown, ChevronUp } from "lucide-react";
@@ -8,6 +9,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 export function ProfileContent() {
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState<UserPreference>(null);
   const [sectionsOpen, setSectionsOpen] = useState({
     roommate: true,
@@ -16,12 +18,21 @@ export function ProfileContent() {
   });
   
   // Load the saved preference from localStorage if it exists
+  // or from the URL query parameter
   useEffect(() => {
-    const savedPreference = localStorage.getItem('userPreference') as UserPreference;
-    if (savedPreference) {
-      setActiveTab(savedPreference);
+    const params = new URLSearchParams(location.search);
+    const tabFromQuery = params.get('tab') as UserPreference;
+    
+    if (tabFromQuery) {
+      setActiveTab(tabFromQuery);
+      localStorage.setItem('userPreference', tabFromQuery);
+    } else {
+      const savedPreference = localStorage.getItem('userPreference') as UserPreference;
+      if (savedPreference) {
+        setActiveTab(savedPreference);
+      }
     }
-  }, []);
+  }, [location]);
 
   // Handle tab change and update localStorage
   const handleTabChange = (value: string) => {

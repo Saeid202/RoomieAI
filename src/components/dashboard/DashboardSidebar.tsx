@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
@@ -11,6 +10,7 @@ import {
   Building,
   Handshake,
   GraduationCap,
+  UserPlus,
 } from "lucide-react";
 import {
   Sidebar,
@@ -32,6 +32,7 @@ import { Button } from "@/components/ui/button";
 
 export function DashboardSidebar() {
   const location = useLocation();
+  const [profileExpanded, setProfileExpanded] = useState(true);
   const [rentExpanded, setRentExpanded] = useState(true);
   const [coOwnershipExpanded, setCoOwnershipExpanded] = useState(true);
 
@@ -50,13 +51,47 @@ export function DashboardSidebar() {
           <SidebarGroupLabel>Main</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
+              {/* Profile Section with Sub-items */}
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={isActive("/dashboard/profile")}>
-                  <Link to="/dashboard/profile">
+                <SidebarMenuButton
+                  onClick={() => setProfileExpanded(!profileExpanded)}
+                  className="justify-between"
+                >
+                  <div className="flex items-center gap-2">
                     <User size={20} />
                     <span>Profile</span>
-                  </Link>
+                  </div>
+                  <ChevronDown
+                    size={16}
+                    className={`transition-transform ${profileExpanded ? "rotate-180" : ""}`}
+                  />
                 </SidebarMenuButton>
+
+                {profileExpanded && (
+                  <SidebarMenuSub>
+                    <SidebarMenuSubItem>
+                      <SidebarMenuSubButton asChild isActive={isActive("/dashboard/profile/roommate")}>
+                        <Link to="/dashboard/profile?tab=roommate">
+                          <span>Roommate</span>
+                        </Link>
+                      </SidebarMenuSubButton>
+                    </SidebarMenuSubItem>
+                    <SidebarMenuSubItem>
+                      <SidebarMenuSubButton asChild isActive={isActive("/dashboard/profile/co-owner")}>
+                        <Link to="/dashboard/profile?tab=co-owner">
+                          <span>Co-owner</span>
+                        </Link>
+                      </SidebarMenuSubButton>
+                    </SidebarMenuSubItem>
+                    <SidebarMenuSubItem>
+                      <SidebarMenuSubButton asChild isActive={isActive("/dashboard/profile/both")}>
+                        <Link to="/dashboard/profile?tab=both">
+                          <span>Both</span>
+                        </Link>
+                      </SidebarMenuSubButton>
+                    </SidebarMenuSubItem>
+                  </SidebarMenuSub>
+                )}
               </SidebarMenuItem>
 
               {/* Rent Section with Sub-items */}
