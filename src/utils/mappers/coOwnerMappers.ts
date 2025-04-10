@@ -21,6 +21,8 @@ export function mapCoOwnerDbRowToFormValues(data: ProfileTableRow): Partial<CoOw
     coOwnershipExperience: "None",
   };
   
+  if (!data) return formattedData;
+  
   // Map basic information
   if ('full_name' in data) formattedData.fullName = safeString(data.full_name);
   if ('age' in data) formattedData.age = safeString(data.age);
@@ -65,7 +67,9 @@ export function mapCoOwnerDbRowToFormValues(data: ProfileTableRow): Partial<CoOw
  * Maps form values (CoOwnerFormValues) to database row format for saving
  */
 export function mapCoOwnerFormToDbRow(formData: CoOwnerFormValues, userId: string): ProfileTableRow {
-  // Create the database row object with the correct types
+  console.log("Mapping form data to DB row:", formData);
+  
+  // Create the database row object with the correct column names
   const dbRow: ProfileTableRow = {
     user_id: userId,
     full_name: formData.fullName,
@@ -81,5 +85,6 @@ export function mapCoOwnerFormToDbRow(formData: CoOwnerFormValues, userId: strin
     updated_at: new Date().toISOString(),
   };
 
+  console.log("DB row to save:", dbRow);
   return dbRow;
 }

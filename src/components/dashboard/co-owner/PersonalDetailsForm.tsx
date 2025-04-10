@@ -1,8 +1,11 @@
+
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useState } from "react";
 import { CoOwnerProfileForm } from "./CoOwnerProfileForm";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { mapCoOwnerFormToDbRow } from "@/utils/mappers/coOwnerMappers";
+import { CoOwnerFormValues } from "./types";
 
 export function PersonalDetailsForm() {
   const { user } = useAuth();
@@ -56,7 +59,7 @@ export function PersonalDetailsForm() {
     fetchCoOwnerProfile();
   }, [user, toast]);
 
-  const handleSaveCoOwnerProfile = async (formData) => {
+  const handleSaveCoOwnerProfile = async (formData: CoOwnerFormValues) => {
     if (!user) {
       console.error("No user found when trying to save profile");
       toast({
@@ -71,17 +74,14 @@ export function PersonalDetailsForm() {
       console.log("Saving co-owner profile for user:", user.id);
       console.log("Form data to save:", formData);
       
-      // Prepare data for insert/update with user_id
-      const profileData = {
-        ...formData,
-        user_id: user.id,
-        updated_at: new Date().toISOString()
-      };
-
-      // Here we first insert if it doesn't exist, then update if it does (upsert)
+      // Map form data to database format using the mapper utility
+      const dbData = mapCoOwnerFormToDbRow(formData, user.id);
+      console.log("Mapped data for database:", dbData);
+      
+      // Upsert the data into the co-owner table
       const { data, error } = await supabase
         .from('co-owner')
-        .upsert(profileData, { 
+        .upsert(dbData, { 
           onConflict: 'user_id',
           ignoreDuplicates: false
         });
