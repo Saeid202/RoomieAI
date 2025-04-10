@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -7,14 +8,11 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { Facebook, Linkedin } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 
 interface LoginDialogProps {
   isOpen: boolean;
@@ -23,7 +21,7 @@ interface LoginDialogProps {
 
 export const LoginDialog = ({ isOpen, setIsOpen }: LoginDialogProps) => {
   const navigate = useNavigate();
-  const { signIn, signInWithGoogle, signInWithFacebook, signInWithLinkedIn } = useAuth();
+  const { signIn, signInWithGoogle, signInWithFacebook, signInWithLinkedIn, resetPassword } = useAuth();
   
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -48,33 +46,16 @@ export const LoginDialog = ({ isOpen, setIsOpen }: LoginDialogProps) => {
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!forgotEmail) {
-      toast({
-        title: "Error",
-        description: "Please enter your email address",
-        variant: "destructive",
-      });
+      alert("Please enter your email address");
       return;
     }
     
     setIsLoading(true);
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
-        redirectTo: `${window.location.origin}/reset-password`,
-      });
-      
-      if (error) throw error;
-      
-      toast({
-        title: "Password reset email sent",
-        description: "Check your inbox for the password reset link",
-      });
+      await resetPassword(forgotEmail);
       setShowForgotPassword(false);
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
+      console.error("Password reset failed:", error);
     } finally {
       setIsLoading(false);
     }
@@ -82,15 +63,12 @@ export const LoginDialog = ({ isOpen, setIsOpen }: LoginDialogProps) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline" className="border-roomie-purple text-roomie-purple">
-          Login
-        </Button>
-      </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>{showForgotPassword ? "Reset Password" : "Login to your account"}</DialogTitle>
-          <DialogDescription>
+          <DialogTitle className="text-xl font-bold text-center">
+            {showForgotPassword ? "Reset Password" : "Login to your account"}
+          </DialogTitle>
+          <DialogDescription className="text-center">
             {showForgotPassword 
               ? "Enter your email to receive a password reset link"
               : "Welcome back to RoomieMatch! Enter your credentials to continue."}
@@ -100,7 +78,7 @@ export const LoginDialog = ({ isOpen, setIsOpen }: LoginDialogProps) => {
         {showForgotPassword ? (
           <form onSubmit={handleForgotPassword} className="space-y-4 mt-4">
             <div className="space-y-2">
-              <Label htmlFor="forgot-email">Email</Label>
+              <Label htmlFor="forgot-email" className="font-medium">Email</Label>
               <Input 
                 id="forgot-email" 
                 type="email" 
@@ -108,13 +86,14 @@ export const LoginDialog = ({ isOpen, setIsOpen }: LoginDialogProps) => {
                 value={forgotEmail}
                 onChange={(e) => setForgotEmail(e.target.value)}
                 required
+                className="h-11"
               />
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 pt-2">
               <Button 
                 type="button" 
                 variant="outline" 
-                className="w-1/2"
+                className="w-1/2 h-11"
                 onClick={() => setShowForgotPassword(false)}
                 disabled={isLoading}
               >
@@ -122,7 +101,7 @@ export const LoginDialog = ({ isOpen, setIsOpen }: LoginDialogProps) => {
               </Button>
               <Button 
                 type="submit" 
-                className="w-1/2 bg-roomie-purple hover:bg-roomie-dark text-white"
+                className="w-1/2 h-11 bg-roomie-purple hover:bg-roomie-dark text-white font-medium"
                 disabled={isLoading}
               >
                 {isLoading ? "Sending..." : "Send Reset Link"}
@@ -133,7 +112,7 @@ export const LoginDialog = ({ isOpen, setIsOpen }: LoginDialogProps) => {
           <>
             <form onSubmit={handleLoginSubmit} className="space-y-4 mt-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email" className="font-medium">Email</Label>
                 <Input 
                   id="email" 
                   type="email" 
@@ -141,11 +120,12 @@ export const LoginDialog = ({ isOpen, setIsOpen }: LoginDialogProps) => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  className="h-11"
                 />
               </div>
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
-                  <Label htmlFor="password">Password</Label>
+                  <Label htmlFor="password" className="font-medium">Password</Label>
                   <Button 
                     type="button" 
                     variant="link" 
@@ -162,11 +142,12 @@ export const LoginDialog = ({ isOpen, setIsOpen }: LoginDialogProps) => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  className="h-11"
                 />
               </div>
               <Button 
                 type="submit" 
-                className="w-full bg-roomie-purple hover:bg-roomie-dark text-white"
+                className="w-full h-11 bg-roomie-purple hover:bg-roomie-dark text-white font-medium"
                 disabled={isLoading}
               >
                 {isLoading ? "Logging in..." : "Login"}
@@ -187,7 +168,7 @@ export const LoginDialog = ({ isOpen, setIsOpen }: LoginDialogProps) => {
                 type="button" 
                 variant="outline" 
                 onClick={signInWithGoogle}
-                className="flex items-center justify-center"
+                className="flex items-center justify-center h-11"
               >
                 <svg className="h-5 w-5" viewBox="0 0 24 24">
                   <path
@@ -212,7 +193,7 @@ export const LoginDialog = ({ isOpen, setIsOpen }: LoginDialogProps) => {
                 type="button" 
                 variant="outline" 
                 onClick={signInWithFacebook}
-                className="flex items-center justify-center"
+                className="flex items-center justify-center h-11"
               >
                 <Facebook className="h-5 w-5 text-blue-600" />
               </Button>
@@ -220,7 +201,7 @@ export const LoginDialog = ({ isOpen, setIsOpen }: LoginDialogProps) => {
                 type="button" 
                 variant="outline" 
                 onClick={signInWithLinkedIn}
-                className="flex items-center justify-center"
+                className="flex items-center justify-center h-11"
               >
                 <Linkedin className="h-5 w-5 text-blue-700" />
               </Button>

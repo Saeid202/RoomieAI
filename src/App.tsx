@@ -19,6 +19,7 @@ import LegalAssistantPage from "./pages/dashboard/LegalAssistant";
 import ChatsPage from "./pages/dashboard/Chats";
 import Callback from "./pages/auth/Callback";
 import ResetPassword from "./pages/auth/ResetPassword";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -39,8 +40,12 @@ const App = () => (
                 <Route path="/auth/callback" element={<Callback />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
                 
-                {/* Dashboard Routes */}
-                <Route path="/dashboard" element={<Dashboard />}>
+                {/* Protected Dashboard Routes */}
+                <Route path="/dashboard" element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                }>
                   <Route index element={<Profile />} />
                   <Route path="profile" element={<Profile />} />
                   <Route path="profile/roommate" element={<Profile />} />

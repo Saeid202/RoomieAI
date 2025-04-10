@@ -1,7 +1,7 @@
 
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function Callback() {
   const navigate = useNavigate();
@@ -12,7 +12,7 @@ export default function Callback() {
       if (session) {
         navigate('/dashboard');
       } else {
-        navigate('/login');
+        navigate('/');
       }
     });
   }, [navigate]);
