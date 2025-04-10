@@ -1,16 +1,23 @@
 
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { 
+  Card,
+  CardContent, 
+  CardDescription, 
+  CardFooter, 
+  CardHeader, 
+  CardTitle 
+} from "@/components/ui/card";
 import { MatchResult } from "@/types/profile";
 
-interface MatchResultsDisplayProps {
+type MatchResultsDisplayProps = {
   matchResults: MatchResult[];
   onBackToProfile: () => void;
-}
+};
 
-export const MatchResultsDisplay = ({ matchResults, onBackToProfile }: MatchResultsDisplayProps) => {
+export function MatchResultsDisplay({ matchResults, onBackToProfile }: MatchResultsDisplayProps) {
   return (
-    <div id="profile-form" className="py-20">
+    <div className="py-20">
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">Your Potential Matches</h2>
@@ -98,4 +105,4 @@ export const MatchResultsDisplay = ({ matchResults, onBackToProfile }: MatchResu
       </div>
     </div>
   );
-};
+}

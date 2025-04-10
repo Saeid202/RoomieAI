@@ -1,6 +1,7 @@
-
 // This is a simplified mock matching algorithm
 // In a real application, this would connect to a backend service
+
+import { ProfileFormValues } from "@/types/profile";
 
 type ProfileData = {
   name: string;
@@ -19,7 +20,7 @@ type ProfileData = {
   interests: string[];
 };
 
-type MatchResult = ProfileData & {
+export type MatchResult = ProfileData & {
   compatibilityScore: number;
 };
 
@@ -205,11 +206,37 @@ const calculateCompatibilityScore = (userProfile: ProfileData, potentialMatch: P
   return Math.round(score);
 };
 
-export const findMatches = (userProfile: ProfileData): MatchResult[] => {
+// Map form values to the format expected by the matching algorithm
+const mapFormToProfileData = (formData: ProfileFormValues): ProfileData => {
+  return {
+    name: formData.fullName,
+    age: formData.age,
+    gender: formData.gender || "prefer-not-to-say",
+    occupation: "Not specified", // Default value
+    movingDate: formData.moveInDate.toISOString().split('T')[0],
+    budget: formData.budgetRange,
+    location: formData.preferredLocation,
+    cleanliness: formData.cleanliness === "veryTidy" ? 90 : 
+                formData.cleanliness === "somewhatTidy" ? 60 : 30,
+    pets: formData.hasPets,
+    smoking: formData.smoking,
+    drinking: "sometimes", // Default value
+    guests: formData.guestsOver === "yes" ? "often" : 
+           formData.guestsOver === "occasionally" ? "sometimes" : "rarely",
+    sleepSchedule: formData.dailyRoutine === "morning" ? "early" : 
+                  formData.dailyRoutine === "night" ? "night" : "normal",
+    interests: formData.hobbies || [],
+  };
+};
+
+export const findMatches = (userProfile: ProfileFormValues): MatchResult[] => {
+  // Convert form data to the format expected by the matching algorithm
+  const profileData = mapFormToProfileData(userProfile);
+  
   // Calculate compatibility scores for all potential roommates
   const matches = potentialRoommates.map(roommate => ({
     ...roommate,
-    compatibilityScore: calculateCompatibilityScore(userProfile, roommate)
+    compatibilityScore: calculateCompatibilityScore(profileData, roommate)
   }));
   
   // Sort by compatibility score (highest first)

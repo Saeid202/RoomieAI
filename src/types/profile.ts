@@ -1,4 +1,3 @@
-
 import { z } from "zod";
 
 // Define the validation schema
@@ -58,18 +57,6 @@ export const profileSchema = z.object({
 
 export type ProfileFormValues = z.infer<typeof profileSchema>;
 
-// Type for matching algorithm results
-export interface MatchResult {
-  name: string;
-  age: number;
-  occupation: string;
-  location: string;
-  compatibilityScore: number;
-  budget: [number, number];
-  movingDate: string;
-  cleanliness: number;
-  pets: boolean;
-  sleepSchedule: string;
-  smoking: boolean;
-  interests: string[];
-}
+// Import the MatchResult type from matchingAlgorithm to maintain consistency
+import { MatchResult as AlgorithmMatchResult } from "@/utils/matchingAlgorithm";
+export type MatchResult = AlgorithmMatchResult;
