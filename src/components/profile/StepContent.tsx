@@ -26,50 +26,52 @@ export function StepContent({
   handleTraitToggle 
 }: StepContentProps) {
   return (
-    <div className="w-full space-y-6">
-      {step === 1 && (
-        <BasicInformationSection form={form} />
-      )}
-      
-      {step === 2 && (
-        <HousingPreferencesSection form={form} />
-      )}
-      
-      {step === 3 && (
-        <LifestyleHabitsSection 
-          form={form} 
-          handleHobbyToggle={handleHobbyToggle} 
-          hobbiesList={hobbiesList} 
-        />
-      )}
-      
-      {step === 4 && (
-        <WorkSleepScheduleSection form={form} />
-      )}
-      
-      {step === 5 && (
-        <CleanlinessSection form={form} />
-      )}
-      
-      {step === 6 && (
-        <SocialPreferencesSection form={form} />
-      )}
-      
-      {step === 7 && (
-        <CookingMealsSection form={form} />
-      )}
-      
-      {step === 8 && (
-        <LeaseTermsSection form={form} />
-      )}
-      
-      {step === 9 && (
-        <RoommatePreferencesSection 
-          form={form} 
-          handleTraitToggle={handleTraitToggle} 
-          traitsList={roommateTraitsList} 
-        />
-      )}
+    <div className="w-full h-[400px] overflow-y-auto px-2 flex items-center">
+      <div className="w-full space-y-6">
+        {step === 1 && (
+          <BasicInformationSection form={form} />
+        )}
+        
+        {step === 2 && (
+          <HousingPreferencesSection form={form} />
+        )}
+        
+        {step === 3 && (
+          <LifestyleHabitsSection 
+            form={form} 
+            handleHobbyToggle={handleHobbyToggle} 
+            hobbiesList={hobbiesList} 
+          />
+        )}
+        
+        {step === 4 && (
+          <WorkSleepScheduleSection form={form} />
+        )}
+        
+        {step === 5 && (
+          <CleanlinessSection form={form} />
+        )}
+        
+        {step === 6 && (
+          <SocialPreferencesSection form={form} />
+        )}
+        
+        {step === 7 && (
+          <CookingMealsSection form={form} />
+        )}
+        
+        {step === 8 && (
+          <LeaseTermsSection form={form} />
+        )}
+        
+        {step === 9 && (
+          <RoommatePreferencesSection 
+            form={form} 
+            handleTraitToggle={handleTraitToggle} 
+            traitsList={roommateTraitsList} 
+          />
+        )}
+      </div>
     </div>
   );
 }
