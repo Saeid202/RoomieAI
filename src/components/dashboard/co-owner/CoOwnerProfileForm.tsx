@@ -11,8 +11,8 @@ import { LocationExperienceSection } from "./form-sections/LocationExperienceSec
 import { CoOwnerFormValues, coOwnerFormSchema } from "./types";
 
 interface CoOwnerProfileFormProps {
-  initialData?: Partial<CoOwnerFormValues>;
-  onSave?: (data: CoOwnerFormValues) => Promise<void>;
+  initialData?: Partial<CoOwnerFormValues> | null;
+  onSave?: (data: CoOwnerFormValues) => Promise<any>;
 }
 
 export function CoOwnerProfileForm({ initialData, onSave }: CoOwnerProfileFormProps) {
