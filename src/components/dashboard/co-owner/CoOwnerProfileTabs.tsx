@@ -1,5 +1,4 @@
 
-import { useState } from "react";
 import { 
   Tabs, 
   TabsList, 
@@ -8,6 +7,10 @@ import {
 } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import { PersonalDetailsForm } from "@/components/dashboard/co-owner/PersonalDetailsForm";
+import { 
+  User, Home, Briefcase, FileText, 
+  CreditCard, BarChart3, ShieldAlert, CheckCircle 
+} from "lucide-react";
 
 interface CoOwnerProfileTabsProps {
   activeTab: string;
@@ -32,48 +35,56 @@ export function CoOwnerProfileTabs({
               value="personal-details"
               className="whitespace-nowrap py-2"
             >
+              <User className="h-4 w-4 mr-2" />
               Personal Details
             </TabsTrigger>
             <TabsTrigger 
               value="residence-citizenship"
               className="whitespace-nowrap py-2"
             >
+              <Home className="h-4 w-4 mr-2" />
               Residence & Citizenship
             </TabsTrigger>
             <TabsTrigger 
               value="employment"
               className="whitespace-nowrap py-2"
             >
+              <Briefcase className="h-4 w-4 mr-2" />
               Employment
             </TabsTrigger>
             <TabsTrigger 
               value="financial-situation"
               className="whitespace-nowrap py-2"
             >
+              <FileText className="h-4 w-4 mr-2" />
               Financial Situation
             </TabsTrigger>
             <TabsTrigger 
               value="investment-capacity"
               className="whitespace-nowrap py-2"
             >
+              <CreditCard className="h-4 w-4 mr-2" />
               Investment Capacity
             </TabsTrigger>
             <TabsTrigger 
               value="investment-preferences"
               className="whitespace-nowrap py-2"
             >
+              <BarChart3 className="h-4 w-4 mr-2" />
               Investment Preferences
             </TabsTrigger>
             <TabsTrigger 
               value="risk-management"
               className="whitespace-nowrap py-2"
             >
+              <ShieldAlert className="h-4 w-4 mr-2" />
               Risk Management
             </TabsTrigger>
             <TabsTrigger 
               value="identity-verification"
               className="whitespace-nowrap py-2"
             >
+              <CheckCircle className="h-4 w-4 mr-2" />
               Identity Verification
             </TabsTrigger>
           </TabsList>

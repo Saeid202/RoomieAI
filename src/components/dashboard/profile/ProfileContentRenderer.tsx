@@ -14,6 +14,7 @@ interface ProfileContentRendererProps {
   navigate: (path: string) => void;
   activeTab: string;
   setActiveTab: (value: string) => void;
+  forcedView?: 'roommate' | 'co-owner' | null;
 }
 
 export function ProfileContentRenderer({ 
@@ -23,7 +24,8 @@ export function ProfileContentRenderer({
   onSave,
   navigate,
   activeTab,
-  setActiveTab
+  setActiveTab,
+  forcedView = null
 }: ProfileContentRendererProps) {
   if (loading) {
     return <ProfileLoadingState />;
@@ -33,20 +35,26 @@ export function ProfileContentRenderer({
     return <EmptyProfileState />;
   }
 
-  // Show only the roommate form for roommate preference
+  // If forcedView is provided, it overrides everything else
+  if (forcedView === 'roommate') {
+    return <ProfileForm initialData={profileData} onSave={onSave} />;
+  }
+
+  if (forcedView === 'co-owner') {
+    return <CoOwnerProfileTabs activeTab={activeTab} setActiveTab={setActiveTab} />;
+  }
+
+  // If no forcedView, use userPreference
   if (userPreference === 'roommate') {
     return <ProfileForm initialData={profileData} onSave={onSave} />;
   }
 
-  // Show only the co-owner form for co-owner preference
   if (userPreference === 'co-owner') {
     return <CoOwnerProfileTabs activeTab={activeTab} setActiveTab={setActiveTab} />;
   }
 
-  // For users with 'both' preference, show appropriate form based on the current path
-  // This can be enhanced later with tabs to switch between the two forms
+  // For users with 'both' preference, handle based on current URL path
   if (userPreference === 'both') {
-    // Determine which page we're on from the URL
     const path = window.location.pathname;
     if (path.includes('roommate')) {
       return <ProfileForm initialData={profileData} onSave={onSave} />;

@@ -44,6 +44,7 @@ export function ProfileContent() {
             navigate={navigate}
             activeTab={activeTab}
             setActiveTab={setActiveTab}
+            forcedView={isRoommatePage ? 'roommate' : (isCoOwnerPage ? 'co-owner' : null)}
           />
         </div>
       </div>
