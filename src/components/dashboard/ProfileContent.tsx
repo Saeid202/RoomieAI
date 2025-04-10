@@ -3,8 +3,7 @@ import { useState, useEffect } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { PreferenceSelector } from "./PreferenceSelector";
 import { Users, Home, UserPlus } from "lucide-react";
-
-type UserPreference = "roommate" | "co-owner" | "both" | null;
+import { UserPreference } from "./types";
 
 export function ProfileContent() {
   const [activeTab, setActiveTab] = useState<UserPreference>(null);
