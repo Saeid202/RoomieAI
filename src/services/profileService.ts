@@ -69,7 +69,8 @@ export async function saveProfileData(
   if (existingData) {
     // Update existing record
     console.log("Updating existing record:", existingData);
-    const { id, ...dataWithoutId } = dbData; // Remove id from the data for update
+    // Remove id from the data for update
+    const { id, ...dataWithoutId } = dbData;
     result = await supabase
       .from(tableName)
       .update(dataWithoutId)
@@ -77,9 +78,10 @@ export async function saveProfileData(
   } else {
     // Insert new record
     console.log("Inserting new record");
+    // For insert operations, Supabase expects an array of objects
     result = await supabase
       .from(tableName)
-      .insert([dbData]); // Wrap dbData in an array to match the expected input type
+      .insert([dbData]);
   }
   
   return result;

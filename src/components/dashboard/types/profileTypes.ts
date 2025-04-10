@@ -48,7 +48,7 @@ export type RoommateTableRow = {
 
 // Define common type for all tables to avoid redundancy
 export type ProfileTableRow = {
-  id?: string;
+  id?: string; // Changed to string, matching the database schema
   user_id?: string | null;
   full_name?: string | null;
   age?: string | null;
