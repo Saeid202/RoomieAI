@@ -232,8 +232,8 @@ export function mapDbRowToFormValues(data: ProfileTableRow): Partial<ProfileForm
  * Maps form values (ProfileFormValues) to database row format for saving
  */
 export function mapFormValuesToDbRow(formData: ProfileFormValues, userId: string): ProfileTableRow {
-  return {
-    // Set user_id to the authenticated user's ID
+  // Create the database row object with the correct types
+  const dbRow: ProfileTableRow = {
     user_id: userId,
     full_name: formData.fullName,
     age: formData.age,
@@ -273,4 +273,6 @@ export function mapFormValuesToDbRow(formData: ProfileFormValues, userId: string
     important_roommate_traits: formData.importantRoommateTraits,
     updated_at: new Date().toISOString(),
   };
+
+  return dbRow;
 }
