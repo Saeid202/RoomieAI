@@ -1,4 +1,3 @@
-
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useState } from "react";
 import { CoOwnerProfileForm } from "./CoOwnerProfileForm";
@@ -23,21 +22,8 @@ export function PersonalDetailsForm() {
         setLoading(true);
         console.log("Fetching co-owner profile for user:", user.id);
         
-        // First check if the co-owner table exists and is accessible
-        console.log("Checking co-owner table");
-        const { data: tableInfo, error: tableError } = await supabase
-          .from('co-owner')
-          .select('count(*)')
-          .limit(1);
-          
-        if (tableError) {
-          console.error('Error checking co-owner table:', tableError);
-          throw tableError;
-        }
-        
-        console.log("Co-owner table check result:", tableInfo);
-        
-        // Now fetch user profile
+        // Avoid using count(*) which is causing the parsing error
+        // Instead, directly query for the user's profile
         const { data, error } = await supabase
           .from('co-owner')
           .select('*')
