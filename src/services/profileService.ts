@@ -15,10 +15,9 @@ export function getTableNameFromPreference(preference: UserPreference): TableNam
     return 'roommate';
   } else if (preference === 'co-owner') {
     return 'co-owner';
-  } else if (preference === 'both') {
-    return 'Both'; // Note the capital 'B' in "Both" table name
   }
   
+  // Remove "Both" option as it's been deprecated
   return null;
 }
 

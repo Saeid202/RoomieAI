@@ -27,18 +27,21 @@ export function useProfileData() {
 
     // Get user preference from localStorage
     const savedPreference = localStorage.getItem('userPreference') as UserPreference;
-    setUserPreference(savedPreference);
+    
+    // Make sure savedPreference is valid (roommate or co-owner only, not "both")
+    const validPreference = savedPreference === 'roommate' || savedPreference === 'co-owner' ? savedPreference : null;
+    setUserPreference(validPreference);
 
     // Load profile data from Supabase based on preference
     const loadProfileData = async () => {
       try {
-        if (!savedPreference) {
+        if (!validPreference) {
           setLoading(false);
           return;
         }
 
         // Determine which table to query based on user preference
-        const tableName = getTableNameFromPreference(savedPreference);
+        const tableName = getTableNameFromPreference(validPreference);
         if (!tableName) {
           setLoading(false);
           return;
@@ -87,7 +90,7 @@ export function useProfileData() {
       // Determine which table to save to based on user preference
       const tableName = getTableNameFromPreference(userPreference);
       if (!tableName) {
-        throw new Error("No table selected. Please select a preference (roommate, co-owner, or both).");
+        throw new Error("No table selected. Please select a preference (roommate or co-owner).");
       }
 
       // Save the profile data

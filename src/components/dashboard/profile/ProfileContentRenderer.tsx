@@ -59,7 +59,7 @@ export function ProfileContentRenderer({
     return <CoOwnerProfileTabs activeTab={activeTab} setActiveTab={setActiveTab} />;
   }
 
-  // Fallback to roommate form as default
-  console.log("Fallback to roommate form");
-  return <ProfileForm initialData={profileData} onSave={onSave} />;
+  // Fallback to profile selection if no valid preference is found
+  console.log("No valid preference found, showing empty state");
+  return <EmptyProfileState />;
 }
