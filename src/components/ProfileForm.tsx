@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -92,7 +91,6 @@ const ProfileForm = () => {
     
     if (isValid && step < totalSteps) {
       setStep(step + 1);
-      window.scrollTo(0, 0);
     } else {
       // Trigger validation to show errors
       form.trigger(currentStepFields as any);
@@ -102,7 +100,6 @@ const ProfileForm = () => {
   const prevStep = () => {
     if (step > 1) {
       setStep(step - 1);
-      window.scrollTo(0, 0);
     }
   };
   
