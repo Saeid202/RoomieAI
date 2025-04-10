@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -28,7 +27,6 @@ const ProfileForm = () => {
   
   const totalSteps = 9;
   
-  // Initialize form with default values
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
@@ -86,7 +84,7 @@ const ProfileForm = () => {
   }
 
   return (
-    <section id="profile-form" className="py-20 bg-roomie-light w-full">
+    <section id="profile-form" className="py-10 bg-roomie-light w-full">
       <div className="container mx-auto px-4 max-w-none">
         <Card className="mx-auto shadow-lg w-full max-w-6xl">
           <CardHeader>
@@ -128,4 +126,3 @@ const ProfileForm = () => {
 };
 
 export default ProfileForm;
-
