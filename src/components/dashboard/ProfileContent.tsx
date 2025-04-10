@@ -7,12 +7,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PostgrestError } from "@supabase/supabase-js";
+import { ProfileFormValues } from "@/types/profile";
 
 export function ProfileContent() {
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const [profileData, setProfileData] = useState<any>(null);
+  const [profileData, setProfileData] = useState<Partial<ProfileFormValues> | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -42,7 +43,13 @@ export function ProfileContent() {
         }
 
         if (data) {
-          setProfileData(data);
+          // Convert date string to Date object if it exists
+          const formattedData = {
+            ...data,
+            moveInDate: data.move_in_date ? new Date(data.move_in_date) : new Date(),
+            budgetRange: data.budget_range || [800, 1500]
+          };
+          setProfileData(formattedData);
         }
       } catch (error: any) {
         toast({
@@ -58,18 +65,56 @@ export function ProfileContent() {
     fetchProfileData();
   }, [user, navigate, toast]);
 
-  const handleSaveProfile = async (formData: any) => {
+  const handleSaveProfile = async (formData: ProfileFormValues) => {
     try {
       if (!user) return;
       
+      // Prepare data for Supabase - convert camelCase to snake_case for DB columns
+      const dbData = {
+        id: user.id,
+        full_name: formData.fullName,
+        age: formData.age,
+        gender: formData.gender,
+        phone_number: formData.phoneNumber,
+        email: formData.email,
+        linkedin_profile: formData.linkedinProfile,
+        preferred_location: formData.preferredLocation,
+        budget_range: formData.budgetRange,
+        move_in_date: formData.moveInDate.toISOString(),
+        housing_type: formData.housingType,
+        living_space: formData.livingSpace,
+        smoking: formData.smoking,
+        lives_with_smokers: formData.livesWithSmokers,
+        has_pets: formData.hasPets,
+        pet_preference: formData.petPreference,
+        work_location: formData.workLocation,
+        daily_routine: formData.dailyRoutine,
+        hobbies: formData.hobbies,
+        work_schedule: formData.workSchedule,
+        sleep_schedule: formData.sleepSchedule,
+        overnight_guests: formData.overnightGuests,
+        cleanliness: formData.cleanliness,
+        cleaning_frequency: formData.cleaningFrequency,
+        social_level: formData.socialLevel,
+        guests_over: formData.guestsOver,
+        family_over: formData.familyOver,
+        atmosphere: formData.atmosphere,
+        hosting_friends: formData.hostingFriends,
+        diet: formData.diet,
+        cooking_sharing: formData.cookingSharing,
+        stay_duration: formData.stayDuration,
+        lease_term: formData.leaseTerm,
+        roommate_gender_preference: formData.roommateGenderPreference,
+        roommate_age_preference: formData.roommateAgePreference,
+        roommate_lifestyle_preference: formData.roommateLifestylePreference,
+        important_roommate_traits: formData.importantRoommateTraits,
+        updated_at: new Date().toISOString(),
+      };
+
       // Insert or update profile data
       const { error } = await supabase
         .from('profiles')
-        .upsert({
-          id: user.id,
-          ...formData,
-          updated_at: new Date().toISOString(),
-        });
+        .upsert(dbData);
 
       if (error) throw error;
 
@@ -86,7 +131,13 @@ export function ProfileContent() {
         .single();
 
       if (data) {
-        setProfileData(data);
+        // Convert date string to Date object if it exists
+        const formattedData = {
+          ...data,
+          moveInDate: data.move_in_date ? new Date(data.move_in_date) : new Date(),
+          budgetRange: data.budget_range || [800, 1500]
+        };
+        setProfileData(formattedData);
       }
     } catch (error: any) {
       toast({
