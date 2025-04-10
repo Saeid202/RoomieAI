@@ -10,6 +10,49 @@ import { PostgrestError } from "@supabase/supabase-js";
 import { ProfileFormValues } from "@/types/profile";
 import { UserPreference } from "./types";
 
+// Define the types for our database tables
+type RoommateTableRow = {
+  id: string;
+  full_name: string | null;
+  age: string | null;
+  gender: string | null;
+  phone_number: string | null;
+  email: string | null;
+  linkedin_profile: string | null;
+  preferred_location: string | null;
+  budget_range: number[] | null;
+  move_in_date: string | null;
+  housing_type: string | null;
+  living_space: string | null;
+  smoking: boolean | null;
+  lives_with_smokers: boolean | null;
+  has_pets: boolean | null;
+  pet_preference: string | null;
+  work_location: string | null;
+  daily_routine: string | null;
+  hobbies: string[] | null;
+  work_schedule: string | null;
+  sleep_schedule: string | null;
+  overnight_guests: string | null;
+  cleanliness: string | null;
+  cleaning_frequency: string | null;
+  social_level: string | null;
+  guests_over: string | null;
+  family_over: string | null;
+  atmosphere: string | null;
+  hosting_friends: string | null;
+  diet: string | null;
+  cooking_sharing: string | null;
+  stay_duration: string | null;
+  lease_term: string | null;
+  roommate_gender_preference: string | null;
+  roommate_age_preference: string | null;
+  roommate_lifestyle_preference: string | null;
+  important_roommate_traits: string[] | null;
+  created_at: string | null;
+  updated_at: string | null;
+};
+
 export function ProfileContent() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -52,9 +95,9 @@ export function ProfileContent() {
           return;
         }
 
-        // Query the appropriate table
+        // Use type assertion to help TypeScript understand this is a valid table name
         const { data, error } = await supabase
-          .from(tableName)
+          .from(tableName as any)
           .select('*')
           .eq('id', user.id)
           .single();
@@ -69,47 +112,132 @@ export function ProfileContent() {
         }
 
         if (data) {
-          // Map database field names to ProfileFormValues properties
-          const formattedData: Partial<ProfileFormValues> = {
-            fullName: data.full_name || "",
-            age: data.age || "",
-            gender: data.gender || "",
-            phoneNumber: data.phone_number || "",
-            email: data.email || "",
-            linkedinProfile: data.linkedin_profile || "",
-            preferredLocation: data.preferred_location || "",
-            budgetRange: data.budget_range || [800, 1500],
-            moveInDate: data.move_in_date ? new Date(data.move_in_date) : new Date(),
-            housingType: (data.housing_type as "house" | "apartment") || "apartment",
-            livingSpace: (data.living_space as "privateRoom" | "sharedRoom" | "entirePlace") || "privateRoom",
-            smoking: !!data.smoking,
-            livesWithSmokers: !!data.lives_with_smokers,
-            hasPets: !!data.has_pets,
-            petPreference: (data.pet_preference as "noPets" | "onlyCats" | "onlyDogs" | "both") || "noPets",
-            workLocation: (data.work_location as "remote" | "office" | "hybrid") || "office",
-            dailyRoutine: (data.daily_routine as "morning" | "night" | "mixed") || "morning",
-            hobbies: data.hobbies || [],
-            workSchedule: data.work_schedule || "",
-            sleepSchedule: data.sleep_schedule || "",
-            overnightGuests: (data.overnight_guests as "yes" | "no" | "occasionally") || "occasionally",
-            cleanliness: (data.cleanliness as "veryTidy" | "somewhatTidy" | "doesntMindMess") || "somewhatTidy",
-            cleaningFrequency: (data.cleaning_frequency as "daily" | "weekly" | "biweekly" | "monthly" | "asNeeded") || "weekly",
-            socialLevel: (data.social_level as "extrovert" | "introvert" | "balanced") || "balanced",
-            guestsOver: (data.guests_over as "yes" | "no" | "occasionally") || "occasionally",
-            familyOver: (data.family_over as "yes" | "no" | "occasionally") || "occasionally",
-            atmosphere: (data.atmosphere as "quiet" | "lively" | "balanced") || "balanced",
-            hostingFriends: (data.hosting_friends as "yes" | "no" | "occasionally") || "occasionally",
-            diet: (data.diet as "vegetarian" | "vegan" | "omnivore" | "other") || "omnivore",
-            cookingSharing: (data.cooking_sharing as "share" | "separate") || "share",
-            stayDuration: (data.stay_duration as "threeMonths" | "sixMonths" | "oneYear" | "flexible") || "oneYear",
-            leaseTerm: (data.lease_term as "shortTerm" | "longTerm") || "longTerm",
-            roommateGenderPreference: (data.roommate_gender_preference as "sameGender" | "femaleOnly" | "maleOnly" | "noPreference") || "noPreference",
-            roommateAgePreference: (data.roommate_age_preference as "similar" | "younger" | "older" | "noAgePreference") || "similar",
-            roommateLifestylePreference: (data.roommate_lifestyle_preference as "similar" | "moreActive" | "quieter" | "noLifestylePreference") || "similar",
-            importantRoommateTraits: data.important_roommate_traits || [],
-          };
-          
-          setProfileData(formattedData);
+          // Handle data based on preference/table
+          if (savedPreference === 'both' || savedPreference === 'co-owner') {
+            // If we're dealing with tables that might not have all the fields
+            // we create default values and only override them if they exist
+            const formattedData: Partial<ProfileFormValues> = {
+              fullName: "",
+              age: "",
+              gender: "",
+              phoneNumber: "",
+              email: "",
+              linkedinProfile: "",
+              preferredLocation: "",
+              budgetRange: [800, 1500],
+              moveInDate: new Date(),
+              housingType: "apartment",
+              livingSpace: "privateRoom",
+              smoking: false,
+              livesWithSmokers: false,
+              hasPets: false,
+              petPreference: "noPets",
+              workLocation: "office",
+              dailyRoutine: "morning",
+              hobbies: [],
+              workSchedule: "",
+              sleepSchedule: "",
+              overnightGuests: "occasionally",
+              cleanliness: "somewhatTidy",
+              cleaningFrequency: "weekly",
+              socialLevel: "balanced",
+              guestsOver: "occasionally",
+              familyOver: "occasionally",
+              atmosphere: "balanced",
+              hostingFriends: "occasionally",
+              diet: "omnivore",
+              cookingSharing: "share",
+              stayDuration: "oneYear",
+              leaseTerm: "longTerm",
+              roommateGenderPreference: "noPreference",
+              roommateAgePreference: "similar",
+              roommateLifestylePreference: "similar",
+              importantRoommateTraits: [],
+            };
+            
+            // Now we only override with values that actually exist in the data
+            if ('full_name' in data) formattedData.fullName = data.full_name || "";
+            if ('age' in data) formattedData.age = data.age || "";
+            if ('gender' in data) formattedData.gender = data.gender || "";
+            if ('phone_number' in data) formattedData.phoneNumber = data.phone_number || "";
+            if ('email' in data) formattedData.email = data.email || "";
+            if ('linkedin_profile' in data) formattedData.linkedinProfile = data.linkedin_profile || "";
+            if ('preferred_location' in data) formattedData.preferredLocation = data.preferred_location || "";
+            if ('budget_range' in data && data.budget_range) formattedData.budgetRange = data.budget_range;
+            if ('move_in_date' in data && data.move_in_date) formattedData.moveInDate = new Date(data.move_in_date);
+            if ('housing_type' in data && data.housing_type) formattedData.housingType = data.housing_type as "house" | "apartment";
+            if ('living_space' in data && data.living_space) formattedData.livingSpace = data.living_space as "privateRoom" | "sharedRoom" | "entirePlace";
+            if ('smoking' in data) formattedData.smoking = !!data.smoking;
+            if ('lives_with_smokers' in data) formattedData.livesWithSmokers = !!data.lives_with_smokers;
+            if ('has_pets' in data) formattedData.hasPets = !!data.has_pets;
+            if ('pet_preference' in data && data.pet_preference) formattedData.petPreference = data.pet_preference as "noPets" | "onlyCats" | "onlyDogs" | "both";
+            if ('work_location' in data && data.work_location) formattedData.workLocation = data.work_location as "remote" | "office" | "hybrid";
+            if ('daily_routine' in data && data.daily_routine) formattedData.dailyRoutine = data.daily_routine as "morning" | "night" | "mixed";
+            if ('hobbies' in data && data.hobbies) formattedData.hobbies = data.hobbies;
+            if ('work_schedule' in data) formattedData.workSchedule = data.work_schedule || "";
+            if ('sleep_schedule' in data) formattedData.sleepSchedule = data.sleep_schedule || "";
+            if ('overnight_guests' in data && data.overnight_guests) formattedData.overnightGuests = data.overnight_guests as "yes" | "no" | "occasionally";
+            if ('cleanliness' in data && data.cleanliness) formattedData.cleanliness = data.cleanliness as "veryTidy" | "somewhatTidy" | "doesntMindMess";
+            if ('cleaning_frequency' in data && data.cleaning_frequency) formattedData.cleaningFrequency = data.cleaning_frequency as "daily" | "weekly" | "biweekly" | "monthly" | "asNeeded";
+            if ('social_level' in data && data.social_level) formattedData.socialLevel = data.social_level as "extrovert" | "introvert" | "balanced";
+            if ('guests_over' in data && data.guests_over) formattedData.guestsOver = data.guests_over as "yes" | "no" | "occasionally";
+            if ('family_over' in data && data.family_over) formattedData.familyOver = data.family_over as "yes" | "no" | "occasionally";
+            if ('atmosphere' in data && data.atmosphere) formattedData.atmosphere = data.atmosphere as "quiet" | "lively" | "balanced";
+            if ('hosting_friends' in data && data.hosting_friends) formattedData.hostingFriends = data.hosting_friends as "yes" | "no" | "occasionally";
+            if ('diet' in data && data.diet) formattedData.diet = data.diet as "vegetarian" | "vegan" | "omnivore" | "other";
+            if ('cooking_sharing' in data && data.cooking_sharing) formattedData.cookingSharing = data.cooking_sharing as "share" | "separate";
+            if ('stay_duration' in data && data.stay_duration) formattedData.stayDuration = data.stay_duration as "threeMonths" | "sixMonths" | "oneYear" | "flexible";
+            if ('lease_term' in data && data.lease_term) formattedData.leaseTerm = data.lease_term as "shortTerm" | "longTerm";
+            if ('roommate_gender_preference' in data && data.roommate_gender_preference) formattedData.roommateGenderPreference = data.roommate_gender_preference as "sameGender" | "femaleOnly" | "maleOnly" | "noPreference";
+            if ('roommate_age_preference' in data && data.roommate_age_preference) formattedData.roommateAgePreference = data.roommate_age_preference as "similar" | "younger" | "older" | "noAgePreference";
+            if ('roommate_lifestyle_preference' in data && data.roommate_lifestyle_preference) formattedData.roommateLifestylePreference = data.roommate_lifestyle_preference as "similar" | "moreActive" | "quieter" | "noLifestylePreference";
+            if ('important_roommate_traits' in data && data.important_roommate_traits) formattedData.importantRoommateTraits = data.important_roommate_traits;
+            
+            setProfileData(formattedData);
+          } else if (savedPreference === 'roommate') {
+            // For roommate tables, which should have all the expected fields
+            const roommateData = data as RoommateTableRow;
+            const formattedData: Partial<ProfileFormValues> = {
+              fullName: roommateData.full_name || "",
+              age: roommateData.age || "",
+              gender: roommateData.gender || "",
+              phoneNumber: roommateData.phone_number || "",
+              email: roommateData.email || "",
+              linkedinProfile: roommateData.linkedin_profile || "",
+              preferredLocation: roommateData.preferred_location || "",
+              budgetRange: roommateData.budget_range || [800, 1500],
+              moveInDate: roommateData.move_in_date ? new Date(roommateData.move_in_date) : new Date(),
+              housingType: (roommateData.housing_type as "house" | "apartment") || "apartment",
+              livingSpace: (roommateData.living_space as "privateRoom" | "sharedRoom" | "entirePlace") || "privateRoom",
+              smoking: !!roommateData.smoking,
+              livesWithSmokers: !!roommateData.lives_with_smokers,
+              hasPets: !!roommateData.has_pets,
+              petPreference: (roommateData.pet_preference as "noPets" | "onlyCats" | "onlyDogs" | "both") || "noPets",
+              workLocation: (roommateData.work_location as "remote" | "office" | "hybrid") || "office",
+              dailyRoutine: (roommateData.daily_routine as "morning" | "night" | "mixed") || "morning",
+              hobbies: roommateData.hobbies || [],
+              workSchedule: roommateData.work_schedule || "",
+              sleepSchedule: roommateData.sleep_schedule || "",
+              overnightGuests: (roommateData.overnight_guests as "yes" | "no" | "occasionally") || "occasionally",
+              cleanliness: (roommateData.cleanliness as "veryTidy" | "somewhatTidy" | "doesntMindMess") || "somewhatTidy",
+              cleaningFrequency: (roommateData.cleaning_frequency as "daily" | "weekly" | "biweekly" | "monthly" | "asNeeded") || "weekly",
+              socialLevel: (roommateData.social_level as "extrovert" | "introvert" | "balanced") || "balanced",
+              guestsOver: (roommateData.guests_over as "yes" | "no" | "occasionally") || "occasionally",
+              familyOver: (roommateData.family_over as "yes" | "no" | "occasionally") || "occasionally",
+              atmosphere: (roommateData.atmosphere as "quiet" | "lively" | "balanced") || "balanced",
+              hostingFriends: (roommateData.hosting_friends as "yes" | "no" | "occasionally") || "occasionally",
+              diet: (roommateData.diet as "vegetarian" | "vegan" | "omnivore" | "other") || "omnivore",
+              cookingSharing: (roommateData.cooking_sharing as "share" | "separate") || "share",
+              stayDuration: (roommateData.stay_duration as "threeMonths" | "sixMonths" | "oneYear" | "flexible") || "oneYear",
+              leaseTerm: (roommateData.lease_term as "shortTerm" | "longTerm") || "longTerm",
+              roommateGenderPreference: (roommateData.roommate_gender_preference as "sameGender" | "femaleOnly" | "maleOnly" | "noPreference") || "noPreference",
+              roommateAgePreference: (roommateData.roommate_age_preference as "similar" | "younger" | "older" | "noAgePreference") || "similar",
+              roommateLifestylePreference: (roommateData.roommate_lifestyle_preference as "similar" | "moreActive" | "quieter" | "noLifestylePreference") || "similar",
+              importantRoommateTraits: roommateData.important_roommate_traits || [],
+            };
+            
+            setProfileData(formattedData);
+          }
         }
       } catch (error: any) {
         toast({
@@ -185,9 +313,9 @@ export function ProfileContent() {
         throw new Error("No table selected. Please select a preference (roommate, co-owner, or both).");
       }
 
-      // Insert or update profile data in the appropriate table
+      // Insert or update profile data in the appropriate table using type assertion for the table name
       const { error } = await supabase
-        .from(tableName)
+        .from(tableName as any)
         .upsert(dbData);
 
       if (error) throw error;
@@ -199,51 +327,89 @@ export function ProfileContent() {
 
       // Refresh the profile data from the appropriate table
       const { data } = await supabase
-        .from(tableName)
+        .from(tableName as any)
         .select('*')
         .eq('id', user.id)
         .single();
 
       if (data) {
-        // Map database field names to ProfileFormValues properties
+        // Create a default formatted data object with default values
         const formattedData: Partial<ProfileFormValues> = {
-          fullName: data.full_name || "",
-          age: data.age || "",
-          gender: data.gender || "",
-          phoneNumber: data.phone_number || "",
-          email: data.email || "",
-          linkedinProfile: data.linkedin_profile || "",
-          preferredLocation: data.preferred_location || "",
-          budgetRange: data.budget_range || [800, 1500],
-          moveInDate: data.move_in_date ? new Date(data.move_in_date) : new Date(),
-          housingType: (data.housing_type as "house" | "apartment") || "apartment",
-          livingSpace: (data.living_space as "privateRoom" | "sharedRoom" | "entirePlace") || "privateRoom",
-          smoking: !!data.smoking,
-          livesWithSmokers: !!data.lives_with_smokers,
-          hasPets: !!data.has_pets,
-          petPreference: (data.pet_preference as "noPets" | "onlyCats" | "onlyDogs" | "both") || "noPets",
-          workLocation: (data.work_location as "remote" | "office" | "hybrid") || "office",
-          dailyRoutine: (data.daily_routine as "morning" | "night" | "mixed") || "morning",
-          hobbies: data.hobbies || [],
-          workSchedule: data.work_schedule || "",
-          sleepSchedule: data.sleep_schedule || "",
-          overnightGuests: (data.overnight_guests as "yes" | "no" | "occasionally") || "occasionally",
-          cleanliness: (data.cleanliness as "veryTidy" | "somewhatTidy" | "doesntMindMess") || "somewhatTidy",
-          cleaningFrequency: (data.cleaning_frequency as "daily" | "weekly" | "biweekly" | "monthly" | "asNeeded") || "weekly",
-          socialLevel: (data.social_level as "extrovert" | "introvert" | "balanced") || "balanced",
-          guestsOver: (data.guests_over as "yes" | "no" | "occasionally") || "occasionally",
-          familyOver: (data.family_over as "yes" | "no" | "occasionally") || "occasionally",
-          atmosphere: (data.atmosphere as "quiet" | "lively" | "balanced") || "balanced",
-          hostingFriends: (data.hosting_friends as "yes" | "no" | "occasionally") || "occasionally",
-          diet: (data.diet as "vegetarian" | "vegan" | "omnivore" | "other") || "omnivore",
-          cookingSharing: (data.cooking_sharing as "share" | "separate") || "share",
-          stayDuration: (data.stay_duration as "threeMonths" | "sixMonths" | "oneYear" | "flexible") || "oneYear",
-          leaseTerm: (data.lease_term as "shortTerm" | "longTerm") || "longTerm",
-          roommateGenderPreference: (data.roommate_gender_preference as "sameGender" | "femaleOnly" | "maleOnly" | "noPreference") || "noPreference",
-          roommateAgePreference: (data.roommate_age_preference as "similar" | "younger" | "older" | "noAgePreference") || "similar",
-          roommateLifestylePreference: (data.roommate_lifestyle_preference as "similar" | "moreActive" | "quieter" | "noLifestylePreference") || "similar",
-          importantRoommateTraits: data.important_roommate_traits || [],
+          fullName: "",
+          age: "",
+          gender: "",
+          phoneNumber: "",
+          email: "",
+          linkedinProfile: "",
+          preferredLocation: "",
+          budgetRange: [800, 1500],
+          moveInDate: new Date(),
+          housingType: "apartment",
+          livingSpace: "privateRoom",
+          smoking: false,
+          livesWithSmokers: false,
+          hasPets: false,
+          petPreference: "noPets",
+          workLocation: "office",
+          dailyRoutine: "morning",
+          hobbies: [],
+          workSchedule: "",
+          sleepSchedule: "",
+          overnightGuests: "occasionally",
+          cleanliness: "somewhatTidy",
+          cleaningFrequency: "weekly",
+          socialLevel: "balanced",
+          guestsOver: "occasionally",
+          familyOver: "occasionally",
+          atmosphere: "balanced",
+          hostingFriends: "occasionally",
+          diet: "omnivore",
+          cookingSharing: "share",
+          stayDuration: "oneYear",
+          leaseTerm: "longTerm",
+          roommateGenderPreference: "noPreference",
+          roommateAgePreference: "similar",
+          roommateLifestylePreference: "similar",
+          importantRoommateTraits: [],
         };
+        
+        // Now override with values that exist in the data
+        if ('full_name' in data) formattedData.fullName = data.full_name || "";
+        if ('age' in data) formattedData.age = data.age || "";
+        if ('gender' in data) formattedData.gender = data.gender || "";
+        if ('phone_number' in data) formattedData.phoneNumber = data.phone_number || "";
+        if ('email' in data) formattedData.email = data.email || "";
+        if ('linkedin_profile' in data) formattedData.linkedinProfile = data.linkedin_profile || "";
+        if ('preferred_location' in data) formattedData.preferredLocation = data.preferred_location || "";
+        if ('budget_range' in data && data.budget_range) formattedData.budgetRange = data.budget_range;
+        if ('move_in_date' in data && data.move_in_date) formattedData.moveInDate = new Date(data.move_in_date);
+        if ('housing_type' in data && data.housing_type) formattedData.housingType = data.housing_type as "house" | "apartment";
+        if ('living_space' in data && data.living_space) formattedData.livingSpace = data.living_space as "privateRoom" | "sharedRoom" | "entirePlace";
+        if ('smoking' in data) formattedData.smoking = !!data.smoking;
+        if ('lives_with_smokers' in data) formattedData.livesWithSmokers = !!data.lives_with_smokers;
+        if ('has_pets' in data) formattedData.hasPets = !!data.has_pets;
+        if ('pet_preference' in data && data.pet_preference) formattedData.petPreference = data.pet_preference as "noPets" | "onlyCats" | "onlyDogs" | "both";
+        if ('work_location' in data && data.work_location) formattedData.workLocation = data.work_location as "remote" | "office" | "hybrid";
+        if ('daily_routine' in data && data.daily_routine) formattedData.dailyRoutine = data.daily_routine as "morning" | "night" | "mixed";
+        if ('hobbies' in data && data.hobbies) formattedData.hobbies = data.hobbies;
+        if ('work_schedule' in data) formattedData.workSchedule = data.work_schedule || "";
+        if ('sleep_schedule' in data) formattedData.sleepSchedule = data.sleep_schedule || "";
+        if ('overnight_guests' in data && data.overnight_guests) formattedData.overnightGuests = data.overnight_guests as "yes" | "no" | "occasionally";
+        if ('cleanliness' in data && data.cleanliness) formattedData.cleanliness = data.cleanliness as "veryTidy" | "somewhatTidy" | "doesntMindMess";
+        if ('cleaning_frequency' in data && data.cleaning_frequency) formattedData.cleaningFrequency = data.cleaning_frequency as "daily" | "weekly" | "biweekly" | "monthly" | "asNeeded";
+        if ('social_level' in data && data.social_level) formattedData.socialLevel = data.social_level as "extrovert" | "introvert" | "balanced";
+        if ('guests_over' in data && data.guests_over) formattedData.guestsOver = data.guests_over as "yes" | "no" | "occasionally";
+        if ('family_over' in data && data.family_over) formattedData.familyOver = data.family_over as "yes" | "no" | "occasionally";
+        if ('atmosphere' in data && data.atmosphere) formattedData.atmosphere = data.atmosphere as "quiet" | "lively" | "balanced";
+        if ('hosting_friends' in data && data.hosting_friends) formattedData.hostingFriends = data.hosting_friends as "yes" | "no" | "occasionally";
+        if ('diet' in data && data.diet) formattedData.diet = data.diet as "vegetarian" | "vegan" | "omnivore" | "other";
+        if ('cooking_sharing' in data && data.cooking_sharing) formattedData.cookingSharing = data.cooking_sharing as "share" | "separate";
+        if ('stay_duration' in data && data.stay_duration) formattedData.stayDuration = data.stay_duration as "threeMonths" | "sixMonths" | "oneYear" | "flexible";
+        if ('lease_term' in data && data.lease_term) formattedData.leaseTerm = data.lease_term as "shortTerm" | "longTerm";
+        if ('roommate_gender_preference' in data && data.roommate_gender_preference) formattedData.roommateGenderPreference = data.roommate_gender_preference as "sameGender" | "femaleOnly" | "maleOnly" | "noPreference";
+        if ('roommate_age_preference' in data && data.roommate_age_preference) formattedData.roommateAgePreference = data.roommate_age_preference as "similar" | "younger" | "older" | "noAgePreference";
+        if ('roommate_lifestyle_preference' in data && data.roommate_lifestyle_preference) formattedData.roommateLifestylePreference = data.roommate_lifestyle_preference as "similar" | "moreActive" | "quieter" | "noLifestylePreference";
+        if ('important_roommate_traits' in data && data.important_roommate_traits) formattedData.importantRoommateTraits = data.important_roommate_traits;
         
         setProfileData(formattedData);
       }
