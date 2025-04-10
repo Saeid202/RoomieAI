@@ -59,14 +59,6 @@ export function ProfileContentRenderer({
     return <CoOwnerProfileTabs activeTab={activeTab} setActiveTab={setActiveTab} />;
   }
 
-  // For users with 'both' preference, show tabs to select which profile to edit
-  if (userPreference === 'both') {
-    console.log("User has 'both' preference, defaulting to roommate form");
-    // For now we'll just show the roommate form as default
-    // A more complete solution would be to add tabs to switch between the two profile types
-    return <ProfileForm initialData={profileData} onSave={onSave} />;
-  }
-
   // Fallback to roommate form as default
   console.log("Fallback to roommate form");
   return <ProfileForm initialData={profileData} onSave={onSave} />;

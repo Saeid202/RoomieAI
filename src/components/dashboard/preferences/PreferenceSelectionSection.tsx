@@ -23,7 +23,7 @@ export function PreferenceSelectionSection({
         </p>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4 mx-auto max-w-3xl">
         <PreferenceCard
           title="Roommate"
           description="I'm looking for someone to share a rental with me"
@@ -37,18 +37,6 @@ export function PreferenceSelectionSection({
           icon={Home}
           selected={preference === "co-owner"}
           onSelect={() => handlePreferenceSelect("co-owner")}
-        />
-        <PreferenceCard
-          title="Both Options"
-          description="I'm open to either roommates or co-ownership"
-          icon={() => (
-            <div className="relative">
-              <Users size={24} className="absolute -left-1" />
-              <Home size={24} className="absolute left-3" />
-            </div>
-          )}
-          selected={preference === "both"}
-          onSelect={() => handlePreferenceSelect("both")}
         />
       </div>
       

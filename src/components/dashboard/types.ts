@@ -1,2 +1,2 @@
 
-export type UserPreference = "roommate" | "co-owner" | "both" | null;
+export type UserPreference = "roommate" | "co-owner" | null;

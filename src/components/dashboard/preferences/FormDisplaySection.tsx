@@ -25,7 +25,6 @@ export function FormDisplaySection({
         <h1 className="text-2xl font-bold tracking-tight">
           {preference === "roommate" && "Find Your Perfect Roommate"}
           {preference === "co-owner" && "Find Your Co-ownership Partner"}
-          {preference === "both" && "Find Your Housing Partners"}
         </h1>
         <button 
           onClick={handleEditPreference}
@@ -36,11 +35,8 @@ export function FormDisplaySection({
         </button>
       </div>
       
-      {(preference === "roommate" || preference === "both") && (
-        <div className="mb-12">
-          {preference === "both" && (
-            <h2 className="text-xl font-semibold mb-4 text-roomie-purple">Roommate Matching Profile</h2>
-          )}
+      {preference === "roommate" && (
+        <div className="mb-6">
           <Card>
             <CardContent className="p-6">
               <div className="flex flex-col items-center">
@@ -57,26 +53,19 @@ export function FormDisplaySection({
         </div>
       )}
       
-      {(preference === "co-owner" || preference === "both") && (
-        <div>
-          {preference === "both" && (
-            <h2 className="text-xl font-semibold mb-4 text-roomie-purple">Co-owner Matching Profile</h2>
-          )}
+      {preference === "co-owner" && (
+        <div className="mb-6">
           <Card>
             <CardContent className="p-6">
-              {preference === "co-owner" ? (
-                <div className="flex flex-col items-center">
-                  <p className="text-gray-600 mb-4">Fill out your co-owner profile to find matches</p>
-                  <button 
-                    onClick={handleFillProfile}
-                    className="px-4 py-2 bg-roomie-purple text-white rounded-md hover:bg-roomie-purple/90 transition-colors"
-                  >
-                    Fill Profile
-                  </button>
-                </div>
-              ) : (
-                <p className="text-center py-8 text-gray-500">Co-owner form will be implemented in the future update.</p>
-              )}
+              <div className="flex flex-col items-center">
+                <p className="text-gray-600 mb-4">Fill out your co-owner profile to find matches</p>
+                <button 
+                  onClick={handleFillProfile}
+                  className="px-4 py-2 bg-roomie-purple text-white rounded-md hover:bg-roomie-purple/90 transition-colors"
+                >
+                  Fill Profile
+                </button>
+              </div>
             </CardContent>
           </Card>
         </div>
