@@ -85,4 +85,4 @@ export const MobileMenu = ({
       </div>
     </div>
   );
-};
+}

@@ -10,6 +10,7 @@ import {
   SidebarMenu,
   SidebarSeparator,
   SidebarFooter,
+  useSidebar
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { RoleToggle } from "./RoleToggle";
@@ -17,10 +18,14 @@ import { useRole } from "@/contexts/RoleContext";
 import { SeekerSidebar } from "./sidebar/SeekerSidebar";
 import { LandlordSidebar } from "./sidebar/LandlordSidebar";
 import { DeveloperSidebar } from "./sidebar/DeveloperSidebar";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Menu } from "lucide-react";
 
 export function DashboardSidebar() {
   const location = useLocation();
   const { role } = useRole();
+  const { toggleSidebar } = useSidebar();
+  const isMobile = useIsMobile();
 
   const isActive = (path: string) => {
     return location.pathname === path;
@@ -29,41 +34,55 @@ export function DashboardSidebar() {
   // Log current location for debugging
   console.log("Current location:", location.pathname);
   console.log("Current role:", role);
+  console.log("Is mobile:", isMobile);
 
   return (
-    <Sidebar>
-      <SidebarHeader className="flex items-center justify-center p-4">
-        <h2 className="text-xl font-bold">
-          {role === 'landlord' ? 'Landlord Portal' : 
-           role === 'developer' ? 'Developer Portal' : 
-           'Roommate Finder'}
-        </h2>
-      </SidebarHeader>
-      
-      <RoleToggle />
-      
-      <SidebarSeparator />
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Main</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {role === 'seeker' ? (
-                <SeekerSidebar isActive={isActive} />
-              ) : role === 'landlord' ? (
-                <LandlordSidebar isActive={isActive} />
-              ) : (
-                <DeveloperSidebar isActive={isActive} />
-              )}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
-      <SidebarFooter className="p-4">
-        <Button variant="secondary" className="w-full" asChild>
-          <Link to="/">Back to Home</Link>
+    <>
+      {isMobile && (
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={toggleSidebar} 
+          className="fixed top-20 left-4 z-50 bg-background/80 backdrop-blur-sm shadow-sm"
+        >
+          <Menu size={24} />
+          <span className="sr-only">Toggle Sidebar</span>
         </Button>
-      </SidebarFooter>
-    </Sidebar>
+      )}
+      <Sidebar>
+        <SidebarHeader className="flex items-center justify-center p-4">
+          <h2 className="text-xl font-bold">
+            {role === 'landlord' ? 'Landlord Portal' : 
+             role === 'developer' ? 'Developer Portal' : 
+             'Roommate Finder'}
+          </h2>
+        </SidebarHeader>
+        
+        <RoleToggle />
+        
+        <SidebarSeparator />
+        <SidebarContent>
+          <SidebarGroup>
+            <SidebarGroupLabel>Main</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {role === 'seeker' ? (
+                  <SeekerSidebar isActive={isActive} />
+                ) : role === 'landlord' ? (
+                  <LandlordSidebar isActive={isActive} />
+                ) : (
+                  <DeveloperSidebar isActive={isActive} />
+                )}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarContent>
+        <SidebarFooter className="p-4">
+          <Button variant="secondary" className="w-full" asChild>
+            <Link to="/">Back to Home</Link>
+          </Button>
+        </SidebarFooter>
+      </Sidebar>
+    </>
   );
 }

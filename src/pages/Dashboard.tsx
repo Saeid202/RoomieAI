@@ -6,18 +6,21 @@ import Footer from "@/components/Footer";
 import { useRole } from "@/contexts/RoleContext";
 import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function Dashboard() {
   const { role } = useRole();
   const { user } = useAuth();
   const location = useLocation();
+  const isMobile = useIsMobile();
   
   // Redirect based on current role if needed
   useEffect(() => {
     console.log("Dashboard role effect - current role:", role);
     console.log("Dashboard role effect - current path:", location.pathname);
     console.log("Dashboard role effect - user metadata:", user?.user_metadata);
-  }, [role, location.pathname, user]);
+    console.log("Dashboard is mobile:", isMobile);
+  }, [role, location.pathname, user, isMobile]);
   
   // Handle redirects for role-specific sections
   if (role === 'landlord' && location.pathname === '/dashboard') {
@@ -35,11 +38,11 @@ export default function Dashboard() {
   return (
     <div className="flex flex-col min-h-screen">
       <div className="flex flex-1 pt-16"> {/* Space for navbar */}
-        <SidebarProvider>
+        <SidebarProvider defaultOpen={!isMobile}>
           <div className="flex w-full"> 
             <DashboardSidebar />
             <main className="flex-1 overflow-y-auto pb-16"> {/* Added padding bottom to prevent content being hidden by footer */}
-              <div className="p-6">
+              <div className="p-4 md:p-6">
                 <Outlet />
               </div>
             </main>
