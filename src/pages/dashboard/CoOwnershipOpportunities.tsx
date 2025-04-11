@@ -1,10 +1,18 @@
 
+import { Plus } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 export default function CoOwnershipOpportunitiesPage() {
   return (
     <div className="space-y-8">
-      <h1 className="text-3xl font-bold tracking-tight mb-6">Co-Ownership Opportunities</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-3xl font-bold tracking-tight">Co-Ownership Opportunities</h1>
+        <Button className="flex items-center gap-2 bg-roomie-purple hover:bg-roomie-dark">
+          <Plus size={18} />
+          Create Listing
+        </Button>
+      </div>
       
       <Card>
         <CardHeader>
