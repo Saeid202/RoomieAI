@@ -21,21 +21,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { setRole } = useRole();
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      // Set role from user metadata if available
-      if (session?.user?.user_metadata?.role) {
-        setRole(session.user.user_metadata.role as UserRole);
-        console.log("Setting role from metadata:", session.user.user_metadata.role);
-      }
-      
-      setLoading(false);
-    });
-
-    // Listen for auth changes
+    // Set up auth state listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setSession(session);
@@ -43,13 +29,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         
         // Set role from user metadata if available
         if (session?.user?.user_metadata?.role) {
-          setRole(session.user.user_metadata.role as UserRole);
-          console.log("Auth change: setting role from metadata:", session.user.user_metadata.role);
+          const userRole = session.user.user_metadata.role as UserRole;
+          setRole(userRole);
+          console.log("Auth state change: setting role from metadata:", userRole);
         }
         
         setLoading(false);
       }
     );
+
+    // Then check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      
+      // Set role from user metadata if available
+      if (session?.user?.user_metadata?.role) {
+        const userRole = session.user.user_metadata.role as UserRole;
+        setRole(userRole);
+        console.log("Initial session: setting role from metadata:", userRole);
+      }
+      
+      setLoading(false);
+    });
 
     return () => subscription.unsubscribe();
   }, [setRole]);
@@ -65,8 +67,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // After successful sign in, check if user has a role in metadata
       const { data } = await supabase.auth.getUser();
       if (data.user?.user_metadata?.role) {
-        setRole(data.user.user_metadata.role as UserRole);
-        console.log("Sign in: setting role from metadata:", data.user.user_metadata.role);
+        const userRole = data.user.user_metadata.role as UserRole;
+        setRole(userRole);
+        console.log("Sign in: setting role from metadata:", userRole);
       }
       
       return result;

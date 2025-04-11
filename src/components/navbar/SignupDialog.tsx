@@ -33,8 +33,7 @@ export function SignupDialog({ isOpen, setIsOpen }: SignupDialogProps) {
     try {
       await signUp(values.email, values.password);
       
-      // The profile will be created with the trigger we set up
-      // But we can add the full name and role to the user metadata
+      // Update the user metadata with the selected role and full name
       await supabase.auth.updateUser({
         data: {
           full_name: values.fullName,
@@ -53,13 +52,13 @@ export function SignupDialog({ isOpen, setIsOpen }: SignupDialogProps) {
         description: `Welcome! You've been registered as a ${values.role}`,
       });
       
-      // Redirect based on role
+      // Navigate to the appropriate dashboard based on role
       if (values.role === 'landlord') {
         navigate("/dashboard/landlord");
       } else if (values.role === 'developer') {
         navigate("/dashboard/developer");
       } else {
-        navigate("/dashboard");
+        navigate("/dashboard/profile"); // For seekers
       }
     } catch (error: any) {
       console.error("Signup error:", error);
@@ -79,7 +78,7 @@ export function SignupDialog({ isOpen, setIsOpen }: SignupDialogProps) {
         <DialogHeader>
           <DialogTitle className="text-xl font-bold text-center">Create an account</DialogTitle>
           <DialogDescription className="text-center">
-            Sign up for Roomie to find your perfect roommate match!
+            Sign up for Roomie to find your perfect match!
           </DialogDescription>
         </DialogHeader>
 

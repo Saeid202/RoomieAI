@@ -24,15 +24,15 @@ export default function Dashboard() {
     console.log("Dashboard role effect - current role:", role);
     console.log("Dashboard role effect - assigned role:", assignedRole);
     console.log("Dashboard role effect - current path:", location.pathname);
-    console.log("Dashboard is mobile:", isMobile);
     
     // Force the role to match the assigned role
     if (assignedRole && role !== assignedRole) {
       setRole(assignedRole);
+      console.log("Role updated to match user metadata:", assignedRole);
     }
-  }, [role, assignedRole, location.pathname, user, isMobile, setRole]);
+  }, [role, assignedRole, location.pathname, user, setRole]);
   
-  // Check if the current path is allowed for the user's role
+  // Handle default dashboard routing
   useEffect(() => {
     // Default redirect to appropriate dashboard based on role
     if (location.pathname === '/dashboard') {
@@ -69,11 +69,10 @@ export default function Dashboard() {
       if (!isPathAllowed) {
         toast({
           title: "Access Restricted",
-          description: "You don't have access to this section",
+          description: "This section is only available to landlords or developers",
           variant: "destructive",
         });
         navigate('/dashboard/profile', { replace: true });
-        return;
       }
     }
     
@@ -92,11 +91,10 @@ export default function Dashboard() {
       if (!isPathAllowed) {
         toast({
           title: "Access Restricted",
-          description: "You don't have access to this section",
+          description: "This section is only available to seekers or developers",
           variant: "destructive",
         });
         navigate('/dashboard/landlord', { replace: true });
-        return;
       }
     }
     
@@ -117,16 +115,15 @@ export default function Dashboard() {
       if (!isPathAllowed) {
         toast({
           title: "Access Restricted",
-          description: "You don't have access to this section",
+          description: "This section is only available to seekers or landlords",
           variant: "destructive",
         });
         navigate('/dashboard/developer', { replace: true });
-        return;
       }
     }
   }, [location.pathname, assignedRole, navigate]);
   
-  // If we're still navigating to the root dashboard, direct based on role
+  // If we're still at the root dashboard path, redirect based on role
   if (location.pathname === '/dashboard') {
     if (assignedRole === 'landlord') {
       return <Navigate to="/dashboard/landlord" replace />;
