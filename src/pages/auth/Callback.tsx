@@ -9,6 +9,32 @@ export default function Callback() {
   const navigate = useNavigate();
   const { setRole } = useRole();
 
+  // Helper function to validate if a role is one of the expected values
+  function isValidRole(role: any): boolean {
+    const validRoles: UserRole[] = ['seeker', 'landlord', 'developer'];
+    return validRoles.includes(role as UserRole);
+  }
+
+  // Helper function to set default role
+  function setDefaultRole() {
+    console.log("Auth callback - no role found, defaulting to seeker");
+    setRole('seeker');
+    localStorage.setItem('userRole', 'seeker');
+    
+    // Update user metadata
+    try {
+      supabase.auth.updateUser({
+        data: { role: 'seeker' }
+      }).then(({ error }) => {
+        if (error) {
+          console.error("Error setting default role:", error);
+        }
+      });
+    } catch (err) {
+      console.error("Exception setting default role:", err);
+    }
+  }
+
   useEffect(() => {
     // Handle the OAuth callback
     supabase.auth.getSession().then(async ({ data: { session } }) => {
@@ -90,32 +116,6 @@ export default function Callback() {
       }
     });
   }, [navigate, setRole]);
-
-  // Helper function to validate if a role is one of the expected values
-  function isValidRole(role: any): boolean {
-    const validRoles: UserRole[] = ['seeker', 'landlord', 'developer'];
-    return validRoles.includes(role as UserRole);
-  }
-
-  // Helper function to set default role
-  function setDefaultRole() {
-    console.log("Auth callback - no role found, defaulting to seeker");
-    setRole('seeker');
-    localStorage.setItem('userRole', 'seeker');
-    
-    // Update user metadata
-    try {
-      supabase.auth.updateUser({
-        data: { role: 'seeker' }
-      }).then(({ error }) => {
-        if (error) {
-          console.error("Error setting default role:", error);
-        }
-      });
-    } catch (err) {
-      console.error("Exception setting default role:", err);
-    }
-  }
 
   return (
     <div className="flex items-center justify-center h-screen">
