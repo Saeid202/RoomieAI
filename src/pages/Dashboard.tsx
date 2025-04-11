@@ -40,7 +40,7 @@ export default function Dashboard() {
   return (
     <div className="flex flex-col min-h-screen">
       <div className="flex flex-1 pt-16"> {/* Space for navbar */}
-        <SidebarProvider defaultOpen={!isMobile}>
+        <SidebarProvider defaultOpen={false}>
           <div className="flex w-full relative"> 
             <DashboardSidebar />
             <main className="flex-1 overflow-y-auto pb-16"> {/* Added padding bottom to prevent content being hidden by footer */}

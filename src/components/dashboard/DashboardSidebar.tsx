@@ -32,19 +32,20 @@ export function DashboardSidebar() {
   };
 
   // Log current location for debugging
-  console.log("Current location:", location.pathname);
-  console.log("Current role:", role);
-  console.log("Is mobile:", isMobile);
-  console.log("Sidebar open:", open);
+  console.log("DashboardSidebar - Current location:", location.pathname);
+  console.log("DashboardSidebar - Current role:", role);
+  console.log("DashboardSidebar - Is mobile:", isMobile);
+  console.log("DashboardSidebar - Sidebar open:", open);
 
   return (
     <>
+      {/* Mobile toggle button - make it more visible */}
       {isMobile && (
         <Button 
-          variant="ghost" 
+          variant="outline" 
           size="icon" 
           onClick={toggleSidebar} 
-          className="fixed top-20 left-4 z-50 bg-background/80 backdrop-blur-sm shadow-sm"
+          className="fixed top-20 left-4 z-50 bg-white shadow-md border-2 border-roomie-purple"
           aria-label="Toggle Menu"
         >
           {open ? <X size={24} /> : <Menu size={24} />}
