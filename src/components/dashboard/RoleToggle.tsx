@@ -4,16 +4,33 @@ import { useRole, UserRole } from "@/contexts/RoleContext";
 import { Label } from "@/components/ui/label";
 import { useEffect } from "react";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "@/hooks/use-toast";
 
 export function RoleToggle() {
   const { role, setRole } = useRole();
+  const { user } = useAuth();
+  
+  // Get the user's assigned role from metadata
+  const assignedRole = user?.user_metadata?.role as UserRole | undefined;
   
   useEffect(() => {
     // Log role changes for debugging
     console.log("Current role:", role);
-  }, [role]);
+    console.log("Assigned role from metadata:", assignedRole);
+  }, [role, assignedRole]);
 
   const handleToggle = (value: string) => {
+    // If user has an assigned role, only allow switching to that role
+    if (assignedRole && value !== assignedRole) {
+      toast({
+        title: "Permission denied",
+        description: `You are registered as a ${assignedRole} and cannot switch to ${value} role.`,
+        variant: "destructive",
+      });
+      return;
+    }
+    
     if (value) {
       setRole(value as UserRole);
     }
@@ -31,6 +48,7 @@ export function RoleToggle() {
           <ToggleGroupItem 
             value="seeker" 
             className="flex items-center justify-center gap-1 w-full"
+            disabled={assignedRole && assignedRole !== "seeker"}
           >
             <User size={16} />
             <span className="text-xs sm:text-sm">Seeker</span>
@@ -38,6 +56,7 @@ export function RoleToggle() {
           <ToggleGroupItem 
             value="landlord" 
             className="flex items-center justify-center gap-1 w-full"
+            disabled={assignedRole && assignedRole !== "landlord"}
           >
             <Building size={16} />
             <span className="text-xs sm:text-sm">Landlord</span>
@@ -45,6 +64,7 @@ export function RoleToggle() {
           <ToggleGroupItem 
             value="developer" 
             className="flex items-center justify-center gap-1 w-full"
+            disabled={assignedRole && assignedRole !== "developer"}
           >
             <HardHat size={16} />
             <span className="text-xs sm:text-sm">Developer</span>

@@ -14,6 +14,7 @@ import { SocialLoginButtons } from "@/components/auth/SocialLoginButtons";
 import { SignupForm, SignupFormValues } from "@/components/auth/SignupForm";
 import { useRole } from "@/contexts/RoleContext";
 import { UserRole } from "@/contexts/RoleContext";
+import { toast } from "@/hooks/use-toast";
 
 // Updated interface to match the props being passed in Navbar.tsx and MobileMenu.tsx
 export interface SignupDialogProps {
@@ -46,6 +47,12 @@ export function SignupDialog({ isOpen, setIsOpen }: SignupDialogProps) {
       
       setIsOpen(false);
       
+      // Show success message
+      toast({
+        title: "Account created",
+        description: `Welcome! You've been registered as a ${values.role}`,
+      });
+      
       // Redirect based on role
       if (values.role === 'landlord') {
         navigate("/dashboard/landlord");
@@ -56,6 +63,11 @@ export function SignupDialog({ isOpen, setIsOpen }: SignupDialogProps) {
       }
     } catch (error: any) {
       console.error("Signup error:", error);
+      toast({
+        title: "Error creating account",
+        description: error.message || "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }

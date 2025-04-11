@@ -39,7 +39,7 @@ export const SignupForm = ({ onSubmit, isLoading }: SignupFormProps) => {
       fullName: "",
       email: "",
       password: "",
-      role: "seeker",
+      role: "seeker", // Default role
     },
   });
 

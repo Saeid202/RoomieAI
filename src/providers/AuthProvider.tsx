@@ -12,6 +12,7 @@ import {
 } from '@/services/authService';
 import { useRole } from '@/contexts/RoleContext';
 import { UserRole } from '@/contexts/RoleContext';
+import { toast } from '@/hooks/use-toast';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -28,6 +29,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Set role from user metadata if available
       if (session?.user?.user_metadata?.role) {
         setRole(session.user.user_metadata.role as UserRole);
+        console.log("Setting role from metadata:", session.user.user_metadata.role);
       }
       
       setLoading(false);
@@ -42,6 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Set role from user metadata if available
         if (session?.user?.user_metadata?.role) {
           setRole(session.user.user_metadata.role as UserRole);
+          console.log("Auth change: setting role from metadata:", session.user.user_metadata.role);
         }
         
         setLoading(false);
@@ -56,7 +59,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signIn = async (email: string, password: string) => {
-    return signInWithEmail(email, password);
+    try {
+      const result = await signInWithEmail(email, password);
+      
+      // After successful sign in, check if user has a role in metadata
+      const { data } = await supabase.auth.getUser();
+      if (data.user?.user_metadata?.role) {
+        setRole(data.user.user_metadata.role as UserRole);
+        console.log("Sign in: setting role from metadata:", data.user.user_metadata.role);
+      }
+      
+      return result;
+    } catch (error) {
+      throw error;
+    }
   };
 
   const signInWithGoogle = async () => {
