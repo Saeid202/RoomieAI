@@ -8,7 +8,8 @@ import {
   signInWithEmail, 
   signInWithOAuth, 
   resetPasswordForEmail, 
-  signOutUser 
+  signOutUser,
+  updateUserMetadata
 } from '@/services/authService';
 import { useRole } from '@/contexts/RoleContext';
 import { UserRole } from '@/contexts/RoleContext';
@@ -36,6 +37,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const userRole = session.user.user_metadata.role as UserRole;
           console.log("Auth state change: setting role from metadata:", userRole);
           setRole(userRole);
+          localStorage.setItem('userRole', userRole);
+        } else {
+          // Check localStorage as fallback
+          const storedRole = localStorage.getItem('userRole') as UserRole | null;
+          if (storedRole) {
+            console.log("Auth state change: setting role from localStorage:", storedRole);
+            setRole(storedRole);
+            
+            // Update user metadata if we're logged in but metadata is missing
+            if (session?.user && !session.user.user_metadata?.role) {
+              console.log("Updating missing role in user metadata");
+              updateUserMetadata({ role: storedRole }).catch(error => 
+                console.error("Failed to update user metadata:", error)
+              );
+            }
+          }
         }
         
         setLoading(false);
@@ -54,6 +71,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const userRole = session.user.user_metadata.role as UserRole;
         console.log("Initial session: setting role from metadata:", userRole);
         setRole(userRole);
+        localStorage.setItem('userRole', userRole);
+      } else if (session?.user) {
+        // If user is logged in but no role in metadata, check localStorage
+        const storedRole = localStorage.getItem('userRole') as UserRole | null;
+        if (storedRole) {
+          console.log("Initial session: setting role from localStorage:", storedRole);
+          setRole(storedRole);
+          
+          // Update user metadata to include the role
+          console.log("Updating user metadata with missing role:", storedRole);
+          updateUserMetadata({ role: storedRole }).catch(error => 
+            console.error("Failed to update user metadata:", error)
+          );
+        } else {
+          console.warn("No role found in metadata or localStorage, defaulting to seeker");
+          setRole('seeker');
+          localStorage.setItem('userRole', 'seeker');
+        }
       }
       
       setLoading(false);
@@ -65,10 +100,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signUp = async (email: string, password: string) => {
     try {
       const result = await signUpWithEmail(email, password);
-      toast({
-        title: "Check your email",
-        description: "Please check your email for a confirmation link. If you don't see it, check your spam folder.",
-      });
       return result;
     } catch (error) {
       throw error;
@@ -89,10 +120,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const userRole = data.user.user_metadata.role as UserRole;
         console.log("Sign in: setting role from metadata:", userRole);
         setRole(userRole);
+        localStorage.setItem('userRole', userRole);
       } else {
-        console.warn("No role found in user metadata, defaulting to seeker");
-        // Default to seeker if no role is found
-        setRole('seeker');
+        // Check localStorage as fallback
+        const storedRole = localStorage.getItem('userRole') as UserRole | null;
+        if (storedRole) {
+          console.log("Sign in: using role from localStorage:", storedRole);
+          setRole(storedRole);
+          
+          // Update user metadata
+          console.log("Updating user metadata with role from localStorage");
+          await updateUserMetadata({ role: storedRole });
+        } else {
+          console.warn("No role found in user metadata or localStorage, defaulting to seeker");
+          setRole('seeker');
+          localStorage.setItem('userRole', 'seeker');
+          
+          // Update user metadata
+          await updateUserMetadata({ role: 'seeker' });
+        }
       }
       
       return result;
@@ -121,6 +167,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return signOutUser();
   };
 
+  const updateMetadata = async (metadata: Record<string, any>) => {
+    return updateUserMetadata(metadata);
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -134,6 +184,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signInWithLinkedIn,
         resetPassword,
         signOut,
+        updateMetadata,
       }}
     >
       {children}

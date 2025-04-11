@@ -14,6 +14,7 @@ import { SignupForm, SignupFormValues } from "@/components/auth/SignupForm";
 import { SocialLoginButtons } from "@/components/auth/SocialLoginButtons";
 import { toast } from "@/hooks/use-toast";
 import { UserRole } from "@/contexts/RoleContext";
+import { useRole } from "@/contexts/RoleContext";
 import { supabase } from "@/integrations/supabase/client";
 
 interface SignupDialogProps {
@@ -24,11 +25,15 @@ interface SignupDialogProps {
 export const SignupDialog = ({ isOpen, setIsOpen }: SignupDialogProps) => {
   const navigate = useNavigate();
   const { signUp, signInWithGoogle, signInWithFacebook, signInWithLinkedIn } = useAuth();
+  const { setRole } = useRole();
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSignupSubmit = async (values: SignupFormValues) => {
     setIsLoading(true);
     try {
+      // Immediately set role in context for consistent UI
+      setRole(values.role);
+      
       // Store metadata in localStorage before signup
       const metadata = {
         full_name: values.fullName,
@@ -37,6 +42,13 @@ export const SignupDialog = ({ isOpen, setIsOpen }: SignupDialogProps) => {
       
       localStorage.setItem('signupData', JSON.stringify(metadata));
       console.log("Stored signup metadata in localStorage:", metadata);
+      
+      // Also store the role directly for immediate access
+      localStorage.setItem('userRole', values.role);
+      console.log("Stored user role in localStorage:", values.role);
+      
+      // For social auth without prior signup
+      localStorage.setItem('pendingRole', values.role);
       
       // Sign up the user with the provided email and password
       const result = await signUp(values.email, values.password);
@@ -53,7 +65,7 @@ export const SignupDialog = ({ isOpen, setIsOpen }: SignupDialogProps) => {
       // We don't navigate yet since the user needs to verify their email first
       toast({
         title: "Account created",
-        description: "Please check your email to confirm your account before logging in.",
+        description: "Please check your email to confirm your account before logging in. Check your spam folder if you don't see it.",
       });
     } catch (error: any) {
       console.error("Signup error:", error);
@@ -64,6 +76,25 @@ export const SignupDialog = ({ isOpen, setIsOpen }: SignupDialogProps) => {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+  
+  const handleSocialLogin = (provider: 'google' | 'facebook' | 'linkedin') => {
+    // Store the role for OAuth flow
+    const role = localStorage.getItem('pendingRole');
+    if (role) {
+      console.log(`Attempting social login with ${provider}, role: ${role}`);
+    } else {
+      console.log(`No role set for social login, defaulting to seeker`);
+      localStorage.setItem('pendingRole', 'seeker');
+    }
+    
+    if (provider === 'google') {
+      signInWithGoogle();
+    } else if (provider === 'facebook') {
+      signInWithFacebook();
+    } else if (provider === 'linkedin') {
+      signInWithLinkedIn();
     }
   };
   
@@ -94,9 +125,9 @@ export const SignupDialog = ({ isOpen, setIsOpen }: SignupDialogProps) => {
         </div>
         
         <SocialLoginButtons
-          onGoogleClick={signInWithGoogle}
-          onFacebookClick={signInWithFacebook}
-          onLinkedInClick={signInWithLinkedIn}
+          onGoogleClick={() => handleSocialLogin('google')}
+          onFacebookClick={() => handleSocialLogin('facebook')}
+          onLinkedInClick={() => handleSocialLogin('linkedin')}
         />
         
         <DialogFooter className="flex justify-center mt-4">

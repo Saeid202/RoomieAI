@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -14,6 +13,7 @@ import { ForgotPasswordForm } from "@/components/auth/ForgotPasswordForm";
 import { SocialLoginButtons } from "@/components/auth/SocialLoginButtons";
 import { toast } from "@/hooks/use-toast";
 import { useRole } from "@/contexts/RoleContext";
+import { UserRole } from "@/contexts/RoleContext";
 import { supabase } from "@/integrations/supabase/client";
 
 interface LoginDialogProps {
@@ -36,6 +36,7 @@ export const LoginDialog = ({ isOpen, setIsOpen }: LoginDialogProps) => {
     e.preventDefault();
     setIsLoading(true);
     try {
+      console.log("Attempting to sign in with:", email);
       const result = await signIn(email, password);
       if (!result.user) {
         throw new Error("Login failed");
@@ -52,22 +53,34 @@ export const LoginDialog = ({ isOpen, setIsOpen }: LoginDialogProps) => {
       
       // Log full user data for debugging
       console.log("Complete user data after login:", data);
+      console.log("User metadata after login:", data.user?.user_metadata);
       
-      const userRole = data.user?.user_metadata?.role;
+      const userRole = data.user?.user_metadata?.role as UserRole | undefined;
       console.log("User logged in with role:", userRole);
       
       // Set role in context
       if (userRole) {
         setRole(userRole);
+        // Also update in localStorage
+        localStorage.setItem('userRole', userRole);
       } else {
-        console.warn("No role found in user metadata after login, defaulting to seeker");
-        setRole('seeker');
+        console.warn("No role found in user metadata after login, checking localStorage...");
+        const storedRole = localStorage.getItem('userRole') as UserRole | null;
+        
+        if (storedRole) {
+          console.log("Using role from localStorage:", storedRole);
+          setRole(storedRole);
+        } else {
+          console.warn("No role found in localStorage either, defaulting to seeker");
+          setRole('seeker');
+          localStorage.setItem('userRole', 'seeker');
+        }
       }
       
       // Redirect based on user role
-      if (userRole === 'landlord') {
+      if (userRole === 'landlord' || localStorage.getItem('userRole') === 'landlord') {
         navigate("/dashboard/landlord");
-      } else if (userRole === 'developer') {
+      } else if (userRole === 'developer' || localStorage.getItem('userRole') === 'developer') {
         navigate("/dashboard/developer");
       } else {
         // Default to profile dashboard for seekers
@@ -121,6 +134,26 @@ export const LoginDialog = ({ isOpen, setIsOpen }: LoginDialogProps) => {
     }
   };
 
+  const handleSocialLogin = (provider: 'google' | 'facebook' | 'linkedin') => {
+    // Get role from localStorage if set from signup flow
+    const pendingRole = localStorage.getItem('pendingRole');
+    if (pendingRole) {
+      console.log(`Social login with ${provider}, using role: ${pendingRole}`);
+    } else {
+      console.log(`Social login with ${provider}, no role specified`);
+      // Default to seeker for social login
+      localStorage.setItem('pendingRole', 'seeker');
+    }
+    
+    if (provider === 'google') {
+      signInWithGoogle();
+    } else if (provider === 'facebook') {
+      signInWithFacebook();
+    } else if (provider === 'linkedin') {
+      signInWithLinkedIn();
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent className="sm:max-w-[425px]">
@@ -165,9 +198,9 @@ export const LoginDialog = ({ isOpen, setIsOpen }: LoginDialogProps) => {
             </div>
             
             <SocialLoginButtons
-              onGoogleClick={signInWithGoogle}
-              onFacebookClick={signInWithFacebook}
-              onLinkedInClick={signInWithLinkedIn}
+              onGoogleClick={() => handleSocialLogin('google')}
+              onFacebookClick={() => handleSocialLogin('facebook')}
+              onLinkedInClick={() => handleSocialLogin('linkedin')}
             />
           </>
         )}

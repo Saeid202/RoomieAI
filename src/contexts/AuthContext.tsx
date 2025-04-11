@@ -13,6 +13,7 @@ interface AuthContextType {
   signInWithLinkedIn: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   signOut: () => Promise<void>;
+  updateMetadata: (metadata: Record<string, any>) => Promise<any>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
