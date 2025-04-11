@@ -4,7 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "@/hooks/useAuth";
+import { AuthProvider } from "@/providers/AuthProvider";
 import { RoleProvider } from "@/contexts/RoleContext";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -32,6 +32,7 @@ import ApplicationsPage from "./pages/dashboard/landlord/Applications";
 
 // Developer routes
 import DeveloperHomePage from "./pages/dashboard/developer/DeveloperHome";
+import DeveloperDashboard from "./pages/dashboard/developer/DeveloperDashboard";
 
 const queryClient = new QueryClient();
 
@@ -80,7 +81,7 @@ const App = () => (
                     <Route path="tenants/applications" element={<ApplicationsPage />} />
                     
                     {/* Developer Routes */}
-                    <Route path="developer" element={<DeveloperHomePage />} />
+                    <Route path="developer" element={<DeveloperDashboard />} />
                   </Route>
                   
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

@@ -5,16 +5,19 @@ import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import Footer from "@/components/Footer";
 import { useRole } from "@/contexts/RoleContext";
 import { useEffect } from "react";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function Dashboard() {
   const { role } = useRole();
+  const { user } = useAuth();
   const location = useLocation();
   
   // Redirect based on current role if needed
   useEffect(() => {
     console.log("Dashboard role effect - current role:", role);
     console.log("Dashboard role effect - current path:", location.pathname);
-  }, [role, location.pathname]);
+    console.log("Dashboard role effect - user metadata:", user?.user_metadata);
+  }, [role, location.pathname, user]);
   
   // Handle redirects for role-specific sections
   if (role === 'landlord' && location.pathname === '/dashboard') {
