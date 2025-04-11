@@ -28,6 +28,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import LandlordHomePage from "./pages/dashboard/landlord/LandlordHome";
 import PropertiesPage from "./pages/dashboard/landlord/Properties";
 import AddPropertyPage from "./pages/dashboard/landlord/AddProperty";
+import ApplicationsPage from "./pages/dashboard/landlord/Applications";
 
 const queryClient = new QueryClient();
 
@@ -73,6 +74,7 @@ const App = () => (
                     <Route path="landlord" element={<LandlordHomePage />} />
                     <Route path="properties" element={<PropertiesPage />} />
                     <Route path="properties/add" element={<AddPropertyPage />} />
+                    <Route path="tenants/applications" element={<ApplicationsPage />} />
                   </Route>
                   
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
