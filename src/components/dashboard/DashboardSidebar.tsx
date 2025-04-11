@@ -10,6 +10,11 @@ import {
   PieChart,
   Users,
   FileText,
+  DollarSign,
+  BarChart,
+  HardHat,
+  Tag,
+  ShoppingBag,
 } from "lucide-react";
 import {
   Sidebar,
@@ -68,10 +73,25 @@ export function DashboardSidebar() {
     { label: "Current Tenants", path: "/dashboard/tenants/current" }
   ];
 
+  // Developer-specific sections
+  const developerPropertiesSubItems = [
+    { label: "For Sale Properties", path: "/dashboard/properties" },
+    { label: "Add Property", path: "/dashboard/properties/add" }
+  ];
+
+  const salesSubItems = [
+    { label: "Inquiries", path: "/dashboard/inquiries" },
+    { label: "Potential Buyers", path: "/dashboard/potential-buyers" }
+  ];
+
   return (
     <Sidebar>
       <SidebarHeader className="flex items-center justify-center p-4">
-        <h2 className="text-xl font-bold">{role === 'landlord' ? 'Landlord Portal' : 'Roommate Finder'}</h2>
+        <h2 className="text-xl font-bold">
+          {role === 'landlord' ? 'Landlord Portal' : 
+           role === 'developer' ? 'Developer Portal' : 
+           'Roommate Finder'}
+        </h2>
       </SidebarHeader>
       
       <RoleToggle />
@@ -131,7 +151,7 @@ export function DashboardSidebar() {
                     isActive={isActive} 
                   />
                 </>
-              ) : (
+              ) : role === 'landlord' ? (
                 // Landlord menu items
                 <>
                   <SidebarSimpleMenuItem 
@@ -159,6 +179,51 @@ export function DashboardSidebar() {
                     title="Lease Management" 
                     icon={FileText} 
                     path="/dashboard/leases" 
+                    isActive={isActive} 
+                  />
+
+                  <SidebarSimpleMenuItem 
+                    title="Messages" 
+                    icon={MessageSquare} 
+                    path="/dashboard/messages" 
+                    isActive={isActive} 
+                  />
+                </>
+              ) : (
+                // Developer menu items
+                <>
+                  <SidebarSimpleMenuItem 
+                    title="Dashboard" 
+                    icon={PieChart} 
+                    path="/dashboard/developer" 
+                    isActive={isActive} 
+                  />
+
+                  <SidebarMenuSection 
+                    title="Properties for Sale" 
+                    icon={Building} 
+                    subItems={developerPropertiesSubItems} 
+                    isActive={isActive} 
+                  />
+
+                  <SidebarMenuSection 
+                    title="Sales" 
+                    icon={ShoppingBag} 
+                    subItems={salesSubItems} 
+                    isActive={isActive} 
+                  />
+
+                  <SidebarSimpleMenuItem 
+                    title="Pricing" 
+                    icon={Tag} 
+                    path="/dashboard/pricing" 
+                    isActive={isActive} 
+                  />
+
+                  <SidebarSimpleMenuItem 
+                    title="Analytics" 
+                    icon={BarChart} 
+                    path="/dashboard/analytics" 
                     isActive={isActive} 
                   />
 

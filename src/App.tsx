@@ -30,6 +30,9 @@ import PropertiesPage from "./pages/dashboard/landlord/Properties";
 import AddPropertyPage from "./pages/dashboard/landlord/AddProperty";
 import ApplicationsPage from "./pages/dashboard/landlord/Applications";
 
+// Developer routes
+import DeveloperHomePage from "./pages/dashboard/developer/DeveloperHome";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -75,6 +78,9 @@ const App = () => (
                     <Route path="properties" element={<PropertiesPage />} />
                     <Route path="properties/add" element={<AddPropertyPage />} />
                     <Route path="tenants/applications" element={<ApplicationsPage />} />
+                    
+                    {/* Developer Routes */}
+                    <Route path="developer" element={<DeveloperHomePage />} />
                   </Route>
                   
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

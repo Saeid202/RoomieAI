@@ -21,7 +21,11 @@ export default function Dashboard() {
     return <Navigate to="/dashboard/landlord" replace />;
   }
   
-  if (role === 'seeker' && location.pathname === '/dashboard/landlord') {
+  if (role === 'developer' && location.pathname === '/dashboard') {
+    return <Navigate to="/dashboard/developer" replace />;
+  }
+  
+  if (role === 'seeker' && (location.pathname === '/dashboard/landlord' || location.pathname === '/dashboard/developer')) {
     return <Navigate to="/dashboard" replace />;
   }
   
