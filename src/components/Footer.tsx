@@ -1,9 +1,13 @@
-
 import { Facebook, Twitter, Instagram, Linkedin } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-const Footer = () => {
+interface FooterProps {
+  className?: string;
+}
+
+const Footer = ({ className }: FooterProps) => {
   return (
-    <footer className="bg-gray-900 text-white pt-16 pb-8">
+    <footer className={cn("bg-gray-900 text-white pt-16 pb-8", className)}>
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 mb-12">
           <div className="lg:col-span-2">

@@ -36,60 +36,60 @@ export function CoOwnerProfileTabs({
         onValueChange={setActiveTab}
         className="w-full"
       >
-        <div className="overflow-x-auto pb-2 sticky top-0 bg-card z-10">
-          <TabsList className="w-full bg-muted inline-flex h-auto p-1 gap-2 flex-nowrap">
+        <div className="overflow-x-auto pb-4 sticky top-0 bg-card z-10 border-b mb-6">
+          <TabsList className="w-full bg-muted/50 inline-flex h-auto py-2 px-1 gap-1 flex-nowrap justify-start rounded-xl">
             <TabsTrigger 
               value="personal-details"
-              className="whitespace-nowrap py-2"
+              className="whitespace-nowrap flex items-center rounded-lg py-2.5 px-4"
             >
               <User className="h-4 w-4 mr-2" />
               Personal Details
             </TabsTrigger>
             <TabsTrigger 
               value="residence-citizenship"
-              className="whitespace-nowrap py-2"
+              className="whitespace-nowrap flex items-center rounded-lg py-2.5 px-4"
             >
               <Home className="h-4 w-4 mr-2" />
               Residence & Citizenship
             </TabsTrigger>
             <TabsTrigger 
               value="employment"
-              className="whitespace-nowrap py-2"
+              className="whitespace-nowrap flex items-center rounded-lg py-2.5 px-4"
             >
               <Briefcase className="h-4 w-4 mr-2" />
               Employment
             </TabsTrigger>
             <TabsTrigger 
               value="financial-situation"
-              className="whitespace-nowrap py-2"
+              className="whitespace-nowrap flex items-center rounded-lg py-2.5 px-4"
             >
               <FileText className="h-4 w-4 mr-2" />
               Financial Situation
             </TabsTrigger>
             <TabsTrigger 
               value="investment-capacity"
-              className="whitespace-nowrap py-2"
+              className="whitespace-nowrap flex items-center rounded-lg py-2.5 px-4"
             >
               <CreditCard className="h-4 w-4 mr-2" />
               Investment Capacity
             </TabsTrigger>
             <TabsTrigger 
               value="investment-preferences"
-              className="whitespace-nowrap py-2"
+              className="whitespace-nowrap flex items-center rounded-lg py-2.5 px-4"
             >
               <BarChart3 className="h-4 w-4 mr-2" />
               Investment Preferences
             </TabsTrigger>
             <TabsTrigger 
               value="risk-management"
-              className="whitespace-nowrap py-2"
+              className="whitespace-nowrap flex items-center rounded-lg py-2.5 px-4"
             >
               <ShieldAlert className="h-4 w-4 mr-2" />
               Risk Management
             </TabsTrigger>
             <TabsTrigger 
               value="identity-verification"
-              className="whitespace-nowrap py-2"
+              className="whitespace-nowrap flex items-center rounded-lg py-2.5 px-4"
             >
               <CheckCircle className="h-4 w-4 mr-2" />
               Identity Verification
@@ -97,36 +97,36 @@ export function CoOwnerProfileTabs({
           </TabsList>
         </div>
 
-        <div className="mt-6 overflow-y-auto">
-          <TabsContent value="personal-details">
+        <div className="mt-6 overflow-y-auto max-h-[calc(100vh-300px)] pr-1">
+          <TabsContent value="personal-details" className="mt-0">
             <PersonalDetailsForm />
           </TabsContent>
           
-          <TabsContent value="residence-citizenship">
+          <TabsContent value="residence-citizenship" className="mt-0">
             <ResidenceCitizenshipForm />
           </TabsContent>
           
-          <TabsContent value="employment">
+          <TabsContent value="employment" className="mt-0">
             <EmploymentForm />
           </TabsContent>
           
-          <TabsContent value="financial-situation">
+          <TabsContent value="financial-situation" className="mt-0">
             <FinancialSituationForm />
           </TabsContent>
           
-          <TabsContent value="investment-capacity">
+          <TabsContent value="investment-capacity" className="mt-0">
             <InvestmentCapacityForm />
           </TabsContent>
           
-          <TabsContent value="investment-preferences">
+          <TabsContent value="investment-preferences" className="mt-0">
             <InvestmentPreferencesForm />
           </TabsContent>
           
-          <TabsContent value="risk-management">
+          <TabsContent value="risk-management" className="mt-0">
             <RiskManagementForm />
           </TabsContent>
           
-          <TabsContent value="identity-verification">
+          <TabsContent value="identity-verification" className="mt-0">
             <IdentityVerificationForm />
           </TabsContent>
         </div>

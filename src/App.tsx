@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -61,10 +62,11 @@ const App = () => (
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </div>
-            {/* Only show footer on non-dashboard pages */}
+            {/* Only show footer on non-dashboard pages since we're adding it directly to Dashboard component */}
             <Routes>
-              <Route path="/dashboard/*" element={null} />
-              <Route path="*" element={<Footer />} />
+              <Route path="/" element={<Footer />} />
+              <Route path="/auth/*" element={<Footer />} />
+              <Route path="/reset-password" element={<Footer />} />
             </Routes>
           </div>
         </BrowserRouter>
