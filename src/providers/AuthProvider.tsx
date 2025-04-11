@@ -1,4 +1,3 @@
-
 import { useState, useEffect, ReactNode } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -21,17 +20,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { setRole } = useRole();
 
   useEffect(() => {
+    console.log("Setting up auth state listener");
+    
     // Set up auth state listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
+      (event, session) => {
+        console.log("Auth state changed:", event, session?.user?.email);
+        
         setSession(session);
         setUser(session?.user ?? null);
         
         // Set role from user metadata if available
         if (session?.user?.user_metadata?.role) {
           const userRole = session.user.user_metadata.role as UserRole;
-          setRole(userRole);
           console.log("Auth state change: setting role from metadata:", userRole);
+          setRole(userRole);
         }
         
         setLoading(false);
@@ -40,14 +43,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Then check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log("Retrieved existing session:", session?.user?.email);
+      
       setSession(session);
       setUser(session?.user ?? null);
       
       // Set role from user metadata if available
       if (session?.user?.user_metadata?.role) {
         const userRole = session.user.user_metadata.role as UserRole;
-        setRole(userRole);
         console.log("Initial session: setting role from metadata:", userRole);
+        setRole(userRole);
       }
       
       setLoading(false);
@@ -57,7 +62,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [setRole]);
 
   const signUp = async (email: string, password: string) => {
-    return signUpWithEmail(email, password);
+    try {
+      const result = await signUpWithEmail(email, password);
+      toast({
+        title: "Check your email",
+        description: "Please check your email for a confirmation link. If you don't see it, check your spam folder.",
+      });
+      return result;
+    } catch (error) {
+      throw error;
+    }
   };
 
   const signIn = async (email: string, password: string) => {

@@ -1,26 +1,29 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
 // Sign up with email and password
 export async function signUpWithEmail(email: string, password: string) {
   try {
-    const { error } = await supabase.auth.signUp({ 
+    const { error, data } = await supabase.auth.signUp({ 
       email, 
       password,
       options: {
-        data: {
-          // The role will be set in SignupDialog after signup
-        }
+        emailRedirectTo: `${window.location.origin}/auth/callback`
       }
     });
+    
     if (error) throw error;
+    
+    console.log("Signup response:", data);
     
     toast({
       title: "Success",
-      description: "Check your email for the confirmation link",
+      description: "Check your email for the confirmation link. It may take a few minutes to arrive.",
     });
+    
+    return data;
   } catch (error: any) {
+    console.error("Signup error:", error);
     toast({
       title: "Error",
       description: error.message,
@@ -33,14 +36,22 @@ export async function signUpWithEmail(email: string, password: string) {
 // Sign in with email and password
 export async function signInWithEmail(email: string, password: string) {
   try {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    console.log("Attempting to sign in with:", email);
+    const { error, data } = await supabase.auth.signInWithPassword({ email, password });
+    
     if (error) throw error;
+    
+    console.log("Sign in successful:", data.user?.email);
+    console.log("User metadata:", data.user?.user_metadata);
     
     toast({
       title: "Success",
       description: "You've signed in successfully",
     });
+    
+    return data;
   } catch (error: any) {
+    console.error("Login error:", error);
     toast({
       title: "Error",
       description: error.message,

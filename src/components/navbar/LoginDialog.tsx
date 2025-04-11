@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -23,7 +24,7 @@ interface LoginDialogProps {
 export const LoginDialog = ({ isOpen, setIsOpen }: LoginDialogProps) => {
   const navigate = useNavigate();
   const { signIn, signInWithGoogle, signInWithFacebook, signInWithLinkedIn, resetPassword } = useAuth();
-  const { role } = useRole();
+  const { setRole } = useRole();
   
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -39,8 +40,19 @@ export const LoginDialog = ({ isOpen, setIsOpen }: LoginDialogProps) => {
       setIsOpen(false);
       
       // Get user data to check role
-      const { data } = await supabase.auth.getUser();
+      const { data, error } = await supabase.auth.getUser();
+      
+      if (error) {
+        throw error;
+      }
+      
       const userRole = data.user?.user_metadata?.role;
+      console.log("User logged in with role:", userRole);
+      
+      // Set role in context
+      if (userRole) {
+        setRole(userRole);
+      }
       
       // Redirect based on user role
       if (userRole === 'landlord') {

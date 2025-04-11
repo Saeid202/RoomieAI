@@ -1,5 +1,6 @@
 
-import { Outlet, useLocation, Navigate, useNavigate, useEffect } from "react-router-dom";
+import { Outlet, useLocation, Navigate, useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import Footer from "@/components/Footer";
