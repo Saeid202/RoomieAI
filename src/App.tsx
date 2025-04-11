@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -32,7 +31,7 @@ const App = () => (
         <BrowserRouter>
           <div className="flex flex-col min-h-screen">
             <Navbar />
-            <div className="flex-1">
+            <div className="flex-1 flex flex-col">
               <Routes>
                 <Route path="/" element={<Index />} />
                 
@@ -62,7 +61,11 @@ const App = () => (
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </div>
-            <Footer />
+            {/* Only show footer on non-dashboard pages */}
+            <Routes>
+              <Route path="/dashboard/*" element={null} />
+              <Route path="*" element={<Footer />} />
+            </Routes>
           </div>
         </BrowserRouter>
       </TooltipProvider>

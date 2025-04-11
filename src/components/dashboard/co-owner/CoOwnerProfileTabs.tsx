@@ -29,14 +29,14 @@ export function CoOwnerProfileTabs({
   setActiveTab 
 }: CoOwnerProfileTabsProps) {
   return (
-    <Card className="p-6">
+    <Card className="p-6 shadow-md border-muted">
       <Tabs
         defaultValue="personal-details"
         value={activeTab}
         onValueChange={setActiveTab}
         className="w-full"
       >
-        <div className="overflow-x-auto pb-2">
+        <div className="overflow-x-auto pb-2 sticky top-0 bg-card z-10">
           <TabsList className="w-full bg-muted inline-flex h-auto p-1 gap-2 flex-nowrap">
             <TabsTrigger 
               value="personal-details"
@@ -97,37 +97,39 @@ export function CoOwnerProfileTabs({
           </TabsList>
         </div>
 
-        <TabsContent value="personal-details" className="mt-6">
-          <PersonalDetailsForm />
-        </TabsContent>
-        
-        <TabsContent value="residence-citizenship" className="mt-6">
-          <ResidenceCitizenshipForm />
-        </TabsContent>
-        
-        <TabsContent value="employment" className="mt-6">
-          <EmploymentForm />
-        </TabsContent>
-        
-        <TabsContent value="financial-situation" className="mt-6">
-          <FinancialSituationForm />
-        </TabsContent>
-        
-        <TabsContent value="investment-capacity" className="mt-6">
-          <InvestmentCapacityForm />
-        </TabsContent>
-        
-        <TabsContent value="investment-preferences" className="mt-6">
-          <InvestmentPreferencesForm />
-        </TabsContent>
-        
-        <TabsContent value="risk-management" className="mt-6">
-          <RiskManagementForm />
-        </TabsContent>
-        
-        <TabsContent value="identity-verification" className="mt-6">
-          <IdentityVerificationForm />
-        </TabsContent>
+        <div className="mt-6 overflow-y-auto">
+          <TabsContent value="personal-details">
+            <PersonalDetailsForm />
+          </TabsContent>
+          
+          <TabsContent value="residence-citizenship">
+            <ResidenceCitizenshipForm />
+          </TabsContent>
+          
+          <TabsContent value="employment">
+            <EmploymentForm />
+          </TabsContent>
+          
+          <TabsContent value="financial-situation">
+            <FinancialSituationForm />
+          </TabsContent>
+          
+          <TabsContent value="investment-capacity">
+            <InvestmentCapacityForm />
+          </TabsContent>
+          
+          <TabsContent value="investment-preferences">
+            <InvestmentPreferencesForm />
+          </TabsContent>
+          
+          <TabsContent value="risk-management">
+            <RiskManagementForm />
+          </TabsContent>
+          
+          <TabsContent value="identity-verification">
+            <IdentityVerificationForm />
+          </TabsContent>
+        </div>
       </Tabs>
     </Card>
   );
