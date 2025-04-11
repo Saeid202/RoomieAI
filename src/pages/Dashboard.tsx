@@ -7,6 +7,7 @@ import { useRole } from "@/contexts/RoleContext";
 import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { toast } from "@/hooks/use-toast";
 
 export default function Dashboard() {
   const { role } = useRole();
@@ -14,55 +15,100 @@ export default function Dashboard() {
   const location = useLocation();
   const isMobile = useIsMobile();
   
-  // Redirect based on current role if needed
+  // Get assigned role from user metadata
+  const assignedRole = user?.user_metadata?.role;
+  
+  // Logging for debugging
   useEffect(() => {
     console.log("Dashboard role effect - current role:", role);
+    console.log("Dashboard role effect - assigned role:", assignedRole);
     console.log("Dashboard role effect - current path:", location.pathname);
-    console.log("Dashboard role effect - user metadata:", user?.user_metadata);
     console.log("Dashboard is mobile:", isMobile);
-  }, [role, location.pathname, user, isMobile]);
+  }, [role, assignedRole, location.pathname, user, isMobile]);
   
-  // Handle redirects for role-specific sections
-  if (role === 'landlord' && location.pathname === '/dashboard') {
-    return <Navigate to="/dashboard/landlord" replace />;
+  // Default redirect to appropriate dashboard based on role
+  if (location.pathname === '/dashboard') {
+    if (assignedRole === 'landlord') {
+      return <Navigate to="/dashboard/landlord" replace />;
+    } else if (assignedRole === 'developer') {
+      return <Navigate to="/dashboard/developer" replace />;
+    } else if (assignedRole === 'seeker') {
+      return <Navigate to="/dashboard/profile" replace />;
+    }
   }
   
-  if (role === 'developer' && location.pathname === '/dashboard') {
-    return <Navigate to="/dashboard/developer" replace />;
+  // Seeker restrictions - only allow seeker paths
+  if (assignedRole === 'seeker') {
+    const allowedPaths = [
+      '/dashboard/profile',
+      '/dashboard/profile/roommate',
+      '/dashboard/profile/co-owner',
+      '/dashboard/roommate-recommendations',
+      '/dashboard/rent-opportunities',
+      '/dashboard/rent-savings',
+      '/dashboard/co-owner-recommendations',
+      '/dashboard/co-ownership-opportunities',
+      '/dashboard/wallet',
+      '/dashboard/legal-assistant',
+      '/dashboard/chats'
+    ];
+    
+    const isPathAllowed = allowedPaths.some(path => location.pathname.startsWith(path));
+    
+    if (!isPathAllowed) {
+      toast({
+        title: "Access Restricted",
+        description: "You don't have access to this section",
+        variant: "destructive",
+      });
+      return <Navigate to="/dashboard/profile" replace />;
+    }
   }
   
-  // More strict redirects for seeker role - prevent access to any landlord or developer paths
-  if (role === 'seeker' && (
-      location.pathname.includes('/dashboard/landlord') || 
-      location.pathname.includes('/dashboard/developer') ||
-      location.pathname.includes('/dashboard/properties') || 
-      location.pathname.includes('/dashboard/tenants')
-  )) {
-    return <Navigate to="/dashboard" replace />;
+  // Landlord restrictions - only allow landlord paths
+  if (assignedRole === 'landlord') {
+    const allowedPaths = [
+      '/dashboard/landlord',
+      '/dashboard/properties',
+      '/dashboard/tenants',
+      '/dashboard/leases',
+      '/dashboard/messages'
+    ];
+    
+    const isPathAllowed = allowedPaths.some(path => location.pathname.startsWith(path));
+    
+    if (!isPathAllowed) {
+      toast({
+        title: "Access Restricted",
+        description: "You don't have access to this section",
+        variant: "destructive",
+      });
+      return <Navigate to="/dashboard/landlord" replace />;
+    }
   }
   
-  // Prevent landlords from accessing seeker or developer pages
-  if (role === 'landlord' && (
-      !location.pathname.includes('/dashboard/landlord') && 
-      !location.pathname.includes('/dashboard/properties') && 
-      !location.pathname.includes('/dashboard/tenants') &&
-      !location.pathname.includes('/dashboard/leases') &&
-      !location.pathname.includes('/dashboard/messages')
-  )) {
-    return <Navigate to="/dashboard/landlord" replace />;
-  }
-  
-  // Prevent developers from accessing seeker or landlord pages
-  if (role === 'developer' && (
-      !location.pathname.includes('/dashboard/developer') &&
-      !location.pathname.includes('/dashboard/properties') &&
-      !location.pathname.includes('/dashboard/pricing') &&
-      !location.pathname.includes('/dashboard/analytics') &&
-      !location.pathname.includes('/dashboard/messages') &&
-      !location.pathname.includes('/dashboard/inquiries') &&
-      !location.pathname.includes('/dashboard/potential-buyers')
-  )) {
-    return <Navigate to="/dashboard/developer" replace />;
+  // Developer restrictions - only allow developer paths
+  if (assignedRole === 'developer') {
+    const allowedPaths = [
+      '/dashboard/developer',
+      '/dashboard/properties',
+      '/dashboard/pricing',
+      '/dashboard/analytics',
+      '/dashboard/messages',
+      '/dashboard/inquiries',
+      '/dashboard/potential-buyers'
+    ];
+    
+    const isPathAllowed = allowedPaths.some(path => location.pathname.startsWith(path));
+    
+    if (!isPathAllowed) {
+      toast({
+        title: "Access Restricted",
+        description: "You don't have access to this section",
+        variant: "destructive",
+      });
+      return <Navigate to="/dashboard/developer" replace />;
+    }
   }
   
   return (

@@ -24,25 +24,34 @@ export function RoleToggle() {
     }
   }, [role, assignedRole, setRole]);
 
+  // If the user has an assigned role, don't show any toggle UI
+  if (assignedRole) {
+    return (
+      <div className="flex flex-col space-y-2 p-4 border-b border-sidebar-border">
+        <div className="text-center">
+          <p className="font-semibold text-roomie-purple">
+            {assignedRole === 'seeker' ? 'Roommate Finder' : 
+             assignedRole === 'landlord' ? 'Landlord Portal' : 
+             'Developer Portal'}
+          </p>
+        </div>
+        
+        <p className="text-xs text-muted-foreground text-center">
+          {assignedRole === 'seeker' 
+            ? "Find your ideal rental or co-ownership opportunity" 
+            : assignedRole === 'landlord'
+              ? "List and manage rental properties and tenants"
+              : "List and manage properties for sale only"}
+        </p>
+      </div>
+    );
+  }
+
+  // Only show the toggle group for users without an assigned role
   const handleToggle = (value: string) => {
-    // If user has an assigned role, only allow that role
-    if (assignedRole && value !== assignedRole) {
-      toast({
-        title: "Permission denied",
-        description: `You are registered as a ${assignedRole} and cannot switch to ${value} role.`,
-        variant: "destructive",
-      });
-      return;
-    }
-    
     if (value) {
       setRole(value as UserRole);
     }
-  };
-
-  // If the user has an assigned role, only show that role's toggle
-  const showRole = (roleType: UserRole): boolean => {
-    return !assignedRole || assignedRole === roleType;
   };
 
   return (
@@ -52,40 +61,31 @@ export function RoleToggle() {
           type="single" 
           value={role} 
           onValueChange={handleToggle} 
-          className={`grid ${assignedRole ? 'grid-cols-1' : 'grid-cols-3'} w-full gap-2`}
+          className="grid grid-cols-3 w-full gap-2"
         >
-          {showRole('seeker') && (
-            <ToggleGroupItem 
-              value="seeker" 
-              className="flex items-center justify-center gap-1 w-full"
-              disabled={assignedRole && assignedRole !== "seeker"}
-            >
-              <User size={16} />
-              <span className="text-xs sm:text-sm">Seeker</span>
-            </ToggleGroupItem>
-          )}
+          <ToggleGroupItem 
+            value="seeker" 
+            className="flex items-center justify-center gap-1 w-full"
+          >
+            <User size={16} />
+            <span className="text-xs sm:text-sm">Seeker</span>
+          </ToggleGroupItem>
           
-          {showRole('landlord') && (
-            <ToggleGroupItem 
-              value="landlord" 
-              className="flex items-center justify-center gap-1 w-full"
-              disabled={assignedRole && assignedRole !== "landlord"}
-            >
-              <Building size={16} />
-              <span className="text-xs sm:text-sm">Landlord</span>
-            </ToggleGroupItem>
-          )}
+          <ToggleGroupItem 
+            value="landlord" 
+            className="flex items-center justify-center gap-1 w-full"
+          >
+            <Building size={16} />
+            <span className="text-xs sm:text-sm">Landlord</span>
+          </ToggleGroupItem>
           
-          {showRole('developer') && (
-            <ToggleGroupItem 
-              value="developer" 
-              className="flex items-center justify-center gap-1 w-full"
-              disabled={assignedRole && assignedRole !== "developer"}
-            >
-              <HardHat size={16} />
-              <span className="text-xs sm:text-sm">Developer</span>
-            </ToggleGroupItem>
-          )}
+          <ToggleGroupItem 
+            value="developer" 
+            className="flex items-center justify-center gap-1 w-full"
+          >
+            <HardHat size={16} />
+            <span className="text-xs sm:text-sm">Developer</span>
+          </ToggleGroupItem>
         </ToggleGroup>
       </div>
       
