@@ -29,13 +29,16 @@ export const SignupDialog = ({ isOpen, setIsOpen }: SignupDialogProps) => {
   const handleSignupSubmit = async (values: SignupFormValues) => {
     setIsLoading(true);
     try {
-      // Add role to user metadata
+      // Store metadata in localStorage before signup
       const metadata = {
         full_name: values.fullName,
         role: values.role,
       };
       
-      // Sign up the user with the provided email and password, along with the metadata
+      localStorage.setItem('signupData', JSON.stringify(metadata));
+      console.log("Stored signup metadata in localStorage:", metadata);
+      
+      // Sign up the user with the provided email and password
       const result = await signUp(values.email, values.password);
       
       if (!result || !result.user) {

@@ -77,14 +77,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     try {
+      console.log("Signing in with email:", email);
       const result = await signInWithEmail(email, password);
       
       // After successful sign in, check if user has a role in metadata
       const { data } = await supabase.auth.getUser();
+      console.log("User data after login:", data.user);
+      console.log("User metadata:", data.user?.user_metadata);
+      
       if (data.user?.user_metadata?.role) {
         const userRole = data.user.user_metadata.role as UserRole;
-        setRole(userRole);
         console.log("Sign in: setting role from metadata:", userRole);
+        setRole(userRole);
+      } else {
+        console.warn("No role found in user metadata, defaulting to seeker");
+        // Default to seeker if no role is found
+        setRole('seeker');
       }
       
       return result;

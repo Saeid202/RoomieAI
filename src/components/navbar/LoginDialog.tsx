@@ -50,12 +50,18 @@ export const LoginDialog = ({ isOpen, setIsOpen }: LoginDialogProps) => {
         throw error;
       }
       
+      // Log full user data for debugging
+      console.log("Complete user data after login:", data);
+      
       const userRole = data.user?.user_metadata?.role;
       console.log("User logged in with role:", userRole);
       
       // Set role in context
       if (userRole) {
         setRole(userRole);
+      } else {
+        console.warn("No role found in user metadata after login, defaulting to seeker");
+        setRole('seeker');
       }
       
       // Redirect based on user role

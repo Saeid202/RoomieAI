@@ -5,10 +5,24 @@ import { toast } from '@/hooks/use-toast';
 // Sign up with email and password
 export async function signUpWithEmail(email: string, password: string) {
   try {
+    // Extract metadata from localStorage if available
+    const signupData = localStorage.getItem('signupData');
+    let metadata = {};
+    
+    if (signupData) {
+      try {
+        metadata = JSON.parse(signupData);
+        console.log("Using signup metadata from localStorage:", metadata);
+      } catch (e) {
+        console.error("Error parsing signup data from localStorage:", e);
+      }
+    }
+    
     const { error, data } = await supabase.auth.signUp({ 
       email, 
       password,
       options: {
+        data: metadata,
         emailRedirectTo: `${window.location.origin}/auth/callback`
       }
     });
@@ -16,6 +30,10 @@ export async function signUpWithEmail(email: string, password: string) {
     if (error) throw error;
     
     console.log("Signup response:", data);
+    console.log("User metadata set during signup:", metadata);
+    
+    // Clear signup data from localStorage after successful signup
+    localStorage.removeItem('signupData');
     
     toast({
       title: "Success",

@@ -17,30 +17,36 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   
-  // Get assigned role from user metadata
-  const assignedRole = user?.user_metadata?.role;
-  
   // Logging for debugging
   useEffect(() => {
-    console.log("Dashboard role effect - current role:", role);
-    console.log("Dashboard role effect - assigned role:", assignedRole);
-    console.log("Dashboard role effect - current path:", location.pathname);
+    console.log("Dashboard mounted - current role:", role);
+    console.log("Dashboard mounted - user:", user?.email);
+    console.log("Dashboard mounted - user metadata:", user?.user_metadata);
+    console.log("Dashboard mounted - current path:", location.pathname);
     
     // Force the role to match the assigned role when logged in
     const checkUserRole = async () => {
       if (user) {
         const { data } = await supabase.auth.getUser();
+        console.log("Dashboard effect - full user data:", data);
+        
         const userRole = data.user?.user_metadata?.role;
+        console.log("Dashboard effect - checking role from metadata:", userRole);
         
         if (userRole && role !== userRole) {
+          console.log("Setting role to match user metadata:", userRole);
           setRole(userRole);
-          console.log("Role updated to match user metadata:", userRole);
+        } else if (!userRole) {
+          console.warn("No role found in user metadata in Dashboard effect");
         }
       }
     };
     
     checkUserRole();
-  }, [loading, role, user, setRole]);
+  }, [loading, user, setRole]);
+  
+  // Get assigned role from user metadata
+  const assignedRole = user?.user_metadata?.role;
   
   // Handle default dashboard routing
   useEffect(() => {
@@ -51,6 +57,9 @@ export default function Dashboard() {
       navigate('/', { replace: true });
       return;
     }
+    
+    console.log("Dashboard routing effect - assigned role:", assignedRole);
+    console.log("Dashboard routing effect - current path:", location.pathname);
     
     // Default redirect to appropriate dashboard based on role
     if (location.pathname === '/dashboard') {
