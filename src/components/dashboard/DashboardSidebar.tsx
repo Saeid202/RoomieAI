@@ -10,7 +10,6 @@ import {
   PieChart,
   Users,
   FileText,
-  Plus
 } from "lucide-react";
 import {
   Sidebar,
@@ -176,14 +175,6 @@ export function DashboardSidebar() {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter className="p-4">
-        {role === 'landlord' && (
-          <Button variant="default" className="w-full mb-2 bg-roomie-purple hover:bg-roomie-dark" asChild>
-            <Link to="/dashboard/properties/add">
-              <Plus size={16} className="mr-2" />
-              List New Property
-            </Link>
-          </Button>
-        )}
         <Button variant="secondary" className="w-full" asChild>
           <Link to="/">Back to Home</Link>
         </Button>

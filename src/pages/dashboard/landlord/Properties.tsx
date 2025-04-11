@@ -2,6 +2,7 @@
 import { Plus } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 export default function PropertiesPage() {
   return (
@@ -11,9 +12,14 @@ export default function PropertiesPage() {
           <h1 className="text-3xl font-bold tracking-tight">My Properties</h1>
           <p className="text-muted-foreground mt-1">Manage your property listings</p>
         </div>
-        <Button className="flex items-center gap-2 bg-roomie-purple hover:bg-roomie-dark">
-          <Plus size={18} />
-          Add Property
+        <Button 
+          className="flex items-center gap-2 bg-roomie-purple hover:bg-roomie-dark" 
+          asChild
+        >
+          <Link to="/dashboard/properties/add">
+            <Plus size={18} />
+            List New Property
+          </Link>
         </Button>
       </div>
       
