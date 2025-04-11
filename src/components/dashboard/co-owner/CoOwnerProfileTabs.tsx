@@ -9,6 +9,11 @@ import { Card } from "@/components/ui/card";
 import { PersonalDetailsForm } from "@/components/dashboard/co-owner/PersonalDetailsForm";
 import { ResidenceCitizenshipForm } from "@/components/dashboard/co-owner/ResidenceCitizenshipForm";
 import { EmploymentForm } from "@/components/dashboard/co-owner/EmploymentForm";
+import { FinancialSituationForm } from "@/components/dashboard/co-owner/FinancialSituationForm";
+import { InvestmentCapacityForm } from "@/components/dashboard/co-owner/InvestmentCapacityForm";
+import { InvestmentPreferencesForm } from "@/components/dashboard/co-owner/InvestmentPreferencesForm";
+import { RiskManagementForm } from "@/components/dashboard/co-owner/RiskManagementForm";
+import { IdentityVerificationForm } from "@/components/dashboard/co-owner/IdentityVerificationForm";
 import { 
   User, Home, Briefcase, FileText, 
   CreditCard, BarChart3, ShieldAlert, CheckCircle 
@@ -105,38 +110,23 @@ export function CoOwnerProfileTabs({
         </TabsContent>
         
         <TabsContent value="financial-situation" className="mt-6">
-          <div className="text-center py-12">
-            <h3 className="text-lg font-medium">Financial Situation</h3>
-            <p className="text-muted-foreground mt-2">This section will be implemented in the next phase.</p>
-          </div>
+          <FinancialSituationForm />
         </TabsContent>
         
         <TabsContent value="investment-capacity" className="mt-6">
-          <div className="text-center py-12">
-            <h3 className="text-lg font-medium">Investment Capacity</h3>
-            <p className="text-muted-foreground mt-2">This section will be implemented in the next phase.</p>
-          </div>
+          <InvestmentCapacityForm />
         </TabsContent>
         
         <TabsContent value="investment-preferences" className="mt-6">
-          <div className="text-center py-12">
-            <h3 className="text-lg font-medium">Investment Preferences</h3>
-            <p className="text-muted-foreground mt-2">This section will be implemented in the next phase.</p>
-          </div>
+          <InvestmentPreferencesForm />
         </TabsContent>
         
         <TabsContent value="risk-management" className="mt-6">
-          <div className="text-center py-12">
-            <h3 className="text-lg font-medium">Risk Management</h3>
-            <p className="text-muted-foreground mt-2">This section will be implemented in the next phase.</p>
-          </div>
+          <RiskManagementForm />
         </TabsContent>
         
         <TabsContent value="identity-verification" className="mt-6">
-          <div className="text-center py-12">
-            <h3 className="text-lg font-medium">Identity Verification</h3>
-            <p className="text-muted-foreground mt-2">This section will be implemented in the next phase.</p>
-          </div>
+          <IdentityVerificationForm />
         </TabsContent>
       </Tabs>
     </Card>
