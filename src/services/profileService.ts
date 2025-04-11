@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { ProfileFormValues } from "@/types/profile";
 import { ProfileTableRow, TableName } from "@/components/dashboard/types/profileTypes";
