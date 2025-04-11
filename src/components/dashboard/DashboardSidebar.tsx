@@ -51,9 +51,9 @@ export function DashboardSidebar() {
           <span className="sr-only">Toggle Sidebar</span>
         </Button>
       )}
-      <Sidebar variant={isMobile ? "floating" : "sidebar"} collapsible={isMobile ? "offcanvas" : "icon"}>
+      <Sidebar>
         <SidebarHeader className="flex items-center justify-center p-4">
-          <h2 className="text-xl font-bold truncate">
+          <h2 className="text-xl font-bold">
             {role === 'landlord' ? 'Landlord Portal' : 
              role === 'developer' ? 'Developer Portal' : 
              'Roommate Finder'}
