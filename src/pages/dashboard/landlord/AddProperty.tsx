@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -134,7 +135,7 @@ export default function AddPropertyPage() {
                   <Label htmlFor="propertyType">Listing Type</Label>
                   <Select 
                     value={formData.propertyType} 
-                    onValueChange={(value) => handleSelectChange("propertyType", value)}
+                    onValueChange={(value) => handleSelectChange("propertyType", value as PropertyType)}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select type" />

@@ -27,7 +27,14 @@ export async function createProperty(property: Omit<Property, 'id' | 'createdAt'
   const { data, error } = await supabase
     .from('properties')
     .insert({
-      ...property,
+      title: property.title,
+      description: property.description,
+      address: property.address,
+      price: property.price,
+      bedrooms: property.bedrooms,
+      bathrooms: property.bathrooms,
+      property_type: property.propertyType,
+      image_urls: property.imageUrls,
       owner_id: user.user.id
     })
     .select()
@@ -38,7 +45,7 @@ export async function createProperty(property: Omit<Property, 'id' | 'createdAt'
     throw error;
   }
   
-  return data;
+  return mapPropertyFromDB(data);
 }
 
 export async function getPropertiesByOwnerId() {
@@ -58,5 +65,22 @@ export async function getPropertiesByOwnerId() {
     throw error;
   }
   
-  return data || [];
+  return data ? data.map(mapPropertyFromDB) : [];
+}
+
+// Helper function to map database column names to our frontend property interface
+function mapPropertyFromDB(dbProperty: any): Property {
+  return {
+    id: dbProperty.id,
+    title: dbProperty.title,
+    description: dbProperty.description,
+    address: dbProperty.address,
+    price: dbProperty.price,
+    bedrooms: dbProperty.bedrooms,
+    bathrooms: dbProperty.bathrooms,
+    propertyType: dbProperty.property_type as PropertyType,
+    imageUrls: dbProperty.image_urls || [],
+    createdAt: dbProperty.created_at,
+    ownerId: dbProperty.owner_id
+  };
 }

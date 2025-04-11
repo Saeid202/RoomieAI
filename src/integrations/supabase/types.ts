@@ -60,6 +60,48 @@ export type Database = {
         }
         Relationships: []
       }
+      properties: {
+        Row: {
+          address: string
+          bathrooms: number
+          bedrooms: number
+          created_at: string
+          description: string
+          id: string
+          image_urls: string[] | null
+          owner_id: string
+          price: number
+          property_type: string
+          title: string
+        }
+        Insert: {
+          address: string
+          bathrooms: number
+          bedrooms: number
+          created_at?: string
+          description: string
+          id?: string
+          image_urls?: string[] | null
+          owner_id: string
+          price: number
+          property_type: string
+          title: string
+        }
+        Update: {
+          address?: string
+          bathrooms?: number
+          bedrooms?: number
+          created_at?: string
+          description?: string
+          id?: string
+          image_urls?: string[] | null
+          owner_id?: string
+          price?: number
+          property_type?: string
+          title?: string
+        }
+        Relationships: []
+      }
       Properties: {
         Row: {
           created_at: string
