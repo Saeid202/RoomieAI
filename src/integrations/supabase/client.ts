@@ -1,17 +1,22 @@
 
 import { createClient } from '@supabase/supabase-js';
 
-// Use the actual Supabase URL and anon key for the project
-const supabaseUrl = "https://xpcvbhhbbtoccvvotikh.supabase.co";
-const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwY3ZiaGhiYnRvY2N2dm90aWtoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQzMTM5MDMsImV4cCI6MjA1OTg4OTkwM30.yHLBM4j1U2fwsapWLwrqHRrOtTBD1XYhZ96TBYvJsgY";
+// Get environment variables
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-// Create and export the Supabase client
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+// For development, provide fallback values if environment variables are missing
+const url = supabaseUrl || 'https://xpcvbhhbbtoccvvotikh.supabase.co';
+const key = supabaseAnonKey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwY3ZiaGhiYnRvY2N2dm90aWtoIiwicm9sZSI6ImFub24iLCJpYXQiOjE2Njk5ODgyMzYsImV4cCI6MTk4NTU2NDIzNn0.F6uxQYnQ6ZT4OP_EH9mBuEMenYD_P9VYE6mLe61icPc';
+
+// Create Supabase client with explicit options for auth
+export const supabase = createClient(url, key, {
   auth: {
+    storage: localStorage,
     persistSession: true,
     autoRefreshToken: true,
-  },
+  }
 });
 
-// Add console log to verify client initialization
-console.log("Supabase client initialized with URL:", supabaseUrl);
+// Log for debugging - will be removed in production
+console.info('Supabase client initialized with URL:', url);
