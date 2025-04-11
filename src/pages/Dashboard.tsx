@@ -7,8 +7,6 @@ import { useRole } from "@/contexts/RoleContext";
 import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Button } from "@/components/ui/button";
-import { Menu } from "lucide-react";
 
 export default function Dashboard() {
   const { role } = useRole();
@@ -40,10 +38,10 @@ export default function Dashboard() {
   return (
     <div className="flex flex-col min-h-screen">
       <div className="flex flex-1 pt-16"> {/* Space for navbar */}
-        <SidebarProvider defaultOpen={false}>
-          <div className="flex w-full relative"> 
+        <SidebarProvider defaultOpen={!isMobile}>
+          <div className="flex w-full relative overflow-hidden"> 
             <DashboardSidebar />
-            <main className="flex-1 overflow-y-auto pb-16 w-full"> {/* Added w-full for mobile */}
+            <main className="flex-1 overflow-y-auto pb-16 w-full max-w-full"> 
               <div className="p-4 md:p-6">
                 <Outlet />
               </div>
@@ -51,7 +49,7 @@ export default function Dashboard() {
           </div>
         </SidebarProvider>
       </div>
-      <Footer className="mt-auto" /> {/* Footer at the bottom */}
+      <Footer className="mt-auto" />
     </div>
   );
 }

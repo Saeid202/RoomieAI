@@ -31,7 +31,6 @@ export function DashboardSidebar() {
     return location.pathname === path;
   };
 
-  // Log current location for debugging
   console.log("DashboardSidebar - Current location:", location.pathname);
   console.log("DashboardSidebar - Current role:", role);
   console.log("DashboardSidebar - Is mobile:", isMobile);
@@ -45,16 +44,16 @@ export function DashboardSidebar() {
           variant="default" 
           size="icon" 
           onClick={toggleSidebar} 
-          className="fixed top-20 left-4 z-50 bg-roomie-purple text-white shadow-lg"
+          className="fixed top-20 left-4 z-50 bg-roomie-purple text-white shadow-lg hover:bg-roomie-purple/90"
           aria-label="Toggle Menu"
         >
           {open ? <X size={24} /> : <Menu size={24} />}
           <span className="sr-only">Toggle Sidebar</span>
         </Button>
       )}
-      <Sidebar>
+      <Sidebar variant={isMobile ? "floating" : "sidebar"} collapsible={isMobile ? "offcanvas" : "icon"}>
         <SidebarHeader className="flex items-center justify-center p-4">
-          <h2 className="text-xl font-bold">
+          <h2 className="text-xl font-bold truncate">
             {role === 'landlord' ? 'Landlord Portal' : 
              role === 'developer' ? 'Developer Portal' : 
              'Roommate Finder'}

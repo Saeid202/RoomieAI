@@ -41,7 +41,7 @@ export const MobileMenu = ({
             <>
               <div className="flex items-center gap-2 p-2 border rounded-md">
                 <UserIcon size={16} />
-                <span className="font-medium text-sm">
+                <span className="font-medium text-sm truncate">
                   {user.email ? user.email.split('@')[0] : 'Account'}
                 </span>
               </div>
