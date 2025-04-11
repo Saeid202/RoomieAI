@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -12,6 +11,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { ForgotPasswordForm } from "@/components/auth/ForgotPasswordForm";
 import { SocialLoginButtons } from "@/components/auth/SocialLoginButtons";
+import { toast } from "@/hooks/use-toast";
+import { useRole } from "@/contexts/RoleContext";
+import { supabase } from "@/integrations/supabase/client";
 
 interface LoginDialogProps {
   isOpen: boolean;
@@ -21,6 +23,7 @@ interface LoginDialogProps {
 export const LoginDialog = ({ isOpen, setIsOpen }: LoginDialogProps) => {
   const navigate = useNavigate();
   const { signIn, signInWithGoogle, signInWithFacebook, signInWithLinkedIn, resetPassword } = useAuth();
+  const { role } = useRole();
   
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -34,9 +37,32 @@ export const LoginDialog = ({ isOpen, setIsOpen }: LoginDialogProps) => {
     try {
       await signIn(email, password);
       setIsOpen(false);
-      navigate("/dashboard");
-    } catch (error) {
+      
+      // Get user data to check role
+      const { data } = await supabase.auth.getUser();
+      const userRole = data.user?.user_metadata?.role;
+      
+      // Redirect based on user role
+      if (userRole === 'landlord') {
+        navigate("/dashboard/landlord");
+      } else if (userRole === 'developer') {
+        navigate("/dashboard/developer");
+      } else {
+        // Default to profile dashboard for seekers
+        navigate("/dashboard/profile");
+      }
+      
+      toast({
+        title: "Login successful",
+        description: `Welcome back ${data.user?.email}!`,
+      });
+    } catch (error: any) {
       console.error("Login failed:", error);
+      toast({
+        title: "Login failed",
+        description: error.message || "Please check your credentials and try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -45,7 +71,11 @@ export const LoginDialog = ({ isOpen, setIsOpen }: LoginDialogProps) => {
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!forgotEmail) {
-      alert("Please enter your email address");
+      toast({
+        title: "Email required",
+        description: "Please enter your email address",
+        variant: "destructive",
+      });
       return;
     }
     
@@ -53,8 +83,17 @@ export const LoginDialog = ({ isOpen, setIsOpen }: LoginDialogProps) => {
     try {
       await resetPassword(forgotEmail);
       setShowForgotPassword(false);
+      toast({
+        title: "Password reset email sent",
+        description: "Please check your email for password reset instructions",
+      });
     } catch (error: any) {
       console.error("Password reset failed:", error);
+      toast({
+        title: "Password reset failed",
+        description: error.message || "An error occurred. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }

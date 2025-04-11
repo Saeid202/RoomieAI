@@ -1,17 +1,17 @@
 
-import { Outlet, useLocation, Navigate, useNavigate } from "react-router-dom";
+import { Outlet, useLocation, Navigate, useNavigate, useEffect } from "react-router-dom";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import Footer from "@/components/Footer";
 import { useRole } from "@/contexts/RoleContext";
-import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Dashboard() {
   const { role, setRole } = useRole();
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
@@ -25,15 +25,32 @@ export default function Dashboard() {
     console.log("Dashboard role effect - assigned role:", assignedRole);
     console.log("Dashboard role effect - current path:", location.pathname);
     
-    // Force the role to match the assigned role
-    if (assignedRole && role !== assignedRole) {
-      setRole(assignedRole);
-      console.log("Role updated to match user metadata:", assignedRole);
-    }
-  }, [role, assignedRole, location.pathname, user, setRole]);
+    // Force the role to match the assigned role when logged in
+    const checkUserRole = async () => {
+      if (user) {
+        const { data } = await supabase.auth.getUser();
+        const userRole = data.user?.user_metadata?.role;
+        
+        if (userRole && role !== userRole) {
+          setRole(userRole);
+          console.log("Role updated to match user metadata:", userRole);
+        }
+      }
+    };
+    
+    checkUserRole();
+  }, [loading, role, user, setRole]);
   
   // Handle default dashboard routing
   useEffect(() => {
+    if (loading) return;
+    
+    // If no user is logged in, redirect to home
+    if (!user) {
+      navigate('/', { replace: true });
+      return;
+    }
+    
     // Default redirect to appropriate dashboard based on role
     if (location.pathname === '/dashboard') {
       if (assignedRole === 'landlord') {
@@ -42,7 +59,7 @@ export default function Dashboard() {
       } else if (assignedRole === 'developer') {
         navigate('/dashboard/developer', { replace: true });
         return;
-      } else if (assignedRole === 'seeker') {
+      } else {
         navigate('/dashboard/profile', { replace: true });
         return;
       }
@@ -121,7 +138,7 @@ export default function Dashboard() {
         navigate('/dashboard/developer', { replace: true });
       }
     }
-  }, [location.pathname, assignedRole, navigate]);
+  }, [location.pathname, assignedRole, navigate, user, loading]);
   
   // If we're still at the root dashboard path, redirect based on role
   if (location.pathname === '/dashboard') {
@@ -129,7 +146,7 @@ export default function Dashboard() {
       return <Navigate to="/dashboard/landlord" replace />;
     } else if (assignedRole === 'developer') {
       return <Navigate to="/dashboard/developer" replace />;
-    } else if (assignedRole === 'seeker') {
+    } else {
       return <Navigate to="/dashboard/profile" replace />;
     }
   }
