@@ -7,22 +7,56 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function AddPropertyPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  const handleSubmit = (e: React.FormEvent) => {
+  const { user } = useAuth();
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false);
+
+    // Collect form data
+    const formData = new FormData(e.currentTarget);
+    const propertyData = {
+      title: formData.get('title') as string,
+      type: formData.get('type') as string,
+      listing_type: formData.get('listing-type') as string,
+      bedrooms: Number(formData.get('bedrooms')),
+      bathrooms: Number(formData.get('bathrooms')),
+      price: Number(formData.get('price')),
+      address: formData.get('address') as string,
+      description: formData.get('description') as string,
+      amenities: formData.getAll('amenities') as string[],
+      user_id: user?.id
+    };
+
+    try {
+      const { error } = await supabase
+        .from('properties')
+        .insert(propertyData);
+
+      if (error) throw error;
+
       toast({
-        title: "Property submitted",
+        title: "Property Added",
         description: "Your property has been saved and is pending review.",
       });
-    }, 1500);
+
+      // Optional: Reset form or navigate away
+      e.currentTarget.reset();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to add property. Please try again.",
+        variant: "destructive"
+      });
+      console.error('Property submission error:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
   
   return (
