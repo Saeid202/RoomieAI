@@ -1,7 +1,6 @@
 
 import { Building, User, HardHat } from "lucide-react";
 import { useRole, UserRole } from "@/contexts/RoleContext";
-import { Label } from "@/components/ui/label";
 import { useEffect } from "react";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useAuth } from "@/hooks/useAuth";
@@ -18,10 +17,15 @@ export function RoleToggle() {
     // Log role changes for debugging
     console.log("Current role:", role);
     console.log("Assigned role from metadata:", assignedRole);
-  }, [role, assignedRole]);
+    
+    // Ensure the user's role matches their assigned role if they have one
+    if (assignedRole && role !== assignedRole) {
+      setRole(assignedRole);
+    }
+  }, [role, assignedRole, setRole]);
 
   const handleToggle = (value: string) => {
-    // If user has an assigned role, only allow switching to that role
+    // If user has an assigned role, only allow that role
     if (assignedRole && value !== assignedRole) {
       toast({
         title: "Permission denied",
@@ -36,6 +40,11 @@ export function RoleToggle() {
     }
   };
 
+  // If the user has an assigned role, only show that role's toggle
+  const showRole = (roleType: UserRole): boolean => {
+    return !assignedRole || assignedRole === roleType;
+  };
+
   return (
     <div className="flex flex-col space-y-2 p-4 border-b border-sidebar-border">
       <div className="flex justify-center">
@@ -43,32 +52,40 @@ export function RoleToggle() {
           type="single" 
           value={role} 
           onValueChange={handleToggle} 
-          className="grid grid-cols-3 w-full gap-2"
+          className={`grid ${assignedRole ? 'grid-cols-1' : 'grid-cols-3'} w-full gap-2`}
         >
-          <ToggleGroupItem 
-            value="seeker" 
-            className="flex items-center justify-center gap-1 w-full"
-            disabled={assignedRole && assignedRole !== "seeker"}
-          >
-            <User size={16} />
-            <span className="text-xs sm:text-sm">Seeker</span>
-          </ToggleGroupItem>
-          <ToggleGroupItem 
-            value="landlord" 
-            className="flex items-center justify-center gap-1 w-full"
-            disabled={assignedRole && assignedRole !== "landlord"}
-          >
-            <Building size={16} />
-            <span className="text-xs sm:text-sm">Landlord</span>
-          </ToggleGroupItem>
-          <ToggleGroupItem 
-            value="developer" 
-            className="flex items-center justify-center gap-1 w-full"
-            disabled={assignedRole && assignedRole !== "developer"}
-          >
-            <HardHat size={16} />
-            <span className="text-xs sm:text-sm">Developer</span>
-          </ToggleGroupItem>
+          {showRole('seeker') && (
+            <ToggleGroupItem 
+              value="seeker" 
+              className="flex items-center justify-center gap-1 w-full"
+              disabled={assignedRole && assignedRole !== "seeker"}
+            >
+              <User size={16} />
+              <span className="text-xs sm:text-sm">Seeker</span>
+            </ToggleGroupItem>
+          )}
+          
+          {showRole('landlord') && (
+            <ToggleGroupItem 
+              value="landlord" 
+              className="flex items-center justify-center gap-1 w-full"
+              disabled={assignedRole && assignedRole !== "landlord"}
+            >
+              <Building size={16} />
+              <span className="text-xs sm:text-sm">Landlord</span>
+            </ToggleGroupItem>
+          )}
+          
+          {showRole('developer') && (
+            <ToggleGroupItem 
+              value="developer" 
+              className="flex items-center justify-center gap-1 w-full"
+              disabled={assignedRole && assignedRole !== "developer"}
+            >
+              <HardHat size={16} />
+              <span className="text-xs sm:text-sm">Developer</span>
+            </ToggleGroupItem>
+          )}
         </ToggleGroup>
       </div>
       

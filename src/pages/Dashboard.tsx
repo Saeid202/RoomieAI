@@ -31,19 +31,37 @@ export default function Dashboard() {
     return <Navigate to="/dashboard/developer" replace />;
   }
   
-  if (role === 'seeker' && (location.pathname === '/dashboard/landlord' || location.pathname === '/dashboard/developer')) {
+  // More strict redirects for seeker role - prevent access to any landlord or developer paths
+  if (role === 'seeker' && (
+      location.pathname.includes('/dashboard/landlord') || 
+      location.pathname.includes('/dashboard/developer') ||
+      location.pathname.includes('/dashboard/properties') || 
+      location.pathname.includes('/dashboard/tenants')
+  )) {
     return <Navigate to="/dashboard" replace />;
   }
   
-  // Prevent landlords from accessing seeker pages
-  if (role === 'landlord' && !location.pathname.includes('/dashboard/landlord') && 
+  // Prevent landlords from accessing seeker or developer pages
+  if (role === 'landlord' && (
+      !location.pathname.includes('/dashboard/landlord') && 
       !location.pathname.includes('/dashboard/properties') && 
-      !location.pathname.includes('/dashboard/tenants')) {
+      !location.pathname.includes('/dashboard/tenants') &&
+      !location.pathname.includes('/dashboard/leases') &&
+      !location.pathname.includes('/dashboard/messages')
+  )) {
     return <Navigate to="/dashboard/landlord" replace />;
   }
   
-  // Prevent developers from accessing seeker/landlord pages
-  if (role === 'developer' && !location.pathname.includes('/dashboard/developer')) {
+  // Prevent developers from accessing seeker or landlord pages
+  if (role === 'developer' && (
+      !location.pathname.includes('/dashboard/developer') &&
+      !location.pathname.includes('/dashboard/properties') &&
+      !location.pathname.includes('/dashboard/pricing') &&
+      !location.pathname.includes('/dashboard/analytics') &&
+      !location.pathname.includes('/dashboard/messages') &&
+      !location.pathname.includes('/dashboard/inquiries') &&
+      !location.pathname.includes('/dashboard/potential-buyers')
+  )) {
     return <Navigate to="/dashboard/developer" replace />;
   }
   
