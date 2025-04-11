@@ -10,17 +10,26 @@ import {
   resetPasswordForEmail, 
   signOutUser 
 } from '@/services/authService';
+import { useRole } from '@/contexts/RoleContext';
+import { UserRole } from '@/contexts/RoleContext';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const { setRole } = useRole();
 
   useEffect(() => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
+      
+      // Set role from user metadata if available
+      if (session?.user?.user_metadata?.role) {
+        setRole(session.user.user_metadata.role as UserRole);
+      }
+      
       setLoading(false);
     });
 
@@ -29,12 +38,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       (_event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
+        
+        // Set role from user metadata if available
+        if (session?.user?.user_metadata?.role) {
+          setRole(session.user.user_metadata.role as UserRole);
+        }
+        
         setLoading(false);
       }
     );
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [setRole]);
 
   const signUp = async (email: string, password: string) => {
     return signUpWithEmail(email, password);

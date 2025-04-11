@@ -13,11 +13,16 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { UserRole } from "@/contexts/RoleContext";
 
 const formSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Please enter a valid email"),
   password: z.string().min(6, "Password must be at least 6 characters"),
+  role: z.enum(["seeker", "landlord", "developer"], {
+    required_error: "Please select a role",
+  }),
 });
 
 export type SignupFormValues = z.infer<typeof formSchema>;
@@ -34,6 +39,7 @@ export const SignupForm = ({ onSubmit, isLoading }: SignupFormProps) => {
       fullName: "",
       email: "",
       password: "",
+      role: "seeker",
     },
   });
 
@@ -76,6 +82,49 @@ export const SignupForm = ({ onSubmit, isLoading }: SignupFormProps) => {
               <FormLabel className="font-medium">Password</FormLabel>
               <FormControl>
                 <Input type="password" placeholder="••••••••" {...field} className="h-11" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="role"
+          render={({ field }) => (
+            <FormItem className="space-y-3">
+              <FormLabel className="font-medium">I am a:</FormLabel>
+              <FormControl>
+                <RadioGroup
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                  className="flex flex-col space-y-2"
+                >
+                  <FormItem className="flex items-center space-x-3 space-y-0">
+                    <FormControl>
+                      <RadioGroupItem value="seeker" />
+                    </FormControl>
+                    <FormLabel className="font-normal cursor-pointer">
+                      Seeker - Looking for rent or co-ownership
+                    </FormLabel>
+                  </FormItem>
+                  <FormItem className="flex items-center space-x-3 space-y-0">
+                    <FormControl>
+                      <RadioGroupItem value="landlord" />
+                    </FormControl>
+                    <FormLabel className="font-normal cursor-pointer">
+                      Landlord - Manage rental properties
+                    </FormLabel>
+                  </FormItem>
+                  <FormItem className="flex items-center space-x-3 space-y-0">
+                    <FormControl>
+                      <RadioGroupItem value="developer" />
+                    </FormControl>
+                    <FormLabel className="font-normal cursor-pointer">
+                      Developer - Sell properties
+                    </FormLabel>
+                  </FormItem>
+                </RadioGroup>
               </FormControl>
               <FormMessage />
             </FormItem>

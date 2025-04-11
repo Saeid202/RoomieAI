@@ -5,7 +5,15 @@ import { toast } from '@/hooks/use-toast';
 // Sign up with email and password
 export async function signUpWithEmail(email: string, password: string) {
   try {
-    const { error } = await supabase.auth.signUp({ email, password });
+    const { error } = await supabase.auth.signUp({ 
+      email, 
+      password,
+      options: {
+        data: {
+          // The role will be set in SignupDialog after signup
+        }
+      }
+    });
     if (error) throw error;
     
     toast({
