@@ -39,13 +39,13 @@ export function DashboardSidebar() {
 
   return (
     <>
-      {/* Mobile toggle button - make it more visible */}
+      {/* Mobile toggle button - highly visible */}
       {isMobile && (
         <Button 
-          variant="outline" 
+          variant="default" 
           size="icon" 
           onClick={toggleSidebar} 
-          className="fixed top-20 left-4 z-50 bg-white shadow-md border-2 border-roomie-purple"
+          className="fixed top-20 left-4 z-50 bg-roomie-purple text-white shadow-lg"
           aria-label="Toggle Menu"
         >
           {open ? <X size={24} /> : <Menu size={24} />}

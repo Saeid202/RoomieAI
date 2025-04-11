@@ -43,7 +43,7 @@ export default function Dashboard() {
         <SidebarProvider defaultOpen={false}>
           <div className="flex w-full relative"> 
             <DashboardSidebar />
-            <main className="flex-1 overflow-y-auto pb-16"> {/* Added padding bottom to prevent content being hidden by footer */}
+            <main className="flex-1 overflow-y-auto pb-16 w-full"> {/* Added w-full for mobile */}
               <div className="p-4 md:p-6">
                 <Outlet />
               </div>
