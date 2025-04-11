@@ -19,12 +19,12 @@ import { SeekerSidebar } from "./sidebar/SeekerSidebar";
 import { LandlordSidebar } from "./sidebar/LandlordSidebar";
 import { DeveloperSidebar } from "./sidebar/DeveloperSidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Menu } from "lucide-react";
+import { Menu, X } from "lucide-react";
 
 export function DashboardSidebar() {
   const location = useLocation();
   const { role } = useRole();
-  const { toggleSidebar } = useSidebar();
+  const { open, toggleSidebar } = useSidebar();
   const isMobile = useIsMobile();
 
   const isActive = (path: string) => {
@@ -35,6 +35,7 @@ export function DashboardSidebar() {
   console.log("Current location:", location.pathname);
   console.log("Current role:", role);
   console.log("Is mobile:", isMobile);
+  console.log("Sidebar open:", open);
 
   return (
     <>
@@ -44,8 +45,9 @@ export function DashboardSidebar() {
           size="icon" 
           onClick={toggleSidebar} 
           className="fixed top-20 left-4 z-50 bg-background/80 backdrop-blur-sm shadow-sm"
+          aria-label="Toggle Menu"
         >
-          <Menu size={24} />
+          {open ? <X size={24} /> : <Menu size={24} />}
           <span className="sr-only">Toggle Sidebar</span>
         </Button>
       )}

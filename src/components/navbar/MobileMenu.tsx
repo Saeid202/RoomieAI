@@ -4,7 +4,7 @@ import { NavLinks } from "./NavLinks";
 import { LoginDialog } from "./LoginDialog";
 import { SignupDialog } from "./SignupDialog";
 import { User } from "@supabase/supabase-js";
-import { LogOut, User as UserIcon } from "lucide-react";
+import { LogOut, User as UserIcon, LayoutDashboard } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface MobileMenuProps {
@@ -33,7 +33,7 @@ export const MobileMenu = ({
   if (!isMenuOpen) return null;
 
   return (
-    <div className="md:hidden bg-white w-full py-4 px-6 shadow-md">
+    <div className="md:hidden fixed top-16 left-0 right-0 z-40 bg-white w-full py-4 px-6 shadow-md">
       <div className="flex flex-col space-y-4">
         <NavLinks isMobile={true} onClickMobile={() => setIsMenuOpen(false)} />
         <div className="flex flex-col space-y-2 pt-2">
@@ -50,8 +50,9 @@ export const MobileMenu = ({
                   navigate("/dashboard");
                   setIsMenuOpen(false);
                 }}
-                className="w-full bg-roomie-purple hover:bg-roomie-dark text-white"
+                className="w-full bg-roomie-purple hover:bg-roomie-dark text-white flex items-center gap-2"
               >
+                <LayoutDashboard size={16} />
                 Dashboard
               </Button>
               <Button 
