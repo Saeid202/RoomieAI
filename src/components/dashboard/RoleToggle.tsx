@@ -22,18 +22,32 @@ export function RoleToggle() {
   return (
     <div className="flex flex-col space-y-2 p-4 border-b border-sidebar-border">
       <div className="flex justify-center">
-        <ToggleGroup type="single" value={role} onValueChange={handleToggle} className="flex w-full">
-          <ToggleGroupItem value="seeker" className="flex-1 gap-1">
+        <ToggleGroup 
+          type="single" 
+          value={role} 
+          onValueChange={handleToggle} 
+          className="grid grid-cols-3 w-full gap-2"
+        >
+          <ToggleGroupItem 
+            value="seeker" 
+            className="flex items-center justify-center gap-1 w-full"
+          >
             <User size={16} />
-            <span className="hidden sm:inline">Seeker</span>
+            <span className="text-xs sm:text-sm">Seeker</span>
           </ToggleGroupItem>
-          <ToggleGroupItem value="landlord" className="flex-1 gap-1">
+          <ToggleGroupItem 
+            value="landlord" 
+            className="flex items-center justify-center gap-1 w-full"
+          >
             <Building size={16} />
-            <span className="hidden sm:inline">Landlord</span>
+            <span className="text-xs sm:text-sm">Landlord</span>
           </ToggleGroupItem>
-          <ToggleGroupItem value="developer" className="flex-1 gap-1">
+          <ToggleGroupItem 
+            value="developer" 
+            className="flex items-center justify-center gap-1 w-full"
+          >
             <HardHat size={16} />
-            <span className="hidden sm:inline">Developer</span>
+            <span className="text-xs sm:text-sm">Developer</span>
           </ToggleGroupItem>
         </ToggleGroup>
       </div>
