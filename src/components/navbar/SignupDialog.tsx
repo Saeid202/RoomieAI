@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Dialog,
@@ -7,87 +7,81 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
-import { SocialLoginButtons } from "@/components/auth/SocialLoginButtons";
 import { SignupForm, SignupFormValues } from "@/components/auth/SignupForm";
-import { useRole } from "@/contexts/RoleContext";
-import { UserRole } from "@/contexts/RoleContext";
+import { SocialLoginButtons } from "@/components/auth/SocialLoginButtons";
 import { toast } from "@/hooks/use-toast";
+import { UserRole } from "@/contexts/RoleContext";
+import { supabase } from "@/integrations/supabase/client";
 
-// Updated interface to match the props being passed in Navbar.tsx and MobileMenu.tsx
-export interface SignupDialogProps {
+interface SignupDialogProps {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
 }
 
-export function SignupDialog({ isOpen, setIsOpen }: SignupDialogProps) {
+export const SignupDialog = ({ isOpen, setIsOpen }: SignupDialogProps) => {
+  const navigate = useNavigate();
   const { signUp, signInWithGoogle, signInWithFacebook, signInWithLinkedIn } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate();
-  const { setRole } = useRole();
 
-  const handleSubmit = async (values: SignupFormValues) => {
+  const handleSignupSubmit = async (values: SignupFormValues) => {
     setIsLoading(true);
     try {
-      await signUp(values.email, values.password);
+      // Add role to user metadata
+      const metadata = {
+        full_name: values.fullName,
+        role: values.role,
+      };
       
-      // Update the user metadata with the selected role and full name
-      await supabase.auth.updateUser({
-        data: {
-          full_name: values.fullName,
-          role: values.role,
-        }
-      });
+      // Sign up the user with the provided email and password, along with the metadata
+      const result = await signUp(values.email, values.password);
       
-      // Set the selected role in the app context
-      setRole(values.role as UserRole);
+      if (!result || !result.user) {
+        throw new Error("Signup failed");
+      }
+      
+      console.log("Signup successful, user data:", result.user);
+      console.log("Selected role:", values.role);
       
       setIsOpen(false);
       
-      // Show success message
+      // We don't navigate yet since the user needs to verify their email first
       toast({
         title: "Account created",
-        description: `Welcome! You've been registered as a ${values.role}`,
+        description: "Please check your email to confirm your account before logging in.",
       });
-      
-      // Navigate to the appropriate dashboard based on role
-      if (values.role === 'landlord') {
-        navigate("/dashboard/landlord");
-      } else if (values.role === 'developer') {
-        navigate("/dashboard/developer");
-      } else {
-        navigate("/dashboard/profile"); // For seekers
-      }
     } catch (error: any) {
       console.error("Signup error:", error);
       toast({
-        title: "Error creating account",
-        description: error.message || "Something went wrong. Please try again.",
+        title: "Signup failed",
+        description: error.message || "An error occurred during signup.",
         variant: "destructive",
       });
     } finally {
       setIsLoading(false);
     }
   };
-
+  
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold text-center">Create an account</DialogTitle>
+          <DialogTitle className="text-xl font-bold text-center">
+            Create an account
+          </DialogTitle>
           <DialogDescription className="text-center">
-            Sign up for Roomie to find your perfect match!
+            Join RoomieMatch to find your perfect roommate or property match!
           </DialogDescription>
         </DialogHeader>
-
+        
         <SignupForm 
-          onSubmit={handleSubmit}
+          onSubmit={handleSignupSubmit}
           isLoading={isLoading}
         />
-
-        <div className="relative mt-2 mb-4">
+        
+        <div className="relative mt-6 mb-4">
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-gray-300"></div>
           </div>
@@ -101,7 +95,22 @@ export function SignupDialog({ isOpen, setIsOpen }: SignupDialogProps) {
           onFacebookClick={signInWithFacebook}
           onLinkedInClick={signInWithLinkedIn}
         />
+        
+        <DialogFooter className="flex justify-center mt-4">
+          <div className="text-sm text-center">
+            Already have an account?{" "}
+            <button 
+              onClick={() => {
+                setIsOpen(false);
+                // You'd typically open the login dialog here
+              }}
+              className="text-roomie-purple hover:underline"
+            >
+              Sign in
+            </button>
+          </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
-}
+};

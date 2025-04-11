@@ -36,7 +36,11 @@ export const LoginDialog = ({ isOpen, setIsOpen }: LoginDialogProps) => {
     e.preventDefault();
     setIsLoading(true);
     try {
-      await signIn(email, password);
+      const result = await signIn(email, password);
+      if (!result.user) {
+        throw new Error("Login failed");
+      }
+      
       setIsOpen(false);
       
       // Get user data to check role
