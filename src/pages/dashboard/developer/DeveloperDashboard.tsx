@@ -1,6 +1,6 @@
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Building, DollarSign, Users, Activity } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Building, Users, Activity } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 export default function DeveloperDashboard() {
@@ -15,7 +15,7 @@ export default function DeveloperDashboard() {
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
@@ -49,21 +49,6 @@ export default function DeveloperDashboard() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Property Value
-            </CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">$4.2M</div>
-            <p className="text-xs text-muted-foreground">
-              +15% from last month
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
               Active Inquiries
             </CardTitle>
             <Activity className="h-4 w-4 text-muted-foreground" />
@@ -81,13 +66,9 @@ export default function DeveloperDashboard() {
         <Card>
           <CardHeader>
             <CardTitle>Recent Inquiries</CardTitle>
-            <CardDescription>
-              You have 18 inquiries this month
-            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {/* Sample data - would be replaced with real data */}
               {[1, 2, 3, 4, 5].map((_, i) => (
                 <div key={i} className="flex items-center gap-4">
                   <div className="rounded-full bg-secondary h-8 w-8 flex items-center justify-center">
