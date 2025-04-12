@@ -1,6 +1,6 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Building, DollarSign, Users, Activity, BarChart, LineChart } from "lucide-react";
+import { Building, DollarSign, Users, Activity } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 export default function DeveloperDashboard() {
@@ -77,7 +77,7 @@ export default function DeveloperDashboard() {
         </Card>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-1">
         <Card>
           <CardHeader>
             <CardTitle>Recent Inquiries</CardTitle>
@@ -100,21 +100,6 @@ export default function DeveloperDashboard() {
                   <div className="text-sm text-muted-foreground">{new Date(Date.now() - i * 86400000).toLocaleDateString()}</div>
                 </div>
               ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Market Trends</CardTitle>
-            <CardDescription>
-              Real estate market analytics 
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="h-[300px] flex items-center justify-center">
-            <div className="text-center">
-              <LineChart className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">Market trend data will appear here</p>
             </div>
           </CardContent>
         </Card>

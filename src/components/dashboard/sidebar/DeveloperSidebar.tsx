@@ -1,5 +1,5 @@
 
-import { PieChart, Building, ShoppingBag, Tag, BarChart, MessageSquare } from "lucide-react";
+import { Building, ShoppingBag, MessageSquare } from "lucide-react";
 import { SidebarMenuSection } from "./SidebarMenuSection";
 import { SidebarSimpleMenuItem } from "./SidebarSimpleMenuItem";
 
@@ -24,7 +24,7 @@ export function DeveloperSidebar({ isActive }: DeveloperSidebarProps) {
     <>
       <SidebarSimpleMenuItem 
         title="Dashboard" 
-        icon={PieChart} 
+        icon={Building} 
         path="/dashboard/developer" 
         isActive={isActive} 
       />
@@ -40,20 +40,6 @@ export function DeveloperSidebar({ isActive }: DeveloperSidebarProps) {
         title="Sales" 
         icon={ShoppingBag} 
         subItems={salesSubItems} 
-        isActive={isActive} 
-      />
-
-      <SidebarSimpleMenuItem 
-        title="Pricing" 
-        icon={Tag} 
-        path="/dashboard/pricing" 
-        isActive={isActive} 
-      />
-
-      <SidebarSimpleMenuItem 
-        title="Analytics" 
-        icon={BarChart} 
-        path="/dashboard/analytics" 
         isActive={isActive} 
       />
 
