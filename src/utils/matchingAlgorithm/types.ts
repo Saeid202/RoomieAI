@@ -46,4 +46,5 @@ export type CompatibilityResult = {
   breakdown: CompatibilityBreakdown;
 };
 
-export { ProfileFormValues } from "@/types/profile";
+export type { ProfileFormValues } from "@/types/profile";
+
