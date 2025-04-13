@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { signOutUser } from "@/services/authService";
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -160,7 +161,7 @@ export default function Dashboard() {
   
   const handleSignOut = async () => {
     try {
-      await signOut();
+      await signOutUser();
       navigate('/', { replace: true });
     } catch (error) {
       console.error("Error signing out:", error);
