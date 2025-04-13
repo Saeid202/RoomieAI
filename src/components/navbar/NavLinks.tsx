@@ -18,6 +18,13 @@ export const NavLinks = ({ isMobile = false, onClickMobile }: NavLinksProps) => 
   
   return (
     <>
+      <Link 
+        to="/#about" 
+        className={`${linkClasses} ${mobileClasses}`}
+        onClick={handleClick}
+      >
+        About Us
+      </Link>
       <a 
         href="#how-it-works" 
         className={`${linkClasses} ${mobileClasses}`}
@@ -33,13 +40,6 @@ export const NavLinks = ({ isMobile = false, onClickMobile }: NavLinksProps) => 
         Features
       </a>
       <a 
-        href="#testimonials" 
-        className={`${linkClasses} ${mobileClasses}`}
-        onClick={handleClick}
-      >
-        Testimonials
-      </a>
-      <a 
         href="#faq" 
         className={`${linkClasses} ${mobileClasses}`}
         onClick={handleClick}
@@ -47,11 +47,11 @@ export const NavLinks = ({ isMobile = false, onClickMobile }: NavLinksProps) => 
         FAQ
       </a>
       <Link 
-        to="/dashboard" 
-        className={`${isMobile ? "" : "text-sm"} font-medium hover:text-primary ${mobileClasses}`}
+        to="/#contact" 
+        className={`${linkClasses} ${mobileClasses}`}
         onClick={handleClick}
       >
-        Dashboard
+        Contact Us
       </Link>
     </>
   );

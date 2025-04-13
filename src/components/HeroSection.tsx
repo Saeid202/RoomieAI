@@ -1,7 +1,16 @@
 
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 const HeroSection = () => {
+  const navigate = useNavigate();
+
+  const handleFindMatchClick = () => {
+    navigate("/"); // This will be replaced with signup dialog opening
+    const signupButton = document.querySelector('[data-signup-button="true"]') as HTMLButtonElement;
+    if (signupButton) signupButton.click();
+  };
+
   return (
     <section className="pt-28 pb-16 md:pt-32 md:pb-20 hero-gradient">
       <div className="container mx-auto px-4">
@@ -10,17 +19,16 @@ const HeroSection = () => {
             <h1 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
               Find Your{" "}
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-roomie-purple to-roomie-accent">
-                Perfect Roommate
-              </span>{" "}
-              Match
+                Perfect Roommate or Co-investor Match
+              </span>
             </h1>
             <p className="text-lg md:text-xl text-gray-700 mb-8 max-w-lg">
-              Our AI-powered platform connects you with compatible roommates based on your lifestyle, budget, and location preferences.
+              Our AI-powered platform connects you with compatible roommates or co-investor to buy a house based on your lifestyle, budget, and location preferences.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Button 
                 className="bg-roomie-purple hover:bg-roomie-dark text-white text-lg px-8 py-6"
-                onClick={() => document.getElementById('profile-form')?.scrollIntoView({ behavior: 'smooth' })}
+                onClick={handleFindMatchClick}
               >
                 Find My Match
               </Button>

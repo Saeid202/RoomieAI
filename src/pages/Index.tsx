@@ -3,7 +3,6 @@ import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
 import HowItWorks from "@/components/HowItWorks";
 import FeaturesSection from "@/components/FeaturesSection";
-import Footer from "@/components/Footer";
 
 const Index = () => {
   return (
@@ -14,7 +13,7 @@ const Index = () => {
         <HowItWorks />
         <FeaturesSection />
       </main>
-      <Footer />
+      {/* Footer is rendered via App.tsx route configuration */}
     </div>
   );
 };

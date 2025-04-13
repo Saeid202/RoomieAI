@@ -64,6 +64,7 @@ const Navbar = () => {
               <Button 
                 onClick={() => setIsSignupOpen(true)}
                 className="bg-roomie-purple hover:bg-roomie-dark text-white"
+                data-signup-button="true"
               >
                 Sign up
               </Button>

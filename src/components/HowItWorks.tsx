@@ -1,12 +1,21 @@
 
 import { Check, UserCircle, Users, Building } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const HowItWorks = () => {
+  const navigate = useNavigate();
+
+  const handleSignupClick = () => {
+    const signupButton = document.querySelector('[data-signup-button="true"]') as HTMLButtonElement;
+    if (signupButton) signupButton.click();
+  };
+
   const steps = [
     {
       icon: <UserCircle className="w-10 h-10 text-roomie-purple" />,
       title: "Create Your Profile",
-      description: "Fill out your preferences, budget, and lifestyle details to help us find your ideal match."
+      description: "Fill out your preferences, budget, and lifestyle details to help us find your ideal match.",
+      action: handleSignupClick
     },
     {
       icon: <Check className="w-10 h-10 text-roomie-purple" />,
@@ -37,7 +46,11 @@ const HowItWorks = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {steps.map((step, index) => (
-            <div key={index} className="feature-card card-hover relative">
+            <div 
+              key={index} 
+              className={`feature-card card-hover relative ${step.action ? 'cursor-pointer' : ''}`}
+              onClick={step.action}
+            >
               <div className="absolute -top-4 -left-4 w-8 h-8 rounded-full bg-roomie-purple text-white flex items-center justify-center font-bold">
                 {index + 1}
               </div>
