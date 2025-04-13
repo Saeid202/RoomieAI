@@ -43,10 +43,19 @@ export async function signUpWithEmail(email: string, password: string) {
     // Clear signup data from localStorage after successful signup
     localStorage.removeItem('signupData');
     
-    toast({
-      title: "Success",
-      description: "Check your email for the confirmation link. It may take a few minutes to arrive.",
-    });
+    if (!data.user?.identities || data.user.identities.length === 0) {
+      // User already exists
+      toast({
+        title: "Account exists",
+        description: "This email is already registered. Please sign in instead.",
+      });
+    } else if (data.user && !data.user.email_confirmed_at) {
+      // New user, needs email confirmation
+      toast({
+        title: "Verification email sent",
+        description: "Please check your email to confirm your account before logging in. Be sure to check your spam folder.",
+      });
+    }
     
     return data;
   } catch (error: any) {
@@ -99,6 +108,7 @@ export async function signInWithOAuth(provider: 'google' | 'facebook' | 'linkedi
   try {
     // Store any pending role selection in localStorage for later
     const pendingRole = localStorage.getItem('pendingRole');
+    console.log(`Signing in with ${provider}, pendingRole:`, pendingRole);
     
     const { error } = await supabase.auth.signInWithOAuth({
       provider,

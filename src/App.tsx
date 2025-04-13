@@ -24,6 +24,14 @@ import Callback from "./pages/auth/Callback";
 import ResetPassword from "./pages/auth/ResetPassword";
 import ProtectedRoute from "./components/ProtectedRoute";
 
+// New Pages
+import AboutUs from "./pages/AboutUs";
+import ContactUs from "./pages/ContactUs";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import SafetyCenter from "./pages/SafetyCenter";
+import CommunityGuidelines from "./pages/CommunityGuidelines";
+import FAQ from "./pages/FAQ";
+
 // Landlord routes
 import LandlordHomePage from "./pages/dashboard/landlord/LandlordHome";
 import PropertiesPage from "./pages/dashboard/landlord/Properties";
@@ -45,10 +53,17 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <div className="flex flex-col min-h-screen">
-              <Navbar />
               <div className="flex-1 flex flex-col">
                 <Routes>
                   <Route path="/" element={<Index />} />
+                  
+                  {/* Static Pages */}
+                  <Route path="/about-us" element={<AboutUs />} />
+                  <Route path="/contact-us" element={<ContactUs />} />
+                  <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                  <Route path="/safety-center" element={<SafetyCenter />} />
+                  <Route path="/community-guidelines" element={<CommunityGuidelines />} />
+                  <Route path="/faq" element={<FAQ />} />
                   
                   {/* Auth Routes */}
                   <Route path="/auth/callback" element={<Callback />} />
@@ -88,7 +103,7 @@ const App = () => (
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </div>
-              {/* Only show footer on non-dashboard pages since we're adding it directly to Dashboard component */}
+              {/* Only show footer on non-dashboard and static pages */}
               <Routes>
                 <Route path="/" element={<Footer />} />
                 <Route path="/auth/*" element={<Footer />} />

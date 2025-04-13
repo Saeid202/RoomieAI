@@ -19,35 +19,35 @@ export const NavLinks = ({ isMobile = false, onClickMobile }: NavLinksProps) => 
   return (
     <>
       <Link 
-        to="/#about" 
+        to="/about-us" 
         className={`${linkClasses} ${mobileClasses}`}
         onClick={handleClick}
       >
         About Us
       </Link>
       <a 
-        href="#how-it-works" 
+        href="/#how-it-works" 
         className={`${linkClasses} ${mobileClasses}`}
         onClick={handleClick}
       >
         How It Works
       </a>
       <a 
-        href="#features" 
+        href="/#features" 
         className={`${linkClasses} ${mobileClasses}`}
         onClick={handleClick}
       >
         Features
       </a>
-      <a 
-        href="#faq" 
+      <Link 
+        to="/faq" 
         className={`${linkClasses} ${mobileClasses}`}
         onClick={handleClick}
       >
         FAQ
-      </a>
+      </Link>
       <Link 
-        to="/#contact" 
+        to="/contact-us" 
         className={`${linkClasses} ${mobileClasses}`}
         onClick={handleClick}
       >

@@ -43,7 +43,7 @@ export const SignupDialog = ({ isOpen, setIsOpen }: SignupDialogProps) => {
       localStorage.setItem('signupData', JSON.stringify(metadata));
       console.log("Stored signup metadata in localStorage:", metadata);
       
-      // Also store the role directly for immediate access
+      // Store the role directly for immediate access
       localStorage.setItem('userRole', values.role);
       console.log("Stored user role in localStorage:", values.role);
       
@@ -80,14 +80,15 @@ export const SignupDialog = ({ isOpen, setIsOpen }: SignupDialogProps) => {
   };
   
   const handleSocialLogin = (provider: 'google' | 'facebook' | 'linkedin') => {
+    // Make sure to get the current role selection from the form
+    const formRole = document.querySelector('input[name="role"]:checked') as HTMLInputElement;
+    const role = formRole ? formRole.value as UserRole : 'seeker';
+    
     // Store the role for OAuth flow
-    const role = localStorage.getItem('pendingRole');
-    if (role) {
-      console.log(`Attempting social login with ${provider}, role: ${role}`);
-    } else {
-      console.log(`No role set for social login, defaulting to seeker`);
-      localStorage.setItem('pendingRole', 'seeker');
-    }
+    console.log(`Setting pendingRole to ${role} for social login`);
+    localStorage.setItem('pendingRole', role);
+    
+    console.log(`Attempting social login with ${provider}, role: ${role}`);
     
     if (provider === 'google') {
       signInWithGoogle();

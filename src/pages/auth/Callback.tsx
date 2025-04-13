@@ -44,6 +44,7 @@ export default function Callback() {
         
         // Get any pending role from localStorage
         const pendingRole = localStorage.getItem('pendingRole');
+        console.log("Auth callback - pending role from localStorage:", pendingRole);
         
         // First check if role exists in metadata
         const userRole = session.user?.user_metadata?.role;
@@ -102,6 +103,8 @@ export default function Callback() {
           isValidRole(userRole) ? userRole as UserRole : 
           isValidRole(pendingRole) ? pendingRole as UserRole : 
           'seeker';
+        
+        console.log("Auth callback - effective role for redirection:", effectiveRole);
         
         if (effectiveRole === 'developer') {
           navigate('/dashboard/developer');
