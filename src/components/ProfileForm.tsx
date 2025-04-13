@@ -33,10 +33,8 @@ const ProfileForm = ({ initialData, onSave }: ProfileFormProps) => {
   const [matchResults, setMatchResults] = useState([]);
   const { toast } = useToast();
   
-  // Reduce total steps from 9 to 5
   const totalSteps = 5;
   
-  // Set default values, either from initialData or defaults
   const defaultValues = {
     fullName: "",
     age: "",
@@ -81,10 +79,8 @@ const ProfileForm = ({ initialData, onSave }: ProfileFormProps) => {
     defaultValues: initialData ? { ...defaultValues, ...initialData } : defaultValues,
   });
   
-  // Update form values when initialData changes
   useEffect(() => {
     if (initialData) {
-      // Reset form with new values
       form.reset({ ...defaultValues, ...initialData });
     }
   }, [initialData, form]);
@@ -96,14 +92,12 @@ const ProfileForm = ({ initialData, onSave }: ProfileFormProps) => {
     console.log("Form submitted:", data);
     
     if (onSave) {
-      // If we have an onSave prop, use it to save to Supabase
       onSave(data);
       toast({
         title: "Profile updated",
         description: "Your profile has been saved successfully",
       });
     } else {
-      // Otherwise, show the match results (public form behavior)
       const matches = findMatches(data);
       setMatchResults(matches);
       setShowResults(true);
@@ -140,7 +134,6 @@ const ProfileForm = ({ initialData, onSave }: ProfileFormProps) => {
               onStepClick={goToStep} 
             />
             
-            {/* Add completed sections summary */}
             <div className="flex flex-wrap gap-2 mt-4">
               {getCompletedSections().map(section => (
                 <div 
