@@ -15,96 +15,75 @@ export default function Callback() {
     return validRoles.includes(role as UserRole);
   }
 
-  // Helper function to set default role
-  function setDefaultRole() {
-    console.log("Auth callback - no role found, defaulting to seeker");
-    setRole('seeker');
-    localStorage.setItem('userRole', 'seeker');
-    
-    // Update user metadata
-    try {
-      supabase.auth.updateUser({
-        data: { role: 'seeker' }
-      }).then(({ error }) => {
-        if (error) {
-          console.error("Error setting default role:", error);
-        }
-      });
-    } catch (err) {
-      console.error("Exception setting default role:", err);
-    }
-  }
-
   useEffect(() => {
     // Handle the OAuth callback
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session) {
         console.log("Auth callback - session exists:", session.user.email);
-        console.log("Auth callback - user metadata:", session.user.user_metadata);
         
-        // Get any pending role from localStorage
+        // Get user metadata which should contain role
+        const userRole = session.user?.user_metadata?.role;
+        console.log("Auth callback - role from metadata:", userRole);
+        
+        // Get any pending role from localStorage (for social sign-in flows)
         const pendingRole = localStorage.getItem('pendingRole');
         console.log("Auth callback - pending role from localStorage:", pendingRole);
         
-        // First check if role exists in metadata
-        const userRole = session.user?.user_metadata?.role;
+        let effectiveRole: UserRole;
         
-        if (userRole) {
+        // Determine which role to use, prioritize metadata over localStorage
+        if (userRole && isValidRole(userRole)) {
           console.log("Auth callback - using role from metadata:", userRole);
-          // Validate that the role is one of the expected values
-          if (isValidRole(userRole)) {
-            setRole(userRole as UserRole);
-            localStorage.setItem('userRole', userRole);
-          } else {
-            console.warn("Invalid role in metadata:", userRole);
-            setDefaultRole();
-          }
-        } else if (pendingRole) {
-          // If no role in metadata but we have a pending role, update it
-          console.log("Auth callback - setting pending role:", pendingRole);
-          // Validate that the pending role is one of the expected values
-          if (isValidRole(pendingRole)) {
-            setRole(pendingRole as UserRole);
-            localStorage.setItem('userRole', pendingRole);
+          effectiveRole = userRole as UserRole;
+          setRole(effectiveRole);
+          localStorage.setItem('userRole', effectiveRole);
+        } else if (pendingRole && isValidRole(pendingRole)) {
+          console.log("Auth callback - using pending role:", pendingRole);
+          effectiveRole = pendingRole as UserRole;
+          setRole(effectiveRole);
+          localStorage.setItem('userRole', effectiveRole);
+          
+          // Update user metadata with the role from localStorage
+          try {
+            const { data, error } = await supabase.auth.updateUser({
+              data: { role: effectiveRole }
+            });
             
-            // Update user metadata
-            try {
-              const { data, error } = await supabase.auth.updateUser({
-                data: { role: pendingRole }
+            if (error) {
+              console.error("Error updating user metadata:", error);
+              toast({
+                title: "Warning",
+                description: "Failed to set your user role. Some features may be limited.",
+                variant: "destructive",
               });
-              
-              if (error) {
-                console.error("Error updating user metadata:", error);
-                toast({
-                  title: "Warning",
-                  description: "Failed to set your user role. Some features may be limited.",
-                  variant: "destructive",
-                });
-              } else {
-                console.log("Successfully updated user metadata with role:", data.user.user_metadata);
-              }
-            } catch (err) {
-              console.error("Exception updating user metadata:", err);
+            } else {
+              console.log("Successfully updated user metadata with role:", data.user.user_metadata);
             }
-          } else {
-            console.warn("Invalid pending role:", pendingRole);
-            setDefaultRole();
+          } catch (err) {
+            console.error("Exception updating user metadata:", err);
           }
         } else {
-          // Default to seeker if no role information available
-          setDefaultRole();
+          // Default to seeker if no valid role found
+          console.log("Auth callback - no valid role found, defaulting to seeker");
+          effectiveRole = 'seeker';
+          setRole(effectiveRole);
+          localStorage.setItem('userRole', effectiveRole);
+          
+          // Update user metadata with default role
+          try {
+            await supabase.auth.updateUser({
+              data: { role: effectiveRole }
+            });
+          } catch (err) {
+            console.error("Exception setting default role:", err);
+          }
         }
         
         // Clear pending role
         localStorage.removeItem('pendingRole');
         
         // Redirect based on role
-        const effectiveRole = 
-          isValidRole(userRole) ? userRole as UserRole : 
-          isValidRole(pendingRole) ? pendingRole as UserRole : 
-          'seeker';
-        
-        console.log("Auth callback - effective role for redirection:", effectiveRole);
+        console.log("Auth callback - redirecting based on role:", effectiveRole);
         
         if (effectiveRole === 'developer') {
           navigate('/dashboard/developer');

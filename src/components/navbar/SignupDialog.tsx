@@ -15,7 +15,6 @@ import { SocialLoginButtons } from "@/components/auth/SocialLoginButtons";
 import { toast } from "@/hooks/use-toast";
 import { UserRole } from "@/contexts/RoleContext";
 import { useRole } from "@/contexts/RoleContext";
-import { supabase } from "@/integrations/supabase/client";
 
 interface SignupDialogProps {
   isOpen: boolean;
@@ -31,24 +30,25 @@ export const SignupDialog = ({ isOpen, setIsOpen }: SignupDialogProps) => {
   const handleSignupSubmit = async (values: SignupFormValues) => {
     setIsLoading(true);
     try {
-      // Immediately set role in context for consistent UI
-      setRole(values.role);
-      
       // Store metadata in localStorage before signup
       const metadata = {
         full_name: values.fullName,
         role: values.role,
       };
       
-      localStorage.setItem('signupData', JSON.stringify(metadata));
-      console.log("Stored signup metadata in localStorage:", metadata);
-      
-      // Store the role directly for immediate access
+      // Store role directly for immediate access
       localStorage.setItem('userRole', values.role);
       console.log("Stored user role in localStorage:", values.role);
       
       // For social auth without prior signup
       localStorage.setItem('pendingRole', values.role);
+      console.log("Stored pending role in localStorage:", values.role);
+      
+      // Set role in context for consistent UI
+      setRole(values.role);
+      
+      // Store signup data for use in callback
+      localStorage.setItem('signupData', JSON.stringify(metadata));
       
       // Sign up the user with the provided email and password
       const result = await signUp(values.email, values.password);
@@ -62,7 +62,7 @@ export const SignupDialog = ({ isOpen, setIsOpen }: SignupDialogProps) => {
       
       setIsOpen(false);
       
-      // We don't navigate yet since the user needs to verify their email first
+      // We should see a message about email verification
       toast({
         title: "Account created",
         description: "Please check your email to confirm your account before logging in. Check your spam folder if you don't see it.",

@@ -19,6 +19,7 @@ export async function signUpWithEmail(email: string, password: string) {
       }
     }
     
+    // Explicit email redirect configuration for verification email
     const { error, data } = await supabase.auth.signUp({ 
       email, 
       password,
@@ -32,13 +33,6 @@ export async function signUpWithEmail(email: string, password: string) {
     
     console.log("Signup response:", data);
     console.log("User metadata set during signup:", metadata);
-    
-    // Store user role in localStorage for immediate access
-    // This helps during the email verification period
-    if (metadata && 'role' in metadata) {
-      localStorage.setItem('userRole', metadata.role as string);
-      console.log("Stored user role in localStorage:", metadata.role);
-    }
     
     // Clear signup data from localStorage after successful signup
     localStorage.removeItem('signupData');
