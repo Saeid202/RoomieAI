@@ -12,6 +12,7 @@ import { HousingPlanList } from "@/components/dashboard/housing-plan/HousingPlan
 import { RoommateMatches } from "@/components/dashboard/housing-plan/RoommateMatches";
 import { useHousingPlans, HousingPlan } from "@/hooks/useHousingPlans";
 import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
 
 export default function FutureHousingPlan() {
   const [showRoommates, setShowRoommates] = useState(false);
@@ -20,20 +21,37 @@ export default function FutureHousingPlan() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const { toast } = useToast();
   const { plans, isLoading, error, createPlan, updatePlan } = useHousingPlans();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
 
-  console.log("FutureHousingPlan component rendering");
-  console.log("Auth user:", user);
-  console.log("Housing plans:", plans);
-  console.log("Loading state:", isLoading);
-  console.log("Error:", error);
+  console.log("FutureHousingPlan component rendering with state:", {
+    isAuthenticated: !!user,
+    authLoading,
+    plansLoading: isLoading,
+    plansCount: plans?.length,
+    error: error ? String(error) : null,
+    showRoommates,
+    isFormOpen,
+    hasSelectedPlan: !!selectedPlan
+  });
 
+  // Check authentication
   useEffect(() => {
-    console.log("FutureHousingPlan useEffect - auth state or plans changed");
-  }, [user, plans]);
+    if (!authLoading && !user) {
+      console.log("User not authenticated, redirecting to auth page");
+      toast({
+        title: "Authentication required",
+        description: "Please log in to view your housing plans",
+        variant: "destructive",
+      });
+      navigate("/auth");
+    }
+  }, [user, authLoading, navigate, toast]);
 
   const onSubmit = async (data: any) => {
     try {
+      console.log("Form submitted with data:", data);
+      
       if (selectedPlan) {
         console.log("Updating plan:", selectedPlan.id, data);
         await updatePlan.mutateAsync({
@@ -101,6 +119,38 @@ export default function FutureHousingPlan() {
     setIsFormOpen(true);
   };
 
+  // Show loading state while authentication is being checked
+  if (authLoading) {
+    return (
+      <div className="container mx-auto py-6">
+        <h1 className="text-3xl font-bold mb-6">My Future Housing Plan</h1>
+        <div className="flex justify-center items-center py-10">
+          <div className="w-8 h-8 border-4 border-t-transparent border-roomie-purple rounded-full animate-spin"></div>
+        </div>
+      </div>
+    );
+  }
+
+  // Only render the main content if user is authenticated
+  if (!user) {
+    return (
+      <div className="container mx-auto py-6">
+        <h1 className="text-3xl font-bold mb-6">My Future Housing Plan</h1>
+        <div className="text-center py-10">
+          <p className="text-muted-foreground mb-4">
+            Please log in to view and manage your housing plans.
+          </p>
+          <Button 
+            className="bg-roomie-purple hover:bg-roomie-purple/90"
+            onClick={() => navigate("/auth")}
+          >
+            Log In
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto py-6">
       <h1 className="text-3xl font-bold mb-6">My Future Housing Plan</h1>
@@ -139,7 +189,7 @@ export default function FutureHousingPlan() {
                 <p className="text-sm mt-2">{error instanceof Error ? error.message : 'Unknown error'}</p>
               </div>
             ) : (
-              plans.length === 0 ? (
+              Array.isArray(plans) && plans.length === 0 ? (
                 <div className="text-center py-10">
                   <p className="text-muted-foreground mb-4">
                     You haven't created any housing plans yet. Use this section to plan and track your future housing needs and preferences.

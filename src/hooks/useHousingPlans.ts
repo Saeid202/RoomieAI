@@ -20,6 +20,11 @@ export function useHousingPlans() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
+  console.log('useHousingPlans hook initialized, auth state:', { 
+    isAuthenticated: !!user,
+    userId: user?.id
+  });
+
   const { data: plans = [], isLoading, error } = useQuery({
     queryKey: ['housing-plans'],
     queryFn: async () => {
@@ -30,26 +35,41 @@ export function useHousingPlans() {
         return [];
       }
 
-      const { data, error } = await supabase
-        .from('My Future Housing Plan')
-        .select('*')
-        .order('created_at', { ascending: false });
+      try {
+        const { data, error } = await supabase
+          .from('My Future Housing Plan')
+          .select('*')
+          .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error('Error fetching housing plans:', error);
+        if (error) {
+          console.error('Error fetching housing plans:', error);
+          toast({
+            title: 'Error',
+            description: 'Failed to fetch housing plans: ' + error.message,
+            variant: 'destructive',
+          });
+          throw error;
+        }
+
+        console.log('Housing plans data fetched successfully:', data);
+        if (!data || data.length === 0) {
+          console.log('No housing plans found for user');
+          return [];
+        }
+        
+        return data.map(plan => ({
+          ...plan,
+          id: plan.id.toString()
+        })) as HousingPlan[];
+      } catch (fetchError) {
+        console.error('Exception in fetchHousingPlans:', fetchError);
         toast({
           title: 'Error',
-          description: 'Failed to fetch housing plans: ' + error.message,
+          description: 'An unexpected error occurred while fetching housing plans',
           variant: 'destructive',
         });
-        throw error;
+        throw fetchError;
       }
-
-      console.log('Housing plans data fetched successfully:', data);
-      return data.map(plan => ({
-        ...plan,
-        id: plan.id.toString()
-      })) as HousingPlan[];
     },
     enabled: !!user,
   });
@@ -63,9 +83,16 @@ export function useHousingPlans() {
         throw new Error('You must be logged in to create a housing plan');
       }
 
+      const newPlan = {
+        ...plan,
+        user_id: user.id  // Explicitly setting user_id
+      };
+      
+      console.log('Submitting plan with user_id:', newPlan);
+
       const { data, error } = await supabase
         .from('My Future Housing Plan')
-        .insert(plan)
+        .insert(newPlan)
         .select()
         .single();
 
@@ -88,7 +115,7 @@ export function useHousingPlans() {
       console.error('Error creating housing plan:', error);
       toast({
         title: 'Error',
-        description: 'Failed to create housing plan',
+        description: 'Failed to create housing plan: ' + (error instanceof Error ? error.message : 'Unknown error'),
         variant: 'destructive',
       });
     },
@@ -103,9 +130,15 @@ export function useHousingPlans() {
         throw new Error('You must be logged in to update a housing plan');
       }
 
+      // Make sure the user_id is included
+      const updatedPlan = {
+        ...plan,
+        user_id: user.id
+      };
+
       const { data, error } = await supabase
         .from('My Future Housing Plan')
-        .update(plan)
+        .update(updatedPlan)
         .eq('id', id)
         .select()
         .single();
@@ -129,14 +162,14 @@ export function useHousingPlans() {
       console.error('Error updating housing plan:', error);
       toast({
         title: 'Error',
-        description: 'Failed to update housing plan',
+        description: 'Failed to update housing plan: ' + (error instanceof Error ? error.message : 'Unknown error'),
         variant: 'destructive',
       });
     },
   });
 
   return {
-    plans,
+    plans: plans || [],
     isLoading,
     error,
     createPlan,

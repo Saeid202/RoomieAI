@@ -13,7 +13,18 @@ type HousingPlanListProps = {
 export function HousingPlanList({ plans, onEdit }: HousingPlanListProps) {
   console.log("HousingPlanList render with plans:", plans);
   
-  if (!plans || plans.length === 0) {
+  // Handle edge cases properly
+  if (!plans) {
+    console.log("Plans is undefined or null");
+    return (
+      <div className="text-center py-8">
+        <p className="text-muted-foreground">No housing plans found. Create your first plan!</p>
+      </div>
+    );
+  }
+
+  if (plans.length === 0) {
+    console.log("Plans array is empty");
     return (
       <div className="text-center py-8">
         <p className="text-muted-foreground">No housing plans found. Create your first plan!</p>
@@ -32,7 +43,10 @@ export function HousingPlanList({ plans, onEdit }: HousingPlanListProps) {
                 variant="ghost" 
                 size="sm"
                 className="h-8 w-8 p-0"
-                onClick={() => onEdit(plan)}
+                onClick={() => {
+                  console.log("Edit button clicked for plan:", plan);
+                  onEdit(plan);
+                }}
               >
                 <Pencil className="h-4 w-4" />
               </Button>
