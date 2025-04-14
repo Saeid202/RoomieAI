@@ -18,100 +18,34 @@ export function RouteGuard({ children }: RouteGuardProps) {
   const assignedRole = user?.user_metadata?.role;
   
   useEffect(() => {
-    if (loading) return;
+    if (loading) {
+      console.log("RouteGuard - Loading state, skipping checks");
+      return;
+    }
+    
+    console.log("RouteGuard - Checking authentication and role");
+    console.log("RouteGuard - User:", user?.email);
+    console.log("RouteGuard - Role:", role);
+    console.log("RouteGuard - Current path:", location.pathname);
     
     if (!user) {
+      console.log("RouteGuard - No user, redirecting to home");
       navigate('/', { replace: true });
       return;
     }
     
-    console.log("Dashboard routing effect - assigned role:", assignedRole);
-    console.log("Dashboard routing effect - current path:", location.pathname);
-    
-    if (location.pathname === '/dashboard') {
-      if (assignedRole === 'landlord') {
-        navigate('/dashboard/landlord', { replace: true });
-        return;
-      } else if (assignedRole === 'developer') {
-        navigate('/dashboard/developer', { replace: true });
-        return;
-      } else {
-        navigate('/dashboard/profile', { replace: true });
-        return;
-      }
+    // For the profile page, allow access regardless of role
+    if (location.pathname === '/dashboard/profile' || 
+        location.pathname.startsWith('/dashboard/roommate-recommendations') ||
+        location.pathname.startsWith('/dashboard/chats')) {
+      console.log("RouteGuard - Allowing access to common pages");
+      return;
     }
     
-    if (assignedRole === 'seeker') {
-      const allowedPaths = [
-        '/dashboard/profile',
-        '/dashboard/profile/roommate',
-        '/dashboard/profile/co-owner',
-        '/dashboard/roommate-recommendations',
-        '/dashboard/rent-opportunities',
-        '/dashboard/rent-savings',
-        '/dashboard/co-owner-recommendations',
-        '/dashboard/co-ownership-opportunities',
-        '/dashboard/wallet',
-        '/dashboard/legal-assistant',
-        '/dashboard/chats'
-      ];
-      
-      const isPathAllowed = allowedPaths.some(path => location.pathname.startsWith(path));
-      
-      if (!isPathAllowed) {
-        toast({
-          title: "Access Restricted",
-          description: "This section is only available to landlords or developers",
-          variant: "destructive",
-        });
-        navigate('/dashboard/profile', { replace: true });
-      }
-    }
+    // Specific role checks removed to allow users to access the basic dashboard
     
-    if (assignedRole === 'landlord') {
-      const allowedPaths = [
-        '/dashboard/landlord',
-        '/dashboard/properties',
-        '/dashboard/tenants',
-        '/dashboard/leases',
-        '/dashboard/messages'
-      ];
-      
-      const isPathAllowed = allowedPaths.some(path => location.pathname.startsWith(path));
-      
-      if (!isPathAllowed) {
-        toast({
-          title: "Access Restricted",
-          description: "This section is only available to seekers or developers",
-          variant: "destructive",
-        });
-        navigate('/dashboard/landlord', { replace: true });
-      }
-    }
-    
-    if (assignedRole === 'developer') {
-      const allowedPaths = [
-        '/dashboard/developer',
-        '/dashboard/properties',
-        '/dashboard/pricing',
-        '/dashboard/analytics',
-        '/dashboard/messages',
-        '/dashboard/inquiries',
-        '/dashboard/potential-buyers'
-      ];
-      
-      const isPathAllowed = allowedPaths.some(path => location.pathname.startsWith(path));
-      
-      if (!isPathAllowed) {
-        toast({
-          title: "Access Restricted",
-          description: "This section is only available to seekers or landlords",
-          variant: "destructive",
-        });
-        navigate('/dashboard/developer', { replace: true });
-      }
-    }
-  }, [location.pathname, assignedRole, navigate, user, loading]);
+    console.log("RouteGuard - Checks complete, allowing access");
+  }, [location.pathname, assignedRole, navigate, user, loading, role]);
 
   return <>{children}</>;
 }
