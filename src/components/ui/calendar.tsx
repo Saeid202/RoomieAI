@@ -1,7 +1,7 @@
 
 import * as React from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { DayPicker, DayClickEventHandler } from "react-day-picker";
+import { DayPicker, SelectedDay } from "react-day-picker";
 import { cn } from "@/lib/utils";
 import { CalendarNavigation } from "./calendar/CalendarNavigation";
 import { CalendarProps } from "./calendar/types";
@@ -15,15 +15,12 @@ function Calendar({
 }: CalendarProps) {
   const [currentMonth, setCurrentMonth] = React.useState<Date>(new Date());
 
-  // Properly typed handleDayClick method
-  const handleDayClick: DayClickEventHandler = React.useCallback((day, modifiers, e, activeModifiers) => {
-    // Close calendar when a day is selected
-    if (props.mode === "single" && props.onSelect && day) {
-      props.onSelect(day);
-      // Close any open popover
+  const handleSelect = React.useCallback((day: Date | undefined) => {
+    if (day && props.mode === "single" && props.selected === undefined) {
+      // Close any open popover after selection (for single mode only)
       closePopover();
     }
-  }, [props.mode, props.onSelect]);
+  }, [props.mode, props.selected]);
 
   return (
     <DayPicker
@@ -48,7 +45,7 @@ function Calendar({
       }}
       month={currentMonth}
       onMonthChange={setCurrentMonth}
-      onDayClick={handleDayClick}
+      onSelect={handleSelect}
       {...props}
     />
   );
