@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -83,11 +82,7 @@ export function useRoommateProfile() {
       }
     } finally {
       setHasAttemptedLoad(true);
-      
-      // Add delay to prevent flashing
-      setTimeout(() => {
-        setLoading(false);
-      }, 500);
+      setLoading(false);
     }
   }, [user, toast, loading, loadCounter]);
 
@@ -99,11 +94,10 @@ export function useRoommateProfile() {
         loadProfileData();
       } else {
         console.log("No user detected, using default profile data");
-        setTimeout(() => {
-          setLoading(false);
-          setProfileData(getDefaultProfileData());
-          setHasAttemptedLoad(true);
-        }, 500);
+        // Don't wait for a timeout to set default data - do it immediately
+        setProfileData(getDefaultProfileData());
+        setLoading(false);
+        setHasAttemptedLoad(true);
       }
     }
   }, [user, loadProfileData, hasAttemptedLoad]);

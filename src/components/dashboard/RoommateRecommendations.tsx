@@ -1,5 +1,5 @@
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -23,6 +23,7 @@ export function RoommateRecommendations({ onError }: RoommateRecommendationsProp
   const [isLoading, setIsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [activeTab, setActiveTab] = useState("about-me");
+  const [componentMounted, setComponentMounted] = useState(false);
   
   const {
     loading: profileLoading,
@@ -38,6 +39,16 @@ export function RoommateRecommendations({ onError }: RoommateRecommendationsProp
     handleSaveProfile,
     loadProfileData
   } = useRoommateMatching();
+  
+  // Mark component as mounted after initial render
+  useEffect(() => {
+    console.log("RoommateRecommendations component mounted");
+    setComponentMounted(true);
+    
+    return () => {
+      console.log("RoommateRecommendations component unmounted");
+    };
+  }, []);
   
   const handleStartLoading = useCallback(() => {
     console.log("RoommateRecommendations - Start loading");
@@ -60,7 +71,7 @@ export function RoommateRecommendations({ onError }: RoommateRecommendationsProp
     
     toast({
       title: "Error",
-      description: error.message,
+      description: error.message || "An unexpected error occurred",
       variant: "destructive",
     });
     
@@ -80,6 +91,10 @@ export function RoommateRecommendations({ onError }: RoommateRecommendationsProp
       throw error;
     }
   };
+
+  if (!componentMounted) {
+    return <div>Loading recommendations...</div>;
+  }
 
   return (
     <ProfileLoadingHandler loadProfileData={loadProfileData} onError={handleError}>

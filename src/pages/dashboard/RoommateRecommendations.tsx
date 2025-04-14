@@ -19,38 +19,38 @@ export default function RoommateRecommendationsPage() {
     console.log("RoommatePage mounted - Initializing...");
     document.title = "Find My Ideal Roommate";
     
-    if (!authLoading) {
-      console.log("RoommatePage - Auth loaded, user:", user?.email ?? "none");
-      // Use a longer delay for initial loading to ensure all data is ready
-      const loadingTimer = setTimeout(() => {
-        setInitialLoading(false);
-        console.log("RoommatePage - Initial loading complete");
-      }, 1500);
+    // Use a simple loading indicator regardless of auth state
+    const loadingTimer = setTimeout(() => {
+      setInitialLoading(false);
+      console.log("RoommatePage - Initial loading complete");
       
       // Add a separate timer for the fade-in transition
-      const fadeTimer = setTimeout(() => {
+      setTimeout(() => {
         setIsLoaded(true);
         console.log("RoommatePage - Fade-in complete");
-      }, 1800);
-      
-      return () => {
-        clearTimeout(loadingTimer);
-        clearTimeout(fadeTimer);
-      };
-    }
-  }, [user, authLoading]);
+      }, 300);
+    }, 1000);
+    
+    return () => {
+      clearTimeout(loadingTimer);
+    };
+  }, []);
 
   const handleRetry = () => {
     setIsRetrying(true);
+    setError(null);
     // Force a remount of the component
     setTimeout(() => {
-      setError(null);
       setIsRetrying(false);
     }, 300);
   };
 
-  if (initialLoading || authLoading) {
-    return <LoadingState key="initial-loading" />;
+  if (initialLoading) {
+    return (
+      <div className="container mx-auto py-6">
+        <LoadingState key="initial-loading" />
+      </div>
+    );
   }
 
   if (error) {
@@ -79,10 +79,13 @@ export default function RoommateRecommendationsPage() {
 
   return (
     <div 
-      className={`container mx-auto py-6 transition-opacity duration-700 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+      className={`container mx-auto py-6 transition-opacity duration-500 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
       style={{ minHeight: '80vh' }}
     >
-      <RoommateRecommendations key="recommendations-component" onError={setError} />
+      <RoommateRecommendations 
+        key={isRetrying ? "retrying-component" : "recommendations-component"} 
+        onError={setError} 
+      />
     </div>
   );
 }
