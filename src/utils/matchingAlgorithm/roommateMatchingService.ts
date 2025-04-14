@@ -8,92 +8,28 @@ import { convertFormToProfileData } from "./profileMapper";
  * Find potential roommate matches based on user profile
  */
 export const findMatches = (userProfile: ProfileFormValues): MatchResult[] => {
-  console.log("roommateMatchingService.findMatches called with:", 
-    userProfile ? { 
-      fullName: userProfile.fullName,
-      age: userProfile.age,
-      budget: userProfile.budgetRange 
-    } : 'null userProfile');
+  console.log("Finding matches for user profile:", userProfile);
   
-  try {
-    if (!userProfile) {
-      console.error("User profile is null or undefined in roommateMatchingService");
-      return [];
-    }
+  // Convert the form values to the format expected by the matching algorithm
+  const profileData = convertFormToProfileData(userProfile);
+  
+  // For a real application, this would query a database of potential matches
+  // For this demo, we'll use mock data
+  const potentialMatches = potentialRoommates;
+  
+  // Calculate compatibility scores for each potential match
+  const matches = potentialMatches.map(match => {
+    const compatibility = calculateCompatibilityScore(profileData, match);
     
-    // Validate minimum required fields
-    if (!userProfile.fullName || !userProfile.age) {
-      console.warn("Profile data is missing essential fields in roommateMatchingService");
-      return [];
-    }
-    
-    // Convert the form values to the format expected by the matching algorithm
-    const profileData = convertFormToProfileData(userProfile);
-    console.log("Converted profile data in roommateMatchingService:", {
-      name: profileData.name,
-      age: profileData.age,
-      budget: profileData.budget
-    });
-    
-    // For a real application, this would query a database of potential matches
-    // For this demo, we'll use mock data
-    const potentialMatches = potentialRoommates;
-    
-    if (!potentialMatches || potentialMatches.length === 0) {
-      console.warn("No potential matches found in roommateMatchingService");
-      return [];
-    }
-    
-    console.log(`Found ${potentialMatches.length} potential matches to process`);
-    
-    // Calculate compatibility scores for each potential match
-    const matches = potentialMatches.map(match => {
-      try {
-        // Ensure profileData is valid before calculating compatibility
-        if (!profileData || !profileData.name || !profileData.budget) {
-          console.warn("Invalid profile data in match calculation", profileData);
-          throw new Error("Invalid profile data");
-        }
-
-        // Ensure match is valid before calculating compatibility
-        if (!match || !match.name || !match.budget) {
-          console.warn("Invalid match data in match calculation", match);
-          throw new Error("Invalid match data");
-        }
-        
-        const compatibility = calculateCompatibilityScore(profileData, match);
-        
-        return {
-          ...match,
-          compatibilityScore: compatibility.score,
-          compatibilityBreakdown: compatibility.breakdown
-        };
-      } catch (error) {
-        console.error("Error calculating compatibility for a match:", error);
-        // Return match with low compatibility score to avoid breaking the filter
-        return {
-          ...match,
-          compatibilityScore: 10,
-          compatibilityBreakdown: {
-            budget: 0,
-            location: 0,
-            lifestyle: 10,
-            schedule: 0,
-            interests: 0,
-            cleanliness: 0
-          }
-        };
-      }
-    });
-    
-    // Sort matches by compatibility score (highest first)
-    const sortedMatches = matches.sort((a, b) => b.compatibilityScore - a.compatibilityScore);
-    console.log(`Returning ${sortedMatches.length} sorted matches from roommateMatchingService`);
-    
-    return sortedMatches;
-  } catch (error) {
-    console.error("Error in findMatches algorithm in roommateMatchingService:", error);
-    // Return empty array on error to avoid crashing
-    return [];
-  }
+    return {
+      ...match,
+      compatibilityScore: compatibility.score,
+      compatibilityBreakdown: compatibility.breakdown
+    };
+  });
+  
+  // Sort matches by compatibility score (highest first)
+  const sortedMatches = matches.sort((a, b) => b.compatibilityScore - a.compatibilityScore);
+  
+  return sortedMatches;
 };

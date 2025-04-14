@@ -4,14 +4,9 @@ import { findMatches } from "./roommateMatchingService";
 import { findPropertyShareMatches } from "./propertyMatchingService";
 import { MatchResult, ProfileData, ProfileFormValues } from "./types";
 import { mapFormToProfileData, convertFormToProfileData } from "./profileMapper";
-import { calculateCompatibilityScore } from "./compatibilityCalculator";
 
 // Export the main algorithm functions
-export { 
-  findMatches, 
-  findPropertyShareMatches,
-  calculateCompatibilityScore
-};
+export { findMatches, findPropertyShareMatches };
 
 // Export types
 export type { MatchResult, ProfileData, ProfileFormValues };

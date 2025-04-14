@@ -37,7 +37,6 @@ export type CompatibilityBreakdown = {
 };
 
 export type MatchResult = ProfileData & {
-  id?: string;
   compatibilityScore: number;
   compatibilityBreakdown: CompatibilityBreakdown;
 };
@@ -48,3 +47,4 @@ export type CompatibilityResult = {
 };
 
 export type { ProfileFormValues } from "@/types/profile";
+

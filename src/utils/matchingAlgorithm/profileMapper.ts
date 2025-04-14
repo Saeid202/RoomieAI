@@ -1,138 +1,31 @@
 
 import { ProfileFormValues, ProfileData } from "./types";
 
-/**
- * Converts form data to the format expected by the matching algorithm
- */
+// Define the mapper function first before exporting it
 export const mapFormToProfileData = (formData: ProfileFormValues): ProfileData => {
-  if (!formData) {
-    console.error("Form data is null or undefined in mapFormToProfileData");
-    // Return default values to prevent crashes
-    return {
-      name: "Unknown",
-      age: "0",
-      gender: "prefer-not-to-say",
-      occupation: "Not specified",
-      movingDate: new Date().toISOString().split('T')[0],
-      budget: [0, 0],
-      location: "Not specified",
-      cleanliness: 50,
-      pets: false,
-      smoking: false,
-      drinking: "sometimes",
-      guests: "rarely",
-      sleepSchedule: "normal",
-      workSchedule: "9AM-5PM",
-      interests: [],
-      traits: [],
-      preferredLiving: "findRoommate"
-    };
-  }
-  
-  console.log("Mapping form data to profile data in profileMapper:", 
-    { fullName: formData.fullName, age: formData.age });
-  
-  // Ensure budget range is valid
-  let budgetRange = [800, 1500]; // Default values
-  if (Array.isArray(formData.budgetRange) && formData.budgetRange.length === 2) {
-    budgetRange = formData.budgetRange;
-  } else if (formData.budgetRange) {
-    // Try to parse budgetRange if it's not an array but exists
-    try {
-      if (typeof formData.budgetRange === 'string') {
-        const parsed = JSON.parse(formData.budgetRange);
-        if (Array.isArray(parsed) && parsed.length === 2) {
-          budgetRange = parsed;
-        }
-      }
-    } catch (e) {
-      console.warn("Could not parse budget range:", e);
-    }
-  }
-  
-  // Ensure date is properly formatted
-  let moveInDateString = new Date().toISOString().split('T')[0]; // Default to today
-  
-  if (formData.moveInDate) {
-    if (formData.moveInDate instanceof Date) {
-      moveInDateString = formData.moveInDate.toISOString().split('T')[0];
-    } else if (typeof formData.moveInDate === 'string') {
-      // Try to parse the string to make sure it's a valid date
-      try {
-        const dateObj = new Date(formData.moveInDate);
-        if (!isNaN(dateObj.getTime())) {
-          moveInDateString = dateObj.toISOString().split('T')[0];
-        }
-      } catch (e) {
-        console.error("Error parsing moveInDate in profileMapper:", e);
-      }
-    }
-  }
-  
-  // Ensure hobbies and traits are arrays
-  const hobbies = Array.isArray(formData.hobbies) ? formData.hobbies : [];
-  const traits = Array.isArray(formData.importantRoommateTraits) 
-    ? formData.importantRoommateTraits 
-    : [];
-  
-  // Map cleanliness enum to numerical value
-  let cleanlinessValue = 50; // default to middle value
-  if (formData.cleanliness === "veryTidy") {
-    cleanlinessValue = 90;
-  } else if (formData.cleanliness === "somewhatTidy") {
-    cleanlinessValue = 60;
-  } else if (formData.cleanliness === "doesntMindMess") {
-    cleanlinessValue = 30;
-  }
-  
-  // Map sleep schedule 
-  let sleepScheduleValue = "normal";
-  if (formData.dailyRoutine === "morning") {
-    sleepScheduleValue = "early";
-  } else if (formData.dailyRoutine === "night") {
-    sleepScheduleValue = "night";
-  } else {
-    sleepScheduleValue = "normal";
-  }
-  
-  // Map guests frequency
-  let guestsValue = "rarely";
-  if (formData.guestsOver === "yes") {
-    guestsValue = "often";
-  } else if (formData.guestsOver === "occasionally") {
-    guestsValue = "sometimes";
-  } else {
-    guestsValue = "rarely";
-  }
-  
-  const result: ProfileData = {
-    name: formData.fullName || "Not specified",
-    age: formData.age || "0",
+  return {
+    name: formData.fullName,
+    age: formData.age,
     gender: formData.gender || "prefer-not-to-say",
     occupation: "Not specified", // Default value
-    movingDate: moveInDateString,
-    budget: budgetRange,
-    location: formData.preferredLocation || "Not specified",
-    cleanliness: cleanlinessValue,
-    pets: formData.hasPets || false,
-    smoking: formData.smoking || false,
+    movingDate: formData.moveInDate.toISOString().split('T')[0],
+    budget: formData.budgetRange,
+    location: formData.preferredLocation,
+    cleanliness: formData.cleanliness === "veryTidy" ? 90 : 
+                formData.cleanliness === "somewhatTidy" ? 60 : 30,
+    pets: formData.hasPets,
+    smoking: formData.smoking,
     drinking: "sometimes", // Default value
-    guests: guestsValue,
-    sleepSchedule: sleepScheduleValue,
+    guests: formData.guestsOver === "yes" ? "often" : 
+           formData.guestsOver === "occasionally" ? "sometimes" : "rarely",
+    sleepSchedule: formData.dailyRoutine === "morning" ? "early" : 
+                  formData.dailyRoutine === "night" ? "night" : "normal",
     workSchedule: formData.workSchedule || "9AM-5PM",
-    interests: hobbies,
-    traits: traits,
+    interests: formData.hobbies || [],
+    traits: formData.importantRoommateTraits || [],
     preferredLiving: "findRoommate" // Default, would come from form in real implementation
   };
-  
-  console.log("Profile mapping result:", { 
-    name: result.name, 
-    age: result.age, 
-    budget: result.budget
-  });
-  
-  return result;
 };
 
-// Export using both names for backward compatibility
+// After defining the function, we can export it under a different name
 export const convertFormToProfileData = mapFormToProfileData;

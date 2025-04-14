@@ -15,7 +15,7 @@ interface IdealRoommateSectionProps {
   profileData: Partial<ProfileFormValues> | null;
   activeIdealRoommateTab: string;
   setActiveIdealRoommateTab: (value: string) => void;
-  handleSaveProfile: (formData: ProfileFormValues) => Promise<void>;
+  handleSaveProfile: (formData: ProfileFormValues) => void;
 }
 
 export function IdealRoommateSection({ 
@@ -79,7 +79,7 @@ export function IdealRoommateSection({
     }
   }, [profileData, form]);
 
-  const onSubmit = async (data: ProfileFormValues): Promise<void> => {
+  const onSubmit = async (data: ProfileFormValues) => {
     try {
       setIsSaving(true);
       console.log("Ideal Roommate form data to save:", data);

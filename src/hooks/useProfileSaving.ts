@@ -10,53 +10,37 @@ export function useProfileSaving() {
   const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
 
-  const handleSaveProfile = async (formData: ProfileFormValues): Promise<void> => {
-    if (!user) {
-      toast({
-        title: "Authentication required",
-        description: "Please sign in to save your profile",
-        variant: "destructive",
-      });
-      throw new Error("Authentication required");
-    }
-
+  const handleSaveProfile = async (formData: ProfileFormValues) => {
     try {
+      if (!user) {
+        console.error("No user found. Cannot save profile.");
+        toast({
+          title: "Authentication required",
+          description: "You need to be logged in to save your profile",
+          variant: "destructive",
+        });
+        return false;
+      }
+      
       setIsSaving(true);
       console.log("Saving profile data:", formData);
       
-      // Make sure the form data has the required fields
-      const validFormData: ProfileFormValues = {
-        ...formData,
-        // Ensure required fields are present
-        fullName: formData.fullName || "",
-        age: formData.age || "",
-        gender: formData.gender || "",
-        email: formData.email || user.email || "",
-        phoneNumber: formData.phoneNumber || "",
-        budgetRange: formData.budgetRange || [900, 1500],
-        preferredLocation: formData.preferredLocation || "",
-        moveInDate: formData.moveInDate || new Date(),
-        hobbies: formData.hobbies || [],
-        importantRoommateTraits: formData.importantRoommateTraits || []
-      };
+      await saveRoommateProfile(user.id, formData);
       
-      // Call the service function to save to the database
-      await saveRoommateProfile(user.id, validFormData);
-      
-      console.log("Profile saved successfully");
       toast({
-        title: "Profile saved",
-        description: "Your profile has been updated successfully",
+        title: "Profile updated",
+        description: "Your profile has been saved successfully",
       });
       
+      return true;
     } catch (error) {
       console.error("Error saving profile:", error);
       toast({
-        title: "Error saving profile",
-        description: "There was a problem saving your profile. Please try again.",
+        title: "Error",
+        description: "Failed to save profile data. Please try again.",
         variant: "destructive",
       });
-      throw error;
+      return false;
     } finally {
       setIsSaving(false);
     }
@@ -64,6 +48,6 @@ export function useProfileSaving() {
 
   return {
     isSaving,
-    handleSaveProfile,
+    handleSaveProfile
   };
 }

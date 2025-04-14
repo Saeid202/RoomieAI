@@ -1,19 +1,19 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { useToastNotifications } from "@/hooks/useToastNotifications";
+import { useToast } from "@/hooks/use-toast";
 import { ProfileFormValues } from "@/types/profile";
 import { fetchRoommateProfile } from "@/services/roommateService";
 
 export function useRoommateProfile() {
   const { user } = useAuth();
-  const { showError } = useToastNotifications();
+  const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [profileData, setProfileData] = useState<Partial<ProfileFormValues> | null>(null);
 
-  const loadProfileData = async (): Promise<void> => {
+  const loadProfileData = async () => {
     if (!user) {
-      console.log("No user found, skipping profile data load in useRoommateProfile");
+      console.log("No user found, skipping profile data load");
       setLoading(false);
       return;
     }
@@ -24,41 +24,41 @@ export function useRoommateProfile() {
       
       const { data, error } = await fetchRoommateProfile(user.id);
       
-      if (error) {
+      if (error && error.code !== 'PGRST116') {
         console.error("Error fetching roommate profile:", error);
-        showError(
-          "Error loading profile",
-          "Could not load your profile data. Please try again."
-        );
-        setLoading(false);
-        return;
+        throw error;
       }
       
-      if (data && data.profile_data) {
-        console.log("Fetched roommate profile successfully");
-        
-        // Convert moveInDate from string to Date if it exists
-        const parsedProfileData = {
-          ...data.profile_data,
-          moveInDate: data.profile_data.moveInDate 
-            ? new Date(data.profile_data.moveInDate) 
-            : new Date()
-        };
-        
-        setProfileData(parsedProfileData);
-        console.log("Profile data set successfully");
+      if (data) {
+        console.log("Fetched roommate profile:", data);
+        // If profile data exists in JSONB field, use it
+        if (data.profile_data) {
+          // Convert moveInDate from string to Date
+          const profileData = {
+            ...data.profile_data,
+            moveInDate: data.profile_data.moveInDate 
+              ? new Date(data.profile_data.moveInDate) 
+              : new Date()
+          };
+          
+          setProfileData(profileData);
+          console.log("Set profile data from database:", profileData);
+        } else {
+          // Otherwise use defaults
+          setProfileData(getDefaultProfileData());
+        }
       } else {
         // If no profile exists yet, use default values
         console.log("No existing profile found, using default values");
-        const defaultData = getDefaultProfileData();
-        setProfileData(defaultData);
+        setProfileData(getDefaultProfileData());
       }
     } catch (error) {
       console.error("Error loading profile data:", error);
-      showError(
-        "Error loading profile",
-        "Could not load your profile data. Please try again."
-      );
+      toast({
+        title: "Error loading profile",
+        description: "Could not load your profile data. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -66,7 +66,6 @@ export function useRoommateProfile() {
 
   // Load profile data on mount
   useEffect(() => {
-    console.log("useRoommateProfile useEffect triggered, user:", user?.id);
     if (user) {
       console.log("User detected, loading profile data");
       loadProfileData();

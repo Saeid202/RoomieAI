@@ -12,15 +12,12 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CalendarIcon } from "lucide-react";
-import { useState } from "react";
 
 interface HousingPreferencesSectionProps {
   form: UseFormReturn<ProfileFormValues>;
 }
 
 export function HousingPreferencesSection({ form }: HousingPreferencesSectionProps) {
-  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
-
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <FormField
@@ -46,7 +43,7 @@ export function HousingPreferencesSection({ form }: HousingPreferencesSectionPro
         render={({ field }) => (
           <FormItem className="flex flex-col">
             <FormLabel>Preferred Move-in Date</FormLabel>
-            <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+            <Popover>
               <PopoverTrigger asChild>
                 <FormControl>
                   <Button
@@ -69,13 +66,10 @@ export function HousingPreferencesSection({ form }: HousingPreferencesSectionPro
                 <Calendar
                   mode="single"
                   selected={field.value}
-                  onSelect={(date) => {
-                    field.onChange(date);
-                    // Close the calendar automatically after selection
-                    setIsCalendarOpen(false);
-                  }}
+                  onSelect={field.onChange}
                   disabled={(date) => date < new Date()}
                   initialFocus
+                  className={cn("p-3 pointer-events-auto")}
                 />
               </PopoverContent>
             </Popover>

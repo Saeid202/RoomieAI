@@ -1,11 +1,11 @@
 
 import { useState } from "react";
-import { useToastNotifications } from "@/hooks/useToastNotifications";
+import { useToast } from "@/hooks/use-toast";
 import { ProfileFormValues } from "@/types/profile";
 import { findMatches as findMatchesAlgorithm } from "@/utils/matchingAlgorithm";
 
 export function useMatching() {
-  const { showSuccess, showError } = useToastNotifications();
+  const { toast } = useToast();
   const [roommates, setRoommates] = useState([]);
   const [properties, setProperties] = useState([]);
   const [selectedMatch, setSelectedMatch] = useState(null);
@@ -22,73 +22,40 @@ export function useMatching() {
     setSelectedMatch(null);
   };
 
-  const findMatches = async (profileData: ProfileFormValues): Promise<void> => {
+  const findMatches = async (profileData: Partial<ProfileFormValues> | null) => {
     try {
-      console.log("findMatches called in useMatching with profileData:", 
-        profileData ? { 
-          fullName: profileData.fullName, 
-          age: profileData.age 
-        } : 'null profileData');
-      
       setIsFindingMatches(true);
+      console.log("Finding matches with profile data:", profileData);
       
       if (!profileData) {
-        console.error("Profile data is null, cannot find matches");
-        showError("Profile incomplete", "Please complete your profile before finding matches");
-        setIsFindingMatches(false);
-        return;
-      }
-      
-      // Validate essential fields
-      if (!profileData.fullName || !profileData.age) {
-        console.warn("Profile missing essential fields", { 
-          fullName: profileData.fullName, 
-          age: profileData.age 
+        toast({
+          title: "Profile incomplete",
+          description: "Please complete your profile before finding matches",
+          variant: "destructive",
         });
-        showError(
-          "Profile incomplete",
-          "Please fill in at least your name and age before finding matches"
-        );
-        setIsFindingMatches(false);
-        return;
+        return [];
       }
       
-      console.log("Calling findMatchesAlgorithm with valid profile data");
+      // First convert to ProfileFormValues to ensure the right types
+      const formValues = profileData as ProfileFormValues;
       
-      try {
-        // Use the algorithm directly with the validated profile data
-        const matchesFound = findMatchesAlgorithm(profileData);
-        
-        console.log("Matches found:", matchesFound?.length || 0);
-        
-        // Update state with found matches
-        setRoommates(matchesFound || []);
-        
-        // If no matches were found, inform the user
-        if (!matchesFound || matchesFound.length === 0) {
-          showSuccess(
-            "No matches found",
-            "Try adjusting your preferences to find more potential matches"
-          );
-        } else {
-          showSuccess(
-            "Matches found!",
-            `Found ${matchesFound.length} potential roommate matches`
-          );
-        }
-      } catch (matchError) {
-        console.error("Error in findMatchesAlgorithm:", matchError);
-        showError(
-          "Error finding matches",
-          "An error occurred while processing your profile. Please try again."
-        );
-      }
+      // Use the algorithm directly on the form values
+      // The algorithm will handle the conversion internally
+      const matchesFound = findMatchesAlgorithm(formValues);
+      console.log("Matches found:", matchesFound);
+      
+      // Update state with found matches
+      setRoommates(matchesFound);
+      
+      return matchesFound;
     } catch (error) {
-      console.error("Error finding matches in useMatching:", error);
-      showError(
-        "Error",
-        "Failed to find matches. Please try again."
-      );
+      console.error("Error finding matches:", error);
+      toast({
+        title: "Error",
+        description: "Failed to find matches. Please try again.",
+        variant: "destructive",
+      });
+      return [];
     } finally {
       setIsFindingMatches(false);
     }
