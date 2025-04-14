@@ -111,7 +111,8 @@ export default function RoommateRecommendationsPage() {
     <div className="container mx-auto py-6 fade-in" style={{ minHeight: '80vh' }}>
       <RoommateRecommendations key="recommendations-component" onError={setError} />
       
-      <style jsx>{`
+      <style>
+        {`
         .fade-in {
           animation: fadeIn 0.3s ease-in;
         }
@@ -120,7 +121,8 @@ export default function RoommateRecommendationsPage() {
           from { opacity: 0; }
           to { opacity: 1; }
         }
-      `}</style>
+        `}
+      </style>
     </div>
   );
 }

@@ -36,7 +36,8 @@ export function LoadingState() {
         </div>
       </div>
 
-      <style jsx>{`
+      <style>
+        {`
         .fade-in {
           animation: fadeIn 0.5s ease-in;
         }
@@ -45,7 +46,8 @@ export function LoadingState() {
           from { opacity: 0; }
           to { opacity: 1; }
         }
-      `}</style>
+        `}
+      </style>
     </div>
   );
 }
