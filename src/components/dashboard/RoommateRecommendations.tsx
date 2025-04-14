@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Accordion } from "@/components/ui/accordion";
 import { ProfileFormValues } from "@/types/profile";

@@ -1,228 +1,42 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { useToast } from "@/hooks/use-toast";
 import { ProfileFormValues } from "@/types/profile";
-import { findMatches as findMatchesAlgorithm } from "@/utils/matchingAlgorithm";
-import { supabase } from "@/integrations/supabase/client";
+import { useRoommateProfile } from "@/hooks/useRoommateProfile";
+import { useProfileSaving } from "@/hooks/useProfileSaving";
+import { useMatching } from "@/hooks/useMatching";
 
 export function useRoommateMatching() {
   const { user } = useAuth();
-  const { toast } = useToast();
-  const [loading, setLoading] = useState(true);
-  const [profileData, setProfileData] = useState<Partial<ProfileFormValues> | null>(null);
-  const [roommates, setRoommates] = useState([]);
-  const [properties, setProperties] = useState([]);
-  const [selectedMatch, setSelectedMatch] = useState(null);
   const [activeTab, setActiveTab] = useState("roommates");
+  
+  // Custom sub-hooks
+  const { 
+    loading, 
+    profileData, 
+    setProfileData, 
+    loadProfileData 
+  } = useRoommateProfile();
+  
+  const { isSaving, handleSaveProfile } = useProfileSaving();
+  
+  const { 
+    roommates, 
+    properties, 
+    selectedMatch, 
+    isFindingMatches,
+    handleViewDetails, 
+    handleCloseDetails, 
+    findMatches: findMatchesInternal 
+  } = useMatching();
 
-  const handleViewDetails = (match) => {
-    setSelectedMatch(match);
-  };
-
-  const handleCloseDetails = () => {
-    setSelectedMatch(null);
-  };
-
-  const loadProfileData = async () => {
-    if (!user) {
-      console.log("No user found, skipping profile data load");
-      setLoading(false);
-      return;
-    }
-    
-    try {
-      setLoading(true);
-      console.log("Loading profile data for user:", user.id);
-      
-      // Fetch user profile from the "Find My Ideal Roommate" table
-      const { data, error } = await supabase
-        .from('Find My Ideal Roommate')
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();
-      
-      if (error && error.code !== 'PGRST116') {
-        console.error("Error fetching roommate profile:", error);
-        throw error;
-      }
-      
-      if (data) {
-        console.log("Fetched roommate profile:", data);
-        // If profile data exists in JSONB field, use it
-        if (data.profile_data) {
-          setProfileData(data.profile_data);
-          console.log("Set profile data from database:", data.profile_data);
-        } else {
-          // Otherwise use defaults
-          setProfileData({
-            fullName: "",
-            age: "",
-            gender: "",
-            email: user.email || "",
-            phoneNumber: "",
-            budgetRange: [900, 1500],
-            preferredLocation: "",
-            moveInDate: new Date(),
-            dailyRoutine: "mixed",
-            cleanliness: "somewhatTidy",
-            hasPets: false,
-            smoking: false,
-            guestsOver: "occasionally",
-            hobbies: [],
-            importantRoommateTraits: []
-          });
-        }
-      } else {
-        // If no profile exists yet, use default values
-        console.log("No existing profile found, using default values");
-        setProfileData({
-          fullName: "",
-          age: "",
-          gender: "",
-          email: user.email || "",
-          phoneNumber: "",
-          budgetRange: [900, 1500],
-          preferredLocation: "",
-          moveInDate: new Date(),
-          dailyRoutine: "mixed",
-          cleanliness: "somewhatTidy",
-          hasPets: false,
-          smoking: false,
-          guestsOver: "occasionally",
-          hobbies: [],
-          importantRoommateTraits: []
-        });
-      }
-    } catch (error) {
-      console.error("Error loading profile data:", error);
-      toast({
-        title: "Error loading profile",
-        description: "Could not load your profile data. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSaveProfile = async (formData: ProfileFormValues) => {
-    try {
-      if (!user) {
-        console.error("No user found. Cannot save profile.");
-        toast({
-          title: "Authentication required",
-          description: "You need to be logged in to save your profile",
-          variant: "destructive",
-        });
-        return false;
-      }
-      
-      console.log("Saving profile data:", formData);
-      
-      // Ensure all dates are properly serialized for storage
-      const preparedFormData = {
-        ...formData,
-        moveInDate: formData.moveInDate instanceof Date ? formData.moveInDate.toISOString() : formData.moveInDate,
-      };
-      
-      // Prepare data for saving to the database
-      const dbData = {
-        user_id: user.id,
-        profile_data: preparedFormData,
-        updated_at: new Date().toISOString()
-      };
-      
-      console.log("Prepared database data:", dbData);
-      
-      // Check if user already has a profile
-      const { data: existingProfile, error: checkError } = await supabase
-        .from('Find My Ideal Roommate')
-        .select('id')
-        .eq('user_id', user.id)
-        .maybeSingle();
-      
-      if (checkError && checkError.code !== 'PGRST116') {
-        console.error("Error checking existing profile:", checkError);
-        throw checkError;
-      }
-      
-      let result;
-      if (existingProfile) {
-        // Update existing profile
-        console.log("Updating existing profile with ID:", existingProfile.id);
-        result = await supabase
-          .from('Find My Ideal Roommate')
-          .update(dbData)
-          .eq('user_id', user.id);
-      } else {
-        // Insert new profile
-        console.log("Creating new profile for user:", user.id);
-        result = await supabase
-          .from('Find My Ideal Roommate')
-          .insert(dbData);
-      }
-      
-      if (result.error) {
-        console.error("Error saving profile:", result.error);
-        throw result.error;
-      }
-      
-      console.log("Profile saved successfully:", result);
-      
-      // Update local state with the saved data
-      setProfileData(preparedFormData);
-      
-      return true;
-    } catch (error) {
-      console.error("Error saving profile:", error);
-      throw error;
-    }
-  };
-
+  // Wrapper for findMatches that uses the current profileData
   const findMatches = async () => {
-    try {
-      console.log("Finding matches with profile data:", profileData);
-      
-      if (!profileData) {
-        toast({
-          title: "Profile incomplete",
-          description: "Please complete your profile before finding matches",
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      // First convert to ProfileFormValues to ensure the right types
-      const formValues = profileData as ProfileFormValues;
-      
-      // Use the algorithm directly on the form values
-      // The algorithm will handle the conversion internally
-      const matchesFound = findMatchesAlgorithm(formValues);
-      console.log("Matches found:", matchesFound);
-      
-      // Update state with found matches
-      setRoommates(matchesFound);
-      
-      return matchesFound;
-    } catch (error) {
-      console.error("Error finding matches:", error);
-      throw error;
-    }
+    return findMatchesInternal(profileData);
   };
-
-  useEffect(() => {
-    if (user) {
-      console.log("User detected, loading profile data");
-      loadProfileData();
-    } else {
-      console.log("No user detected, skipping profile data load");
-      setLoading(false);
-    }
-  }, [user]);
 
   return {
-    loading,
+    loading: loading || isSaving || isFindingMatches,
     profileData,
     roommates,
     properties,
