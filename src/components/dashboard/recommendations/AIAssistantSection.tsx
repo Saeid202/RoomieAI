@@ -1,5 +1,5 @@
 
-import { MagicWandIcon } from "lucide-react";
+import { Wand } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
@@ -30,7 +30,7 @@ export function AIAssistantSection({ expandedSections, onFindMatch }: AIAssistan
     <AccordionItem value="ai-assistant" className="border rounded-lg">
       <AccordionTrigger className="px-4 py-2 hover:no-underline">
         <div className="flex items-center gap-2">
-          <MagicWandIcon className="h-5 w-5" />
+          <Wand className="h-5 w-5" />
           <span className="text-xl font-semibold">AI Matching Assistant</span>
         </div>
       </AccordionTrigger>
