@@ -2,17 +2,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { PropertyFormInputs } from "./PropertyFormInputs";
 import { PropertyFormActions } from "./PropertyFormActions";
 import { createProperty } from "@/services/propertyService";
 import { toast } from "@/components/ui/use-toast";
 import { PropertyFormPreview } from "./PropertyFormPreview";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { PropertyDetails } from "./PropertyDetails";
-import { PropertyAmenities } from "./PropertyAmenities";
-import { PropertyMedia } from "./PropertyMedia";
-import { PropertyAvailability } from "./PropertyAvailability";
-import { usePropertyForm, PropertyFormState } from "@/hooks/usePropertyForm";
+import { usePropertyForm } from "@/hooks/usePropertyForm";
+import { PropertyFormTabs } from "./PropertyFormTabs";
 
 export default function PropertyFormContainer() {
   const navigate = useNavigate();
@@ -109,74 +104,5 @@ export default function PropertyFormContainer() {
         </form>
       </CardContent>
     </Card>
-  );
-}
-
-interface PropertyFormTabsProps {
-  activeTab: string;
-  handleTabChange: (value: string) => void;
-  formData: PropertyFormState;
-  handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-  handleSelectChange: (name: string, value: string) => void;
-  handleCheckboxChange: (name: string, value: string, checked: boolean) => void;
-  fileInputRef: React.RefObject<HTMLInputElement>;
-  handleImageUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  removeImage: (index: number) => void;
-}
-
-function PropertyFormTabs({
-  activeTab,
-  handleTabChange,
-  formData,
-  handleChange,
-  handleSelectChange,
-  handleCheckboxChange,
-  fileInputRef,
-  handleImageUpload,
-  removeImage
-}: PropertyFormTabsProps) {
-  return (
-    <Tabs defaultValue="basic" value={activeTab} onValueChange={handleTabChange}>
-      <TabsList className="grid grid-cols-4 mb-6">
-        <TabsTrigger value="basic">Basic Info</TabsTrigger>
-        <TabsTrigger value="details">Property Details</TabsTrigger>
-        <TabsTrigger value="amenities">Amenities</TabsTrigger>
-        <TabsTrigger value="media">Photos & Media</TabsTrigger>
-      </TabsList>
-      
-      <TabsContent value="basic" className="space-y-6">
-        <PropertyFormInputs 
-          formData={formData} 
-          handleChange={handleChange} 
-          handleSelectChange={handleSelectChange} 
-        />
-      </TabsContent>
-      
-      <TabsContent value="details" className="space-y-6">
-        <PropertyDetails
-          formData={formData}
-          handleChange={handleChange}
-          handleSelectChange={handleSelectChange}
-        />
-      </TabsContent>
-      
-      <TabsContent value="amenities" className="space-y-6">
-        <PropertyAmenities
-          formData={formData}
-          handleCheckboxChange={handleCheckboxChange}
-          handleSelectChange={handleSelectChange}
-        />
-      </TabsContent>
-      
-      <TabsContent value="media" className="space-y-6">
-        <PropertyMedia
-          formData={formData}
-          handleChange={handleChange}
-          fileInputRef={fileInputRef}
-          handleImageUpload={handleImageUpload}
-          removeImage={removeImage}
-        />
-      </TabsContent>
-    </Tabs>
   );
 }
