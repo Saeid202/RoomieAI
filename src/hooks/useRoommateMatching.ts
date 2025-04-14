@@ -69,6 +69,8 @@ export function useRoommateMatching() {
       const profileForMatching = mapFormToProfileData(profileData as ProfileFormValues);
       
       // Find matches using the algorithm
+      // We need to manually convert the profileForMatching back to the expected type
+      // since the algorithm expects a different format for cleanliness
       const matchesFound = findMatchesAlgorithm(profileForMatching);
       console.log("Matches found:", matchesFound);
       

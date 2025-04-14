@@ -5,6 +5,22 @@ import { ProfileFormValues, ProfileData } from "./types";
 export const mapFormToProfileData = (formData: ProfileFormValues): ProfileData => {
   const workSchedule = formData.workSchedule || "9AM-5PM"; 
   
+  // Convert cleanliness from string enum to number for the algorithm
+  let cleanlinessValue: number;
+  switch (formData.cleanliness) {
+    case "veryTidy":
+      cleanlinessValue = 90;
+      break;
+    case "somewhatTidy":
+      cleanlinessValue = 60;
+      break;
+    case "doesntMindMess":
+      cleanlinessValue = 30;
+      break;
+    default:
+      cleanlinessValue = 60; // Default to somewhat tidy
+  }
+  
   return {
     name: formData.fullName,
     age: formData.age,
@@ -13,8 +29,7 @@ export const mapFormToProfileData = (formData: ProfileFormValues): ProfileData =
     movingDate: formData.moveInDate.toISOString().split('T')[0],
     budget: formData.budgetRange,
     location: formData.preferredLocation,
-    cleanliness: formData.cleanliness === "veryTidy" ? 90 : 
-                formData.cleanliness === "somewhatTidy" ? 60 : 30,
+    cleanliness: cleanlinessValue,
     pets: formData.hasPets,
     smoking: formData.smoking,
     drinking: "sometimes", // Default value
