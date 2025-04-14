@@ -4,7 +4,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export function LoadingState() {
   return (
-    <div className="container mx-auto py-6" data-testid="loading-state">
+    <div className="container mx-auto py-6 fade-in" data-testid="loading-state">
       <div className="space-y-6">
         <div className="flex items-center gap-2">
           <Skeleton className="h-10 w-64" />
@@ -35,6 +35,17 @@ export function LoadingState() {
           ))}
         </div>
       </div>
+
+      <style jsx>{`
+        .fade-in {
+          animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+      `}</style>
     </div>
   );
 }

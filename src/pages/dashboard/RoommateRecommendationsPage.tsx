@@ -12,8 +12,20 @@ export default function RoommateRecommendationsPage() {
   const [error, setError] = useState<Error | null>(null);
   const [isRetrying, setIsRetrying] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const mountedRef = useRef(false);
+  const [isInitialRender, setIsInitialRender] = useState(true);
+  const mountedRef = useRef(true);
   const timerRef = useRef<number | null>(null);
+  
+  // Reset isInitialRender after a component mount
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (mountedRef.current) {
+        setIsInitialRender(false);
+      }
+    }, 50);
+    
+    return () => clearTimeout(timer);
+  }, []);
   
   // Improved loading mechanism that coordinates with auth state
   useEffect(() => {
@@ -25,17 +37,26 @@ export default function RoommateRecommendationsPage() {
     
     console.log("Starting loading sequence, auth status:", user ? "authenticated" : "not authenticated");
     
-    // Ensure minimum loading time of 1500ms for consistent experience
+    // Clear any existing timers first
+    if (timerRef.current !== null) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+    
+    // Ensure minimum loading time of 2000ms for consistent experience
     timerRef.current = window.setTimeout(() => {
       if (mountedRef.current) {
         console.log("Minimum loading time elapsed, finishing loading sequence");
-        setIsLoading(false);
+        // Use requestAnimationFrame to sync with browser paint cycle
+        requestAnimationFrame(() => {
+          setIsLoading(false);
+        });
       }
-    }, 1500);
+    }, 2000);
     
     return () => {
       mountedRef.current = false;
-      if (timerRef.current) {
+      if (timerRef.current !== null) {
         clearTimeout(timerRef.current);
         timerRef.current = null;
       }
@@ -53,11 +74,11 @@ export default function RoommateRecommendationsPage() {
         setIsRetrying(false);
         setIsLoading(false);
       }
-    }, 1200);
+    }, 1500);
   };
 
-  // Show loading state if either auth is loading or our content is loading
-  if (authLoading || isLoading) {
+  // Show loading state if either auth is loading, our content is loading, or it's the initial render
+  if (authLoading || isLoading || isInitialRender) {
     return <LoadingState />;
   }
 
@@ -87,8 +108,19 @@ export default function RoommateRecommendationsPage() {
 
   // Render the main component only when we're sure all loading is finished
   return (
-    <div className="container mx-auto py-6" style={{ minHeight: '80vh' }}>
+    <div className="container mx-auto py-6 fade-in" style={{ minHeight: '80vh' }}>
       <RoommateRecommendations key="recommendations-component" onError={setError} />
+      
+      <style jsx>{`
+        .fade-in {
+          animation: fadeIn 0.3s ease-in;
+        }
+        
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+      `}</style>
     </div>
   );
 }

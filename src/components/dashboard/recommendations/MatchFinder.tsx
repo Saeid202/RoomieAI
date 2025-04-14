@@ -1,5 +1,5 @@
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { LoadingButton } from "./chat/LoadingButton";
 import { ProfileFormValues } from "@/types/profile";
@@ -25,21 +25,23 @@ export function MatchFinder({
   const timeoutRef = useRef<number | null>(null);
   const isMountedRef = useRef(true);
 
-  // Cleanup function for component unmount
-  const clearTimeouts = () => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
-  };
-
-  // Cleanup on unmount
-  useState(() => {
+  // Setup the mounted ref when component mounts
+  useEffect(() => {
+    isMountedRef.current = true;
+    
     return () => {
       isMountedRef.current = false;
       clearTimeouts();
     };
-  });
+  }, []);
+
+  // Cleanup function for component unmount
+  const clearTimeouts = () => {
+    if (timeoutRef.current !== null) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+  };
 
   const handleFindMatch = async () => {
     // Guard against multiple simultaneous calls
@@ -51,61 +53,75 @@ export function MatchFinder({
       
       // Set local loading state immediately
       setIsLoading(true);
-      onStartLoading();
+      
+      // Use requestAnimationFrame to sync state updates with browser paint cycle
+      requestAnimationFrame(() => {
+        onStartLoading();
+      });
       
       // Create a deliberate delay for user experience
-      await new Promise(resolve => setTimeout(resolve, 1200));
+      await new Promise(resolve => setTimeout(resolve, 1500));
       
       const matches = await findMatches();
       
-      // Success notification
-      toast({
-        title: "Matches found!",
-        description: `Found ${matches.length} potential roommates for you.`,
-      });
-      
-      // Add delay before finishing to ensure smooth transitions
-      timeoutRef.current = window.setTimeout(() => {
-        if (!isMountedRef.current) return;
+      // Success notification only if component is still mounted
+      if (isMountedRef.current) {
+        toast({
+          title: "Matches found!",
+          description: `Found ${matches.length} potential roommates for you.`,
+        });
         
-        // Reset local loading state
-        setIsLoading(false);
-        
-        // Delay scrolling and final update
+        // Add delay before finishing to ensure smooth transitions
         timeoutRef.current = window.setTimeout(() => {
           if (!isMountedRef.current) return;
           
-          const resultsElement = document.querySelector('[data-results-section]');
-          if (resultsElement) {
-            resultsElement.scrollIntoView({ behavior: 'smooth' });
-          }
+          // Reset local loading state
+          setIsLoading(false);
           
-          // Final loading state cleared
-          onFinishLoading();
-        }, 400);
-      }, 800);
+          // Delay scrolling and final update
+          timeoutRef.current = window.setTimeout(() => {
+            if (!isMountedRef.current) return;
+            
+            const resultsElement = document.querySelector('[data-results-section]');
+            if (resultsElement) {
+              resultsElement.scrollIntoView({ behavior: 'smooth' });
+            }
+            
+            // Final loading state cleared
+            requestAnimationFrame(() => {
+              onFinishLoading();
+            });
+          }, 500);
+        }, 800);
+      }
       
     } catch (error) {
       console.error("Error finding matches:", error);
       
-      // Add delay before resetting loading states
-      timeoutRef.current = window.setTimeout(() => {
-        if (!isMountedRef.current) return;
-        
-        // Reset loading states
-        setIsLoading(false);
-        onFinishLoading();
-        
-        if (onError) {
-          onError(error instanceof Error ? error : new Error("Failed to find matches"));
-        }
-        
-        toast({
-          title: "Error",
-          description: "Failed to find matches. Please try again.",
-          variant: "destructive",
-        });
-      }, 800);
+      // Only process error if component is still mounted
+      if (isMountedRef.current) {
+        // Add delay before resetting loading states
+        timeoutRef.current = window.setTimeout(() => {
+          if (!isMountedRef.current) return;
+          
+          // Reset loading states
+          setIsLoading(false);
+          
+          requestAnimationFrame(() => {
+            onFinishLoading();
+          });
+          
+          if (onError) {
+            onError(error instanceof Error ? error : new Error("Failed to find matches"));
+          }
+          
+          toast({
+            title: "Error",
+            description: "Failed to find matches. Please try again.",
+            variant: "destructive",
+          });
+        }, 800);
+      }
     }
   };
 

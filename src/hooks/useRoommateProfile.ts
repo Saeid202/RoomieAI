@@ -14,12 +14,17 @@ export function useRoommateProfile() {
   const [hasAttemptedLoad, setHasAttemptedLoad] = useState(false);
   const loadingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const initialLoadDoneRef = useRef(false);
+  const isMountedRef = useRef(true);
 
-  // Clear any pending timers on unmount
+  // Set up mounted ref on component mount
   useEffect(() => {
+    isMountedRef.current = true;
+    
     return () => {
+      isMountedRef.current = false;
       if (loadingTimerRef.current !== null) {
         clearTimeout(loadingTimerRef.current);
+        loadingTimerRef.current = null;
       }
     };
   }, []);
@@ -36,14 +41,14 @@ export function useRoommateProfile() {
     setError(null);
     
     // Clear any existing timers
-    if (loadingTimerRef.current) {
+    if (loadingTimerRef.current !== null) {
       clearTimeout(loadingTimerRef.current);
       loadingTimerRef.current = null;
     }
     
     // Add a minimum loading time for consistent UX
     const startTime = Date.now();
-    const minLoadTime = 1200; // 1.2 seconds minimum loading time
+    const minLoadTime = 1800; // 1.8 seconds minimum loading time
     
     try {
       if (!user) {
@@ -55,10 +60,15 @@ export function useRoommateProfile() {
         const remainingTime = Math.max(0, minLoadTime - elapsedTime);
         
         loadingTimerRef.current = setTimeout(() => {
-          setLoading(false);
-          setHasAttemptedLoad(true);
+          if (!isMountedRef.current) return;
+          
+          requestAnimationFrame(() => {
+            setLoading(false);
+            setHasAttemptedLoad(true);
+            initialLoadDoneRef.current = true;
+          });
+          
           loadingTimerRef.current = null;
-          initialLoadDoneRef.current = true;
         }, remainingTime);
         
         return;
@@ -96,20 +106,27 @@ export function useRoommateProfile() {
       const remainingTime = Math.max(0, minLoadTime - elapsedTime);
       
       loadingTimerRef.current = setTimeout(() => {
-        setLoading(false);
-        setHasAttemptedLoad(true);
+        if (!isMountedRef.current) return;
+        
+        requestAnimationFrame(() => {
+          setLoading(false);
+          setHasAttemptedLoad(true);
+          initialLoadDoneRef.current = true;
+        });
+        
         loadingTimerRef.current = null;
-        initialLoadDoneRef.current = true;
       }, remainingTime);
       
     } catch (error) {
+      console.error("Error loading profile:", error);
+      
       setError(error instanceof Error ? error : new Error("Unknown error loading profile"));
       
       // Set default data even on error to prevent UI from breaking
       setProfileData(getDefaultProfileData());
       
       // Only show toast for errors other than "not found"
-      if (error instanceof Error && !error.message.includes("not found")) {
+      if (isMountedRef.current && error instanceof Error && !error.message.includes("not found")) {
         toast({
           title: "Error loading profile",
           description: "Could not load your profile data. Default values will be used.",
@@ -122,10 +139,15 @@ export function useRoommateProfile() {
       const remainingTime = Math.max(0, minLoadTime - elapsedTime);
       
       loadingTimerRef.current = setTimeout(() => {
-        setLoading(false);
-        setHasAttemptedLoad(true);
+        if (!isMountedRef.current) return;
+        
+        requestAnimationFrame(() => {
+          setLoading(false);
+          setHasAttemptedLoad(true);
+          initialLoadDoneRef.current = true;
+        });
+        
         loadingTimerRef.current = null;
-        initialLoadDoneRef.current = true;
       }, remainingTime);
     }
   }, [user, toast, loading, hasAttemptedLoad, authLoading]);
@@ -139,8 +161,10 @@ export function useRoommateProfile() {
     
     // Add a consistent initial delay to prevent immediate state changes
     const loadTimer = setTimeout(() => {
-      loadProfileData();
-    }, 500);
+      if (isMountedRef.current) {
+        loadProfileData();
+      }
+    }, 800); // Increased delay for smoother loading
     
     return () => clearTimeout(loadTimer);
   }, [authLoading, loadProfileData]);
