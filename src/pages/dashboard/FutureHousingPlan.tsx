@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { PlusCircle, Pencil } from "lucide-react";
+import { PlusCircle } from "lucide-react";
 import { findMatches } from "@/utils/matchingAlgorithm";
 import { ProfileFormValues } from "@/types/profile";
 import { useToast } from "@/hooks/use-toast";
@@ -14,12 +14,13 @@ import { useHousingPlans } from "@/hooks/useHousingPlans";
 
 export default function FutureHousingPlan() {
   const [showRoommates, setShowRoommates] = React.useState(false);
-  const [roommateMatches, setRoommateMatches] = React.useState([]);
-  const [selectedPlan, setSelectedPlan] = React.useState(null);
+  const [roommateMatches, setRoommateMatches] = React.useState<any[]>([]);
+  const [selectedPlan, setSelectedPlan] = React.useState<any>(null);
+  const [isFormOpen, setIsFormOpen] = React.useState(false);
   const { toast } = useToast();
   const { plans, isLoading, createPlan, updatePlan } = useHousingPlans();
 
-  const onSubmit = async (data) => {
+  const onSubmit = async (data: any) => {
     try {
       if (selectedPlan) {
         await updatePlan.mutateAsync({
@@ -39,6 +40,8 @@ export default function FutureHousingPlan() {
           additional_requirements: data.additionalRequirements
         });
       }
+
+      setIsFormOpen(false);
 
       const profileData: ProfileFormValues = {
         moveInDate: new Date(data.movingDate),
@@ -78,12 +81,17 @@ export default function FutureHousingPlan() {
     }
   };
 
-  const handleEdit = (plan) => {
+  const handleEdit = (plan: any) => {
     setSelectedPlan(plan);
+    setIsFormOpen(true);
   };
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="w-8 h-8 border-4 border-t-transparent border-roomie-purple rounded-full animate-spin"></div>
+      </div>
+    );
   }
 
   return (
@@ -95,7 +103,7 @@ export default function FutureHousingPlan() {
           <CardHeader className="pb-4">
             <CardTitle className="flex justify-between items-center">
               Housing Plan Details
-              <Dialog>
+              <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
                 <DialogTrigger asChild>
                   <Button className="bg-roomie-purple hover:bg-roomie-purple/90">
                     <PlusCircle className="mr-2 h-4 w-4" />
@@ -119,7 +127,7 @@ export default function FutureHousingPlan() {
                 <p className="text-muted-foreground mb-4">
                   You haven't created any housing plans yet. Use this section to plan and track your future housing needs and preferences.
                 </p>
-                <Dialog>
+                <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
                   <DialogTrigger asChild>
                     <Button className="bg-roomie-purple hover:bg-roomie-purple/90">
                       <PlusCircle className="mr-2 h-4 w-4" />

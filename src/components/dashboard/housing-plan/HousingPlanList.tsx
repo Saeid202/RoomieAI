@@ -3,8 +3,6 @@ import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar, DollarSign, Home, Pencil } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { HousingPlanForm } from "./HousingPlanForm";
 
 type HousingPlan = {
   id: string;
@@ -33,18 +31,14 @@ export function HousingPlanList({ plans, onEdit }: HousingPlanListProps) {
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex justify-between items-center">
               {plan.desired_location}
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    className="h-8 w-8 p-0"
-                    onClick={() => onEdit(plan)}
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                </DialogTrigger>
-              </Dialog>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                className="h-8 w-8 p-0"
+                onClick={() => onEdit(plan)}
+              >
+                <Pencil className="h-4 w-4" />
+              </Button>
             </CardTitle>
           </CardHeader>
           <CardContent>

@@ -27,6 +27,7 @@ export function useHousingPlans() {
         .order('created_at', { ascending: false });
 
       if (error) {
+        console.error('Error fetching housing plans:', error);
         toast({
           title: 'Error',
           description: 'Failed to fetch housing plans',
@@ -53,7 +54,8 @@ export function useHousingPlans() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['housing-plans'] });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Error creating housing plan:', error);
       toast({
         title: 'Error',
         description: 'Failed to create housing plan',
@@ -77,7 +79,8 @@ export function useHousingPlans() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['housing-plans'] });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Error updating housing plan:', error);
       toast({
         title: 'Error',
         description: 'Failed to update housing plan',
