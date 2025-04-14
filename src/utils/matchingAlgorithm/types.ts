@@ -47,4 +47,3 @@ export type CompatibilityResult = {
 };
 
 export type { ProfileFormValues } from "@/types/profile";
-
