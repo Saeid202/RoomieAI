@@ -20,7 +20,7 @@ export function ProfileSaveHandler({
   const handleSaveProfile = async (formData: ProfileFormValues): Promise<void> => {
     if (isSaving || isSubmitting) {
       console.log("Already saving profile, skipping duplicate request");
-      return;
+      return Promise.resolve();
     }
     
     try {
@@ -32,6 +32,8 @@ export function ProfileSaveHandler({
         title: "Profile saved",
         description: "Your profile has been saved successfully",
       });
+      
+      return Promise.resolve();
     } catch (error) {
       console.error("Error in ProfileSaveHandler:", error);
       toast({
@@ -39,7 +41,7 @@ export function ProfileSaveHandler({
         description: "There was a problem saving your profile. Please try again.",
         variant: "destructive",
       });
-      throw error;
+      return Promise.reject(error);
     } finally {
       setIsSaving(false);
     }

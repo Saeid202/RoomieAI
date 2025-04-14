@@ -24,18 +24,18 @@ export function useMatching() {
   };
 
   const findMatches = async (profileData: Partial<ProfileFormValues> | null): Promise<MatchResult[]> => {
+    if (!profileData) {
+      toast({
+        title: "Profile incomplete",
+        description: "Please complete your profile before finding matches",
+        variant: "destructive",
+      });
+      return Promise.reject(new Error("Profile data is required"));
+    }
+    
     try {
       setIsFindingMatches(true);
       console.log("Finding matches with profile data:", profileData);
-      
-      if (!profileData) {
-        toast({
-          title: "Profile incomplete",
-          description: "Please complete your profile before finding matches",
-          variant: "destructive",
-        });
-        return [];
-      }
       
       // First convert to ProfileFormValues to ensure the right types
       const formValues = profileData as ProfileFormValues;
@@ -48,7 +48,7 @@ export function useMatching() {
       // Update state with found matches
       setRoommates(matchesFound);
       
-      return matchesFound;
+      return Promise.resolve(matchesFound);
     } catch (error) {
       console.error("Error finding matches:", error);
       toast({
@@ -56,7 +56,7 @@ export function useMatching() {
         description: "Failed to find matches. Please try again.",
         variant: "destructive",
       });
-      return [];
+      return Promise.reject(error);
     } finally {
       setIsFindingMatches(false);
     }

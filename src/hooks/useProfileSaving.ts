@@ -11,17 +11,17 @@ export function useProfileSaving() {
   const [isSaving, setIsSaving] = useState(false);
 
   const handleSaveProfile = async (formData: ProfileFormValues): Promise<void> => {
+    if (!user) {
+      console.error("No user found. Cannot save profile.");
+      toast({
+        title: "Authentication required",
+        description: "You need to be logged in to save your profile",
+        variant: "destructive",
+      });
+      return Promise.reject(new Error("Authentication required"));
+    }
+    
     try {
-      if (!user) {
-        console.error("No user found. Cannot save profile.");
-        toast({
-          title: "Authentication required",
-          description: "You need to be logged in to save your profile",
-          variant: "destructive",
-        });
-        return;
-      }
-      
       setIsSaving(true);
       console.log("useProfileSaving - Saving profile data:", formData);
       
@@ -32,6 +32,8 @@ export function useProfileSaving() {
         title: "Profile updated",
         description: "Your profile has been saved successfully",
       });
+      
+      return Promise.resolve();
     } catch (error) {
       console.error("Error saving profile:", error);
       toast({
@@ -39,7 +41,7 @@ export function useProfileSaving() {
         description: "Failed to save profile data. Please try again.",
         variant: "destructive",
       });
-      throw error;
+      return Promise.reject(error);
     } finally {
       setIsSaving(false);
     }
