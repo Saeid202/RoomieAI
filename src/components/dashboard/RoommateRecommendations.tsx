@@ -2,20 +2,14 @@
 import { useState, useCallback, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Accordion } from "@/components/ui/accordion"; // Import the Accordion component
-import { AboutMeSection } from "./recommendations/AboutMeSection";
-import { IdealRoommateSection } from "./recommendations/IdealRoommateSection";
-import { ResultsSection } from "./recommendations/ResultsSection";
 import { ProfileLoadingHandler } from "./recommendations/ProfileLoadingHandler";
-import { AIAssistantSection } from "./recommendations/AIAssistantSection";
 import { MatchFinder } from "./recommendations/MatchFinder";
 import { EmptyState } from "./recommendations/EmptyState";
-import { ChatInterface } from "./recommendations/chat/ChatInterface";
+import { ResultsSection } from "./recommendations/ResultsSection";
 import { useRoommateMatching } from "@/hooks/useRoommateMatching";
+import { LoadingAndErrorStates } from "./recommendations/components/LoadingAndErrorStates";
+import { TabsSection } from "./recommendations/components/TabsSection";
 import { ProfileFormValues } from "@/types/profile";
-import { Button } from "@/components/ui/button";
-import { RefreshCw } from "lucide-react";
 
 interface RoommateRecommendationsProps {
   onError?: (error: Error) => void;
@@ -46,33 +40,28 @@ export function RoommateRecommendations({ onError }: RoommateRecommendationsProp
     loadProfileData,
     initialized
   } = useRoommateMatching();
-  
-  // Mark component as mounted after initial render
+
   useEffect(() => {
     console.log("RoommateRecommendations component mounted");
     setComponentMounted(true);
-    
     return () => {
       console.log("RoommateRecommendations component unmounted");
     };
   }, []);
-  
+
   const handleStartLoading = useCallback(() => {
-    console.log("RoommateRecommendations - Start loading");
     setIsLoading(true);
   }, []);
-  
+
   const handleFinishLoading = useCallback(() => {
-    console.log("RoommateRecommendations - Finish loading");
     setIsLoading(false);
     setHasSearched(true);
   }, []);
-  
+
   const handleTabChange = useCallback((value: string) => {
-    console.log(`RoommateRecommendations - Tab changed to ${value}`);
     setActiveTab(value);
   }, []);
-  
+
   const handleError = useCallback((error: Error) => {
     console.error("Error in RoommateRecommendations:", error);
     setInternalError(error);
@@ -92,7 +81,6 @@ export function RoommateRecommendations({ onError }: RoommateRecommendationsProp
     setIsRetrying(true);
     setInternalError(null);
     
-    // Force a reload of profile data
     loadProfileData()
       .then(() => {
         setIsRetrying(false);
@@ -103,10 +91,8 @@ export function RoommateRecommendations({ onError }: RoommateRecommendationsProp
       });
   }, [loadProfileData, handleError]);
 
-  // Wrapper function that properly converts the return type
   const onSaveProfile = async (formData: ProfileFormValues): Promise<void> => {
     try {
-      console.log("RoommateRecommendations - Saving profile data");
       await handleSaveProfile(formData);
       return Promise.resolve();
     } catch (error) {
@@ -116,38 +102,6 @@ export function RoommateRecommendations({ onError }: RoommateRecommendationsProp
       return Promise.reject(errorObj);
     }
   };
-
-  if (!componentMounted || !initialized) {
-    console.log("RoommateRecommendations - Not fully initialized yet, showing loading");
-    return <div className="w-full py-12 flex justify-center items-center min-h-[400px]">
-      <div className="flex flex-col items-center">
-        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p className="text-lg font-medium text-gray-700">Loading recommendations...</p>
-      </div>
-    </div>;
-  }
-
-  // Render error state if there's an error
-  if (internalError) {
-    return (
-      <Card className="w-full my-6">
-        <CardContent className="py-6">
-          <div className="text-center py-8">
-            <h2 className="text-xl font-semibold text-destructive mb-2">Error Loading Content</h2>
-            <p className="mb-6">{internalError.message || "An unexpected error occurred"}</p>
-            <Button 
-              onClick={handleRetry} 
-              disabled={isRetrying}
-              className="mx-auto flex items-center gap-2"
-            >
-              <RefreshCw className={`h-4 w-4 ${isRetrying ? 'animate-spin' : ''}`} />
-              {isRetrying ? 'Retrying...' : 'Retry'}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
 
   return (
     <ProfileLoadingHandler loadProfileData={loadProfileData} onError={handleError}>
@@ -161,42 +115,31 @@ export function RoommateRecommendations({ onError }: RoommateRecommendationsProp
           </div>
         </div>
         
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle>Your Profile</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Tabs value={activeTab} onValueChange={handleTabChange}>
-              <TabsList className="mb-4">
-                <TabsTrigger value="about-me">About Me</TabsTrigger>
-                <TabsTrigger value="ideal-roommate">Ideal Roommate</TabsTrigger>
-                <TabsTrigger value="ai-assistant">AI Assistant</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="about-me">
-                <Accordion type="multiple" value={expandedSections} onValueChange={setExpandedSections}>
-                  <AboutMeSection
-                    profileData={profileData}
-                    onSaveProfile={onSaveProfile}
-                  />
-                </Accordion>
-              </TabsContent>
-              
-              <TabsContent value="ideal-roommate">
-                <Accordion type="multiple" value={expandedSections} onValueChange={setExpandedSections}>
-                  <IdealRoommateSection
-                    profileData={profileData}
-                    onSaveProfile={onSaveProfile}
-                  />
-                </Accordion>
-              </TabsContent>
-              
-              <TabsContent value="ai-assistant">
-                <ChatInterface matchingProfileData={profileData} />
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
+        <LoadingAndErrorStates
+          componentMounted={componentMounted}
+          initialized={initialized}
+          internalError={internalError}
+          isRetrying={isRetrying}
+          handleRetry={handleRetry}
+        />
+        
+        {!internalError && (
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle>Your Profile</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <TabsSection
+                activeTab={activeTab}
+                expandedSections={expandedSections}
+                setExpandedSections={setExpandedSections}
+                handleTabChange={handleTabChange}
+                profileData={profileData}
+                onSaveProfile={onSaveProfile}
+              />
+            </CardContent>
+          </Card>
+        )}
         
         <MatchFinder
           profileData={profileData}
@@ -206,7 +149,7 @@ export function RoommateRecommendations({ onError }: RoommateRecommendationsProp
           onError={handleError}
         />
         
-        {hasSearched ? (
+        {hasSearched && (
           <div data-results-section>
             {roommates.length > 0 || properties.length > 0 ? (
               <ResultsSection
@@ -222,7 +165,7 @@ export function RoommateRecommendations({ onError }: RoommateRecommendationsProp
               <EmptyState />
             )}
           </div>
-        ) : null}
+        )}
       </div>
     </ProfileLoadingHandler>
   );
