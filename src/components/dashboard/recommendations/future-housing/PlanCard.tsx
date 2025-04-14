@@ -4,12 +4,15 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { FutureHousingPlan } from "./types";
+import { useToastNotifications } from "@/hooks/useToastNotifications";
 
 interface PlanCardProps {
   plan: FutureHousingPlan;
 }
 
 export function PlanCard({ plan }: PlanCardProps) {
+  const { showSuccess } = useToastNotifications();
+  
   // Helper for date display
   const formatDate = (date: Date) => {
     return date.toLocaleDateString('en-US', { 
@@ -17,6 +20,26 @@ export function PlanCard({ plan }: PlanCardProps) {
       month: 'long', 
       day: 'numeric' 
     });
+  };
+
+  // Handle edit button click
+  const handleEdit = () => {
+    showSuccess(
+      "Edit mode activated",
+      "You can now edit your housing plan"
+    );
+    // In a real app, this would navigate to edit form or open a modal
+    console.log("Editing plan:", plan.id);
+  };
+
+  // Handle view matches button click
+  const handleViewMatches = () => {
+    showSuccess(
+      "Viewing matches",
+      "Loading matches for your housing plan"
+    );
+    // In a real app, this would navigate to matches view
+    console.log("Viewing matches for plan:", plan.id);
   };
 
   return (
@@ -72,8 +95,8 @@ export function PlanCard({ plan }: PlanCardProps) {
           )}
         </div>
         <div className="flex justify-end space-x-2 mt-4">
-          <Button variant="outline" size="sm">Edit</Button>
-          <Button variant="default" size="sm">View Matches</Button>
+          <Button variant="outline" size="sm" onClick={handleEdit}>Edit</Button>
+          <Button variant="default" size="sm" onClick={handleViewMatches}>View Matches</Button>
         </div>
       </CardContent>
     </Card>

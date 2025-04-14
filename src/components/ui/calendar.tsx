@@ -1,12 +1,119 @@
 
 import * as React from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { DayPicker } from "react-day-picker";
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
+import { DayPicker, useNavigation } from "react-day-picker";
 
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>;
+
+// Custom navigation component for month/year selection
+function CalendarNavigation({
+  displayMonth,
+  onMonthChange,
+  goToMonth,
+  nextMonth,
+  previousMonth,
+}: ReturnType<typeof useNavigation>) {
+  // Get current year and month
+  const currentYear = displayMonth.getFullYear();
+  const currentMonth = displayMonth.getMonth();
+  
+  // Generate years (5 years back, 10 years forward)
+  const years = Array.from({ length: 16 }, (_, i) => currentYear - 5 + i);
+  
+  // Month names
+  const months = [
+    "January", "February", "March", "April", "May", "June", 
+    "July", "August", "September", "October", "November", "December"
+  ];
+
+  // Handle year change
+  const handleYearChange = (year: string) => {
+    const newDate = new Date(displayMonth);
+    newDate.setFullYear(parseInt(year));
+    goToMonth(newDate);
+  };
+
+  // Handle month change
+  const handleMonthChange = (month: string) => {
+    const newDate = new Date(displayMonth);
+    newDate.setMonth(months.indexOf(month));
+    goToMonth(newDate);
+  };
+
+  return (
+    <div className="flex items-center justify-between px-1">
+      <div className="flex items-center">
+        <button
+          onClick={() => previousMonth && goToMonth(previousMonth)}
+          disabled={!previousMonth}
+          className={cn(
+            buttonVariants({ variant: "outline", size: "icon" }),
+            "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 disabled:opacity-20"
+          )}
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </button>
+      </div>
+
+      <div className="flex items-center gap-1">
+        <Select
+          value={months[currentMonth]}
+          onValueChange={handleMonthChange}
+        >
+          <SelectTrigger className="h-7 w-[110px] text-xs font-medium">
+            <SelectValue placeholder={months[currentMonth]} />
+          </SelectTrigger>
+          <SelectContent>
+            {months.map((month) => (
+              <SelectItem key={month} value={month} className="text-xs">
+                {month}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Select
+          value={currentYear.toString()}
+          onValueChange={handleYearChange}
+        >
+          <SelectTrigger className="h-7 w-[80px] text-xs font-medium">
+            <SelectValue placeholder={currentYear.toString()} />
+          </SelectTrigger>
+          <SelectContent>
+            {years.map((year) => (
+              <SelectItem key={year} value={year.toString()} className="text-xs">
+                {year}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="flex items-center">
+        <button
+          onClick={() => nextMonth && goToMonth(nextMonth)}
+          disabled={!nextMonth}
+          className={cn(
+            buttonVariants({ variant: "outline", size: "icon" }),
+            "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 disabled:opacity-20"
+          )}
+        >
+          <ChevronRight className="h-4 w-4" />
+        </button>
+      </div>
+    </div>
+  );
+}
 
 function Calendar({
   className,
@@ -22,7 +129,7 @@ function Calendar({
         months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
         month: "space-y-4",
         caption: "flex justify-center pt-1 relative items-center",
-        caption_label: "text-sm font-medium",
+        caption_label: "text-sm font-medium hidden", // Hide default caption
         nav: "space-x-1 flex items-center",
         nav_button: cn(
           buttonVariants({ variant: "outline" }),
@@ -55,6 +162,15 @@ function Calendar({
       components={{
         IconLeft: ({ ..._props }) => <ChevronLeft className="h-4 w-4" />,
         IconRight: ({ ..._props }) => <ChevronRight className="h-4 w-4" />,
+        Caption: ({displayMonth, onMonthChange, goToMonth, nextMonth, previousMonth}) => (
+          <CalendarNavigation 
+            displayMonth={displayMonth} 
+            onMonthChange={onMonthChange} 
+            goToMonth={goToMonth} 
+            nextMonth={nextMonth} 
+            previousMonth={previousMonth} 
+          />
+        )
       }}
       {...props}
     />

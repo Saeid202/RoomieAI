@@ -1,6 +1,6 @@
 
-import React from "react";
-import { CalendarIcon, MapPin } from "lucide-react";
+import React, { useState } from "react";
+import { CalendarIcon, MapPin, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
@@ -32,6 +32,8 @@ export function PlanCreationForm({
   onSave, 
   onCancel 
 }: PlanCreationFormProps) {
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  
   // Helper for date display
   const formatDate = (date: Date) => {
     return date.toLocaleDateString('en-US', { 
@@ -39,6 +41,14 @@ export function PlanCreationForm({
       month: 'long', 
       day: 'numeric' 
     });
+  };
+
+  // Handle date selection and close calendar
+  const handleDateSelect = (date: Date | undefined) => {
+    if (date) {
+      setNewPlan({...newPlan, moveInDate: date});
+      setIsCalendarOpen(false);
+    }
   };
 
   return (
@@ -72,7 +82,7 @@ export function PlanCreationForm({
         
         <div className="space-y-2">
           <label className="text-sm font-medium">Move-in Date</label>
-          <Popover>
+          <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
@@ -87,10 +97,32 @@ export function PlanCreationForm({
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
+              <div className="p-2 flex justify-between items-center border-b">
+                <Button variant="outline" size="icon" className="h-7 w-7">
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <div className="font-medium text-sm">
+                  {newPlan.moveInDate ? 
+                    newPlan.moveInDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long' }) : 
+                    new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long' })
+                  }
+                </div>
+                <Button variant="outline" size="icon" className="h-7 w-7">
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-7 w-7 ml-2" 
+                  onClick={() => setIsCalendarOpen(false)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
               <Calendar
                 mode="single"
                 selected={newPlan.moveInDate}
-                onSelect={(date) => setNewPlan({...newPlan, moveInDate: date || new Date()})}
+                onSelect={handleDateSelect}
                 initialFocus
                 className="p-3 pointer-events-auto"
               />
