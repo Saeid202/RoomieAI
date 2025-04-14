@@ -65,6 +65,25 @@ export const profileSchema = z.object({
   roommateLifestylePreference: z.enum(["similar", "moreActive", "quieter", "noLifestylePreference"]),
   importantRoommateTraits: z.array(z.string()),
   additionalComments: z.string().optional(),
+  
+  // New fields for Ideal Roommate sections
+  lifestylePreferences: z.object({
+    similarSchedule: z.boolean().optional().default(false),
+    similarInterests: z.boolean().optional().default(false),
+    compatibleWorkStyle: z.boolean().optional().default(false),
+  }).optional().default({}),
+  
+  houseHabits: z.object({
+    cleansKitchen: z.boolean().optional().default(false),
+    respectsQuietHours: z.boolean().optional().default(false),
+    sharesGroceries: z.boolean().optional().default(false),
+  }).optional().default({}),
+  
+  dealBreakers: z.object({
+    noSmoking: z.boolean().optional().default(false),
+    noLoudMusic: z.boolean().optional().default(false),
+    noLatePayments: z.boolean().optional().default(false),
+  }).optional().default({}),
 });
 
 export type ProfileFormValues = z.infer<typeof profileSchema>;

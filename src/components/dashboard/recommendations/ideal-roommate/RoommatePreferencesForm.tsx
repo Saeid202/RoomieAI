@@ -39,18 +39,18 @@ export function RoommatePreferencesForm({
           </TabsContent>
           
           <TabsContent value="lifestyle-match">
-            <LifestyleMatchTab />
+            <LifestyleMatchTab form={form} />
           </TabsContent>
           
           <TabsContent value="house-habits">
-            <HouseHabitsTab />
+            <HouseHabitsTab form={form} />
           </TabsContent>
           
           <TabsContent value="deal-breakers">
-            <DealBreakersTab />
+            <DealBreakersTab form={form} />
           </TabsContent>
           
-          <div className="flex justify-end">
+          <div className="flex justify-end mt-4">
             <Button type="submit" disabled={isSaving}>
               {isSaving ? "Saving..." : "Save Preferences"}
             </Button>

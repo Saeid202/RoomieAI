@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -91,7 +92,23 @@ export function useRoommateProfile() {
       smoking: false,
       guestsOver: "occasionally",
       hobbies: [],
-      importantRoommateTraits: []
+      importantRoommateTraits: [],
+      // Default values for the new fields
+      lifestylePreferences: {
+        similarSchedule: false,
+        similarInterests: false,
+        compatibleWorkStyle: false
+      },
+      houseHabits: {
+        cleansKitchen: false,
+        respectsQuietHours: false,
+        sharesGroceries: false
+      },
+      dealBreakers: {
+        noSmoking: false,
+        noLoudMusic: false,
+        noLatePayments: false
+      }
     };
   };
 
