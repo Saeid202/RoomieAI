@@ -9,45 +9,43 @@ import { LoadingState } from "@/components/dashboard/recommendations/LoadingStat
 export default function RoommateRecommendationsPage() {
   const [error, setError] = useState<Error | null>(null);
   const [isRetrying, setIsRetrying] = useState(false);
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [initialLoading, setInitialLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Handle the initial page load with a proper loading state
+  // Simplified loading state handling
   useEffect(() => {
     document.title = "Find My Ideal Roommate";
     
-    // Use a longer delay for initial loading to ensure all data is ready
-    const loadingTimer = setTimeout(() => {
-      setInitialLoading(false);
-    }, 1500);
+    // Use a longer timeout to ensure page has time to fully load
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 3000);
     
-    // Add a separate timer for the fade-in transition
-    const fadeTimer = setTimeout(() => {
-      setIsLoaded(true);
-    }, 1800);
-    
-    return () => {
-      clearTimeout(loadingTimer);
-      clearTimeout(fadeTimer);
-    };
+    return () => clearTimeout(timer);
   }, []);
 
   const handleRetry = () => {
     setIsRetrying(true);
+    setIsLoading(true);
+    
     // Force a remount of the component
     setTimeout(() => {
       setError(null);
       setIsRetrying(false);
+      
+      // Delay turning off loading to ensure clean remount
+      setTimeout(() => {
+        setIsLoading(false);
+      }, 1000);
     }, 300);
   };
 
-  if (initialLoading) {
-    return <LoadingState key="initial-loading" />;
+  if (isLoading) {
+    return <LoadingState />;
   }
 
   if (error) {
     return (
-      <div className="container mx-auto py-6 animate-fadeIn">
+      <div className="container mx-auto py-6">
         <Card className="w-full max-w-3xl mx-auto">
           <CardContent className="pt-6 text-center">
             <h2 className="text-2xl font-bold mb-4">Error</h2>
@@ -69,11 +67,9 @@ export default function RoommateRecommendationsPage() {
     );
   }
 
+  // Simple stable render
   return (
-    <div 
-      className={`container mx-auto py-6 transition-opacity duration-700 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
-      style={{ minHeight: '80vh' }}
-    >
+    <div className="container mx-auto py-6" style={{ minHeight: '80vh' }}>
       <RoommateRecommendations key="recommendations-component" onError={setError} />
     </div>
   );

@@ -100,7 +100,7 @@
 }
 
 .animate-fadeIn {
-  animation: fadeIn 0.5s ease-in-out;
+  animation: fadeIn 1s ease-in-out;
 }
 
 @keyframes pulseGently {
@@ -115,13 +115,11 @@
 
 .page-transition-enter {
   opacity: 0;
-  transform: translateY(5px);
 }
 
 .page-transition-enter-active {
   opacity: 1;
-  transform: translateY(0);
-  transition: opacity 300ms, transform 300ms;
+  transition: opacity 500ms;
 }
 
 .page-transition-exit {
@@ -130,5 +128,5 @@
 
 .page-transition-exit-active {
   opacity: 0;
-  transition: opacity 300ms;
+  transition: opacity 500ms;
 }

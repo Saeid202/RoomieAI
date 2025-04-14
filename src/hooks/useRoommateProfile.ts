@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -12,28 +11,23 @@ export function useRoommateProfile() {
   const [profileData, setProfileData] = useState<Partial<ProfileFormValues> | null>(null);
   const [error, setError] = useState<Error | null>(null);
   const [hasAttemptedLoad, setHasAttemptedLoad] = useState(false);
-  const [loadCounter, setLoadCounter] = useState(0);
 
   const loadProfileData = useCallback(async () => {
-    // Prevent multiple simultaneous loads
-    if (loading && loadCounter > 0) {
-      console.log("Already loading profile data, skipping duplicate request");
-      return;
-    }
-    
-    setLoadCounter(prev => prev + 1);
-    
-    if (!user) {
-      console.log("No user found, using default profile data");
-      setLoading(false);
-      setProfileData(getDefaultProfileData());
-      setHasAttemptedLoad(true);
-      return;
+    // Don't attempt to load if we're already loading
+    if (!loading) {
+      setLoading(true);
     }
     
     try {
-      setLoading(true);
       setError(null);
+      
+      if (!user) {
+        // No user, so use default profile data
+        console.log("No user found, using default profile data");
+        setProfileData(getDefaultProfileData());
+        return;
+      }
+      
       console.log("Loading profile data for user:", user.id);
       
       const { data, error: fetchError } = await fetchRoommateProfile(user.id);
@@ -83,30 +77,20 @@ export function useRoommateProfile() {
       }
     } finally {
       setHasAttemptedLoad(true);
-      
-      // Add delay to prevent flashing
-      setTimeout(() => {
-        setLoading(false);
-      }, 500);
+      setLoading(false);
     }
-  }, [user, toast, loading, loadCounter]);
+  }, [user, toast]);
 
   // Load profile data on mount
   useEffect(() => {
     if (!hasAttemptedLoad) {
-      if (user) {
-        console.log("User detected, loading profile data");
+      const timer = setTimeout(() => {
         loadProfileData();
-      } else {
-        console.log("No user detected, using default profile data");
-        setTimeout(() => {
-          setLoading(false);
-          setProfileData(getDefaultProfileData());
-          setHasAttemptedLoad(true);
-        }, 500);
-      }
+      }, 500);
+      
+      return () => clearTimeout(timer);
     }
-  }, [user, loadProfileData, hasAttemptedLoad]);
+  }, [hasAttemptedLoad, loadProfileData]);
 
   // Helper function to get default profile data
   const getDefaultProfileData = (): Partial<ProfileFormValues> => {

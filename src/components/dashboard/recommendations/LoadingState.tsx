@@ -4,7 +4,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export function LoadingState() {
   return (
-    <div className="container mx-auto py-6 transition-opacity duration-300 opacity-90 animate-pulse" style={{ minHeight: '80vh' }}>
+    <div className="container mx-auto py-6 opacity-90" style={{ minHeight: '80vh' }}>
       <div className="space-y-6">
         <div className="flex items-center gap-2">
           <Skeleton className="h-10 w-64" />
