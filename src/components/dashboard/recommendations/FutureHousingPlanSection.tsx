@@ -6,7 +6,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
-import { DatePicker } from "@/components/ui/calendar";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -92,6 +97,7 @@ export function FutureHousingPlanSection({
   const [isCreatingPlan, setIsCreatingPlan] = useState(false);
   const [recommendations, setRecommendations] = useState(mockRecommendations);
   const { showSuccess, showPlanMatch } = useToastNotifications();
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
 
   // New plan form state
   const [newPlan, setNewPlan] = useState<Partial<FutureHousingPlan>>({
@@ -160,6 +166,14 @@ export function FutureHousingPlanSection({
       month: 'long', 
       day: 'numeric' 
     });
+  };
+
+  // Handle date change
+  const handleDateChange = (date: Date | undefined) => {
+    setSelectedDate(date);
+    if (date) {
+      setNewPlan({...newPlan, moveInDate: date});
+    }
   };
 
   return (
@@ -236,19 +250,30 @@ export function FutureHousingPlanSection({
                           
                           <div className="space-y-2">
                             <label className="text-sm font-medium">Move-in Date</label>
-                            <div className="flex items-center space-x-2">
-                              <div className="rounded-md border p-2">
-                                <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-                              </div>
-                              <Input 
-                                type="date"
-                                value={newPlan.moveInDate ? newPlan.moveInDate.toISOString().split('T')[0] : ''}
-                                onChange={(e) => setNewPlan({
-                                  ...newPlan, 
-                                  moveInDate: new Date(e.target.value)
-                                })}
-                              />
-                            </div>
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  className="w-full justify-start text-left font-normal"
+                                >
+                                  <CalendarIcon className="mr-2 h-4 w-4" />
+                                  {newPlan.moveInDate ? (
+                                    formatDate(newPlan.moveInDate)
+                                  ) : (
+                                    <span>Pick a date</span>
+                                  )}
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto p-0" align="start">
+                                <Calendar
+                                  mode="single"
+                                  selected={newPlan.moveInDate}
+                                  onSelect={(date) => setNewPlan({...newPlan, moveInDate: date || new Date()})}
+                                  initialFocus
+                                  className="p-3 pointer-events-auto"
+                                />
+                              </PopoverContent>
+                            </Popover>
                           </div>
                           
                           <div className="space-y-2">
