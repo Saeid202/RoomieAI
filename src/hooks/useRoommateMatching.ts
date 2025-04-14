@@ -14,7 +14,7 @@ export function useRoommateMatching() {
   
   // Custom sub-hooks
   const { 
-    loading, 
+    loading: profileLoading, 
     profileData, 
     setProfileData, 
     loadProfileData 
@@ -35,10 +35,10 @@ export function useRoommateMatching() {
   // Wrapper for findMatches that uses the current profileData
   const findMatches = async (): Promise<void> => {
     try {
-      console.log("Finding matches with current profile data:", profileData);
+      console.log("useRoommateMatching.findMatches called with profileData:", profileData);
       
       if (!profileData) {
-        console.error("Profile data is null or undefined");
+        console.error("Profile data is null or undefined in useRoommateMatching.findMatches");
         toast({
           title: "Profile incomplete",
           description: "Please complete your profile before finding matches",
@@ -107,6 +107,7 @@ export function useRoommateMatching() {
         roommateLifestylePreference: profileData.roommateLifestylePreference || "noLifestylePreference"
       };
       
+      console.log("Calling findMatchesInternal with completeProfileData:", completeProfileData);
       return await findMatchesInternal(completeProfileData);
     } catch (error) {
       console.error("Error in findMatches wrapper:", error);
@@ -119,7 +120,7 @@ export function useRoommateMatching() {
   };
 
   return {
-    loading: loading || isSaving || isFindingMatches,
+    loading: profileLoading || isSaving || isFindingMatches,
     profileData,
     roommates,
     properties,

@@ -33,6 +33,7 @@ export function RoommateRecommendationsWrapper() {
   useEffect(() => {
     const initializeComponent = async () => {
       try {
+        console.log("RoommateRecommendationsWrapper - initializeComponent started");
         setIsPageLoading(true);
         setHasError(false);
         
@@ -44,7 +45,7 @@ export function RoommateRecommendationsWrapper() {
         
         console.log("Loading roommate profile data...");
         await loadProfileData();
-        console.log("Profile data loaded successfully", profileData);
+        console.log("Profile data loaded successfully:", profileData);
         
       } catch (error) {
         console.error("Error initializing component:", error);
@@ -54,6 +55,7 @@ export function RoommateRecommendationsWrapper() {
           "Failed to load your roommate profile data"
         );
       } finally {
+        console.log("RoommateRecommendationsWrapper - initializeComponent completed");
         setIsPageLoading(false);
       }
     };
@@ -62,7 +64,7 @@ export function RoommateRecommendationsWrapper() {
   }, [user]);
 
   useEffect(() => {
-    console.log("ProfileData updated in RoommateRecommendations:", profileData);
+    console.log("ProfileData updated in RoommateRecommendationsWrapper:", profileData);
   }, [profileData]);
 
   const handleRefreshProfile = async (): Promise<void> => {
@@ -83,7 +85,7 @@ export function RoommateRecommendationsWrapper() {
 
   const wrappedFindMatches = async (): Promise<void> => {
     try {
-      console.log("wrappedFindMatches called, profileData:", profileData);
+      console.log("wrappedFindMatches called in RoommateRecommendationsWrapper");
       await findMatches();
       console.log("Find matches completed, roommates:", roommates);
     } catch (error) {
@@ -102,8 +104,21 @@ export function RoommateRecommendationsWrapper() {
     }
   };
 
+  console.log("RoommateRecommendationsWrapper - Render state:", { 
+    isPageLoading, 
+    loading,
+    hasError,
+    hasUser: !!user,
+    hasProfileData: !!profileData 
+  });
+
   if (isPageLoading || loading) {
-    return <LoadingState />;
+    return (
+      <div>
+        <p>Debug: Page is loading, isPageLoading: {isPageLoading.toString()}, loading: {loading.toString()}</p>
+        <LoadingState />
+      </div>
+    );
   }
 
   if (hasError) {

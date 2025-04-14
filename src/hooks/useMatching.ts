@@ -24,8 +24,8 @@ export function useMatching() {
 
   const findMatches = async (profileData: ProfileFormValues): Promise<void> => {
     try {
+      console.log("findMatches called in useMatching with profileData:", profileData);
       setIsFindingMatches(true);
-      console.log("Finding matches with profile data in useMatching:", profileData);
       
       if (!profileData) {
         console.error("Profile data is null, cannot find matches");
@@ -39,7 +39,7 @@ export function useMatching() {
       
       // Validate essential fields
       if (!profileData.fullName || !profileData.age) {
-        console.warn("Profile missing essential fields");
+        console.warn("Profile missing essential fields", { fullName: profileData.fullName, age: profileData.age });
         toast({
           title: "Profile incomplete",
           description: "Please fill in at least your name and age before finding matches",
@@ -48,14 +48,30 @@ export function useMatching() {
         return;
       }
       
-      // Use the algorithm directly on the form values
+      console.log("Calling findMatchesAlgorithm with valid profile data");
+      
+      // Use the algorithm directly with the validated profile data
       const matchesFound = findMatchesAlgorithm(profileData);
+      
       console.log("Matches found:", matchesFound.length, matchesFound);
       
       // Update state with found matches
       setRoommates(matchesFound || []);
+      
+      // If no matches were found, inform the user
+      if (!matchesFound || matchesFound.length === 0) {
+        toast({
+          title: "No matches found",
+          description: "Try adjusting your preferences to find more potential matches",
+        });
+      } else {
+        toast({
+          title: "Matches found!",
+          description: `Found ${matchesFound.length} potential roommate matches`,
+        });
+      }
     } catch (error) {
-      console.error("Error finding matches:", error);
+      console.error("Error finding matches in useMatching:", error);
       toast({
         title: "Error",
         description: "Failed to find matches. Please try again.",

@@ -8,33 +8,34 @@ import { convertFormToProfileData } from "./profileMapper";
  * Find potential roommate matches based on user profile
  */
 export const findMatches = (userProfile: ProfileFormValues): MatchResult[] => {
-  console.log("Finding matches for user profile:", userProfile);
+  console.log("roommateMatchingService.findMatches called with:", userProfile);
   
   try {
     if (!userProfile) {
-      console.error("User profile is null or undefined");
+      console.error("User profile is null or undefined in roommateMatchingService");
       return [];
     }
     
     // Validate minimum required fields
     if (!userProfile.fullName || !userProfile.age) {
-      console.warn("Profile data is missing essential fields");
+      console.warn("Profile data is missing essential fields in roommateMatchingService");
       return [];
     }
     
     // Convert the form values to the format expected by the matching algorithm
     const profileData = convertFormToProfileData(userProfile);
-    console.log("Converted profile data:", profileData);
+    console.log("Converted profile data in roommateMatchingService:", profileData);
     
     // For a real application, this would query a database of potential matches
     // For this demo, we'll use mock data
     const potentialMatches = potentialRoommates;
-    console.log("Potential matches:", potentialMatches.length);
     
     if (!potentialMatches || potentialMatches.length === 0) {
-      console.warn("No potential matches found");
+      console.warn("No potential matches found in roommateMatchingService");
       return [];
     }
+    
+    console.log(`Found ${potentialMatches.length} potential matches to process`);
     
     // Calculate compatibility scores for each potential match
     const matches = potentialMatches.map(match => {
@@ -66,11 +67,11 @@ export const findMatches = (userProfile: ProfileFormValues): MatchResult[] => {
     
     // Sort matches by compatibility score (highest first)
     const sortedMatches = matches.sort((a, b) => b.compatibilityScore - a.compatibilityScore);
-    console.log("Sorted matches:", sortedMatches.length);
+    console.log(`Returning ${sortedMatches.length} sorted matches from roommateMatchingService`);
     
     return sortedMatches;
   } catch (error) {
-    console.error("Error in findMatches algorithm:", error);
+    console.error("Error in findMatches algorithm in roommateMatchingService:", error);
     // Return empty array on error to avoid crashing
     return [];
   }

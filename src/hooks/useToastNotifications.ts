@@ -4,14 +4,14 @@ import { useToast } from "@/hooks/use-toast";
 export function useToastNotifications() {
   const { toast } = useToast();
 
-  const showSuccess = (title: string, description: string) => {
+  const showSuccess = (title: string, description?: string) => {
     toast({
       title,
       description,
     });
   };
 
-  const showError = (title: string, description: string) => {
+  const showError = (title: string, description?: string) => {
     toast({
       title,
       description,
@@ -19,7 +19,7 @@ export function useToastNotifications() {
     });
   };
 
-  const showInfo = (title: string, description: string) => {
+  const showInfo = (title: string, description?: string) => {
     toast({
       title,
       description,
@@ -27,12 +27,11 @@ export function useToastNotifications() {
     });
   };
 
-  const showPlanMatch = (title: string, description: string) => {
+  const showWarning = (title: string, description?: string) => {
     toast({
       title,
       description,
-      variant: "default",
-      className: "bg-green-100 border-green-400 text-green-800",
+      variant: "destructive",
     });
   };
 
@@ -40,6 +39,6 @@ export function useToastNotifications() {
     showSuccess,
     showError,
     showInfo,
-    showPlanMatch
+    showWarning,
   };
 }

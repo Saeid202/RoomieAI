@@ -13,7 +13,7 @@ export function useRoommateProfile() {
 
   const loadProfileData = async (): Promise<void> => {
     if (!user) {
-      console.log("No user found, skipping profile data load");
+      console.log("No user found, skipping profile data load in useRoommateProfile");
       setLoading(false);
       return;
     }
@@ -69,6 +69,7 @@ export function useRoommateProfile() {
 
   // Load profile data on mount
   useEffect(() => {
+    console.log("useRoommateProfile useEffect triggered, user:", user?.id);
     if (user) {
       console.log("User detected, loading profile data");
       loadProfileData();

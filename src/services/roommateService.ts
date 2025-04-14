@@ -7,7 +7,7 @@ import { ProfileFormValues } from "@/types/profile";
  */
 export async function fetchRoommateProfile(userId: string) {
   if (!userId) {
-    console.log("No user ID provided, skipping profile fetch");
+    console.log("No user ID provided, skipping profile fetch in roommateService");
     return { data: null, error: null };
   }
   
@@ -19,6 +19,8 @@ export async function fetchRoommateProfile(userId: string) {
       .select('*')
       .eq('user_id', userId)
       .maybeSingle();
+    
+    console.log("Supabase response in fetchRoommateProfile:", { data, error });
     
     if (error) {
       console.error("Error fetching roommate profile:", error);
@@ -72,6 +74,8 @@ export async function saveRoommateProfile(
       .eq('user_id', userId)
       .maybeSingle();
     
+    console.log("Existing profile check result:", { existingProfile, checkError });
+    
     if (checkError) {
       console.error("Error checking existing profile:", checkError);
       throw checkError;
@@ -92,6 +96,8 @@ export async function saveRoommateProfile(
         .from('Find My Ideal Roommate')
         .insert(dbData);
     }
+    
+    console.log("Supabase save result:", result);
     
     if (result.error) {
       console.error("Error saving profile:", result.error);
