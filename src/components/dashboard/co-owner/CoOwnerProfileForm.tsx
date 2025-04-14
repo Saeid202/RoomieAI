@@ -10,7 +10,8 @@ import { InvestmentSection } from "./form-sections/InvestmentSection";
 import { LocationExperienceSection } from "./form-sections/LocationExperienceSection";
 import { CoOwnerFormValues, coOwnerSchema } from "./types";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useNavigate } from "react-router-dom";
 
 interface CoOwnerProfileFormProps {
   initialData?: Partial<CoOwnerFormValues> | null;
@@ -20,7 +21,22 @@ interface CoOwnerProfileFormProps {
 export function CoOwnerProfileForm({ initialData, onSave }: CoOwnerProfileFormProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
   const { user } = useAuth();
+  const navigate = useNavigate();
+
+  // Redirect to login if no user is found
+  useEffect(() => {
+    if (user === null) {
+      console.log("No user found, redirecting to login");
+      toast({
+        title: "Authentication Required",
+        description: "Please login to access this feature",
+        variant: "destructive",
+      });
+      navigate("/auth");
+    }
+  }, [user, navigate, toast]);
 
   const defaultValues: Partial<CoOwnerFormValues> = {
     fullName: "",
@@ -41,56 +57,24 @@ export function CoOwnerProfileForm({ initialData, onSave }: CoOwnerProfileFormPr
     defaultValues,
   });
 
+  // Update form values when initialData changes
   useEffect(() => {
-    const loadProfile = async () => {
-      if (!user) return;
-
-      try {
-        const { data, error } = await supabase
-          .from('co_owner')
-          .select('*')
-          .eq('user_id', user.id)
-          .single();
-
-        if (error) throw error;
-
-        if (data) {
-          // Map database fields to form fields
-          const formData = {
-            fullName: data.full_name || "",
-            age: data.age || "",
-            email: data.email || "",
-            phoneNumber: data.phone_number || "",
-            occupation: data.occupation || "",
-            preferredLocation: data.preferred_location || "",
-            investmentCapacity: data.investment_capacity || [100000, 500000],
-            investmentTimeline: data.investment_timeline || "0-6 months",
-            propertyType: data.property_type || "Any",
-            coOwnershipExperience: data.co_ownership_experience || "None",
-          };
-
-          Object.keys(formData).forEach(key => {
-            form.setValue(key as any, formData[key]);
-          });
-        }
-      } catch (error) {
-        console.error('Error loading profile:', error);
-        toast({
-          title: "Error",
-          description: "Failed to load your profile data",
-          variant: "destructive",
-        });
-      }
-    };
-
-    loadProfile();
-  }, [user, form, toast]);
+    if (initialData) {
+      Object.keys(initialData).forEach(key => {
+        form.setValue(key as any, initialData[key as keyof CoOwnerFormValues]);
+      });
+    }
+  }, [initialData, form]);
 
   async function onSubmit(values: CoOwnerFormValues) {
+    setFormError(null);
+    
     if (!user) {
+      const errorMsg = "You must be logged in to save your profile";
+      setFormError(errorMsg);
       toast({
         title: "Error",
-        description: "You must be logged in to save your profile",
+        description: errorMsg,
         variant: "destructive",
       });
       return;
@@ -100,41 +84,17 @@ export function CoOwnerProfileForm({ initialData, onSave }: CoOwnerProfileFormPr
       setIsSubmitting(true);
       console.log("Form submitted with values:", values);
       
-      const profileData = {
-        user_id: user.id,
-        full_name: values.fullName,
-        age: values.age,
-        email: values.email,
-        phone_number: values.phoneNumber,
-        occupation: values.occupation,
-        preferred_location: values.preferredLocation,
-        investment_capacity: values.investmentCapacity,
-        investment_timeline: values.investmentTimeline,
-        property_type: values.propertyType,
-        co_ownership_experience: values.coOwnershipExperience,
-        updated_at: new Date().toISOString(),
-      };
-
-      const { error } = await supabase
-        .from('co_owner')
-        .upsert(profileData)
-        .select();
-
-      if (error) throw error;
-
       if (onSave) {
         await onSave(values);
       }
 
-      toast({
-        title: "Success",
-        description: "Your co-owner profile has been saved",
-      });
     } catch (error) {
       console.error("Error saving profile:", error);
+      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+      setFormError(errorMessage);
       toast({
         title: "Error",
-        description: "Failed to save your profile",
+        description: "Failed to save your profile: " + errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -144,6 +104,12 @@ export function CoOwnerProfileForm({ initialData, onSave }: CoOwnerProfileFormPr
 
   return (
     <Form {...form}>
+      {formError && (
+        <Alert variant="destructive" className="mb-6">
+          <AlertDescription>{formError}</AlertDescription>
+        </Alert>
+      )}
+      
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <PersonalInfoSection form={form} />
         <InvestmentSection form={form} />
