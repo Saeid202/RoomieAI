@@ -188,7 +188,7 @@ function Calendar({
       }}
       month={currentMonth}
       onMonthChange={setCurrentMonth}
-      onDayClick={(day, modifiers, e, activeModifiers) => {
+      onDayClick={(day, modifiers, e) => {
         // Close calendar when a day is selected
         if (props.mode === "single" && props.onSelect && day) {
           props.onSelect(day);
