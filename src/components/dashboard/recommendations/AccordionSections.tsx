@@ -3,6 +3,7 @@ import { Accordion } from "@/components/ui/accordion";
 import { AboutMeSection } from "./AboutMeSection";
 import { IdealRoommateSection } from "./IdealRoommateSection";
 import { AIAssistantSection } from "./AIAssistantSection";
+import { FutureHousingPlanSection } from "./FutureHousingPlanSection";
 import { ProfileFormValues } from "@/types/profile";
 
 interface AccordionSectionsProps {
@@ -49,6 +50,11 @@ export function AccordionSections({
         activeIdealRoommateTab={activeIdealRoommateTab}
         setActiveIdealRoommateTab={setActiveIdealRoommateTab}
         handleSaveProfile={handleSaveProfile}
+      />
+
+      <FutureHousingPlanSection
+        expandedSections={expandedSections}
+        profileData={profileData}
       />
 
       <AIAssistantSection

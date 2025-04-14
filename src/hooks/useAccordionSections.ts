@@ -1,14 +1,11 @@
 
 import { useState } from "react";
 
-export function useAccordionSections(initialSections: string[] = []) {
-  const [expandedSections, setExpandedSections] = useState<string[]>(initialSections);
+export function useAccordionSections(defaultSections: string[] = []) {
+  const [expandedSections, setExpandedSections] = useState<string[]>(defaultSections);
 
-  const toggleSection = (section: string) => {
-    setExpandedSections(prev => 
-      prev.includes(section) ? prev.filter(s => s !== section) : [...prev, section]
-    );
+  return {
+    expandedSections,
+    setExpandedSections,
   };
-
-  return { expandedSections, setExpandedSections, toggleSection };
 }

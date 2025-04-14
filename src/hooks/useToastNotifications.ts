@@ -19,8 +19,27 @@ export function useToastNotifications() {
     });
   };
 
+  const showInfo = (title: string, description: string) => {
+    toast({
+      title,
+      description,
+      variant: "default",
+    });
+  };
+
+  const showPlanMatch = (title: string, description: string) => {
+    toast({
+      title,
+      description,
+      variant: "default",
+      className: "bg-green-100 border-green-400 text-green-800",
+    });
+  };
+
   return {
     showSuccess,
-    showError
+    showError,
+    showInfo,
+    showPlanMatch
   };
 }

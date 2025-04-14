@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { ProfileFormValues } from "@/types/profile";
 import { useRoommateMatching } from "@/hooks/useRoommateMatching";
@@ -33,7 +32,7 @@ export function RoommateRecommendations() {
     loadProfileData
   } = useRoommateMatching();
   
-  const { expandedSections, setExpandedSections } = useAccordionSections(["about-me", "ideal-roommate", "ai-assistant"]);
+  const { expandedSections, setExpandedSections } = useAccordionSections(["about-me", "ideal-roommate", "future-housing-plan", "ai-assistant"]);
 
   useEffect(() => {
     if (!user) {
