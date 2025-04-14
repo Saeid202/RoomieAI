@@ -1,4 +1,3 @@
-
 import { Heart, Settings, Sofa, Ban, Users } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
@@ -99,8 +98,14 @@ export function IdealRoommateSection({
       setIsSaving(true);
       console.log("Ideal Roommate form data to save:", data);
       
+      // Make sure data has complete form values, fallback to defaults for required fields
+      const completeData: ProfileFormValues = {
+        ...defaultFormValues,
+        ...data,
+      } as ProfileFormValues;
+      
       // Call the save handler passed from parent component
-      await handleSaveProfile(data);
+      await handleSaveProfile(completeData);
       
       toast({
         title: "Preferences saved",

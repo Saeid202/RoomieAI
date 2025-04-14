@@ -44,13 +44,34 @@ export function RoommateRecommendations() {
         description: "Please sign in to access your roommate profile",
         variant: "destructive",
       });
+    } else {
+      console.log("User authenticated:", user.email);
     }
   }, [user, toast]);
+
+  useEffect(() => {
+    // Log profileData changes for debugging
+    console.log("ProfileData updated in RoommateRecommendations:", profileData);
+  }, [profileData]);
 
   const onHandleSaveProfile = async (formData: ProfileFormValues) => {
     try {
       console.log("Saving profile from RoommateRecommendations:", formData);
+      
+      if (!user) {
+        toast({
+          title: "Authentication required",
+          description: "You need to be logged in to save your profile",
+          variant: "destructive",
+        });
+        return;
+      }
+      
       await handleSaveProfile(formData);
+      
+      // Refresh profile data to ensure UI is updated
+      await loadProfileData();
+      
       toast({
         title: "Profile updated",
         description: "Your profile has been saved successfully",

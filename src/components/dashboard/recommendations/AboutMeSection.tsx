@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { User } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
@@ -84,13 +83,21 @@ export function AboutMeSection({
     roommateLifestylePreference: "noLifestylePreference",
     hobbies: [],
     importantRoommateTraits: [],
-    ...profileData
   };
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
-    defaultValues: defaultFormValues,
+    defaultValues: { ...defaultFormValues, ...profileData },
   });
+
+  // Update form when profileData changes
+  useEffect(() => {
+    if (profileData) {
+      console.log("Updating AboutMeSection form with profile data:", profileData);
+      // Reset the form with the merged values of defaultFormValues and profileData
+      form.reset({ ...defaultFormValues, ...profileData });
+    }
+  }, [profileData, form]);
 
   const { handleHobbyToggle } = useFormUtilities(form);
 
@@ -98,7 +105,14 @@ export function AboutMeSection({
     try {
       setIsSaving(true);
       console.log("About Me form data to save:", data);
-      await handleSaveProfile(data);
+      
+      // Make sure data has complete form values, fallback to defaults for required fields
+      const completeData: ProfileFormValues = {
+        ...defaultFormValues,
+        ...data,
+      } as ProfileFormValues;
+      
+      await handleSaveProfile(completeData);
       toast({
         title: "Profile saved",
         description: "Your profile has been updated successfully.",

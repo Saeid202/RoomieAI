@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -24,10 +25,15 @@ export function useRoommateMatching() {
   };
 
   const loadProfileData = async () => {
-    if (!user) return;
+    if (!user) {
+      console.log("No user found, skipping profile data load");
+      setLoading(false);
+      return;
+    }
     
     try {
       setLoading(true);
+      console.log("Loading profile data for user:", user.id);
       
       // Fetch user profile from the "Find My Ideal Roommate" table
       const { data, error } = await supabase
@@ -46,6 +52,7 @@ export function useRoommateMatching() {
         // If profile data exists in JSONB field, use it
         if (data.profile_data) {
           setProfileData(data.profile_data);
+          console.log("Set profile data from database:", data.profile_data);
         } else {
           // Otherwise use defaults
           setProfileData({
@@ -68,6 +75,7 @@ export function useRoommateMatching() {
         }
       } else {
         // If no profile exists yet, use default values
+        console.log("No existing profile found, using default values");
         setProfileData({
           fullName: "",
           age: "",
@@ -112,12 +120,20 @@ export function useRoommateMatching() {
       
       console.log("Saving profile data:", formData);
       
+      // Ensure all dates are properly serialized for storage
+      const preparedFormData = {
+        ...formData,
+        moveInDate: formData.moveInDate instanceof Date ? formData.moveInDate.toISOString() : formData.moveInDate,
+      };
+      
       // Prepare data for saving to the database
       const dbData = {
         user_id: user.id,
-        profile_data: formData,
+        profile_data: preparedFormData,
         updated_at: new Date().toISOString()
       };
+      
+      console.log("Prepared database data:", dbData);
       
       // Check if user already has a profile
       const { data: existingProfile, error: checkError } = await supabase
@@ -155,7 +171,7 @@ export function useRoommateMatching() {
       console.log("Profile saved successfully:", result);
       
       // Update local state with the saved data
-      setProfileData(formData);
+      setProfileData(preparedFormData);
       
       return true;
     } catch (error) {
@@ -196,8 +212,14 @@ export function useRoommateMatching() {
   };
 
   useEffect(() => {
-    loadProfileData();
-  }, [user, toast]);
+    if (user) {
+      console.log("User detected, loading profile data");
+      loadProfileData();
+    } else {
+      console.log("No user detected, skipping profile data load");
+      setLoading(false);
+    }
+  }, [user]);
 
   return {
     loading,
