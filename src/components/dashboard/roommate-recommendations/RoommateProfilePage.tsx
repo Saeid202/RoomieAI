@@ -74,6 +74,9 @@ export function RoommateProfilePage({
     }
   };
 
+  // Ensure profileData is not null for the components
+  const safeProfileData = profileData || {};
+
   return (
     <div className="space-y-8">
       <Header 
@@ -89,7 +92,7 @@ export function RoommateProfilePage({
         <AccordionSections
           expandedSections={expandedSections}
           setExpandedSections={setExpandedSections}
-          profileData={profileData}
+          profileData={safeProfileData}
           activeAboutMeTab={activeAboutMeTab}
           setActiveAboutMeTab={setActiveAboutMeTab}
           activeIdealRoommateTab={activeIdealRoommateTab}

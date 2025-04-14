@@ -22,10 +22,10 @@ export function useMatching() {
     setSelectedMatch(null);
   };
 
-  const findMatches = async (profileData: Partial<ProfileFormValues> | null): Promise<void> => {
+  const findMatches = async (profileData: ProfileFormValues): Promise<void> => {
     try {
       setIsFindingMatches(true);
-      console.log("Finding matches with profile data:", profileData);
+      console.log("Finding matches with profile data in useMatching:", profileData);
       
       if (!profileData) {
         console.error("Profile data is null, cannot find matches");
@@ -37,11 +37,8 @@ export function useMatching() {
         return;
       }
       
-      // Convert to complete ProfileFormValues
-      const formValues = profileData as ProfileFormValues;
-      
       // Use the algorithm directly on the form values
-      const matchesFound = findMatchesAlgorithm(formValues);
+      const matchesFound = findMatchesAlgorithm(profileData);
       console.log("Matches found:", matchesFound.length, matchesFound);
       
       // Update state with found matches

@@ -31,6 +31,9 @@ export function AccordionSections({
 }: AccordionSectionsProps) {
   console.log("AccordionSections rendering with profileData:", profileData);
   
+  // Ensure profileData is not null
+  const safeProfileData = profileData || {};
+  
   return (
     <Accordion 
       type="multiple" 
@@ -40,7 +43,7 @@ export function AccordionSections({
     >
       <AboutMeSection
         expandedSections={expandedSections}
-        profileData={profileData}
+        profileData={safeProfileData}
         activeAboutMeTab={activeAboutMeTab}
         setActiveAboutMeTab={setActiveAboutMeTab}
         handleSaveProfile={handleSaveProfile}
@@ -48,7 +51,7 @@ export function AccordionSections({
 
       <IdealRoommateSection
         expandedSections={expandedSections}
-        profileData={profileData}
+        profileData={safeProfileData}
         activeIdealRoommateTab={activeIdealRoommateTab}
         setActiveIdealRoommateTab={setActiveIdealRoommateTab}
         handleSaveProfile={handleSaveProfile}
@@ -56,13 +59,13 @@ export function AccordionSections({
 
       <FutureHousingPlanSection
         expandedSections={expandedSections}
-        profileData={profileData}
+        profileData={safeProfileData}
       />
 
       <AIAssistantSection
         expandedSections={expandedSections}
         onFindMatch={handleFindMatch}
-        profileData={profileData}
+        profileData={safeProfileData}
       />
     </Accordion>
   );

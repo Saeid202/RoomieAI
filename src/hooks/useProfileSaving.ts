@@ -24,8 +24,24 @@ export function useProfileSaving() {
       setIsSaving(true);
       console.log("Saving profile data:", formData);
       
+      // Make sure the form data has the required fields
+      const validFormData: ProfileFormValues = {
+        ...formData,
+        // Ensure required fields are present
+        fullName: formData.fullName || "",
+        age: formData.age || "",
+        gender: formData.gender || "",
+        email: formData.email || user.email || "",
+        phoneNumber: formData.phoneNumber || "",
+        budgetRange: formData.budgetRange || [900, 1500],
+        preferredLocation: formData.preferredLocation || "",
+        moveInDate: formData.moveInDate || new Date(),
+        hobbies: formData.hobbies || [],
+        importantRoommateTraits: formData.importantRoommateTraits || []
+      };
+      
       // Call the service function to save to the database
-      await saveRoommateProfile(user.id, formData);
+      await saveRoommateProfile(user.id, validFormData);
       
       console.log("Profile saved successfully");
       toast({

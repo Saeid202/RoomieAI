@@ -59,7 +59,7 @@ export function RoommateRecommendationsWrapper() {
     };
     
     initializeComponent();
-  }, [user, loadProfileData, showError]);
+  }, [user]);
 
   useEffect(() => {
     console.log("ProfileData updated in RoommateRecommendations:", profileData);
@@ -81,7 +81,6 @@ export function RoommateRecommendationsWrapper() {
     }
   };
 
-  // Wrapper function with the correct return type
   const wrappedFindMatches = async (): Promise<void> => {
     try {
       console.log("wrappedFindMatches called, profileData:", profileData);
