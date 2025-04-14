@@ -85,7 +85,7 @@ export function useMatching() {
       }
     } catch (error) {
       console.error("Error finding matches in useMatching:", error);
-      showError(it
+      showError(
         "Error",
         "Failed to find matches. Please try again."
       );
