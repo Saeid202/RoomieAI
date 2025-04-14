@@ -17,9 +17,14 @@ export function BasicInformationSection({ form }: BasicInformationSectionProps) 
         name="fullName"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Full Name</FormLabel>
+            <FormLabel htmlFor="fullName">Full Name</FormLabel>
             <FormControl>
-              <Input placeholder="Enter your full name" {...field} />
+              <Input 
+                id="fullName"
+                placeholder="Enter your full name" 
+                {...field} 
+                autoComplete="name"
+              />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -31,9 +36,16 @@ export function BasicInformationSection({ form }: BasicInformationSectionProps) 
         name="age"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Age</FormLabel>
+            <FormLabel htmlFor="age">Age</FormLabel>
             <FormControl>
-              <Input type="number" placeholder="Your age" {...field} min="18" />
+              <Input 
+                id="age"
+                type="number" 
+                placeholder="Your age" 
+                {...field} 
+                min="18" 
+                autoComplete="off"
+              />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -45,13 +57,13 @@ export function BasicInformationSection({ form }: BasicInformationSectionProps) 
         name="gender"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Gender (Optional)</FormLabel>
+            <FormLabel htmlFor="gender">Gender (Optional)</FormLabel>
             <Select
               onValueChange={field.onChange}
               value={field.value}
             >
               <FormControl>
-                <SelectTrigger>
+                <SelectTrigger id="gender">
                   <SelectValue placeholder="Select your gender" />
                 </SelectTrigger>
               </FormControl>
@@ -76,9 +88,14 @@ export function BasicInformationSection({ form }: BasicInformationSectionProps) 
         name="phoneNumber"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Phone Number</FormLabel>
+            <FormLabel htmlFor="phoneNumber">Phone Number</FormLabel>
             <FormControl>
-              <Input placeholder="Your phone number" {...field} />
+              <Input 
+                id="phoneNumber"
+                placeholder="Your phone number" 
+                {...field} 
+                autoComplete="tel"
+              />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -90,9 +107,15 @@ export function BasicInformationSection({ form }: BasicInformationSectionProps) 
         name="email"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Email Address</FormLabel>
+            <FormLabel htmlFor="email">Email Address</FormLabel>
             <FormControl>
-              <Input type="email" placeholder="Your email address" {...field} />
+              <Input 
+                id="email"
+                type="email" 
+                placeholder="Your email address" 
+                {...field} 
+                autoComplete="email"
+              />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -104,9 +127,14 @@ export function BasicInformationSection({ form }: BasicInformationSectionProps) 
         name="linkedinProfile"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>LinkedIn Profile (Optional)</FormLabel>
+            <FormLabel htmlFor="linkedinProfile">LinkedIn Profile (Optional)</FormLabel>
             <FormControl>
-              <Input placeholder="https://linkedin.com/in/yourprofile" {...field} />
+              <Input 
+                id="linkedinProfile"
+                placeholder="https://linkedin.com/in/yourprofile" 
+                {...field} 
+                autoComplete="url"
+              />
             </FormControl>
             <FormDescription>
               Add your LinkedIn link for better roommate compatibility

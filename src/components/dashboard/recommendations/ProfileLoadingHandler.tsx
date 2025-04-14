@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { LoadingState } from "./LoadingState";
@@ -31,57 +31,54 @@ export function ProfileLoadingHandler({
     };
   }, []);
 
-  useEffect(() => {
-    console.log("ProfileLoadingHandler - Initialize loading, user:", user?.email);
+  const handleLoadError = useCallback((error: Error) => {
+    console.error("Error loading profile data:", error);
+    setLoadError(error);
+    setHasAttemptedLoad(true);
+    setIsLoading(false);
     
+    if (onError) {
+      onError(error);
+    }
+    
+    toast({
+      title: "Error",
+      description: "Failed to load profile data. Please try again.",
+      variant: "destructive",
+    });
+  }, [onError, toast]);
+
+  const attemptLoadProfile = useCallback(async () => {
     if (!componentMounted) {
       console.log("ProfileLoadingHandler - Component not mounted yet, skipping load");
       return;
     }
     
-    let isMounted = true;
-    
-    const fetchData = async () => {
-      if (!isMounted) return;
+    try {
+      setIsLoading(true);
+      setLoadError(null);
       
-      try {
-        setIsLoading(true);
-        setLoadError(null);
-        
-        console.log("ProfileLoadingHandler - Attempting to load profile data");
-        await loadProfileData();
-        
-        if (isMounted) {
-          console.log("ProfileLoadingHandler - Profile loaded successfully");
-          setHasAttemptedLoad(true);
-          setIsLoading(false);
-        }
-      } catch (error) {
-        console.error("Error loading profile data:", error);
-        
-        if (isMounted) {
-          const errorObj = error instanceof Error ? error : new Error("Failed to load profile data");
-          setLoadError(errorObj);
-          setHasAttemptedLoad(true);
-          setIsLoading(false);
-          
-          if (onError) {
-            onError(errorObj);
-          }
-          
-          toast({
-            title: "Error",
-            description: "Failed to load profile data. Please try again.",
-            variant: "destructive",
-          });
-        }
-      }
-    };
+      console.log("ProfileLoadingHandler - Attempting to load profile data");
+      await loadProfileData();
+      
+      console.log("ProfileLoadingHandler - Profile loaded successfully");
+      setHasAttemptedLoad(true);
+      setIsLoading(false);
+    } catch (error) {
+      const errorObj = error instanceof Error ? error : new Error("Failed to load profile data");
+      handleLoadError(errorObj);
+    }
+  }, [componentMounted, loadProfileData, handleLoadError]);
 
+  useEffect(() => {
+    if (!componentMounted) return;
+    
+    console.log("ProfileLoadingHandler - Initialize loading, user:", user?.email);
+    
     const timeoutId = setTimeout(() => {
       if (user) {
         console.log("User authenticated, fetching profile");
-        fetchData();
+        attemptLoadProfile();
       } else {
         console.log("User not authenticated, skipping profile load");
         setHasAttemptedLoad(true);
@@ -90,11 +87,9 @@ export function ProfileLoadingHandler({
     }, 200);
     
     return () => {
-      isMounted = false;
       clearTimeout(timeoutId);
-      console.log("ProfileLoadingHandler unmounted");
     };
-  }, [user, toast, loadProfileData, onError, componentMounted]);
+  }, [user, componentMounted, attemptLoadProfile]);
 
   if (isLoading && !hasAttemptedLoad) {
     console.log("ProfileLoadingHandler - Showing loading state");
