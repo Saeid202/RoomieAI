@@ -1,4 +1,3 @@
-
 import { User } from "lucide-react";
 import { ProfileFormValues } from "@/types/profile";
 import { AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
