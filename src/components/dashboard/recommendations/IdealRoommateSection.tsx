@@ -83,12 +83,11 @@ export function IdealRoommateSection({
       // Use the parent's save function if available
       if (onSaveProfile) {
         await onSaveProfile(data);
+        toast({
+          title: "Preferences saved",
+          description: "Your roommate preferences have been updated successfully.",
+        });
       }
-      
-      toast({
-        title: "Preferences saved",
-        description: "Your roommate preferences have been updated successfully.",
-      });
     } catch (error) {
       console.error("Error saving preferences:", error);
       toast({

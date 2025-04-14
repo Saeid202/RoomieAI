@@ -17,7 +17,7 @@ export function ProfileSaveHandler({
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
 
-  const handleSaveProfile = async (formData: ProfileFormValues) => {
+  const handleSaveProfile = async (formData: ProfileFormValues): Promise<void> => {
     try {
       setIsSaving(true);
       await onSubmit(formData);

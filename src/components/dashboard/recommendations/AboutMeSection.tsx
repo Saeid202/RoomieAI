@@ -1,19 +1,21 @@
+
 import { User } from "lucide-react";
 import { ProfileFormValues } from "@/types/profile";
 import { AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import { Card, CardContent } from "@/components/ui/card";
-import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { profileSchema } from "@/types/profile";
 import { Form } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { AboutMeTabs } from "./about-me/AboutMeTabs";
 import { PersonalInfoTab } from "./about-me/PersonalInfoTab";
 import { HousingTab } from "./about-me/HousingTab";
 import { LifestyleTab } from "./about-me/LifestyleTab";
 import { SocialCleaningTab } from "./about-me/SocialCleaningTab";
-import { Tabs, TabsContent } from "@/components/ui/tabs";
+import { useState, useEffect } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 interface AboutMeSectionProps {
   profileData: Partial<ProfileFormValues> | null;
@@ -28,6 +30,7 @@ export function AboutMeSection({
 }: AboutMeSectionProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [activeAboutMeTab, setActiveAboutMeTab] = useState("personal-info");
+  const { toast } = useToast();
   
   const defaultFormValues: Partial<ProfileFormValues> = {
     fullName: "",
@@ -85,9 +88,18 @@ export function AboutMeSection({
       
       if (onSaveProfile) {
         await onSaveProfile(data);
+        toast({
+          title: "Profile saved",
+          description: "Your profile has been saved successfully",
+        });
       }
     } catch (error) {
       console.error("Error saving profile:", error);
+      toast({
+        title: "Error saving profile",
+        description: "There was a problem saving your profile. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsSaving(false);
     }
