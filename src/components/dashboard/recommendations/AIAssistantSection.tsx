@@ -1,20 +1,23 @@
 
-import { BrainCircuit, SendHorizonal } from "lucide-react";
+import { BrainCircuit, SendHorizonal, Search } from "lucide-react";
 import { AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 interface AIAssistantSectionProps {
   expandedSections: string[];
+  onFindMatch: () => void;
 }
 
-export function AIAssistantSection({ expandedSections }: AIAssistantSectionProps) {
+export function AIAssistantSection({ expandedSections, onFindMatch }: AIAssistantSectionProps) {
   const [messages, setMessages] = useState<{ sender: 'user' | 'ai'; content: string }[]>([
     { sender: 'ai', content: 'Hello! I\'m your roommate matching assistant. How can I help you find your perfect roommate?' }
   ]);
   const [inputValue, setInputValue] = useState('');
+  const { toast } = useToast();
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,6 +38,14 @@ export function AIAssistantSection({ expandedSections }: AIAssistantSectionProps
     }, 1000);
     
     setInputValue('');
+  };
+
+  const handleFindMatch = () => {
+    toast({
+      title: "Finding matches",
+      description: "Searching for your ideal roommate based on your preferences...",
+    });
+    onFindMatch();
   };
 
   return (
@@ -68,7 +79,7 @@ export function AIAssistantSection({ expandedSections }: AIAssistantSectionProps
                 ))}
               </div>
               
-              <form onSubmit={handleSendMessage} className="flex gap-2">
+              <form onSubmit={handleSendMessage} className="flex gap-2 mb-4">
                 <Input 
                   placeholder="Ask anything about roommate preferences..."
                   value={inputValue}
@@ -80,6 +91,16 @@ export function AIAssistantSection({ expandedSections }: AIAssistantSectionProps
                   Send
                 </Button>
               </form>
+              
+              <div className="flex justify-center">
+                <Button 
+                  onClick={handleFindMatch}
+                  className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-full"
+                >
+                  <Search className="h-4 w-4 mr-2" />
+                  Find My Match
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>

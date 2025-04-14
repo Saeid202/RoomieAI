@@ -15,6 +15,7 @@ export function RoommateRecommendations() {
   const { toast } = useToast();
   const [activeAboutMeTab, setActiveAboutMeTab] = useState("personal-info");
   const [activeIdealRoommateTab, setActiveIdealRoommateTab] = useState("preferences");
+  const [isFindingMatches, setIsFindingMatches] = useState(false);
   
   // Custom hooks
   const { 
@@ -26,15 +27,16 @@ export function RoommateRecommendations() {
     activeTab, 
     setActiveTab,
     handleViewDetails,
-    handleCloseDetails
+    handleCloseDetails,
+    findMatches,
+    handleSaveProfile
   } = useRoommateMatching();
   
   const { expandedSections, setExpandedSections } = useAccordionSections(["about-me", "ideal-roommate", "ai-assistant"]);
 
-  const handleSaveProfile = async (formData: ProfileFormValues) => {
+  const onHandleSaveProfile = async (formData: ProfileFormValues) => {
     try {
-      // This will be implemented for saving profile data
-      console.log("Saving profile data:", formData);
+      await handleSaveProfile(formData);
       toast({
         title: "Profile updated",
         description: "Your profile has been saved successfully",
@@ -49,7 +51,31 @@ export function RoommateRecommendations() {
     }
   };
 
-  if (loading) {
+  const handleFindMatch = async () => {
+    try {
+      setIsFindingMatches(true);
+      // Wait for a moment to show the loading state
+      setTimeout(async () => {
+        await findMatches();
+        setExpandedSections([]); // Close all accordion sections
+        setIsFindingMatches(false);
+        toast({
+          title: "Matches found!",
+          description: "We've found some potential roommates for you.",
+        });
+      }, 1500);
+    } catch (error) {
+      console.error("Error finding matches:", error);
+      setIsFindingMatches(false);
+      toast({
+        title: "Error",
+        description: "Failed to find matches. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  if (loading || isFindingMatches) {
     return <LoadingState />;
   }
 
@@ -73,7 +99,7 @@ export function RoommateRecommendations() {
             profileData={profileData}
             activeAboutMeTab={activeAboutMeTab}
             setActiveAboutMeTab={setActiveAboutMeTab}
-            handleSaveProfile={handleSaveProfile}
+            handleSaveProfile={onHandleSaveProfile}
           />
 
           <IdealRoommateSection
@@ -81,11 +107,12 @@ export function RoommateRecommendations() {
             profileData={profileData}
             activeIdealRoommateTab={activeIdealRoommateTab}
             setActiveIdealRoommateTab={setActiveIdealRoommateTab}
-            handleSaveProfile={handleSaveProfile}
+            handleSaveProfile={onHandleSaveProfile}
           />
 
           <AIAssistantSection
             expandedSections={expandedSections}
+            onFindMatch={handleFindMatch}
           />
         </Accordion>
 

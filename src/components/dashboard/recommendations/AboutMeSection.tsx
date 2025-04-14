@@ -20,6 +20,7 @@ import { profileSchema } from "@/types/profile";
 import { Form } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { hobbiesList } from "@/utils/formSteps";
+import { useToast } from "@/hooks/use-toast";
 
 interface AboutMeSectionProps {
   expandedSections: string[];
@@ -44,15 +45,43 @@ export function AboutMeSection({
   setActiveAboutMeTab,
   handleSaveProfile
 }: AboutMeSectionProps) {
+  const { toast } = useToast();
+  const [isSaving, setIsSaving] = useState(false);
+  
   // Create a default empty form value to prevent null errors
   const defaultFormValues: Partial<ProfileFormValues> = {
     fullName: "",
     age: "",
     gender: "",
     email: "",
+    phoneNumber: "",
     budgetRange: [800, 1500],
     preferredLocation: "",
     moveInDate: new Date(),
+    housingType: "apartment",
+    livingSpace: "privateRoom",
+    smoking: false,
+    livesWithSmokers: false,
+    hasPets: false,
+    petPreference: "noPets",
+    workLocation: "remote",
+    dailyRoutine: "mixed",
+    sleepSchedule: "Regular schedule",
+    overnightGuests: "occasionally",
+    cleanliness: "somewhatTidy",
+    cleaningFrequency: "weekly",
+    socialLevel: "balanced",
+    guestsOver: "occasionally",
+    familyOver: "occasionally",
+    atmosphere: "balanced",
+    hostingFriends: "occasionally",
+    diet: "omnivore",
+    cookingSharing: "separate",
+    stayDuration: "sixMonths",
+    leaseTerm: "longTerm",
+    roommateGenderPreference: "noPreference",
+    roommateAgePreference: "noAgePreference",
+    roommateLifestylePreference: "noLifestylePreference",
     hobbies: [],
     importantRoommateTraits: [],
     ...profileData
@@ -65,8 +94,25 @@ export function AboutMeSection({
 
   const { handleHobbyToggle } = useFormUtilities(form);
 
-  const onSubmit = (data: ProfileFormValues) => {
-    handleSaveProfile(data);
+  const onSubmit = async (data: ProfileFormValues) => {
+    try {
+      setIsSaving(true);
+      console.log("About Me form data to save:", data);
+      await handleSaveProfile(data);
+      toast({
+        title: "Profile saved",
+        description: "Your profile has been updated successfully.",
+      });
+    } catch (error) {
+      console.error("Error saving profile:", error);
+      toast({
+        title: "Error saving profile",
+        description: "There was a problem saving your profile. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -167,7 +213,9 @@ export function AboutMeSection({
                   </TabsContent>
                   
                   <div className="flex justify-end">
-                    <Button type="submit">Save Profile</Button>
+                    <Button type="submit" disabled={isSaving}>
+                      {isSaving ? "Saving..." : "Save Profile"}
+                    </Button>
                   </div>
                 </form>
               </Form>

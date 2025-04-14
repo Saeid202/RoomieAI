@@ -12,6 +12,8 @@ import { Form } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { useFormUtilities } from "@/hooks/useFormUtilities";
 import { roommateTraitsList } from "@/utils/formSteps";
+import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
 
 interface IdealRoommateSectionProps {
   expandedSections: string[];
@@ -36,15 +38,74 @@ export function IdealRoommateSection({
   setActiveIdealRoommateTab,
   handleSaveProfile
 }: IdealRoommateSectionProps) {
+  const { toast } = useToast();
+  const [isSaving, setIsSaving] = useState(false);
+  
+  // Create a default empty form value to prevent null errors
+  const defaultFormValues: Partial<ProfileFormValues> = {
+    fullName: "",
+    age: "",
+    gender: "",
+    email: "",
+    phoneNumber: "",
+    budgetRange: [800, 1500],
+    preferredLocation: "",
+    moveInDate: new Date(),
+    housingType: "apartment",
+    livingSpace: "privateRoom",
+    smoking: false,
+    livesWithSmokers: false,
+    hasPets: false,
+    petPreference: "noPets",
+    workLocation: "remote",
+    dailyRoutine: "mixed",
+    sleepSchedule: "Regular schedule",
+    overnightGuests: "occasionally",
+    cleanliness: "somewhatTidy",
+    cleaningFrequency: "weekly",
+    socialLevel: "balanced",
+    guestsOver: "occasionally",
+    familyOver: "occasionally",
+    atmosphere: "balanced",
+    hostingFriends: "occasionally",
+    diet: "omnivore",
+    cookingSharing: "separate",
+    stayDuration: "sixMonths",
+    leaseTerm: "longTerm",
+    roommateGenderPreference: "noPreference",
+    roommateAgePreference: "noAgePreference",
+    roommateLifestylePreference: "noLifestylePreference",
+    hobbies: [],
+    importantRoommateTraits: [],
+    ...profileData
+  };
+
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
-    defaultValues: profileData || undefined,
+    defaultValues: defaultFormValues,
   });
 
   const { handleTraitToggle } = useFormUtilities(form);
 
-  const onSubmit = (data: ProfileFormValues) => {
-    handleSaveProfile(data);
+  const onSubmit = async (data: ProfileFormValues) => {
+    try {
+      setIsSaving(true);
+      console.log("Ideal Roommate form data to save:", data);
+      await handleSaveProfile(data);
+      toast({
+        title: "Preferences saved",
+        description: "Your roommate preferences have been updated successfully.",
+      });
+    } catch (error) {
+      console.error("Error saving preferences:", error);
+      toast({
+        title: "Error saving preferences",
+        description: "There was a problem saving your preferences. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -156,7 +217,9 @@ export function IdealRoommateSection({
                   </TabsContent>
                   
                   <div className="flex justify-end">
-                    <Button type="submit">Save Preferences</Button>
+                    <Button type="submit" disabled={isSaving}>
+                      {isSaving ? "Saving..." : "Save Preferences"}
+                    </Button>
                   </div>
                 </form>
               </Form>
