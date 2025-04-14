@@ -35,19 +35,6 @@ export function LoadingState() {
           ))}
         </div>
       </div>
-
-      <style>
-        {`
-        .fade-in {
-          animation: fadeIn 0.5s ease-in;
-        }
-        
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-        `}
-      </style>
     </div>
   );
 }
