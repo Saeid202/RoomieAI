@@ -188,10 +188,10 @@ function Calendar({
       }}
       month={currentMonth}
       onMonthChange={setCurrentMonth}
-      onDayClick={(date) => {
+      onDayClick={(day, modifiers, e, activeModifiers) => {
         // Close calendar when a day is selected
-        if (props.mode === "single" && props.onSelect && date) {
-          props.onSelect(date);
+        if (props.mode === "single" && props.onSelect && day) {
+          props.onSelect(day);
           // Find and close any open popover
           const popoverTrigger = document.querySelector('[data-state="open"] [role="dialog"]');
           if (popoverTrigger) {
