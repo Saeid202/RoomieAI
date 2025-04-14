@@ -28,13 +28,17 @@ export function MatchFinder({
     if (isLoading) return;
     
     try {
-      // Set loading states before doing anything else
+      // Set internal loading state first
       setIsLoading(true);
-      onStartLoading();
+      
+      // Then notify parent after a short delay to prevent flash
+      setTimeout(() => {
+        onStartLoading();
+      }, 50);
       
       // Force a significant delay before starting the match finding process
       // This ensures the UI has fully transitioned to loading state
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise(resolve => setTimeout(resolve, 800));
       
       const matches = await findMatches();
       
@@ -44,34 +48,42 @@ export function MatchFinder({
         description: `Found ${matches.length} potential roommates for you.`,
       });
       
-      // Add a delay before scrolling to results to ensure they're rendered
+      // Add a longer delay before removing loading state to ensure stability
       setTimeout(() => {
-        const resultsElement = document.querySelector('[data-results-section]');
-        if (resultsElement) {
-          resultsElement.scrollIntoView({ behavior: 'smooth' });
-        }
-        
-        // Only remove loading state after everything is complete
+        // Ensure both internal and parent loading states are updated
         setIsLoading(false);
-        onFinishLoading();
-      }, 500);
+        
+        // Delay scrolling and final state update slightly
+        setTimeout(() => {
+          const resultsElement = document.querySelector('[data-results-section]');
+          if (resultsElement) {
+            resultsElement.scrollIntoView({ behavior: 'smooth' });
+          }
+          
+          // Final loading state cleared
+          onFinishLoading();
+        }, 200);
+      }, 600);
       
     } catch (error) {
       console.error("Error finding matches:", error);
       
-      // Reset loading states in case of error
-      setIsLoading(false);
-      onFinishLoading();
-      
-      if (onError) {
-        onError(error instanceof Error ? error : new Error("Failed to find matches"));
-      }
-      
-      toast({
-        title: "Error",
-        description: "Failed to find matches. Please try again.",
-        variant: "destructive",
-      });
+      // Add delay before resetting loading states to prevent UI flashing
+      setTimeout(() => {
+        // Reset loading states in case of error
+        setIsLoading(false);
+        onFinishLoading();
+        
+        if (onError) {
+          onError(error instanceof Error ? error : new Error("Failed to find matches"));
+        }
+        
+        toast({
+          title: "Error",
+          description: "Failed to find matches. Please try again.",
+          variant: "destructive",
+        });
+      }, 600);
     }
   };
 

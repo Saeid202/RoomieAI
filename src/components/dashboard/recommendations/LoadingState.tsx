@@ -20,7 +20,7 @@ export function LoadingState() {
         </div>
         
         <div className="grid gap-4 md:grid-cols-2 mt-8">
-          {[1, 2].map((i) => (
+          {Array.from({ length: 2 }).map((_, i) => (
             <Card key={i} className="overflow-hidden border border-muted">
               <CardHeader className="p-0">
                 <Skeleton className="h-24 w-full rounded-none" />

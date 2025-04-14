@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Accordion } from "@/components/ui/accordion";
 import { ProfileFormValues } from "@/types/profile";
 import { useRoommateMatching } from "@/hooks/useRoommateMatching";
@@ -24,6 +24,7 @@ export function RoommateRecommendations({ onError }: RoommateRecommendationsProp
   const [activeAboutMeTab, setActiveAboutMeTab] = useState("personal-info");
   const [activeIdealRoommateTab, setActiveIdealRoommateTab] = useState("preferences");
   const [isPageLoading, setIsPageLoading] = useState(false);
+  const mountedRef = useRef(false);
   
   const { 
     loading, 
@@ -41,6 +42,22 @@ export function RoommateRecommendations({ onError }: RoommateRecommendationsProp
   } = useRoommateMatching();
   
   const { expandedSections, setExpandedSections } = useAccordionSections(["about-me", "ideal-roommate", "ai-assistant"]);
+
+  // Setup effect that runs only once after initial mount
+  useEffect(() => {
+    mountedRef.current = true;
+    
+    // Use RAF to ensure we're in sync with browser render cycle
+    requestAnimationFrame(() => {
+      if (mountedRef.current) {
+        // Component is still mounted
+      }
+    });
+    
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   // If any loading state is active, show loading state
   const isLoading = isPageLoading || loading;

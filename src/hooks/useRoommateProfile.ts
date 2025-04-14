@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { ProfileFormValues } from "@/types/profile";
@@ -12,11 +12,22 @@ export function useRoommateProfile() {
   const [profileData, setProfileData] = useState<Partial<ProfileFormValues> | null>(null);
   const [error, setError] = useState<Error | null>(null);
   const [hasAttemptedLoad, setHasAttemptedLoad] = useState(false);
+  const loadingTimerRef = useRef<number | null>(null);
+
+  // Clear any pending timers on unmount
+  useEffect(() => {
+    return () => {
+      if (loadingTimerRef.current !== null) {
+        clearTimeout(loadingTimerRef.current);
+      }
+    };
+  }, []);
 
   const loadProfileData = useCallback(async () => {
     // Prevent duplicate loading attempts
     if (loading && hasAttemptedLoad) return;
     
+    // Set initial loading state
     setLoading(true);
     setError(null);
     
@@ -24,8 +35,18 @@ export function useRoommateProfile() {
       if (!user) {
         // Use default profile data if no user
         setProfileData(getDefaultProfileData());
-        setLoading(false);
-        setHasAttemptedLoad(true);
+        
+        // Set a timeout to ensure loading state persists for long enough
+        if (loadingTimerRef.current !== null) {
+          clearTimeout(loadingTimerRef.current);
+        }
+        
+        loadingTimerRef.current = window.setTimeout(() => {
+          setLoading(false);
+          setHasAttemptedLoad(true);
+          loadingTimerRef.current = null;
+        }, 800);
+        
         return;
       }
       
@@ -70,22 +91,26 @@ export function useRoommateProfile() {
         });
       }
     } finally {
-      // Fixed delay before marking loading as complete
-      // This ensures UI doesn't flash during transitions
-      setTimeout(() => {
+      // Use a consistent timeout for loading state
+      if (loadingTimerRef.current !== null) {
+        clearTimeout(loadingTimerRef.current);
+      }
+      
+      loadingTimerRef.current = window.setTimeout(() => {
         setLoading(false);
         setHasAttemptedLoad(true);
-      }, 500);
+        loadingTimerRef.current = null;
+      }, 800);
     }
   }, [user, toast, loading, hasAttemptedLoad]);
 
   // Load profile data on mount with stable loading state
   useEffect(() => {
     if (!hasAttemptedLoad) {
-      // Add a small initial delay to prevent immediate state changes
+      // Add a consistent initial delay to prevent immediate state changes
       const loadTimer = setTimeout(() => {
         loadProfileData();
-      }, 100);
+      }, 300);
       
       return () => clearTimeout(loadTimer);
     }
