@@ -30,7 +30,7 @@ export function FormStepHeader({
           const isActive = step === stepNumber;
           const isCompleted = step > stepNumber;
           
-          return (
+          const stepCircle = (
             <div
               key={stepNumber}
               className="flex flex-col items-center flex-1"
@@ -54,22 +54,25 @@ export function FormStepHeader({
             </div>
           );
           
-          // Add connecting line between steps
-          return index < totalSteps - 1 ? (
-            <>
-              {stepItem}
-              <div
-                className={cn(
-                  "flex-1 h-0.5 mx-2",
-                  isCompleted
-                    ? "bg-green-500"
-                    : "bg-gray-300"
-                )}
-              />
-            </>
-          ) : (
-            stepItem
-          );
+          // Add connecting line between steps if not the last step
+          if (index < totalSteps - 1) {
+            return (
+              <React.Fragment key={stepNumber}>
+                {stepCircle}
+                <div
+                  className={cn(
+                    "flex-1 h-0.5 mx-2",
+                    isCompleted
+                      ? "bg-green-500"
+                      : "bg-gray-300"
+                  )}
+                />
+              </React.Fragment>
+            );
+          }
+          
+          // Return just the step for the last item
+          return stepCircle;
         })}
       </div>
     </div>

@@ -55,7 +55,7 @@ export function mapCoOwnerDbRowToFormValues(data: ProfileTableRow): Partial<CoOw
   if ('co_ownership_experience' in data) {
     formattedData.coOwnershipExperience = safeEnum(
       data.co_ownership_experience,
-      ["None", "Some", "Experienced"],
+      ["None", "Some", "Extensive"],
       "None"
     );
   }

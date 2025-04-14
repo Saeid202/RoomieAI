@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { PersonalInfoSection } from "./form-sections/PersonalInfoSection";
 import { InvestmentSection } from "./form-sections/InvestmentSection";
 import { LocationExperienceSection } from "./form-sections/LocationExperienceSection";
-import { CoOwnerFormValues, coOwnerFormSchema } from "./types";
+import { CoOwnerFormValues, coOwnerSchema } from "./types";
 
 interface CoOwnerProfileFormProps {
   initialData?: Partial<CoOwnerFormValues> | null;
@@ -35,7 +35,7 @@ export function CoOwnerProfileForm({ initialData, onSave }: CoOwnerProfileFormPr
 
   // Create form with merged values
   const form = useForm<CoOwnerFormValues>({
-    resolver: zodResolver(coOwnerFormSchema),
+    resolver: zodResolver(coOwnerSchema),
     defaultValues: { ...defaultValues, ...initialData },
   });
 
