@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -22,10 +22,15 @@ export default function FutureHousingPlan() {
   const { plans, isLoading, error, createPlan, updatePlan } = useHousingPlans();
   const { user } = useAuth();
 
+  console.log("FutureHousingPlan component rendering");
   console.log("Auth user:", user);
   console.log("Housing plans:", plans);
   console.log("Loading state:", isLoading);
   console.log("Error:", error);
+
+  useEffect(() => {
+    console.log("FutureHousingPlan useEffect - auth state or plans changed");
+  }, [user, plans]);
 
   const onSubmit = async (data: any) => {
     try {
@@ -96,26 +101,6 @@ export default function FutureHousingPlan() {
     setIsFormOpen(true);
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="w-8 h-8 border-4 border-t-transparent border-roomie-purple rounded-full animate-spin"></div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="text-center py-6">
-        <h1 className="text-3xl font-bold mb-6">My Future Housing Plan</h1>
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-          <p>Failed to load housing plans. Please try again later.</p>
-          <p className="text-sm">{error instanceof Error ? error.message : 'Unknown error'}</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="container mx-auto py-6">
       <h1 className="text-3xl font-bold mb-6">My Future Housing Plan</h1>
@@ -144,28 +129,39 @@ export default function FutureHousingPlan() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {plans.length === 0 ? (
-              <div className="text-center py-10">
-                <p className="text-muted-foreground mb-4">
-                  You haven't created any housing plans yet. Use this section to plan and track your future housing needs and preferences.
-                </p>
-                <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-                  <DialogTrigger asChild>
-                    <Button className="bg-roomie-purple hover:bg-roomie-purple/90">
-                      <PlusCircle className="mr-2 h-4 w-4" />
-                      Create Your First Plan
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-[500px]">
-                    <DialogHeader>
-                      <DialogTitle>Create Housing Plan</DialogTitle>
-                    </DialogHeader>
-                    <HousingPlanForm onSubmit={onSubmit} />
-                  </DialogContent>
-                </Dialog>
+            {isLoading ? (
+              <div className="flex justify-center items-center py-10">
+                <div className="w-8 h-8 border-4 border-t-transparent border-roomie-purple rounded-full animate-spin"></div>
+              </div>
+            ) : error ? (
+              <div className="text-center py-6 text-red-500">
+                <p>Error loading housing plans. Please try again.</p>
+                <p className="text-sm mt-2">{error instanceof Error ? error.message : 'Unknown error'}</p>
               </div>
             ) : (
-              <HousingPlanList plans={plans} onEdit={handleEdit} />
+              plans.length === 0 ? (
+                <div className="text-center py-10">
+                  <p className="text-muted-foreground mb-4">
+                    You haven't created any housing plans yet. Use this section to plan and track your future housing needs and preferences.
+                  </p>
+                  <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+                    <DialogTrigger asChild>
+                      <Button className="bg-roomie-purple hover:bg-roomie-purple/90">
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Create Your First Plan
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[500px]">
+                      <DialogHeader>
+                        <DialogTitle>Create Housing Plan</DialogTitle>
+                      </DialogHeader>
+                      <HousingPlanForm onSubmit={onSubmit} />
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              ) : (
+                <HousingPlanList plans={plans} onEdit={handleEdit} />
+              )
             )}
           </CardContent>
         </Card>

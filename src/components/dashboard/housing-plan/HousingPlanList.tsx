@@ -11,6 +11,8 @@ type HousingPlanListProps = {
 };
 
 export function HousingPlanList({ plans, onEdit }: HousingPlanListProps) {
+  console.log("HousingPlanList render with plans:", plans);
+  
   if (!plans || plans.length === 0) {
     return (
       <div className="text-center py-8">
@@ -44,7 +46,7 @@ export function HousingPlanList({ plans, onEdit }: HousingPlanListProps) {
               </p>
               <p className="text-sm flex items-center">
                 <DollarSign className="mr-2 h-4 w-4 text-gray-500" />
-                Budget: ${plan.budget ? plan.budget : 0}/month
+                Budget: ${plan.budget ? plan.budget.toString() : '0'}/month
               </p>
               <p className="text-sm flex items-center">
                 <Home className="mr-2 h-4 w-4 text-gray-500" />

@@ -2,6 +2,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 
 export interface HousingPlan {
   id: string;
@@ -17,11 +18,18 @@ export interface HousingPlan {
 export function useHousingPlans() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   const { data: plans = [], isLoading, error } = useQuery({
     queryKey: ['housing-plans'],
     queryFn: async () => {
-      console.log('Fetching housing plans');
+      console.log('Fetching housing plans, authenticated user:', user?.id);
+      
+      if (!user) {
+        console.log('No authenticated user, returning empty plans array');
+        return [];
+      }
+
       const { data, error } = await supabase
         .from('My Future Housing Plan')
         .select('*')
@@ -37,13 +45,24 @@ export function useHousingPlans() {
         throw error;
       }
 
-      console.log('Housing plans data:', data);
-      return data as HousingPlan[];
+      console.log('Housing plans data fetched successfully:', data);
+      return data.map(plan => ({
+        ...plan,
+        id: plan.id.toString()
+      })) as HousingPlan[];
     },
+    enabled: !!user,
   });
 
   const createPlan = useMutation({
     mutationFn: async (plan: Omit<HousingPlan, 'id' | 'created_at' | 'user_id'>) => {
+      console.log('Creating housing plan:', plan);
+      
+      if (!user) {
+        console.error('No authenticated user');
+        throw new Error('You must be logged in to create a housing plan');
+      }
+
       const { data, error } = await supabase
         .from('My Future Housing Plan')
         .insert(plan)
@@ -54,6 +73,8 @@ export function useHousingPlans() {
         console.error('Error creating housing plan:', error);
         throw error;
       }
+      
+      console.log('Housing plan created successfully:', data);
       return data;
     },
     onSuccess: () => {
@@ -75,6 +96,13 @@ export function useHousingPlans() {
 
   const updatePlan = useMutation({
     mutationFn: async ({ id, ...plan }: Partial<HousingPlan> & { id: string }) => {
+      console.log('Updating housing plan:', id, plan);
+      
+      if (!user) {
+        console.error('No authenticated user');
+        throw new Error('You must be logged in to update a housing plan');
+      }
+
       const { data, error } = await supabase
         .from('My Future Housing Plan')
         .update(plan)
@@ -86,6 +114,8 @@ export function useHousingPlans() {
         console.error('Error updating housing plan:', error);
         throw error;
       }
+      
+      console.log('Housing plan updated successfully:', data);
       return data;
     },
     onSuccess: () => {
