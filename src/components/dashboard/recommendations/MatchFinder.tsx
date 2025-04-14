@@ -27,10 +27,10 @@ export function MatchFinder({
     try {
       setIsLoading(true);
       onStartLoading();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
       
       const matches = await findMatches();
       
+      // Shorter timeout for faster loading
       setTimeout(() => {
         const resultsElement = document.querySelector('[data-results-section]');
         if (resultsElement) {
@@ -39,12 +39,12 @@ export function MatchFinder({
         
         toast({
           title: "Matches found!",
-          description: "We've found some potential roommates for you.",
+          description: `Found ${matches.length} potential roommates for you.`,
         });
         
         setIsLoading(false);
         onFinishLoading();
-      }, 500);
+      }, 300);
     } catch (error) {
       console.error("Error finding matches:", error);
       setIsLoading(false);

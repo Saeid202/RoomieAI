@@ -11,14 +11,14 @@ export default function RoommateRecommendationsPage() {
   const [isRetrying, setIsRetrying] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Simplified loading state handling
+  // Simplified loading state with shorter timeout
   useEffect(() => {
     document.title = "Find My Ideal Roommate";
     
-    // Use a longer timeout to ensure page has time to fully load
+    // Use shorter timeout for faster loading
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 3000);
+    }, 1000);
     
     return () => clearTimeout(timer);
   }, []);
@@ -27,16 +27,15 @@ export default function RoommateRecommendationsPage() {
     setIsRetrying(true);
     setIsLoading(true);
     
-    // Force a remount of the component
+    // Force a remount of the component with shorter timeout
     setTimeout(() => {
       setError(null);
       setIsRetrying(false);
       
-      // Delay turning off loading to ensure clean remount
       setTimeout(() => {
         setIsLoading(false);
-      }, 1000);
-    }, 300);
+      }, 500);
+    }, 200);
   };
 
   if (isLoading) {

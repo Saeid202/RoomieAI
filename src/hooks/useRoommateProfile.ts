@@ -13,32 +13,27 @@ export function useRoommateProfile() {
   const [hasAttemptedLoad, setHasAttemptedLoad] = useState(false);
 
   const loadProfileData = useCallback(async () => {
-    // Don't attempt to load if we're already loading
-    if (!loading) {
-      setLoading(true);
-    }
+    // Skip if already loading
+    if (loading && hasAttemptedLoad) return;
+    
+    setLoading(true);
     
     try {
       setError(null);
       
       if (!user) {
-        // No user, so use default profile data
-        console.log("No user found, using default profile data");
+        // Use default profile data if no user
         setProfileData(getDefaultProfileData());
         return;
       }
       
-      console.log("Loading profile data for user:", user.id);
-      
       const { data, error: fetchError } = await fetchRoommateProfile(user.id);
       
       if (fetchError && fetchError.code !== 'PGRST116') {
-        console.error("Error fetching roommate profile:", fetchError);
         throw new Error(`Failed to fetch profile: ${fetchError.message}`);
       }
       
       if (data) {
-        console.log("Fetched roommate profile:", data);
         // If profile data exists in JSONB field, use it
         if (data.profile_data) {
           // Convert moveInDate from string to Date
@@ -50,24 +45,21 @@ export function useRoommateProfile() {
           };
           
           setProfileData(profileData);
-          console.log("Set profile data from database:", profileData);
         } else {
           // Otherwise use defaults
           setProfileData(getDefaultProfileData());
         }
       } else {
         // If no profile exists yet, use default values
-        console.log("No existing profile found, using default values");
         setProfileData(getDefaultProfileData());
       }
     } catch (error) {
-      console.error("Error loading profile data:", error);
       setError(error instanceof Error ? error : new Error("Unknown error loading profile"));
       
       // Set default data even on error to prevent UI from breaking
       setProfileData(getDefaultProfileData());
       
-      // Only show toast if it's not a normal "not found" error
+      // Only show toast for errors other than "not found"
       if (error instanceof Error && !error.message.includes("not found")) {
         toast({
           title: "Error loading profile",
@@ -79,16 +71,13 @@ export function useRoommateProfile() {
       setHasAttemptedLoad(true);
       setLoading(false);
     }
-  }, [user, toast]);
+  }, [user, toast, loading, hasAttemptedLoad]);
 
-  // Load profile data on mount
+  // Load profile data on mount - with minimal timeout
   useEffect(() => {
     if (!hasAttemptedLoad) {
-      const timer = setTimeout(() => {
-        loadProfileData();
-      }, 500);
-      
-      return () => clearTimeout(timer);
+      // Load immediately to prevent unnecessary delays
+      loadProfileData();
     }
   }, [hasAttemptedLoad, loadProfileData]);
 
@@ -112,7 +101,6 @@ export function useRoommateProfile() {
       importantRoommateTraits: [],
       occupation: "",
       workSchedule: "9AM-5PM",
-      // Default values for the new fields
       lifestylePreferences: {
         similarSchedule: false,
         similarInterests: false,
