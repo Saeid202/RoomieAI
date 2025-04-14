@@ -97,12 +97,6 @@ export function AIAssistantSection({
     }, 1000);
   };
 
-  const isProfileComplete = profileData && profileData.fullName && profileData.age;
-  const hasRoommatePreferences = profileData && 
-    ((profileData.importantRoommateTraits && profileData.importantRoommateTraits.length > 0) || 
-     profileData.roommateGenderPreference || 
-     profileData.roommateAgePreference);
-
   return (
     <AccordionItem value="ai-assistant" className="border rounded-lg">
       <AccordionTrigger className="px-4 py-2 hover:no-underline">
@@ -112,89 +106,73 @@ export function AIAssistantSection({
         </div>
       </AccordionTrigger>
       <AccordionContent className="px-4 pb-4">
-        <Card>
-          <CardContent className="p-6">
-            <div className="space-y-6">
-              <h3 className="text-2xl font-bold text-center">AI Matching Assistant</h3>
+        <Card className="overflow-hidden">
+          <CardContent className="p-0">
+            {/* Simplified layout based on the image */}
+            <div className="flex flex-col space-y-4">
+              {/* AI Matching Assistant Header */}
+              <div className="bg-white p-6 border-b">
+                <h3 className="text-2xl font-bold text-center">AI Matching Assistant</h3>
+              </div>
               
-              {/* Chatbot - always visible */}
-              <div className="border rounded-lg mt-4 w-full">
-                <div className="p-3 border-b bg-muted/30">
-                  <h3 className="font-medium text-center">Chatbot</h3>
-                </div>
-                
-                <ScrollArea className="h-80 p-4">
-                  <div className="space-y-4">
-                    {messages.map((message) => (
-                      <div 
-                        key={message.id} 
-                        className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                      >
-                        <div className={`flex items-start max-w-[75%] ${message.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-                          <Avatar className={`w-8 h-8 ${message.role === 'user' ? 'ml-2' : 'mr-2'}`}>
-                            <div className={message.role === 'assistant' ? "bg-roomie-purple text-white w-full h-full flex items-center justify-center" : "bg-gray-200 w-full h-full flex items-center justify-center"}>
-                              {message.role === 'assistant' ? 'AI' : 'You'}
+              {/* Chatbot Section */}
+              <div className="px-6">
+                <div className="border rounded-lg">
+                  <div className="p-3 border-b bg-muted/30">
+                    <h3 className="font-medium text-center">Chatbot</h3>
+                  </div>
+                  
+                  <ScrollArea className="h-60 p-4">
+                    <div className="space-y-4">
+                      {messages.map((message) => (
+                        <div 
+                          key={message.id} 
+                          className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                        >
+                          <div className={`flex items-start max-w-[75%] ${message.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+                            <Avatar className={`w-8 h-8 ${message.role === 'user' ? 'ml-2' : 'mr-2'}`}>
+                              <div className={message.role === 'assistant' ? "bg-roomie-purple text-white w-full h-full flex items-center justify-center" : "bg-gray-200 w-full h-full flex items-center justify-center"}>
+                                {message.role === 'assistant' ? 'AI' : 'You'}
+                              </div>
+                            </Avatar>
+                            <div 
+                              className={`rounded-lg p-3 text-sm ${
+                                message.role === 'assistant' 
+                                  ? 'bg-muted/50 text-foreground' 
+                                  : 'bg-roomie-purple/80 text-white'
+                              }`}
+                            >
+                              {message.content}
                             </div>
-                          </Avatar>
-                          <div 
-                            className={`rounded-lg p-3 text-sm ${
-                              message.role === 'assistant' 
-                                ? 'bg-muted/50 text-foreground' 
-                                : 'bg-roomie-purple/80 text-white'
-                            }`}
-                          >
-                            {message.content}
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
+                  </ScrollArea>
+                  
+                  <div className="p-3 border-t">
+                    <form onSubmit={handleSendMessage} className="flex gap-2">
+                      <Input
+                        value={inputValue}
+                        onChange={(e) => setInputValue(e.target.value)}
+                        placeholder="Ask about roommate matching..."
+                        className="flex-1"
+                      />
+                      <Button type="submit" size="icon">
+                        <SendHorizontal className="h-4 w-4" />
+                      </Button>
+                    </form>
                   </div>
-                </ScrollArea>
-                
-                <div className="p-3 border-t">
-                  <form onSubmit={handleSendMessage} className="flex gap-2">
-                    <Input
-                      value={inputValue}
-                      onChange={(e) => setInputValue(e.target.value)}
-                      placeholder="Ask about roommate matching..."
-                      className="flex-1"
-                    />
-                    <Button type="submit" size="icon">
-                      <SendHorizontal className="h-4 w-4" />
-                    </Button>
-                  </form>
                 </div>
               </div>
               
-              {/* Profile check section */}
-              <div className="max-w-md mx-auto bg-accent/20 rounded-lg p-4 mt-4">
-                <h4 className="font-medium mb-2">Before we search:</h4>
-                <ul className="text-sm text-left space-y-2">
-                  <li className="flex items-start">
-                    <span className={`mr-2 ${isProfileComplete ? 'text-green-500' : 'text-amber-500'}`}>
-                      {isProfileComplete ? '✓' : '○'}
-                    </span>
-                    <span>Fill out your <strong>About Me</strong> information</span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className={`mr-2 ${hasRoommatePreferences ? 'text-green-500' : 'text-amber-500'}`}>
-                      {hasRoommatePreferences ? '✓' : '○'}
-                    </span>
-                    <span>Complete your <strong>Ideal Roommate</strong> preferences</span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="mr-2">✓</span>
-                    <span>Make sure to <strong>Save</strong> all your changes</span>
-                  </li>
-                </ul>
-              </div>
-              
-              {/* Find Match button - centered and prominent */}
-              <div className="flex justify-center mt-6">
+              {/* Find My Match Button - centered and prominent */}
+              <div className="flex justify-center pb-6 px-6">
                 <Button 
                   onClick={handleFindMatch} 
                   disabled={isLoading}
-                  className="w-full sm:w-1/2 bg-gradient-to-r from-roomie-purple to-roomie-accent hover:opacity-90 text-white font-medium px-12 py-6 text-lg rounded-lg shadow-md"
+                  className="w-full md:w-1/2 py-6 text-lg font-medium"
+                  variant="default"
                 >
                   {isLoading ? (
                     <div className="flex items-center">
