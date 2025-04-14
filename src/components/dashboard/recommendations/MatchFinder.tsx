@@ -24,14 +24,17 @@ export function MatchFinder({
   const [isLoading, setIsLoading] = useState(false);
 
   const handleFindMatch = async () => {
+    // Guard against multiple simultaneous calls
+    if (isLoading) return;
+    
     try {
       // Set loading states before doing anything else
       setIsLoading(true);
       onStartLoading();
       
-      // Allow loading state to fully propagate before proceeding
-      // This prevents UI from flashing between states
-      await new Promise(resolve => setTimeout(resolve, 200));
+      // Force a significant delay before starting the match finding process
+      // This ensures the UI has fully transitioned to loading state
+      await new Promise(resolve => setTimeout(resolve, 500));
       
       const matches = await findMatches();
       
@@ -41,17 +44,17 @@ export function MatchFinder({
         description: `Found ${matches.length} potential roommates for you.`,
       });
       
-      // Scroll smoothly to results after we're sure they're rendered
+      // Add a delay before scrolling to results to ensure they're rendered
       setTimeout(() => {
         const resultsElement = document.querySelector('[data-results-section]');
         if (resultsElement) {
           resultsElement.scrollIntoView({ behavior: 'smooth' });
         }
         
-        // Only update loading state after everything is complete
+        // Only remove loading state after everything is complete
         setIsLoading(false);
         onFinishLoading();
-      }, 300);
+      }, 500);
       
     } catch (error) {
       console.error("Error finding matches:", error);

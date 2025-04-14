@@ -14,7 +14,7 @@ export function useRoommateProfile() {
   const [hasAttemptedLoad, setHasAttemptedLoad] = useState(false);
 
   const loadProfileData = useCallback(async () => {
-    // Skip if already loading
+    // Prevent duplicate loading attempts
     if (loading && hasAttemptedLoad) return;
     
     setLoading(true);
@@ -70,19 +70,24 @@ export function useRoommateProfile() {
         });
       }
     } finally {
-      // Use a short delay before marking loading as complete
-      // This ensures a stable transition with minimal flicker
+      // Fixed delay before marking loading as complete
+      // This ensures UI doesn't flash during transitions
       setTimeout(() => {
         setLoading(false);
         setHasAttemptedLoad(true);
-      }, 150);
+      }, 500);
     }
   }, [user, toast, loading, hasAttemptedLoad]);
 
   // Load profile data on mount with stable loading state
   useEffect(() => {
     if (!hasAttemptedLoad) {
-      loadProfileData();
+      // Add a small initial delay to prevent immediate state changes
+      const loadTimer = setTimeout(() => {
+        loadProfileData();
+      }, 100);
+      
+      return () => clearTimeout(loadTimer);
     }
   }, [hasAttemptedLoad, loadProfileData]);
 

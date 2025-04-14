@@ -24,7 +24,6 @@ export function RoommateRecommendations({ onError }: RoommateRecommendationsProp
   const [activeAboutMeTab, setActiveAboutMeTab] = useState("personal-info");
   const [activeIdealRoommateTab, setActiveIdealRoommateTab] = useState("preferences");
   const [isPageLoading, setIsPageLoading] = useState(false);
-  const [contentReady, setContentReady] = useState(false);
   
   const { 
     loading, 
@@ -43,25 +42,10 @@ export function RoommateRecommendations({ onError }: RoommateRecommendationsProp
   
   const { expandedSections, setExpandedSections } = useAccordionSections(["about-me", "ideal-roommate", "ai-assistant"]);
 
-  // Avoid state changes that could cause flashing
-  useEffect(() => {
-    if (!loading && profileData) {
-      // Use RAF for better sync with browser rendering cycle
-      // This helps prevent flashing by ensuring we're updating in sync with the paint cycle
-      requestAnimationFrame(() => {
-        // Use a timeout only after RAF to ensure smooth transition
-        setTimeout(() => {
-          setContentReady(true);
-        }, 300);
-      });
-    }
-  }, [loading, profileData]);
+  // If any loading state is active, show loading state
+  const isLoading = isPageLoading || loading;
 
-  // Combine loading states to prevent multiple renders
-  const isLoading = isPageLoading || loading || !contentReady;
-
-  // Show loading state with a single condition to prevent flicker
-  if (isLoading) {
+  if (isLoading || !profileData) {
     return <LoadingState />;
   }
 

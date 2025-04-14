@@ -10,39 +10,33 @@ export default function RoommateRecommendationsPage() {
   const [error, setError] = useState<Error | null>(null);
   const [isRetrying, setIsRetrying] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [contentMounted, setContentMounted] = useState(false);
-
-  // Use a more predictable loading mechanism
+  
+  // Simplified loading mechanism with only a single state
   useEffect(() => {
     document.title = "Find My Ideal Roommate";
     
-    // Only set loading state once during initial render
-    if (!contentMounted) {
-      setContentMounted(true);
-      
-      // Use a longer timeout for more stable rendering
-      // This ensures the DOM has fully rendered before transitioning
-      const stableTimer = setTimeout(() => {
-        setIsLoading(false);
-      }, 300);
-      
-      return () => clearTimeout(stableTimer);
-    }
-  }, [contentMounted]);
+    // Use a longer timeout for initial loading to ensure all components are ready
+    const loadingTimer = setTimeout(() => {
+      setIsLoading(false);
+    }, 800); // Longer timeout to ensure stable rendering
+    
+    return () => clearTimeout(loadingTimer);
+  }, []);
 
   const handleRetry = () => {
     setIsRetrying(true);
     setIsLoading(true);
     setError(null);
     
-    // Ensure clean remount with sufficient delay
+    // Allow 500ms for clean state reset before attempting to load again
     setTimeout(() => {
-      setContentMounted(false);
-    }, 250);
+      setIsRetrying(false);
+      setIsLoading(false);
+    }, 500);
   };
 
-  // Maintain stable DOM during loading
   if (isLoading) {
+    // Return a stable loading state component
     return <LoadingState />;
   }
 
@@ -70,7 +64,7 @@ export default function RoommateRecommendationsPage() {
     );
   }
 
-  // Ensure stable DOM with consistent structure
+  // Only render the main component when we're sure loading is finished
   return (
     <div className="container mx-auto py-6" style={{ minHeight: '80vh' }}>
       <RoommateRecommendations key="recommendations-component" onError={setError} />

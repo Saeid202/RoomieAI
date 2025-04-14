@@ -4,14 +4,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export function LoadingState() {
   return (
-    <div 
-      className="container mx-auto py-6" 
-      style={{ 
-        minHeight: '80vh', 
-        opacity: 1,
-        transition: 'opacity 400ms ease-in-out' 
-      }}
-    >
+    <div className="container mx-auto py-6" data-testid="loading-state">
       <div className="space-y-6">
         <div className="flex items-center gap-2">
           <Skeleton className="h-10 w-64" />
