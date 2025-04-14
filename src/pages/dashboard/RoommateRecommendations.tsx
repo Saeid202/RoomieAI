@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { RoommateRecommendations } from "@/components/dashboard/RoommateRecommendations";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,16 @@ import { RefreshCw } from "lucide-react";
 export default function RoommateRecommendationsPage() {
   const [error, setError] = useState<Error | null>(null);
   const [isRetrying, setIsRetrying] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  // Add an effect to handle the initial load transition
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoaded(true);
+    }, 300);
+    
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleRetry = () => {
     setIsRetrying(true);
@@ -43,7 +53,7 @@ export default function RoommateRecommendationsPage() {
   }
 
   return (
-    <div className="container mx-auto py-6">
+    <div className={`container mx-auto py-6 transition-opacity duration-300 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}>
       <RoommateRecommendations onError={setError} />
     </div>
   );

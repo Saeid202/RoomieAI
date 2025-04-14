@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -61,13 +62,19 @@ export function useRoommateProfile() {
       // Set default data even on error to prevent UI from breaking
       setProfileData(getDefaultProfileData());
       
-      toast({
-        title: "Error loading profile",
-        description: "Could not load your profile data. Default values will be used.",
-        variant: "destructive",
-      });
+      // Only show toast if it's not a normal "not found" error
+      if (error instanceof Error && !error.message.includes("not found")) {
+        toast({
+          title: "Error loading profile",
+          description: "Could not load your profile data. Default values will be used.",
+          variant: "destructive",
+        });
+      }
     } finally {
-      setLoading(false);
+      // Add small delay to prevent flashing
+      setTimeout(() => {
+        setLoading(false);
+      }, 200);
     }
   }, [user, toast]);
 
@@ -78,8 +85,11 @@ export function useRoommateProfile() {
       loadProfileData();
     } else {
       console.log("No user detected, skipping profile data load");
-      setLoading(false);
-      setProfileData(getDefaultProfileData());
+      // Add small delay to prevent flashing
+      setTimeout(() => {
+        setLoading(false);
+        setProfileData(getDefaultProfileData());
+      }, 200);
     }
   }, [user, loadProfileData]);
 

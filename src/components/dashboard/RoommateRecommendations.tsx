@@ -42,11 +42,19 @@ export function RoommateRecommendations({ onError }: RoommateRecommendationsProp
   
   const { expandedSections, setExpandedSections } = useAccordionSections(["about-me", "ideal-roommate", "ai-assistant"]);
 
+  // Add a stable initial render to prevent flashing
+  const [isInitialRender, setIsInitialRender] = useState(true);
+  
   useEffect(() => {
-    console.log("ProfileData updated in RoommateRecommendations:", profileData);
-  }, [profileData]);
+    // Set initial render to false after a short delay
+    const timer = setTimeout(() => {
+      setIsInitialRender(false);
+    }, 300);
+    
+    return () => clearTimeout(timer);
+  }, []);
 
-  if (loading || isPageLoading) {
+  if (isInitialRender || loading || isPageLoading) {
     return <LoadingState />;
   }
 
