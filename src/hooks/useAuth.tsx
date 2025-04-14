@@ -4,10 +4,14 @@ import { useAuth as useAuthOriginal } from "@/providers/AuthProvider";
 
 export const useAuth = () => {
   const auth = useAuthOriginal();
+  
+  // Enhanced logging to debug authentication issues
   console.log("useAuth hook called, auth state:", { 
     user: auth.user?.email || null, 
     authenticated: !!auth.user, 
-    loading: auth.loading 
+    loading: auth.loading,
+    hasSession: !!auth.session
   });
+  
   return auth;
 };

@@ -15,6 +15,7 @@ import RentOpportunitiesPage from "@/pages/dashboard/RentOpportunities";
 import ChatsPage from "@/pages/dashboard/Chats";
 import RentSavingsPage from "@/pages/dashboard/RentSavings";
 import CoOwnerRecommendationsPage from "@/pages/dashboard/CoOwnerRecommendations";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 function App() {
   console.log("App component rendering");
@@ -26,7 +27,11 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/auth" element={<AuthPage />} />
           <Route path="/auth/callback" element={<Callback />} />
-          <Route path="/dashboard" element={<Dashboard />}>
+          <Route path="/dashboard" element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }>
             <Route path="profile" element={<Profile />} />
             <Route path="roommate-recommendations" element={<RoommateRecommendationsPage />} />
             <Route path="rent-opportunities" element={<RentOpportunitiesPage />} />

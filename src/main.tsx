@@ -6,17 +6,30 @@ import App from './App.tsx'
 import './index.css'
 import { RoleProvider } from './contexts/RoleContext.tsx'
 
-// Initialize React Query client
+// Initialize React Query client with better error handling
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: 1,
       refetchOnWindowFocus: false,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      onError: (error) => {
+        console.error('Query error:', error);
+      }
     },
   },
 })
 
-createRoot(document.getElementById("root")!).render(
+// Add error boundary for the entire application
+window.addEventListener('error', (event) => {
+  console.error('Global error caught:', event.error);
+});
+
+// Render the application
+const rootElement = document.getElementById("root");
+if (!rootElement) throw new Error("Failed to find the root element");
+
+createRoot(rootElement).render(
   <BrowserRouter>
     <QueryClientProvider client={queryClient}>
       <RoleProvider>
