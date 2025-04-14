@@ -64,11 +64,12 @@ export function useRoommateMatching() {
         return;
       }
       
-      // Convert profile form data to the format expected by the matching algorithm
-      const profileForMatching = convertFormToProfileData(profileData as ProfileFormValues);
+      // First convert to ProfileFormValues to ensure the right types
+      const formValues = profileData as ProfileFormValues;
       
-      // Find matches using the algorithm
-      const matchesFound = findMatchesAlgorithm(profileForMatching);
+      // Use the algorithm directly on the form values
+      // The algorithm will handle the conversion internally
+      const matchesFound = findMatchesAlgorithm(formValues);
       console.log("Matches found:", matchesFound);
       
       // Update state with found matches

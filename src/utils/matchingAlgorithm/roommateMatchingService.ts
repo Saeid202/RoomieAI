@@ -1,52 +1,35 @@
 
-import { ProfileFormValues, MatchResult } from "./types";
-import { potentialRoommates } from "./mockData";
 import { calculateCompatibilityScore } from "./compatibilityCalculator";
-import { mapFormToProfileData } from "./profileMapper";
+import { MatchResult, ProfileData, ProfileFormValues } from "./types";
+import { mockRoommates } from "./mockData";
+import { convertFormToProfileData } from "./profileMapper";
 
+/**
+ * Find potential roommate matches based on user profile
+ */
 export const findMatches = (userProfile: ProfileFormValues): MatchResult[] => {
-  // Convert form data to the format expected by the matching algorithm
-  const profileData = mapFormToProfileData(userProfile);
+  console.log("Finding matches for user profile:", userProfile);
   
-  // Calculate compatibility scores for all potential roommates
-  const matches = potentialRoommates.map(roommate => {
-    // Apply gender preference filter
-    let genderMatch = true;
-    if (userProfile.roommateGenderPreference === "sameGender") {
-      genderMatch = roommate.gender === profileData.gender;
-    } else if (userProfile.roommateGenderPreference === "femaleOnly") {
-      genderMatch = roommate.gender === "female";
-    } else if (userProfile.roommateGenderPreference === "maleOnly") {
-      genderMatch = roommate.gender === "male";
-    }
-    
-    // Calculate compatibility score if gender matches
-    if (!genderMatch) {
-      return {
-        ...roommate,
-        compatibilityScore: 0,
-        compatibilityBreakdown: {
-          budget: 0,
-          location: 0,
-          lifestyle: 0,
-          schedule: 0,
-          interests: 0,
-          cleanliness: 0
-        }
-      };
-    }
-    
-    const { score, breakdown } = calculateCompatibilityScore(profileData, roommate);
+  // Convert the form values to the format expected by the matching algorithm
+  const profileData = convertFormToProfileData(userProfile);
+  
+  // For a real application, this would query a database of potential matches
+  // For this demo, we'll use mock data
+  const potentialMatches = mockRoommates;
+  
+  // Calculate compatibility scores for each potential match
+  const matches = potentialMatches.map(match => {
+    const compatibility = calculateCompatibilityScore(profileData, match);
     
     return {
-      ...roommate,
-      compatibilityScore: score,
-      compatibilityBreakdown: breakdown
+      ...match,
+      compatibilityScore: compatibility.score,
+      compatibilityBreakdown: compatibility.breakdown
     };
   });
   
-  // Sort by compatibility score (highest first) and filter out non-matches (score of 0)
-  return matches
-    .filter(match => match.compatibilityScore > 0)
-    .sort((a, b) => b.compatibilityScore - a.compatibilityScore);
+  // Sort matches by compatibility score (highest first)
+  const sortedMatches = matches.sort((a, b) => b.compatibilityScore - a.compatibilityScore);
+  
+  return sortedMatches;
 };
