@@ -23,7 +23,7 @@ export function Header({ onRefreshProfile, isAuthenticated }: HeaderProps) {
     <div className="flex flex-col sm:flex-row justify-between gap-4 items-start sm:items-center">
       <h1 className="text-3xl font-bold tracking-tight">Find My Ideal Roommate</h1>
       {isAuthenticated && (
-        <div className="flex items-center gap-3 self-end sm:self-auto">
+        <div className="flex items-center gap-3 ml-auto">
           <Button 
             variant="ghost" 
             size="icon" 

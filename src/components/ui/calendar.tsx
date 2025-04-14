@@ -1,7 +1,7 @@
 
 import * as React from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { DayPicker, CaptionProps } from "react-day-picker";
+import { DayPicker } from "react-day-picker";
 
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
@@ -17,13 +17,15 @@ export type CalendarProps = React.ComponentProps<typeof DayPicker>;
 
 // Custom navigation component for month/year selection
 function CalendarNavigation({ 
-  displayMonths,
-  month,
-  onMonthChange 
-}: CaptionProps) {
-  // Get current year and month from the month prop
-  const currentYear = month.getFullYear();
-  const currentMonth = month.getMonth();
+  displayMonth,
+  onSelect
+}: {
+  displayMonth: Date;
+  onSelect: (month: Date) => void;
+}) {
+  // Get current year and month from the displayMonth prop
+  const currentYear = displayMonth.getFullYear();
+  const currentMonth = displayMonth.getMonth();
   
   // Generate years (5 years back, 10 years forward)
   const years = Array.from({ length: 16 }, (_, i) => currentYear - 5 + i);
@@ -36,27 +38,37 @@ function CalendarNavigation({
 
   // Handle year change
   const handleYearChange = (year: string) => {
-    const newDate = new Date(month);
+    const newDate = new Date(displayMonth);
     newDate.setFullYear(parseInt(year));
-    onMonthChange(newDate);
+    onSelect(newDate);
   };
 
   // Handle month change
   const handleMonthChange = (monthName: string) => {
-    const newDate = new Date(month);
+    const newDate = new Date(displayMonth);
     newDate.setMonth(months.indexOf(monthName));
-    onMonthChange(newDate);
+    onSelect(newDate);
+  };
+
+  // Previous month button handler
+  const handlePrevMonth = () => {
+    const prevMonth = new Date(displayMonth);
+    prevMonth.setMonth(prevMonth.getMonth() - 1);
+    onSelect(prevMonth);
+  };
+
+  // Next month button handler
+  const handleNextMonth = () => {
+    const nextMonth = new Date(displayMonth);
+    nextMonth.setMonth(nextMonth.getMonth() + 1);
+    onSelect(nextMonth);
   };
 
   return (
     <div className="flex items-center justify-between px-1">
       <div className="flex items-center">
         <button
-          onClick={() => {
-            const prevMonth = new Date(month);
-            prevMonth.setMonth(prevMonth.getMonth() - 1);
-            onMonthChange(prevMonth);
-          }}
+          onClick={handlePrevMonth}
           className={cn(
             buttonVariants({ variant: "outline", size: "icon" }),
             "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100"
@@ -102,11 +114,7 @@ function CalendarNavigation({
 
       <div className="flex items-center">
         <button
-          onClick={() => {
-            const nextMonth = new Date(month);
-            nextMonth.setMonth(nextMonth.getMonth() + 1);
-            onMonthChange(nextMonth);
-          }}
+          onClick={handleNextMonth}
           className={cn(
             buttonVariants({ variant: "outline", size: "icon" }),
             "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100"
@@ -125,6 +133,8 @@ function Calendar({
   showOutsideDays = true,
   ...props
 }: CalendarProps) {
+  const [currentMonth, setCurrentMonth] = React.useState<Date>(new Date());
+
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
@@ -166,8 +176,18 @@ function Calendar({
       components={{
         IconLeft: ({ ..._props }) => <ChevronLeft className="h-4 w-4" />,
         IconRight: ({ ..._props }) => <ChevronRight className="h-4 w-4" />,
-        Caption: CalendarNavigation
+        Caption: ({ displayMonth }) => (
+          <CalendarNavigation 
+            displayMonth={displayMonth || currentMonth} 
+            onSelect={(date) => {
+              setCurrentMonth(date);
+              props.onMonthChange?.(date);
+            }} 
+          />
+        )
       }}
+      month={currentMonth}
+      onMonthChange={setCurrentMonth}
       onDayClick={(date) => {
         // Close calendar when a day is selected
         if (props.mode === "single" && props.onSelect && date) {
