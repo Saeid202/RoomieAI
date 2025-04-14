@@ -42,7 +42,6 @@ export function RoommateRecommendations({ onError }: RoommateRecommendationsProp
   } = useRoommateMatching();
 
   useEffect(() => {
-    console.log("RoommateRecommendations component mounted");
     setComponentMounted(true);
     return () => {
       console.log("RoommateRecommendations component unmounted");
