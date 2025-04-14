@@ -24,6 +24,7 @@ export function RoommateRecommendations({ onError }: RoommateRecommendationsProp
   const [activeAboutMeTab, setActiveAboutMeTab] = useState("personal-info");
   const [activeIdealRoommateTab, setActiveIdealRoommateTab] = useState("preferences");
   const [isPageLoading, setIsPageLoading] = useState(false);
+  const [contentReady, setContentReady] = useState(false);
   
   const { 
     loading, 
@@ -42,24 +43,31 @@ export function RoommateRecommendations({ onError }: RoommateRecommendationsProp
   
   const { expandedSections, setExpandedSections } = useAccordionSections(["about-me", "ideal-roommate", "ai-assistant"]);
 
-  // Add a stable initial render to prevent flashing
-  const [isInitialRender, setIsInitialRender] = useState(true);
-  
+  // Prevent UI flashing by ensuring a stable rendering
   useEffect(() => {
-    // Set initial render to false after a short delay
-    const timer = setTimeout(() => {
-      setIsInitialRender(false);
-    }, 300);
-    
-    return () => clearTimeout(timer);
-  }, []);
+    // Set content as ready only when profile data is available and loading is complete
+    if (!loading && profileData) {
+      // Delay to ensure smooth transitions
+      const timer = setTimeout(() => {
+        setContentReady(true);
+      }, 300);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [loading, profileData]);
 
-  if (isInitialRender || loading || isPageLoading) {
+  // When page is explicitly loading (e.g., during find matches)
+  if (isPageLoading) {
+    return <LoadingState />;
+  }
+
+  // During initial load or when profile data is loading
+  if (loading || !contentReady) {
     return <LoadingState />;
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 animate-fadeIn">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold tracking-tight">Find My Ideal Roommate</h1>
         {user && (

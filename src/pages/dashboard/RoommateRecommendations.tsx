@@ -4,19 +4,30 @@ import { RoommateRecommendations } from "@/components/dashboard/RoommateRecommen
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
+import { LoadingState } from "@/components/dashboard/recommendations/LoadingState";
 
 export default function RoommateRecommendationsPage() {
   const [error, setError] = useState<Error | null>(null);
   const [isRetrying, setIsRetrying] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
 
-  // Add an effect to handle the initial load transition
+  // Handle the initial page load with a proper loading state
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoaded(true);
-    }, 300);
+    // Use a longer delay for initial loading to ensure all data is ready
+    const loadingTimer = setTimeout(() => {
+      setInitialLoading(false);
+    }, 800);
     
-    return () => clearTimeout(timer);
+    // Add a separate timer for the fade-in transition
+    const fadeTimer = setTimeout(() => {
+      setIsLoaded(true);
+    }, 1000);
+    
+    return () => {
+      clearTimeout(loadingTimer);
+      clearTimeout(fadeTimer);
+    };
   }, []);
 
   const handleRetry = () => {
@@ -27,6 +38,10 @@ export default function RoommateRecommendationsPage() {
       setIsRetrying(false);
     }, 100);
   };
+
+  if (initialLoading) {
+    return <LoadingState />;
+  }
 
   if (error) {
     return (
@@ -53,7 +68,7 @@ export default function RoommateRecommendationsPage() {
   }
 
   return (
-    <div className={`container mx-auto py-6 transition-opacity duration-300 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}>
+    <div className={`container mx-auto py-6 transition-opacity duration-500 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}>
       <RoommateRecommendations onError={setError} />
     </div>
   );
