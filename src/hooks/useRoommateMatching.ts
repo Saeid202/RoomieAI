@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -64,7 +65,6 @@ export function useRoommateMatching() {
       }
       
       // Convert profile form data to the format expected by the matching algorithm
-      // using the helper function from the matching algorithm module
       const profileForMatching = convertFormToProfileData(profileData as ProfileFormValues);
       
       // Find matches using the algorithm
