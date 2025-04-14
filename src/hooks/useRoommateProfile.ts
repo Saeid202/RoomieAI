@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -102,7 +101,7 @@ export function useRoommateProfile() {
       guestsOver: "occasionally",
       hobbies: [],
       importantRoommateTraits: [],
-      occupation: "Not specified",
+      occupation: "",
       workSchedule: "9AM-5PM",
       // Default values for the new fields
       lifestylePreferences: {

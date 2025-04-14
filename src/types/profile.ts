@@ -13,6 +13,9 @@ export const profileSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
   linkedinProfile: z.string().optional(),
   
+  // Add occupation field
+  occupation: z.string().optional().default(""),
+  
   // Housing Preferences
   preferredLocation: z.string().min(1, "Location is required"),
   budgetRange: z.array(z.number()).min(2).max(2),
