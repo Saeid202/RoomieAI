@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -10,12 +11,23 @@ export function useRoommateProfile() {
   const [loading, setLoading] = useState(true);
   const [profileData, setProfileData] = useState<Partial<ProfileFormValues> | null>(null);
   const [error, setError] = useState<Error | null>(null);
+  const [hasAttemptedLoad, setHasAttemptedLoad] = useState(false);
+  const [loadCounter, setLoadCounter] = useState(0);
 
   const loadProfileData = useCallback(async () => {
+    // Prevent multiple simultaneous loads
+    if (loading && loadCounter > 0) {
+      console.log("Already loading profile data, skipping duplicate request");
+      return;
+    }
+    
+    setLoadCounter(prev => prev + 1);
+    
     if (!user) {
-      console.log("No user found, skipping profile data load");
+      console.log("No user found, using default profile data");
       setLoading(false);
       setProfileData(getDefaultProfileData());
+      setHasAttemptedLoad(true);
       return;
     }
     
@@ -61,27 +73,40 @@ export function useRoommateProfile() {
       // Set default data even on error to prevent UI from breaking
       setProfileData(getDefaultProfileData());
       
-      toast({
-        title: "Error loading profile",
-        description: "Could not load your profile data. Default values will be used.",
-        variant: "destructive",
-      });
+      // Only show toast if it's not a normal "not found" error
+      if (error instanceof Error && !error.message.includes("not found")) {
+        toast({
+          title: "Error loading profile",
+          description: "Could not load your profile data. Default values will be used.",
+          variant: "destructive",
+        });
+      }
     } finally {
-      setLoading(false);
+      setHasAttemptedLoad(true);
+      
+      // Add delay to prevent flashing
+      setTimeout(() => {
+        setLoading(false);
+      }, 500);
     }
-  }, [user, toast]);
+  }, [user, toast, loading, loadCounter]);
 
   // Load profile data on mount
   useEffect(() => {
-    if (user) {
-      console.log("User detected, loading profile data");
-      loadProfileData();
-    } else {
-      console.log("No user detected, skipping profile data load");
-      setLoading(false);
-      setProfileData(getDefaultProfileData());
+    if (!hasAttemptedLoad) {
+      if (user) {
+        console.log("User detected, loading profile data");
+        loadProfileData();
+      } else {
+        console.log("No user detected, using default profile data");
+        setTimeout(() => {
+          setLoading(false);
+          setProfileData(getDefaultProfileData());
+          setHasAttemptedLoad(true);
+        }, 500);
+      }
     }
-  }, [user, loadProfileData]);
+  }, [user, loadProfileData, hasAttemptedLoad]);
 
   // Helper function to get default profile data
   const getDefaultProfileData = (): Partial<ProfileFormValues> => {
