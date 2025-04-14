@@ -9,6 +9,57 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      co_owner: {
+        Row: {
+          age: string | null
+          co_ownership_experience: string | null
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: number
+          investment_capacity: number[] | null
+          investment_timeline: string | null
+          occupation: string | null
+          phone_number: string | null
+          preferred_location: string | null
+          property_type: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          age?: string | null
+          co_ownership_experience?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: number
+          investment_capacity?: number[] | null
+          investment_timeline?: string | null
+          occupation?: string | null
+          phone_number?: string | null
+          preferred_location?: string | null
+          property_type?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          age?: string | null
+          co_ownership_experience?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: number
+          investment_capacity?: number[] | null
+          investment_timeline?: string | null
+          occupation?: string | null
+          phone_number?: string | null
+          preferred_location?: string | null
+          property_type?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       "Find My Ideal Roommate": {
         Row: {
           created_at: string

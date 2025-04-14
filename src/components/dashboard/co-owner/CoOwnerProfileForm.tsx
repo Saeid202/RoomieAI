@@ -9,6 +9,8 @@ import { PersonalInfoSection } from "./form-sections/PersonalInfoSection";
 import { InvestmentSection } from "./form-sections/InvestmentSection";
 import { LocationExperienceSection } from "./form-sections/LocationExperienceSection";
 import { CoOwnerFormValues, coOwnerSchema } from "./types";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 interface CoOwnerProfileFormProps {
   initialData?: Partial<CoOwnerFormValues> | null;
@@ -18,8 +20,8 @@ interface CoOwnerProfileFormProps {
 export function CoOwnerProfileForm({ initialData, onSave }: CoOwnerProfileFormProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { user } = useAuth();
 
-  // Default values for the form
   const defaultValues: Partial<CoOwnerFormValues> = {
     fullName: "",
     age: "",
@@ -31,52 +33,108 @@ export function CoOwnerProfileForm({ initialData, onSave }: CoOwnerProfileFormPr
     propertyType: "Any",
     preferredLocation: "",
     coOwnershipExperience: "None",
+    ...initialData
   };
 
-  // Create form with merged values
   const form = useForm<CoOwnerFormValues>({
     resolver: zodResolver(coOwnerSchema),
-    defaultValues: { ...defaultValues, ...initialData },
+    defaultValues,
   });
 
-  // Update form when initialData changes
   useEffect(() => {
-    if (initialData) {
-      console.log("Updating form with initial data:", initialData);
-      Object.keys(initialData).forEach(key => {
-        const value = initialData[key];
-        if (value !== undefined && value !== null) {
-          console.log(`Setting form value for ${key}:`, value);
-          form.setValue(key as any, value);
+    const loadProfile = async () => {
+      if (!user) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('co_owner')
+          .select('*')
+          .eq('user_id', user.id)
+          .single();
+
+        if (error) throw error;
+
+        if (data) {
+          // Map database fields to form fields
+          const formData = {
+            fullName: data.full_name || "",
+            age: data.age || "",
+            email: data.email || "",
+            phoneNumber: data.phone_number || "",
+            occupation: data.occupation || "",
+            preferredLocation: data.preferred_location || "",
+            investmentCapacity: data.investment_capacity || [100000, 500000],
+            investmentTimeline: data.investment_timeline || "0-6 months",
+            propertyType: data.property_type || "Any",
+            coOwnershipExperience: data.co_ownership_experience || "None",
+          };
+
+          Object.keys(formData).forEach(key => {
+            form.setValue(key as any, formData[key]);
+          });
         }
-      });
-    }
-  }, [form, initialData]);
+      } catch (error) {
+        console.error('Error loading profile:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load your profile data",
+          variant: "destructive",
+        });
+      }
+    };
+
+    loadProfile();
+  }, [user, form, toast]);
 
   async function onSubmit(values: CoOwnerFormValues) {
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to save your profile",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       setIsSubmitting(true);
       console.log("Form submitted with values:", values);
       
+      const profileData = {
+        user_id: user.id,
+        full_name: values.fullName,
+        age: values.age,
+        email: values.email,
+        phone_number: values.phoneNumber,
+        occupation: values.occupation,
+        preferred_location: values.preferredLocation,
+        investment_capacity: values.investmentCapacity,
+        investment_timeline: values.investmentTimeline,
+        property_type: values.propertyType,
+        co_ownership_experience: values.coOwnershipExperience,
+        updated_at: new Date().toISOString(),
+      };
+
+      const { error } = await supabase
+        .from('co_owner')
+        .upsert(profileData)
+        .select();
+
+      if (error) throw error;
+
       if (onSave) {
-        console.log("Calling onSave with form values");
         await onSave(values);
-        toast({
-          title: "Profile saved",
-          description: "Your co-owner profile has been updated successfully.",
-        });
-      } else {
-        console.warn("No onSave function provided");
-        toast({
-          title: "Form submitted",
-          description: "This is a preview. No data was saved.",
-        });
       }
+
+      toast({
+        title: "Success",
+        description: "Your co-owner profile has been saved",
+      });
     } catch (error) {
       console.error("Error saving profile:", error);
       toast({
         title: "Error",
-        description: "Failed to save your profile. Please try again.",
+        description: "Failed to save your profile",
         variant: "destructive",
       });
     } finally {
@@ -87,13 +145,8 @@ export function CoOwnerProfileForm({ initialData, onSave }: CoOwnerProfileFormPr
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <h3 className="text-lg font-medium">Personal Information</h3>
         <PersonalInfoSection form={form} />
-        
-        <h3 className="text-lg font-medium mt-8">Investment Details</h3>
         <InvestmentSection form={form} />
-        
-        <h3 className="text-lg font-medium mt-8">Location & Experience</h3>
         <LocationExperienceSection form={form} />
 
         <Button type="submit" className="w-full mt-8" disabled={isSubmitting}>
