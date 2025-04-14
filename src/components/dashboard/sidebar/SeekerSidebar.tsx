@@ -1,4 +1,3 @@
-
 import { User, Home, Wallet, MessageSquare, Building, GraduationCap } from "lucide-react";
 import { SidebarMenuSection } from "./SidebarMenuSection";
 import { SidebarSimpleMenuItem } from "./SidebarSimpleMenuItem";
@@ -8,19 +7,17 @@ interface SeekerSidebarProps {
 }
 
 export function SeekerSidebar({ isActive }: SeekerSidebarProps) {
-  // Profile subsections - removed roommate
   const profileSubItems = [
     { label: "My Profile", path: "/dashboard/profile" }
   ];
 
-  // Rent subsections - renamed Roommate Recommendations to Find My Ideal Roommate
   const rentSubItems = [
     { label: "Find My Ideal Roommate", path: "/dashboard/roommate-recommendations" },
+    { label: "My Future Housing Plan", path: "/dashboard/future-housing-plan" },
     { label: "Rent Savings", path: "/dashboard/rent-savings" },
     { label: "Opportunities", path: "/dashboard/rent-opportunities" }
   ];
 
-  // Co-ownership subsections - added Co-owner Profile
   const coOwnershipSubItems = [
     { label: "Co-owner Profile", path: "/dashboard/profile/co-owner" },
     { label: "Co-owner Recommendations", path: "/dashboard/co-owner-recommendations" },
@@ -29,7 +26,6 @@ export function SeekerSidebar({ isActive }: SeekerSidebarProps) {
 
   return (
     <>
-      {/* Profile Section */}
       <SidebarMenuSection 
         title="Profile" 
         icon={User} 
@@ -37,7 +33,6 @@ export function SeekerSidebar({ isActive }: SeekerSidebarProps) {
         isActive={isActive} 
       />
 
-      {/* Rent Section */}
       <SidebarMenuSection 
         title="Rent" 
         icon={Home} 
@@ -45,7 +40,6 @@ export function SeekerSidebar({ isActive }: SeekerSidebarProps) {
         isActive={isActive} 
       />
 
-      {/* Co-ownership Section */}
       <SidebarMenuSection 
         title="Co-ownership" 
         icon={Building} 
@@ -53,7 +47,6 @@ export function SeekerSidebar({ isActive }: SeekerSidebarProps) {
         isActive={isActive} 
       />
 
-      {/* Simple menu items */}
       <SidebarSimpleMenuItem 
         title="Wallet" 
         icon={Wallet} 

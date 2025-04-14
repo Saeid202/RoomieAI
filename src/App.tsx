@@ -1,4 +1,3 @@
-
 import { Routes, Route } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/providers/ThemeProvider";
@@ -15,6 +14,7 @@ import RentOpportunitiesPage from "@/pages/dashboard/RentOpportunities";
 import ChatsPage from "@/pages/dashboard/Chats";
 import RentSavingsPage from "@/pages/dashboard/RentSavings";
 import CoOwnerRecommendationsPage from "@/pages/dashboard/CoOwnerRecommendations";
+import FutureHousingPlan from "@/pages/dashboard/FutureHousingPlan";
 
 function App() {
   return (
@@ -27,6 +27,7 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />}>
             <Route path="profile" element={<Profile />} />
             <Route path="roommate-recommendations" element={<RoommateRecommendationsPage />} />
+            <Route path="future-housing-plan" element={<FutureHousingPlan />} />
             <Route path="rent-opportunities" element={<RentOpportunitiesPage />} />
             <Route path="rent-savings" element={<RentSavingsPage />} />
             <Route path="co-owner-recommendations" element={<CoOwnerRecommendationsPage />} />
