@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Accordion } from "@/components/ui/accordion";
 import { ProfileFormValues } from "@/types/profile";
@@ -16,7 +17,7 @@ export function RoommateRecommendations() {
   const { user } = useAuth();
   const [activeAboutMeTab, setActiveAboutMeTab] = useState("personal-info");
   const [activeIdealRoommateTab, setActiveIdealRoommateTab] = useState("preferences");
-  const [isFindingMatches, setIsFindingMatches] = useState(false);
+  const [isPageLoading, setIsPageLoading] = useState(false);
   
   // Custom hooks
   const { 
@@ -87,19 +88,32 @@ export function RoommateRecommendations() {
 
   const handleFindMatch = async () => {
     try {
-      setIsFindingMatches(true);
-      // Wait for a moment to show the loading state
-      setTimeout(async () => {
-        await findMatches();
-        setIsFindingMatches(false);
+      // Scroll user to top of page to prevent footer jumping
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      
+      // Show loading state but don't re-render entire component
+      setIsPageLoading(true);
+      
+      // Wait for matches to be found
+      await findMatches();
+      
+      // After matches are found, scroll to results
+      setTimeout(() => {
+        const resultsElement = document.querySelector('[data-results-section]');
+        if (resultsElement) {
+          resultsElement.scrollIntoView({ behavior: 'smooth' });
+        }
+        
         toast({
           title: "Matches found!",
           description: "We've found some potential roommates for you.",
         });
-      }, 1500);
+        
+        setIsPageLoading(false);
+      }, 500);
     } catch (error) {
       console.error("Error finding matches:", error);
-      setIsFindingMatches(false);
+      setIsPageLoading(false);
       toast({
         title: "Error",
         description: "Failed to find matches. Please try again.",
@@ -125,7 +139,7 @@ export function RoommateRecommendations() {
     }
   };
 
-  if (loading || isFindingMatches) {
+  if (loading || isPageLoading) {
     return <LoadingState />;
   }
 
@@ -178,15 +192,17 @@ export function RoommateRecommendations() {
 
         {/* Results Section - Only show if there are matches */}
         {roommates && roommates.length > 0 && (
-          <ResultsSection
-            roommates={roommates}
-            properties={properties || []}
-            selectedMatch={selectedMatch}
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
-            onViewDetails={handleViewDetails}
-            onCloseDetails={handleCloseDetails}
-          />
+          <div data-results-section>
+            <ResultsSection
+              roommates={roommates}
+              properties={properties || []}
+              selectedMatch={selectedMatch}
+              activeTab={activeTab}
+              setActiveTab={setActiveTab}
+              onViewDetails={handleViewDetails}
+              onCloseDetails={handleCloseDetails}
+            />
+          </div>
         )}
       </div>
     </div>

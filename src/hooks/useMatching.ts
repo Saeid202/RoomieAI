@@ -13,6 +13,8 @@ export function useMatching() {
   const [isFindingMatches, setIsFindingMatches] = useState(false);
 
   const handleViewDetails = (match) => {
+    // Scroll to top when viewing details to prevent footer jumps
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     setSelectedMatch(match);
   };
 

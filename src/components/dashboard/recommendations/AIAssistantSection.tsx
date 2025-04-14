@@ -1,106 +1,83 @@
 
-import { BrainCircuit, SendHorizonal, Search } from "lucide-react";
-import { AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { MagicWandIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import { useState } from "react";
-import { useToast } from "@/hooks/use-toast";
 
 interface AIAssistantSectionProps {
   expandedSections: string[];
-  onFindMatch: () => void;
+  onFindMatch: () => Promise<void>;
 }
 
 export function AIAssistantSection({ expandedSections, onFindMatch }: AIAssistantSectionProps) {
-  const [messages, setMessages] = useState<{ sender: 'user' | 'ai'; content: string }[]>([
-    { sender: 'ai', content: 'Hello! I\'m your roommate matching assistant. How can I help you find your perfect roommate?' }
-  ]);
-  const [inputValue, setInputValue] = useState('');
-  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  const handleFindMatch = async (e: React.MouseEvent) => {
     e.preventDefault();
-    if (!inputValue.trim()) return;
-
-    // Add user message
-    setMessages(prev => [...prev, { sender: 'user', content: inputValue }]);
     
-    // Simulate AI response
-    setTimeout(() => {
-      setMessages(prev => [
-        ...prev, 
-        { 
-          sender: 'ai', 
-          content: "Thanks for sharing! I've noted your preferences and will use them to find better matches for you." 
-        }
-      ]);
-    }, 1000);
+    if (isLoading) return;
     
-    setInputValue('');
-  };
-
-  const handleFindMatch = () => {
-    toast({
-      title: "Finding matches",
-      description: "Searching for your ideal roommate based on your preferences...",
-    });
-    onFindMatch();
+    setIsLoading(true);
+    try {
+      await onFindMatch();
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <AccordionItem value="ai-assistant" className="border rounded-lg">
       <AccordionTrigger className="px-4 py-2 hover:no-underline">
         <div className="flex items-center gap-2">
-          <BrainCircuit className="h-5 w-5" />
-          <span className="text-xl font-semibold">Chat with AI Assistant</span>
+          <MagicWandIcon className="h-5 w-5" />
+          <span className="text-xl font-semibold">AI Matching Assistant</span>
         </div>
       </AccordionTrigger>
       <AccordionContent className="px-4 pb-4">
         <Card>
-          <CardContent className="p-4">
-            <div className="flex flex-col h-[250px]">
-              <div className="flex-1 overflow-y-auto mb-4 p-3 bg-gray-50 rounded-lg">
-                {messages.map((message, index) => (
-                  <div 
-                    key={index}
-                    className={`mb-2 ${message.sender === 'user' ? 'text-right' : ''}`}
-                  >
-                    <div 
-                      className={`inline-block p-2 rounded-lg max-w-[80%] text-sm ${
-                        message.sender === 'user' 
-                          ? 'bg-blue-500 text-white' 
-                          : 'bg-gray-200 text-gray-800'
-                      }`}
-                    >
-                      {message.content}
-                    </div>
-                  </div>
-                ))}
+          <CardContent className="p-6">
+            <div className="text-center space-y-4">
+              <h3 className="text-xl font-bold">Ready to Find Your Match? 🔍</h3>
+              <p className="text-muted-foreground">
+                Our AI will analyze your profile and preferences to find the most compatible roommates.
+              </p>
+              
+              <div className="max-w-md mx-auto bg-accent/20 rounded-lg p-4 mt-4">
+                <h4 className="font-medium mb-2">Before we search:</h4>
+                <ul className="text-sm text-left space-y-2">
+                  <li className="flex items-start">
+                    <span className="mr-2">✓</span>
+                    <span>Fill out your <strong>About Me</strong> information</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="mr-2">✓</span>
+                    <span>Complete your <strong>Ideal Roommate</strong> preferences</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="mr-2">✓</span>
+                    <span>Make sure to <strong>Save</strong> all your changes</span>
+                  </li>
+                </ul>
               </div>
               
-              <div className="flex gap-2 mb-3">
-                <form onSubmit={handleSendMessage} className="flex gap-2 w-full">
-                  <Input 
-                    placeholder="Ask about roommate preferences..."
-                    value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
-                    className="flex-1"
-                  />
-                  <Button type="submit" size="sm">
-                    <SendHorizonal className="h-4 w-4" />
-                  </Button>
-                </form>
-                
-                <Button 
-                  onClick={handleFindMatch}
-                  className="bg-green-600 hover:bg-green-700 text-white"
-                  size="sm"
-                >
-                  <Search className="h-4 w-4 mr-1" />
-                  Find Match
-                </Button>
-              </div>
+              <Button 
+                onClick={handleFindMatch} 
+                disabled={isLoading}
+                className="bg-gradient-to-r from-roomie-purple to-roomie-accent hover:opacity-90 text-white font-medium px-8 py-6"
+              >
+                {isLoading ? (
+                  <div className="flex items-center">
+                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Finding Your Match...
+                  </div>
+                ) : (
+                  <>Find My Match</>
+                )}
+              </Button>
             </div>
           </CardContent>
         </Card>

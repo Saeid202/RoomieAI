@@ -10,6 +10,8 @@ import { PreferencesTab } from "./PreferencesTab";
 import { LifestyleMatchTab } from "./LifestyleMatchTab";
 import { HouseHabitsTab } from "./HouseHabitsTab";
 import { DealBreakersTab } from "./DealBreakersTab";
+import { useState } from "react";
+import { Check } from "lucide-react";
 
 interface RoommatePreferencesFormProps {
   form: UseFormReturn<ProfileFormValues>;
@@ -27,10 +29,22 @@ export function RoommatePreferencesForm({
   isSaving 
 }: RoommatePreferencesFormProps) {
   const { handleTraitToggle } = useFormUtilities(form);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const data = form.getValues();
+    await onSubmit(data);
+    
+    // Show success indicator temporarily
+    setSaveSuccess(true);
+    setTimeout(() => setSaveSuccess(false), 2000);
+  };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 mt-6">
+      <form onSubmit={handleSubmit} className="space-y-4 mt-6">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <IdealRoommateTabs activeTab={activeTab} onTabChange={setActiveTab} />
           
@@ -51,8 +65,21 @@ export function RoommatePreferencesForm({
           </TabsContent>
           
           <div className="flex justify-end mt-4">
-            <Button type="submit" disabled={isSaving}>
-              {isSaving ? "Saving..." : "Save Preferences"}
+            <Button 
+              type="submit" 
+              disabled={isSaving}
+              className="relative"
+            >
+              {saveSuccess ? (
+                <>
+                  <Check className="h-4 w-4 mr-2" />
+                  Saved
+                </>
+              ) : isSaving ? (
+                "Saving..."
+              ) : (
+                "Save Preferences"
+              )}
             </Button>
           </div>
         </Tabs>
