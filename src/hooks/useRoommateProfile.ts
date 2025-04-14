@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -11,7 +10,7 @@ export function useRoommateProfile() {
   const [loading, setLoading] = useState(true);
   const [profileData, setProfileData] = useState<Partial<ProfileFormValues> | null>(null);
 
-  const loadProfileData = async () => {
+  const loadProfileData = async (): Promise<void> => {
     if (!user) {
       console.log("No user found, skipping profile data load");
       setLoading(false);
@@ -34,23 +33,27 @@ export function useRoommateProfile() {
         // If profile data exists in JSONB field, use it
         if (data.profile_data) {
           // Convert moveInDate from string to Date
-          const profileData = {
+          const parsedProfileData = {
             ...data.profile_data,
             moveInDate: data.profile_data.moveInDate 
               ? new Date(data.profile_data.moveInDate) 
               : new Date()
           };
           
-          setProfileData(profileData);
-          console.log("Set profile data from database:", profileData);
+          setProfileData(parsedProfileData);
+          console.log("Set profile data from database:", parsedProfileData);
         } else {
           // Otherwise use defaults
-          setProfileData(getDefaultProfileData());
+          const defaultData = getDefaultProfileData();
+          setProfileData(defaultData);
+          console.log("Using default profile data:", defaultData);
         }
       } else {
         // If no profile exists yet, use default values
         console.log("No existing profile found, using default values");
-        setProfileData(getDefaultProfileData());
+        const defaultData = getDefaultProfileData();
+        setProfileData(defaultData);
+        console.log("Using default profile data:", defaultData);
       }
     } catch (error) {
       console.error("Error loading profile data:", error);

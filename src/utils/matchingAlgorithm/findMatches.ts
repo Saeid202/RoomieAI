@@ -12,6 +12,11 @@ export function findMatches(profileData: ProfileFormValues): MatchResult[] {
   try {
     console.log("Starting matching algorithm with profile data:", profileData);
     
+    if (!profileData) {
+      console.error("Profile data is null or undefined");
+      return [];
+    }
+    
     // Map the form data to the format expected by the matching algorithm
     const userData = mapFormToProfileData(profileData);
     console.log("Mapped user data for algorithm:", userData);

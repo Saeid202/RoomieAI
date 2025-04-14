@@ -44,7 +44,7 @@ export function RoommateRecommendationsWrapper() {
         
         console.log("Loading roommate profile data...");
         await loadProfileData();
-        console.log("Profile data loaded successfully");
+        console.log("Profile data loaded successfully", profileData);
         
       } catch (error) {
         console.error("Error initializing component:", error);
@@ -84,8 +84,9 @@ export function RoommateRecommendationsWrapper() {
   // Wrapper function with the correct return type
   const wrappedFindMatches = async (): Promise<void> => {
     try {
-      console.log("wrappedFindMatches called");
+      console.log("wrappedFindMatches called, profileData:", profileData);
       await findMatches();
+      console.log("Find matches completed, roommates:", roommates);
     } catch (error) {
       console.error("Error in wrappedFindMatches:", error);
       showError("Error", "Failed to find matches");
@@ -127,6 +128,8 @@ export function RoommateRecommendationsWrapper() {
       />
     );
   }
+
+  console.log("Rendering RoommateProfilePage with profileData:", profileData);
 
   return (
     <RoommateProfilePage

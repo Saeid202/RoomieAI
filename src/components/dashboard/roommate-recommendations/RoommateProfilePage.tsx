@@ -39,6 +39,9 @@ export function RoommateProfilePage({
   const [activeIdealRoommateTab, setActiveIdealRoommateTab] = useState("preferences");
   const { expandedSections, setExpandedSections } = useAccordionSections(["about-me", "ideal-roommate", "future-housing-plan", "ai-assistant"]);
 
+  console.log("RoommateProfilePage rendering with profileData:", profileData);
+  console.log("RoommateProfilePage roommates:", roommates?.length);
+
   const onHandleSaveProfile = async (formData: ProfileFormValues): Promise<void> => {
     try {
       console.log("Saving profile from RoommateProfilePage:", formData);

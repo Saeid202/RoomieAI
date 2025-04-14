@@ -33,7 +33,11 @@ export function useRoommateMatching() {
   // Wrapper for findMatches that uses the current profileData
   const findMatches = async (): Promise<void> => {
     console.log("Finding matches with current profile data:", profileData);
-    await findMatchesInternal(profileData);
+    if (!profileData) {
+      console.error("Profile data is null or undefined");
+      return;
+    }
+    return await findMatchesInternal(profileData);
   };
 
   return {

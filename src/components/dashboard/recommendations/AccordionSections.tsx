@@ -29,6 +29,8 @@ export function AccordionSections({
   handleSaveProfile,
   handleFindMatch,
 }: AccordionSectionsProps) {
+  console.log("AccordionSections rendering with profileData:", profileData);
+  
   return (
     <Accordion 
       type="multiple" 

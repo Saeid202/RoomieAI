@@ -28,6 +28,7 @@ export function useMatching() {
       console.log("Finding matches with profile data:", profileData);
       
       if (!profileData) {
+        console.error("Profile data is null, cannot find matches");
         toast({
           title: "Profile incomplete",
           description: "Please complete your profile before finding matches",
@@ -36,13 +37,12 @@ export function useMatching() {
         return;
       }
       
-      // First convert to ProfileFormValues to ensure the right types
+      // Convert to complete ProfileFormValues
       const formValues = profileData as ProfileFormValues;
       
       // Use the algorithm directly on the form values
-      // The algorithm will handle the conversion internally
       const matchesFound = findMatchesAlgorithm(formValues);
-      console.log("Matches found:", matchesFound);
+      console.log("Matches found:", matchesFound.length, matchesFound);
       
       // Update state with found matches
       setRoommates(matchesFound || []);
