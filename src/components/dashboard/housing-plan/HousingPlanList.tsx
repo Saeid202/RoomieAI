@@ -3,16 +3,7 @@ import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar, DollarSign, Home, Pencil } from "lucide-react";
-
-type HousingPlan = {
-  id: string;
-  moving_date: string;
-  desired_location: string;
-  budget: number;
-  housing_type: string;
-  additional_requirements?: string;
-  created_at: string;
-};
+import { HousingPlan } from "@/hooks/useHousingPlans";
 
 type HousingPlanListProps = {
   plans: HousingPlan[];
@@ -20,8 +11,12 @@ type HousingPlanListProps = {
 };
 
 export function HousingPlanList({ plans, onEdit }: HousingPlanListProps) {
-  if (plans.length === 0) {
-    return null;
+  if (!plans || plans.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-muted-foreground">No housing plans found. Create your first plan!</p>
+      </div>
+    );
   }
 
   return (
@@ -30,7 +25,7 @@ export function HousingPlanList({ plans, onEdit }: HousingPlanListProps) {
         <Card key={plan.id} className="bg-white shadow hover:shadow-md transition-shadow">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex justify-between items-center">
-              {plan.desired_location}
+              {plan.desired_location || 'No location specified'}
               <Button 
                 variant="ghost" 
                 size="sm"
@@ -45,15 +40,15 @@ export function HousingPlanList({ plans, onEdit }: HousingPlanListProps) {
             <div className="space-y-2">
               <p className="text-sm flex items-center">
                 <Calendar className="mr-2 h-4 w-4 text-gray-500" />
-                Moving date: {new Date(plan.moving_date).toLocaleDateString()}
+                Moving date: {plan.moving_date ? new Date(plan.moving_date).toLocaleDateString() : 'Not specified'}
               </p>
               <p className="text-sm flex items-center">
                 <DollarSign className="mr-2 h-4 w-4 text-gray-500" />
-                Budget: ${plan.budget}/month
+                Budget: ${plan.budget ? plan.budget : 0}/month
               </p>
               <p className="text-sm flex items-center">
                 <Home className="mr-2 h-4 w-4 text-gray-500" />
-                Housing type: {plan.housing_type}
+                Housing type: {plan.housing_type || 'Not specified'}
               </p>
               {plan.additional_requirements && (
                 <p className="text-sm mt-2">

@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
-interface HousingPlan {
+export interface HousingPlan {
   id: string;
   moving_date: string;
   desired_location: string;
@@ -18,9 +18,10 @@ export function useHousingPlans() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: plans = [], isLoading } = useQuery({
+  const { data: plans = [], isLoading, error } = useQuery({
     queryKey: ['housing-plans'],
     queryFn: async () => {
+      console.log('Fetching housing plans');
       const { data, error } = await supabase
         .from('My Future Housing Plan')
         .select('*')
@@ -30,12 +31,13 @@ export function useHousingPlans() {
         console.error('Error fetching housing plans:', error);
         toast({
           title: 'Error',
-          description: 'Failed to fetch housing plans',
+          description: 'Failed to fetch housing plans: ' + error.message,
           variant: 'destructive',
         });
         throw error;
       }
 
+      console.log('Housing plans data:', data);
       return data as HousingPlan[];
     },
   });
@@ -48,11 +50,18 @@ export function useHousingPlans() {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error creating housing plan:', error);
+        throw error;
+      }
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['housing-plans'] });
+      toast({
+        title: 'Success',
+        description: 'Housing plan created successfully',
+      });
     },
     onError: (error) => {
       console.error('Error creating housing plan:', error);
@@ -73,11 +82,18 @@ export function useHousingPlans() {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating housing plan:', error);
+        throw error;
+      }
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['housing-plans'] });
+      toast({
+        title: 'Success',
+        description: 'Housing plan updated successfully',
+      });
     },
     onError: (error) => {
       console.error('Error updating housing plan:', error);
@@ -92,6 +108,7 @@ export function useHousingPlans() {
   return {
     plans,
     isLoading,
+    error,
     createPlan,
     updatePlan
   };
