@@ -35,6 +35,7 @@ export function useMatching() {
       if (!profileData) {
         console.error("Profile data is null, cannot find matches");
         showError("Profile incomplete", "Please complete your profile before finding matches");
+        setIsFindingMatches(false);
         return;
       }
       
@@ -48,6 +49,7 @@ export function useMatching() {
           "Profile incomplete",
           "Please fill in at least your name and age before finding matches"
         );
+        setIsFindingMatches(false);
         return;
       }
       
@@ -83,7 +85,7 @@ export function useMatching() {
       }
     } catch (error) {
       console.error("Error finding matches in useMatching:", error);
-      showError(
+      showError(it
         "Error",
         "Failed to find matches. Please try again."
       );

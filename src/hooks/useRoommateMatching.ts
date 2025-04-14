@@ -111,7 +111,7 @@ export function useRoommateMatching() {
         age: completeProfileData.age
       });
       
-      return await findMatchesInternal(completeProfileData);
+      await findMatchesInternal(completeProfileData);
     } catch (error) {
       console.error("Error in findMatches wrapper:", error);
       showError("Error", "Failed to find matches. Please try again.");
