@@ -1,8 +1,7 @@
 
 import * as React from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { DayPicker } from "react-day-picker";
-import type { CaptionProps } from "react-day-picker";
+import { DayPicker, CaptionProps } from "react-day-picker";
 
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
@@ -18,14 +17,13 @@ export type CalendarProps = React.ComponentProps<typeof DayPicker>;
 
 // Custom navigation component for month/year selection
 function CalendarNavigation({ 
-  displayMonth,
-  changeMonth, 
-  nextMonth, 
-  previousMonth 
+  displayMonths,
+  month,
+  onMonthChange 
 }: CaptionProps) {
-  // Get current year and month
-  const currentYear = displayMonth.getFullYear();
-  const currentMonth = displayMonth.getMonth();
+  // Get current year and month from the month prop
+  const currentYear = month.getFullYear();
+  const currentMonth = month.getMonth();
   
   // Generate years (5 years back, 10 years forward)
   const years = Array.from({ length: 16 }, (_, i) => currentYear - 5 + i);
@@ -38,27 +36,30 @@ function CalendarNavigation({
 
   // Handle year change
   const handleYearChange = (year: string) => {
-    const newDate = new Date(displayMonth);
+    const newDate = new Date(month);
     newDate.setFullYear(parseInt(year));
-    changeMonth(newDate);
+    onMonthChange(newDate);
   };
 
   // Handle month change
-  const handleMonthChange = (month: string) => {
-    const newDate = new Date(displayMonth);
-    newDate.setMonth(months.indexOf(month));
-    changeMonth(newDate);
+  const handleMonthChange = (monthName: string) => {
+    const newDate = new Date(month);
+    newDate.setMonth(months.indexOf(monthName));
+    onMonthChange(newDate);
   };
 
   return (
     <div className="flex items-center justify-between px-1">
       <div className="flex items-center">
         <button
-          onClick={() => previousMonth && changeMonth(previousMonth)}
-          disabled={!previousMonth}
+          onClick={() => {
+            const prevMonth = new Date(month);
+            prevMonth.setMonth(prevMonth.getMonth() - 1);
+            onMonthChange(prevMonth);
+          }}
           className={cn(
             buttonVariants({ variant: "outline", size: "icon" }),
-            "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 disabled:opacity-20"
+            "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100"
           )}
         >
           <ChevronLeft className="h-4 w-4" />
@@ -101,11 +102,14 @@ function CalendarNavigation({
 
       <div className="flex items-center">
         <button
-          onClick={() => nextMonth && changeMonth(nextMonth)}
-          disabled={!nextMonth}
+          onClick={() => {
+            const nextMonth = new Date(month);
+            nextMonth.setMonth(nextMonth.getMonth() + 1);
+            onMonthChange(nextMonth);
+          }}
           className={cn(
             buttonVariants({ variant: "outline", size: "icon" }),
-            "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 disabled:opacity-20"
+            "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100"
           )}
         >
           <ChevronRight className="h-4 w-4" />

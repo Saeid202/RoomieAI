@@ -47,6 +47,7 @@ export function PlanCreationForm({
   const handleDateSelect = (date: Date | undefined) => {
     if (date) {
       setNewPlan({...newPlan, moveInDate: date});
+      // Close the calendar automatically after selection
       setIsCalendarOpen(false);
     }
   };
@@ -126,7 +127,8 @@ export function PlanCreationForm({
         <div className="space-y-2">
           <label className="text-sm font-medium">Looking For</label>
           <Select 
-            defaultValue="both"
+            defaultValue={newPlan.lookingFor || "both"}
+            value={newPlan.lookingFor}
             onValueChange={(value) => setNewPlan({
               ...newPlan, 
               lookingFor: value as 'roommate' | 'property' | 'both'
@@ -146,7 +148,8 @@ export function PlanCreationForm({
         <div className="space-y-2">
           <label className="text-sm font-medium">Notifications</label>
           <Select 
-            defaultValue="both"
+            defaultValue={newPlan.notificationPreference || "both"}
+            value={newPlan.notificationPreference}
             onValueChange={(value) => setNewPlan({
               ...newPlan, 
               notificationPreference: value as 'email' | 'app' | 'both'
@@ -167,7 +170,7 @@ export function PlanCreationForm({
           <label className="text-sm font-medium">Budget Range</label>
           <div className="pt-6 px-2">
             <Slider
-              defaultValue={[900, 1500]}
+              defaultValue={newPlan.budgetRange || [900, 1500]}
               min={500}
               max={3000}
               step={50}

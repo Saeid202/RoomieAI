@@ -29,6 +29,7 @@ export function PropertyAvailability({ formData, handleChange }: PropertyAvailab
         }
       } as React.ChangeEvent<HTMLInputElement>;
       handleChange(event);
+      // Close the calendar automatically after selection
       setIsCalendarOpen(false);
     }
   };

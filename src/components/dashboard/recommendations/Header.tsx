@@ -41,10 +41,11 @@ export function Header({ onRefreshProfile, isAuthenticated }: HeaderProps) {
             onClick={onRefreshProfile}
             variant="outline"
             size="sm"
-            className="flex items-center gap-1 whitespace-nowrap ml-2"
+            className="flex items-center gap-1 whitespace-nowrap"
           >
             <RefreshCw className="h-4 w-4" />
-            <span>Refresh Profile</span>
+            <span className="hidden sm:inline">Refresh Profile</span>
+            <span className="sm:hidden">Refresh</span>
           </Button>
         </div>
       )}
