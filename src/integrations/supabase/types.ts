@@ -9,54 +9,18 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      co_owner: {
+      old_roommate_table: {
         Row: {
-          age: string | null
-          co_ownership_experience: string | null
-          created_at: string | null
-          email: string | null
-          full_name: string | null
+          created_at: string
           id: number
-          investment_capacity: number[] | null
-          investment_timeline: string | null
-          occupation: string | null
-          phone_number: string | null
-          preferred_location: string | null
-          property_type: string | null
-          updated_at: string | null
-          user_id: string | null
         }
         Insert: {
-          age?: string | null
-          co_ownership_experience?: string | null
-          created_at?: string | null
-          email?: string | null
-          full_name?: string | null
+          created_at?: string
           id?: number
-          investment_capacity?: number[] | null
-          investment_timeline?: string | null
-          occupation?: string | null
-          phone_number?: string | null
-          preferred_location?: string | null
-          property_type?: string | null
-          updated_at?: string | null
-          user_id?: string | null
         }
         Update: {
-          age?: string | null
-          co_ownership_experience?: string | null
-          created_at?: string | null
-          email?: string | null
-          full_name?: string | null
+          created_at?: string
           id?: number
-          investment_capacity?: number[] | null
-          investment_timeline?: string | null
-          occupation?: string | null
-          phone_number?: string | null
-          preferred_location?: string | null
-          property_type?: string | null
-          updated_at?: string | null
-          user_id?: string | null
         }
         Relationships: []
       }
@@ -102,7 +66,7 @@ export type Database = {
         }
         Relationships: []
       }
-      roommate: {
+      roommate_profiles: {
         Row: {
           age: string | null
           atmosphere: string | null
@@ -141,7 +105,7 @@ export type Database = {
           social_level: string | null
           stay_duration: string | null
           updated_at: string | null
-          user_id: string | null
+          user_id: string
           work_location: string | null
           work_schedule: string | null
         }
@@ -164,7 +128,7 @@ export type Database = {
           hobbies?: string[] | null
           hosting_friends?: string | null
           housing_type?: string | null
-          id: string
+          id?: string
           important_roommate_traits?: string[] | null
           lease_term?: string | null
           linkedin_profile?: string | null
@@ -183,7 +147,7 @@ export type Database = {
           social_level?: string | null
           stay_duration?: string | null
           updated_at?: string | null
-          user_id?: string | null
+          user_id: string
           work_location?: string | null
           work_schedule?: string | null
         }
@@ -225,7 +189,7 @@ export type Database = {
           social_level?: string | null
           stay_duration?: string | null
           updated_at?: string | null
-          user_id?: string | null
+          user_id?: string
           work_location?: string | null
           work_schedule?: string | null
         }

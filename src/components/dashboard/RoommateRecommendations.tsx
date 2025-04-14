@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Accordion } from "@/components/ui/accordion";
 import { ProfileFormValues } from "@/types/profile";
 import { useToast } from "@/hooks/use-toast";
@@ -10,9 +10,11 @@ import { AboutMeSection } from "./recommendations/AboutMeSection";
 import { IdealRoommateSection } from "./recommendations/IdealRoommateSection";
 import { AIAssistantSection } from "./recommendations/AIAssistantSection";
 import { ResultsSection } from "./recommendations/ResultsSection";
+import { useAuth } from "@/hooks/useAuth";
 
 export function RoommateRecommendations() {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [activeAboutMeTab, setActiveAboutMeTab] = useState("personal-info");
   const [activeIdealRoommateTab, setActiveIdealRoommateTab] = useState("preferences");
   const [isFindingMatches, setIsFindingMatches] = useState(false);
@@ -29,10 +31,21 @@ export function RoommateRecommendations() {
     handleViewDetails,
     handleCloseDetails,
     findMatches,
-    handleSaveProfile
+    handleSaveProfile,
+    loadProfileData
   } = useRoommateMatching();
   
   const { expandedSections, setExpandedSections } = useAccordionSections(["about-me", "ideal-roommate", "ai-assistant"]);
+
+  useEffect(() => {
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to access your roommate profile",
+        variant: "destructive",
+      });
+    }
+  }, [user, toast]);
 
   const onHandleSaveProfile = async (formData: ProfileFormValues) => {
     try {
@@ -76,13 +89,40 @@ export function RoommateRecommendations() {
     }
   };
 
+  const handleRefreshProfile = async () => {
+    try {
+      await loadProfileData();
+      toast({
+        title: "Profile refreshed",
+        description: "Your profile has been updated with the latest data",
+      });
+    } catch (error) {
+      console.error("Error refreshing profile:", error);
+      toast({
+        title: "Error",
+        description: "Failed to refresh profile data. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (loading || isFindingMatches) {
     return <LoadingState />;
   }
 
   return (
     <div className="space-y-8">
-      <h1 className="text-3xl font-bold tracking-tight">Find My Ideal Roommate</h1>
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold tracking-tight">Find My Ideal Roommate</h1>
+        {user && (
+          <button 
+            onClick={handleRefreshProfile}
+            className="text-blue-600 hover:text-blue-800 text-sm flex items-center"
+          >
+            Refresh Profile
+          </button>
+        )}
+      </div>
       <p className="text-muted-foreground">
         Let's find you the perfect roommate match based on your preferences!
       </p>

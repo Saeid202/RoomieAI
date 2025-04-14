@@ -1,48 +1,69 @@
 
 /**
- * Safely converts a value to a string
+ * Utility functions to safely convert database values to the appropriate types for our forms
  */
-export function safeString(value: any): string {
-  return value ? String(value) : '';
+
+/**
+ * Convert a value to a string, providing a default if null or undefined
+ */
+export function safeString(value: any, defaultValue: string = ""): string {
+  if (value === null || value === undefined) {
+    return defaultValue;
+  }
+  return String(value);
 }
 
 /**
- * Safely converts a value to a boolean
+ * Convert a value to a boolean, providing a default if null or undefined
  */
-export function safeBoolean(value: any): boolean {
-  return !!value;
+export function safeBoolean(value: any, defaultValue: boolean = false): boolean {
+  if (value === null || value === undefined) {
+    return defaultValue;
+  }
+  return Boolean(value);
 }
 
 /**
- * Safely converts a value to a Date object
+ * Convert a string date to a Date object, providing a default if null or undefined
  */
-export function safeDate(value: any): Date {
-  if (!value) return new Date();
-  return new Date(String(value));
+export function safeDate(value: any, defaultValue: Date = new Date()): Date {
+  if (!value) {
+    return defaultValue;
+  }
+  try {
+    return new Date(value);
+  } catch (e) {
+    console.error("Error parsing date:", e);
+    return defaultValue;
+  }
 }
 
 /**
- * Safely handles array values, ensuring they are arrays and optionally
- * converting elements to the specified type
+ * Convert an array value, providing a default if null or undefined
  */
-export function safeArray<T>(value: any, converter?: (item: any) => T): T[] {
-  if (!value || !Array.isArray(value)) return [];
-  
-  if (converter) {
-    return value.map(converter);
+export function safeArray<T>(value: any, mapFn: (item: any) => T, defaultValue: T[] = []): T[] {
+  if (!value || !Array.isArray(value)) {
+    return defaultValue;
+  }
+  return value.map(mapFn);
+}
+
+/**
+ * Safely convert a value to an enum type, with fallback to default
+ */
+export function safeEnum<T extends string>(
+  value: any, 
+  allowedValues: T[], 
+  defaultValue: T
+): T {
+  if (value === null || value === undefined) {
+    return defaultValue;
   }
   
-  return value as T[];
-}
-
-/**
- * Safely handles enum values, ensuring they match one of the allowed values
- */
-export function safeEnum<T extends string>(value: any, allowedValues: T[], defaultValue: T): T {
-  if (!value) return defaultValue;
+  const strValue = String(value);
+  if (allowedValues.includes(strValue as T)) {
+    return strValue as T;
+  }
   
-  const stringValue = String(value);
-  return allowedValues.includes(stringValue as T) 
-    ? stringValue as T 
-    : defaultValue;
+  return defaultValue;
 }
