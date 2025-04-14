@@ -48,8 +48,6 @@ export function RoommateProfilePage({
       }
       
       await handleSaveProfile(formData);
-      
-      // Don't return a boolean
     } catch (error) {
       console.error("Error saving profile:", error);
       throw error;

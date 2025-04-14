@@ -10,37 +10,33 @@ export function useProfileSaving() {
   const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
 
-  const handleSaveProfile = async (formData: ProfileFormValues) => {
+  const handleSaveProfile = async (formData: ProfileFormValues): Promise<void> => {
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to save your profile",
+        variant: "destructive",
+      });
+      throw new Error("Authentication required");
+    }
+
     try {
-      if (!user) {
-        console.error("No user found. Cannot save profile.");
-        toast({
-          title: "Authentication required",
-          description: "You need to be logged in to save your profile",
-          variant: "destructive",
-        });
-        return false;
-      }
-      
       setIsSaving(true);
       console.log("Saving profile data:", formData);
       
+      // Call the service function to save to the database
       await saveRoommateProfile(user.id, formData);
       
-      toast({
-        title: "Profile updated",
-        description: "Your profile has been saved successfully",
-      });
+      console.log("Profile saved successfully");
       
-      return true;
     } catch (error) {
       console.error("Error saving profile:", error);
       toast({
-        title: "Error",
-        description: "Failed to save profile data. Please try again.",
+        title: "Error saving profile",
+        description: "There was a problem saving your profile. Please try again.",
         variant: "destructive",
       });
-      return false;
+      throw error;
     } finally {
       setIsSaving(false);
     }
@@ -48,6 +44,6 @@ export function useProfileSaving() {
 
   return {
     isSaving,
-    handleSaveProfile
+    handleSaveProfile,
   };
 }

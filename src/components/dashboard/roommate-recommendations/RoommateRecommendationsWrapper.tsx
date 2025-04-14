@@ -66,7 +66,7 @@ export function RoommateRecommendationsWrapper() {
     console.log("ProfileData updated in RoommateRecommendations:", profileData);
   }, [profileData]);
 
-  const handleRefreshProfile = async () => {
+  const handleRefreshProfile = async (): Promise<void> => {
     try {
       await loadProfileData();
       showSuccess(
@@ -84,7 +84,7 @@ export function RoommateRecommendationsWrapper() {
 
   // Wrapper functions with the correct return type
   const wrappedFindMatches = async (): Promise<void> => {
-    await findMatches();
+    await findMatches(profileData);
   };
 
   const wrappedSaveProfile = async (formData: ProfileFormValues): Promise<void> => {

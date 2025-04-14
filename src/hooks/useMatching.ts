@@ -22,7 +22,7 @@ export function useMatching() {
     setSelectedMatch(null);
   };
 
-  const findMatches = async (profileData: Partial<ProfileFormValues> | null) => {
+  const findMatches = async (profileData: Partial<ProfileFormValues> | null): Promise<void> => {
     try {
       setIsFindingMatches(true);
       console.log("Finding matches with profile data:", profileData);
@@ -33,7 +33,7 @@ export function useMatching() {
           description: "Please complete your profile before finding matches",
           variant: "destructive",
         });
-        return [];
+        return;
       }
       
       // First convert to ProfileFormValues to ensure the right types
@@ -46,8 +46,6 @@ export function useMatching() {
       
       // Update state with found matches
       setRoommates(matchesFound || []);
-      
-      return matchesFound || [];
     } catch (error) {
       console.error("Error finding matches:", error);
       toast({
@@ -55,7 +53,6 @@ export function useMatching() {
         description: "Failed to find matches. Please try again.",
         variant: "destructive",
       });
-      return [];
     } finally {
       setIsFindingMatches(false);
     }
