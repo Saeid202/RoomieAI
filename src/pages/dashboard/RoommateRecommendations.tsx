@@ -14,15 +14,17 @@ export default function RoommateRecommendationsPage() {
 
   // Handle the initial page load with a proper loading state
   useEffect(() => {
+    document.title = "Find My Ideal Roommate";
+    
     // Use a longer delay for initial loading to ensure all data is ready
     const loadingTimer = setTimeout(() => {
       setInitialLoading(false);
-    }, 800);
+    }, 1500);
     
     // Add a separate timer for the fade-in transition
     const fadeTimer = setTimeout(() => {
       setIsLoaded(true);
-    }, 1000);
+    }, 1800);
     
     return () => {
       clearTimeout(loadingTimer);
@@ -36,16 +38,16 @@ export default function RoommateRecommendationsPage() {
     setTimeout(() => {
       setError(null);
       setIsRetrying(false);
-    }, 100);
+    }, 300);
   };
 
   if (initialLoading) {
-    return <LoadingState />;
+    return <LoadingState key="initial-loading" />;
   }
 
   if (error) {
     return (
-      <div className="container mx-auto py-6">
+      <div className="container mx-auto py-6 animate-fadeIn">
         <Card className="w-full max-w-3xl mx-auto">
           <CardContent className="pt-6 text-center">
             <h2 className="text-2xl font-bold mb-4">Error</h2>
@@ -68,8 +70,11 @@ export default function RoommateRecommendationsPage() {
   }
 
   return (
-    <div className={`container mx-auto py-6 transition-opacity duration-500 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}>
-      <RoommateRecommendations onError={setError} />
+    <div 
+      className={`container mx-auto py-6 transition-opacity duration-700 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+      style={{ minHeight: '80vh' }}
+    >
+      <RoommateRecommendations key="recommendations-component" onError={setError} />
     </div>
   );
 }

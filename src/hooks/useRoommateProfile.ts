@@ -12,10 +12,19 @@ export function useRoommateProfile() {
   const [profileData, setProfileData] = useState<Partial<ProfileFormValues> | null>(null);
   const [error, setError] = useState<Error | null>(null);
   const [hasAttemptedLoad, setHasAttemptedLoad] = useState(false);
+  const [loadCounter, setLoadCounter] = useState(0);
 
   const loadProfileData = useCallback(async () => {
+    // Prevent multiple simultaneous loads
+    if (loading && loadCounter > 0) {
+      console.log("Already loading profile data, skipping duplicate request");
+      return;
+    }
+    
+    setLoadCounter(prev => prev + 1);
+    
     if (!user) {
-      console.log("No user found, skipping profile data load");
+      console.log("No user found, using default profile data");
       setLoading(false);
       setProfileData(getDefaultProfileData());
       setHasAttemptedLoad(true);
@@ -75,12 +84,12 @@ export function useRoommateProfile() {
     } finally {
       setHasAttemptedLoad(true);
       
-      // Add small delay to prevent flashing
+      // Add delay to prevent flashing
       setTimeout(() => {
         setLoading(false);
-      }, 300);
+      }, 500);
     }
-  }, [user, toast]);
+  }, [user, toast, loading, loadCounter]);
 
   // Load profile data on mount
   useEffect(() => {
@@ -89,13 +98,12 @@ export function useRoommateProfile() {
         console.log("User detected, loading profile data");
         loadProfileData();
       } else {
-        console.log("No user detected, skipping profile data load");
-        // Add small delay to prevent flashing
+        console.log("No user detected, using default profile data");
         setTimeout(() => {
           setLoading(false);
           setProfileData(getDefaultProfileData());
           setHasAttemptedLoad(true);
-        }, 300);
+        }, 500);
       }
     }
   }, [user, loadProfileData, hasAttemptedLoad]);

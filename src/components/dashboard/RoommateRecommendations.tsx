@@ -50,7 +50,7 @@ export function RoommateRecommendations({ onError }: RoommateRecommendationsProp
       // Delay to ensure smooth transitions
       const timer = setTimeout(() => {
         setContentReady(true);
-      }, 300);
+      }, 500);
       
       return () => clearTimeout(timer);
     }
