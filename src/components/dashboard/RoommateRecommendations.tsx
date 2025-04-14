@@ -151,12 +151,11 @@ export function RoommateRecommendations() {
   if (hasError) {
     return (
       <div className="p-6">
-        <div className="bg-red-50 border border-red-200 rounded-md p-4">
-          <h3 className="text-lg font-medium text-red-800">Error loading profile</h3>
-          <p className="mt-2 text-red-700">
-            We encountered an error while loading your profile. Please try refreshing the page.
-          </p>
-        </div>
+        <EmptyState 
+          title="Error loading profile"
+          description="We encountered an error while loading your profile. Please try refreshing the page."
+          icon="alert"
+        />
       </div>
     );
   }
@@ -196,8 +195,8 @@ export function RoommateRecommendations() {
         />
 
         <Results 
-          roommates={roommates}
-          properties={properties}
+          roommates={roommates || []}
+          properties={properties || []}
           selectedMatch={selectedMatch}
           activeTab={activeTab}
           setActiveTab={setActiveTab}
