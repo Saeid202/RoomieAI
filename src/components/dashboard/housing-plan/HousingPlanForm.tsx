@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useEffect } from 'react';
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -20,9 +19,10 @@ const housingPlanSchema = z.object({
 
 type HousingPlanFormProps = {
   onSubmit: (data: z.infer<typeof housingPlanSchema>) => void;
+  initialData?: any;
 };
 
-export function HousingPlanForm({ onSubmit }: HousingPlanFormProps) {
+export function HousingPlanForm({ onSubmit, initialData }: HousingPlanFormProps) {
   const form = useForm({
     resolver: zodResolver(housingPlanSchema),
     defaultValues: {
@@ -33,6 +33,18 @@ export function HousingPlanForm({ onSubmit }: HousingPlanFormProps) {
       additionalRequirements: ''
     }
   });
+
+  useEffect(() => {
+    if (initialData) {
+      form.reset({
+        movingDate: new Date(initialData.moving_date).toISOString().split('T')[0],
+        desiredLocation: initialData.desired_location,
+        budget: initialData.budget.toString(),
+        housingType: initialData.housing_type,
+        additionalRequirements: initialData.additional_requirements || ''
+      });
+    }
+  }, [initialData, form]);
 
   return (
     <Form {...form}>

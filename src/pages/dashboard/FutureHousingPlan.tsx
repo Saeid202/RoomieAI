@@ -1,67 +1,90 @@
-import React, { useState } from 'react';
+
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { PlusCircle } from "lucide-react";
+import { PlusCircle, Pencil } from "lucide-react";
 import { findMatches } from "@/utils/matchingAlgorithm";
 import { ProfileFormValues } from "@/types/profile";
 import { useToast } from "@/hooks/use-toast";
 import { HousingPlanForm } from "@/components/dashboard/housing-plan/HousingPlanForm";
 import { HousingPlanList } from "@/components/dashboard/housing-plan/HousingPlanList";
 import { RoommateMatches } from "@/components/dashboard/housing-plan/RoommateMatches";
+import { useHousingPlans } from "@/hooks/useHousingPlans";
 
 export default function FutureHousingPlan() {
-  const [plans, setPlans] = useState([]);
-  const [showRoommates, setShowRoommates] = useState(false);
-  const [roommateMatches, setRoommateMatches] = useState([]);
+  const [showRoommates, setShowRoommates] = React.useState(false);
+  const [roommateMatches, setRoommateMatches] = React.useState([]);
+  const [selectedPlan, setSelectedPlan] = React.useState(null);
   const { toast } = useToast();
+  const { plans, isLoading, createPlan, updatePlan } = useHousingPlans();
 
-  const onSubmit = (data) => {
-    const newPlan = {
-      id: Date.now().toString(),
-      ...data,
-      createdAt: new Date().toISOString()
-    };
-    
-    setPlans([...plans, newPlan]);
-
-    const profileData: ProfileFormValues = {
-      moveInDate: new Date(data.movingDate),
-      preferredLocation: data.desiredLocation,
-      budgetRange: [Number(data.budget) - 200, Number(data.budget) + 200],
-      housingType: data.housingType, // Changed from propertyType to housingType to match the ProfileFormValues type
-      additionalComments: data.additionalRequirements, // Changed from additionalNotes to additionalComments to match the ProfileFormValues type
-      fullName: "",
-      age: "",
-      gender: "prefer-not-to-say",
-      occupation: "",
-      cleanliness: "somewhatTidy",
-      hasPets: false,
-      smoking: false,
-      guestsOver: "occasionally",
-      dailyRoutine: "mixed",
-      workSchedule: "9AM-5PM",
-      hobbies: [],
-      importantRoommateTraits: []
-    };
-
+  const onSubmit = async (data) => {
     try {
+      if (selectedPlan) {
+        await updatePlan.mutateAsync({
+          id: selectedPlan.id,
+          moving_date: data.movingDate,
+          desired_location: data.desiredLocation,
+          budget: Number(data.budget),
+          housing_type: data.housingType,
+          additional_requirements: data.additionalRequirements
+        });
+      } else {
+        await createPlan.mutateAsync({
+          moving_date: data.movingDate,
+          desired_location: data.desiredLocation,
+          budget: Number(data.budget),
+          housing_type: data.housingType,
+          additional_requirements: data.additionalRequirements
+        });
+      }
+
+      const profileData: ProfileFormValues = {
+        moveInDate: new Date(data.movingDate),
+        preferredLocation: data.desiredLocation,
+        budgetRange: [Number(data.budget) - 200, Number(data.budget) + 200],
+        housingType: data.housingType,
+        additionalComments: data.additionalRequirements,
+        fullName: "",
+        age: "",
+        gender: "prefer-not-to-say",
+        occupation: "",
+        cleanliness: "somewhatTidy",
+        hasPets: false,
+        smoking: false,
+        guestsOver: "occasionally",
+        dailyRoutine: "mixed",
+        workSchedule: "9AM-5PM",
+        hobbies: [],
+        importantRoommateTraits: []
+      };
+
       const matches = findMatches(profileData);
       setRoommateMatches(matches);
       setShowRoommates(true);
       toast({
-        title: "Plan created!",
+        title: selectedPlan ? "Plan updated!" : "Plan created!",
         description: "We've found some potential roommates based on your preferences.",
       });
+      setSelectedPlan(null);
     } catch (error) {
-      console.error("Error finding matches:", error);
+      console.error("Error saving plan:", error);
       toast({
         title: "Error",
-        description: "Failed to find roommate matches. Please try again.",
+        description: "Failed to save housing plan. Please try again.",
         variant: "destructive",
       });
     }
   };
+
+  const handleEdit = (plan) => {
+    setSelectedPlan(plan);
+  };
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="container mx-auto py-6">
@@ -81,9 +104,11 @@ export default function FutureHousingPlan() {
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-[500px]">
                   <DialogHeader>
-                    <DialogTitle>Create Housing Plan</DialogTitle>
+                    <DialogTitle>
+                      {selectedPlan ? 'Edit Housing Plan' : 'Create Housing Plan'}
+                    </DialogTitle>
                   </DialogHeader>
-                  <HousingPlanForm onSubmit={onSubmit} />
+                  <HousingPlanForm onSubmit={onSubmit} initialData={selectedPlan} />
                 </DialogContent>
               </Dialog>
             </CardTitle>
@@ -110,7 +135,7 @@ export default function FutureHousingPlan() {
                 </Dialog>
               </div>
             ) : (
-              <HousingPlanList plans={plans} />
+              <HousingPlanList plans={plans} onEdit={handleEdit} />
             )}
           </CardContent>
         </Card>
