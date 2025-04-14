@@ -18,11 +18,12 @@ export function useProfileSaving() {
         description: "You need to be logged in to save your profile",
         variant: "destructive",
       });
-      return Promise.reject(new Error("Authentication required"));
+      throw new Error("Authentication required");
     }
     
+    setIsSaving(true);
+    
     try {
-      setIsSaving(true);
       console.log("useProfileSaving - Saving profile data:", formData);
       
       const result = await saveRoommateProfile(user.id, formData);
@@ -32,8 +33,6 @@ export function useProfileSaving() {
         title: "Profile updated",
         description: "Your profile has been saved successfully",
       });
-      
-      return Promise.resolve();
     } catch (error) {
       console.error("Error saving profile:", error);
       toast({
@@ -41,7 +40,7 @@ export function useProfileSaving() {
         description: "Failed to save profile data. Please try again.",
         variant: "destructive",
       });
-      return Promise.reject(error);
+      throw error; // Re-throw the error to propagate it
     } finally {
       setIsSaving(false);
     }

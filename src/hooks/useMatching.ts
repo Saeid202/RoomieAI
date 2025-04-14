@@ -30,11 +30,12 @@ export function useMatching() {
         description: "Please complete your profile before finding matches",
         variant: "destructive",
       });
-      return Promise.reject(new Error("Profile data is required"));
+      throw new Error("Profile data is required");
     }
     
+    setIsFindingMatches(true);
+    
     try {
-      setIsFindingMatches(true);
       console.log("Finding matches with profile data:", profileData);
       
       // First convert to ProfileFormValues to ensure the right types
@@ -48,7 +49,7 @@ export function useMatching() {
       // Update state with found matches
       setRoommates(matchesFound);
       
-      return Promise.resolve(matchesFound);
+      return matchesFound;
     } catch (error) {
       console.error("Error finding matches:", error);
       toast({
@@ -56,7 +57,7 @@ export function useMatching() {
         description: "Failed to find matches. Please try again.",
         variant: "destructive",
       });
-      return Promise.reject(error);
+      throw error;
     } finally {
       setIsFindingMatches(false);
     }
