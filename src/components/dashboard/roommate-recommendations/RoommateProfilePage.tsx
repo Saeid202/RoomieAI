@@ -41,7 +41,7 @@ export function RoommateProfilePage({
 
   const onHandleSaveProfile = async (formData: ProfileFormValues): Promise<void> => {
     try {
-      console.log("Saving profile from RoommateRecommendations:", formData);
+      console.log("Saving profile from RoommateProfilePage:", formData);
       
       if (!user) {
         throw new Error("Authentication required");
@@ -56,6 +56,7 @@ export function RoommateProfilePage({
 
   const handleFindMatch = async (): Promise<void> => {
     try {
+      console.log("Finding matches from RoommateProfilePage");
       window.scrollTo({ top: 0, behavior: 'smooth' });
       await findMatches();
       setTimeout(() => {

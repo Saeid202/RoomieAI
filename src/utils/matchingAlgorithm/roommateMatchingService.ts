@@ -10,26 +10,32 @@ import { convertFormToProfileData } from "./profileMapper";
 export const findMatches = (userProfile: ProfileFormValues): MatchResult[] => {
   console.log("Finding matches for user profile:", userProfile);
   
-  // Convert the form values to the format expected by the matching algorithm
-  const profileData = convertFormToProfileData(userProfile);
-  
-  // For a real application, this would query a database of potential matches
-  // For this demo, we'll use mock data
-  const potentialMatches = potentialRoommates;
-  
-  // Calculate compatibility scores for each potential match
-  const matches = potentialMatches.map(match => {
-    const compatibility = calculateCompatibilityScore(profileData, match);
+  try {
+    // Convert the form values to the format expected by the matching algorithm
+    const profileData = convertFormToProfileData(userProfile);
     
-    return {
-      ...match,
-      compatibilityScore: compatibility.score,
-      compatibilityBreakdown: compatibility.breakdown
-    };
-  });
-  
-  // Sort matches by compatibility score (highest first)
-  const sortedMatches = matches.sort((a, b) => b.compatibilityScore - a.compatibilityScore);
-  
-  return sortedMatches;
+    // For a real application, this would query a database of potential matches
+    // For this demo, we'll use mock data
+    const potentialMatches = potentialRoommates;
+    
+    // Calculate compatibility scores for each potential match
+    const matches = potentialMatches.map(match => {
+      const compatibility = calculateCompatibilityScore(profileData, match);
+      
+      return {
+        ...match,
+        compatibilityScore: compatibility.score,
+        compatibilityBreakdown: compatibility.breakdown
+      };
+    });
+    
+    // Sort matches by compatibility score (highest first)
+    const sortedMatches = matches.sort((a, b) => b.compatibilityScore - a.compatibilityScore);
+    
+    return sortedMatches;
+  } catch (error) {
+    console.error("Error in findMatches algorithm:", error);
+    // Return empty array on error to avoid crashing
+    return [];
+  }
 };

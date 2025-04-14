@@ -31,7 +31,8 @@ export function useRoommateMatching() {
   } = useMatching();
 
   // Wrapper for findMatches that uses the current profileData
-  const findMatches = async (profileData: Partial<ProfileFormValues> | null): Promise<void> => {
+  const findMatches = async (): Promise<void> => {
+    console.log("Finding matches with current profile data:", profileData);
     await findMatchesInternal(profileData);
   };
 

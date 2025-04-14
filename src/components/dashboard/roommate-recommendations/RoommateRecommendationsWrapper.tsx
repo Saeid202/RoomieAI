@@ -59,7 +59,7 @@ export function RoommateRecommendationsWrapper() {
     };
     
     initializeComponent();
-  }, [user]);
+  }, [user, loadProfileData, showError]);
 
   useEffect(() => {
     console.log("ProfileData updated in RoommateRecommendations:", profileData);
@@ -81,13 +81,25 @@ export function RoommateRecommendationsWrapper() {
     }
   };
 
-  // Wrapper functions with the correct return type
+  // Wrapper function with the correct return type
   const wrappedFindMatches = async (): Promise<void> => {
-    await findMatches(profileData);
+    try {
+      console.log("wrappedFindMatches called");
+      await findMatches();
+    } catch (error) {
+      console.error("Error in wrappedFindMatches:", error);
+      showError("Error", "Failed to find matches");
+    }
   };
 
   const wrappedSaveProfile = async (formData: ProfileFormValues): Promise<void> => {
-    await handleSaveProfile(formData);
+    try {
+      console.log("wrappedSaveProfile called with:", formData);
+      await handleSaveProfile(formData);
+    } catch (error) {
+      console.error("Error in wrappedSaveProfile:", error);
+      showError("Error", "Failed to save profile");
+    }
   };
 
   if (isPageLoading || loading) {
