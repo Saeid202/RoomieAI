@@ -12,29 +12,35 @@ export default function RoommateRecommendationsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [contentMounted, setContentMounted] = useState(false);
 
-  // Simplified loading state without timeouts to prevent flashing
+  // Prevent UI flashing with stable state management
   useEffect(() => {
     document.title = "Find My Ideal Roommate";
     
-    // Set content as mounted once to prevent remounting
+    // Fixed loading state that doesn't fluctuate
     if (!contentMounted) {
       setContentMounted(true);
       
-      // Use requestAnimationFrame for smoother loading
-      requestAnimationFrame(() => {
+      // Delay just enough to ensure DOM is ready but not so long it causes flashing
+      const stableTimer = setTimeout(() => {
         setIsLoading(false);
-      });
+      }, 100);
+      
+      return () => clearTimeout(stableTimer);
     }
   }, [contentMounted]);
 
   const handleRetry = () => {
     setIsRetrying(true);
     setIsLoading(true);
+    setError(null);
     
-    // Force a remount of the component
-    setContentMounted(false);
+    // Use setTimeout to ensure state updates have propagated
+    setTimeout(() => {
+      setContentMounted(false);
+    }, 50);
   };
 
+  // Maintain stable DOM during loading
   if (isLoading) {
     return <LoadingState />;
   }
@@ -63,7 +69,7 @@ export default function RoommateRecommendationsPage() {
     );
   }
 
-  // Stable render with no transitions once loaded
+  // Ensure stable DOM with consistent class names
   return (
     <div className="container mx-auto py-6" style={{ minHeight: '80vh' }}>
       <RoommateRecommendations key="recommendations-component" onError={setError} />

@@ -43,31 +43,25 @@ export function RoommateRecommendations({ onError }: RoommateRecommendationsProp
   
   const { expandedSections, setExpandedSections } = useAccordionSections(["about-me", "ideal-roommate", "ai-assistant"]);
 
-  // Prevent UI flashing by ensuring a stable rendering
+  // Stable content rendering that prevents flashing
   useEffect(() => {
-    // Set content as ready only when profile data is available and loading is complete
     if (!loading && profileData) {
-      // Delay to ensure smooth transitions
-      const timer = setTimeout(() => {
+      // Use a minimal delay for smooth transition
+      const stableTimer = setTimeout(() => {
         setContentReady(true);
-      }, 500);
+      }, 150);
       
-      return () => clearTimeout(timer);
+      return () => clearTimeout(stableTimer);
     }
   }, [loading, profileData]);
 
-  // When page is explicitly loading (e.g., during find matches)
-  if (isPageLoading) {
-    return <LoadingState />;
-  }
-
-  // During initial load or when profile data is loading
-  if (loading || !contentReady) {
+  // During initial load or when profile data is loading, show a stable loading state
+  if (isPageLoading || loading || !contentReady) {
     return <LoadingState />;
   }
 
   return (
-    <div className="space-y-8 animate-fadeIn">
+    <div className="space-y-8">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold tracking-tight">Find My Ideal Roommate</h1>
         {user && (

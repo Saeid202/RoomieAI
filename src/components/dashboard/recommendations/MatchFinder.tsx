@@ -28,9 +28,12 @@ export function MatchFinder({
       setIsLoading(true);
       onStartLoading();
       
+      // Prevent any DOM flickering by ensuring loading state is stable
+      await new Promise(resolve => setTimeout(resolve, 50));
+      
       const matches = await findMatches();
       
-      // Optimized loading with no timeout
+      // Ensure smooth transition when results are ready
       const resultsElement = document.querySelector('[data-results-section]');
       if (resultsElement) {
         resultsElement.scrollIntoView({ behavior: 'smooth' });
@@ -41,6 +44,8 @@ export function MatchFinder({
         description: `Found ${matches.length} potential roommates for you.`,
       });
       
+      // Delay state update slightly to prevent UI jumping
+      await new Promise(resolve => setTimeout(resolve, 50));
       setIsLoading(false);
       onFinishLoading();
     } catch (error) {
