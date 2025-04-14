@@ -21,7 +21,11 @@ export function ProfileSaveHandler({
     try {
       setIsSaving(true);
       await onSubmit(formData);
-      return true;
+      toast({
+        title: "Profile saved",
+        description: "Your profile has been saved successfully",
+      });
+      // Don't return true/false, just return void
     } catch (error) {
       console.error("Error in ProfileSaveHandler:", error);
       toast({

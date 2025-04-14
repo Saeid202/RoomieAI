@@ -10,7 +10,7 @@ export function useProfileSaving() {
   const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
 
-  const handleSaveProfile = async (formData: ProfileFormValues) => {
+  const handleSaveProfile = async (formData: ProfileFormValues): Promise<void> => {
     try {
       if (!user) {
         console.error("No user found. Cannot save profile.");
@@ -19,7 +19,7 @@ export function useProfileSaving() {
           description: "You need to be logged in to save your profile",
           variant: "destructive",
         });
-        return false;
+        return;
       }
       
       setIsSaving(true);
@@ -31,8 +31,6 @@ export function useProfileSaving() {
         title: "Profile updated",
         description: "Your profile has been saved successfully",
       });
-      
-      return true;
     } catch (error) {
       console.error("Error saving profile:", error);
       toast({
@@ -40,7 +38,7 @@ export function useProfileSaving() {
         description: "Failed to save profile data. Please try again.",
         variant: "destructive",
       });
-      return false;
+      throw error;
     } finally {
       setIsSaving(false);
     }

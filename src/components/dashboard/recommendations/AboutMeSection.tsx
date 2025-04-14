@@ -1,4 +1,3 @@
-
 import { User } from "lucide-react";
 import { ProfileFormValues } from "@/types/profile";
 import { AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
@@ -19,16 +18,17 @@ import { Tabs, TabsContent } from "@/components/ui/tabs";
 interface AboutMeSectionProps {
   profileData: Partial<ProfileFormValues> | null;
   isLoading?: boolean;
+  onSaveProfile?: (formData: ProfileFormValues) => Promise<void>;
 }
 
 export function AboutMeSection({ 
   profileData,
-  isLoading = false
+  isLoading = false,
+  onSaveProfile
 }: AboutMeSectionProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [activeAboutMeTab, setActiveAboutMeTab] = useState("personal-info");
   
-  // Create a default empty form value to prevent null errors
   const defaultFormValues: Partial<ProfileFormValues> = {
     fullName: "",
     age: "",
@@ -71,7 +71,6 @@ export function AboutMeSection({
     defaultValues: { ...defaultFormValues, ...profileData },
   });
 
-  // Update form when profileData changes
   useEffect(() => {
     if (profileData) {
       console.log("Updating AboutMeSection form with profile data:", profileData);
@@ -84,7 +83,9 @@ export function AboutMeSection({
       setIsSaving(true);
       console.log("About Me form data to save:", data);
       
-      // This will be handled by the parent component
+      if (onSaveProfile) {
+        await onSaveProfile(data);
+      }
     } catch (error) {
       console.error("Error saving profile:", error);
     } finally {

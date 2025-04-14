@@ -66,9 +66,10 @@ export function RoommateRecommendations({ onError }: RoommateRecommendationsProp
     }
   }, [toast, onError]);
 
-  const onSaveProfile = async (formData: ProfileFormValues) => {
+  // Wrapper function that properly converts the return type
+  const onSaveProfile = async (formData: ProfileFormValues): Promise<void> => {
     try {
-      return await handleSaveProfile(formData);
+      await handleSaveProfile(formData);
     } catch (error) {
       handleError(error instanceof Error ? error : new Error("Failed to save profile"));
       throw error;
