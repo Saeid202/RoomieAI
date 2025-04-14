@@ -15,7 +15,7 @@ export default function ChatsPage() {
   const [messages, setMessages] = useState<ChatMessageType[]>([
     {
       id: '1',
-      sender: 'ai',
+      sender: 'assistant',
       content: "Hi there! I'm your AI matching assistant. I can help you find the perfect roommate based on your preferences. What questions do you have about the matching process?",
       timestamp: new Date()
     }
@@ -53,7 +53,7 @@ export default function ChatsPage() {
       
       const assistantMessage: ChatMessageType = {
         id: Date.now().toString(),
-        sender: 'ai',
+        sender: 'assistant',
         content: response,
         timestamp: new Date()
       };
@@ -71,7 +71,7 @@ export default function ChatsPage() {
         ...prev, 
         {
           id: Date.now().toString(),
-          sender: 'ai',
+          sender: 'assistant',
           content: "I've analyzed your profile and preferences! To see your matches, please go to the Roommate Recommendations section in your dashboard.",
           timestamp: new Date()
         }

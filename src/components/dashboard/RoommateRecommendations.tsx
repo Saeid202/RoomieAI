@@ -7,7 +7,6 @@ import { AboutMeSection } from "./recommendations/AboutMeSection";
 import { IdealRoommateSection } from "./recommendations/IdealRoommateSection";
 import { ResultsSection } from "./recommendations/ResultsSection";
 import { ProfileLoadingHandler } from "./recommendations/ProfileLoadingHandler";
-import { ProfileSaveHandler } from "./recommendations/ProfileSaveHandler";
 import { AIAssistantSection } from "./recommendations/AIAssistantSection";
 import { MatchFinder } from "./recommendations/MatchFinder";
 import { EmptyState } from "./recommendations/EmptyState";
@@ -91,27 +90,17 @@ export function RoommateRecommendations({ onError }: RoommateRecommendationsProp
               </TabsList>
               
               <TabsContent value="about-me">
-                <ProfileSaveHandler
-                  isSubmitting={isLoading}
-                  onSubmit={handleSaveProfile}
-                >
-                  <AboutMeSection
-                    profileData={profileData}
-                    isLoading={profileLoading}
-                  />
-                </ProfileSaveHandler>
+                <AboutMeSection
+                  profileData={profileData}
+                  isLoading={profileLoading}
+                />
               </TabsContent>
               
               <TabsContent value="ideal-roommate">
-                <ProfileSaveHandler
-                  isSubmitting={isLoading}
-                  onSubmit={handleSaveProfile}
-                >
-                  <IdealRoommateSection
-                    profileData={profileData}
-                    isLoading={profileLoading}
-                  />
-                </ProfileSaveHandler>
+                <IdealRoommateSection
+                  profileData={profileData}
+                  isLoading={profileLoading}
+                />
               </TabsContent>
               
               <TabsContent value="ai-assistant">

@@ -1,5 +1,4 @@
 
-import { useState, useEffect } from "react";
 import { Users } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
@@ -9,24 +8,20 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { profileSchema } from "@/types/profile";
 import { useToast } from "@/hooks/use-toast";
 import { RoommatePreferencesForm } from "./ideal-roommate/RoommatePreferencesForm";
+import { useState, useEffect } from "react";
 
 interface IdealRoommateSectionProps {
-  expandedSections: string[];
   profileData: Partial<ProfileFormValues> | null;
-  activeIdealRoommateTab: string;
-  setActiveIdealRoommateTab: (value: string) => void;
-  handleSaveProfile: (formData: ProfileFormValues) => void;
+  isLoading?: boolean;
 }
 
 export function IdealRoommateSection({ 
-  expandedSections, 
-  profileData, 
-  activeIdealRoommateTab, 
-  setActiveIdealRoommateTab,
-  handleSaveProfile
+  profileData,
+  isLoading = false
 }: IdealRoommateSectionProps) {
   const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
+  const [activeIdealRoommateTab, setActiveIdealRoommateTab] = useState("preferences");
   
   // Create a default empty form value to prevent null errors
   const defaultFormValues: Partial<ProfileFormValues> = {
@@ -84,15 +79,7 @@ export function IdealRoommateSection({
       setIsSaving(true);
       console.log("Ideal Roommate form data to save:", data);
       
-      // Make sure data has complete form values, fallback to defaults for required fields
-      const completeData: ProfileFormValues = {
-        ...defaultFormValues,
-        ...data,
-      } as ProfileFormValues;
-      
-      // Call the save handler passed from parent component
-      await handleSaveProfile(completeData);
-      
+      // This will be handled by parent component
       toast({
         title: "Preferences saved",
         description: "Your roommate preferences have been updated successfully.",

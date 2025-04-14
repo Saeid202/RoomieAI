@@ -1,37 +1,32 @@
 
 import { User } from "lucide-react";
-import { Tabs, TabsContent } from "@/components/ui/tabs";
-import { Card, CardContent } from "@/components/ui/card";
-import { AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import { ProfileFormValues } from "@/types/profile";
-import { Form } from "@/components/ui/form";
-import { Button } from "@/components/ui/button";
+import { AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
+import { Card, CardContent } from "@/components/ui/card";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { profileSchema } from "@/types/profile";
-import { useState, useEffect } from "react";
+import { Form } from "@/components/ui/form";
+import { Button } from "@/components/ui/button";
 import { AboutMeTabs } from "./about-me/AboutMeTabs";
 import { PersonalInfoTab } from "./about-me/PersonalInfoTab";
 import { HousingTab } from "./about-me/HousingTab";
 import { LifestyleTab } from "./about-me/LifestyleTab";
 import { SocialCleaningTab } from "./about-me/SocialCleaningTab";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 
 interface AboutMeSectionProps {
-  expandedSections: string[];
   profileData: Partial<ProfileFormValues> | null;
-  activeAboutMeTab: string;
-  setActiveAboutMeTab: (value: string) => void;
-  handleSaveProfile: (formData: ProfileFormValues) => void;
+  isLoading?: boolean;
 }
 
 export function AboutMeSection({ 
-  expandedSections, 
-  profileData, 
-  activeAboutMeTab, 
-  setActiveAboutMeTab,
-  handleSaveProfile
+  profileData,
+  isLoading = false
 }: AboutMeSectionProps) {
   const [isSaving, setIsSaving] = useState(false);
+  const [activeAboutMeTab, setActiveAboutMeTab] = useState("personal-info");
   
   // Create a default empty form value to prevent null errors
   const defaultFormValues: Partial<ProfileFormValues> = {
@@ -80,7 +75,6 @@ export function AboutMeSection({
   useEffect(() => {
     if (profileData) {
       console.log("Updating AboutMeSection form with profile data:", profileData);
-      // Reset the form with the merged values of defaultFormValues and profileData
       form.reset({ ...defaultFormValues, ...profileData });
     }
   }, [profileData, form]);
@@ -90,13 +84,7 @@ export function AboutMeSection({
       setIsSaving(true);
       console.log("About Me form data to save:", data);
       
-      // Make sure data has complete form values, fallback to defaults for required fields
-      const completeData: ProfileFormValues = {
-        ...defaultFormValues,
-        ...data,
-      } as ProfileFormValues;
-      
-      await handleSaveProfile(completeData);
+      // This will be handled by the parent component
     } catch (error) {
       console.error("Error saving profile:", error);
     } finally {

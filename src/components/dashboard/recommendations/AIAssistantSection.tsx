@@ -23,7 +23,7 @@ export function AIAssistantSection({
     {
       id: "1",
       content: "Hi there! I'm your AI matching assistant. I can help you find the perfect roommate based on your preferences. Ask me anything about the matching process or your profile!",
-      sender: "ai",
+      sender: "assistant",
       timestamp: new Date(),
     },
   ]);
@@ -44,7 +44,7 @@ export function AIAssistantSection({
       const aiMessage: ChatMessageType = {
         id: `ai-${Date.now()}`,
         content: getAIResponse(content, profileData),
-        sender: "ai",
+        sender: "assistant",
         timestamp: new Date(),
       };
       
