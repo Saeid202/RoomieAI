@@ -2,11 +2,8 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { UserPreference } from "@/components/dashboard/types";
 import { ProfileFormValues } from "@/types/profile";
-import { fetchProfileData, getTableNameFromPreference, saveProfileData } from "@/services/profileService";
-import { findMatches as findMatchesAlgorithm, convertFormToProfileData } from "@/utils/matchingAlgorithm";
-import { mapDbRowToFormValues } from "@/utils/profileDataMappers";
+import { findMatches as findMatchesAlgorithm } from "@/utils/matchingAlgorithm";
 import { supabase } from "@/integrations/supabase/client";
 
 export function useRoommateMatching() {
@@ -33,9 +30,9 @@ export function useRoommateMatching() {
     try {
       setLoading(true);
       
-      // Fetch user profile from the roommate_profiles table
+      // Fetch user profile from the "Find My Ideal Roommate" table
       const { data, error } = await supabase
-        .from('roommate_profiles')
+        .from('Find My Ideal Roommate')
         .select('*')
         .eq('user_id', user.id)
         .maybeSingle();
@@ -98,48 +95,50 @@ export function useRoommateMatching() {
       // Prepare data for saving to the database
       const dbData = {
         user_id: user.id,
-        full_name: formData.fullName,
-        age: formData.age,
-        gender: formData.gender,
-        phone_number: formData.phoneNumber,
-        email: formData.email,
-        linkedin_profile: formData.linkedinProfile,
-        preferred_location: formData.preferredLocation,
-        budget_range: formData.budgetRange,
-        move_in_date: formData.moveInDate ? formData.moveInDate.toISOString() : null,
-        housing_type: formData.housingType,
-        living_space: formData.livingSpace,
-        smoking: formData.smoking,
-        lives_with_smokers: formData.livesWithSmokers,
-        has_pets: formData.hasPets,
-        pet_preference: formData.petPreference,
-        work_location: formData.workLocation,
-        daily_routine: formData.dailyRoutine,
-        hobbies: formData.hobbies,
-        work_schedule: formData.workSchedule,
-        sleep_schedule: formData.sleepSchedule,
-        overnight_guests: formData.overnightGuests,
-        cleanliness: formData.cleanliness,
-        cleaning_frequency: formData.cleaningFrequency,
-        social_level: formData.socialLevel,
-        guests_over: formData.guestsOver,
-        family_over: formData.familyOver,
-        atmosphere: formData.atmosphere,
-        hosting_friends: formData.hostingFriends,
-        diet: formData.diet,
-        cooking_sharing: formData.cookingSharing,
-        stay_duration: formData.stayDuration,
-        lease_term: formData.leaseTerm,
-        roommate_gender_preference: formData.roommateGenderPreference,
-        roommate_age_preference: formData.roommateAgePreference,
-        roommate_lifestyle_preference: formData.roommateLifestylePreference,
-        important_roommate_traits: formData.importantRoommateTraits,
+        profile_data: {
+          fullName: formData.fullName,
+          age: formData.age,
+          gender: formData.gender,
+          phoneNumber: formData.phoneNumber,
+          email: formData.email,
+          linkedinProfile: formData.linkedinProfile,
+          preferredLocation: formData.preferredLocation,
+          budgetRange: formData.budgetRange,
+          moveInDate: formData.moveInDate ? formData.moveInDate.toISOString() : null,
+          housingType: formData.housingType,
+          livingSpace: formData.livingSpace,
+          smoking: formData.smoking,
+          livesWithSmokers: formData.livesWithSmokers,
+          hasPets: formData.hasPets,
+          petPreference: formData.petPreference,
+          workLocation: formData.workLocation,
+          dailyRoutine: formData.dailyRoutine,
+          hobbies: formData.hobbies,
+          workSchedule: formData.workSchedule,
+          sleepSchedule: formData.sleepSchedule,
+          overnightGuests: formData.overnightGuests,
+          cleanliness: formData.cleanliness,
+          cleaningFrequency: formData.cleaningFrequency,
+          socialLevel: formData.socialLevel,
+          guestsOver: formData.guestsOver,
+          familyOver: formData.familyOver,
+          atmosphere: formData.atmosphere,
+          hostingFriends: formData.hostingFriends,
+          diet: formData.diet,
+          cookingSharing: formData.cookingSharing,
+          stayDuration: formData.stayDuration,
+          leaseTerm: formData.leaseTerm,
+          roommateGenderPreference: formData.roommateGenderPreference,
+          roommateAgePreference: formData.roommateAgePreference,
+          roommateLifestylePreference: formData.roommateLifestylePreference,
+          importantRoommateTraits: formData.importantRoommateTraits
+        },
         updated_at: new Date().toISOString()
       };
       
       // Check if user already has a profile
       const { data: existingProfile, error: checkError } = await supabase
-        .from('roommate_profiles')
+        .from('Find My Ideal Roommate')
         .select('id')
         .eq('user_id', user.id)
         .maybeSingle();
@@ -153,13 +152,13 @@ export function useRoommateMatching() {
       if (existingProfile) {
         // Update existing profile
         result = await supabase
-          .from('roommate_profiles')
+          .from('Find My Ideal Roommate')
           .update(dbData)
           .eq('user_id', user.id);
       } else {
         // Insert new profile
         result = await supabase
-          .from('roommate_profiles')
+          .from('Find My Ideal Roommate')
           .insert(dbData);
       }
       
@@ -217,6 +216,55 @@ export function useRoommateMatching() {
       console.error("Error finding matches:", error);
       throw error;
     }
+  };
+
+  // Helper function to map database row to form values
+  const mapDbRowToFormValues = (dbRow: any): Partial<ProfileFormValues> => {
+    if (!dbRow.profile_data) {
+      return {};
+    }
+    
+    const profileData = dbRow.profile_data;
+    const moveInDate = profileData.moveInDate ? new Date(profileData.moveInDate) : new Date();
+    
+    return {
+      fullName: profileData.fullName || "",
+      age: profileData.age || "",
+      gender: profileData.gender || "",
+      phoneNumber: profileData.phoneNumber || "",
+      email: profileData.email || "",
+      linkedinProfile: profileData.linkedinProfile || "",
+      preferredLocation: profileData.preferredLocation || "",
+      budgetRange: profileData.budgetRange || [800, 1500],
+      moveInDate: moveInDate,
+      housingType: profileData.housingType || "apartment",
+      livingSpace: profileData.livingSpace || "privateRoom",
+      smoking: profileData.smoking || false,
+      livesWithSmokers: profileData.livesWithSmokers || false,
+      hasPets: profileData.hasPets || false,
+      petPreference: profileData.petPreference || "noPets",
+      workLocation: profileData.workLocation || "office",
+      dailyRoutine: profileData.dailyRoutine || "morning",
+      hobbies: profileData.hobbies || [],
+      workSchedule: profileData.workSchedule || "",
+      sleepSchedule: profileData.sleepSchedule || "",
+      overnightGuests: profileData.overnightGuests || "occasionally",
+      cleanliness: profileData.cleanliness || "somewhatTidy",
+      cleaningFrequency: profileData.cleaningFrequency || "weekly",
+      socialLevel: profileData.socialLevel || "balanced",
+      guestsOver: profileData.guestsOver || "occasionally",
+      familyOver: profileData.familyOver || "occasionally",
+      atmosphere: profileData.atmosphere || "balanced",
+      hostingFriends: profileData.hostingFriends || "occasionally",
+      diet: profileData.diet || "omnivore",
+      cookingSharing: profileData.cookingSharing || "share",
+      stayDuration: profileData.stayDuration || "oneYear",
+      leaseTerm: profileData.leaseTerm || "longTerm",
+      roommateGenderPreference: profileData.roommateGenderPreference || "noPreference",
+      roommateAgePreference: profileData.roommateAgePreference || "similar",
+      roommateLifestylePreference: profileData.roommateLifestylePreference || "similar",
+      importantRoommateTraits: profileData.importantRoommateTraits || [],
+    };
   };
 
   useEffect(() => {
