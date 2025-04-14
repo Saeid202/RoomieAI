@@ -70,8 +70,6 @@ export function RoommateRecommendations() {
       // Wait for a moment to show the loading state
       setTimeout(async () => {
         await findMatches();
-        // Don't close accordion sections anymore
-        // setExpandedSections([]);
         setIsFindingMatches(false);
         toast({
           title: "Matches found!",
