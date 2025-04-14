@@ -1,10 +1,11 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { FutureHousingPlan } from "./types";
 import { useToastNotifications } from "@/hooks/useToastNotifications";
+import { PlanCreationForm } from "./PlanCreationForm";
 
 interface PlanCardProps {
   plan: FutureHousingPlan;
@@ -12,6 +13,8 @@ interface PlanCardProps {
 
 export function PlanCard({ plan }: PlanCardProps) {
   const { showSuccess } = useToastNotifications();
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedPlan, setEditedPlan] = useState<Partial<FutureHousingPlan>>(plan);
   
   // Helper for date display
   const formatDate = (date: Date) => {
@@ -24,12 +27,23 @@ export function PlanCard({ plan }: PlanCardProps) {
 
   // Handle edit button click
   const handleEdit = () => {
-    showSuccess(
-      "Edit mode activated",
-      "You can now edit your housing plan"
-    );
-    // In a real app, this would navigate to edit form or open a modal
+    setIsEditing(true);
     console.log("Editing plan:", plan.id);
+  };
+
+  // Handle save edited plan
+  const handleSaveEdit = () => {
+    setIsEditing(false);
+    showSuccess(
+      "Plan updated",
+      "Your housing plan has been updated successfully"
+    );
+  };
+
+  // Handle cancel edit
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditedPlan(plan); // Reset to original plan
   };
 
   // Handle view matches button click
@@ -38,9 +52,23 @@ export function PlanCard({ plan }: PlanCardProps) {
       "Viewing matches",
       "Loading matches for your housing plan"
     );
-    // In a real app, this would navigate to matches view
     console.log("Viewing matches for plan:", plan.id);
   };
+
+  if (isEditing) {
+    return (
+      <Card className="overflow-hidden">
+        <CardContent className="p-5">
+          <PlanCreationForm
+            newPlan={editedPlan}
+            setNewPlan={setEditedPlan}
+            onSave={handleSaveEdit}
+            onCancel={handleCancelEdit}
+          />
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="overflow-hidden">

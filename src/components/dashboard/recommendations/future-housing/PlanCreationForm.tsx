@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-import { CalendarIcon, MapPin, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { CalendarIcon, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
@@ -97,34 +97,11 @@ export function PlanCreationForm({
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
-              <div className="p-2 flex justify-between items-center border-b">
-                <Button variant="outline" size="icon" className="h-7 w-7">
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <div className="font-medium text-sm">
-                  {newPlan.moveInDate ? 
-                    newPlan.moveInDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long' }) : 
-                    new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long' })
-                  }
-                </div>
-                <Button variant="outline" size="icon" className="h-7 w-7">
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="h-7 w-7 ml-2" 
-                  onClick={() => setIsCalendarOpen(false)}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
               <Calendar
                 mode="single"
                 selected={newPlan.moveInDate}
                 onSelect={handleDateSelect}
                 initialFocus
-                className="p-3 pointer-events-auto"
               />
             </PopoverContent>
           </Popover>

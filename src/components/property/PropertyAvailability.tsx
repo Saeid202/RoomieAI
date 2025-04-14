@@ -17,6 +17,7 @@ interface PropertyAvailabilityProps {
 
 export function PropertyAvailability({ formData, handleChange }: PropertyAvailabilityProps) {
   const [date, setDate] = useState<Date | undefined>(undefined);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
   const handleDateSelect = (selectedDate: Date | undefined) => {
     setDate(selectedDate);
@@ -28,6 +29,7 @@ export function PropertyAvailability({ formData, handleChange }: PropertyAvailab
         }
       } as React.ChangeEvent<HTMLInputElement>;
       handleChange(event);
+      setIsCalendarOpen(false);
     }
   };
 
@@ -47,7 +49,7 @@ export function PropertyAvailability({ formData, handleChange }: PropertyAvailab
             readOnly
             className="flex-1"
           />
-          <Popover>
+          <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"

@@ -1,7 +1,8 @@
 
 import * as React from "react";
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
-import { DayPicker, useNavigation } from "react-day-picker";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { DayPicker } from "react-day-picker";
+import type { CaptionProps } from "react-day-picker";
 
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
@@ -16,13 +17,12 @@ import {
 export type CalendarProps = React.ComponentProps<typeof DayPicker>;
 
 // Custom navigation component for month/year selection
-function CalendarNavigation({
+function CalendarNavigation({ 
   displayMonth,
-  onMonthChange,
-  goToMonth,
-  nextMonth,
-  previousMonth,
-}: ReturnType<typeof useNavigation>) {
+  changeMonth, 
+  nextMonth, 
+  previousMonth 
+}: CaptionProps) {
   // Get current year and month
   const currentYear = displayMonth.getFullYear();
   const currentMonth = displayMonth.getMonth();
@@ -40,21 +40,21 @@ function CalendarNavigation({
   const handleYearChange = (year: string) => {
     const newDate = new Date(displayMonth);
     newDate.setFullYear(parseInt(year));
-    goToMonth(newDate);
+    changeMonth(newDate);
   };
 
   // Handle month change
   const handleMonthChange = (month: string) => {
     const newDate = new Date(displayMonth);
     newDate.setMonth(months.indexOf(month));
-    goToMonth(newDate);
+    changeMonth(newDate);
   };
 
   return (
     <div className="flex items-center justify-between px-1">
       <div className="flex items-center">
         <button
-          onClick={() => previousMonth && goToMonth(previousMonth)}
+          onClick={() => previousMonth && changeMonth(previousMonth)}
           disabled={!previousMonth}
           className={cn(
             buttonVariants({ variant: "outline", size: "icon" }),
@@ -101,7 +101,7 @@ function CalendarNavigation({
 
       <div className="flex items-center">
         <button
-          onClick={() => nextMonth && goToMonth(nextMonth)}
+          onClick={() => nextMonth && changeMonth(nextMonth)}
           disabled={!nextMonth}
           className={cn(
             buttonVariants({ variant: "outline", size: "icon" }),
@@ -162,15 +162,19 @@ function Calendar({
       components={{
         IconLeft: ({ ..._props }) => <ChevronLeft className="h-4 w-4" />,
         IconRight: ({ ..._props }) => <ChevronRight className="h-4 w-4" />,
-        Caption: ({displayMonth, onMonthChange, goToMonth, nextMonth, previousMonth}) => (
-          <CalendarNavigation 
-            displayMonth={displayMonth} 
-            onMonthChange={onMonthChange} 
-            goToMonth={goToMonth} 
-            nextMonth={nextMonth} 
-            previousMonth={previousMonth} 
-          />
-        )
+        Caption: CalendarNavigation
+      }}
+      onDayClick={(date) => {
+        // Close calendar when a day is selected
+        if (props.mode === "single" && props.onSelect && date) {
+          props.onSelect(date);
+          // Find and close any open popover
+          const popoverTrigger = document.querySelector('[data-state="open"] [role="dialog"]');
+          if (popoverTrigger) {
+            // This is a hack to close the popover, but it works
+            document.body.click();
+          }
+        }
       }}
       {...props}
     />
