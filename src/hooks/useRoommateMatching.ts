@@ -1,13 +1,11 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { UserPreference } from "@/components/dashboard/types";
 import { ProfileFormValues } from "@/types/profile";
 import { fetchProfileData, getTableNameFromPreference, saveProfileData } from "@/services/profileService";
-import { findMatches as findMatchesAlgorithm } from "@/utils/matchingAlgorithm";
+import { findMatches as findMatchesAlgorithm, convertFormToProfileData } from "@/utils/matchingAlgorithm";
 import { mapDbRowToFormValues } from "@/utils/profileDataMappers";
-import { mapFormToProfileData } from "@/utils/matchingAlgorithm/profileMapper";
 
 export function useRoommateMatching() {
   const { user } = useAuth();
@@ -66,11 +64,10 @@ export function useRoommateMatching() {
       }
       
       // Convert profile form data to the format expected by the matching algorithm
-      const profileForMatching = mapFormToProfileData(profileData as ProfileFormValues);
+      // using the helper function from the matching algorithm module
+      const profileForMatching = convertFormToProfileData(profileData as ProfileFormValues);
       
       // Find matches using the algorithm
-      // We need to manually convert the profileForMatching back to the expected type
-      // since the algorithm expects a different format for cleanliness
       const matchesFound = findMatchesAlgorithm(profileForMatching);
       console.log("Matches found:", matchesFound);
       
