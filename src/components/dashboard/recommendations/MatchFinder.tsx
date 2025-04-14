@@ -33,7 +33,6 @@ export function MatchFinder({
       isMountedRef.current = false;
       if (timeoutRef.current !== null) {
         clearTimeout(timeoutRef.current);
-        timeoutRef.current = null;
       }
     };
   }, []);

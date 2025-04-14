@@ -17,7 +17,7 @@ export default function RoommateRecommendationsPage() {
     // Simple loading timeout for initial render
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 1000);
+    }, 1500);
     
     return () => clearTimeout(timer);
   }, []);
@@ -63,7 +63,7 @@ export default function RoommateRecommendationsPage() {
   }
 
   return (
-    <div className="container mx-auto py-6 fade-in" style={{ minHeight: '80vh' }}>
+    <div className="container mx-auto py-6 animate-fade-in" style={{ minHeight: '80vh' }}>
       <RoommateRecommendations key="recommendations-component" onError={setError} />
     </div>
   );
