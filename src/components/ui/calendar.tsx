@@ -15,7 +15,8 @@ function Calendar({
 }: CalendarProps) {
   const [currentMonth, setCurrentMonth] = React.useState<Date>(new Date());
 
-  const handleSelect = React.useCallback(() => {
+  // Handle selection and close popover in single mode
+  const handleDayClick = React.useCallback(() => {
     if (props.mode === "single" && props.selected === undefined) {
       // Close any open popover after selection (for single mode only)
       closePopover();
@@ -45,8 +46,7 @@ function Calendar({
       }}
       month={currentMonth}
       onMonthChange={setCurrentMonth}
-      onSelect={props.onSelect}
-      onDayClick={() => handleSelect()}
+      onDayClick={handleDayClick}
       {...props}
     />
   );
