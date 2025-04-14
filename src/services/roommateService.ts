@@ -50,6 +50,11 @@ export async function saveRoommateProfile(
       : formData.moveInDate,
   };
   
+  // Log the dealbreakers, house habits, and lifestyle preferences for debugging
+  console.log("Saving dealbreakers:", preparedFormData.dealBreakers);
+  console.log("Saving house habits:", preparedFormData.houseHabits);
+  console.log("Saving lifestyle preferences:", preparedFormData.lifestylePreferences);
+  
   // Prepare data for saving to the database
   const dbData = {
     user_id: userId,

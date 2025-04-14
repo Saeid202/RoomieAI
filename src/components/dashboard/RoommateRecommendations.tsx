@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Accordion } from "@/components/ui/accordion";
 import { ProfileFormValues } from "@/types/profile";
@@ -19,7 +18,6 @@ export function RoommateRecommendations() {
   const [activeIdealRoommateTab, setActiveIdealRoommateTab] = useState("preferences");
   const [isPageLoading, setIsPageLoading] = useState(false);
   
-  // Custom hooks
   const { 
     loading, 
     profileData, 
@@ -50,7 +48,6 @@ export function RoommateRecommendations() {
   }, [user, toast]);
 
   useEffect(() => {
-    // Log profileData changes for debugging
     console.log("ProfileData updated in RoommateRecommendations:", profileData);
   }, [profileData]);
 
@@ -69,7 +66,6 @@ export function RoommateRecommendations() {
       
       await handleSaveProfile(formData);
       
-      // Refresh profile data to ensure UI is updated
       await loadProfileData();
       
       toast({
@@ -88,16 +84,9 @@ export function RoommateRecommendations() {
 
   const handleFindMatch = async () => {
     try {
-      // Scroll user to top of page to prevent footer jumping
       window.scrollTo({ top: 0, behavior: 'smooth' });
-      
-      // Show loading state but don't re-render entire component
       setIsPageLoading(true);
-      
-      // Wait for matches to be found
       await findMatches();
-      
-      // After matches are found, scroll to results
       setTimeout(() => {
         const resultsElement = document.querySelector('[data-results-section]');
         if (resultsElement) {
@@ -161,7 +150,6 @@ export function RoommateRecommendations() {
       </p>
       
       <div className="space-y-6">
-        {/* Accordion sections */}
         <Accordion 
           type="multiple" 
           value={expandedSections} 
@@ -187,10 +175,10 @@ export function RoommateRecommendations() {
           <AIAssistantSection
             expandedSections={expandedSections}
             onFindMatch={handleFindMatch}
+            profileData={profileData}
           />
         </Accordion>
 
-        {/* Results Section - Only show if there are matches */}
         {roommates && roommates.length > 0 && (
           <div data-results-section>
             <ResultsSection
