@@ -1,39 +1,37 @@
 
-import { useState, useEffect } from "react";
-import { Accordion } from "@/components/ui/accordion";
-import { ProfileFormValues } from "@/types/profile";
-import { useRoommateMatching } from "@/hooks/useRoommateMatching";
-import { useAccordionSections } from "@/hooks/useAccordionSections";
-import { LoadingState } from "./recommendations/LoadingState";
+import { useState, useCallback } from "react";
+import { useToast } from "@/hooks/use-toast";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AboutMeSection } from "./recommendations/AboutMeSection";
 import { IdealRoommateSection } from "./recommendations/IdealRoommateSection";
-import { AIAssistantSection } from "./recommendations/AIAssistantSection";
 import { ResultsSection } from "./recommendations/ResultsSection";
-import { useAuth } from "@/hooks/useAuth";
 import { ProfileLoadingHandler } from "./recommendations/ProfileLoadingHandler";
-import { MatchFinder } from "./recommendations/MatchFinder";
-import { ProfileRefreshButton } from "./recommendations/ProfileRefreshButton";
 import { ProfileSaveHandler } from "./recommendations/ProfileSaveHandler";
+import { AIAssistantSection } from "./recommendations/AIAssistantSection";
+import { MatchFinder } from "./recommendations/MatchFinder";
+import { EmptyState } from "./recommendations/EmptyState";
+import { ChatInterface } from "./recommendations/chat/ChatInterface";
+import { useRoommateMatching } from "@/hooks/useRoommateMatching";
 
 interface RoommateRecommendationsProps {
   onError?: (error: Error) => void;
 }
 
 export function RoommateRecommendations({ onError }: RoommateRecommendationsProps) {
-  const { user } = useAuth();
-  const [activeAboutMeTab, setActiveAboutMeTab] = useState("personal-info");
-  const [activeIdealRoommateTab, setActiveIdealRoommateTab] = useState("preferences");
-  const [isPageLoading, setIsPageLoading] = useState(false);
-  const [contentReady, setContentReady] = useState(false);
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
+  const [activeTab, setActiveTab] = useState("about-me");
   
-  const { 
-    loading, 
-    profileData, 
-    roommates, 
-    properties, 
-    selectedMatch, 
-    activeTab, 
-    setActiveTab,
+  const {
+    loading: profileLoading,
+    profileData,
+    roommates,
+    properties,
+    selectedMatch,
+    activeTab: resultsTab,
+    setActiveTab: setResultsTab,
     handleViewDetails,
     handleCloseDetails,
     findMatches,
@@ -41,107 +39,114 @@ export function RoommateRecommendations({ onError }: RoommateRecommendationsProp
     loadProfileData
   } = useRoommateMatching();
   
-  const { expandedSections, setExpandedSections } = useAccordionSections(["about-me", "ideal-roommate", "ai-assistant"]);
-
-  // Prevent UI flashing by ensuring a stable rendering
-  useEffect(() => {
-    // Set content as ready only when profile data is available and loading is complete
-    if (!loading && profileData) {
-      // Delay to ensure smooth transitions
-      const timer = setTimeout(() => {
-        setContentReady(true);
-      }, 500);
-      
-      return () => clearTimeout(timer);
+  const handleStartLoading = useCallback(() => {
+    setIsLoading(true);
+  }, []);
+  
+  const handleFinishLoading = useCallback(() => {
+    setIsLoading(false);
+    setHasSearched(true);
+  }, []);
+  
+  const handleTabChange = useCallback((value: string) => {
+    setActiveTab(value);
+  }, []);
+  
+  const handleError = useCallback((error: Error) => {
+    console.error("Error in RoommateRecommendations:", error);
+    
+    toast({
+      title: "Error",
+      description: error.message,
+      variant: "destructive",
+    });
+    
+    if (onError) {
+      onError(error);
     }
-  }, [loading, profileData]);
-
-  // When page is explicitly loading (e.g., during find matches)
-  if (isPageLoading) {
-    return <LoadingState />;
-  }
-
-  // During initial load or when profile data is loading
-  if (loading || !contentReady) {
-    return <LoadingState />;
-  }
+  }, [toast, onError]);
 
   return (
-    <div className="space-y-8 animate-fadeIn">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold tracking-tight">Find My Ideal Roommate</h1>
-        {user && (
-          <ProfileRefreshButton 
-            onRefresh={loadProfileData} 
-            onError={onError} 
-          />
-        )}
-      </div>
-      <p className="text-muted-foreground">
-        Let's find you the perfect roommate match based on your preferences!
-      </p>
-      
-      <ProfileLoadingHandler loadProfileData={loadProfileData} onError={onError}>
-        <ProfileSaveHandler 
-          handleSaveProfile={handleSaveProfile} 
-          loadProfileData={loadProfileData}
-        >
-          {(onHandleSaveProfile) => (
-            <div className="space-y-6">
-              <Accordion 
-                type="multiple" 
-                value={expandedSections} 
-                onValueChange={setExpandedSections}
-                className="w-full"
-              >
-                <AboutMeSection
-                  expandedSections={expandedSections}
-                  profileData={profileData}
-                  activeAboutMeTab={activeAboutMeTab}
-                  setActiveAboutMeTab={setActiveAboutMeTab}
-                  handleSaveProfile={onHandleSaveProfile}
-                />
-
-                <IdealRoommateSection
-                  expandedSections={expandedSections}
-                  profileData={profileData}
-                  activeIdealRoommateTab={activeIdealRoommateTab}
-                  setActiveIdealRoommateTab={setActiveIdealRoommateTab}
-                  handleSaveProfile={onHandleSaveProfile}
-                />
-
-                <AIAssistantSection
-                  expandedSections={expandedSections}
-                  onFindMatch={() => {}}
-                  profileData={profileData}
+    <ProfileLoadingHandler loadProfileData={loadProfileData} onError={handleError}>
+      <div className="space-y-6">
+        <div className="flex justify-between items-start">
+          <div>
+            <h1 className="text-2xl font-bold mb-2">Find Your Ideal Roommate</h1>
+            <p className="text-muted-foreground">
+              Complete your profile, tell us about your ideal roommate, and we'll find your perfect match!
+            </p>
+          </div>
+        </div>
+        
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle>Your Profile</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Tabs value={activeTab} onValueChange={handleTabChange}>
+              <TabsList className="mb-4">
+                <TabsTrigger value="about-me">About Me</TabsTrigger>
+                <TabsTrigger value="ideal-roommate">Ideal Roommate</TabsTrigger>
+                <TabsTrigger value="ai-assistant">AI Assistant</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="about-me">
+                <ProfileSaveHandler
+                  isSubmitting={isLoading}
+                  onSubmit={handleSaveProfile}
                 >
-                  <MatchFinder 
+                  <AboutMeSection
                     profileData={profileData}
-                    findMatches={findMatches}
-                    onStartLoading={() => setIsPageLoading(true)}
-                    onFinishLoading={() => setIsPageLoading(false)}
-                    onError={onError}
+                    isLoading={profileLoading}
                   />
-                </AIAssistantSection>
-              </Accordion>
-
-              {roommates && roommates.length > 0 && (
-                <div data-results-section>
-                  <ResultsSection
-                    roommates={roommates}
-                    properties={properties || []}
-                    selectedMatch={selectedMatch}
-                    activeTab={activeTab}
-                    setActiveTab={setActiveTab}
-                    onViewDetails={handleViewDetails}
-                    onCloseDetails={handleCloseDetails}
+                </ProfileSaveHandler>
+              </TabsContent>
+              
+              <TabsContent value="ideal-roommate">
+                <ProfileSaveHandler
+                  isSubmitting={isLoading}
+                  onSubmit={handleSaveProfile}
+                >
+                  <IdealRoommateSection
+                    profileData={profileData}
+                    isLoading={profileLoading}
                   />
-                </div>
-              )}
-            </div>
-          )}
-        </ProfileSaveHandler>
-      </ProfileLoadingHandler>
-    </div>
+                </ProfileSaveHandler>
+              </TabsContent>
+              
+              <TabsContent value="ai-assistant">
+                <ChatInterface matchingProfileData={profileData} />
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
+        
+        <MatchFinder
+          profileData={profileData}
+          findMatches={findMatches}
+          onStartLoading={handleStartLoading}
+          onFinishLoading={handleFinishLoading}
+          onError={handleError}
+        />
+        
+        {hasSearched ? (
+          <div data-results-section>
+            {roommates.length > 0 || properties.length > 0 ? (
+              <ResultsSection
+                roommates={roommates}
+                properties={properties}
+                selectedMatch={selectedMatch}
+                activeTab={resultsTab}
+                setActiveTab={setResultsTab}
+                onViewDetails={handleViewDetails}
+                onCloseDetails={handleCloseDetails}
+              />
+            ) : (
+              <EmptyState />
+            )}
+          </div>
+        ) : null}
+      </div>
+    </ProfileLoadingHandler>
   );
 }

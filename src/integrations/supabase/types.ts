@@ -33,6 +33,39 @@ export type Database = {
         }
         Relationships: []
       }
+      "My Future Housing Plan": {
+        Row: {
+          additional_requirements: string | null
+          budget: number | null
+          created_at: string
+          desired_location: string | null
+          housing_type: string | null
+          id: number
+          moving_date: string | null
+          user_id: string | null
+        }
+        Insert: {
+          additional_requirements?: string | null
+          budget?: number | null
+          created_at?: string
+          desired_location?: string | null
+          housing_type?: string | null
+          id?: number
+          moving_date?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          additional_requirements?: string | null
+          budget?: number | null
+          created_at?: string
+          desired_location?: string | null
+          housing_type?: string | null
+          id?: number
+          moving_date?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
