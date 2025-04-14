@@ -43,20 +43,25 @@ export function RoommateRecommendations({ onError }: RoommateRecommendationsProp
   
   const { expandedSections, setExpandedSections } = useAccordionSections(["about-me", "ideal-roommate", "ai-assistant"]);
 
-  // Stable content rendering that prevents flashing
+  // Avoid state changes that could cause flashing
   useEffect(() => {
     if (!loading && profileData) {
-      // Use a minimal delay for smooth transition
-      const stableTimer = setTimeout(() => {
-        setContentReady(true);
-      }, 150);
-      
-      return () => clearTimeout(stableTimer);
+      // Use RAF for better sync with browser rendering cycle
+      // This helps prevent flashing by ensuring we're updating in sync with the paint cycle
+      requestAnimationFrame(() => {
+        // Use a timeout only after RAF to ensure smooth transition
+        setTimeout(() => {
+          setContentReady(true);
+        }, 300);
+      });
     }
   }, [loading, profileData]);
 
-  // During initial load or when profile data is loading, show a stable loading state
-  if (isPageLoading || loading || !contentReady) {
+  // Combine loading states to prevent multiple renders
+  const isLoading = isPageLoading || loading || !contentReady;
+
+  // Show loading state with a single condition to prevent flicker
+  if (isLoading) {
     return <LoadingState />;
   }
 

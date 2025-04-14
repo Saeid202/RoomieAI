@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -17,13 +18,14 @@ export function useRoommateProfile() {
     if (loading && hasAttemptedLoad) return;
     
     setLoading(true);
+    setError(null);
     
     try {
-      setError(null);
-      
       if (!user) {
         // Use default profile data if no user
         setProfileData(getDefaultProfileData());
+        setLoading(false);
+        setHasAttemptedLoad(true);
         return;
       }
       
@@ -68,15 +70,18 @@ export function useRoommateProfile() {
         });
       }
     } finally {
-      setHasAttemptedLoad(true);
-      setLoading(false);
+      // Use a short delay before marking loading as complete
+      // This ensures a stable transition with minimal flicker
+      setTimeout(() => {
+        setLoading(false);
+        setHasAttemptedLoad(true);
+      }, 150);
     }
   }, [user, toast, loading, hasAttemptedLoad]);
 
-  // Load profile data on mount - with minimal timeout
+  // Load profile data on mount with stable loading state
   useEffect(() => {
     if (!hasAttemptedLoad) {
-      // Load immediately to prevent unnecessary delays
       loadProfileData();
     }
   }, [hasAttemptedLoad, loadProfileData]);

@@ -25,36 +25,45 @@ export function MatchFinder({
 
   const handleFindMatch = async () => {
     try {
+      // Set loading states before doing anything else
       setIsLoading(true);
       onStartLoading();
       
-      // Prevent any DOM flickering by ensuring loading state is stable
-      await new Promise(resolve => setTimeout(resolve, 50));
+      // Allow loading state to fully propagate before proceeding
+      // This prevents UI from flashing between states
+      await new Promise(resolve => setTimeout(resolve, 200));
       
       const matches = await findMatches();
       
-      // Ensure smooth transition when results are ready
-      const resultsElement = document.querySelector('[data-results-section]');
-      if (resultsElement) {
-        resultsElement.scrollIntoView({ behavior: 'smooth' });
-      }
-      
+      // Give a toast notification
       toast({
         title: "Matches found!",
         description: `Found ${matches.length} potential roommates for you.`,
       });
       
-      // Delay state update slightly to prevent UI jumping
-      await new Promise(resolve => setTimeout(resolve, 50));
-      setIsLoading(false);
-      onFinishLoading();
+      // Scroll smoothly to results after we're sure they're rendered
+      setTimeout(() => {
+        const resultsElement = document.querySelector('[data-results-section]');
+        if (resultsElement) {
+          resultsElement.scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // Only update loading state after everything is complete
+        setIsLoading(false);
+        onFinishLoading();
+      }, 300);
+      
     } catch (error) {
       console.error("Error finding matches:", error);
+      
+      // Reset loading states in case of error
       setIsLoading(false);
       onFinishLoading();
+      
       if (onError) {
         onError(error instanceof Error ? error : new Error("Failed to find matches"));
       }
+      
       toast({
         title: "Error",
         description: "Failed to find matches. Please try again.",
