@@ -20,18 +20,18 @@ export function useHousingPlans() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
-  console.log('useHousingPlans hook initialized, auth state:', { 
+  console.log('useHousingPlans hook initialized with auth state:', { 
     isAuthenticated: !!user,
-    userId: user?.id
+    userId: user?.id 
   });
 
   const { data: plans = [], isLoading, error } = useQuery({
     queryKey: ['housing-plans'],
     queryFn: async () => {
-      console.log('Fetching housing plans, authenticated user:', user?.id);
+      console.log('Fetching housing plans for user:', user?.id);
       
       if (!user) {
-        console.log('No authenticated user, returning empty plans array');
+        console.log('No authenticated user found, returning empty plans array');
         return [];
       }
 
@@ -39,6 +39,7 @@ export function useHousingPlans() {
         const { data, error } = await supabase
           .from('My Future Housing Plan')
           .select('*')
+          .eq('user_id', user.id)  // Ensure we're fetching only the current user's plans
           .order('created_at', { ascending: false });
 
         if (error) {
@@ -85,7 +86,7 @@ export function useHousingPlans() {
 
       const newPlan = {
         ...plan,
-        user_id: user.id  // Explicitly setting user_id
+        user_id: user.id
       };
       
       console.log('Submitting plan with user_id:', newPlan);
@@ -130,7 +131,6 @@ export function useHousingPlans() {
         throw new Error('You must be logged in to update a housing plan');
       }
 
-      // Make sure the user_id is included
       const updatedPlan = {
         ...plan,
         user_id: user.id

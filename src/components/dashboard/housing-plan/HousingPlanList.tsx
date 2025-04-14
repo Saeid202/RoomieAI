@@ -11,14 +11,13 @@ type HousingPlanListProps = {
 };
 
 export function HousingPlanList({ plans, onEdit }: HousingPlanListProps) {
-  console.log("HousingPlanList render with plans:", plans);
+  console.log("HousingPlanList rendering with plans:", plans);
   
-  // Handle edge cases properly
-  if (!plans) {
-    console.log("Plans is undefined or null");
+  if (!plans || !Array.isArray(plans)) {
+    console.log("Plans is undefined, null, or not an array");
     return (
       <div className="text-center py-8">
-        <p className="text-muted-foreground">No housing plans found. Create your first plan!</p>
+        <p className="text-muted-foreground">No housing plans available. Create your first plan!</p>
       </div>
     );
   }

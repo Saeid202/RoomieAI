@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { PlusCircle } from "lucide-react";
+import { PlusCircle, AlertCircle } from "lucide-react";
 import { findMatches } from "@/utils/matchingAlgorithm";
 import { ProfileFormValues } from "@/types/profile";
 import { useToast } from "@/hooks/use-toast";
@@ -28,11 +28,12 @@ export default function FutureHousingPlan() {
     isAuthenticated: !!user,
     authLoading,
     plansLoading: isLoading,
-    plansCount: plans?.length,
-    error: error ? String(error) : null,
+    plansCount: plans?.length || 0,
+    errorMessage: error ? (error instanceof Error ? error.message : String(error)) : null,
     showRoommates,
     isFormOpen,
-    hasSelectedPlan: !!selectedPlan
+    hasSelectedPlan: !!selectedPlan,
+    currentRoute: window.location.pathname
   });
 
   // Check authentication
@@ -75,6 +76,7 @@ export default function FutureHousingPlan() {
 
       setIsFormOpen(false);
 
+      // Create mock data for roommate matching
       const profileData: ProfileFormValues = {
         moveInDate: new Date(data.movingDate),
         preferredLocation: data.desiredLocation,
@@ -119,6 +121,32 @@ export default function FutureHousingPlan() {
     setIsFormOpen(true);
   };
 
+  // Display an authentication error message
+  if ((!authLoading && !user) || (error && String(error).includes("JWT"))) {
+    return (
+      <div className="container mx-auto py-6">
+        <h1 className="text-3xl font-bold mb-6">My Future Housing Plan</h1>
+        <Card className="mb-6 shadow-md">
+          <CardContent className="py-8">
+            <div className="flex flex-col items-center text-center">
+              <AlertCircle className="h-12 w-12 text-red-500 mb-4" />
+              <h2 className="text-2xl font-semibold mb-2">Authentication Required</h2>
+              <p className="text-muted-foreground mb-6 max-w-md">
+                You need to be logged in to view your housing plans.
+              </p>
+              <Button 
+                className="bg-roomie-purple hover:bg-roomie-purple/90 px-6"
+                onClick={() => navigate("/auth")}
+              >
+                Log In
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   // Show loading state while authentication is being checked
   if (authLoading) {
     return (
@@ -126,26 +154,6 @@ export default function FutureHousingPlan() {
         <h1 className="text-3xl font-bold mb-6">My Future Housing Plan</h1>
         <div className="flex justify-center items-center py-10">
           <div className="w-8 h-8 border-4 border-t-transparent border-roomie-purple rounded-full animate-spin"></div>
-        </div>
-      </div>
-    );
-  }
-
-  // Only render the main content if user is authenticated
-  if (!user) {
-    return (
-      <div className="container mx-auto py-6">
-        <h1 className="text-3xl font-bold mb-6">My Future Housing Plan</h1>
-        <div className="text-center py-10">
-          <p className="text-muted-foreground mb-4">
-            Please log in to view and manage your housing plans.
-          </p>
-          <Button 
-            className="bg-roomie-purple hover:bg-roomie-purple/90"
-            onClick={() => navigate("/auth")}
-          >
-            Log In
-          </Button>
         </div>
       </div>
     );
@@ -189,29 +197,7 @@ export default function FutureHousingPlan() {
                 <p className="text-sm mt-2">{error instanceof Error ? error.message : 'Unknown error'}</p>
               </div>
             ) : (
-              Array.isArray(plans) && plans.length === 0 ? (
-                <div className="text-center py-10">
-                  <p className="text-muted-foreground mb-4">
-                    You haven't created any housing plans yet. Use this section to plan and track your future housing needs and preferences.
-                  </p>
-                  <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-                    <DialogTrigger asChild>
-                      <Button className="bg-roomie-purple hover:bg-roomie-purple/90">
-                        <PlusCircle className="mr-2 h-4 w-4" />
-                        Create Your First Plan
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-[500px]">
-                      <DialogHeader>
-                        <DialogTitle>Create Housing Plan</DialogTitle>
-                      </DialogHeader>
-                      <HousingPlanForm onSubmit={onSubmit} />
-                    </DialogContent>
-                  </Dialog>
-                </div>
-              ) : (
-                <HousingPlanList plans={plans} onEdit={handleEdit} />
-              )
+              <HousingPlanList plans={plans} onEdit={handleEdit} />
             )}
           </CardContent>
         </Card>
