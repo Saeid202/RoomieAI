@@ -35,10 +35,21 @@ export function useToastNotifications() {
     });
   };
 
+  // Add the missing showPlanMatch method
+  const showPlanMatch = (title: string, description?: string) => {
+    toast({
+      title,
+      description,
+      variant: "default",
+      className: "bg-green-100 border-green-400",
+    });
+  };
+
   return {
     showSuccess,
     showError,
     showInfo,
     showWarning,
+    showPlanMatch,
   };
 }
