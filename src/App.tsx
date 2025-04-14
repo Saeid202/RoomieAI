@@ -33,6 +33,8 @@ function App() {
             </ProtectedRoute>
           }>
             <Route path="profile" element={<Profile />} />
+            <Route path="profile/co-owner" element={<Profile />} />
+            <Route path="profile/roommate" element={<Profile />} />
             <Route path="roommate-recommendations" element={<RoommateRecommendationsPage />} />
             <Route path="rent-opportunities" element={<RentOpportunitiesPage />} />
             <Route path="rent-savings" element={<RentSavingsPage />} />

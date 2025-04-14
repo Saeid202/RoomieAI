@@ -1,13 +1,23 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CoOwnerProfileTabs } from "@/components/dashboard/co-owner/CoOwnerProfileTabs";
 import { useToast } from "@/hooks/use-toast";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 export function CoOwnerProfileView() {
   const [activeTab, setActiveTab] = useState("personal-details");
   const { toast } = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  // Extract tab from URL if present
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const tabParam = searchParams.get('tab');
+    if (tabParam) {
+      setActiveTab(tabParam);
+    }
+  }, [location.search]);
   
   const handleTabChange = (tabValue: string) => {
     setActiveTab(tabValue);

@@ -23,11 +23,17 @@ export function useViewSelector({
   const isCoOwnerPage = path.includes('/profile/co-owner');
   
   // Route-based view takes precedence over forcedView and userPreference
-  const displayView = isRoommatePage 
+  let displayView = isRoommatePage 
     ? 'roommate' 
     : isCoOwnerPage 
       ? 'co-owner' 
       : forcedView || userPreference;
+  
+  // Fallback to a default view if none is set
+  if (!displayView && path.includes('/profile')) {
+    console.log("ViewSelector - No preference found, defaulting to roommate view");
+    displayView = 'roommate';
+  }
 
   // Add debugging logs
   console.log("ViewSelector - path:", path);

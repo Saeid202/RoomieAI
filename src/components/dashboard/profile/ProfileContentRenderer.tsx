@@ -38,22 +38,19 @@ export function ProfileContentRenderer({
     return <ProfileLoadingState />;
   }
 
-  // If no preference or forced view, show empty state
-  if (!displayView) {
-    return <EmptyProfileState />;
+  // Handle co-owner profile view specifically
+  if (displayView === 'co-owner' || forcedView === 'co-owner') {
+    console.log("ProfileContentRenderer - Rendering Co-Owner view");
+    return <CoOwnerProfileView />;
   }
   
-  // Since we're removing the roommate tab from the profile section, 
-  // we'll default to roommate profile for regular profile view
-  if (displayView === 'roommate' || !forcedView) {
+  // Default to roommate profile view
+  if (displayView === 'roommate' || !displayView) {
+    console.log("ProfileContentRenderer - Rendering Roommate view");
     return <RoommateProfileView profileData={profileData} onSave={onSave} />;
   }
 
-  if (displayView === 'co-owner') {
-    return <CoOwnerProfileView />;
-  }
-
-  // Fallback to profile selection if no valid preference is found
-  console.log("No valid preference found, showing empty state");
+  // Fallback to empty state if somehow no view was determined
+  console.log("ProfileContentRenderer - No valid view found, showing empty state");
   return <EmptyProfileState />;
 }
