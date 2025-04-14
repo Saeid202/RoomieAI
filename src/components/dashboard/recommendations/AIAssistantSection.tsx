@@ -24,7 +24,7 @@ export function AIAssistantSection({
       id: "1",
       content: "Hi there! I'm your AI matching assistant. I can help you find the perfect roommate based on your preferences. Ask me anything about the matching process or your profile!",
       sender: "ai",
-      timestamp: new Date().toISOString(),
+      timestamp: new Date(),
     },
   ]);
 
@@ -34,7 +34,7 @@ export function AIAssistantSection({
       id: `user-${Date.now()}`,
       content,
       sender: "user",
-      timestamp: new Date().toISOString(),
+      timestamp: new Date(),
     };
     
     setMessages((prev) => [...prev, userMessage]);
@@ -45,7 +45,7 @@ export function AIAssistantSection({
         id: `ai-${Date.now()}`,
         content: getAIResponse(content, profileData),
         sender: "ai",
-        timestamp: new Date().toISOString(),
+        timestamp: new Date(),
       };
       
       setMessages((prev) => [...prev, aiMessage]);

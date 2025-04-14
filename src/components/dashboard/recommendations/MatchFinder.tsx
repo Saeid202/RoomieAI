@@ -3,10 +3,11 @@ import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { LoadingButton } from "./chat/LoadingButton";
 import { ProfileFormValues } from "@/types/profile";
+import { MatchResult } from "@/utils/matchingAlgorithm/types";
 
 interface MatchFinderProps {
   profileData: Partial<ProfileFormValues> | null;
-  findMatches: () => Promise<void>;
+  findMatches: () => Promise<MatchResult[]>;
   onStartLoading: () => void;
   onFinishLoading: () => void;
   onError?: (error: Error) => void;
@@ -28,7 +29,7 @@ export function MatchFinder({
       onStartLoading();
       window.scrollTo({ top: 0, behavior: 'smooth' });
       
-      await findMatches();
+      const matches = await findMatches();
       
       setTimeout(() => {
         const resultsElement = document.querySelector('[data-results-section]');

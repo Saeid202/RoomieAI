@@ -1,37 +1,41 @@
 
-import { Avatar } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
 
-export type ChatMessageType = {
+export interface ChatMessageType {
   id: string;
-  role: 'user' | 'assistant';
   content: string;
+  sender: "user" | "ai";
   timestamp: Date;
-};
+}
 
 interface ChatMessageProps {
   message: ChatMessageType;
 }
 
 export function ChatMessage({ message }: ChatMessageProps) {
+  const isAI = message.sender === "ai";
+  
   return (
-    <div 
-      className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+    <div
+      className={cn(
+        "flex w-full gap-2 p-4",
+        isAI ? "bg-muted/50" : ""
+      )}
     >
-      <div className={`flex items-start max-w-[75%] ${message.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-        <Avatar className={`w-8 h-8 ${message.role === 'user' ? 'ml-2' : 'mr-2'}`}>
-          <div className={message.role === 'assistant' ? "bg-roomie-purple text-white w-full h-full flex items-center justify-center" : "bg-gray-200 w-full h-full flex items-center justify-center"}>
-            {message.role === 'assistant' ? 'AI' : 'You'}
-          </div>
-        </Avatar>
-        <div 
-          className={`rounded-lg p-3 text-sm ${
-            message.role === 'assistant' 
-              ? 'bg-muted/50 text-foreground' 
-              : 'bg-roomie-purple/80 text-white'
-          }`}
-        >
-          {message.content}
+      <Avatar className="h-8 w-8">
+        <AvatarImage src={isAI ? "/assets/ai-avatar.png" : ""} alt={isAI ? "AI" : "You"} />
+        <AvatarFallback>{isAI ? "AI" : "You"}</AvatarFallback>
+      </Avatar>
+      <div className="flex flex-col gap-1">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium">{isAI ? "AI Assistant" : "You"}</span>
+          <span className="text-xs text-muted-foreground">
+            {format(message.timestamp, "h:mm a")}
+          </span>
         </div>
+        <p className="text-sm">{message.content}</p>
       </div>
     </div>
   );

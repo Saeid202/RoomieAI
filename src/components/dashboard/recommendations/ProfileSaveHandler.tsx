@@ -4,7 +4,7 @@ import { ProfileFormValues } from "@/types/profile";
 import { useAuth } from "@/hooks/useAuth";
 
 interface ProfileSaveHandlerProps {
-  handleSaveProfile: (formData: ProfileFormValues) => Promise<void>;
+  handleSaveProfile: (formData: ProfileFormValues) => Promise<boolean>;
   loadProfileData: () => Promise<void>;
   children: (onSaveProfile: (formData: ProfileFormValues) => Promise<void>) => React.ReactNode;
 }
@@ -30,14 +30,16 @@ export function ProfileSaveHandler({
         return;
       }
       
-      await handleSaveProfile(formData);
+      const success = await handleSaveProfile(formData);
       
-      await loadProfileData();
-      
-      toast({
-        title: "Profile updated",
-        description: "Your profile has been saved successfully",
-      });
+      if (success) {
+        await loadProfileData();
+        
+        toast({
+          title: "Profile updated",
+          description: "Your profile has been saved successfully",
+        });
+      }
     } catch (error) {
       console.error("Error saving profile:", error);
       toast({
