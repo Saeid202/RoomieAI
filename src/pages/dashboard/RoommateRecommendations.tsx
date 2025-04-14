@@ -1,44 +1,22 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { RoommateRecommendations } from "@/components/dashboard/RoommateRecommendations";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
-import { LoadingState } from "@/components/dashboard/recommendations/LoadingState";
 
 export default function RoommateRecommendationsPage() {
   const [error, setError] = useState<Error | null>(null);
   const [isRetrying, setIsRetrying] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  
-  // Simplified loading mechanism with only a single state
-  useEffect(() => {
-    document.title = "Find My Ideal Roommate";
-    
-    // Use a longer timeout for initial loading to ensure all components are ready
-    const loadingTimer = setTimeout(() => {
-      setIsLoading(false);
-    }, 800); // Longer timeout to ensure stable rendering
-    
-    return () => clearTimeout(loadingTimer);
-  }, []);
 
   const handleRetry = () => {
     setIsRetrying(true);
-    setIsLoading(true);
-    setError(null);
-    
-    // Allow 500ms for clean state reset before attempting to load again
+    // Force a remount of the component
     setTimeout(() => {
+      setError(null);
       setIsRetrying(false);
-      setIsLoading(false);
-    }, 500);
+    }, 100);
   };
-
-  if (isLoading) {
-    // Return a stable loading state component
-    return <LoadingState />;
-  }
 
   if (error) {
     return (
@@ -64,10 +42,9 @@ export default function RoommateRecommendationsPage() {
     );
   }
 
-  // Only render the main component when we're sure loading is finished
   return (
-    <div className="container mx-auto py-6" style={{ minHeight: '80vh' }}>
-      <RoommateRecommendations key="recommendations-component" onError={setError} />
+    <div className="container mx-auto py-6">
+      <RoommateRecommendations onError={setError} />
     </div>
   );
 }
