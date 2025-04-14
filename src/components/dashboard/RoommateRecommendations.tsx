@@ -41,8 +41,10 @@ export function RoommateRecommendations({ onError }: RoommateRecommendationsProp
     initialized
   } = useRoommateMatching();
 
+  // Mark component as mounted immediately to reduce loading time
   useEffect(() => {
     setComponentMounted(true);
+    
     return () => {
       console.log("RoommateRecommendations component unmounted");
     };

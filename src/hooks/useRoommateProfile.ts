@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -36,36 +35,50 @@ export function useRoommateProfile() {
       setError(null);
       console.log("Loading profile data for user:", user.id);
       
-      const { data, error: fetchError } = await fetchRoommateProfile(user.id);
+      // Set a timeout to prevent UI from being blocked for too long
+      const timeoutPromise = new Promise<void>((_, reject) => {
+        setTimeout(() => {
+          // Instead of rejecting with error, we'll just use default data if timeout occurs
+          console.log("Profile data load timeout, using default data");
+          setProfileData(getDefaultProfileData());
+          setLoading(false);
+        }, 2000);
+      });
       
-      if (fetchError && fetchError.code !== 'PGRST116') {
-        console.error("Error fetching roommate profile:", fetchError);
-        throw new Error(`Failed to fetch profile: ${fetchError.message}`);
-      }
-      
-      if (data) {
-        console.log("Fetched roommate profile:", data);
-        // If profile data exists in JSONB field, use it
-        if (data.profile_data) {
-          // Convert moveInDate from string to Date
-          const profileData = {
-            ...data.profile_data,
-            moveInDate: data.profile_data.moveInDate 
-              ? new Date(data.profile_data.moveInDate) 
-              : new Date()
-          };
-          
-          setProfileData(profileData);
-          console.log("Set profile data from database:", profileData);
+      // Fetch profile data
+      const fetchPromise = fetchRoommateProfile(user.id).then(({ data, error: fetchError }) => {
+        if (fetchError && fetchError.code !== 'PGRST116') {
+          console.error("Error fetching roommate profile:", fetchError);
+          throw new Error(`Failed to fetch profile: ${fetchError.message}`);
+        }
+        
+        if (data) {
+          console.log("Fetched roommate profile:", data);
+          // If profile data exists in JSONB field, use it
+          if (data.profile_data) {
+            // Convert moveInDate from string to Date
+            const profileData = {
+              ...data.profile_data,
+              moveInDate: data.profile_data.moveInDate 
+                ? new Date(data.profile_data.moveInDate) 
+                : new Date()
+            };
+            
+            setProfileData(profileData);
+            console.log("Set profile data from database:", profileData);
+          } else {
+            // Otherwise use defaults
+            setProfileData(getDefaultProfileData());
+          }
         } else {
-          // Otherwise use defaults
+          // If no profile exists yet, use default values
+          console.log("No existing profile found, using default values");
           setProfileData(getDefaultProfileData());
         }
-      } else {
-        // If no profile exists yet, use default values
-        console.log("No existing profile found, using default values");
-        setProfileData(getDefaultProfileData());
-      }
+      });
+      
+      // Race between timeout and fetch
+      await Promise.race([fetchPromise, timeoutPromise]);
       
       return Promise.resolve();
     } catch (error) {
@@ -74,16 +87,6 @@ export function useRoommateProfile() {
       
       // Set default data even on error to prevent UI from breaking
       setProfileData(getDefaultProfileData());
-      
-      // Only show toast if it's not a normal "not found" error
-      if (error instanceof Error && !error.message.includes("not found")) {
-        toast({
-          title: "Error loading profile",
-          description: "Could not load your profile data. Default values will be used.",
-          variant: "destructive",
-        });
-      }
-      
       return Promise.reject(error);
     } finally {
       setHasAttemptedLoad(true);
@@ -91,9 +94,12 @@ export function useRoommateProfile() {
     }
   }, [user, toast, loading, loadCounter]);
 
-  // Load profile data on mount
+  // Load profile data on mount - with optimization to load faster
   useEffect(() => {
     if (!hasAttemptedLoad) {
+      // Set default data immediately to ensure UI can render
+      setProfileData(getDefaultProfileData());
+      
       if (user) {
         console.log("User detected, loading profile data");
         loadProfileData().catch(err => {
@@ -101,8 +107,6 @@ export function useRoommateProfile() {
         });
       } else {
         console.log("No user detected, using default profile data");
-        // Don't wait for a timeout to set default data - do it immediately
-        setProfileData(getDefaultProfileData());
         setLoading(false);
         setHasAttemptedLoad(true);
       }

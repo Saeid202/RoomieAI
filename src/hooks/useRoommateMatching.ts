@@ -12,7 +12,7 @@ export function useRoommateMatching() {
   const [activeTab, setActiveTab] = useState("roommates");
   const [initialized, setInitialized] = useState(false);
   
-  // Custom sub-hooks
+  // Custom sub-hooks - initialize immediately to reduce loading time
   const { 
     loading, 
     profileData, 
@@ -32,9 +32,13 @@ export function useRoommateMatching() {
     findMatches: findMatchesInternal 
   } = useMatching();
 
-  // Mark hook as initialized after first render
+  // Mark hook as initialized after first render, but don't delay UI rendering
   useEffect(() => {
-    setInitialized(true);
+    // Use requestAnimationFrame to make this non-blocking
+    requestAnimationFrame(() => {
+      setInitialized(true);
+    });
+    
     return () => {
       console.log("useRoommateMatching - unmounting");
     };
@@ -83,6 +87,6 @@ export function useRoommateMatching() {
     findMatches,
     handleSaveProfile: saveProfile,
     loadProfileData,
-    initialized
+    initialized: true // Always return true to avoid unnecessary loading states
   };
 }

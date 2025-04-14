@@ -11,7 +11,6 @@ export default function RoommateRecommendationsPage() {
   const [error, setError] = useState<Error | null>(null);
   const [isRetrying, setIsRetrying] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [initialLoading, setInitialLoading] = useState(true);
   const { user, loading: authLoading } = useAuth();
 
   // Handle the initial page load with a proper loading state
@@ -20,26 +19,19 @@ export default function RoommateRecommendationsPage() {
     console.log("Auth state:", { user: user?.email, loading: authLoading });
     document.title = "Find My Ideal Roommate";
     
-    // Simpler loading state management
-    let isMounted = true;
-    
-    setTimeout(() => {
-      if (isMounted) {
-        setInitialLoading(false);
-        console.log("RoommatePage - Initial loading complete");
-        
-        // Add a separate timer for the fade-in transition
-        setTimeout(() => {
-          if (isMounted) {
-            setIsLoaded(true);
-            console.log("RoommatePage - Fade-in complete");
-          }
-        }, 300);
-      }
-    }, 800);
+    // Set loaded state immediately if auth is already resolved
+    if (!authLoading) {
+      setIsLoaded(true);
+    } else {
+      // Only wait for auth to complete
+      const timer = setTimeout(() => {
+        setIsLoaded(true);
+      }, 300);
+      
+      return () => clearTimeout(timer);
+    }
     
     return () => {
-      isMounted = false;
       console.log("RoommatePage unmounted - Cleaning up");
     };
   }, [user, authLoading]);
@@ -53,8 +45,8 @@ export default function RoommateRecommendationsPage() {
     }, 300);
   };
 
-  // Show loading state during initial load or authentication load
-  if (initialLoading || authLoading) {
+  // Show loading state during authentication load only
+  if (authLoading) {
     return (
       <div className="container mx-auto py-6">
         <LoadingState key="initial-loading" />
@@ -87,10 +79,10 @@ export default function RoommateRecommendationsPage() {
     );
   }
 
-  // Main content - always render this when not in loading or error state
+  // Main content - render with fade-in animation
   return (
     <div 
-      className={`container mx-auto py-6 transition-opacity duration-500 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+      className={`container mx-auto py-6 transition-opacity duration-300 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
       style={{ minHeight: '80vh' }}
     >
       <RoommateRecommendations 
