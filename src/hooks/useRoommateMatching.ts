@@ -49,7 +49,7 @@ export function useRoommateMatching() {
           budgetRange: [900, 1500],
           preferredLocation: "San Francisco",
           moveInDate: new Date(),
-          dailyRoutine: "balanced",
+          dailyRoutine: "mixed", // Changed from "balanced" to "mixed" to match expected type
           cleanliness: "somewhatTidy",
           hasPets: false,
           smoking: false,
