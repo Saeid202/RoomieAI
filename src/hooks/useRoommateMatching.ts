@@ -5,18 +5,17 @@ import { ProfileFormValues } from "@/types/profile";
 import { useRoommateProfile } from "@/hooks/useRoommateProfile";
 import { useProfileSaving } from "@/hooks/useProfileSaving";
 import { useMatching } from "@/hooks/useMatching";
-import { useToast } from "@/hooks/use-toast";
+import { useToastNotifications } from "@/hooks/useToastNotifications";
 
 export function useRoommateMatching() {
   const { user } = useAuth();
-  const { toast } = useToast();
+  const { showSuccess, showError } = useToastNotifications();
   const [activeTab, setActiveTab] = useState("roommates");
   
   // Custom sub-hooks
   const { 
     loading: profileLoading, 
     profileData, 
-    setProfileData, 
     loadProfileData 
   } = useRoommateProfile();
   
@@ -35,15 +34,15 @@ export function useRoommateMatching() {
   // Wrapper for findMatches that uses the current profileData
   const findMatches = async (): Promise<void> => {
     try {
-      console.log("useRoommateMatching.findMatches called with profileData:", profileData);
+      console.log("useRoommateMatching.findMatches called with profileData:", 
+        profileData ? { 
+          fullName: profileData.fullName, 
+          age: profileData.age 
+        } : 'null profileData');
       
       if (!profileData) {
         console.error("Profile data is null or undefined in useRoommateMatching.findMatches");
-        toast({
-          title: "Profile incomplete",
-          description: "Please complete your profile before finding matches",
-          variant: "destructive",
-        });
+        showError("Profile incomplete", "Please complete your profile before finding matches");
         return;
       }
       
@@ -107,15 +106,15 @@ export function useRoommateMatching() {
         roommateLifestylePreference: profileData.roommateLifestylePreference || "noLifestylePreference"
       };
       
-      console.log("Calling findMatchesInternal with completeProfileData:", completeProfileData);
+      console.log("Calling findMatchesInternal with completeProfileData", {
+        fullName: completeProfileData.fullName,
+        age: completeProfileData.age
+      });
+      
       return await findMatchesInternal(completeProfileData);
     } catch (error) {
       console.error("Error in findMatches wrapper:", error);
-      toast({
-        title: "Error",
-        description: "Failed to find matches. Please try again.",
-        variant: "destructive",
-      });
+      showError("Error", "Failed to find matches. Please try again.");
     }
   };
 

@@ -29,12 +29,26 @@ export const mapFormToProfileData = (formData: ProfileFormValues): ProfileData =
     };
   }
   
-  console.log("Mapping form data to profile data in profileMapper:", formData);
+  console.log("Mapping form data to profile data in profileMapper:", 
+    { fullName: formData.fullName, age: formData.age });
   
   // Ensure budget range is valid
-  const budgetRange = Array.isArray(formData.budgetRange) 
-    ? formData.budgetRange 
-    : [800, 1500];
+  let budgetRange = [800, 1500]; // Default values
+  if (Array.isArray(formData.budgetRange) && formData.budgetRange.length === 2) {
+    budgetRange = formData.budgetRange;
+  } else if (formData.budgetRange) {
+    // Try to parse budgetRange if it's not an array but exists
+    try {
+      if (typeof formData.budgetRange === 'string') {
+        const parsed = JSON.parse(formData.budgetRange);
+        if (Array.isArray(parsed) && parsed.length === 2) {
+          budgetRange = parsed;
+        }
+      }
+    } catch (e) {
+      console.warn("Could not parse budget range:", e);
+    }
+  }
   
   // Ensure date is properly formatted
   let moveInDateString = new Date().toISOString().split('T')[0]; // Default to today
@@ -111,7 +125,12 @@ export const mapFormToProfileData = (formData: ProfileFormValues): ProfileData =
     preferredLiving: "findRoommate" // Default, would come from form in real implementation
   };
   
-  console.log("Conversion result in profileMapper:", result);
+  console.log("Profile mapping result:", { 
+    name: result.name, 
+    age: result.age, 
+    budget: result.budget
+  });
+  
   return result;
 };
 

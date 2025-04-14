@@ -1,13 +1,13 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { useToast } from "@/hooks/use-toast";
+import { useToastNotifications } from "@/hooks/useToastNotifications";
 import { ProfileFormValues } from "@/types/profile";
 import { fetchRoommateProfile } from "@/services/roommateService";
 
 export function useRoommateProfile() {
   const { user } = useAuth();
-  const { toast } = useToast();
+  const { showError } = useToastNotifications();
   const [loading, setLoading] = useState(true);
   const [profileData, setProfileData] = useState<Partial<ProfileFormValues> | null>(null);
 
@@ -26,17 +26,16 @@ export function useRoommateProfile() {
       
       if (error) {
         console.error("Error fetching roommate profile:", error);
-        toast({
-          title: "Error loading profile",
-          description: "Could not load your profile data. Please try again.",
-          variant: "destructive",
-        });
+        showError(
+          "Error loading profile",
+          "Could not load your profile data. Please try again."
+        );
         setLoading(false);
         return;
       }
       
       if (data && data.profile_data) {
-        console.log("Fetched roommate profile:", data);
+        console.log("Fetched roommate profile successfully");
         
         // Convert moveInDate from string to Date if it exists
         const parsedProfileData = {
@@ -47,21 +46,19 @@ export function useRoommateProfile() {
         };
         
         setProfileData(parsedProfileData);
-        console.log("Set profile data from database:", parsedProfileData);
+        console.log("Profile data set successfully");
       } else {
         // If no profile exists yet, use default values
         console.log("No existing profile found, using default values");
         const defaultData = getDefaultProfileData();
         setProfileData(defaultData);
-        console.log("Using default profile data:", defaultData);
       }
     } catch (error) {
       console.error("Error loading profile data:", error);
-      toast({
-        title: "Error loading profile",
-        description: "Could not load your profile data. Please try again.",
-        variant: "destructive",
-      });
+      showError(
+        "Error loading profile",
+        "Could not load your profile data. Please try again."
+      );
     } finally {
       setLoading(false);
     }

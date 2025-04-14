@@ -20,14 +20,17 @@ export async function fetchRoommateProfile(userId: string) {
       .eq('user_id', userId)
       .maybeSingle();
     
-    console.log("Supabase response in fetchRoommateProfile:", { data, error });
+    console.log("Supabase response in fetchRoommateProfile:", { 
+      hasData: !!data, 
+      hasError: !!error 
+    });
     
     if (error) {
       console.error("Error fetching roommate profile:", error);
       return { data: null, error };
     }
     
-    console.log("Fetched roommate profile data:", data);
+    console.log("Fetched roommate profile data");
     return { data, error: null };
   } catch (error) {
     console.error("Exception in fetchRoommateProfile:", error);
@@ -64,8 +67,6 @@ export async function saveRoommateProfile(
     updated_at: new Date().toISOString()
   };
   
-  console.log("Prepared database data:", dbData);
-  
   try {
     // Check if user already has a profile
     const { data: existingProfile, error: checkError } = await supabase
@@ -74,7 +75,10 @@ export async function saveRoommateProfile(
       .eq('user_id', userId)
       .maybeSingle();
     
-    console.log("Existing profile check result:", { existingProfile, checkError });
+    console.log("Existing profile check result:", { 
+      hasExistingProfile: !!existingProfile, 
+      hasCheckError: !!checkError 
+    });
     
     if (checkError) {
       console.error("Error checking existing profile:", checkError);
@@ -97,14 +101,16 @@ export async function saveRoommateProfile(
         .insert(dbData);
     }
     
-    console.log("Supabase save result:", result);
+    console.log("Supabase save result:", { 
+      hasError: !!result.error 
+    });
     
     if (result.error) {
       console.error("Error saving profile:", result.error);
       throw result.error;
     }
     
-    console.log("Profile saved successfully:", result);
+    console.log("Profile saved successfully");
     
     return result;
   } catch (error) {

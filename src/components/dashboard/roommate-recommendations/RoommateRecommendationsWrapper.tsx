@@ -7,12 +7,15 @@ import { useAuth } from "@/hooks/useAuth";
 import { RoommateProfilePage } from "./RoommateProfilePage";
 import { LoadingState } from "../recommendations/LoadingState";
 import { EmptyState } from "../recommendations/EmptyState";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 export function RoommateRecommendationsWrapper() {
   const { user } = useAuth();
   const { showSuccess, showError } = useToastNotifications();
   const [isPageLoading, setIsPageLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   
   // Custom sub-hooks
   const { 
@@ -36,7 +39,9 @@ export function RoommateRecommendationsWrapper() {
         console.log("RoommateRecommendationsWrapper - initializeComponent started");
         setIsPageLoading(true);
         setHasError(false);
+        setErrorMessage("");
         
+        // Check if user is authenticated
         if (!user) {
           console.log("No user authenticated, showing unauthenticated state");
           setIsPageLoading(false);
@@ -45,11 +50,12 @@ export function RoommateRecommendationsWrapper() {
         
         console.log("Loading roommate profile data...");
         await loadProfileData();
-        console.log("Profile data loaded successfully:", profileData);
+        console.log("Profile data loaded successfully");
         
       } catch (error) {
         console.error("Error initializing component:", error);
         setHasError(true);
+        setErrorMessage(error instanceof Error ? error.message : "Failed to load profile data");
         showError(
           "Error loading profile",
           "Failed to load your roommate profile data"
@@ -63,12 +69,10 @@ export function RoommateRecommendationsWrapper() {
     initializeComponent();
   }, [user]);
 
-  useEffect(() => {
-    console.log("ProfileData updated in RoommateRecommendationsWrapper:", profileData);
-  }, [profileData]);
-
   const handleRefreshProfile = async (): Promise<void> => {
     try {
+      setIsPageLoading(true);
+      setHasError(false);
       await loadProfileData();
       showSuccess(
         "Profile refreshed",
@@ -76,10 +80,13 @@ export function RoommateRecommendationsWrapper() {
       );
     } catch (error) {
       console.error("Error refreshing profile:", error);
+      setHasError(true);
       showError(
         "Error",
         "Failed to refresh profile data. Please try again."
       );
+    } finally {
+      setIsPageLoading(false);
     }
   };
 
@@ -104,31 +111,28 @@ export function RoommateRecommendationsWrapper() {
     }
   };
 
-  console.log("RoommateRecommendationsWrapper - Render state:", { 
-    isPageLoading, 
-    loading,
-    hasError,
-    hasUser: !!user,
-    hasProfileData: !!profileData 
-  });
-
   if (isPageLoading || loading) {
-    return (
-      <div>
-        <p>Debug: Page is loading, isPageLoading: {isPageLoading.toString()}, loading: {loading.toString()}</p>
-        <LoadingState />
-      </div>
-    );
+    return <LoadingState />;
   }
 
   if (hasError) {
     return (
       <div className="p-6">
-        <EmptyState 
-          title="Error loading profile"
-          description="We encountered an error while loading your profile. Please try refreshing the page."
-          icon="alert"
-        />
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>
+            There was an error loading the roommate recommendations. Please try refreshing the page.
+            {errorMessage && <div className="mt-2">{errorMessage}</div>}
+          </AlertDescription>
+        </Alert>
+        <div className="mt-4">
+          <EmptyState 
+            title="Error loading profile"
+            description="We encountered an error while loading your profile. Please try refreshing the page."
+            icon="alert"
+          />
+        </div>
       </div>
     );
   }
@@ -142,8 +146,6 @@ export function RoommateRecommendationsWrapper() {
       />
     );
   }
-
-  console.log("Rendering RoommateProfilePage with profileData:", profileData);
 
   return (
     <RoommateProfilePage

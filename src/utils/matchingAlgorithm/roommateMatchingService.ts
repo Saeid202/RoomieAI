@@ -8,7 +8,12 @@ import { convertFormToProfileData } from "./profileMapper";
  * Find potential roommate matches based on user profile
  */
 export const findMatches = (userProfile: ProfileFormValues): MatchResult[] => {
-  console.log("roommateMatchingService.findMatches called with:", userProfile);
+  console.log("roommateMatchingService.findMatches called with:", 
+    userProfile ? { 
+      fullName: userProfile.fullName,
+      age: userProfile.age,
+      budget: userProfile.budgetRange 
+    } : 'null userProfile');
   
   try {
     if (!userProfile) {
@@ -24,7 +29,11 @@ export const findMatches = (userProfile: ProfileFormValues): MatchResult[] => {
     
     // Convert the form values to the format expected by the matching algorithm
     const profileData = convertFormToProfileData(userProfile);
-    console.log("Converted profile data in roommateMatchingService:", profileData);
+    console.log("Converted profile data in roommateMatchingService:", {
+      name: profileData.name,
+      age: profileData.age,
+      budget: profileData.budget
+    });
     
     // For a real application, this would query a database of potential matches
     // For this demo, we'll use mock data
@@ -40,6 +49,18 @@ export const findMatches = (userProfile: ProfileFormValues): MatchResult[] => {
     // Calculate compatibility scores for each potential match
     const matches = potentialMatches.map(match => {
       try {
+        // Ensure profileData is valid before calculating compatibility
+        if (!profileData || !profileData.name || !profileData.budget) {
+          console.warn("Invalid profile data in match calculation", profileData);
+          throw new Error("Invalid profile data");
+        }
+
+        // Ensure match is valid before calculating compatibility
+        if (!match || !match.name || !match.budget) {
+          console.warn("Invalid match data in match calculation", match);
+          throw new Error("Invalid match data");
+        }
+        
         const compatibility = calculateCompatibilityScore(profileData, match);
         
         return {
