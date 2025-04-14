@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -22,6 +23,7 @@ import { FormButtons } from "./profile/FormButtons";
 import { useFormNavigation } from "@/hooks/useFormNavigation";
 import { useFormUtilities } from "@/hooks/useFormUtilities";
 import { useToast } from "@/hooks/use-toast";
+import { initialFormData, formStepLabels } from "@/utils/formSteps";
 
 interface ProfileFormProps {
   initialData?: any;
@@ -35,53 +37,14 @@ const ProfileForm = ({ initialData, onSave }: ProfileFormProps) => {
   
   const totalSteps = 5;
   
-  const defaultValues = {
-    fullName: "",
-    age: "",
-    gender: "",
-    phoneNumber: "",
-    email: "",
-    linkedinProfile: "",
-    preferredLocation: "",
-    budgetRange: [800, 1500],
-    moveInDate: new Date(),
-    housingType: "apartment",
-    livingSpace: "privateRoom",
-    smoking: false,
-    livesWithSmokers: false,
-    hasPets: false,
-    petPreference: "noPets",
-    workLocation: "office",
-    dailyRoutine: "morning",
-    hobbies: [],
-    workSchedule: "",
-    sleepSchedule: "",
-    overnightGuests: "occasionally",
-    cleanliness: "somewhatTidy",
-    cleaningFrequency: "weekly",
-    socialLevel: "balanced",
-    guestsOver: "occasionally",
-    familyOver: "occasionally",
-    atmosphere: "balanced",
-    hostingFriends: "occasionally",
-    diet: "omnivore",
-    cookingSharing: "share",
-    stayDuration: "oneYear",
-    leaseTerm: "longTerm",
-    roommateGenderPreference: "noPreference",
-    roommateAgePreference: "similar",
-    roommateLifestylePreference: "similar",
-    importantRoommateTraits: [],
-  };
-  
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
-    defaultValues: initialData ? { ...defaultValues, ...initialData } : defaultValues,
+    defaultValues: initialData ? { ...initialFormData, ...initialData } : initialFormData,
   });
   
   useEffect(() => {
     if (initialData) {
-      form.reset({ ...defaultValues, ...initialData });
+      form.reset({ ...initialFormData, ...initialData });
     }
   }, [initialData, form]);
   

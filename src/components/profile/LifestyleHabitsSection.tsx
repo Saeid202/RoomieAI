@@ -1,7 +1,8 @@
 
 import { FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from "@/components/ui/form";
-import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import { UseFormReturn } from "react-hook-form";
 import { ProfileFormValues } from "@/types/profile";
 
@@ -11,77 +12,81 @@ interface LifestyleHabitsSectionProps {
   hobbiesList: string[];
 }
 
-export function LifestyleHabitsSection({ form, handleHobbyToggle, hobbiesList }: LifestyleHabitsSectionProps) {
+export function LifestyleHabitsSection({ 
+  form, 
+  handleHobbyToggle, 
+  hobbiesList 
+}: LifestyleHabitsSectionProps) {
   return (
     <>
-      <FormField
-        control={form.control}
-        name="smoking"
-        render={({ field }) => (
-          <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-            <FormControl>
-              <Checkbox
-                checked={field.value}
-                onCheckedChange={field.onChange}
-              />
-            </FormControl>
-            <div className="space-y-1 leading-none">
-              <FormLabel>
-                Do you smoke?
-              </FormLabel>
-              <FormDescription>
-                Check this box if you are a smoker
-              </FormDescription>
-            </div>
-          </FormItem>
-        )}
-      />
-      
-      <FormField
-        control={form.control}
-        name="livesWithSmokers"
-        render={({ field }) => (
-          <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-            <FormControl>
-              <Checkbox
-                checked={field.value}
-                onCheckedChange={field.onChange}
-              />
-            </FormControl>
-            <div className="space-y-1 leading-none">
-              <FormLabel>
-                Are you comfortable living with smokers?
-              </FormLabel>
-              <FormDescription>
-                Check this box if you're fine living with someone who smokes
-              </FormDescription>
-            </div>
-          </FormItem>
-        )}
-      />
-      
-      <FormField
-        control={form.control}
-        name="hasPets"
-        render={({ field }) => (
-          <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-            <FormControl>
-              <Checkbox
-                checked={field.value}
-                onCheckedChange={field.onChange}
-              />
-            </FormControl>
-            <div className="space-y-1 leading-none">
-              <FormLabel>
-                Do you have pets?
-              </FormLabel>
-              <FormDescription>
-                Check this box if you own pets
-              </FormDescription>
-            </div>
-          </FormItem>
-        )}
-      />
+      <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <FormField
+            control={form.control}
+            name="smoking"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                <div className="space-y-0.5">
+                  <FormLabel className="text-base">Do you smoke?</FormLabel>
+                  <FormDescription>
+                    Let potential roommates know about your smoking habits
+                  </FormDescription>
+                </div>
+                <FormControl>
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={form.control}
+            name="livesWithSmokers"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                <div className="space-y-0.5">
+                  <FormLabel className="text-base">Are you comfortable living with smokers?</FormLabel>
+                  <FormDescription>
+                    Would you be okay with roommates who smoke?
+                  </FormDescription>
+                </div>
+                <FormControl>
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <FormField
+            control={form.control}
+            name="hasPets"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                <div className="space-y-0.5">
+                  <FormLabel className="text-base">Do you have pets?</FormLabel>
+                  <FormDescription>
+                    Indicate if you currently have any pets
+                  </FormDescription>
+                </div>
+                <FormControl>
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+        </div>
+      </div>
       
       <FormField
         control={form.control}
@@ -223,25 +228,28 @@ export function LifestyleHabitsSection({ form, handleHobbyToggle, hobbiesList }:
       <FormField
         control={form.control}
         name="hobbies"
-        render={({ field }) => (
+        render={() => (
           <FormItem>
-            <FormLabel>Hobbies & Activities</FormLabel>
-            <FormDescription>
-              Select activities you enjoy at home
-            </FormDescription>
-            <div className="flex flex-wrap gap-2 mt-2">
+            <div className="mb-4">
+              <FormLabel>Hobbies & Activities</FormLabel>
+              <FormDescription>
+                Select activities you enjoy at home
+              </FormDescription>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               {hobbiesList.map((hobby) => (
-                <div
+                <FormItem
                   key={hobby}
-                  onClick={() => handleHobbyToggle(hobby)}
-                  className={`px-3 py-1 rounded-full text-sm cursor-pointer transition-colors ${
-                    form.getValues("hobbies").includes(hobby)
-                      ? "bg-roomie-purple text-white"
-                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                  }`}
+                  className="flex flex-row items-start space-x-3 space-y-0"
                 >
-                  {hobby}
-                </div>
+                  <FormControl>
+                    <Checkbox
+                      checked={form.getValues("hobbies").includes(hobby)}
+                      onCheckedChange={() => handleHobbyToggle(hobby)}
+                    />
+                  </FormControl>
+                  <FormLabel className="font-normal">{hobby}</FormLabel>
+                </FormItem>
               ))}
             </div>
             <FormMessage />

@@ -1,42 +1,92 @@
 
-import { ProfileFormValues } from "@/types/profile";
-
-// Get fields to validate for each step
-export const getFieldsForStep = (currentStep: number): string[] => {
-  switch (currentStep) {
-    case 1: // Basic Information
-      return ["fullName", "age", "gender", "phoneNumber", "email", "linkedinProfile"];
-    case 2: // Housing Preferences + Lease Terms
-      return [
-        "preferredLocation", "budgetRange", "moveInDate", "housingType", "livingSpace",
-        "stayDuration", "leaseTerm"
-      ];
-    case 3: // Lifestyle & Habits + Work/Sleep Schedule
-      return [
-        "smoking", "livesWithSmokers", "hasPets", "petPreference", "workLocation", 
-        "dailyRoutine", "hobbies", "workSchedule", "sleepSchedule", "overnightGuests"
-      ];
-    case 4: // Cleanliness + Social + Cooking
-      return [
-        "cleanliness", "cleaningFrequency", "socialLevel", "guestsOver", 
-        "familyOver", "atmosphere", "hostingFriends", "diet", "cookingSharing"
-      ];
-    case 5: // Roommate Preferences
-      return ["roommateGenderPreference", "roommateAgePreference", "roommateLifestylePreference", "importantRoommateTraits"];
-    default:
-      return [];
-  }
-};
-
-// Static data for the form
+// Define the hobbies list
 export const hobbiesList = [
-  "Reading", "Gaming", "Cooking", "Hiking", "Movies", 
-  "Music", "Art", "Sports", "Photography", "Yoga", 
-  "Crafting", "Gardening", "Writing", "Dancing", "Meditation"
+  "Reading",
+  "Gaming",
+  "Cooking",
+  "Hiking",
+  "Movies",
+  "Music",
+  "Art",
+  "Sports",
+  "Photography",
+  "Yoga",
+  "Crafting",
+  "Gardening",
+  "Writing",
+  "Dancing",
+  "Meditation"
 ];
 
+// Define the list of roommate traits
 export const roommateTraitsList = [
-  "Clean", "Respectful", "Quiet", "Organized", "Sociable",
-  "Responsible", "Communicative", "Considerate", "Reliable", "Friendly",
-  "Adaptable", "Easygoing", "Honest", "Tidy", "Punctual"
+  "Clean",
+  "Respectful",
+  "Quiet",
+  "Organized",
+  "Sociable",
+  "Responsible",
+  "Communicative",
+  "Considerate",
+  "Reliable",
+  "Friendly",
+  "Adaptable",
+  "Easygoing",
+  "Honest",
+  "Tidy",
+  "Punctual"
 ];
+
+// Define form steps
+export const formStepLabels = [
+  "Personal Information",
+  "Housing Preferences",
+  "Lifestyle & Habits",
+  "Social & Cleaning",
+  "Roommate Preferences"
+];
+
+// Define initial form data
+export const initialFormData = {
+  fullName: "",
+  age: "",
+  gender: "",
+  phoneNumber: "",
+  email: "",
+  linkedinProfile: "",
+  preferredLocation: "",
+  budgetRange: [800, 1500],
+  moveInDate: new Date(),
+  housingType: "apartment",
+  livingSpace: "privateRoom",
+  smoking: false,
+  livesWithSmokers: false,
+  hasPets: false,
+  petPreference: "noPets",
+  workLocation: "office",
+  dailyRoutine: "morning",
+  hobbies: [],
+  workSchedule: "",
+  workScheduleDetails: "",
+  sleepTime: "",
+  wakeTime: "",
+  sleepSchedule: "",
+  overnightGuests: "occasionally",
+  cleanliness: "somewhatTidy",
+  cleaningFrequency: "weekly",
+  socialLevel: "balanced",
+  guestsOver: "occasionally",
+  familyOver: "occasionally",
+  atmosphere: "balanced",
+  hostingFriends: "occasionally",
+  diet: "omnivore",
+  cookingSharing: "share",
+  dietaryNotes: "",
+  stayDuration: "oneYear",
+  leaseTerm: "longTerm",
+  roommateGenderPreference: "noPreference",
+  roommateAgePreference: "similar",
+  roommateLifestylePreference: "similar",
+  importantRoommateTraits: [],
+  additionalComments: "",
+};

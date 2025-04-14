@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 
 interface FormButtonsProps {
   step: number;
@@ -11,35 +11,49 @@ interface FormButtonsProps {
   submitLabel?: string;
 }
 
-export function FormButtons({ step, totalSteps, onPrev, onNext, isSubmitStep, submitLabel = "Find Matches" }: FormButtonsProps) {
+export function FormButtons({
+  step,
+  totalSteps,
+  onPrev,
+  onNext,
+  isSubmitStep,
+  submitLabel = "Submit"
+}: FormButtonsProps) {
   return (
-    <div className="w-full flex justify-between">
+    <div className="flex justify-between w-full">
       {step > 1 ? (
-        <Button 
-          type="button" 
-          variant="outline" 
+        <Button
+          type="button"
+          variant="outline"
           onClick={onPrev}
           className="flex items-center gap-2"
         >
-          <ArrowLeft size={16} />
-          <span>Previous</span>
+          <ArrowLeft className="h-4 w-4" />
+          Back
         </Button>
       ) : (
-        <div></div> // Empty div to maintain layout with flex justify-between
+        <div className="w-24"></div>
       )}
-      
+
+      <div className="flex-1 text-center">
+        <span className="text-sm text-muted-foreground">
+          Step {step} of {totalSteps}
+        </span>
+      </div>
+
       {isSubmitStep ? (
-        <Button type="submit" className="bg-roomie-purple hover:bg-roomie-dark text-white">
+        <Button type="submit" className="flex items-center gap-2">
+          <Check className="h-4 w-4" />
           {submitLabel}
         </Button>
       ) : (
-        <Button 
-          type="button" 
+        <Button
+          type="button"
           onClick={onNext}
-          className="bg-roomie-purple hover:bg-roomie-dark text-white flex items-center gap-2"
+          className="flex items-center gap-2"
         >
-          <span>Next</span>
-          <ArrowRight size={16} />
+          Next
+          <ArrowRight className="h-4 w-4" />
         </Button>
       )}
     </div>

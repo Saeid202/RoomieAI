@@ -33,6 +33,9 @@ export const profileSchema = z.object({
   
   // Work/Sleep Schedule
   workSchedule: z.string().min(1, "Work schedule is required"),
+  workScheduleDetails: z.string().optional(),
+  sleepTime: z.string().optional(),
+  wakeTime: z.string().optional(),
   sleepSchedule: z.string().min(1, "Sleep schedule is required"),
   overnightGuests: z.enum(["yes", "no", "occasionally"]),
   
@@ -50,16 +53,18 @@ export const profileSchema = z.object({
   // Cooking & Meals
   diet: z.enum(["vegetarian", "vegan", "omnivore", "other"]),
   cookingSharing: z.enum(["share", "separate"]),
+  dietaryNotes: z.string().optional(),
   
   // Lease Terms
-  stayDuration: z.enum(["threeMonths", "sixMonths", "oneYear", "flexible"]),
+  stayDuration: z.enum(["oneMonth", "threeMonths", "sixMonths", "oneYear", "flexible"]),
   leaseTerm: z.enum(["shortTerm", "longTerm"]),
   
-  // Roommate Preferences (New)
+  // Roommate Preferences
   roommateGenderPreference: z.enum(["sameGender", "femaleOnly", "maleOnly", "noPreference"]),
   roommateAgePreference: z.enum(["similar", "younger", "older", "noAgePreference"]),
   roommateLifestylePreference: z.enum(["similar", "moreActive", "quieter", "noLifestylePreference"]),
   importantRoommateTraits: z.array(z.string()),
+  additionalComments: z.string().optional(),
 });
 
 export type ProfileFormValues = z.infer<typeof profileSchema>;

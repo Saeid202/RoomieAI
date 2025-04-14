@@ -1,53 +1,77 @@
 
-import { CardTitle, CardDescription } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 interface FormStepHeaderProps {
   step: number;
   totalSteps: number;
-  onStepClick: (stepNumber: number) => void;
+  onStepClick: (step: number) => void;
 }
 
-export function FormStepHeader({ step, totalSteps, onStepClick }: FormStepHeaderProps) {
+export function FormStepHeader({
+  step,
+  totalSteps,
+  onStepClick,
+}: FormStepHeaderProps) {
+  const stepTitles = [
+    "Personal Info",
+    "Housing",
+    "Lifestyle",
+    "Social & Cleaning",
+    "Roommate Preferences",
+  ];
+
   return (
-    <>
-      <div className="flex justify-between items-center mb-2">
-        <div className="flex space-x-2">
-          {Array.from({ length: totalSteps }).map((_, i) => (
+    <div className="space-y-4">
+      <h2 className="text-2xl font-semibold text-center">Complete Your Profile</h2>
+      
+      <div className="flex justify-between items-center mb-8">
+        {Array.from({ length: totalSteps }).map((_, index) => {
+          const stepNumber = index + 1;
+          const isActive = step === stepNumber;
+          const isCompleted = step > stepNumber;
+          
+          return (
             <div
-              key={i}
-              className={`w-8 h-1 rounded-full cursor-pointer ${
-                i + 1 <= step ? "bg-roomie-purple" : "bg-gray-200"
-              }`}
-              onClick={() => onStepClick(i + 1)}
-              role="button"
-              aria-label={`Go to step ${i + 1}`}
-            />
-          ))}
-        </div>
-        <span className="text-sm text-gray-500">Step {step} of {totalSteps}</span>
+              key={stepNumber}
+              className="flex flex-col items-center flex-1"
+              onClick={() => isCompleted && onStepClick(stepNumber)}
+            >
+              <div
+                className={cn(
+                  "w-10 h-10 rounded-full flex items-center justify-center text-white mb-2 cursor-pointer transition-colors",
+                  isActive
+                    ? "bg-primary"
+                    : isCompleted
+                    ? "bg-green-500 hover:bg-green-600"
+                    : "bg-gray-300"
+                )}
+              >
+                {stepNumber}
+              </div>
+              <span className="text-xs text-center hidden md:block">
+                {stepTitles[index]}
+              </span>
+            </div>
+          );
+          
+          // Add connecting line between steps
+          return index < totalSteps - 1 ? (
+            <>
+              {stepItem}
+              <div
+                className={cn(
+                  "flex-1 h-0.5 mx-2",
+                  isCompleted
+                    ? "bg-green-500"
+                    : "bg-gray-300"
+                )}
+              />
+            </>
+          ) : (
+            stepItem
+          );
+        })}
       </div>
-      <CardTitle className="text-xl font-bold">
-        {step === 1 && "Basic Information"}
-        {step === 2 && "Housing Preferences"}
-        {step === 3 && "Lifestyle & Habits"}
-        {step === 4 && "Work & Sleep Schedule"}
-        {step === 5 && "Cleanliness & Organization"}
-        {step === 6 && "Social Preferences"}
-        {step === 7 && "Cooking & Meals"}
-        {step === 8 && "Lease Terms"}
-        {step === 9 && "Roommate Preferences"}
-      </CardTitle>
-      <CardDescription>
-        {step === 1 && "Tell us about yourself"}
-        {step === 2 && "What kind of housing are you looking for?"}
-        {step === 3 && "Let us know about your lifestyle"}
-        {step === 4 && "Share your daily schedule"}
-        {step === 5 && "How do you like to keep your living space?"}
-        {step === 6 && "Tell us about your social preferences"}
-        {step === 7 && "Share your cooking and meal preferences"}
-        {step === 8 && "What are your lease term preferences?"}
-        {step === 9 && "What kind of roommate are you looking for?"}
-      </CardDescription>
-    </>
+    </div>
   );
 }

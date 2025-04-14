@@ -2,6 +2,7 @@
 import { FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from "@/components/ui/form";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Textarea } from "@/components/ui/textarea";
 import { UseFormReturn } from "react-hook-form";
 import { ProfileFormValues } from "@/types/profile";
 
@@ -201,6 +202,27 @@ export function RoommatePreferencesSection({ form, handleTraitToggle, traitsList
                 </FormItem>
               ))}
             </div>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+      
+      <FormField
+        control={form.control}
+        name="additionalComments"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Additional Comments</FormLabel>
+            <FormControl>
+              <Textarea 
+                placeholder="Share any other preferences about your ideal roommate..."
+                className="resize-none h-24"
+                {...field}
+              />
+            </FormControl>
+            <FormDescription>
+              Add any other details that weren't covered in the questions above
+            </FormDescription>
             <FormMessage />
           </FormItem>
         )}

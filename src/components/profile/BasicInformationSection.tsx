@@ -14,12 +14,12 @@ export function BasicInformationSection({ form }: BasicInformationSectionProps) 
     <>
       <FormField
         control={form.control}
-        name="age"
+        name="fullName"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Age</FormLabel>
+            <FormLabel>Full Name</FormLabel>
             <FormControl>
-              <Input type="number" placeholder="Your age" {...field} min="18" />
+              <Input placeholder="Enter your full name" {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -28,12 +28,12 @@ export function BasicInformationSection({ form }: BasicInformationSectionProps) 
       
       <FormField
         control={form.control}
-        name="fullName"
+        name="age"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Full Name</FormLabel>
+            <FormLabel>Age</FormLabel>
             <FormControl>
-              <Input placeholder="Enter your full name" {...field} />
+              <Input type="number" placeholder="Your age" {...field} min="18" />
             </FormControl>
             <FormMessage />
           </FormItem>

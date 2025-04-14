@@ -2,8 +2,10 @@
 import { FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Textarea } from "@/components/ui/textarea";
 import { UseFormReturn } from "react-hook-form";
 import { ProfileFormValues } from "@/types/profile";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface WorkSleepScheduleSectionProps {
   form: UseFormReturn<ProfileFormValues>;
@@ -19,10 +21,24 @@ export function WorkSleepScheduleSection({ form }: WorkSleepScheduleSectionProps
           <FormItem>
             <FormLabel>What's your typical work schedule?</FormLabel>
             <FormControl>
-              <Input placeholder="e.g., 9-5, night shift, flexible hours" {...field} />
+              <Select
+                onValueChange={field.onChange}
+                defaultValue={field.value}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select your work schedule" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="day-shift">Day shift</SelectItem>
+                  <SelectItem value="night-shift">Night shift</SelectItem>
+                  <SelectItem value="remote">Remote work</SelectItem>
+                  <SelectItem value="flexible">Flexible hours</SelectItem>
+                  <SelectItem value="other">Other (specify below)</SelectItem>
+                </SelectContent>
+              </Select>
             </FormControl>
             <FormDescription>
-              Describe your typical work hours
+              Select the option that best describes your work schedule
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -31,20 +47,54 @@ export function WorkSleepScheduleSection({ form }: WorkSleepScheduleSectionProps
       
       <FormField
         control={form.control}
-        name="sleepSchedule"
+        name="workScheduleDetails"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>What time do you usually go to bed and wake up?</FormLabel>
+            <FormLabel>Additional details about your work schedule</FormLabel>
             <FormControl>
-              <Input placeholder="e.g., Sleep 11pm-7am, Sleep 1am-9am" {...field} />
+              <Textarea 
+                placeholder="e.g., I work 9-5 weekdays, or I work nights on weekends..."
+                className="resize-none"
+                {...field} 
+              />
             </FormControl>
             <FormDescription>
-              Your typical sleep schedule
+              Add any specific details about your work hours
             </FormDescription>
             <FormMessage />
           </FormItem>
         )}
       />
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <FormField
+          control={form.control}
+          name="sleepTime"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>What time do you usually go to bed?</FormLabel>
+              <FormControl>
+                <Input type="time" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
+          name="wakeTime"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>What time do you usually wake up?</FormLabel>
+              <FormControl>
+                <Input type="time" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
       
       <FormField
         control={form.control}

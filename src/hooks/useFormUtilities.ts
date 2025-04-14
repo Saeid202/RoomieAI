@@ -3,26 +3,34 @@ import { UseFormReturn } from "react-hook-form";
 import { ProfileFormValues } from "@/types/profile";
 
 export function useFormUtilities(form: UseFormReturn<ProfileFormValues>) {
+  // Handle hobby toggle
   const handleHobbyToggle = (hobby: string) => {
-    const current = form.getValues("hobbies");
-    if (current.includes(hobby)) {
-      form.setValue("hobbies", current.filter(h => h !== hobby));
+    const currentHobbies = form.getValues("hobbies") || [];
+    if (currentHobbies.includes(hobby)) {
+      form.setValue(
+        "hobbies",
+        currentHobbies.filter((h) => h !== hobby)
+      );
     } else {
-      form.setValue("hobbies", [...current, hobby]);
+      form.setValue("hobbies", [...currentHobbies, hobby]);
     }
   };
-  
+
+  // Handle trait toggle
   const handleTraitToggle = (trait: string) => {
-    const current = form.getValues("importantRoommateTraits");
-    if (current.includes(trait)) {
-      form.setValue("importantRoommateTraits", current.filter(t => t !== trait));
+    const currentTraits = form.getValues("importantRoommateTraits") || [];
+    if (currentTraits.includes(trait)) {
+      form.setValue(
+        "importantRoommateTraits",
+        currentTraits.filter((t) => t !== trait)
+      );
     } else {
-      form.setValue("importantRoommateTraits", [...current, trait]);
+      form.setValue("importantRoommateTraits", [...currentTraits, trait]);
     }
   };
 
   return {
     handleHobbyToggle,
-    handleTraitToggle
+    handleTraitToggle,
   };
 }
