@@ -7,14 +7,16 @@ import { ChatMessageType } from "./chat/ChatMessage";
 import { ProfileFormValues } from "@/types/profile";
 
 interface AIAssistantSectionProps {
-  expandedSections: string[];
-  onFindMatch: () => void;
+  expandedSections?: string[];
+  onExpandChange?: (value: string[]) => void;
+  onFindMatch?: () => void;
   profileData: Partial<ProfileFormValues> | null;
   children?: React.ReactNode;
 }
 
 export function AIAssistantSection({ 
-  expandedSections, 
+  expandedSections = [], 
+  onExpandChange,
   onFindMatch, 
   profileData,
   children

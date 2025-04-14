@@ -3,6 +3,7 @@ import { useState, useCallback, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Accordion } from "@/components/ui/accordion"; // Import the Accordion component
 import { AboutMeSection } from "./recommendations/AboutMeSection";
 import { IdealRoommateSection } from "./recommendations/IdealRoommateSection";
 import { ResultsSection } from "./recommendations/ResultsSection";
@@ -28,6 +29,7 @@ export function RoommateRecommendations({ onError }: RoommateRecommendationsProp
   const [componentMounted, setComponentMounted] = useState(false);
   const [internalError, setInternalError] = useState<Error | null>(null);
   const [isRetrying, setIsRetrying] = useState(false);
+  const [expandedSections, setExpandedSections] = useState<string[]>(["about-me"]);
   
   const {
     loading: profileLoading,
@@ -172,17 +174,21 @@ export function RoommateRecommendations({ onError }: RoommateRecommendationsProp
               </TabsList>
               
               <TabsContent value="about-me">
-                <AboutMeSection
-                  profileData={profileData}
-                  onSaveProfile={onSaveProfile}
-                />
+                <Accordion type="multiple" value={expandedSections} onValueChange={setExpandedSections}>
+                  <AboutMeSection
+                    profileData={profileData}
+                    onSaveProfile={onSaveProfile}
+                  />
+                </Accordion>
               </TabsContent>
               
               <TabsContent value="ideal-roommate">
-                <IdealRoommateSection
-                  profileData={profileData}
-                  onSaveProfile={onSaveProfile}
-                />
+                <Accordion type="multiple" value={expandedSections} onValueChange={setExpandedSections}>
+                  <IdealRoommateSection
+                    profileData={profileData}
+                    onSaveProfile={onSaveProfile}
+                  />
+                </Accordion>
               </TabsContent>
               
               <TabsContent value="ai-assistant">
