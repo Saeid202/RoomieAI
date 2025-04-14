@@ -29,7 +29,6 @@ export function AIAssistantSection({
 }: AIAssistantSectionProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [inputValue, setInputValue] = useState('');
-  const [showChat, setShowChat] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: '1',
@@ -50,10 +49,6 @@ export function AIAssistantSection({
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const toggleChat = () => {
-    setShowChat(!showChat);
   };
 
   const handleSendMessage = (e: React.FormEvent) => {
@@ -119,12 +114,59 @@ export function AIAssistantSection({
       <AccordionContent className="px-4 pb-4">
         <Card>
           <CardContent className="p-6">
-            <div className="text-center space-y-4">
-              <h3 className="text-xl font-bold">Ready to Find Your Match? 🔍</h3>
-              <p className="text-muted-foreground">
-                Our AI will analyze your profile and preferences to find the most compatible roommates.
-              </p>
+            <div className="space-y-6">
+              <h3 className="text-2xl font-bold text-center">AI Matching Assistant</h3>
               
+              {/* Chatbot - always visible */}
+              <div className="border rounded-lg mt-4 w-full">
+                <div className="p-3 border-b bg-muted/30">
+                  <h3 className="font-medium text-center">Chatbot</h3>
+                </div>
+                
+                <ScrollArea className="h-80 p-4">
+                  <div className="space-y-4">
+                    {messages.map((message) => (
+                      <div 
+                        key={message.id} 
+                        className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                      >
+                        <div className={`flex items-start max-w-[75%] ${message.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+                          <Avatar className={`w-8 h-8 ${message.role === 'user' ? 'ml-2' : 'mr-2'}`}>
+                            <div className={message.role === 'assistant' ? "bg-roomie-purple text-white w-full h-full flex items-center justify-center" : "bg-gray-200 w-full h-full flex items-center justify-center"}>
+                              {message.role === 'assistant' ? 'AI' : 'You'}
+                            </div>
+                          </Avatar>
+                          <div 
+                            className={`rounded-lg p-3 text-sm ${
+                              message.role === 'assistant' 
+                                ? 'bg-muted/50 text-foreground' 
+                                : 'bg-roomie-purple/80 text-white'
+                            }`}
+                          >
+                            {message.content}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+                
+                <div className="p-3 border-t">
+                  <form onSubmit={handleSendMessage} className="flex gap-2">
+                    <Input
+                      value={inputValue}
+                      onChange={(e) => setInputValue(e.target.value)}
+                      placeholder="Ask about roommate matching..."
+                      className="flex-1"
+                    />
+                    <Button type="submit" size="icon">
+                      <SendHorizontal className="h-4 w-4" />
+                    </Button>
+                  </form>
+                </div>
+              </div>
+              
+              {/* Profile check section */}
               <div className="max-w-md mx-auto bg-accent/20 rounded-lg p-4 mt-4">
                 <h4 className="font-medium mb-2">Before we search:</h4>
                 <ul className="text-sm text-left space-y-2">
@@ -147,19 +189,12 @@ export function AIAssistantSection({
                 </ul>
               </div>
               
-              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mt-2">
-                <Button 
-                  onClick={toggleChat}
-                  variant="outline"
-                  className="w-full sm:w-auto"
-                >
-                  {showChat ? "Hide Chat" : "Chat with AI Assistant"}
-                </Button>
-                
+              {/* Find Match button - centered and prominent */}
+              <div className="flex justify-center mt-6">
                 <Button 
                   onClick={handleFindMatch} 
                   disabled={isLoading}
-                  className="w-full sm:w-auto bg-gradient-to-r from-roomie-purple to-roomie-accent hover:opacity-90 text-white font-medium px-8 py-6"
+                  className="w-full sm:w-1/2 bg-gradient-to-r from-roomie-purple to-roomie-accent hover:opacity-90 text-white font-medium px-12 py-6 text-lg rounded-lg shadow-md"
                 >
                   {isLoading ? (
                     <div className="flex items-center">
@@ -174,56 +209,6 @@ export function AIAssistantSection({
                   )}
                 </Button>
               </div>
-              
-              {showChat && (
-                <div className="border rounded-lg mt-4 max-w-2xl mx-auto">
-                  <div className="p-3 border-b bg-muted/30">
-                    <h3 className="font-medium">Chat with Roomie AI</h3>
-                  </div>
-                  
-                  <ScrollArea className="h-80 p-4">
-                    <div className="space-y-4">
-                      {messages.map((message) => (
-                        <div 
-                          key={message.id} 
-                          className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                        >
-                          <div className={`flex items-start max-w-[75%] ${message.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-                            <Avatar className={`w-8 h-8 ${message.role === 'user' ? 'ml-2' : 'mr-2'}`}>
-                              <div className={message.role === 'assistant' ? "bg-roomie-purple text-white w-full h-full flex items-center justify-center" : "bg-gray-200 w-full h-full flex items-center justify-center"}>
-                                {message.role === 'assistant' ? 'AI' : 'You'}
-                              </div>
-                            </Avatar>
-                            <div 
-                              className={`rounded-lg p-3 text-sm ${
-                                message.role === 'assistant' 
-                                  ? 'bg-muted/50 text-foreground' 
-                                  : 'bg-roomie-purple/80 text-white'
-                              }`}
-                            >
-                              {message.content}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </ScrollArea>
-                  
-                  <div className="p-3 border-t">
-                    <form onSubmit={handleSendMessage} className="flex gap-2">
-                      <Input
-                        value={inputValue}
-                        onChange={(e) => setInputValue(e.target.value)}
-                        placeholder="Ask about roommate matching..."
-                        className="flex-1"
-                      />
-                      <Button type="submit" size="icon">
-                        <SendHorizontal className="h-4 w-4" />
-                      </Button>
-                    </form>
-                  </div>
-                </div>
-              )}
             </div>
           </CardContent>
         </Card>
