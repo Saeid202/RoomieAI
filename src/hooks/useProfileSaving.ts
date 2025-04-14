@@ -23,9 +23,10 @@ export function useProfileSaving() {
       }
       
       setIsSaving(true);
-      console.log("Saving profile data:", formData);
+      console.log("useProfileSaving - Saving profile data:", formData);
       
-      await saveRoommateProfile(user.id, formData);
+      const result = await saveRoommateProfile(user.id, formData);
+      console.log("Profile saved successfully:", result);
       
       toast({
         title: "Profile updated",

@@ -3,16 +3,17 @@ import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { ProfileFormValues } from "@/types/profile";
 import { findMatches as findMatchesAlgorithm } from "@/utils/matchingAlgorithm";
+import { MatchResult } from "@/utils/matchingAlgorithm/types";
 
 export function useMatching() {
   const { toast } = useToast();
-  const [roommates, setRoommates] = useState([]);
-  const [properties, setProperties] = useState([]);
-  const [selectedMatch, setSelectedMatch] = useState(null);
+  const [roommates, setRoommates] = useState<MatchResult[]>([]);
+  const [properties, setProperties] = useState<MatchResult[]>([]);
+  const [selectedMatch, setSelectedMatch] = useState<MatchResult | null>(null);
   const [activeTab, setActiveTab] = useState("roommates");
   const [isFindingMatches, setIsFindingMatches] = useState(false);
 
-  const handleViewDetails = (match) => {
+  const handleViewDetails = (match: MatchResult) => {
     // Scroll to top when viewing details to prevent footer jumps
     window.scrollTo({ top: 0, behavior: 'smooth' });
     setSelectedMatch(match);
@@ -22,7 +23,7 @@ export function useMatching() {
     setSelectedMatch(null);
   };
 
-  const findMatches = async (profileData: Partial<ProfileFormValues> | null) => {
+  const findMatches = async (profileData: Partial<ProfileFormValues> | null): Promise<MatchResult[]> => {
     try {
       setIsFindingMatches(true);
       console.log("Finding matches with profile data:", profileData);

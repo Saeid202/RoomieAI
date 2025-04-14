@@ -5,32 +5,40 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
 import { LoadingState } from "@/components/dashboard/recommendations/LoadingState";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function RoommateRecommendationsPage() {
   const [error, setError] = useState<Error | null>(null);
   const [isRetrying, setIsRetrying] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
+  const { user, loading: authLoading } = useAuth();
 
   // Handle the initial page load with a proper loading state
   useEffect(() => {
+    console.log("RoommatePage mounted - Initializing...");
     document.title = "Find My Ideal Roommate";
     
-    // Use a longer delay for initial loading to ensure all data is ready
-    const loadingTimer = setTimeout(() => {
-      setInitialLoading(false);
-    }, 1500);
-    
-    // Add a separate timer for the fade-in transition
-    const fadeTimer = setTimeout(() => {
-      setIsLoaded(true);
-    }, 1800);
-    
-    return () => {
-      clearTimeout(loadingTimer);
-      clearTimeout(fadeTimer);
-    };
-  }, []);
+    if (!authLoading) {
+      console.log("RoommatePage - Auth loaded, user:", user?.email ?? "none");
+      // Use a longer delay for initial loading to ensure all data is ready
+      const loadingTimer = setTimeout(() => {
+        setInitialLoading(false);
+        console.log("RoommatePage - Initial loading complete");
+      }, 1500);
+      
+      // Add a separate timer for the fade-in transition
+      const fadeTimer = setTimeout(() => {
+        setIsLoaded(true);
+        console.log("RoommatePage - Fade-in complete");
+      }, 1800);
+      
+      return () => {
+        clearTimeout(loadingTimer);
+        clearTimeout(fadeTimer);
+      };
+    }
+  }, [user, authLoading]);
 
   const handleRetry = () => {
     setIsRetrying(true);
@@ -41,7 +49,7 @@ export default function RoommateRecommendationsPage() {
     }, 300);
   };
 
-  if (initialLoading) {
+  if (initialLoading || authLoading) {
     return <LoadingState key="initial-loading" />;
   }
 

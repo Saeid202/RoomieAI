@@ -40,15 +40,18 @@ export function RoommateRecommendations({ onError }: RoommateRecommendationsProp
   } = useRoommateMatching();
   
   const handleStartLoading = useCallback(() => {
+    console.log("RoommateRecommendations - Start loading");
     setIsLoading(true);
   }, []);
   
   const handleFinishLoading = useCallback(() => {
+    console.log("RoommateRecommendations - Finish loading");
     setIsLoading(false);
     setHasSearched(true);
   }, []);
   
   const handleTabChange = useCallback((value: string) => {
+    console.log(`RoommateRecommendations - Tab changed to ${value}`);
     setActiveTab(value);
   }, []);
   
@@ -69,8 +72,10 @@ export function RoommateRecommendations({ onError }: RoommateRecommendationsProp
   // Wrapper function that properly converts the return type
   const onSaveProfile = async (formData: ProfileFormValues): Promise<void> => {
     try {
+      console.log("RoommateRecommendations - Saving profile data");
       await handleSaveProfile(formData);
     } catch (error) {
+      console.error("Error in onSaveProfile:", error);
       handleError(error instanceof Error ? error : new Error("Failed to save profile"));
       throw error;
     }

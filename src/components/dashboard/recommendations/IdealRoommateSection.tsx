@@ -61,6 +61,21 @@ export function IdealRoommateSection({
     roommateLifestylePreference: "noLifestylePreference",
     hobbies: [],
     importantRoommateTraits: [],
+    lifestylePreferences: {
+      similarSchedule: false,
+      similarInterests: false,
+      compatibleWorkStyle: false
+    },
+    houseHabits: {
+      cleansKitchen: false,
+      respectsQuietHours: false,
+      sharesGroceries: false
+    },
+    dealBreakers: {
+      noSmoking: false,
+      noLoudMusic: false,
+      noLatePayments: false
+    }
   };
 
   const form = useForm<ProfileFormValues>({
@@ -71,12 +86,13 @@ export function IdealRoommateSection({
   // Update form when profileData changes
   useEffect(() => {
     if (profileData) {
+      console.log("IdealRoommateSection - Updating form with profile data");
       // Reset the form with the merged values of defaultFormValues and profileData
       form.reset({ ...defaultFormValues, ...profileData });
     }
   }, [profileData, form]);
 
-  const onSubmit = async (data: ProfileFormValues) => {
+  const onSubmit = async (data: ProfileFormValues): Promise<void> => {
     try {
       setIsSaving(true);
       console.log("Ideal Roommate form data to save:", data);
@@ -88,6 +104,8 @@ export function IdealRoommateSection({
           title: "Preferences saved",
           description: "Your roommate preferences have been updated successfully.",
         });
+      } else {
+        console.warn("IdealRoommateSection - No onSaveProfile function provided");
       }
     } catch (error) {
       console.error("Error saving preferences:", error);
@@ -96,6 +114,7 @@ export function IdealRoommateSection({
         description: "There was a problem saving your preferences. Please try again.",
         variant: "destructive",
       });
+      throw error;
     } finally {
       setIsSaving(false);
     }

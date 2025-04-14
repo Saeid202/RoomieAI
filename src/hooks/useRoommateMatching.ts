@@ -5,6 +5,7 @@ import { ProfileFormValues } from "@/types/profile";
 import { useRoommateProfile } from "@/hooks/useRoommateProfile";
 import { useProfileSaving } from "@/hooks/useProfileSaving";
 import { useMatching } from "@/hooks/useMatching";
+import { MatchResult } from "@/utils/matchingAlgorithm/types";
 
 export function useRoommateMatching() {
   const { user } = useAuth();
@@ -31,12 +32,16 @@ export function useRoommateMatching() {
   } = useMatching();
 
   // Wrapper for findMatches that uses the current profileData
-  const findMatches = useCallback(async () => {
+  const findMatches = useCallback(async (): Promise<MatchResult[]> => {
+    console.log("useRoommateMatching - findMatches called");
+    
     if (!profileData) {
+      console.error("Profile data is not available. Please complete your profile first.");
       throw new Error("Profile data is not available. Please complete your profile first.");
     }
     
     try {
+      console.log("useRoommateMatching - Calling findMatchesInternal");
       return await findMatchesInternal(profileData);
     } catch (error) {
       console.error("Error in findMatches:", error);

@@ -18,9 +18,16 @@ export function ProfileSaveHandler({
   const { toast } = useToast();
 
   const handleSaveProfile = async (formData: ProfileFormValues): Promise<void> => {
+    if (isSaving || isSubmitting) {
+      console.log("Already saving profile, skipping duplicate request");
+      return;
+    }
+    
     try {
       setIsSaving(true);
+      console.log("ProfileSaveHandler - Saving profile data:", formData);
       await onSubmit(formData);
+      
       toast({
         title: "Profile saved",
         description: "Your profile has been saved successfully",
