@@ -82,6 +82,15 @@ export function RoommateRecommendationsWrapper() {
     }
   };
 
+  // Wrapper functions with the correct return type
+  const wrappedFindMatches = async (): Promise<void> => {
+    await findMatches();
+  };
+
+  const wrappedSaveProfile = async (formData: ProfileFormValues): Promise<void> => {
+    await handleSaveProfile(formData);
+  };
+
   if (isPageLoading || loading) {
     return <LoadingState />;
   }
@@ -118,8 +127,8 @@ export function RoommateRecommendationsWrapper() {
       setActiveTab={setActiveTab}
       handleViewDetails={handleViewDetails}
       handleCloseDetails={handleCloseDetails}
-      findMatches={findMatches}
-      handleSaveProfile={handleSaveProfile}
+      findMatches={wrappedFindMatches}
+      handleSaveProfile={wrappedSaveProfile}
       handleRefreshProfile={handleRefreshProfile}
       user={user}
     />

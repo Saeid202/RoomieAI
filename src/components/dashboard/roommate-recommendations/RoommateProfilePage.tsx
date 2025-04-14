@@ -49,7 +49,7 @@ export function RoommateProfilePage({
       
       await handleSaveProfile(formData);
       
-      return true;
+      // Don't return a boolean
     } catch (error) {
       console.error("Error saving profile:", error);
       throw error;
