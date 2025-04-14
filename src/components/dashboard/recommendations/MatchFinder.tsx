@@ -28,32 +28,31 @@ export function MatchFinder({
     if (isLoading) return;
     
     try {
-      // Set internal loading state first
+      // Set local loading state first
       setIsLoading(true);
       
-      // Then notify parent after a short delay to prevent flash
+      // Notify parent after a slight delay to prevent flash
       setTimeout(() => {
         onStartLoading();
       }, 50);
       
-      // Force a significant delay before starting the match finding process
-      // This ensures the UI has fully transitioned to loading state
-      await new Promise(resolve => setTimeout(resolve, 800));
+      // Create a deliberate delay for user experience
+      await new Promise(resolve => setTimeout(resolve, 1200));
       
       const matches = await findMatches();
       
-      // Give a toast notification
+      // Success notification
       toast({
         title: "Matches found!",
         description: `Found ${matches.length} potential roommates for you.`,
       });
       
-      // Add a longer delay before removing loading state to ensure stability
+      // Add delay before finishing to ensure smooth transitions
       setTimeout(() => {
-        // Ensure both internal and parent loading states are updated
+        // Ensure component is still mounted
         setIsLoading(false);
         
-        // Delay scrolling and final state update slightly
+        // Delay scrolling and final update
         setTimeout(() => {
           const resultsElement = document.querySelector('[data-results-section]');
           if (resultsElement) {
@@ -62,15 +61,15 @@ export function MatchFinder({
           
           // Final loading state cleared
           onFinishLoading();
-        }, 200);
-      }, 600);
+        }, 400);
+      }, 800);
       
     } catch (error) {
       console.error("Error finding matches:", error);
       
-      // Add delay before resetting loading states to prevent UI flashing
+      // Add delay before resetting loading states
       setTimeout(() => {
-        // Reset loading states in case of error
+        // Reset loading states
         setIsLoading(false);
         onFinishLoading();
         
@@ -83,7 +82,7 @@ export function MatchFinder({
           description: "Failed to find matches. Please try again.",
           variant: "destructive",
         });
-      }, 600);
+      }, 800);
     }
   };
 

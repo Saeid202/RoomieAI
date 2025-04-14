@@ -1,5 +1,4 @@
-
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { RoommateRecommendations } from "@/components/dashboard/RoommateRecommendations";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,39 +9,33 @@ export default function RoommateRecommendationsPage() {
   const [error, setError] = useState<Error | null>(null);
   const [isRetrying, setIsRetrying] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const initialLoadRef = useRef(true);
   
-  // Use useEffect for initialization with a cleaner approach
+  // Simplified loading mechanism with only a single state
   useEffect(() => {
     document.title = "Find My Ideal Roommate";
     
-    if (initialLoadRef.current) {
-      // First mount - show loading state for a consistent period
-      const timer = setTimeout(() => {
-        setIsLoading(false);
-        initialLoadRef.current = false;
-      }, 1200); // Longer initial timeout for stability
-      
-      return () => clearTimeout(timer);
-    }
+    // Use a longer timeout for initial loading to ensure all components are ready
+    const loadingTimer = setTimeout(() => {
+      setIsLoading(false);
+    }, 800); // Longer timeout to ensure stable rendering
+    
+    return () => clearTimeout(loadingTimer);
   }, []);
 
   const handleRetry = () => {
     setIsRetrying(true);
     setIsLoading(true);
     setError(null);
-    initialLoadRef.current = true;
     
-    // Full reset with adequate time for state transitions
+    // Allow 500ms for clean state reset before attempting to load again
     setTimeout(() => {
       setIsRetrying(false);
       setIsLoading(false);
-      initialLoadRef.current = false;
-    }, 1200);
+    }, 500);
   };
 
-  // Stable loading state
-  if (isLoading || initialLoadRef.current) {
+  if (isLoading) {
+    // Return a stable loading state component
     return <LoadingState />;
   }
 
@@ -70,7 +63,7 @@ export default function RoommateRecommendationsPage() {
     );
   }
 
-  // Render the main component
+  // Only render the main component when we're sure loading is finished
   return (
     <div className="container mx-auto py-6" style={{ minHeight: '80vh' }}>
       <RoommateRecommendations key="recommendations-component" onError={setError} />

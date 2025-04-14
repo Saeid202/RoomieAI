@@ -24,7 +24,8 @@ export function RoommateRecommendations({ onError }: RoommateRecommendationsProp
   const [activeAboutMeTab, setActiveAboutMeTab] = useState("personal-info");
   const [activeIdealRoommateTab, setActiveIdealRoommateTab] = useState("preferences");
   const [isPageLoading, setIsPageLoading] = useState(false);
-  const mountedRef = useRef(false);
+  const [componentMounted, setComponentMounted] = useState(false);
+  const mountedRef = useRef(true);
   
   const { 
     loading, 
@@ -43,15 +44,20 @@ export function RoommateRecommendations({ onError }: RoommateRecommendationsProp
   
   const { expandedSections, setExpandedSections } = useAccordionSections(["about-me", "ideal-roommate", "ai-assistant"]);
 
-  // Setup effect that runs only once after initial mount
+  // Setup effect that runs only once after initial mount with mandatory delay
   useEffect(() => {
+    setComponentMounted(false);
     mountedRef.current = true;
     
-    // Use RAF to ensure we're in sync with browser render cycle
+    // Use requestAnimationFrame + setTimeout to ensure we're fully rendered and stable
     requestAnimationFrame(() => {
-      if (mountedRef.current) {
-        // Component is still mounted
-      }
+      if (!mountedRef.current) return;
+      
+      setTimeout(() => {
+        if (mountedRef.current) {
+          setComponentMounted(true);
+        }
+      }, 500);
     });
     
     return () => {
@@ -60,7 +66,7 @@ export function RoommateRecommendations({ onError }: RoommateRecommendationsProp
   }, []);
 
   // If any loading state is active, show loading state
-  const isLoading = isPageLoading || loading;
+  const isLoading = isPageLoading || loading || !componentMounted;
 
   if (isLoading || !profileData) {
     return <LoadingState />;
