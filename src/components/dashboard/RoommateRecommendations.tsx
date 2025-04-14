@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { ProfileFormValues } from "@/types/profile";
 import { useRoommateMatching } from "@/hooks/useRoommateMatching";
@@ -8,13 +9,15 @@ import { Header } from "./recommendations/Header";
 import { AccordionSections } from "./recommendations/AccordionSections";
 import { Results } from "./recommendations/Results";
 import { useAuth } from "@/hooks/useAuth";
+import { EmptyState } from "./recommendations/EmptyState";
 
 export function RoommateRecommendations() {
   const { user } = useAuth();
   const { showSuccess, showError } = useToastNotifications();
   const [activeAboutMeTab, setActiveAboutMeTab] = useState("personal-info");
   const [activeIdealRoommateTab, setActiveIdealRoommateTab] = useState("preferences");
-  const [isPageLoading, setIsPageLoading] = useState(false);
+  const [isPageLoading, setIsPageLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
   
   // Custom sub-hooks
   const { 
@@ -35,14 +38,34 @@ export function RoommateRecommendations() {
   const { expandedSections, setExpandedSections } = useAccordionSections(["about-me", "ideal-roommate", "future-housing-plan", "ai-assistant"]);
 
   useEffect(() => {
-    if (!user) {
-      showError(
-        "Authentication required",
-        "Please sign in to access your roommate profile"
-      );
-    } else {
-      console.log("User authenticated:", user.email);
-    }
+    const initializeComponent = async () => {
+      try {
+        setIsPageLoading(true);
+        setHasError(false);
+        
+        if (!user) {
+          console.log("No user authenticated, showing unauthenticated state");
+          setIsPageLoading(false);
+          return;
+        }
+        
+        console.log("Loading roommate profile data...");
+        await loadProfileData();
+        console.log("Profile data loaded successfully");
+        
+      } catch (error) {
+        console.error("Error initializing component:", error);
+        setHasError(true);
+        showError(
+          "Error loading profile",
+          "Failed to load your roommate profile data"
+        );
+      } finally {
+        setIsPageLoading(false);
+      }
+    };
+    
+    initializeComponent();
   }, [user]);
 
   useEffect(() => {
@@ -121,8 +144,31 @@ export function RoommateRecommendations() {
     }
   };
 
-  if (loading || isPageLoading) {
+  if (isPageLoading || loading) {
     return <LoadingState />;
+  }
+
+  if (hasError) {
+    return (
+      <div className="p-6">
+        <div className="bg-red-50 border border-red-200 rounded-md p-4">
+          <h3 className="text-lg font-medium text-red-800">Error loading profile</h3>
+          <p className="mt-2 text-red-700">
+            We encountered an error while loading your profile. Please try refreshing the page.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <EmptyState
+        title="Authentication Required"
+        description="Please sign in to access your roommate profile and recommendations"
+        icon="lock"
+      />
+    );
   }
 
   return (

@@ -45,9 +45,9 @@ export function useMatching() {
       console.log("Matches found:", matchesFound);
       
       // Update state with found matches
-      setRoommates(matchesFound);
+      setRoommates(matchesFound || []);
       
-      return matchesFound;
+      return matchesFound || [];
     } catch (error) {
       console.error("Error finding matches:", error);
       toast({

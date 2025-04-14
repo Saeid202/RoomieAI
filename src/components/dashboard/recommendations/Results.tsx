@@ -1,5 +1,6 @@
 
 import { ResultsSection } from "./ResultsSection";
+import { EmptyState } from "./EmptyState";
 
 interface ResultsProps {
   roommates: any[];
@@ -20,14 +21,17 @@ export function Results({
   onViewDetails,
   onCloseDetails
 }: ResultsProps) {
-  if (roommates.length === 0 && properties.length === 0) {
+  const noResults = (!roommates || roommates.length === 0) && (!properties || properties.length === 0);
+  
+  // If no results and no specific match is selected, show nothing
+  if (noResults && !selectedMatch) {
     return null;
   }
 
   return (
     <div data-results-section>
       <ResultsSection
-        roommates={roommates}
+        roommates={roommates || []}
         properties={properties || []}
         selectedMatch={selectedMatch}
         activeTab={activeTab}
