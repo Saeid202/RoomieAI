@@ -53,10 +53,6 @@ export const SignupDialog = ({ isOpen, setIsOpen }: SignupDialogProps) => {
       // Sign up the user with the provided email and password
       const result = await signUp(values.email, values.password);
       
-      if (!result || !result.user) {
-        throw new Error("Signup failed");
-      }
-      
       console.log("Signup successful, user data:", result.user);
       console.log("Selected role:", values.role);
       

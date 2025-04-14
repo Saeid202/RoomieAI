@@ -1,5 +1,5 @@
 
 // Direct re-export of the auth hook from the provider
-import { useAuth } from "@/providers/AuthProvider";
+import { useAuth as useAuthOriginal } from "@/contexts/AuthContext";
 
-export { useAuth };
+export const useAuth = useAuthOriginal;

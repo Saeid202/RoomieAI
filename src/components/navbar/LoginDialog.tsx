@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -38,9 +39,6 @@ export const LoginDialog = ({ isOpen, setIsOpen }: LoginDialogProps) => {
     try {
       console.log("Attempting to sign in with:", email);
       const result = await signIn(email, password);
-      if (!result.user) {
-        throw new Error("Login failed");
-      }
       
       setIsOpen(false);
       

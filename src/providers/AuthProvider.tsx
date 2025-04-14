@@ -7,9 +7,14 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<{user: User | null, session: Session | null}>;
+  signUp: (email: string, password: string) => Promise<{user: User | null, session: Session | null}>;
   signOut: () => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
+  signInWithFacebook: () => Promise<void>;
+  signInWithLinkedIn: () => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
+  updateMetadata: (metadata: Record<string, any>) => Promise<any>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -42,7 +47,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -50,10 +55,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (error) {
       throw error;
     }
+    
+    return data;
   };
 
   const signUp = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
     });
@@ -61,6 +68,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (error) {
       throw error;
     }
+    
+    return data;
   };
 
   const signOut = async () => {
@@ -68,6 +77,63 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (error) {
       throw error;
     }
+  };
+  
+  const signInWithGoogle = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`
+      }
+    });
+    if (error) {
+      throw error;
+    }
+  };
+  
+  const signInWithFacebook = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'facebook',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`
+      }
+    });
+    if (error) {
+      throw error;
+    }
+  };
+  
+  const signInWithLinkedIn = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'linkedin_oidc',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`
+      }
+    });
+    if (error) {
+      throw error;
+    }
+  };
+  
+  const resetPassword = async (email: string) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    if (error) {
+      throw error;
+    }
+  };
+  
+  const updateMetadata = async (metadata: Record<string, any>) => {
+    const { data, error } = await supabase.auth.updateUser({
+      data: metadata
+    });
+    
+    if (error) {
+      throw error;
+    }
+    
+    return data;
   };
 
   const value = {
@@ -77,6 +143,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signIn,
     signUp,
     signOut,
+    signInWithGoogle,
+    signInWithFacebook,
+    signInWithLinkedIn,
+    resetPassword,
+    updateMetadata
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
