@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { LoadingButton } from "./chat/LoadingButton";
 import { ProfileFormValues } from "@/types/profile";
@@ -22,19 +22,36 @@ export function MatchFinder({
 }: MatchFinderProps) {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const timeoutRef = useRef<number | null>(null);
+  const isMountedRef = useRef(true);
+
+  // Cleanup function for component unmount
+  const clearTimeouts = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+  };
+
+  // Cleanup on unmount
+  useState(() => {
+    return () => {
+      isMountedRef.current = false;
+      clearTimeouts();
+    };
+  });
 
   const handleFindMatch = async () => {
     // Guard against multiple simultaneous calls
     if (isLoading) return;
     
     try {
-      // Set local loading state first
-      setIsLoading(true);
+      // Clear any existing timeouts first
+      clearTimeouts();
       
-      // Notify parent after a slight delay to prevent flash
-      setTimeout(() => {
-        onStartLoading();
-      }, 50);
+      // Set local loading state immediately
+      setIsLoading(true);
+      onStartLoading();
       
       // Create a deliberate delay for user experience
       await new Promise(resolve => setTimeout(resolve, 1200));
@@ -48,12 +65,16 @@ export function MatchFinder({
       });
       
       // Add delay before finishing to ensure smooth transitions
-      setTimeout(() => {
-        // Ensure component is still mounted
+      timeoutRef.current = window.setTimeout(() => {
+        if (!isMountedRef.current) return;
+        
+        // Reset local loading state
         setIsLoading(false);
         
         // Delay scrolling and final update
-        setTimeout(() => {
+        timeoutRef.current = window.setTimeout(() => {
+          if (!isMountedRef.current) return;
+          
           const resultsElement = document.querySelector('[data-results-section]');
           if (resultsElement) {
             resultsElement.scrollIntoView({ behavior: 'smooth' });
@@ -68,7 +89,9 @@ export function MatchFinder({
       console.error("Error finding matches:", error);
       
       // Add delay before resetting loading states
-      setTimeout(() => {
+      timeoutRef.current = window.setTimeout(() => {
+        if (!isMountedRef.current) return;
+        
         // Reset loading states
         setIsLoading(false);
         onFinishLoading();

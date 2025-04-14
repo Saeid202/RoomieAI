@@ -23,12 +23,11 @@ export function RoommateRecommendations({ onError }: RoommateRecommendationsProp
   const { user } = useAuth();
   const [activeAboutMeTab, setActiveAboutMeTab] = useState("personal-info");
   const [activeIdealRoommateTab, setActiveIdealRoommateTab] = useState("preferences");
-  const [isPageLoading, setIsPageLoading] = useState(false);
-  const [componentMounted, setComponentMounted] = useState(false);
+  const [isComponentLoading, setIsComponentLoading] = useState(false);
   const mountedRef = useRef(true);
   
   const { 
-    loading, 
+    loading: matchingLoading, 
     profileData, 
     roommates, 
     properties, 
@@ -44,31 +43,18 @@ export function RoommateRecommendations({ onError }: RoommateRecommendationsProp
   
   const { expandedSections, setExpandedSections } = useAccordionSections(["about-me", "ideal-roommate", "ai-assistant"]);
 
-  // Setup effect that runs only once after initial mount with mandatory delay
+  // Cleanup on unmount
   useEffect(() => {
-    setComponentMounted(false);
     mountedRef.current = true;
-    
-    // Use requestAnimationFrame + setTimeout to ensure we're fully rendered and stable
-    requestAnimationFrame(() => {
-      if (!mountedRef.current) return;
-      
-      setTimeout(() => {
-        if (mountedRef.current) {
-          setComponentMounted(true);
-        }
-      }, 500);
-    });
-    
     return () => {
       mountedRef.current = false;
     };
   }, []);
 
-  // If any loading state is active, show loading state
-  const isLoading = isPageLoading || loading || !componentMounted;
+  // Determine if any loading state is active
+  const isLoading = isComponentLoading || matchingLoading || !profileData;
 
-  if (isLoading || !profileData) {
+  if (isLoading) {
     return <LoadingState />;
   }
 
@@ -124,8 +110,12 @@ export function RoommateRecommendations({ onError }: RoommateRecommendationsProp
                   <MatchFinder 
                     profileData={profileData}
                     findMatches={findMatches}
-                    onStartLoading={() => setIsPageLoading(true)}
-                    onFinishLoading={() => setIsPageLoading(false)}
+                    onStartLoading={() => setIsComponentLoading(true)}
+                    onFinishLoading={() => {
+                      if (mountedRef.current) {
+                        setIsComponentLoading(false);
+                      }
+                    }}
                     onError={onError}
                   />
                 </AIAssistantSection>

@@ -1,41 +1,63 @@
-import { useState, useEffect } from "react";
+
+import { useState, useEffect, useRef } from "react";
 import { RoommateRecommendations } from "@/components/dashboard/RoommateRecommendations";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
 import { LoadingState } from "@/components/dashboard/recommendations/LoadingState";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function RoommateRecommendationsPage() {
+  const { user, loading: authLoading } = useAuth();
   const [error, setError] = useState<Error | null>(null);
   const [isRetrying, setIsRetrying] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const mountedRef = useRef(false);
+  const timerRef = useRef<number | null>(null);
   
-  // Simplified loading mechanism with only a single state
+  // Improved loading mechanism that coordinates with auth state
   useEffect(() => {
     document.title = "Find My Ideal Roommate";
+    mountedRef.current = true;
     
-    // Use a longer timeout for initial loading to ensure all components are ready
-    const loadingTimer = setTimeout(() => {
-      setIsLoading(false);
-    }, 800); // Longer timeout to ensure stable rendering
+    // Don't start loading sequence until auth is settled
+    if (authLoading) return;
     
-    return () => clearTimeout(loadingTimer);
-  }, []);
+    console.log("Starting loading sequence, auth status:", user ? "authenticated" : "not authenticated");
+    
+    // Ensure minimum loading time of 1500ms for consistent experience
+    timerRef.current = window.setTimeout(() => {
+      if (mountedRef.current) {
+        console.log("Minimum loading time elapsed, finishing loading sequence");
+        setIsLoading(false);
+      }
+    }, 1500);
+    
+    return () => {
+      mountedRef.current = false;
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+        timerRef.current = null;
+      }
+    };
+  }, [authLoading, user]);
 
   const handleRetry = () => {
     setIsRetrying(true);
     setIsLoading(true);
     setError(null);
     
-    // Allow 500ms for clean state reset before attempting to load again
-    setTimeout(() => {
-      setIsRetrying(false);
-      setIsLoading(false);
-    }, 500);
+    // Allow time for clean state reset before loading again
+    timerRef.current = window.setTimeout(() => {
+      if (mountedRef.current) {
+        setIsRetrying(false);
+        setIsLoading(false);
+      }
+    }, 1200);
   };
 
-  if (isLoading) {
-    // Return a stable loading state component
+  // Show loading state if either auth is loading or our content is loading
+  if (authLoading || isLoading) {
     return <LoadingState />;
   }
 
@@ -63,7 +85,7 @@ export default function RoommateRecommendationsPage() {
     );
   }
 
-  // Only render the main component when we're sure loading is finished
+  // Render the main component only when we're sure all loading is finished
   return (
     <div className="container mx-auto py-6" style={{ minHeight: '80vh' }}>
       <RoommateRecommendations key="recommendations-component" onError={setError} />

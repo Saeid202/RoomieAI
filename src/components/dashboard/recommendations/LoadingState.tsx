@@ -17,10 +17,11 @@ export function LoadingState() {
         <div className="space-y-6 mt-8">
           <Skeleton className="h-[140px] w-full rounded-lg" />
           <Skeleton className="h-[140px] w-full rounded-lg" />
+          <Skeleton className="h-[140px] w-full rounded-lg" />
         </div>
         
-        <div className="grid gap-4 md:grid-cols-2 mt-8">
-          {Array.from({ length: 2 }).map((_, i) => (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mt-8">
+          {Array.from({ length: 3 }).map((_, i) => (
             <Card key={i} className="overflow-hidden border border-muted">
               <CardHeader className="p-0">
                 <Skeleton className="h-24 w-full rounded-none" />
@@ -28,6 +29,7 @@ export function LoadingState() {
               <CardContent className="pt-6 space-y-4">
                 <Skeleton className="h-5 w-1/2" />
                 <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-4 w-1/2" />
               </CardContent>
             </Card>
           ))}
