@@ -44,9 +44,23 @@ export function AboutMeSection({
   setActiveAboutMeTab,
   handleSaveProfile
 }: AboutMeSectionProps) {
+  // Create a default empty form value to prevent null errors
+  const defaultFormValues: Partial<ProfileFormValues> = {
+    fullName: "",
+    age: "",
+    gender: "",
+    email: "",
+    budgetRange: [800, 1500],
+    preferredLocation: "",
+    moveInDate: new Date(),
+    hobbies: [],
+    importantRoommateTraits: [],
+    ...profileData
+  };
+
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
-    defaultValues: profileData || undefined,
+    defaultValues: defaultFormValues,
   });
 
   const { handleHobbyToggle } = useFormUtilities(form);

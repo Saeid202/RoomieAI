@@ -32,11 +32,21 @@ export function RoommateRecommendations() {
   const { expandedSections, setExpandedSections } = useAccordionSections(["about-me", "ideal-roommate", "ai-assistant"]);
 
   const handleSaveProfile = async (formData: ProfileFormValues) => {
-    // This will be implemented for saving profile data
-    toast({
-      title: "Profile updated",
-      description: "Your profile has been saved successfully",
-    });
+    try {
+      // This will be implemented for saving profile data
+      console.log("Saving profile data:", formData);
+      toast({
+        title: "Profile updated",
+        description: "Your profile has been saved successfully",
+      });
+    } catch (error) {
+      console.error("Error saving profile:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save profile data. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   if (loading) {
@@ -80,10 +90,10 @@ export function RoommateRecommendations() {
         </Accordion>
 
         {/* Results Section - Only show if there are matches */}
-        {(roommates.length > 0 || properties.length > 0) && (
+        {roommates && roommates.length > 0 && (
           <ResultsSection
             roommates={roommates}
-            properties={properties}
+            properties={properties || []}
             selectedMatch={selectedMatch}
             activeTab={activeTab}
             setActiveTab={setActiveTab}
