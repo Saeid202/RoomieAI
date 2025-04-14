@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -13,11 +14,11 @@ export function useRoommateProfile() {
   const [hasAttemptedLoad, setHasAttemptedLoad] = useState(false);
   const [loadCounter, setLoadCounter] = useState(0);
 
-  const loadProfileData = useCallback(async () => {
+  const loadProfileData = useCallback(async (): Promise<void> => {
     // Prevent multiple simultaneous loads
     if (loading && loadCounter > 0) {
       console.log("Already loading profile data, skipping duplicate request");
-      return;
+      return Promise.resolve();
     }
     
     setLoadCounter(prev => prev + 1);
@@ -27,7 +28,7 @@ export function useRoommateProfile() {
       setLoading(false);
       setProfileData(getDefaultProfileData());
       setHasAttemptedLoad(true);
-      return;
+      return Promise.resolve();
     }
     
     try {
@@ -65,6 +66,8 @@ export function useRoommateProfile() {
         console.log("No existing profile found, using default values");
         setProfileData(getDefaultProfileData());
       }
+      
+      return Promise.resolve();
     } catch (error) {
       console.error("Error loading profile data:", error);
       setError(error instanceof Error ? error : new Error("Unknown error loading profile"));
@@ -80,6 +83,8 @@ export function useRoommateProfile() {
           variant: "destructive",
         });
       }
+      
+      return Promise.reject(error);
     } finally {
       setHasAttemptedLoad(true);
       setLoading(false);
@@ -91,7 +96,9 @@ export function useRoommateProfile() {
     if (!hasAttemptedLoad) {
       if (user) {
         console.log("User detected, loading profile data");
-        loadProfileData();
+        loadProfileData().catch(err => {
+          console.error("Failed to load profile data on mount:", err);
+        });
       } else {
         console.log("No user detected, using default profile data");
         // Don't wait for a timeout to set default data - do it immediately

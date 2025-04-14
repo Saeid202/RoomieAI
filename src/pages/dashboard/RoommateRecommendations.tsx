@@ -19,20 +19,27 @@ export default function RoommateRecommendationsPage() {
     console.log("RoommatePage mounted - Initializing...");
     document.title = "Find My Ideal Roommate";
     
-    // Use a simple loading indicator regardless of auth state
-    const loadingTimer = setTimeout(() => {
-      setInitialLoading(false);
-      console.log("RoommatePage - Initial loading complete");
-      
-      // Add a separate timer for the fade-in transition
-      setTimeout(() => {
-        setIsLoaded(true);
-        console.log("RoommatePage - Fade-in complete");
-      }, 300);
-    }, 1000);
+    // Simpler loading state management
+    let isMounted = true;
+    
+    setTimeout(() => {
+      if (isMounted) {
+        setInitialLoading(false);
+        console.log("RoommatePage - Initial loading complete");
+        
+        // Add a separate timer for the fade-in transition
+        setTimeout(() => {
+          if (isMounted) {
+            setIsLoaded(true);
+            console.log("RoommatePage - Fade-in complete");
+          }
+        }, 300);
+      }
+    }, 800);
     
     return () => {
-      clearTimeout(loadingTimer);
+      isMounted = false;
+      console.log("RoommatePage unmounted - Cleaning up");
     };
   }, []);
 
@@ -45,7 +52,7 @@ export default function RoommateRecommendationsPage() {
     }, 300);
   };
 
-  if (initialLoading) {
+  if (initialLoading || authLoading) {
     return (
       <div className="container mx-auto py-6">
         <LoadingState key="initial-loading" />

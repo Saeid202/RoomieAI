@@ -37,7 +37,7 @@ export function useRoommateMatching() {
     
     if (!profileData) {
       console.error("Profile data is not available. Please complete your profile first.");
-      throw new Error("Profile data is not available. Please complete your profile first.");
+      return Promise.reject(new Error("Profile data is not available. Please complete your profile first."));
     }
     
     try {
@@ -45,7 +45,7 @@ export function useRoommateMatching() {
       return await findMatchesInternal(profileData);
     } catch (error) {
       console.error("Error in findMatches:", error);
-      throw error;
+      return Promise.reject(error);
     }
   }, [profileData, findMatchesInternal]);
 
@@ -54,9 +54,10 @@ export function useRoommateMatching() {
     try {
       console.log("useRoommateMatching - saveProfile called");
       await handleSaveProfile(formData);
+      return Promise.resolve();
     } catch (error) {
       console.error("Error in saveProfile:", error);
-      throw error;
+      return Promise.reject(error);
     }
   }, [handleSaveProfile]);
 

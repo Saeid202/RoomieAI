@@ -19,14 +19,20 @@ export function ProfileLoadingHandler({
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
   const [hasAttemptedLoad, setHasAttemptedLoad] = useState(false);
+  const [loadError, setLoadError] = useState<Error | null>(null);
 
   useEffect(() => {
     console.log("ProfileLoadingHandler - Initialize loading");
     let isMounted = true;
     
     const fetchData = async () => {
+      if (!isMounted) return;
+      
       try {
         setIsLoading(true);
+        setLoadError(null);
+        
+        console.log("ProfileLoadingHandler - Attempting to load profile data");
         await loadProfileData();
         
         if (isMounted) {
@@ -38,11 +44,13 @@ export function ProfileLoadingHandler({
         console.error("Error loading profile data:", error);
         
         if (isMounted) {
+          const errorObj = error instanceof Error ? error : new Error("Failed to load profile data");
+          setLoadError(errorObj);
           setHasAttemptedLoad(true);
           setIsLoading(false);
           
           if (onError) {
-            onError(error instanceof Error ? error : new Error("Failed to load profile data"));
+            onError(errorObj);
           }
           
           toast({
@@ -54,27 +62,34 @@ export function ProfileLoadingHandler({
       }
     };
 
-    // Set a short timeout to ensure loading state is shown briefly
-    // This prevents quick flashes of loading states
+    // Use a shorter timeout but still show loading briefly for UX
     const timeoutId = setTimeout(() => {
       if (user) {
+        console.log("User authenticated, fetching profile");
         fetchData();
       } else {
         console.log("User not authenticated, skipping profile load");
         setHasAttemptedLoad(true);
         setIsLoading(false);
       }
-    }, 300);
+    }, 200);
     
     return () => {
       isMounted = false;
       clearTimeout(timeoutId);
+      console.log("ProfileLoadingHandler unmounted");
     };
   }, [user, toast, loadProfileData, onError]);
 
   if (isLoading && !hasAttemptedLoad) {
+    console.log("ProfileLoadingHandler - Showing loading state");
     return <LoadingState />;
   }
 
+  if (loadError) {
+    console.log("ProfileLoadingHandler - Error occurred, showing children anyway");
+  }
+
+  console.log("ProfileLoadingHandler - Rendering children");
   return <>{children}</>;
 }
