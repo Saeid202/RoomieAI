@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Accordion } from "@/components/ui/accordion";
 import { ProfileFormValues } from "@/types/profile";
@@ -11,7 +12,11 @@ import { AIAssistantSection } from "./recommendations/AIAssistantSection";
 import { ResultsSection } from "./recommendations/ResultsSection";
 import { useAuth } from "@/hooks/useAuth";
 
-export function RoommateRecommendations() {
+interface RoommateRecommendationsProps {
+  onError?: (error: Error) => void;
+}
+
+export function RoommateRecommendations({ onError }: RoommateRecommendationsProps) {
   const { toast } = useToast();
   const { user } = useAuth();
   const [activeAboutMeTab, setActiveAboutMeTab] = useState("personal-info");
@@ -36,16 +41,28 @@ export function RoommateRecommendations() {
   const { expandedSections, setExpandedSections } = useAccordionSections(["about-me", "ideal-roommate", "ai-assistant"]);
 
   useEffect(() => {
-    if (!user) {
-      toast({
-        title: "Authentication required",
-        description: "Please sign in to access your roommate profile",
-        variant: "destructive",
-      });
+    const fetchData = async () => {
+      try {
+        await loadProfileData();
+      } catch (error) {
+        console.error("Error loading profile data:", error);
+        if (onError) {
+          onError(error instanceof Error ? error : new Error("Failed to load profile data"));
+        }
+        toast({
+          title: "Error",
+          description: "Failed to load profile data. Please try again.",
+          variant: "destructive",
+        });
+      }
+    };
+
+    if (user) {
+      fetchData();
     } else {
-      console.log("User authenticated:", user.email);
+      console.log("User not authenticated:", user);
     }
-  }, [user, toast]);
+  }, [user, toast, loadProfileData, onError]);
 
   useEffect(() => {
     console.log("ProfileData updated in RoommateRecommendations:", profileData);
@@ -103,6 +120,9 @@ export function RoommateRecommendations() {
     } catch (error) {
       console.error("Error finding matches:", error);
       setIsPageLoading(false);
+      if (onError) {
+        onError(error instanceof Error ? error : new Error("Failed to find matches"));
+      }
       toast({
         title: "Error",
         description: "Failed to find matches. Please try again.",
@@ -120,6 +140,9 @@ export function RoommateRecommendations() {
       });
     } catch (error) {
       console.error("Error refreshing profile:", error);
+      if (onError) {
+        onError(error instanceof Error ? error : new Error("Failed to refresh profile"));
+      }
       toast({
         title: "Error",
         description: "Failed to refresh profile data. Please try again.",

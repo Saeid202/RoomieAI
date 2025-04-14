@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { ProfileFormValues } from "@/types/profile";
@@ -10,23 +10,26 @@ export function useRoommateProfile() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [profileData, setProfileData] = useState<Partial<ProfileFormValues> | null>(null);
+  const [error, setError] = useState<Error | null>(null);
 
-  const loadProfileData = async () => {
+  const loadProfileData = useCallback(async () => {
     if (!user) {
       console.log("No user found, skipping profile data load");
       setLoading(false);
+      setProfileData(getDefaultProfileData());
       return;
     }
     
     try {
       setLoading(true);
+      setError(null);
       console.log("Loading profile data for user:", user.id);
       
-      const { data, error } = await fetchRoommateProfile(user.id);
+      const { data, error: fetchError } = await fetchRoommateProfile(user.id);
       
-      if (error && error.code !== 'PGRST116') {
-        console.error("Error fetching roommate profile:", error);
-        throw error;
+      if (fetchError && fetchError.code !== 'PGRST116') {
+        console.error("Error fetching roommate profile:", fetchError);
+        throw new Error(`Failed to fetch profile: ${fetchError.message}`);
       }
       
       if (data) {
@@ -54,15 +57,20 @@ export function useRoommateProfile() {
       }
     } catch (error) {
       console.error("Error loading profile data:", error);
+      setError(error instanceof Error ? error : new Error("Unknown error loading profile"));
+      
+      // Set default data even on error to prevent UI from breaking
+      setProfileData(getDefaultProfileData());
+      
       toast({
         title: "Error loading profile",
-        description: "Could not load your profile data. Please try again.",
+        description: "Could not load your profile data. Default values will be used.",
         variant: "destructive",
       });
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, toast]);
 
   // Load profile data on mount
   useEffect(() => {
@@ -72,8 +80,9 @@ export function useRoommateProfile() {
     } else {
       console.log("No user detected, skipping profile data load");
       setLoading(false);
+      setProfileData(getDefaultProfileData());
     }
-  }, [user]);
+  }, [user, loadProfileData]);
 
   // Helper function to get default profile data
   const getDefaultProfileData = (): Partial<ProfileFormValues> => {
@@ -93,6 +102,8 @@ export function useRoommateProfile() {
       guestsOver: "occasionally",
       hobbies: [],
       importantRoommateTraits: [],
+      occupation: "Not specified",
+      workSchedule: "9AM-5PM",
       // Default values for the new fields
       lifestylePreferences: {
         similarSchedule: false,
@@ -116,6 +127,7 @@ export function useRoommateProfile() {
     loading,
     profileData,
     setProfileData,
-    loadProfileData
+    loadProfileData,
+    error
   };
 }
