@@ -13,19 +13,24 @@ export async function fetchRoommateProfile(userId: string) {
   
   console.log("Fetching roommate profile for user:", userId);
   
-  const { data, error } = await supabase
-    .from('Find My Ideal Roommate')
-    .select('*')
-    .eq('user_id', userId)
-    .maybeSingle();
-  
-  if (error && error.code !== 'PGRST116') {
-    console.error("Error fetching roommate profile:", error);
-  } else {
+  try {
+    const { data, error } = await supabase
+      .from('Find My Ideal Roommate')
+      .select('*')
+      .eq('user_id', userId)
+      .maybeSingle();
+    
+    if (error) {
+      console.error("Error fetching roommate profile:", error);
+      return { data: null, error };
+    }
+    
     console.log("Fetched roommate profile data:", data);
+    return { data, error: null };
+  } catch (error) {
+    console.error("Exception in fetchRoommateProfile:", error);
+    return { data: null, error };
   }
-  
-  return { data, error };
 }
 
 /**
@@ -50,11 +55,6 @@ export async function saveRoommateProfile(
       : formData.moveInDate,
   };
   
-  // Log the dealbreakers, house habits, and lifestyle preferences for debugging
-  console.log("Saving dealbreakers:", preparedFormData.dealBreakers);
-  console.log("Saving house habits:", preparedFormData.houseHabits);
-  console.log("Saving lifestyle preferences:", preparedFormData.lifestylePreferences);
-  
   // Prepare data for saving to the database
   const dbData = {
     user_id: userId,
@@ -64,40 +64,45 @@ export async function saveRoommateProfile(
   
   console.log("Prepared database data:", dbData);
   
-  // Check if user already has a profile
-  const { data: existingProfile, error: checkError } = await supabase
-    .from('Find My Ideal Roommate')
-    .select('id')
-    .eq('user_id', userId)
-    .maybeSingle();
-  
-  if (checkError && checkError.code !== 'PGRST116') {
-    console.error("Error checking existing profile:", checkError);
-    throw checkError;
-  }
-  
-  let result;
-  if (existingProfile) {
-    // Update existing profile
-    console.log("Updating existing profile with ID:", existingProfile.id);
-    result = await supabase
+  try {
+    // Check if user already has a profile
+    const { data: existingProfile, error: checkError } = await supabase
       .from('Find My Ideal Roommate')
-      .update(dbData)
-      .eq('user_id', userId);
-  } else {
-    // Insert new profile
-    console.log("Creating new profile for user:", userId);
-    result = await supabase
-      .from('Find My Ideal Roommate')
-      .insert(dbData);
+      .select('id')
+      .eq('user_id', userId)
+      .maybeSingle();
+    
+    if (checkError) {
+      console.error("Error checking existing profile:", checkError);
+      throw checkError;
+    }
+    
+    let result;
+    if (existingProfile) {
+      // Update existing profile
+      console.log("Updating existing profile with ID:", existingProfile.id);
+      result = await supabase
+        .from('Find My Ideal Roommate')
+        .update(dbData)
+        .eq('user_id', userId);
+    } else {
+      // Insert new profile
+      console.log("Creating new profile for user:", userId);
+      result = await supabase
+        .from('Find My Ideal Roommate')
+        .insert(dbData);
+    }
+    
+    if (result.error) {
+      console.error("Error saving profile:", result.error);
+      throw result.error;
+    }
+    
+    console.log("Profile saved successfully:", result);
+    
+    return result;
+  } catch (error) {
+    console.error("Exception in saveRoommateProfile:", error);
+    throw error;
   }
-  
-  if (result.error) {
-    console.error("Error saving profile:", result.error);
-    throw result.error;
-  }
-  
-  console.log("Profile saved successfully:", result);
-  
-  return result;
 }

@@ -37,6 +37,17 @@ export function useMatching() {
         return;
       }
       
+      // Validate essential fields
+      if (!profileData.fullName || !profileData.age) {
+        console.warn("Profile missing essential fields");
+        toast({
+          title: "Profile incomplete",
+          description: "Please fill in at least your name and age before finding matches",
+          variant: "destructive",
+        });
+        return;
+      }
+      
       // Use the algorithm directly on the form values
       const matchesFound = findMatchesAlgorithm(profileData);
       console.log("Matches found:", matchesFound.length, matchesFound);

@@ -29,19 +29,43 @@ export const mapFormToProfileData = (formData: ProfileFormValues): ProfileData =
   
   console.log("Mapping form data to profile data:", formData);
   
+  // Ensure budget range is valid
+  const budgetRange = Array.isArray(formData.budgetRange) 
+    ? formData.budgetRange 
+    : [800, 1500];
+  
+  // Ensure date is properly formatted
+  let moveInDateString = new Date().toISOString().split('T')[0]; // Default to today
+  
+  if (formData.moveInDate) {
+    if (formData.moveInDate instanceof Date) {
+      moveInDateString = formData.moveInDate.toISOString().split('T')[0];
+    } else if (typeof formData.moveInDate === 'string') {
+      // Try to parse the string to make sure it's a valid date
+      try {
+        const dateObj = new Date(formData.moveInDate);
+        if (!isNaN(dateObj.getTime())) {
+          moveInDateString = dateObj.toISOString().split('T')[0];
+        }
+      } catch (e) {
+        console.error("Error parsing moveInDate:", e);
+      }
+    }
+  }
+  
+  // Ensure hobbies and traits are arrays
+  const hobbies = Array.isArray(formData.hobbies) ? formData.hobbies : [];
+  const traits = Array.isArray(formData.importantRoommateTraits) 
+    ? formData.importantRoommateTraits 
+    : [];
+  
   return {
     name: formData.fullName || "Not specified",
     age: formData.age || "0",
     gender: formData.gender || "prefer-not-to-say",
     occupation: "Not specified", // Default value
-    movingDate: formData.moveInDate 
-      ? (formData.moveInDate instanceof Date 
-        ? formData.moveInDate.toISOString().split('T')[0] 
-        : String(formData.moveInDate).split('T')[0])
-      : new Date().toISOString().split('T')[0],
-    budget: Array.isArray(formData.budgetRange) 
-      ? formData.budgetRange 
-      : [800, 1500],
+    movingDate: moveInDateString,
+    budget: budgetRange,
     location: formData.preferredLocation || "Not specified",
     cleanliness: formData.cleanliness === "veryTidy" ? 90 : 
                 formData.cleanliness === "somewhatTidy" ? 60 : 30,
@@ -53,10 +77,8 @@ export const mapFormToProfileData = (formData: ProfileFormValues): ProfileData =
     sleepSchedule: formData.dailyRoutine === "morning" ? "early" : 
                   formData.dailyRoutine === "night" ? "night" : "normal",
     workSchedule: formData.workSchedule || "9AM-5PM",
-    interests: Array.isArray(formData.hobbies) ? formData.hobbies : [],
-    traits: Array.isArray(formData.importantRoommateTraits) 
-      ? formData.importantRoommateTraits 
-      : [],
+    interests: hobbies,
+    traits: traits,
     preferredLiving: "findRoommate" // Default, would come from form in real implementation
   };
 };

@@ -16,6 +16,12 @@ export const findMatches = (userProfile: ProfileFormValues): MatchResult[] => {
       return [];
     }
     
+    // Validate minimum required fields
+    if (!userProfile.fullName || !userProfile.age) {
+      console.warn("Profile data is missing essential fields");
+      return [];
+    }
+    
     // Convert the form values to the format expected by the matching algorithm
     const profileData = convertFormToProfileData(userProfile);
     console.log("Converted profile data:", profileData);
@@ -25,15 +31,37 @@ export const findMatches = (userProfile: ProfileFormValues): MatchResult[] => {
     const potentialMatches = potentialRoommates;
     console.log("Potential matches:", potentialMatches.length);
     
+    if (!potentialMatches || potentialMatches.length === 0) {
+      console.warn("No potential matches found");
+      return [];
+    }
+    
     // Calculate compatibility scores for each potential match
     const matches = potentialMatches.map(match => {
-      const compatibility = calculateCompatibilityScore(profileData, match);
-      
-      return {
-        ...match,
-        compatibilityScore: compatibility.score,
-        compatibilityBreakdown: compatibility.breakdown
-      };
+      try {
+        const compatibility = calculateCompatibilityScore(profileData, match);
+        
+        return {
+          ...match,
+          compatibilityScore: compatibility.score,
+          compatibilityBreakdown: compatibility.breakdown
+        };
+      } catch (error) {
+        console.error("Error calculating compatibility for a match:", error);
+        // Return match with low compatibility score to avoid breaking the filter
+        return {
+          ...match,
+          compatibilityScore: 10,
+          compatibilityBreakdown: {
+            budget: 0,
+            location: 0,
+            lifestyle: 10,
+            schedule: 0,
+            interests: 0,
+            cleanliness: 0
+          }
+        };
+      }
     });
     
     // Sort matches by compatibility score (highest first)

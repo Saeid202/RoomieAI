@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -23,31 +24,30 @@ export function useRoommateProfile() {
       
       const { data, error } = await fetchRoommateProfile(user.id);
       
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
         console.error("Error fetching roommate profile:", error);
-        throw error;
+        toast({
+          title: "Error loading profile",
+          description: "Could not load your profile data. Please try again.",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
       }
       
-      if (data) {
+      if (data && data.profile_data) {
         console.log("Fetched roommate profile:", data);
-        // If profile data exists in JSONB field, use it
-        if (data.profile_data) {
-          // Convert moveInDate from string to Date
-          const parsedProfileData = {
-            ...data.profile_data,
-            moveInDate: data.profile_data.moveInDate 
-              ? new Date(data.profile_data.moveInDate) 
-              : new Date()
-          };
-          
-          setProfileData(parsedProfileData);
-          console.log("Set profile data from database:", parsedProfileData);
-        } else {
-          // Otherwise use defaults
-          const defaultData = getDefaultProfileData();
-          setProfileData(defaultData);
-          console.log("Using default profile data:", defaultData);
-        }
+        
+        // Convert moveInDate from string to Date if it exists
+        const parsedProfileData = {
+          ...data.profile_data,
+          moveInDate: data.profile_data.moveInDate 
+            ? new Date(data.profile_data.moveInDate) 
+            : new Date()
+        };
+        
+        setProfileData(parsedProfileData);
+        console.log("Set profile data from database:", parsedProfileData);
       } else {
         // If no profile exists yet, use default values
         console.log("No existing profile found, using default values");
