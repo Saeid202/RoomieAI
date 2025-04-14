@@ -1,7 +1,7 @@
 
 import { calculateCompatibilityScore } from "./compatibilityCalculator";
 import { MatchResult, ProfileData, ProfileFormValues } from "./types";
-import { mockRoommates } from "./mockData";
+import { potentialRoommates } from "./mockData";
 import { convertFormToProfileData } from "./profileMapper";
 
 /**
@@ -15,7 +15,7 @@ export const findMatches = (userProfile: ProfileFormValues): MatchResult[] => {
   
   // For a real application, this would query a database of potential matches
   // For this demo, we'll use mock data
-  const potentialMatches = mockRoommates;
+  const potentialMatches = potentialRoommates;
   
   // Calculate compatibility scores for each potential match
   const matches = potentialMatches.map(match => {
