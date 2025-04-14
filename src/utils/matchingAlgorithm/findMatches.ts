@@ -1,9 +1,9 @@
 
 import { ProfileFormValues } from "@/types/profile";
 import { MatchResult } from "./types";
-import { compatibilityScore } from "./compatibilityCalculator";
+import { calculateCompatibilityScore } from "./compatibilityCalculator";
 import { mapFormToProfileData } from "./profileMapper";
-import { generateMockRoommates } from "./mockData";
+import { potentialRoommates } from "./mockData";
 
 /**
  * Finds matching roommates based on user profile data
@@ -15,14 +15,14 @@ export function findMatches(profileData: ProfileFormValues): MatchResult[] {
   const userData = mapFormToProfileData(profileData);
   console.log("Mapped user data for algorithm:", userData);
   
-  // Generate mock roommates for now - in production this would query the database
-  const potentialRoommates = generateMockRoommates();
-  console.log(`Generated ${potentialRoommates.length} potential roommates`);
+  // Use potentialRoommates directly instead of generateMockRoommates
+  const potentialMatches = potentialRoommates;
+  console.log(`Found ${potentialMatches.length} potential roommates`);
   
   // Calculate compatibility scores for each potential roommate
-  const results = potentialRoommates.map(roommate => {
+  const results = potentialMatches.map(roommate => {
     // Calculate compatibility score between the user and this roommate
-    const compatibility = compatibilityScore(userData, roommate);
+    const compatibility = calculateCompatibilityScore(userData, roommate);
     
     // Add special weighting for deal breakers
     if (profileData.dealBreakers) {
