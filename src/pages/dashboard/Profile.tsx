@@ -7,7 +7,7 @@ export default function Profile() {
   const { user, loading } = useAuth();
   
   useEffect(() => {
-    console.log("Profile page mounted, user:", user?.email, "loading:", loading);
+    console.log("Profile page mounted, user:", user?.email ?? "none", "loading:", loading);
   }, [user, loading]);
 
   return <ProfileContent />;

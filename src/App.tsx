@@ -17,6 +17,8 @@ import RentSavingsPage from "@/pages/dashboard/RentSavings";
 import CoOwnerRecommendationsPage from "@/pages/dashboard/CoOwnerRecommendations";
 
 function App() {
+  console.log("App component rendering");
+  
   return (
     <ThemeProvider>
       <AuthProvider>
