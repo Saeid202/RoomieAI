@@ -2,37 +2,19 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { PlanCard } from "./PlanCard";
-import { PlanCreationForm } from "./PlanCreationForm";
 import { FutureHousingPlan } from "./types";
 
 interface PlansTabProps {
   plans: FutureHousingPlan[];
   isCreatingPlan: boolean;
-  newPlan: Partial<FutureHousingPlan>;
-  setNewPlan: (plan: Partial<FutureHousingPlan>) => void;
   setIsCreatingPlan: (value: boolean) => void;
-  handleCreatePlan: () => void;
 }
 
 export function PlansTab({ 
   plans, 
   isCreatingPlan, 
-  newPlan, 
-  setNewPlan, 
-  setIsCreatingPlan, 
-  handleCreatePlan 
+  setIsCreatingPlan
 }: PlansTabProps) {
-  if (isCreatingPlan) {
-    return (
-      <PlanCreationForm 
-        newPlan={newPlan} 
-        setNewPlan={setNewPlan}
-        onSave={handleCreatePlan}
-        onCancel={() => setIsCreatingPlan(false)}
-      />
-    );
-  }
-
   if (plans.length === 0) {
     return (
       <div className="text-center py-8">

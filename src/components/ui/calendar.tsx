@@ -16,7 +16,7 @@ function Calendar({
   const [currentMonth, setCurrentMonth] = React.useState<Date>(new Date());
 
   // Handle day click with proper typing
-  const handleDayClick: DayClickEventHandler = (day, modifiers, e, activeModifiers) => {
+  const handleDayClick: DayClickEventHandler = (day, modifiers, e) => {
     // Close calendar when a day is selected
     if (props.mode === "single" && props.onSelect && day) {
       props.onSelect(day);
