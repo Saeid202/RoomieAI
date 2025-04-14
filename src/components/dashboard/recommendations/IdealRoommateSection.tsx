@@ -15,7 +15,7 @@ interface IdealRoommateSectionProps {
   profileData: Partial<ProfileFormValues> | null;
   activeIdealRoommateTab: string;
   setActiveIdealRoommateTab: (value: string) => void;
-  handleSaveProfile: (formData: ProfileFormValues) => void;
+  handleSaveProfile: (formData: ProfileFormValues) => Promise<void>;
 }
 
 export function IdealRoommateSection({ 
