@@ -101,6 +101,7 @@ export function useRoommateMatching() {
   const handleSaveProfile = async (formData: ProfileFormValues) => {
     try {
       if (!user) {
+        console.error("No user found. Cannot save profile.");
         toast({
           title: "Authentication required",
           description: "You need to be logged in to save your profile",
@@ -133,12 +134,14 @@ export function useRoommateMatching() {
       let result;
       if (existingProfile) {
         // Update existing profile
+        console.log("Updating existing profile with ID:", existingProfile.id);
         result = await supabase
           .from('Find My Ideal Roommate')
           .update(dbData)
           .eq('user_id', user.id);
       } else {
         // Insert new profile
+        console.log("Creating new profile for user:", user.id);
         result = await supabase
           .from('Find My Ideal Roommate')
           .insert(dbData);
@@ -149,22 +152,14 @@ export function useRoommateMatching() {
         throw result.error;
       }
       
+      console.log("Profile saved successfully:", result);
+      
       // Update local state with the saved data
       setProfileData(formData);
-      
-      toast({
-        title: "Profile saved",
-        description: "Your profile has been updated successfully",
-      });
       
       return true;
     } catch (error) {
       console.error("Error saving profile:", error);
-      toast({
-        title: "Error saving profile",
-        description: "Failed to save your profile. Please try again.",
-        variant: "destructive",
-      });
       throw error;
     }
   };

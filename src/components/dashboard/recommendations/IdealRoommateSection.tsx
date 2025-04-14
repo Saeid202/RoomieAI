@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { useFormUtilities } from "@/hooks/useFormUtilities";
 import { roommateTraitsList } from "@/utils/formSteps";
 import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface IdealRoommateSectionProps {
   expandedSections: string[];
@@ -77,13 +77,20 @@ export function IdealRoommateSection({
     roommateLifestylePreference: "noLifestylePreference",
     hobbies: [],
     importantRoommateTraits: [],
-    ...profileData
   };
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
-    defaultValues: defaultFormValues,
+    defaultValues: { ...defaultFormValues, ...profileData },
   });
+
+  // Update form when profileData changes
+  useEffect(() => {
+    if (profileData) {
+      // Reset the form with the merged values of defaultFormValues and profileData
+      form.reset({ ...defaultFormValues, ...profileData });
+    }
+  }, [profileData, form]);
 
   const { handleTraitToggle } = useFormUtilities(form);
 
@@ -91,7 +98,10 @@ export function IdealRoommateSection({
     try {
       setIsSaving(true);
       console.log("Ideal Roommate form data to save:", data);
+      
+      // Call the save handler passed from parent component
       await handleSaveProfile(data);
+      
       toast({
         title: "Preferences saved",
         description: "Your roommate preferences have been updated successfully.",

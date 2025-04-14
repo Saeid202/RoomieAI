@@ -49,6 +49,7 @@ export function RoommateRecommendations() {
 
   const onHandleSaveProfile = async (formData: ProfileFormValues) => {
     try {
+      console.log("Saving profile from RoommateRecommendations:", formData);
       await handleSaveProfile(formData);
       toast({
         title: "Profile updated",
