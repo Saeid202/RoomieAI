@@ -43,8 +43,9 @@ export function ProfileContentRenderer({
     return <EmptyProfileState />;
   }
   
-  // Render the appropriate view based on the selected preference
-  if (displayView === 'roommate') {
+  // Since we're removing the roommate tab from the profile section, 
+  // we'll default to roommate profile for regular profile view
+  if (displayView === 'roommate' || !forcedView) {
     return <RoommateProfileView profileData={profileData} onSave={onSave} />;
   }
 

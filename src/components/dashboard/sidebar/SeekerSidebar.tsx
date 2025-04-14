@@ -8,21 +8,21 @@ interface SeekerSidebarProps {
 }
 
 export function SeekerSidebar({ isActive }: SeekerSidebarProps) {
-  // Profile subsections
+  // Profile subsections - removed roommate
   const profileSubItems = [
-    { label: "Roommate", path: "/dashboard/profile/roommate" },
-    { label: "Co-owner", path: "/dashboard/profile/co-owner" }
+    { label: "My Profile", path: "/dashboard/profile" }
   ];
 
-  // Rent subsections
+  // Rent subsections - renamed Roommate Recommendations to Find My Ideal Roommate
   const rentSubItems = [
-    { label: "Roommate Recommendations", path: "/dashboard/roommate-recommendations" },
+    { label: "Find My Ideal Roommate", path: "/dashboard/roommate-recommendations" },
     { label: "Rent Savings", path: "/dashboard/rent-savings" },
     { label: "Opportunities", path: "/dashboard/rent-opportunities" }
   ];
 
-  // Co-ownership subsections
+  // Co-ownership subsections - added Co-owner Profile
   const coOwnershipSubItems = [
+    { label: "Co-owner Profile", path: "/dashboard/profile/co-owner" },
     { label: "Co-owner Recommendations", path: "/dashboard/co-owner-recommendations" },
     { label: "Opportunities", path: "/dashboard/co-ownership-opportunities" }
   ];

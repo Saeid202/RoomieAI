@@ -18,24 +18,18 @@ export function ProfileContent() {
   const path = location.pathname;
   
   // Determine if we're on a specific profile page
-  const isRoommatePage = path.includes('/profile/roommate');
   const isCoOwnerPage = path.includes('/profile/co-owner');
 
   // Set the title based on the current page or preference
   let title = "My Profile";
-  if (isRoommatePage) {
-    title = "Roommate Profile";
-  } else if (isCoOwnerPage) {
+  if (isCoOwnerPage) {
     title = "Co-Owner Profile";
-  } else if (userPreference === 'roommate') {
-    title = "Roommate Profile";
   } else if (userPreference === 'co-owner') {
     title = "Co-Owner Profile";
   }
 
   // Log the current path and forced view for debugging
   console.log("Current path:", path);
-  console.log("Is roommate page:", isRoommatePage);
   console.log("Is co-owner page:", isCoOwnerPage);
   console.log("User preference:", userPreference);
 
@@ -53,7 +47,7 @@ export function ProfileContent() {
             navigate={navigate}
             activeTab={activeTab}
             setActiveTab={setActiveTab}
-            forcedView={isRoommatePage ? 'roommate' : (isCoOwnerPage ? 'co-owner' : null)}
+            forcedView={isCoOwnerPage ? 'co-owner' : null}
           />
         </div>
       </div>
