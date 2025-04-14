@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { findMatches } from "@/utils/matchingAlgorithm";
@@ -6,7 +5,7 @@ import { ProfileFormValues } from "@/types/profile";
 import { HousingPlan, useHousingPlans } from "@/hooks/useHousingPlans";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
-import { RoommateMatches } from "./housing-plan/RoommateMatches";
+import { RoommateMatches } from "@/components/dashboard/housing-plan/RoommateMatches";
 import { AuthError } from "@/components/dashboard/housing-plan/AuthError";
 import { LoadingState } from "@/components/dashboard/housing-plan/LoadingState";
 import { HousingPlanSection } from "@/components/dashboard/housing-plan/HousingPlanSection";
