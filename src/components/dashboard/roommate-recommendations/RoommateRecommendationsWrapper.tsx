@@ -2,7 +2,6 @@
 import { useState, useEffect } from "react";
 import { ProfileFormValues } from "@/types/profile";
 import { useRoommateMatching } from "@/hooks/useRoommateMatching";
-import { useAccordionSections } from "@/hooks/useAccordionSections";
 import { useToastNotifications } from "@/hooks/useToastNotifications";
 import { useAuth } from "@/hooks/useAuth";
 import { RoommateProfilePage } from "./RoommateProfilePage";

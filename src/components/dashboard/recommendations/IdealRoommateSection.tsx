@@ -79,7 +79,7 @@ export function IdealRoommateSection({
     }
   }, [profileData, form]);
 
-  const onSubmit = async (data: ProfileFormValues) => {
+  const onSubmit = async (data: ProfileFormValues): Promise<void> => {
     try {
       setIsSaving(true);
       console.log("Ideal Roommate form data to save:", data);

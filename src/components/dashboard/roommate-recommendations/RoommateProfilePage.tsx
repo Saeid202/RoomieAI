@@ -39,7 +39,7 @@ export function RoommateProfilePage({
   const [activeIdealRoommateTab, setActiveIdealRoommateTab] = useState("preferences");
   const { expandedSections, setExpandedSections } = useAccordionSections(["about-me", "ideal-roommate", "future-housing-plan", "ai-assistant"]);
 
-  const onHandleSaveProfile = async (formData: ProfileFormValues) => {
+  const onHandleSaveProfile = async (formData: ProfileFormValues): Promise<void> => {
     try {
       console.log("Saving profile from RoommateRecommendations:", formData);
       
@@ -54,7 +54,7 @@ export function RoommateProfilePage({
     }
   };
 
-  const handleFindMatch = async () => {
+  const handleFindMatch = async (): Promise<void> => {
     try {
       window.scrollTo({ top: 0, behavior: 'smooth' });
       await findMatches();

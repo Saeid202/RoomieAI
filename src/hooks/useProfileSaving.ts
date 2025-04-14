@@ -28,6 +28,10 @@ export function useProfileSaving() {
       await saveRoommateProfile(user.id, formData);
       
       console.log("Profile saved successfully");
+      toast({
+        title: "Profile saved",
+        description: "Your profile has been updated successfully",
+      });
       
     } catch (error) {
       console.error("Error saving profile:", error);
