@@ -12,6 +12,7 @@ import { MatchFinder } from "./recommendations/MatchFinder";
 import { EmptyState } from "./recommendations/EmptyState";
 import { ChatInterface } from "./recommendations/chat/ChatInterface";
 import { useRoommateMatching } from "@/hooks/useRoommateMatching";
+import { ProfileFormValues } from "@/types/profile";
 
 interface RoommateRecommendationsProps {
   onError?: (error: Error) => void;
@@ -65,6 +66,15 @@ export function RoommateRecommendations({ onError }: RoommateRecommendationsProp
     }
   }, [toast, onError]);
 
+  const onSaveProfile = async (formData: ProfileFormValues) => {
+    try {
+      return await handleSaveProfile(formData);
+    } catch (error) {
+      handleError(error instanceof Error ? error : new Error("Failed to save profile"));
+      throw error;
+    }
+  };
+
   return (
     <ProfileLoadingHandler loadProfileData={loadProfileData} onError={handleError}>
       <div className="space-y-6">
@@ -92,14 +102,14 @@ export function RoommateRecommendations({ onError }: RoommateRecommendationsProp
               <TabsContent value="about-me">
                 <AboutMeSection
                   profileData={profileData}
-                  isLoading={profileLoading}
+                  onSaveProfile={onSaveProfile}
                 />
               </TabsContent>
               
               <TabsContent value="ideal-roommate">
                 <IdealRoommateSection
                   profileData={profileData}
-                  isLoading={profileLoading}
+                  onSaveProfile={onSaveProfile}
                 />
               </TabsContent>
               

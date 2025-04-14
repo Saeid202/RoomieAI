@@ -1,11 +1,12 @@
 
 import { ProfileFormValues } from "@/types/profile";
-import React from "react";
+import React, { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 interface ProfileSaveHandlerProps {
   isSubmitting: boolean;
   onSubmit: (formData: ProfileFormValues) => Promise<void>;
-  children: React.ReactNode;
+  children: React.ReactNode | ((onSaveProfile: (formData: ProfileFormValues) => Promise<void>) => React.ReactNode);
 }
 
 export function ProfileSaveHandler({ 
@@ -13,9 +14,32 @@ export function ProfileSaveHandler({
   onSubmit, 
   children 
 }: ProfileSaveHandlerProps) {
+  const [isSaving, setIsSaving] = useState(false);
+  const { toast } = useToast();
+
+  const handleSaveProfile = async (formData: ProfileFormValues) => {
+    try {
+      setIsSaving(true);
+      await onSubmit(formData);
+      return true;
+    } catch (error) {
+      console.error("Error in ProfileSaveHandler:", error);
+      toast({
+        title: "Error saving profile",
+        description: "There was a problem saving your profile. Please try again.",
+        variant: "destructive",
+      });
+      throw error;
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
     <div>
-      {children}
+      {typeof children === 'function' 
+        ? children(handleSaveProfile) 
+        : children}
     </div>
   );
 }

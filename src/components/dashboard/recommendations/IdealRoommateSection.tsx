@@ -13,11 +13,13 @@ import { useState, useEffect } from "react";
 interface IdealRoommateSectionProps {
   profileData: Partial<ProfileFormValues> | null;
   isLoading?: boolean;
+  onSaveProfile?: (formData: ProfileFormValues) => Promise<void>;
 }
 
 export function IdealRoommateSection({ 
   profileData,
-  isLoading = false
+  isLoading = false,
+  onSaveProfile 
 }: IdealRoommateSectionProps) {
   const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
@@ -79,7 +81,11 @@ export function IdealRoommateSection({
       setIsSaving(true);
       console.log("Ideal Roommate form data to save:", data);
       
-      // This will be handled by parent component
+      // Use the parent's save function if available
+      if (onSaveProfile) {
+        await onSaveProfile(data);
+      }
+      
       toast({
         title: "Preferences saved",
         description: "Your roommate preferences have been updated successfully.",

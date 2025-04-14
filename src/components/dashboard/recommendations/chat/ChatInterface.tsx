@@ -38,7 +38,7 @@ export function ChatInterface({ matchingProfileData }: ChatInterfaceProps) {
       const botMessage: ChatMessageType = {
         id: `bot-${Date.now()}`,
         content: botResponse,
-        sender: "assistant",
+        sender: "assistant", // Changed from "ai" to "assistant"
         timestamp: new Date(),
       };
       

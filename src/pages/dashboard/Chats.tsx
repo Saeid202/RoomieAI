@@ -1,113 +1,175 @@
 
-import { useEffect, useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Send } from "lucide-react";
 import { ChatMessageType } from "@/components/dashboard/recommendations/chat/ChatMessage";
-import { ChatMessageList } from "@/components/dashboard/recommendations/chat/ChatMessageList";
-import { ChatInput } from "@/components/dashboard/recommendations/chat/ChatInput";
-import { LoadingButton } from "@/components/dashboard/recommendations/chat/LoadingButton";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
+import { Avatar } from "@/components/ui/avatar";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function ChatsPage() {
-  useEffect(() => {
-    document.title = "Chats | RoomieMatch";
-  }, []);
-  
-  const [isLoading, setIsLoading] = useState(false);
+  const { user } = useAuth();
   const [messages, setMessages] = useState<ChatMessageType[]>([
     {
-      id: '1',
-      sender: 'assistant',
-      content: "Hi there! I'm your AI matching assistant. I can help you find the perfect roommate based on your preferences. What questions do you have about the matching process?",
-      timestamp: new Date()
-    }
+      id: "welcome-message",
+      content: "Hi there! I'm your AI assistant. How can I help you today?",
+      sender: "assistant", // Changed from "ai" to "assistant"
+      timestamp: new Date(),
+    },
   ]);
+  const [messageInput, setMessageInput] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
 
-  const handleSendMessage = (content: string) => {
+  const handleSendMessage = () => {
+    if (!messageInput.trim()) return;
+
     // Add user message
     const userMessage: ChatMessageType = {
-      id: Date.now().toString(),
-      sender: 'user',
-      content,
-      timestamp: new Date()
+      id: `user-${Date.now()}`,
+      content: messageInput,
+      sender: "user",
+      timestamp: new Date(),
     };
-    
-    setMessages(prev => [...prev, userMessage]);
-    
-    // Generate AI response based on user query
+
+    setMessages((prev) => [...prev, userMessage]);
+    setMessageInput("");
+    setIsTyping(true);
+
+    // Simulate AI response
     setTimeout(() => {
-      let response = '';
-      const userQuery = content.toLowerCase();
-      
-      if (userQuery.includes('match') || userQuery.includes('roommate') || userQuery.includes('find')) {
-        response = "I can help you find a compatible roommate! First, make sure you've filled out your profile and roommate preferences completely. The more details you provide, the better matches I can find for you.";
-      } else if (userQuery.includes('profile') || userQuery.includes('information')) {
-        response = "Your profile helps potential roommates learn about you. Be sure to fill out all sections in 'About Me', including your lifestyle, habits, and preferences. This helps our algorithm find better matches!";
-      } else if (userQuery.includes('preference') || userQuery.includes('deal breaker')) {
-        response = "Your preferences and deal breakers are crucial for finding a good match. Make sure to set these in the 'Ideal Roommate' section. The more specific you are, the better matches we can find!";
-      } else if (userQuery.includes('hello') || userQuery.includes('hi') || userQuery.includes('hey')) {
-        response = "Hi there! How can I help you with your roommate search today?";
-      } else if (userQuery.includes('thank')) {
-        response = "You're welcome! Feel free to ask if you have any other questions about finding your ideal roommate.";
-      } else {
-        response = "Thanks for your question! To find a great roommate match, make sure your profile is complete and your preferences are set. Is there anything specific about the matching process you'd like to know?";
-      }
-      
-      const assistantMessage: ChatMessageType = {
-        id: Date.now().toString(),
-        sender: 'assistant',
-        content: response,
-        timestamp: new Date()
+      const aiResponse = getAIResponse(messageInput);
+      const aiMessage: ChatMessageType = {
+        id: `ai-${Date.now()}`,
+        content: aiResponse,
+        sender: "assistant", // Changed from "ai" to "assistant"
+        timestamp: new Date(),
       };
-      
-      setMessages(prev => [...prev, assistantMessage]);
+
+      setIsTyping(false);
+      setMessages((prev) => [...prev, aiMessage]);
     }, 1000);
   };
 
-  const handleFindMatch = () => {
-    setIsLoading(true);
-    
-    setTimeout(() => {
-      setIsLoading(false);
-      setMessages(prev => [
-        ...prev, 
-        {
-          id: Date.now().toString(),
-          sender: 'assistant',
-          content: "I've analyzed your profile and preferences! To see your matches, please go to the Roommate Recommendations section in your dashboard.",
-          timestamp: new Date()
-        }
-      ]);
-    }, 2000);
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
   };
-  
+
   return (
-    <div className="w-full">
-      <Card className="overflow-hidden">
-        <CardHeader>
-          <CardTitle className="text-center">AI Matching Assistant</CardTitle>
-          <CardDescription className="text-center">Let me help you find your perfect roommate match</CardDescription>
+    <div className="container mx-auto py-6">
+      <Card className="h-[calc(100vh-240px)] flex flex-col">
+        <CardHeader className="px-6 py-4 border-b">
+          <CardTitle>Chats</CardTitle>
         </CardHeader>
-        <CardContent className="p-0">
-          <div className="flex flex-col space-y-4">
-            {/* Chatbot Section */}
-            <div className="px-6">
-              <div className="border rounded-lg">
-                <div className="p-3 border-b bg-muted/30">
-                  <h3 className="font-medium text-center">Chatbot</h3>
+        <CardContent className="flex-1 p-0 flex flex-col">
+          <ScrollArea className="flex-1 p-4">
+            <div className="space-y-4">
+              {messages.map((message) => (
+                <div
+                  key={message.id}
+                  className={`flex ${
+                    message.sender === "user" ? "justify-end" : "justify-start"
+                  }`}
+                >
+                  <div
+                    className={`flex items-start gap-2 max-w-[80%] ${
+                      message.sender === "user"
+                        ? "flex-row-reverse"
+                        : "flex-row"
+                    }`}
+                  >
+                    <Avatar className="h-8 w-8 mt-1">
+                      {message.sender === "user" ? (
+                        <div className="bg-blue-500 h-full w-full flex items-center justify-center text-white">
+                          {user?.email?.[0]?.toUpperCase() || "U"}
+                        </div>
+                      ) : (
+                        <div className="bg-green-500 h-full w-full flex items-center justify-center text-white">
+                          A
+                        </div>
+                      )}
+                    </Avatar>
+                    <div
+                      className={`rounded-lg px-4 py-2 ${
+                        message.sender === "user"
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted"
+                      }`}
+                    >
+                      <p>{message.content}</p>
+                      <p className="text-xs opacity-70 mt-1">
+                        {formatTime(message.timestamp)}
+                      </p>
+                    </div>
+                  </div>
                 </div>
-                
-                <ChatMessageList messages={messages} />
-                
-                <ChatInput onSendMessage={handleSendMessage} />
-              </div>
+              ))}
+              {isTyping && (
+                <div className="flex justify-start">
+                  <div className="flex items-start gap-2">
+                    <Avatar className="h-8 w-8 mt-1">
+                      <div className="bg-green-500 h-full w-full flex items-center justify-center text-white">
+                        A
+                      </div>
+                    </Avatar>
+                    <div className="rounded-lg px-4 py-2 bg-muted">
+                      <div className="typing-indicator">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
-            
-            {/* Find My Match Button - centered and prominent */}
-            <div className="flex justify-center pb-6 px-6">
-              <LoadingButton isLoading={isLoading} onClick={handleFindMatch} />
-            </div>
+          </ScrollArea>
+          <Separator />
+          <div className="p-4 flex gap-2">
+            <Input
+              placeholder="Type your message..."
+              value={messageInput}
+              onChange={(e) => setMessageInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              className="flex-1"
+            />
+            <Button onClick={handleSendMessage} size="icon">
+              <Send className="h-4 w-4" />
+            </Button>
           </div>
         </CardContent>
       </Card>
     </div>
   );
+}
+
+function formatTime(date: Date): string {
+  return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
+function getAIResponse(message: string): string {
+  const lowerMessage = message.toLowerCase();
+  
+  if (lowerMessage.includes("hello") || lowerMessage.includes("hi")) {
+    return "Hello! How can I help you with your housing search today?";
+  }
+  
+  if (lowerMessage.includes("roommate")) {
+    return "Looking for a roommate? You can use our roommate recommendation system to find your perfect match based on lifestyle, preferences, and compatibility!";
+  }
+  
+  if (lowerMessage.includes("rent") || lowerMessage.includes("price")) {
+    return "Our system can help you find affordable rental options within your budget. You can filter by price range, location, and amenities on our Rent Opportunities page.";
+  }
+  
+  if (lowerMessage.includes("buy") || lowerMessage.includes("purchase")) {
+    return "Interested in buying a property? Our co-ownership feature helps you find like-minded individuals to share the investment with and make homeownership more accessible.";
+  }
+  
+  return "I'm here to help with any housing-related questions. You can ask about finding roommates, rental opportunities, co-ownership options, or legal assistance.";
 }
