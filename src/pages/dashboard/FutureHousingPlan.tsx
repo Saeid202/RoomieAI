@@ -30,7 +30,7 @@ export default function FutureHousingPlan() {
       moveInDate: new Date(data.movingDate),
       preferredLocation: data.desiredLocation,
       budgetRange: [Number(data.budget) - 200, Number(data.budget) + 200],
-      propertyType: data.housingType,
+      housingType: data.housingType, // Changed from propertyType to housingType to match the ProfileFormValues type
       additionalNotes: data.additionalRequirements,
       fullName: "",
       age: "",
