@@ -20,9 +20,27 @@ export function ProfileLoadingHandler({
   const [isLoading, setIsLoading] = useState(true);
   const [hasAttemptedLoad, setHasAttemptedLoad] = useState(false);
   const [loadError, setLoadError] = useState<Error | null>(null);
+  const [componentMounted, setComponentMounted] = useState(false);
 
+  // Mark component as mounted
   useEffect(() => {
-    console.log("ProfileLoadingHandler - Initialize loading");
+    console.log("ProfileLoadingHandler - Component mounted");
+    setComponentMounted(true);
+    
+    return () => {
+      console.log("ProfileLoadingHandler - Component unmounted");
+    };
+  }, []);
+
+  // Handle profile data loading
+  useEffect(() => {
+    console.log("ProfileLoadingHandler - Initialize loading, user:", user?.email);
+    
+    if (!componentMounted) {
+      console.log("ProfileLoadingHandler - Component not mounted yet, skipping load");
+      return;
+    }
+    
     let isMounted = true;
     
     const fetchData = async () => {
@@ -79,17 +97,15 @@ export function ProfileLoadingHandler({
       clearTimeout(timeoutId);
       console.log("ProfileLoadingHandler unmounted");
     };
-  }, [user, toast, loadProfileData, onError]);
+  }, [user, toast, loadProfileData, onError, componentMounted]);
 
+  // Always show loading state initially
   if (isLoading && !hasAttemptedLoad) {
     console.log("ProfileLoadingHandler - Showing loading state");
     return <LoadingState />;
   }
 
-  if (loadError) {
-    console.log("ProfileLoadingHandler - Error occurred, showing children anyway");
-  }
-
+  // Show children even if there was an error - error handling will be done in the children
   console.log("ProfileLoadingHandler - Rendering children");
   return <>{children}</>;
 }

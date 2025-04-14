@@ -17,6 +17,7 @@ export default function RoommateRecommendationsPage() {
   // Handle the initial page load with a proper loading state
   useEffect(() => {
     console.log("RoommatePage mounted - Initializing...");
+    console.log("Auth state:", { user: user?.email, loading: authLoading });
     document.title = "Find My Ideal Roommate";
     
     // Simpler loading state management
@@ -41,17 +42,18 @@ export default function RoommateRecommendationsPage() {
       isMounted = false;
       console.log("RoommatePage unmounted - Cleaning up");
     };
-  }, []);
+  }, [user, authLoading]);
 
   const handleRetry = () => {
     setIsRetrying(true);
     setError(null);
-    // Force a remount of the component
+    // Force a remount of the component by changing the key
     setTimeout(() => {
       setIsRetrying(false);
     }, 300);
   };
 
+  // Show loading state during initial load or authentication load
   if (initialLoading || authLoading) {
     return (
       <div className="container mx-auto py-6">
@@ -60,6 +62,7 @@ export default function RoommateRecommendationsPage() {
     );
   }
 
+  // Show error state if there's an error
   if (error) {
     return (
       <div className="container mx-auto py-6 animate-fadeIn">
@@ -84,6 +87,7 @@ export default function RoommateRecommendationsPage() {
     );
   }
 
+  // Main content - always render this when not in loading or error state
   return (
     <div 
       className={`container mx-auto py-6 transition-opacity duration-500 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}

@@ -1,5 +1,5 @@
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { ProfileFormValues } from "@/types/profile";
 import { useRoommateProfile } from "@/hooks/useRoommateProfile";
@@ -10,6 +10,7 @@ import { MatchResult } from "@/utils/matchingAlgorithm/types";
 export function useRoommateMatching() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("roommates");
+  const [initialized, setInitialized] = useState(false);
   
   // Custom sub-hooks
   const { 
@@ -30,6 +31,14 @@ export function useRoommateMatching() {
     handleCloseDetails, 
     findMatches: findMatchesInternal 
   } = useMatching();
+
+  // Mark hook as initialized after first render
+  useEffect(() => {
+    setInitialized(true);
+    return () => {
+      console.log("useRoommateMatching - unmounting");
+    };
+  }, []);
 
   // Wrapper for findMatches that uses the current profileData
   const findMatches = useCallback(async (): Promise<MatchResult[]> => {
@@ -73,6 +82,7 @@ export function useRoommateMatching() {
     handleCloseDetails,
     findMatches,
     handleSaveProfile: saveProfile,
-    loadProfileData
+    loadProfileData,
+    initialized
   };
 }

@@ -13,6 +13,8 @@ import { EmptyState } from "./recommendations/EmptyState";
 import { ChatInterface } from "./recommendations/chat/ChatInterface";
 import { useRoommateMatching } from "@/hooks/useRoommateMatching";
 import { ProfileFormValues } from "@/types/profile";
+import { Button } from "@/components/ui/button";
+import { RefreshCw } from "lucide-react";
 
 interface RoommateRecommendationsProps {
   onError?: (error: Error) => void;
@@ -25,6 +27,7 @@ export function RoommateRecommendations({ onError }: RoommateRecommendationsProp
   const [activeTab, setActiveTab] = useState("about-me");
   const [componentMounted, setComponentMounted] = useState(false);
   const [internalError, setInternalError] = useState<Error | null>(null);
+  const [isRetrying, setIsRetrying] = useState(false);
   
   const {
     loading: profileLoading,
@@ -38,7 +41,8 @@ export function RoommateRecommendations({ onError }: RoommateRecommendationsProp
     handleCloseDetails,
     findMatches,
     handleSaveProfile,
-    loadProfileData
+    loadProfileData,
+    initialized
   } = useRoommateMatching();
   
   // Mark component as mounted after initial render
@@ -82,6 +86,21 @@ export function RoommateRecommendations({ onError }: RoommateRecommendationsProp
     }
   }, [toast, onError]);
 
+  const handleRetry = useCallback(() => {
+    setIsRetrying(true);
+    setInternalError(null);
+    
+    // Force a reload of profile data
+    loadProfileData()
+      .then(() => {
+        setIsRetrying(false);
+      })
+      .catch(err => {
+        handleError(err instanceof Error ? err : new Error(String(err)));
+        setIsRetrying(false);
+      });
+  }, [loadProfileData, handleError]);
+
   // Wrapper function that properly converts the return type
   const onSaveProfile = async (formData: ProfileFormValues): Promise<void> => {
     try {
@@ -96,91 +115,109 @@ export function RoommateRecommendations({ onError }: RoommateRecommendationsProp
     }
   };
 
-  if (!componentMounted) {
-    console.log("RoommateRecommendations - Component not mounted yet, showing loading");
-    return <div className="w-full py-12 flex justify-center">Loading recommendations...</div>;
+  if (!componentMounted || !initialized) {
+    console.log("RoommateRecommendations - Not fully initialized yet, showing loading");
+    return <div className="w-full py-12 flex justify-center items-center min-h-[400px]">
+      <div className="flex flex-col items-center">
+        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p className="text-lg font-medium text-gray-700">Loading recommendations...</p>
+      </div>
+    </div>;
+  }
+
+  // Render error state if there's an error
+  if (internalError) {
+    return (
+      <Card className="w-full my-6">
+        <CardContent className="py-6">
+          <div className="text-center py-8">
+            <h2 className="text-xl font-semibold text-destructive mb-2">Error Loading Content</h2>
+            <p className="mb-6">{internalError.message || "An unexpected error occurred"}</p>
+            <Button 
+              onClick={handleRetry} 
+              disabled={isRetrying}
+              className="mx-auto flex items-center gap-2"
+            >
+              <RefreshCw className={`h-4 w-4 ${isRetrying ? 'animate-spin' : ''}`} />
+              {isRetrying ? 'Retrying...' : 'Retry'}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
   }
 
   return (
     <ProfileLoadingHandler loadProfileData={loadProfileData} onError={handleError}>
-      {internalError ? (
-        <Card className="w-full my-6">
-          <CardContent className="py-6">
-            <h2 className="text-xl font-semibold text-red-600 mb-2">Error Loading Content</h2>
-            <p>{internalError.message || "An unexpected error occurred"}</p>
+      <div className="space-y-6">
+        <div className="flex justify-between items-start">
+          <div>
+            <h1 className="text-2xl font-bold mb-2">Find Your Ideal Roommate</h1>
+            <p className="text-muted-foreground">
+              Complete your profile, tell us about your ideal roommate, and we'll find your perfect match!
+            </p>
+          </div>
+        </div>
+        
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle>Your Profile</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Tabs value={activeTab} onValueChange={handleTabChange}>
+              <TabsList className="mb-4">
+                <TabsTrigger value="about-me">About Me</TabsTrigger>
+                <TabsTrigger value="ideal-roommate">Ideal Roommate</TabsTrigger>
+                <TabsTrigger value="ai-assistant">AI Assistant</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="about-me">
+                <AboutMeSection
+                  profileData={profileData}
+                  onSaveProfile={onSaveProfile}
+                />
+              </TabsContent>
+              
+              <TabsContent value="ideal-roommate">
+                <IdealRoommateSection
+                  profileData={profileData}
+                  onSaveProfile={onSaveProfile}
+                />
+              </TabsContent>
+              
+              <TabsContent value="ai-assistant">
+                <ChatInterface matchingProfileData={profileData} />
+              </TabsContent>
+            </Tabs>
           </CardContent>
         </Card>
-      ) : (
-        <div className="space-y-6">
-          <div className="flex justify-between items-start">
-            <div>
-              <h1 className="text-2xl font-bold mb-2">Find Your Ideal Roommate</h1>
-              <p className="text-muted-foreground">
-                Complete your profile, tell us about your ideal roommate, and we'll find your perfect match!
-              </p>
-            </div>
+        
+        <MatchFinder
+          profileData={profileData}
+          findMatches={findMatches}
+          onStartLoading={handleStartLoading}
+          onFinishLoading={handleFinishLoading}
+          onError={handleError}
+        />
+        
+        {hasSearched ? (
+          <div data-results-section>
+            {roommates.length > 0 || properties.length > 0 ? (
+              <ResultsSection
+                roommates={roommates}
+                properties={properties}
+                selectedMatch={selectedMatch}
+                activeTab={resultsTab}
+                setActiveTab={setResultsTab}
+                onViewDetails={handleViewDetails}
+                onCloseDetails={handleCloseDetails}
+              />
+            ) : (
+              <EmptyState />
+            )}
           </div>
-          
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle>Your Profile</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Tabs value={activeTab} onValueChange={handleTabChange}>
-                <TabsList className="mb-4">
-                  <TabsTrigger value="about-me">About Me</TabsTrigger>
-                  <TabsTrigger value="ideal-roommate">Ideal Roommate</TabsTrigger>
-                  <TabsTrigger value="ai-assistant">AI Assistant</TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="about-me">
-                  <AboutMeSection
-                    profileData={profileData}
-                    onSaveProfile={onSaveProfile}
-                  />
-                </TabsContent>
-                
-                <TabsContent value="ideal-roommate">
-                  <IdealRoommateSection
-                    profileData={profileData}
-                    onSaveProfile={onSaveProfile}
-                  />
-                </TabsContent>
-                
-                <TabsContent value="ai-assistant">
-                  <ChatInterface matchingProfileData={profileData} />
-                </TabsContent>
-              </Tabs>
-            </CardContent>
-          </Card>
-          
-          <MatchFinder
-            profileData={profileData}
-            findMatches={findMatches}
-            onStartLoading={handleStartLoading}
-            onFinishLoading={handleFinishLoading}
-            onError={handleError}
-          />
-          
-          {hasSearched ? (
-            <div data-results-section>
-              {roommates.length > 0 || properties.length > 0 ? (
-                <ResultsSection
-                  roommates={roommates}
-                  properties={properties}
-                  selectedMatch={selectedMatch}
-                  activeTab={resultsTab}
-                  setActiveTab={setResultsTab}
-                  onViewDetails={handleViewDetails}
-                  onCloseDetails={handleCloseDetails}
-                />
-              ) : (
-                <EmptyState />
-              )}
-            </div>
-          ) : null}
-        </div>
-      )}
+        ) : null}
+      </div>
     </ProfileLoadingHandler>
   );
 }
