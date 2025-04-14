@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -31,7 +30,7 @@ export default function FutureHousingPlan() {
       preferredLocation: data.desiredLocation,
       budgetRange: [Number(data.budget) - 200, Number(data.budget) + 200],
       housingType: data.housingType, // Changed from propertyType to housingType to match the ProfileFormValues type
-      additionalNotes: data.additionalRequirements,
+      additionalComments: data.additionalRequirements, // Changed from additionalNotes to additionalComments to match the ProfileFormValues type
       fullName: "",
       age: "",
       gender: "prefer-not-to-say",
