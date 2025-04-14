@@ -15,6 +15,7 @@ import RentOpportunitiesPage from "@/pages/dashboard/RentOpportunities";
 import ChatsPage from "@/pages/dashboard/Chats";
 import RentSavingsPage from "@/pages/dashboard/RentSavings";
 import CoOwnerRecommendationsPage from "@/pages/dashboard/CoOwnerRecommendations";
+import CoOwnershipOpportunitiesPage from "@/pages/dashboard/CoOwnershipOpportunities";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 function App() {
@@ -39,6 +40,7 @@ function App() {
             <Route path="rent-opportunities" element={<RentOpportunitiesPage />} />
             <Route path="rent-savings" element={<RentSavingsPage />} />
             <Route path="co-owner-recommendations" element={<CoOwnerRecommendationsPage />} />
+            <Route path="co-ownership-opportunities" element={<CoOwnershipOpportunitiesPage />} />
             <Route path="wallet" element={<WalletPage />} />
             <Route path="legal-assistant" element={<LegalAssistantPage />} />
             <Route path="chats" element={<ChatsPage />} />
