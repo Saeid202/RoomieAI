@@ -30,21 +30,19 @@ export function MatchFinder({
       
       const matches = await findMatches();
       
-      // Shorter timeout for faster loading
-      setTimeout(() => {
-        const resultsElement = document.querySelector('[data-results-section]');
-        if (resultsElement) {
-          resultsElement.scrollIntoView({ behavior: 'smooth' });
-        }
-        
-        toast({
-          title: "Matches found!",
-          description: `Found ${matches.length} potential roommates for you.`,
-        });
-        
-        setIsLoading(false);
-        onFinishLoading();
-      }, 300);
+      // Optimized loading with no timeout
+      const resultsElement = document.querySelector('[data-results-section]');
+      if (resultsElement) {
+        resultsElement.scrollIntoView({ behavior: 'smooth' });
+      }
+      
+      toast({
+        title: "Matches found!",
+        description: `Found ${matches.length} potential roommates for you.`,
+      });
+      
+      setIsLoading(false);
+      onFinishLoading();
     } catch (error) {
       console.error("Error finding matches:", error);
       setIsLoading(false);

@@ -10,32 +10,29 @@ export default function RoommateRecommendationsPage() {
   const [error, setError] = useState<Error | null>(null);
   const [isRetrying, setIsRetrying] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [contentMounted, setContentMounted] = useState(false);
 
-  // Simplified loading state with shorter timeout
+  // Simplified loading state without timeouts to prevent flashing
   useEffect(() => {
     document.title = "Find My Ideal Roommate";
     
-    // Use shorter timeout for faster loading
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
-    
-    return () => clearTimeout(timer);
-  }, []);
+    // Set content as mounted once to prevent remounting
+    if (!contentMounted) {
+      setContentMounted(true);
+      
+      // Use requestAnimationFrame for smoother loading
+      requestAnimationFrame(() => {
+        setIsLoading(false);
+      });
+    }
+  }, [contentMounted]);
 
   const handleRetry = () => {
     setIsRetrying(true);
     setIsLoading(true);
     
-    // Force a remount of the component with shorter timeout
-    setTimeout(() => {
-      setError(null);
-      setIsRetrying(false);
-      
-      setTimeout(() => {
-        setIsLoading(false);
-      }, 500);
-    }, 200);
+    // Force a remount of the component
+    setContentMounted(false);
   };
 
   if (isLoading) {
@@ -66,7 +63,7 @@ export default function RoommateRecommendationsPage() {
     );
   }
 
-  // Simple stable render
+  // Stable render with no transitions once loaded
   return (
     <div className="container mx-auto py-6" style={{ minHeight: '80vh' }}>
       <RoommateRecommendations key="recommendations-component" onError={setError} />
