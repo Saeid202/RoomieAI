@@ -13,7 +13,7 @@ export function ProfileLoadingHandler({
   children, 
   loadProfileData, 
   onError,
-  loadingTimeout = 1000 // Default timeout reduced for faster loading
+  loadingTimeout = 800 // Reduced timeout for faster perceived loading
 }: ProfileLoadingHandlerProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [loadingTimedOut, setLoadingTimedOut] = useState(false);
@@ -44,7 +44,6 @@ export function ProfileLoadingHandler({
     };
     
     // Set a timeout to stop showing loading state after a set time
-    // This ensures the UI doesn't get stuck in a loading state
     const timeoutId = setTimeout(() => {
       if (isMounted && isLoading) {
         console.log("ProfileLoadingHandler - loading timed out");
