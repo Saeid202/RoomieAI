@@ -16,20 +16,25 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <SidebarProvider defaultOpen={!isMobile}>
-        <div className="flex w-full flex-1 relative pt-16"> 
+        <div className="flex flex-1">
           {/* Fixed sidebar */}
           <DashboardSidebar />
           
-          {/* Main content area with proper scrolling */}
-          <main className="flex-1 w-full flex flex-col min-h-[calc(100vh-4rem)]">
-            <UserMenu />
-            <div className="p-4 md:p-6 flex-1 overflow-y-auto">
-              {children}
+          {/* Main content container with header and scrollable area */}
+          <div className="flex flex-col w-full min-h-screen">
+            {/* Fixed top navbar */}
+            <div className="sticky top-0 z-10 bg-background border-b">
+              <UserMenu />
             </div>
             
-            {/* Footer anchored at the bottom */}
-            <Footer className="mt-auto w-full shrink-0" />
-          </main>
+            {/* Scrollable content area */}
+            <main className="flex-1 overflow-y-auto p-4 md:p-6">
+              {children}
+            </main>
+            
+            {/* Footer that spans full width under content */}
+            <Footer className="w-full mt-auto" />
+          </div>
         </div>
       </SidebarProvider>
     </div>
