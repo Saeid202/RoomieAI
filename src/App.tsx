@@ -17,6 +17,7 @@ import RentSavingsPage from "@/pages/dashboard/RentSavings";
 import CoOwnerRecommendationsPage from "@/pages/dashboard/CoOwnerRecommendations";
 import CoOwnershipOpportunitiesPage from "@/pages/dashboard/CoOwnershipOpportunities";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import {DashboardContent} from '@/components/dashboard/DashboardContent';
 
 function App() {
   console.log("App component rendering");
@@ -33,6 +34,7 @@ function App() {
               <Dashboard />
             </ProtectedRoute>
           }>
+            <Route index element={<DashboardContent />} /> 
             <Route path="profile" element={<Profile />} />
             <Route path="profile/co-owner" element={<Profile />} />
             <Route path="profile/roommate" element={<Profile />} />

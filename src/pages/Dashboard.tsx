@@ -22,17 +22,18 @@ export default function Dashboard() {
     console.log("Dashboard mounted - assigned role:", assignedRole);
   }, [location.pathname, role, user, loading, assignedRole]);
   
-  // Only redirect if we're exactly at /dashboard and not at a sub-route
-  if (location.pathname === '/dashboard') {
-    if (assignedRole === 'landlord') {
-      return <Navigate to="/dashboard/landlord" replace />;
-    } else if (assignedRole === 'developer') {
-      return <Navigate to="/dashboard/developer" replace />;
-    } else {
-      // Default to profile for seeker role or no role
-      return <Navigate to="/dashboard/profile" replace />;
-    }
-  }
+  // // Only redirect if we're exactly at /dashboard and not at a sub-route
+  // if (location.pathname === '/dashboard') {
+    
+  //   if (assignedRole === 'landlord') {
+  //     return <Navigate to="/dashboard/landlord" replace />;
+  //   } else if (assignedRole === 'developer') {
+  //     return <Navigate to="/dashboard/developer" replace />;
+  //   } else {
+  //     // Default to profile for seeker role or no role
+  //     return <Navigate to="/dashboard/profile" replace />;
+  //   }
+  // }
   
   return (
     <RoleInitializer>

@@ -1,5 +1,5 @@
 
-import { User, Home, Wallet, MessageSquare, Building, GraduationCap } from "lucide-react";
+import { User, Home, Wallet, MessageSquare, Building, GraduationCap ,LayoutDashboard} from "lucide-react";
 import { SidebarMenuSection } from "./SidebarMenuSection";
 import { SidebarSimpleMenuItem } from "./SidebarSimpleMenuItem";
 
@@ -8,6 +8,10 @@ interface SeekerSidebarProps {
 }
 
 export function SeekerSidebar({ isActive }: SeekerSidebarProps) {
+   // Dashboard subsections 
+   const dashboardSubItems = [
+    { label: "Home", path: "/dashboard" }
+  ];
   // Profile subsections - removed roommate
   const profileSubItems = [
     { label: "My Profile", path: "/dashboard/profile" }
@@ -29,6 +33,14 @@ export function SeekerSidebar({ isActive }: SeekerSidebarProps) {
 
   return (
     <>
+     {/* Dashboard Section */}
+     <SidebarMenuSection 
+        title="Dashboard" 
+        subItems={dashboardSubItems}
+        icon={LayoutDashboard} 
+        isActive={isActive} 
+      />
+
       {/* Profile Section */}
       <SidebarMenuSection 
         title="Profile" 
