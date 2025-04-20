@@ -1,0 +1,8 @@
+name: lotuscapitals
+services:
+  lotuscapitals:
+    container_name: lotuscapitals
+    build: .
+    ports:
+      - "8800:80"
+    restart: always
