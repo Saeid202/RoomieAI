@@ -41,11 +41,11 @@ export function ProfileContent() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4">
       <h1 className="text-3xl font-bold tracking-tight mb-4">{title}</h1>
       
-      <div className="space-y-6">
-        <div className="bg-white p-6 rounded-lg shadow-sm border">
+      <div className="space-y-4">
+        <div className="bg-white p-3 rounded-lg shadow-sm border">
           <ProfileContentRenderer 
             loading={loading}
             userPreference={userPreference}

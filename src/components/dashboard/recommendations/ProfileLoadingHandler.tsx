@@ -13,7 +13,8 @@ export function ProfileLoadingHandler({
   children, 
   loadProfileData, 
   onError,
-  loadingTimeout = 1000 // Default timeout reduced for faster loading
+  // loadingTimeout = 1000 // Default timeout reduced for faster loading
+  loadingTimeout = 800 // Reduced timeout for faster perceived loading
 }: ProfileLoadingHandlerProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [loadingTimedOut, setLoadingTimedOut] = useState(false);

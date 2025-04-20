@@ -19,7 +19,7 @@ import { SeekerSidebar } from "./sidebar/SeekerSidebar";
 import { LandlordSidebar } from "./sidebar/LandlordSidebar";
 import { DeveloperSidebar } from "./sidebar/DeveloperSidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Menu, X } from "lucide-react";
+import { Menu, X ,ChartNoAxesGantt} from "lucide-react";
 
 export function DashboardSidebar() {
   const location = useLocation();
@@ -44,23 +44,22 @@ export function DashboardSidebar() {
           variant="default" 
           size="icon" 
           onClick={toggleSidebar} 
-          className="fixed top-20 left-4 z-50 bg-roomie-purple text-white shadow-lg hover:bg-roomie-purple/90"
+          className="fixed top-4 left-4 z-50 bg-primary text-white shadow-lg hover:bg-roomie-purple/90"
           aria-label="Toggle Menu"
         >
-          {open ? <X size={24} /> : <Menu size={24} />}
+          {open ? <ChartNoAxesGantt size={24}/>: <Menu size={24} />}
           <span className="sr-only">Toggle Sidebar</span>
         </Button>
       )}
-      <Sidebar>
-        <SidebarHeader className="flex items-center justify-center p-4">
-          <h2 className="text-xl font-bold">
+      <Sidebar className="bg-[#F4F0FF] absolute">
+        <SidebarHeader className="flex items-center justify-center p-2">
+          {/* <h2 className="text-xl font-bold">
             {role === 'landlord' ? 'Landlord Portal' : 
              role === 'developer' ? 'Developer Portal' : 
              'Roommate Finder'}
-          </h2>
+          </h2> */}
+           <RoleToggle />
         </SidebarHeader>
-        
-        <RoleToggle />
         
         <SidebarSeparator />
         <SidebarContent>
@@ -80,7 +79,7 @@ export function DashboardSidebar() {
           </SidebarGroup>
         </SidebarContent>
         <SidebarFooter className="p-4">
-          <Button variant="secondary" className="w-full" asChild>
+          <Button variant="secondary" className="w-full bg-primary" asChild>
             <Link to="/">Back to Home</Link>
           </Button>
         </SidebarFooter>

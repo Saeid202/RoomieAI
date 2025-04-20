@@ -7,7 +7,7 @@ interface FooterProps {
 
 const Footer = ({ className }: FooterProps) => {
   return (
-    <footer className={cn("bg-gray-900 text-white pt-16 pb-8", className)}>
+    <footer className={cn("bg-gray-900 text-white pt-10 pb-6", className)}>
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 mb-12">
           <div className="lg:col-span-2">
@@ -60,7 +60,7 @@ const Footer = ({ className }: FooterProps) => {
                   strokeLinejoin="round"
                 />
               </svg>
-              <h1 className="text-xl font-bold text-roomie-purple">
+              <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-roomie-purple to-roomie-accent">
                 RoomieMatch
               </h1>
             </div>
