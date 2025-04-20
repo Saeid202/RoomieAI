@@ -53,11 +53,6 @@ export function DashboardSidebar() {
       )}
       <Sidebar className="bg-[#F4F0FF] absolute">
         <SidebarHeader className="flex items-center justify-center p-2">
-          {/* <h2 className="text-xl font-bold">
-            {role === 'landlord' ? 'Landlord Portal' : 
-             role === 'developer' ? 'Developer Portal' : 
-             'Roommate Finder'}
-          </h2> */}
            <RoleToggle />
         </SidebarHeader>
         

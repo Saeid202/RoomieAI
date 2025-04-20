@@ -7,9 +7,10 @@ interface FooterProps {
 
 const Footer = ({ className }: FooterProps) => {
   return (
-    <footer className={cn("bg-gray-900 text-white pt-10 pb-6", className)}>
-      <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 mb-12">
+    <footer className={cn("bg-gray-900 text-white py-12", className)}>
+      <div className="container mx-auto px-6 sm:px-8 lg:px-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-y-10 md:gap-x-8 lg:gap-x-12 mb-16">
+          {/* Logo and Description */}
           <div className="lg:col-span-2">
             <div className="flex items-center space-x-2 mb-6">
               <svg
@@ -64,56 +65,157 @@ const Footer = ({ className }: FooterProps) => {
                 RoomieMatch
               </h1>
             </div>
-            <p className="text-gray-400 mb-6 max-w-md">
-              RoomieMatch helps you find the ideal roommate based on your lifestyle, budget, and location preferences.
+            <p className="text-gray-400 mb-6 max-w-lg">
+              RoomieMatch helps you find the ideal roommate based on your
+              lifestyle, budget, and location preferences.
             </p>
             <div className="flex space-x-4">
-              <a href="#" className="text-gray-400 hover:text-roomie-purple transition-colors">
+              <a
+                href="#"
+                className="text-gray-400 hover:text-roomie-purple transition-colors"
+              >
                 <Facebook size={20} />
               </a>
-              <a href="#" className="text-gray-400 hover:text-roomie-purple transition-colors">
+              <a
+                href="#"
+                className="text-gray-400 hover:text-roomie-purple transition-colors"
+              >
                 <Twitter size={20} />
               </a>
-              <a href="#" className="text-gray-400 hover:text-roomie-purple transition-colors">
+              <a
+                href="#"
+                className="text-gray-400 hover:text-roomie-purple transition-colors"
+              >
                 <Instagram size={20} />
               </a>
-              <a href="#" className="text-gray-400 hover:text-roomie-purple transition-colors">
+              <a
+                href="#"
+                className="text-gray-400 hover:text-roomie-purple transition-colors"
+              >
                 <Linkedin size={20} />
               </a>
             </div>
           </div>
-          
+
+          {/* Company Links */}
           <div>
             <h3 className="font-semibold text-lg mb-4">Company</h3>
             <ul className="space-y-3">
-              <li><a href="#" className="text-gray-400 hover:text-roomie-purple transition-colors">About Us</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-roomie-purple transition-colors">Careers</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-roomie-purple transition-colors">Blog</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-roomie-purple transition-colors">Press</a></li>
+              <li>
+                <a
+                  href="#"
+                  className="text-gray-400 hover:text-roomie-purple transition-colors"
+                >
+                  About Us
+                </a>
+              </li>
+              <li>
+                <a
+                  href="#"
+                  className="text-gray-400 hover:text-roomie-purple transition-colors"
+                >
+                  Careers
+                </a>
+              </li>
+              <li>
+                <a
+                  href="#"
+                  className="text-gray-400 hover:text-roomie-purple transition-colors"
+                >
+                  Blog
+                </a>
+              </li>
+              <li>
+                <a
+                  href="#"
+                  className="text-gray-400 hover:text-roomie-purple transition-colors"
+                >
+                  Press
+                </a>
+              </li>
             </ul>
           </div>
-          
+
+          {/* Support Links */}
           <div>
             <h3 className="font-semibold text-lg mb-4">Support</h3>
             <ul className="space-y-3">
-              <li><a href="#" className="text-gray-400 hover:text-roomie-purple transition-colors">Help Center</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-roomie-purple transition-colors">Safety Center</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-roomie-purple transition-colors">Community Guidelines</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-roomie-purple transition-colors">Contact Us</a></li>
+              <li>
+                <a
+                  href="#"
+                  className="text-gray-400 hover:text-roomie-purple transition-colors"
+                >
+                  Help Center
+                </a>
+              </li>
+              <li>
+                <a
+                  href="#"
+                  className="text-gray-400 hover:text-roomie-purple transition-colors"
+                >
+                  Safety Center
+                </a>
+              </li>
+              <li>
+                <a
+                  href="#"
+                  className="text-gray-400 hover:text-roomie-purple transition-colors"
+                >
+                  Community Guidelines
+                </a>
+              </li>
+              <li>
+                <a
+                  href="#"
+                  className="text-gray-400 hover:text-roomie-purple transition-colors"
+                >
+                  Contact Us
+                </a>
+              </li>
             </ul>
           </div>
-          
+
+          {/* Legal Links */}
           <div>
             <h3 className="font-semibold text-lg mb-4">Legal</h3>
             <ul className="space-y-3">
-              <li><a href="#" className="text-gray-400 hover:text-roomie-purple transition-colors">Terms of Service</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-roomie-purple transition-colors">Privacy Policy</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-roomie-purple transition-colors">Cookie Policy</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-roomie-purple transition-colors">Trust & Safety</a></li>
+              <li>
+                <a
+                  href="#"
+                  className="text-gray-400 hover:text-roomie-purple transition-colors"
+                >
+                  Terms of Service
+                </a>
+              </li>
+              <li>
+                <a
+                  href="#"
+                  className="text-gray-400 hover:text-roomie-purple transition-colors"
+                >
+                  Privacy Policy
+                </a>
+              </li>
+              <li>
+                <a
+                  href="#"
+                  className="text-gray-400 hover:text-roomie-purple transition-colors"
+                >
+                  Cookie Policy
+                </a>
+              </li>
+              <li>
+                <a
+                  href="#"
+                  className="text-gray-400 hover:text-roomie-purple transition-colors"
+                >
+                  Trust & Safety
+                </a>
+              </li>
             </ul>
           </div>
         </div>
-        
+
+        {/* Copyright Section */}
         <div className="pt-8 mt-8 border-t border-gray-800 text-center text-gray-400 text-sm">
           <p>© {new Date().getFullYear()} RoomieMatch. All rights reserved.</p>
         </div>
