@@ -1,48 +1,46 @@
 
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
-import { toast } from "@/hooks/use-toast";
-import { signOutUser } from "@/services/authService";
-import { 
+import { Link } from "react-router-dom";
+import { LogOut, Settings } from "lucide-react";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger 
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { LogOut, User } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 export function UserMenu() {
-  const { user } = useAuth();
-  const navigate = useNavigate();
-  
-  const handleSignOut = async () => {
-    try {
-      await signOutUser();
-      navigate('/', { replace: true });
-    } catch (error) {
-      console.error("Error signing out:", error);
-      toast({
-        title: "Error",
-        description: "Failed to sign out. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
+  const { user, signOut } = useAuth();
 
   return (
-    <div className="absolute top-4 right-4 z-10">
+    <div className="flex items-center justify-end p-4">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" className="flex items-center gap-2">
-            <User size={16} />
-            {user?.email ? user.email.split('@')[0] : 'Account'}
+          <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+            <div className="h-8 w-8 rounded-full bg-roomie-purple text-white flex items-center justify-center">
+              {user?.email?.[0].toUpperCase() || 'U'}
+            </div>
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={handleSignOut} className="text-red-500 cursor-pointer">
-            <LogOut size={16} className="mr-2" />
-            Logout
+        <DropdownMenuContent className="w-56" align="end" forceMount>
+          <DropdownMenuLabel className="font-normal">
+            <div className="flex flex-col space-y-1">
+              <p className="text-sm font-medium leading-none">{user?.email}</p>
+            </div>
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem asChild>
+            <Link to="/dashboard/settings" className="w-full flex items-center">
+              <Settings className="mr-2 h-4 w-4" />
+              <span>Settings</span>
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={signOut}>
+            <LogOut className="mr-2 h-4 w-4" />
+            <span>Log out</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
