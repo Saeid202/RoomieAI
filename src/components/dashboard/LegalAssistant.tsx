@@ -1,5 +1,5 @@
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export function LegalAssistant() {
   return (
@@ -10,10 +10,11 @@ export function LegalAssistant() {
       <Card>
         <CardHeader>
           <CardTitle>Ask Legal Questions</CardTitle>
-          <CardDescription>Get AI-powered legal guidance</CardDescription>
         </CardHeader>
         <CardContent>
-          <p>This is where you can ask questions and get AI-powered legal guidance related to housing, rentals, and co-ownership.</p>
+          <div className="min-h-[400px] flex items-center justify-center text-muted-foreground">
+            Coming soon: AI-powered legal guidance for housing, rentals, and co-ownership matters
+          </div>
         </CardContent>
       </Card>
     </div>
