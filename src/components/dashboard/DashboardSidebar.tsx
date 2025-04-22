@@ -1,4 +1,3 @@
-
 import { useLocation, Link } from "react-router-dom";
 import {
   Sidebar,
@@ -38,20 +37,7 @@ export function DashboardSidebar() {
 
   return (
     <>
-      {/* Mobile toggle button - fixed position */}
-      {isMobile && (
-        <Button 
-          variant="default" 
-          size="icon" 
-          onClick={toggleSidebar} 
-          className="fixed top-4 left-4 z-50 bg-roomie-purple text-white shadow-lg hover:bg-roomie-purple/90"
-          aria-label="Toggle Menu"
-        >
-          {open ? <X size={24} /> : <Menu size={24} />}
-          <span className="sr-only">Toggle Sidebar</span>
-        </Button>
-      )}
-      <Sidebar className="h-screen fixed top-0 left-0">
+      <Sidebar className="h-screen fixed top-0 left-0 hidden md:flex">
         <SidebarHeader className="flex items-center justify-center p-4">
           <h2 className="text-xl font-bold">
             {role === 'landlord' ? 'Landlord Portal' : 

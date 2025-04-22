@@ -2,6 +2,7 @@
 import { ReactNode } from "react";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
+import { MobileNavigation } from "@/components/dashboard/MobileNavigation";
 import Footer from "@/components/Footer";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { UserMenu } from "@/components/dashboard/UserMenu";
@@ -17,7 +18,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     <div className="flex flex-col min-h-screen bg-background">
       <SidebarProvider defaultOpen={!isMobile}>
         <div className="flex flex-1">
-          {/* Fixed sidebar */}
+          {/* Fixed sidebar - hidden on mobile */}
           <DashboardSidebar />
           
           {/* Main content container with header and scrollable area */}
@@ -27,15 +28,18 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               <UserMenu />
             </div>
             
-            {/* Scrollable content area */}
-            <main className="flex-1 overflow-y-auto p-4 md:p-6">
+            {/* Scrollable content area - adjusted padding for mobile */}
+            <main className="flex-1 overflow-y-auto p-4 md:p-6 pb-20 md:pb-6">
               {children}
             </main>
             
-            {/* Footer that spans full width under content */}
-            <Footer className="w-full mt-auto" />
+            {/* Footer that spans full width under content - hidden on mobile */}
+            <Footer className="w-full mt-auto hidden md:block" />
           </div>
         </div>
+        
+        {/* Mobile bottom navigation */}
+        <MobileNavigation />
       </SidebarProvider>
     </div>
   );
