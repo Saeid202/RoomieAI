@@ -60,7 +60,7 @@ export function BasicInformationSection({ form }: BasicInformationSectionProps) 
             <FormLabel htmlFor="gender">Gender (Optional)</FormLabel>
             <Select
               onValueChange={field.onChange}
-              value={field.value}
+              value={field.value || ""}
             >
               <FormControl>
                 <SelectTrigger id="gender">

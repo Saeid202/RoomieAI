@@ -28,7 +28,8 @@ export function ProfileContent() {
     console.log("ProfileContent - Is co-owner page:", isCoOwnerPage);
     console.log("ProfileContent - Is roommate page:", isRoommatePage);
     console.log("ProfileContent - User preference:", userPreference);
-  }, [path, isCoOwnerPage, isRoommatePage, userPreference]);
+    console.log("ProfileContent - Profile data:", profileData);
+  }, [path, isCoOwnerPage, isRoommatePage, userPreference, profileData]);
 
   // Set the title based on the current page or preference
   let title = "My Profile";
