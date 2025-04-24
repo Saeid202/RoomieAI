@@ -23,11 +23,12 @@ export default function Dashboard() {
   }, [location.pathname, role, user, loading, assignedRole]);
   
   // Only redirect if we're exactly at /dashboard and not at a sub-route
-  if (location.pathname === '/dashboard') {
+  if (!loading && location.pathname === '/dashboard') {
+    // Make sure we have routes for all these destinations
     if (assignedRole === 'landlord') {
-      return <Navigate to="/dashboard/landlord" replace />;
+      return <Navigate to="/dashboard/profile" replace />;
     } else if (assignedRole === 'developer') {
-      return <Navigate to="/dashboard/developer" replace />;
+      return <Navigate to="/dashboard/profile" replace />;
     } else {
       // Default to profile for seeker role or no role
       return <Navigate to="/dashboard/profile" replace />;
