@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { LogOut, Settings, ChevronDown, User } from "lucide-react";
@@ -16,21 +15,21 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { UserRole, useRole } from "@/contexts/RoleContext";
 import { toast } from "@/hooks/use-toast";
+import { RoleSelectionDialog } from "@/components/auth/RoleSelectionDialog";
 
 export function UserMenu() {
   const { user, signOut, updateMetadata } = useAuth();
   const { role, setRole } = useRole();
   const [isRoleSwitching, setIsRoleSwitching] = useState(false);
+  const [showRoleDialog, setShowRoleDialog] = useState(false);
 
   const handleRoleChange = async (newRole: UserRole) => {
     if (newRole === role) return;
     
     setIsRoleSwitching(true);
     try {
-      // Update role in Supabase user metadata
       await updateMetadata({ role: newRole });
       
-      // Update local role state
       setRole(newRole);
       
       toast({
@@ -90,23 +89,10 @@ export function UserMenu() {
             
             <DropdownMenuSeparator />
             
-            <DropdownMenuLabel>Your Role</DropdownMenuLabel>
-            <DropdownMenuRadioGroup value={role} onValueChange={handleRoleChange}>
-              <DropdownMenuRadioItem value="seeker" disabled={isRoleSwitching}>
-                <User className="mr-2 h-4 w-4" />
-                <span>Seeker</span>
-              </DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value="landlord" disabled={isRoleSwitching}>
-                <User className="mr-2 h-4 w-4" />
-                <span>Landlord</span>
-              </DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value="developer" disabled={isRoleSwitching}>
-                <User className="mr-2 h-4 w-4" />
-                <span>Builder/Realtor</span>
-              </DropdownMenuRadioItem>
-            </DropdownMenuRadioGroup>
-            
-            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => setShowRoleDialog(true)}>
+              <User className="mr-2 h-4 w-4" />
+              <span>Switch Role</span>
+            </DropdownMenuItem>
             
             <DropdownMenuItem asChild>
               <Link to="/dashboard/settings" className="w-full flex items-center">
@@ -114,12 +100,18 @@ export function UserMenu() {
                 <span>Settings</span>
               </Link>
             </DropdownMenuItem>
+            
             <DropdownMenuItem onClick={signOut}>
               <LogOut className="mr-2 h-4 w-4" />
               <span>Log out</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+
+        <RoleSelectionDialog 
+          isOpen={showRoleDialog} 
+          onClose={() => setShowRoleDialog(false)}
+        />
       </div>
     </div>
   );

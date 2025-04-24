@@ -17,9 +17,6 @@ export function MobileNavigation() {
 
   return (
     <>
-      {/* Mobile Header is now in UserMenu component */}
-      
-      {/* Mobile Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t md:hidden">
         <div className="flex items-center justify-around h-16">
           <Link 
@@ -65,10 +62,10 @@ export function MobileNavigation() {
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuItem asChild>
-                <Link to="/dashboard/profile/roommate">Find Roommate</Link>
+                <Link to="/dashboard/roommate">Find Roommate</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link to="/dashboard/rent-opportunities">Find Rent</Link>
+                <Link to="/dashboard/rent">Find Rent</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link to="/dashboard/list-room">List Your Room</Link>
