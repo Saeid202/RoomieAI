@@ -18,34 +18,42 @@ export function RouteGuard({ children }: RouteGuardProps) {
   const assignedRole = user?.user_metadata?.role;
   
   useEffect(() => {
+    console.log("RouteGuard - Loading:", loading);
+    console.log("RouteGuard - User:", user?.email);
+    console.log("RouteGuard - Role:", role);
+    console.log("RouteGuard - AssignedRole:", assignedRole);
+    console.log("RouteGuard - Current path:", location.pathname);
+    
     if (loading) {
-      console.log("RouteGuard - Loading state, skipping checks");
+      console.log("RouteGuard - Still loading, skipping checks");
       return;
     }
     
-    console.log("RouteGuard - Checking authentication and role");
-    console.log("RouteGuard - User:", user?.email);
-    console.log("RouteGuard - Role:", role);
-    console.log("RouteGuard - Current path:", location.pathname);
-    
     if (!user) {
       console.log("RouteGuard - No user, redirecting to home");
+      toast({
+        title: "Authentication required",
+        description: "Please log in to access the dashboard",
+        variant: "destructive",
+      });
       navigate('/', { replace: true });
       return;
     }
     
-    // For the profile page, allow access regardless of role
-    if (location.pathname === '/dashboard/profile' || 
-        location.pathname.startsWith('/dashboard/roommate-recommendations') ||
-        location.pathname.startsWith('/dashboard/chats')) {
-      console.log("RouteGuard - Allowing access to common pages");
-      return;
+    // Check if we're on the exact dashboard route and need to redirect
+    if (location.pathname === '/dashboard') {
+      console.log("RouteGuard - On exact dashboard path, should redirect");
+      if (assignedRole === 'landlord') {
+        navigate('/dashboard/landlord', { replace: true });
+      } else if (assignedRole === 'developer') {
+        navigate('/dashboard/developer', { replace: true });
+      } else {
+        navigate('/dashboard/profile', { replace: true });
+      }
     }
     
-    // Specific role checks removed to allow users to access the basic dashboard
-    
     console.log("RouteGuard - Checks complete, allowing access");
-  }, [location.pathname, assignedRole, navigate, user, loading, role]);
+  }, [location.pathname, navigate, user, loading, role, assignedRole]);
 
   return <>{children}</>;
 }

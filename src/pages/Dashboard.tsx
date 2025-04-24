@@ -26,9 +26,9 @@ export default function Dashboard() {
   if (!loading && location.pathname === '/dashboard') {
     // Make sure we have routes for all these destinations
     if (assignedRole === 'landlord') {
-      return <Navigate to="/dashboard/profile" replace />;
+      return <Navigate to="/dashboard/landlord" replace />;
     } else if (assignedRole === 'developer') {
-      return <Navigate to="/dashboard/profile" replace />;
+      return <Navigate to="/dashboard/developer" replace />;
     } else {
       // Default to profile for seeker role or no role
       return <Navigate to="/dashboard/profile" replace />;

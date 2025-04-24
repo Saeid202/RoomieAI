@@ -13,23 +13,23 @@ export function RoleInitializer({ children }: RoleInitializerProps) {
   const { user } = useAuth();
   
   useEffect(() => {
-    console.log("Dashboard mounted - current role:", role);
-    console.log("Dashboard mounted - user:", user?.email);
-    console.log("Dashboard mounted - user metadata:", user?.user_metadata);
+    console.log("RoleInitializer - current role:", role);
+    console.log("RoleInitializer - user:", user?.email);
+    console.log("RoleInitializer - user metadata:", user?.user_metadata);
     
     const checkUserRole = async () => {
       if (user) {
         const { data } = await supabase.auth.getUser();
-        console.log("Dashboard effect - full user data:", data);
+        console.log("RoleInitializer - full user data:", data);
         
         const userRole = data.user?.user_metadata?.role;
-        console.log("Dashboard effect - checking role from metadata:", userRole);
+        console.log("RoleInitializer - checking role from metadata:", userRole);
         
         if (userRole && role !== userRole) {
           console.log("Setting role to match user metadata:", userRole);
           setRole(userRole);
         } else if (!userRole) {
-          console.warn("No role found in user metadata in Dashboard effect");
+          console.warn("No role found in user metadata in RoleInitializer");
         }
       }
     };
