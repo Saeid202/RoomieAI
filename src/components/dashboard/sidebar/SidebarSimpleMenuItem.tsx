@@ -1,30 +1,30 @@
 
 import { Link } from "react-router-dom";
-import { LucideIcon } from "lucide-react";
+import { ReactNode } from "react";
 import {
   SidebarMenuItem,
   SidebarMenuButton
 } from "@/components/ui/sidebar";
 
 interface SidebarSimpleMenuItemProps {
-  title: string;
-  icon: LucideIcon;
-  path: string;
-  isActive: (path: string) => boolean;
+  icon: ReactNode;
+  label: string;
+  to: string;
+  isActive: boolean;
 }
 
 export function SidebarSimpleMenuItem({
-  title,
-  icon: Icon,
-  path,
+  icon,
+  label,
+  to,
   isActive
 }: SidebarSimpleMenuItemProps) {
   return (
     <SidebarMenuItem>
-      <SidebarMenuButton asChild isActive={isActive(path)}>
-        <Link to={path}>
-          <Icon size={20} />
-          <span>{title}</span>
+      <SidebarMenuButton asChild isActive={isActive}>
+        <Link to={to}>
+          {icon}
+          <span>{label}</span>
         </Link>
       </SidebarMenuButton>
     </SidebarMenuItem>
