@@ -1,6 +1,6 @@
 
-import { PieChart, Building, Users, FileText, MessageSquare } from "lucide-react";
-import { SidebarMenuSection } from "./SidebarMenuSection";
+import { Link } from "react-router-dom";
+import { Building, Home, MessageSquare, Settings, Users } from "lucide-react";
 import { SidebarSimpleMenuItem } from "./SidebarSimpleMenuItem";
 
 interface LandlordSidebarProps {
@@ -8,53 +8,41 @@ interface LandlordSidebarProps {
 }
 
 export function LandlordSidebar({ isActive }: LandlordSidebarProps) {
-  // Property subsections
-  const propertySubItems = [
-    { label: "All Properties", path: "/dashboard/properties" },
-    { label: "Add Property", path: "/dashboard/properties/add" }
-  ];
-
-  // Tenants subsections
-  const tenantsSubItems = [
-    { label: "Applications", path: "/dashboard/tenants/applications" },
-    { label: "Current Tenants", path: "/dashboard/tenants/current" }
-  ];
-
   return (
     <>
       <SidebarSimpleMenuItem 
-        title="Dashboard" 
-        icon={PieChart} 
-        path="/dashboard/landlord" 
-        isActive={isActive} 
+        icon={<Home size={18} />} 
+        label="Dashboard"
+        to="/dashboard/landlord" 
+        isActive={isActive('/dashboard/landlord')}
       />
-
-      <SidebarMenuSection 
-        title="Properties" 
-        icon={Building} 
-        subItems={propertySubItems} 
-        isActive={isActive} 
-      />
-
-      <SidebarMenuSection 
-        title="Tenants" 
-        icon={Users} 
-        subItems={tenantsSubItems} 
-        isActive={isActive} 
-      />
-
+      
       <SidebarSimpleMenuItem 
-        title="Lease Management" 
-        icon={FileText} 
-        path="/dashboard/leases" 
-        isActive={isActive} 
+        icon={<Building size={18} />} 
+        label="My Properties"
+        to="/dashboard/landlord/properties" 
+        isActive={isActive('/dashboard/landlord/properties')}
       />
-
+      
       <SidebarSimpleMenuItem 
-        title="Messages" 
-        icon={MessageSquare} 
-        path="/dashboard/messages" 
-        isActive={isActive} 
+        icon={<Users size={18} />} 
+        label="Applications"
+        to="/dashboard/landlord/applications" 
+        isActive={isActive('/dashboard/landlord/applications')}
+      />
+      
+      <SidebarSimpleMenuItem 
+        icon={<MessageSquare size={18} />} 
+        label="Messages"
+        to="/dashboard/chats" 
+        isActive={isActive('/dashboard/chats')}
+      />
+      
+      <SidebarSimpleMenuItem 
+        icon={<Settings size={18} />} 
+        label="Settings"
+        to="/dashboard/settings" 
+        isActive={isActive('/dashboard/settings')}
       />
     </>
   );

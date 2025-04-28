@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { LogOut, Settings, ChevronDown, User } from "lucide-react";
+import { LogOut, Settings, ChevronDown, User, Home, Building, HardHat } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -60,6 +60,19 @@ export function UserMenu() {
     }
   };
 
+  const getRoleIcon = (roleValue: UserRole) => {
+    switch (roleValue) {
+      case 'seeker':
+        return <User className="h-4 w-4 text-roomie-purple" />;
+      case 'landlord':
+        return <Building className="h-4 w-4 text-roomie-purple" />;
+      case 'developer':
+        return <HardHat className="h-4 w-4 text-roomie-purple" />;
+      default:
+        return <User className="h-4 w-4 text-roomie-purple" />;
+    }
+  };
+
   return (
     <div className="flex items-center justify-between p-4">
       <div className="block md:hidden">
@@ -88,9 +101,29 @@ export function UserMenu() {
             
             <DropdownMenuSeparator />
             
-            <DropdownMenuItem onClick={() => setShowRoleDialog(true)}>
-              <User className="mr-2 h-4 w-4" />
+            <DropdownMenuLabel className="font-normal pt-0">
+              <div className="flex flex-col space-y-1">
+                <p className="text-sm text-muted-foreground">Current Role</p>
+                <div className="flex items-center gap-2">
+                  {getRoleIcon(role as UserRole)}
+                  <span className="font-medium">{getRoleDisplay(role as UserRole)}</span>
+                </div>
+              </div>
+            </DropdownMenuLabel>
+
+            <DropdownMenuItem 
+              onClick={() => setShowRoleDialog(true)}
+              className="cursor-pointer"
+            >
+              <Home className="mr-2 h-4 w-4" />
               <span>Switch Role</span>
+            </DropdownMenuItem>
+            
+            <DropdownMenuItem asChild>
+              <Link to="/dashboard" className="w-full flex items-center">
+                <Home className="mr-2 h-4 w-4" />
+                <span>Dashboard</span>
+              </Link>
             </DropdownMenuItem>
             
             <DropdownMenuItem asChild>
@@ -100,7 +133,9 @@ export function UserMenu() {
               </Link>
             </DropdownMenuItem>
             
-            <DropdownMenuItem onClick={signOut}>
+            <DropdownMenuSeparator />
+            
+            <DropdownMenuItem onClick={signOut} className="cursor-pointer">
               <LogOut className="mr-2 h-4 w-4" />
               <span>Log out</span>
             </DropdownMenuItem>
@@ -110,6 +145,8 @@ export function UserMenu() {
         <RoleSelectionDialog 
           isOpen={showRoleDialog} 
           onClose={() => setShowRoleDialog(false)}
+          onRoleSelect={handleRoleChange}
+          currentRole={role as UserRole}
         />
       </div>
     </div>

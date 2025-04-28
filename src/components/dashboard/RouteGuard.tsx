@@ -40,6 +40,31 @@ export function RouteGuard({ children }: RouteGuardProps) {
       return;
     }
     
+    // Check for role-specific paths and ensure user has appropriate role
+    const checkRoleAccess = () => {
+      if (location.pathname.includes('/dashboard/landlord') && assignedRole !== 'landlord') {
+        toast({
+          title: "Access restricted",
+          description: "You need to be a Landlord to access this section",
+          variant: "destructive",
+        });
+        navigate('/dashboard', { replace: true });
+        return false;
+      }
+      
+      if (location.pathname.includes('/dashboard/developer') && assignedRole !== 'developer') {
+        toast({
+          title: "Access restricted",
+          description: "You need to be a Builder/Realtor to access this section",
+          variant: "destructive",
+        });
+        navigate('/dashboard', { replace: true });
+        return false;
+      }
+      
+      return true;
+    };
+    
     // Check if we're on the exact dashboard route and need to redirect
     if (location.pathname === '/dashboard') {
       console.log("RouteGuard - On exact dashboard path, should redirect");
@@ -48,8 +73,11 @@ export function RouteGuard({ children }: RouteGuardProps) {
       } else if (assignedRole === 'developer') {
         navigate('/dashboard/developer', { replace: true });
       } else {
-        navigate('/dashboard/profile', { replace: true });
+        navigate('/dashboard/roommate-recommendations', { replace: true });
       }
+    } else {
+      // Only check role access for non-root dashboard paths
+      checkRoleAccess();
     }
     
     console.log("RouteGuard - Checks complete, allowing access");

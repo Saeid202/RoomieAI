@@ -1,6 +1,15 @@
 
-import { User, Home, Wallet, MessageSquare, Building, GraduationCap } from "lucide-react";
-import { SidebarMenuSection } from "./SidebarMenuSection";
+import { 
+  Home, 
+  Search, 
+  Users, 
+  Building, 
+  MessageSquare, 
+  Scale, 
+  Wallet, 
+  Settings, 
+  User
+} from "lucide-react";
 import { SidebarSimpleMenuItem } from "./SidebarSimpleMenuItem";
 
 interface SeekerSidebarProps {
@@ -8,71 +17,76 @@ interface SeekerSidebarProps {
 }
 
 export function SeekerSidebar({ isActive }: SeekerSidebarProps) {
-  // Profile subsections - removed roommate
-  const profileSubItems = [
-    { label: "My Profile", path: "/dashboard/profile" }
-  ];
-
-  // Rent subsections - renamed Roommate Recommendations to Find My Ideal Roommate
-  const rentSubItems = [
-    { label: "Find My Ideal Roommate", path: "/dashboard/roommate-recommendations" },
-    { label: "Rent Savings", path: "/dashboard/rent-savings" },
-    { label: "Opportunities", path: "/dashboard/rent-opportunities" }
-  ];
-
-  // Co-ownership subsections - added Co-owner Profile
-  const coOwnershipSubItems = [
-    { label: "Co-owner Profile", path: "/dashboard/profile/co-owner" },
-    { label: "Co-owner Recommendations", path: "/dashboard/co-owner-recommendations" },
-    { label: "Opportunities", path: "/dashboard/co-ownership-opportunities" }
-  ];
-
   return (
     <>
-      {/* Profile Section */}
-      <SidebarMenuSection 
-        title="Profile" 
-        icon={User} 
-        subItems={profileSubItems} 
-        isActive={isActive} 
-      />
-
-      {/* Rent Section */}
-      <SidebarMenuSection 
-        title="Rent" 
-        icon={Home} 
-        subItems={rentSubItems} 
-        isActive={isActive} 
-      />
-
-      {/* Co-ownership Section */}
-      <SidebarMenuSection 
-        title="Co-ownership" 
-        icon={Building} 
-        subItems={coOwnershipSubItems} 
-        isActive={isActive} 
-      />
-
-      {/* Simple menu items */}
       <SidebarSimpleMenuItem 
-        title="Wallet" 
-        icon={Wallet} 
-        path="/dashboard/wallet" 
-        isActive={isActive} 
+        icon={<Home size={18} />} 
+        label="Home"
+        to="/dashboard" 
+        isActive={isActive('/dashboard')}
       />
-
+      
       <SidebarSimpleMenuItem 
-        title="AI Legal Assistant" 
-        icon={GraduationCap} 
-        path="/dashboard/legal-assistant" 
-        isActive={isActive} 
+        icon={<User size={18} />} 
+        label="My Profile"
+        to="/dashboard/profile" 
+        isActive={isActive('/dashboard/profile')}
       />
-
+      
       <SidebarSimpleMenuItem 
-        title="Chats" 
-        icon={MessageSquare} 
-        path="/dashboard/chats" 
-        isActive={isActive} 
+        icon={<Users size={18} />} 
+        label="Roommate Recommendations"
+        to="/dashboard/roommate-recommendations" 
+        isActive={isActive('/dashboard/roommate-recommendations')}
+      />
+      
+      <SidebarSimpleMenuItem 
+        icon={<Building size={18} />} 
+        label="Rent Opportunities"
+        to="/dashboard/rent-opportunities" 
+        isActive={isActive('/dashboard/rent-opportunities')}
+      />
+      
+      <SidebarSimpleMenuItem 
+        icon={<Building size={18} />} 
+        label="Co-Owner Recommendations"
+        to="/dashboard/co-owner-recommendations" 
+        isActive={isActive('/dashboard/co-owner-recommendations')}
+      />
+      
+      <SidebarSimpleMenuItem 
+        icon={<Building size={18} />} 
+        label="Ownership Opportunities"
+        to="/dashboard/co-ownership-opportunities" 
+        isActive={isActive('/dashboard/co-ownership-opportunities')}
+      />
+      
+      <SidebarSimpleMenuItem 
+        icon={<MessageSquare size={18} />} 
+        label="Chats"
+        to="/dashboard/chats" 
+        isActive={isActive('/dashboard/chats')}
+      />
+      
+      <SidebarSimpleMenuItem 
+        icon={<Scale size={18} />} 
+        label="Legal Assistant"
+        to="/dashboard/legal-assistant" 
+        isActive={isActive('/dashboard/legal-assistant')}
+      />
+      
+      <SidebarSimpleMenuItem 
+        icon={<Wallet size={18} />} 
+        label="Wallet"
+        to="/dashboard/wallet" 
+        isActive={isActive('/dashboard/wallet')}
+      />
+      
+      <SidebarSimpleMenuItem 
+        icon={<Settings size={18} />} 
+        label="Settings"
+        to="/dashboard/settings" 
+        isActive={isActive('/dashboard/settings')}
       />
     </>
   );

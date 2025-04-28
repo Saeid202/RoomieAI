@@ -1,90 +1,178 @@
 
+import { Home, Search, PlusCircle, Building, User, MessageSquare } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
-import { Home, User, MessageSquare, Building, Gavel, Plus } from "lucide-react";
-import { cn } from "@/lib/utils";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { useRole } from "@/contexts/RoleContext";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { useState } from "react";
 
 export function MobileNavigation() {
   const location = useLocation();
-  const path = location.pathname;
+  const { role } = useRole();
+  const [isAddMenuOpen, setIsAddMenuOpen] = useState(false);
 
-  const isActive = (route: string) => path.includes(route);
+  const isActive = (path: string) => {
+    return location.pathname === path || location.pathname.startsWith(path + '/');
+  };
+
+  // Determine role-specific routes
+  const getHomeRoute = () => {
+    switch (role) {
+      case 'landlord':
+        return '/dashboard/landlord';
+      case 'developer':
+        return '/dashboard/developer';
+      default:
+        return '/dashboard/roommate-recommendations';
+    }
+  };
+
+  const getRentRoommateRoute = () => {
+    return role === 'seeker' ? '/dashboard/roommate-recommendations' : '/dashboard/landlord';
+  };
+
+  const getBuyCoOwnRoute = () => {
+    return role === 'seeker' ? '/dashboard/co-owner-recommendations' : '/dashboard/developer';
+  };
 
   return (
-    <>
-      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t md:hidden">
-        <div className="flex items-center justify-around h-16">
-          <Link 
-            to="/dashboard" 
-            className={cn(
-              "flex flex-col items-center justify-center flex-1 min-w-0 text-xs",
-              isActive('/dashboard') && !path.includes('/legal') ? "text-roomie-purple" : "text-gray-500"
-            )}
-          >
-            <Home size={20} />
-            <span className="mt-1">Home</span>
-          </Link>
+    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40 md:hidden py-2">
+      <div className="grid grid-cols-5 gap-1">
+        <NavItem 
+          icon={<Home size={20} />} 
+          label="Home" 
+          to={getHomeRoute()}
+          isActive={isActive(getHomeRoute())}
+        />
+        
+        <NavItem 
+          icon={<MessageSquare size={20} />} 
+          label="Legal AI" 
+          to="/dashboard/legal-assistant"
+          isActive={isActive('/dashboard/legal-assistant')}
+        />
+        
+        <AddButton 
+          isOpen={isAddMenuOpen}
+          setIsOpen={setIsAddMenuOpen}
+          role={role as string}
+        />
+        
+        <NavItem 
+          icon={<Building size={20} />} 
+          label={role === 'seeker' ? "Buy & Co-own" : "Properties"} 
+          to={getBuyCoOwnRoute()}
+          isActive={isActive(getBuyCoOwnRoute())}
+        />
+        
+        <NavItem 
+          icon={<Search size={20} />} 
+          label={role === 'seeker' ? "Rent & Roommate" : "Listings"} 
+          to={getRentRoommateRoute()}
+          isActive={isActive(getRentRoommateRoute())}
+        />
+      </div>
+    </div>
+  );
+}
 
-          <Link 
-            to="/dashboard/legal-assistant" 
-            className={cn(
-              "flex flex-col items-center justify-center flex-1 min-w-0 text-xs",
-              isActive('/legal-assistant') ? "text-roomie-purple" : "text-gray-500"
-            )}
-          >
-            <Gavel size={20} />
-            <span className="mt-1">Legal AI</span>
-          </Link>
-          
-          <Link
-            to="/dashboard/create-listing"
-            className={cn(
-              "flex flex-col items-center justify-center flex-1 min-w-0 text-xs",
-              isActive('/create-listing') ? "text-roomie-purple" : "text-gray-500"
-            )}
-          >
-            <Plus size={20} className="p-1 rounded-full bg-roomie-purple text-white" />
-            <span className="mt-1">Create</span>
-          </Link>
+function NavItem({ 
+  icon, 
+  label, 
+  to, 
+  isActive 
+}: { 
+  icon: React.ReactNode, 
+  label: string, 
+  to: string, 
+  isActive: boolean 
+}) {
+  return (
+    <Link 
+      to={to} 
+      className={`flex flex-col items-center justify-center py-1 ${
+        isActive ? 'text-roomie-purple' : 'text-gray-500'
+      }`}
+    >
+      {icon}
+      <span className="text-xs mt-1">{label}</span>
+    </Link>
+  );
+}
 
-          <DropdownMenu>
-            <DropdownMenuTrigger className={cn(
-              "flex flex-col items-center justify-center flex-1 min-w-0 text-xs border-0 bg-transparent",
-              isActive('/rent') || isActive('/roommate') ? "text-roomie-purple" : "text-gray-500"
-            )}>
-              <Building size={20} />
-              <span className="mt-1">Rent & Room</span>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem asChild>
-                <Link to="/dashboard/roommate">Find Roommate</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link to="/dashboard/rent">Find Rent</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link to="/dashboard/list-room">List Your Room</Link>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          
-          <Link 
-            to="/dashboard/profile" 
-            className={cn(
-              "flex flex-col items-center justify-center flex-1 min-w-0 text-xs",
-              isActive('/profile') ? "text-roomie-purple" : "text-gray-500"
+function AddButton({ 
+  isOpen, 
+  setIsOpen, 
+  role 
+}: { 
+  isOpen: boolean, 
+  setIsOpen: (state: boolean) => void, 
+  role: string 
+}) {
+  const getListingPath = () => {
+    switch (role) {
+      case 'landlord':
+        return '/dashboard/landlord/add-property';
+      case 'developer':
+        return '/dashboard/developer/add-property';
+      default:
+        return '/dashboard/list-room';
+    }
+  };
+
+  const getListingLabel = () => {
+    switch (role) {
+      case 'landlord':
+        return 'List a Rental Property';
+      case 'developer':
+        return 'List Property for Sale';
+      default:
+        return 'List a Room';
+    }
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
+        <Button 
+          className="flex flex-col items-center justify-center bg-roomie-purple text-white rounded-full w-12 h-12 mx-auto -mt-5"
+          size="icon"
+        >
+          <PlusCircle size={24} />
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-md">
+        <div className="space-y-4 py-2">
+          <h3 className="font-semibold text-lg">Create a Listing</h3>
+          <div className="grid gap-3">
+            <Button 
+              variant="outline" 
+              className="justify-start"
+              onClick={() => setIsOpen(false)}
+              asChild
+            >
+              <Link to={getListingPath()}>
+                <Building className="mr-2 h-4 w-4" />
+                {getListingLabel()}
+              </Link>
+            </Button>
+            
+            {role === 'seeker' && (
+              <Button 
+                variant="outline" 
+                className="justify-start"
+                onClick={() => setIsOpen(false)}
+                asChild
+              >
+                <Link to="/dashboard/profile">
+                  <User className="mr-2 h-4 w-4" />
+                  Update Profile
+                </Link>
+              </Button>
             )}
-          >
-            <User size={20} />
-            <span className="mt-1">Profile</span>
-          </Link>
+          </div>
         </div>
-      </nav>
-    </>
+      </DialogContent>
+    </Dialog>
   );
 }
