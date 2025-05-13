@@ -2,6 +2,7 @@
 import { Building, Home, MessageSquare, Users } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 export function LandlordDashboard() {
   return (
@@ -21,8 +22,8 @@ export function LandlordDashboard() {
           <CardContent>
             <div className="text-center py-6">
               <p className="mb-4">No properties listed yet</p>
-              <Button className="bg-roomie-purple hover:bg-roomie-dark">
-                Add Property
+              <Button className="bg-roomie-purple hover:bg-roomie-dark" asChild>
+                <Link to="/dashboard/landlord/add-property">Add Property</Link>
               </Button>
             </div>
           </CardContent>

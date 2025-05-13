@@ -1,19 +1,24 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { UserPreference } from "./types";
 
 export function WalletContent() {
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold tracking-tight">Wallet</h1>
-      <p className="text-muted-foreground">Connect your bank account and manage your finances.</p>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Wallet</h1>
+          <p className="text-muted-foreground mt-1">Manage your finances and transactions.</p>
+        </div>
+      </div>
       
       <Card>
         <CardHeader>
-          <CardTitle>Connect Bank Account</CardTitle>
-          <CardDescription>Securely link your financial information</CardDescription>
+          <CardTitle>Financial Overview</CardTitle>
+          <CardDescription>Your current balance and recent transactions</CardDescription>
         </CardHeader>
         <CardContent>
-          <p>This feature allows you to connect your bank account to facilitate payments and financial transactions within the app.</p>
+          <p>This feature is coming soon. You'll be able to track your payments, deposits, and more.</p>
         </CardContent>
       </Card>
     </div>
