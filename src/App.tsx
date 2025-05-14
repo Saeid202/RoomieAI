@@ -1,5 +1,4 @@
-
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/providers/ThemeProvider";
 import { AuthProvider } from "@/providers/AuthProvider";
@@ -21,6 +20,79 @@ import LandlordHomePage from "@/pages/dashboard/landlord/LandlordHome";
 import DeveloperHomePage from "@/pages/dashboard/developer/DeveloperHome";
 import AddPropertyPage from "@/pages/dashboard/landlord/AddProperty";
 import CoOwnerProfilePage from "@/pages/dashboard/profile/CoOwnerProfile";
+import { useAuth } from "@/hooks/useAuth";
+
+function AppRoutes() {
+  const { user, loading } = useAuth();
+  
+  // If user is authenticated, redirect from root to dashboard
+  if (!loading && user) {
+    return (
+      <Routes>
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/auth" element={<AuthPage />} />
+        <Route path="/auth/callback" element={<Callback />} />
+        <Route path="/dashboard" element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        }>
+          <Route path="profile" element={<Profile />} />
+          <Route path="profile/co-owner" element={<CoOwnerProfilePage />} />
+          <Route path="profile/roommate" element={<Profile />} />
+          <Route path="roommate-recommendations" element={<RoommateRecommendationsPage />} />
+          <Route path="rent-opportunities" element={<RentOpportunitiesPage />} />
+          <Route path="rent" element={<RentOpportunitiesPage />} />
+          <Route path="roommate" element={<RoommateRecommendationsPage />} />
+          <Route path="list-room" element={<Profile />} />
+          <Route path="rent-savings" element={<RentSavingsPage />} />
+          <Route path="co-owner-recommendations" element={<CoOwnerRecommendationsPage />} />
+          <Route path="co-ownership-opportunities" element={<CoOwnershipOpportunitiesPage />} />
+          <Route path="wallet" element={<WalletPage />} />
+          <Route path="legal-assistant" element={<LegalAssistantPage />} />
+          <Route path="chats" element={<ChatsPage />} />
+          <Route path="create-listing" element={<Profile />} />
+          <Route path="landlord" element={<LandlordHomePage />} />
+          <Route path="landlord/add-property" element={<AddPropertyPage />} />
+          <Route path="developer" element={<DeveloperHomePage />} />
+        </Route>
+      </Routes>
+    );
+  }
+  
+  // If user is not authenticated, show normal routes
+  return (
+    <Routes>
+      <Route path="/" element={<HomePage />} />
+      <Route path="/auth" element={<AuthPage />} />
+      <Route path="/auth/callback" element={<Callback />} />
+      <Route path="/dashboard" element={
+        <ProtectedRoute>
+          <Dashboard />
+        </ProtectedRoute>
+      }>
+        <Route path="profile" element={<Profile />} />
+        <Route path="profile/co-owner" element={<CoOwnerProfilePage />} />
+        <Route path="profile/roommate" element={<Profile />} />
+        <Route path="roommate-recommendations" element={<RoommateRecommendationsPage />} />
+        <Route path="rent-opportunities" element={<RentOpportunitiesPage />} />
+        <Route path="rent" element={<RentOpportunitiesPage />} />
+        <Route path="roommate" element={<RoommateRecommendationsPage />} />
+        <Route path="list-room" element={<Profile />} />
+        <Route path="rent-savings" element={<RentSavingsPage />} />
+        <Route path="co-owner-recommendations" element={<CoOwnerRecommendationsPage />} />
+        <Route path="co-ownership-opportunities" element={<CoOwnershipOpportunitiesPage />} />
+        <Route path="wallet" element={<WalletPage />} />
+        <Route path="legal-assistant" element={<LegalAssistantPage />} />
+        <Route path="chats" element={<ChatsPage />} />
+        <Route path="create-listing" element={<Profile />} />
+        <Route path="landlord" element={<LandlordHomePage />} />
+        <Route path="landlord/add-property" element={<AddPropertyPage />} />
+        <Route path="developer" element={<DeveloperHomePage />} />
+      </Route>
+    </Routes>
+  );
+}
 
 function App() {
   console.log("App component rendering");
@@ -28,35 +100,7 @@ function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/auth" element={<AuthPage />} />
-          <Route path="/auth/callback" element={<Callback />} />
-          <Route path="/dashboard" element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          }>
-            <Route path="profile" element={<Profile />} />
-            <Route path="profile/co-owner" element={<CoOwnerProfilePage />} />
-            <Route path="profile/roommate" element={<Profile />} />
-            <Route path="roommate-recommendations" element={<RoommateRecommendationsPage />} />
-            <Route path="rent-opportunities" element={<RentOpportunitiesPage />} />
-            <Route path="rent" element={<RentOpportunitiesPage />} />
-            <Route path="roommate" element={<RoommateRecommendationsPage />} />
-            <Route path="list-room" element={<Profile />} />
-            <Route path="rent-savings" element={<RentSavingsPage />} />
-            <Route path="co-owner-recommendations" element={<CoOwnerRecommendationsPage />} />
-            <Route path="co-ownership-opportunities" element={<CoOwnershipOpportunitiesPage />} />
-            <Route path="wallet" element={<WalletPage />} />
-            <Route path="legal-assistant" element={<LegalAssistantPage />} />
-            <Route path="chats" element={<ChatsPage />} />
-            <Route path="create-listing" element={<Profile />} />
-            <Route path="landlord" element={<LandlordHomePage />} />
-            <Route path="landlord/add-property" element={<AddPropertyPage />} />
-            <Route path="developer" element={<DeveloperHomePage />} />
-          </Route>
-        </Routes>
+        <AppRoutes />
         <Toaster />
       </AuthProvider>
     </ThemeProvider>
