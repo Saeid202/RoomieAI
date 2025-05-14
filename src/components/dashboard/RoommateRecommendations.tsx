@@ -28,6 +28,7 @@ export function RoommateRecommendations({ onError }: RoommateRecommendationsProp
     handleCloseDetails,
     findMatches,
     handleSaveProfile,
+    loadProfileData,
     initialized
   } = useRoommateMatching();
   
@@ -55,7 +56,14 @@ export function RoommateRecommendations({ onError }: RoommateRecommendationsProp
   }, [expandedSections, setActiveTab]);
 
   if (!initialized) {
-    return <ProfileLoadingHandler />;
+    return (
+      <ProfileLoadingHandler 
+        loadProfileData={loadProfileData} 
+        onError={handleError}
+      >
+        <div>Loading your profile data...</div>
+      </ProfileLoadingHandler>
+    );
   }
 
   return (
