@@ -19,6 +19,8 @@ import CoOwnershipOpportunitiesPage from "@/pages/dashboard/CoOwnershipOpportuni
 import ProtectedRoute from "@/components/ProtectedRoute";
 import LandlordHomePage from "@/pages/dashboard/landlord/LandlordHome";
 import DeveloperHomePage from "@/pages/dashboard/developer/DeveloperHome";
+import AddPropertyPage from "@/pages/dashboard/landlord/AddProperty";
+import CoOwnerProfilePage from "@/pages/dashboard/profile/CoOwnerProfile";
 
 function App() {
   console.log("App component rendering");
@@ -36,7 +38,7 @@ function App() {
             </ProtectedRoute>
           }>
             <Route path="profile" element={<Profile />} />
-            <Route path="profile/co-owner" element={<Profile />} />
+            <Route path="profile/co-owner" element={<CoOwnerProfilePage />} />
             <Route path="profile/roommate" element={<Profile />} />
             <Route path="roommate-recommendations" element={<RoommateRecommendationsPage />} />
             <Route path="rent-opportunities" element={<RentOpportunitiesPage />} />
@@ -51,6 +53,7 @@ function App() {
             <Route path="chats" element={<ChatsPage />} />
             <Route path="create-listing" element={<Profile />} />
             <Route path="landlord" element={<LandlordHomePage />} />
+            <Route path="landlord/add-property" element={<AddPropertyPage />} />
             <Route path="developer" element={<DeveloperHomePage />} />
           </Route>
         </Routes>

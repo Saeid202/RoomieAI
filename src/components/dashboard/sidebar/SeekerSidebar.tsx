@@ -1,14 +1,8 @@
 
+import { Link } from "react-router-dom";
 import { 
-  Home, 
-  Search, 
-  Users, 
-  Building, 
-  MessageSquare, 
-  Scale, 
-  Wallet, 
-  Settings, 
-  User
+  Home, Users, Building, Search, MessageSquare, 
+  Wallet, Scale, Settings, User, UserPlus 
 } from "lucide-react";
 import { SidebarSimpleMenuItem } from "./SidebarSimpleMenuItem";
 
@@ -21,23 +15,37 @@ export function SeekerSidebar({ isActive }: SeekerSidebarProps) {
     <>
       <SidebarSimpleMenuItem 
         icon={<Home size={18} />} 
-        label="Home"
+        label="Dashboard"
         to="/dashboard" 
         isActive={isActive('/dashboard')}
       />
       
       <SidebarSimpleMenuItem 
-        icon={<User size={18} />} 
-        label="My Profile"
-        to="/dashboard/profile" 
-        isActive={isActive('/dashboard/profile')}
+        icon={<Users size={18} />} 
+        label="Roommate Matches"
+        to="/dashboard/roommate-recommendations" 
+        isActive={isActive('/dashboard/roommate-recommendations')}
       />
       
       <SidebarSimpleMenuItem 
-        icon={<Users size={18} />} 
-        label="Roommate Recommendations"
-        to="/dashboard/roommate-recommendations" 
-        isActive={isActive('/dashboard/roommate-recommendations')}
+        icon={<User size={18} />} 
+        label="Roommate Profile"
+        to="/dashboard/profile/roommate" 
+        isActive={isActive('/dashboard/profile/roommate')}
+      />
+      
+      <SidebarSimpleMenuItem 
+        icon={<User size={18} />} 
+        label="Co-Owner Profile"
+        to="/dashboard/profile/co-owner" 
+        isActive={isActive('/dashboard/profile/co-owner')}
+      />
+      
+      <SidebarSimpleMenuItem 
+        icon={<UserPlus size={18} />} 
+        label="Co-Owner Matches"
+        to="/dashboard/co-owner-recommendations" 
+        isActive={isActive('/dashboard/co-owner-recommendations')}
       />
       
       <SidebarSimpleMenuItem 
@@ -49,30 +57,23 @@ export function SeekerSidebar({ isActive }: SeekerSidebarProps) {
       
       <SidebarSimpleMenuItem 
         icon={<Building size={18} />} 
-        label="Co-Owner Recommendations"
-        to="/dashboard/co-owner-recommendations" 
-        isActive={isActive('/dashboard/co-owner-recommendations')}
-      />
-      
-      <SidebarSimpleMenuItem 
-        icon={<Building size={18} />} 
-        label="Ownership Opportunities"
+        label="Co-Own Opportunities"
         to="/dashboard/co-ownership-opportunities" 
         isActive={isActive('/dashboard/co-ownership-opportunities')}
       />
       
       <SidebarSimpleMenuItem 
-        icon={<MessageSquare size={18} />} 
-        label="Chats"
-        to="/dashboard/chats" 
-        isActive={isActive('/dashboard/chats')}
+        icon={<Search size={18} />} 
+        label="Find Property"
+        to="/dashboard/find-property" 
+        isActive={isActive('/dashboard/find-property')}
       />
       
       <SidebarSimpleMenuItem 
-        icon={<Scale size={18} />} 
-        label="Legal Assistant"
-        to="/dashboard/legal-assistant" 
-        isActive={isActive('/dashboard/legal-assistant')}
+        icon={<MessageSquare size={18} />} 
+        label="Messages"
+        to="/dashboard/chats" 
+        isActive={isActive('/dashboard/chats')}
       />
       
       <SidebarSimpleMenuItem 
@@ -80,6 +81,13 @@ export function SeekerSidebar({ isActive }: SeekerSidebarProps) {
         label="Wallet"
         to="/dashboard/wallet" 
         isActive={isActive('/dashboard/wallet')}
+      />
+      
+      <SidebarSimpleMenuItem 
+        icon={<Scale size={18} />} 
+        label="Legal Assistant"
+        to="/dashboard/legal-assistant" 
+        isActive={isActive('/dashboard/legal-assistant')}
       />
       
       <SidebarSimpleMenuItem 
