@@ -29,13 +29,6 @@ export function SeekerSidebar({ isActive }: SeekerSidebarProps) {
       
       <SidebarSimpleMenuItem 
         icon={<User size={18} />} 
-        label="Roommate Profile"
-        to="/dashboard/profile/roommate" 
-        isActive={isActive('/dashboard/profile/roommate')}
-      />
-      
-      <SidebarSimpleMenuItem 
-        icon={<User size={18} />} 
         label="Co-Owner Profile"
         to="/dashboard/profile/co-owner" 
         isActive={isActive('/dashboard/profile/co-owner')}

@@ -1,15 +1,9 @@
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ProfileLoadingHandler } from "./recommendations/ProfileLoadingHandler";
-import { MatchFinder } from "./recommendations/MatchFinder";
-import { EmptyState } from "./recommendations/EmptyState";
-import { ResultsSection } from "./recommendations/ResultsSection";
-import { useRoommateMatching } from "@/hooks/useRoommateMatching";
-import { LoadingAndErrorStates } from "./recommendations/components/LoadingAndErrorStates";
-import { TabsSection } from "./recommendations/components/TabsSection";
-import { ProfileFormValues } from "@/types/profile";
+import { Button } from "@/components/ui/button";
+import { Info, PlayCircle } from "lucide-react";
 
 interface RoommateRecommendationsProps {
   onError?: (error: Error) => void;
@@ -17,55 +11,10 @@ interface RoommateRecommendationsProps {
 
 export function RoommateRecommendations({ onError }: RoommateRecommendationsProps) {
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
-  const [hasSearched, setHasSearched] = useState(false);
-  const [activeTab, setActiveTab] = useState("about-me");
-  const [componentMounted, setComponentMounted] = useState(false);
-  const [internalError, setInternalError] = useState<Error | null>(null);
-  const [isRetrying, setIsRetrying] = useState(false);
-  const [expandedSections, setExpandedSections] = useState<string[]>(["about-me"]);
-  
-  const {
-    loading: profileLoading,
-    profileData,
-    roommates,
-    properties,
-    selectedMatch,
-    activeTab: resultsTab,
-    setActiveTab: setResultsTab,
-    handleViewDetails,
-    handleCloseDetails,
-    findMatches,
-    handleSaveProfile,
-    loadProfileData,
-    initialized
-  } = useRoommateMatching();
-
-  // Mark component as mounted immediately to reduce loading time
-  useEffect(() => {
-    setComponentMounted(true);
-    
-    return () => {
-      console.log("RoommateRecommendations component unmounted");
-    };
-  }, []);
-
-  const handleStartLoading = useCallback(() => {
-    setIsLoading(true);
-  }, []);
-
-  const handleFinishLoading = useCallback(() => {
-    setIsLoading(false);
-    setHasSearched(true);
-  }, []);
-
-  const handleTabChange = useCallback((value: string) => {
-    setActiveTab(value);
-  }, []);
+  const [showVideo, setShowVideo] = useState(false);
 
   const handleError = useCallback((error: Error) => {
     console.error("Error in RoommateRecommendations:", error);
-    setInternalError(error);
     
     toast({
       title: "Error",
@@ -78,96 +27,120 @@ export function RoommateRecommendations({ onError }: RoommateRecommendationsProp
     }
   }, [toast, onError]);
 
-  const handleRetry = useCallback(() => {
-    setIsRetrying(true);
-    setInternalError(null);
-    
-    loadProfileData()
-      .then(() => {
-        setIsRetrying(false);
-      })
-      .catch(err => {
-        handleError(err instanceof Error ? err : new Error(String(err)));
-        setIsRetrying(false);
-      });
-  }, [loadProfileData, handleError]);
-
-  const onSaveProfile = async (formData: ProfileFormValues): Promise<void> => {
-    try {
-      await handleSaveProfile(formData);
-      return Promise.resolve();
-    } catch (error) {
-      console.error("Error in onSaveProfile:", error);
-      const errorObj = error instanceof Error ? error : new Error("Failed to save profile");
-      handleError(errorObj);
-      return Promise.reject(errorObj);
-    }
+  const handlePlayVideo = () => {
+    setShowVideo(true);
   };
 
   return (
-    <ProfileLoadingHandler loadProfileData={loadProfileData} onError={handleError}>
-      <div className="space-y-6">
-        <div className="flex justify-between items-start">
-          <div>
-            <h1 className="text-2xl font-bold mb-2">Find Your Ideal Roommate</h1>
-            <p className="text-muted-foreground">
-              Complete your profile, tell us about your ideal roommate, and we'll find your perfect match!
-            </p>
-          </div>
+    <div className="space-y-6">
+      <div className="flex justify-between items-start">
+        <div>
+          <h1 className="text-2xl font-bold mb-2">Roomie AI</h1>
+          <p className="text-muted-foreground">
+            Your intelligent roommate matching assistant powered by advanced AI
+          </p>
         </div>
-        
-        <LoadingAndErrorStates
-          componentMounted={componentMounted}
-          initialized={initialized}
-          internalError={internalError}
-          isRetrying={isRetrying}
-          handleRetry={handleRetry}
-        />
-        
-        {!internalError && (
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle>Your Profile</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <TabsSection
-                activeTab={activeTab}
-                expandedSections={expandedSections}
-                setExpandedSections={setExpandedSections}
-                handleTabChange={handleTabChange}
-                profileData={profileData}
-                onSaveProfile={onSaveProfile}
-              />
-            </CardContent>
-          </Card>
-        )}
-        
-        <MatchFinder
-          profileData={profileData}
-          findMatches={findMatches}
-          onStartLoading={handleStartLoading}
-          onFinishLoading={handleFinishLoading}
-          onError={handleError}
-        />
-        
-        {hasSearched && (
-          <div data-results-section>
-            {roommates.length > 0 || properties.length > 0 ? (
-              <ResultsSection
-                roommates={roommates}
-                properties={properties}
-                selectedMatch={selectedMatch}
-                activeTab={resultsTab}
-                setActiveTab={setResultsTab}
-                onViewDetails={handleViewDetails}
-                onCloseDetails={handleCloseDetails}
-              />
-            ) : (
-              <EmptyState />
-            )}
-          </div>
-        )}
       </div>
-    </ProfileLoadingHandler>
+      
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle>Meet Roomie AI</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="flex flex-col md:flex-row gap-6">
+            <div className="md:w-1/2 space-y-4">
+              <div className="flex items-center gap-2">
+                <Info className="h-5 w-5 text-primary" />
+                <h3 className="text-lg font-medium">About Roomie AI</h3>
+              </div>
+              <p>
+                Roomie AI is our advanced artificial intelligence system designed to help you find 
+                the perfect roommate match. Using sophisticated algorithms and machine learning, 
+                Roomie AI analyzes over 20 compatibility factors including lifestyle habits, 
+                schedules, and personal preferences.
+              </p>
+              <div className="space-y-2">
+                <h4 className="font-medium">Key Features:</h4>
+                <ul className="list-disc pl-5 space-y-1">
+                  <li>Personality compatibility analysis</li>
+                  <li>Lifestyle and habit matching</li>
+                  <li>Schedule compatibility detection</li>
+                  <li>Location and commute optimization</li>
+                  <li>Budget alignment verification</li>
+                </ul>
+              </div>
+              <p>
+                By understanding your unique preferences and comparing them with thousands of potential 
+                roommates, Roomie AI helps you find people you'll truly enjoy living with.
+              </p>
+              {!showVideo && (
+                <Button 
+                  className="mt-4 flex items-center gap-2" 
+                  onClick={handlePlayVideo}
+                >
+                  <PlayCircle className="h-4 w-4" />
+                  Watch Introduction Video
+                </Button>
+              )}
+            </div>
+            <div className="md:w-1/2">
+              {showVideo ? (
+                <div className="aspect-video rounded-md overflow-hidden bg-black">
+                  <iframe
+                    className="w-full h-full"
+                    src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1"
+                    title="Roomie AI Introduction"
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  ></iframe>
+                </div>
+              ) : (
+                <div className="aspect-video rounded-md bg-muted flex items-center justify-center cursor-pointer" onClick={handlePlayVideo}>
+                  <div className="flex flex-col items-center gap-2">
+                    <PlayCircle className="h-16 w-16 text-primary opacity-80" />
+                    <span className="font-medium">Click to watch introduction video</span>
+                  </div>
+                </div>
+              )}
+              <div className="mt-4 text-sm text-muted-foreground">
+                <p>
+                  Learn how Roomie AI works and how it can help you find your perfect roommate match. 
+                  This short video explains our matching process and how to get the most out of our platform.
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="pt-6 border-t">
+            <h3 className="text-lg font-medium mb-4">Start Finding Matches</h3>
+            <div className="grid gap-4 md:grid-cols-2">
+              <Card className="bg-primary/5 border-primary/20">
+                <CardContent className="p-4">
+                  <h4 className="font-semibold mb-2">Find Roommates</h4>
+                  <p className="text-sm mb-4">
+                    Discover compatible roommates based on your lifestyle, preferences, and personality traits.
+                  </p>
+                  <Button variant="default" asChild>
+                    <a href="/dashboard/roommate-recommendations">Explore Roommate Matches</a>
+                  </Button>
+                </CardContent>
+              </Card>
+              <Card className="bg-primary/5 border-primary/20">
+                <CardContent className="p-4">
+                  <h4 className="font-semibold mb-2">Co-Owner Matching</h4>
+                  <p className="text-sm mb-4">
+                    Looking to co-own a property? Find reliable co-owners to share investment and responsibilities.
+                  </p>
+                  <Button variant="default" asChild>
+                    <a href="/dashboard/co-owner-recommendations">Explore Co-Owner Matches</a>
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

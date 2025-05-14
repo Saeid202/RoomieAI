@@ -4,7 +4,6 @@ import { UserPreference } from "@/components/dashboard/types";
 import { ProfileLoadingState } from "./ProfileLoadingState";
 import { EmptyProfileState } from "./EmptyProfileState";
 import { useViewSelector } from "./ViewSelector";
-import { RoommateProfileView } from "./RoommateProfileView";
 import { CoOwnerProfileView } from "./CoOwnerProfileView";
 
 interface ProfileContentRendererProps {
@@ -15,7 +14,7 @@ interface ProfileContentRendererProps {
   navigate: (path: string) => void;
   activeTab: string;
   setActiveTab: (value: string) => void;
-  forcedView?: 'roommate' | 'co-owner' | null;
+  forcedView?: 'co-owner' | null;
 }
 
 export function ProfileContentRenderer({ 
@@ -38,19 +37,13 @@ export function ProfileContentRenderer({
     return <ProfileLoadingState />;
   }
 
-  // Handle co-owner profile view specifically
+  // Handle co-owner profile view
   if (displayView === 'co-owner' || forcedView === 'co-owner') {
     console.log("ProfileContentRenderer - Rendering Co-Owner view");
     return <CoOwnerProfileView />;
   }
   
-  // Default to roommate profile view
-  if (displayView === 'roommate' || !displayView) {
-    console.log("ProfileContentRenderer - Rendering Roommate view");
-    return <RoommateProfileView profileData={profileData} onSave={onSave} />;
-  }
-
-  // Fallback to empty state if somehow no view was determined
+  // Fallback to empty state if somehow no valid view was determined
   console.log("ProfileContentRenderer - No valid view found, showing empty state");
   return <EmptyProfileState />;
 }

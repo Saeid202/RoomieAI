@@ -38,8 +38,8 @@ export default function Dashboard() {
     } else if (assignedRole === 'developer') {
       return <Navigate to="/dashboard/developer" replace />;
     } else if (assignedRole === 'seeker' || !assignedRole) {
-      // Default to roommate-recommendations for seeker role or no role
-      return <Navigate to="/dashboard/roommate-recommendations" replace />;
+      // Default to co-owner-recommendations for seeker role or no role
+      return <Navigate to="/dashboard/co-owner-recommendations" replace />;
     }
   }
   

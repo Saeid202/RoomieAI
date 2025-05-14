@@ -4,7 +4,7 @@ import { useLocation } from "react-router-dom";
 
 interface ViewSelectorProps {
   userPreference: UserPreference;
-  forcedView?: 'roommate' | 'co-owner' | null;
+  forcedView?: 'co-owner' | null;
 }
 
 /**
@@ -19,25 +19,21 @@ export function useViewSelector({
   const path = location.pathname;
 
   // Check if we're on a specific profile route
-  const isRoommatePage = path.includes('/profile/roommate');
   const isCoOwnerPage = path.includes('/profile/co-owner');
   
   // Route-based view takes precedence over forcedView and userPreference
-  let displayView = isRoommatePage 
-    ? 'roommate' 
-    : isCoOwnerPage 
-      ? 'co-owner' 
-      : forcedView || userPreference;
+  let displayView = isCoOwnerPage 
+    ? 'co-owner'
+    : forcedView || userPreference;
   
   // Fallback to a default view if none is set
   if (!displayView && path.includes('/profile')) {
-    console.log("ViewSelector - No preference found, defaulting to roommate view");
-    displayView = 'roommate';
+    console.log("ViewSelector - No preference found, defaulting to co-owner view");
+    displayView = 'co-owner';
   }
 
   // Add debugging logs
   console.log("ViewSelector - path:", path);
-  console.log("ViewSelector - isRoommatePage:", isRoommatePage);
   console.log("ViewSelector - isCoOwnerPage:", isCoOwnerPage);
   console.log("ViewSelector - forcedView:", forcedView);
   console.log("ViewSelector - userPreference:", userPreference);
@@ -45,7 +41,6 @@ export function useViewSelector({
 
   return {
     displayView,
-    isRoommatePage,
     isCoOwnerPage
   };
 }
