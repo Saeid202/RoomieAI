@@ -16,14 +16,13 @@ export function FormDisplaySection({
   const navigate = useNavigate();
   
   const handleFillProfile = () => {
-    navigate('/dashboard/profile');
+    navigate('/dashboard/profile/co-owner');
   };
   
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold tracking-tight">
-          {preference === "roommate" && "Find Your Perfect Roommate"}
           {preference === "co-owner" && "Find Your Co-ownership Partner"}
         </h1>
         <button 
@@ -34,24 +33,6 @@ export function FormDisplaySection({
           Change my preference
         </button>
       </div>
-      
-      {preference === "roommate" && (
-        <div className="mb-6">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex flex-col items-center">
-                <p className="text-gray-600 mb-4">Fill out your roommate profile to find matches</p>
-                <button 
-                  onClick={handleFillProfile}
-                  className="px-4 py-2 bg-roomie-purple text-white rounded-md hover:bg-roomie-purple/90 transition-colors"
-                >
-                  Fill Profile
-                </button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
       
       {preference === "co-owner" && (
         <div className="mb-6">

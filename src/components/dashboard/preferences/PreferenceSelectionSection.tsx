@@ -1,6 +1,6 @@
 
 import { motion } from "framer-motion";
-import { Home, Users } from "lucide-react";
+import { Home } from "lucide-react";
 import { PreferenceCard } from "./PreferenceCard";
 import { UserPreference } from "../types";
 
@@ -23,14 +23,7 @@ export function PreferenceSelectionSection({
         </p>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4 mx-auto max-w-3xl">
-        <PreferenceCard
-          title="Roommate"
-          description="I'm looking for someone to share a rental with me"
-          icon={Users}
-          selected={preference === "roommate"}
-          onSelect={() => handlePreferenceSelect("roommate")}
-        />
+      <div className="grid grid-cols-1 md:grid-cols-1 gap-6 mt-4 mx-auto max-w-3xl">
         <PreferenceCard
           title="Co-owner"
           description="I'm looking for someone to purchase property with me"

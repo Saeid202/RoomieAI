@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { ProfileFormValues } from "@/types/profile";
 import { ProfileTableRow, TableName } from "@/components/dashboard/types/profileTypes";
@@ -12,13 +11,10 @@ import { CoOwnerFormValues } from "@/components/dashboard/co-owner/types";
 export function getTableNameFromPreference(preference: UserPreference): TableName | null {
   if (!preference) return null;
   
-  if (preference === 'roommate') {
-    return 'roommate';
-  } else if (preference === 'co-owner') {
+  if (preference === 'co-owner') {
     return 'co-owner';
   }
   
-  // Remove "Both" option as it's been deprecated
   return null;
 }
 

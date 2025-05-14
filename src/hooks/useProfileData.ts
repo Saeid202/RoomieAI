@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -26,7 +25,7 @@ export function useProfileData() {
 
     const savedPreference = localStorage.getItem('userPreference') as UserPreference;
     
-    const validPreference = savedPreference === 'roommate' || savedPreference === 'co-owner' ? savedPreference : null;
+    const validPreference = savedPreference === 'co-owner' ? savedPreference : null;
     setUserPreference(validPreference);
 
     const loadProfileData = async () => {
