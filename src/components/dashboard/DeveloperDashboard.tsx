@@ -1,9 +1,34 @@
 
-import { Building, Home, MessageSquare, Users } from "lucide-react";
+import { Building, ChartBar, Home, MessageSquare, Users } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Property, getPropertiesByOwnerId } from "@/services/propertyService";
 
 export function DeveloperDashboard() {
+  const [properties, setProperties] = useState<Property[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  useEffect(() => {
+    const fetchProperties = async () => {
+      try {
+        setIsLoading(true);
+        const data = await getPropertiesByOwnerId();
+        setProperties(data.filter(p => p.propertyType === 'sale'));
+      } catch (error) {
+        console.error("Error fetching properties:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProperties();
+  }, []);
+  
+  const propertyCount = properties.length;
+  const inquiryCount = 0; // This would come from a backend call in a real app
+
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold tracking-tight">Builder/Realtor Dashboard</h1>
@@ -20,10 +45,24 @@ export function DeveloperDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-center py-6">
-              <p className="mb-4">No properties listed yet</p>
-              <Button className="bg-roomie-purple hover:bg-roomie-dark">
-                Add Property
-              </Button>
+              {isLoading ? (
+                <p>Loading properties...</p>
+              ) : propertyCount > 0 ? (
+                <>
+                  <p className="text-3xl font-bold mb-2">{propertyCount}</p>
+                  <p className="mb-4">Properties listed</p>
+                  <Button className="bg-roomie-purple hover:bg-roomie-dark" asChild>
+                    <Link to="/dashboard/developer/properties">View Properties</Link>
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <p className="mb-4">No properties listed yet</p>
+                  <Button className="bg-roomie-purple hover:bg-roomie-dark" asChild>
+                    <Link to="/dashboard/developer/properties">Add Property</Link>
+                  </Button>
+                </>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -38,7 +77,17 @@ export function DeveloperDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-center py-6">
-              <p>No interested buyers yet</p>
+              {isLoading ? (
+                <p>Loading inquiries...</p>
+              ) : (
+                <>
+                  <p className="text-3xl font-bold mb-2">{inquiryCount}</p>
+                  <p className="mb-4">Buyer inquiries</p>
+                  <Button className="bg-roomie-purple hover:bg-roomie-dark" asChild>
+                    <Link to="/dashboard/developer/inquiries">View Inquiries</Link>
+                  </Button>
+                </>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -46,14 +95,16 @@ export function DeveloperDashboard() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2">
-              <MessageSquare className="h-5 w-5 text-roomie-purple" />
-              <span>Messages</span>
+              <ChartBar className="h-5 w-5 text-roomie-purple" />
+              <span>Market Analysis</span>
             </CardTitle>
-            <CardDescription>Communicate with potential buyers</CardDescription>
+            <CardDescription>View real estate market trends</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="text-center py-6">
-              <p>No messages yet</p>
+              <Button className="bg-roomie-purple hover:bg-roomie-dark" asChild>
+                <Link to="/dashboard/developer/market">View Analytics</Link>
+              </Button>
             </div>
           </CardContent>
         </Card>

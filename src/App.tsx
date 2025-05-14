@@ -20,6 +20,12 @@ import LandlordHomePage from "@/pages/dashboard/landlord/LandlordHome";
 import DeveloperHomePage from "@/pages/dashboard/developer/DeveloperHome";
 import AddPropertyPage from "@/pages/dashboard/landlord/AddProperty";
 import CoOwnerProfilePage from "@/pages/dashboard/profile/CoOwnerProfile";
+import PropertiesPage from "@/pages/dashboard/landlord/Properties";
+import ApplicationsPage from "@/pages/dashboard/landlord/Applications";
+import DeveloperPropertiesPage from "@/pages/dashboard/developer/Properties"; 
+import MarketAnalysisPage from "@/pages/dashboard/developer/MarketAnalysis";
+import BuyerInquiriesPage from "@/pages/dashboard/developer/BuyerInquiries";
+import SettingsPage from "@/pages/dashboard/Settings";
 import { useAuth } from "@/hooks/useAuth";
 
 function AppRoutes() {
@@ -54,7 +60,13 @@ function AppRoutes() {
           <Route path="create-listing" element={<Profile />} />
           <Route path="landlord" element={<LandlordHomePage />} />
           <Route path="landlord/add-property" element={<AddPropertyPage />} />
+          <Route path="landlord/properties" element={<PropertiesPage />} />
+          <Route path="landlord/applications" element={<ApplicationsPage />} />
           <Route path="developer" element={<DeveloperHomePage />} />
+          <Route path="developer/properties" element={<DeveloperPropertiesPage />} />
+          <Route path="developer/market" element={<MarketAnalysisPage />} />
+          <Route path="developer/inquiries" element={<BuyerInquiriesPage />} />
+          <Route path="settings" element={<SettingsPage />} />
         </Route>
       </Routes>
     );
@@ -88,7 +100,13 @@ function AppRoutes() {
         <Route path="create-listing" element={<Profile />} />
         <Route path="landlord" element={<LandlordHomePage />} />
         <Route path="landlord/add-property" element={<AddPropertyPage />} />
+        <Route path="landlord/properties" element={<PropertiesPage />} />
+        <Route path="landlord/applications" element={<ApplicationsPage />} />
         <Route path="developer" element={<DeveloperHomePage />} />
+        <Route path="developer/properties" element={<DeveloperPropertiesPage />} />
+        <Route path="developer/market" element={<MarketAnalysisPage />} />
+        <Route path="developer/inquiries" element={<BuyerInquiriesPage />} />
+        <Route path="settings" element={<SettingsPage />} />
       </Route>
     </Routes>
   );
