@@ -62,6 +62,16 @@ export function RouteGuard({ children }: RouteGuardProps) {
         return false;
       }
       
+      if (location.pathname.includes('/dashboard/admin') && assignedRole !== 'admin') {
+        toast({
+          title: "Access restricted",
+          description: "You need to be an Administrator to access this section",
+          variant: "destructive",
+        });
+        navigate('/dashboard', { replace: true });
+        return false;
+      }
+      
       return true;
     };
     
@@ -72,6 +82,8 @@ export function RouteGuard({ children }: RouteGuardProps) {
         navigate('/dashboard/landlord', { replace: true });
       } else if (assignedRole === 'developer') {
         navigate('/dashboard/developer', { replace: true });
+      } else if (assignedRole === 'admin') {
+        navigate('/dashboard/admin', { replace: true });
       } else {
         navigate('/dashboard/roommate-recommendations', { replace: true });
       }

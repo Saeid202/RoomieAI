@@ -1,5 +1,5 @@
 
-import { Building, User, HardHat } from "lucide-react";
+import { Building, User, HardHat, Shield } from "lucide-react";
 import { useRole, UserRole } from "@/contexts/RoleContext";
 import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
@@ -39,6 +39,12 @@ export function RoleToggle() {
           title: 'Developer Portal',
           description: 'List and manage properties for sale only',
           icon: <HardHat className="h-5 w-5 text-roomie-purple" />
+        };
+      case 'admin':
+        return {
+          title: 'Admin Portal',
+          description: 'Manage site content, users, and settings',
+          icon: <Shield className="h-5 w-5 text-roomie-purple" />
         };
       default:
         return {

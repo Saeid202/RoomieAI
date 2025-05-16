@@ -18,10 +18,13 @@ export function RoleProvider({ children }: { children: ReactNode }) {
   const toggleRole = () => {
     // Cycle through roles: seeker -> landlord -> developer -> admin -> seeker
     setRole(prev => {
-      if (prev === 'seeker') return 'landlord';
-      if (prev === 'landlord') return 'developer';
-      if (prev === 'developer') return 'admin';
-      return 'seeker';
+      switch(prev) {
+        case 'seeker': return 'landlord';
+        case 'landlord': return 'developer';
+        case 'developer': return 'admin';
+        case 'admin': return 'seeker';
+        default: return 'seeker';
+      }
     });
   };
 

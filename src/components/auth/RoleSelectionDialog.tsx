@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { User, Building, HardHat } from "lucide-react";
+import { User, Building, HardHat, Shield } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useRole, UserRole } from "@/contexts/RoleContext";
 import { useNavigate } from "react-router-dom";
@@ -78,6 +78,9 @@ export function RoleSelectionDialog({
       case 'developer':
         navigate('/dashboard/developer');
         break;
+      case 'admin':
+        navigate('/dashboard/admin');
+        break;
       case 'seeker':
         navigate('/dashboard/roommate-recommendations');
         break;
@@ -92,6 +95,8 @@ export function RoleSelectionDialog({
         return 'Landlord';
       case 'developer':
         return 'Builder/Realtor';
+      case 'admin':
+        return 'Administrator';
       default:
         return 'User';
     }
@@ -105,6 +110,8 @@ export function RoleSelectionDialog({
         return 'List and manage rental properties, communicate with potential tenants.';
       case 'developer':
         return 'List properties for sale, manage property listings, engage with potential buyers.';
+      case 'admin':
+        return 'Manage the website content, user accounts, and system settings.';
       default:
         return '';
     }
@@ -158,6 +165,17 @@ export function RoleSelectionDialog({
               onClick={() => handleRoleSelect('developer')}
               isLoading={loading && selectedRole === 'developer'}
               isCurrent={currentRole === 'developer'}
+            />
+            
+            <RoleCard
+              role="admin"
+              icon={<Shield size={24} />}
+              title="Administrator"
+              description={getRoleDescription('admin')}
+              isSelected={selectedRole === 'admin'}
+              onClick={() => handleRoleSelect('admin')}
+              isLoading={loading && selectedRole === 'admin'}
+              isCurrent={currentRole === 'admin'}
             />
           </div>
         </div>

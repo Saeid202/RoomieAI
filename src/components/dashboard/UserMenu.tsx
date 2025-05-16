@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { LogOut, Settings, ChevronDown, User, Home, Building, HardHat } from "lucide-react";
+import { LogOut, Settings, ChevronDown, User, Home, Building, HardHat, Shield } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -55,6 +55,8 @@ export function UserMenu() {
         return 'Landlord';
       case 'developer':
         return 'Builder/Realtor';
+      case 'admin':
+        return 'Administrator';
       default:
         return 'User';
     }
@@ -68,6 +70,8 @@ export function UserMenu() {
         return <Building className="h-4 w-4 text-roomie-purple" />;
       case 'developer':
         return <HardHat className="h-4 w-4 text-roomie-purple" />;
+      case 'admin':
+        return <Shield className="h-4 w-4 text-roomie-purple" />;
       default:
         return <User className="h-4 w-4 text-roomie-purple" />;
     }
