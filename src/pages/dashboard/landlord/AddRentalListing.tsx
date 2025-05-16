@@ -18,7 +18,7 @@ export default function AddRentalListingPage() {
         </div>
       </div>
       
-      <PropertyForm propertyType="rental" />
+      <PropertyForm propertyType="rent" />
     </div>
   );
 }
