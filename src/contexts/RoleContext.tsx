@@ -2,7 +2,7 @@
 import { createContext, useContext, useState, ReactNode } from 'react';
 
 // Define possible user roles
-export type UserRole = 'seeker' | 'landlord' | 'developer';
+export type UserRole = 'seeker' | 'landlord' | 'developer' | 'admin';
 
 type RoleContextType = {
   role: UserRole;
@@ -16,10 +16,11 @@ export function RoleProvider({ children }: { children: ReactNode }) {
   const [role, setRole] = useState<UserRole>('seeker');
 
   const toggleRole = () => {
-    // Cycle through roles: seeker -> landlord -> developer -> seeker
+    // Cycle through roles: seeker -> landlord -> developer -> admin -> seeker
     setRole(prev => {
       if (prev === 'seeker') return 'landlord';
       if (prev === 'landlord') return 'developer';
+      if (prev === 'developer') return 'admin';
       return 'seeker';
     });
   };

@@ -19,6 +19,10 @@ import CoOwnershipOpportunitiesPage from "@/pages/dashboard/CoOwnershipOpportuni
 import ProtectedRoute from "@/components/ProtectedRoute";
 import LandlordHomePage from "@/pages/dashboard/landlord/LandlordHome";
 import DeveloperHomePage from "@/pages/dashboard/developer/DeveloperHome";
+import AdminHomePage from "@/pages/dashboard/admin/AdminHome";
+import PagesPage from "@/pages/dashboard/admin/Pages";
+import UsersPage from "@/pages/dashboard/admin/Users";
+import SettingsPage from "@/pages/dashboard/admin/Settings";
 import AddPropertyPage from "@/pages/dashboard/landlord/AddProperty";
 import DeveloperAddPropertyPage from "@/pages/dashboard/developer/AddProperty";
 import AddRentalListingPage from "@/pages/dashboard/landlord/AddRentalListing";
@@ -29,7 +33,6 @@ import DeveloperPropertiesPage from "@/pages/dashboard/developer/Properties";
 import MarketAnalysisPage from "@/pages/dashboard/developer/MarketAnalysis";
 import BuyerInquiriesPage from "@/pages/dashboard/developer/BuyerInquiries";
 import FindPropertyPage from "@/pages/dashboard/FindProperty";
-import SettingsPage from "@/pages/dashboard/Settings";
 import { useAuth } from "@/hooks/useAuth";
 
 function AppRoutes() {
@@ -73,6 +76,10 @@ function AppRoutes() {
           <Route path="developer/market" element={<MarketAnalysisPage />} />
           <Route path="developer/inquiries" element={<BuyerInquiriesPage />} />
           <Route path="developer/add-property" element={<DeveloperAddPropertyPage />} />
+          <Route path="admin" element={<AdminHomePage />} />
+          <Route path="admin/pages" element={<PagesPage />} />
+          <Route path="admin/users" element={<UsersPage />} />
+          <Route path="admin/settings" element={<SettingsPage />} />
           <Route path="settings" element={<SettingsPage />} />
         </Route>
       </Routes>
@@ -116,6 +123,10 @@ function AppRoutes() {
         <Route path="developer/market" element={<MarketAnalysisPage />} />
         <Route path="developer/inquiries" element={<BuyerInquiriesPage />} />
         <Route path="developer/add-property" element={<DeveloperAddPropertyPage />} />
+        <Route path="admin" element={<AdminHomePage />} />
+        <Route path="admin/pages" element={<PagesPage />} />
+        <Route path="admin/users" element={<UsersPage />} />
+        <Route path="admin/settings" element={<SettingsPage />} />
         <Route path="settings" element={<SettingsPage />} />
       </Route>
     </Routes>

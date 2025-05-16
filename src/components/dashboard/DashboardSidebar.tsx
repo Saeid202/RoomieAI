@@ -18,6 +18,7 @@ import { useRole } from "@/contexts/RoleContext";
 import { SeekerSidebar } from "./sidebar/SeekerSidebar";
 import { LandlordSidebar } from "./sidebar/LandlordSidebar";
 import { DeveloperSidebar } from "./sidebar/DeveloperSidebar";
+import { AdminSidebar } from "./sidebar/AdminSidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Menu, X } from "lucide-react";
 
@@ -43,6 +44,7 @@ export function DashboardSidebar() {
           <h2 className="text-xl font-bold">
             {role === 'landlord' ? 'Landlord Portal' : 
              role === 'developer' ? 'Developer Portal' : 
+             role === 'admin' ? 'Admin Portal' :
              'Roommate Finder'}
           </h2>
         </SidebarHeader>
@@ -55,12 +57,14 @@ export function DashboardSidebar() {
             <SidebarGroupLabel>Main</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {role === 'seeker' ? (
-                  <SeekerSidebar isActive={isActive} />
+                {role === 'admin' ? (
+                  <AdminSidebar isActive={isActive} />
                 ) : role === 'landlord' ? (
                   <LandlordSidebar isActive={isActive} />
-                ) : (
+                ) : role === 'developer' ? (
                   <DeveloperSidebar isActive={isActive} />
+                ) : (
+                  <SeekerSidebar isActive={isActive} />
                 )}
               </SidebarMenu>
             </SidebarGroupContent>

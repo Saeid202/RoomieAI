@@ -38,6 +38,8 @@ export default function Dashboard() {
       return <Navigate to="/dashboard/landlord" replace />;
     } else if (assignedRole === 'developer') {
       return <Navigate to="/dashboard/developer" replace />;
+    } else if (assignedRole === 'admin') {
+      return <Navigate to="/dashboard/admin" replace />;
     }
   }
 
