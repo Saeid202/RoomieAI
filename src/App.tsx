@@ -1,3 +1,4 @@
+
 import { Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/providers/ThemeProvider";
@@ -20,12 +21,14 @@ import LandlordHomePage from "@/pages/dashboard/landlord/LandlordHome";
 import DeveloperHomePage from "@/pages/dashboard/developer/DeveloperHome";
 import AddPropertyPage from "@/pages/dashboard/landlord/AddProperty";
 import DeveloperAddPropertyPage from "@/pages/dashboard/developer/AddProperty";
+import AddRentalListingPage from "@/pages/dashboard/landlord/AddRentalListing";
 import CoOwnerProfilePage from "@/pages/dashboard/profile/CoOwnerProfile";
 import PropertiesPage from "@/pages/dashboard/landlord/Properties";
 import ApplicationsPage from "@/pages/dashboard/landlord/Applications";
 import DeveloperPropertiesPage from "@/pages/dashboard/developer/Properties"; 
 import MarketAnalysisPage from "@/pages/dashboard/developer/MarketAnalysis";
 import BuyerInquiriesPage from "@/pages/dashboard/developer/BuyerInquiries";
+import FindPropertyPage from "@/pages/dashboard/FindProperty";
 import SettingsPage from "@/pages/dashboard/Settings";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -49,9 +52,11 @@ function AppRoutes() {
           <Route path="profile/roommate" element={<Profile />} />
           <Route path="roommate-recommendations" element={<RoommateRecommendationsPage />} />
           <Route path="rent-opportunities" element={<RentOpportunitiesPage />} />
+          <Route path="add-rental-listing" element={<AddRentalListingPage />} />
           <Route path="rent" element={<RentOpportunitiesPage />} />
           <Route path="roommate" element={<RoommateRecommendationsPage />} />
           <Route path="list-room" element={<Profile />} />
+          <Route path="find-property" element={<FindPropertyPage />} />
           <Route path="rent-savings" element={<RentSavingsPage />} />
           <Route path="co-owner-recommendations" element={<CoOwnerRecommendationsPage />} />
           <Route path="co-ownership-opportunities" element={<CoOwnershipOpportunitiesPage />} />
@@ -90,9 +95,11 @@ function AppRoutes() {
         <Route path="profile/roommate" element={<Profile />} />
         <Route path="roommate-recommendations" element={<RoommateRecommendationsPage />} />
         <Route path="rent-opportunities" element={<RentOpportunitiesPage />} />
+        <Route path="add-rental-listing" element={<AddRentalListingPage />} />
         <Route path="rent" element={<RentOpportunitiesPage />} />
         <Route path="roommate" element={<RoommateRecommendationsPage />} />
         <Route path="list-room" element={<Profile />} />
+        <Route path="find-property" element={<FindPropertyPage />} />
         <Route path="rent-savings" element={<RentSavingsPage />} />
         <Route path="co-owner-recommendations" element={<CoOwnerRecommendationsPage />} />
         <Route path="co-ownership-opportunities" element={<CoOwnershipOpportunitiesPage />} />
@@ -108,6 +115,7 @@ function AppRoutes() {
         <Route path="developer/properties" element={<DeveloperPropertiesPage />} />
         <Route path="developer/market" element={<MarketAnalysisPage />} />
         <Route path="developer/inquiries" element={<BuyerInquiriesPage />} />
+        <Route path="developer/add-property" element={<DeveloperAddPropertyPage />} />
         <Route path="settings" element={<SettingsPage />} />
       </Route>
     </Routes>
