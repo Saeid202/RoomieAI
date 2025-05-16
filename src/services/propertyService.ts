@@ -26,6 +26,25 @@ export interface Property {
   virtualTourUrl?: string;
   parkingType?: string;
   lotSize?: number;
+  // Developer specific fields
+  propertyStatus?: string;
+  developerName?: string;
+  developmentName?: string;
+  totalUnits?: number;
+  communityAmenities?: string[];
+  constructionMaterials?: string;
+  energyEfficiencyFeatures?: string[];
+  neighborhood?: string;
+  schoolDistrict?: string;
+  nearbyAmenities?: string[];
+  neighborhoodDescription?: string;
+  basePrice?: number;
+  pricePerSqFt?: number;
+  hoaFees?: number;
+  propertyTaxRate?: number;
+  financingOptions?: string[];
+  downPaymentMin?: number;
+  closingCostEstimate?: number;
 }
 
 export async function createProperty(property: Omit<Property, 'id' | 'createdAt' | 'ownerId'>) {
@@ -56,7 +75,26 @@ export async function createProperty(property: Omit<Property, 'id' | 'createdAt'
       availability: property.availability,
       virtual_tour_url: property.virtualTourUrl,
       parking_type: property.parkingType,
-      lot_size: property.lotSize
+      lot_size: property.lotSize,
+      // Developer specific fields
+      property_status: property.propertyStatus,
+      developer_name: property.developerName,
+      development_name: property.developmentName,
+      total_units: property.totalUnits,
+      community_amenities: property.communityAmenities,
+      construction_materials: property.constructionMaterials,
+      energy_efficiency_features: property.energyEfficiencyFeatures,
+      neighborhood: property.neighborhood,
+      school_district: property.schoolDistrict,
+      nearby_amenities: property.nearbyAmenities,
+      neighborhood_description: property.neighborhoodDescription,
+      base_price: property.basePrice,
+      price_per_sqft: property.pricePerSqFt,
+      hoa_fees: property.hoaFees,
+      property_tax_rate: property.propertyTaxRate,
+      financing_options: property.financingOptions,
+      down_payment_min: property.downPaymentMin,
+      closing_cost_estimate: property.closingCostEstimate
     })
     .select()
     .single();
@@ -112,7 +150,26 @@ function mapPropertyFromDB(dbProperty: any): Property {
     availability: dbProperty.availability,
     virtualTourUrl: dbProperty.virtual_tour_url,
     parkingType: dbProperty.parking_type,
-    lotSize: dbProperty.lot_size
+    lotSize: dbProperty.lot_size,
+    // Developer specific fields
+    propertyStatus: dbProperty.property_status,
+    developerName: dbProperty.developer_name,
+    developmentName: dbProperty.development_name,
+    totalUnits: dbProperty.total_units,
+    communityAmenities: dbProperty.community_amenities,
+    constructionMaterials: dbProperty.construction_materials,
+    energyEfficiencyFeatures: dbProperty.energy_efficiency_features,
+    neighborhood: dbProperty.neighborhood,
+    schoolDistrict: dbProperty.school_district,
+    nearbyAmenities: dbProperty.nearby_amenities,
+    neighborhoodDescription: dbProperty.neighborhood_description,
+    basePrice: dbProperty.base_price,
+    pricePerSqFt: dbProperty.price_per_sqft,
+    hoaFees: dbProperty.hoa_fees,
+    propertyTaxRate: dbProperty.property_tax_rate,
+    financingOptions: dbProperty.financing_options,
+    downPaymentMin: dbProperty.down_payment_min,
+    closingCostEstimate: dbProperty.closing_cost_estimate
   };
 }
 

@@ -19,6 +19,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import LandlordHomePage from "@/pages/dashboard/landlord/LandlordHome";
 import DeveloperHomePage from "@/pages/dashboard/developer/DeveloperHome";
 import AddPropertyPage from "@/pages/dashboard/landlord/AddProperty";
+import DeveloperAddPropertyPage from "@/pages/dashboard/developer/AddProperty";
 import CoOwnerProfilePage from "@/pages/dashboard/profile/CoOwnerProfile";
 import PropertiesPage from "@/pages/dashboard/landlord/Properties";
 import ApplicationsPage from "@/pages/dashboard/landlord/Applications";
@@ -66,6 +67,7 @@ function AppRoutes() {
           <Route path="developer/properties" element={<DeveloperPropertiesPage />} />
           <Route path="developer/market" element={<MarketAnalysisPage />} />
           <Route path="developer/inquiries" element={<BuyerInquiriesPage />} />
+          <Route path="developer/add-property" element={<DeveloperAddPropertyPage />} />
           <Route path="settings" element={<SettingsPage />} />
         </Route>
       </Routes>

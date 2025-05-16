@@ -12,8 +12,15 @@ import { PropertyDetails } from "./PropertyDetails";
 import { PropertyAmenities } from "./PropertyAmenities";
 import { PropertyMedia } from "./PropertyMedia";
 import { PropertyAvailability } from "./PropertyAvailability";
+import { PropertyDevelopmentFeatures } from "./PropertyDevelopmentFeatures";
+import { PropertyNeighborhood } from "./PropertyNeighborhood";
+import { PropertyFinancialInfo } from "./PropertyFinancialInfo";
 
-export default function PropertyForm() {
+interface PropertyFormProps {
+  propertyType?: PropertyType;
+}
+
+export default function PropertyForm({ propertyType = "rent" }: PropertyFormProps) {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState("basic");
@@ -27,7 +34,7 @@ export default function PropertyForm() {
     price: "",
     bedrooms: "",
     bathrooms: "",
-    propertyType: "rent" as PropertyType,
+    propertyType: propertyType,
     imageUrls: [] as string[],
     squareFeet: "",
     yearBuilt: "",
@@ -38,7 +45,26 @@ export default function PropertyForm() {
     availability: "",
     virtualTourUrl: "",
     parkingType: "",
-    lotSize: ""
+    lotSize: "",
+    // New developer-specific fields
+    propertyStatus: "",
+    developerName: "",
+    developmentName: "",
+    totalUnits: "",
+    communityAmenities: [] as string[],
+    constructionMaterials: "",
+    energyEfficiencyFeatures: [] as string[],
+    neighborhood: "",
+    schoolDistrict: "",
+    nearbyAmenities: [] as string[],
+    neighborhoodDescription: "",
+    basePrice: "",
+    pricePerSqFt: "",
+    hoaFees: "",
+    propertyTaxRate: "",
+    financingOptions: [] as string[],
+    downPaymentMin: "",
+    closingCostEstimate: "",
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -51,8 +77,9 @@ export default function PropertyForm() {
   };
 
   const handleCheckboxChange = (name: string, value: string, checked: boolean) => {
-    if (name === 'amenities' || name === 'utilities') {
-      const currentValues = [...formData[name as 'amenities' | 'utilities']];
+    if (name === 'amenities' || name === 'utilities' || name === 'communityAmenities' || 
+        name === 'energyEfficiencyFeatures' || name === 'nearbyAmenities' || name === 'financingOptions') {
+      const currentValues = [...(formData[name as keyof typeof formData] as string[] || [])];
       
       if (checked) {
         currentValues.push(value);
@@ -118,6 +145,14 @@ export default function PropertyForm() {
         squareFeet: formData.squareFeet ? parseFloat(formData.squareFeet) : undefined,
         yearBuilt: formData.yearBuilt ? parseInt(formData.yearBuilt) : undefined,
         lotSize: formData.lotSize ? parseFloat(formData.lotSize) : undefined,
+        // Convert other numeric fields
+        totalUnits: formData.totalUnits ? parseInt(formData.totalUnits) : undefined,
+        basePrice: formData.basePrice ? parseFloat(formData.basePrice) : undefined,
+        pricePerSqFt: formData.pricePerSqFt ? parseFloat(formData.pricePerSqFt) : undefined,
+        hoaFees: formData.hoaFees ? parseFloat(formData.hoaFees) : undefined,
+        propertyTaxRate: formData.propertyTaxRate ? parseFloat(formData.propertyTaxRate) : undefined,
+        downPaymentMin: formData.downPaymentMin ? parseFloat(formData.downPaymentMin) : undefined,
+        closingCostEstimate: formData.closingCostEstimate ? parseFloat(formData.closingCostEstimate) : undefined,
       };
       
       await createProperty(propertyData);
@@ -125,7 +160,13 @@ export default function PropertyForm() {
         title: "Property created",
         description: "Your property has been successfully listed.",
       });
-      navigate("/dashboard/properties");
+      
+      // Redirect to the appropriate dashboard based on property type
+      if (propertyType === 'sale') {
+        navigate("/dashboard/developer/properties");
+      } else {
+        navigate("/dashboard/landlord/properties");
+      }
     } catch (error) {
       console.error("Error creating property:", error);
       toast({
@@ -145,6 +186,30 @@ export default function PropertyForm() {
   const togglePreview = () => {
     setShowPreview(!showPreview);
   };
+
+  // Determine which tabs to show based on property type
+  const getTabs = () => {
+    const baseTabs = [
+      { id: "basic", label: "Basic Info" },
+      { id: "details", label: "Property Details" },
+      { id: "amenities", label: "Amenities" },
+      { id: "media", label: "Photos & Media" }
+    ];
+
+    // Add developer-specific tabs for sale properties
+    if (formData.propertyType === 'sale') {
+      return [
+        ...baseTabs,
+        { id: "development", label: "Development Info" },
+        { id: "neighborhood", label: "Neighborhood" },
+        { id: "financial", label: "Financial Info" }
+      ];
+    }
+
+    return baseTabs;
+  };
+
+  const tabs = getTabs();
 
   if (showPreview) {
     return (
@@ -166,11 +231,10 @@ export default function PropertyForm() {
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
           <Tabs defaultValue="basic" value={activeTab} onValueChange={handleTabChange}>
-            <TabsList className="grid grid-cols-4 mb-6">
-              <TabsTrigger value="basic">Basic Info</TabsTrigger>
-              <TabsTrigger value="details">Property Details</TabsTrigger>
-              <TabsTrigger value="amenities">Amenities</TabsTrigger>
-              <TabsTrigger value="media">Photos & Media</TabsTrigger>
+            <TabsList className="grid grid-cols-4 md:grid-cols-7 mb-6">
+              {tabs.map(tab => (
+                <TabsTrigger key={tab.id} value={tab.id}>{tab.label}</TabsTrigger>
+              ))}
             </TabsList>
             
             <TabsContent value="basic" className="space-y-6">
@@ -206,6 +270,36 @@ export default function PropertyForm() {
                 removeImage={removeImage}
               />
             </TabsContent>
+
+            {formData.propertyType === 'sale' && (
+              <>
+                <TabsContent value="development" className="space-y-6">
+                  <PropertyDevelopmentFeatures
+                    formData={formData}
+                    handleChange={handleChange}
+                    handleCheckboxChange={handleCheckboxChange}
+                  />
+                </TabsContent>
+                
+                <TabsContent value="neighborhood" className="space-y-6">
+                  <PropertyNeighborhood
+                    formData={formData}
+                    handleChange={handleChange}
+                    handleCheckboxChange={handleCheckboxChange}
+                  />
+                </TabsContent>
+                
+                <TabsContent value="financial" className="space-y-6">
+                  <PropertyFinancialInfo
+                    formData={formData}
+                    handleChange={handleChange}
+                    handleCheckboxChange={handleCheckboxChange}
+                    handleSelectChange={handleSelectChange}
+                  />
+                </TabsContent>
+              </>
+            )}
+            
           </Tabs>
           
           <PropertyFormActions 
@@ -214,7 +308,7 @@ export default function PropertyForm() {
             activeTab={activeTab}
             onTabChange={handleTabChange}
             onPreview={togglePreview}
-            isLastTab={activeTab === "media"}
+            isLastTab={activeTab === (formData.propertyType === 'sale' ? "financial" : "media")}
           />
         </form>
       </CardContent>

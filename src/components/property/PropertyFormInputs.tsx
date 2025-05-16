@@ -14,6 +14,8 @@ interface PropertyFormInputsProps {
     bedrooms: string;
     bathrooms: string;
     propertyType: PropertyType;
+    propertyStatus?: string;
+    developerName?: string;
   };
   handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   handleSelectChange: (name: string, value: string) => void;
@@ -89,6 +91,40 @@ export function PropertyFormInputs({ formData, handleChange, handleSelectChange 
           </Select>
         </div>
       </div>
+      
+      {formData.propertyType === 'sale' && (
+        <>
+          <div>
+            <Label htmlFor="developerName">Builder/Developer Name</Label>
+            <Input 
+              id="developerName" 
+              name="developerName" 
+              placeholder="Your company name"
+              value={formData.developerName || ''}
+              onChange={handleChange}
+            />
+          </div>
+          
+          <div>
+            <Label htmlFor="propertyStatus">Property Status</Label>
+            <Select 
+              value={formData.propertyStatus || ''} 
+              onValueChange={(value) => handleSelectChange("propertyStatus", value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select property status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="new_construction">New Construction</SelectItem>
+                <SelectItem value="pre_construction">Pre-Construction</SelectItem>
+                <SelectItem value="under_construction">Under Construction</SelectItem>
+                <SelectItem value="recently_completed">Recently Completed</SelectItem>
+                <SelectItem value="resale">Resale</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </>
+      )}
       
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>

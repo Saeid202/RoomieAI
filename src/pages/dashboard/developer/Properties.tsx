@@ -2,9 +2,10 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, MapPin, Building, Bed, Bath, DollarSign, Home } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Property, getPropertiesByOwnerId } from "@/services/propertyService";
+import { Badge } from "@/components/ui/badge";
 
 export default function DeveloperPropertiesPage() {
   const [properties, setProperties] = useState<Property[]>([]);
@@ -73,8 +74,22 @@ export default function DeveloperPropertiesPage() {
 }
 
 function PropertyCard({ property }: { property: Property }) {
+  // Get property status label
+  const getStatusLabel = (status: string | undefined) => {
+    if (!status) return "For Sale";
+    
+    switch(status) {
+      case "new_construction": return "New Construction";
+      case "pre_construction": return "Pre-Construction";
+      case "under_construction": return "Under Construction";
+      case "recently_completed": return "Recently Completed";
+      case "resale": return "Resale";
+      default: return "For Sale";
+    }
+  };
+  
   return (
-    <Card className="overflow-hidden">
+    <Card className="overflow-hidden h-full flex flex-col">
       <div className="h-48 bg-gray-200 relative">
         {property.imageUrls && property.imageUrls.length > 0 ? (
           <img 
@@ -87,16 +102,55 @@ function PropertyCard({ property }: { property: Property }) {
             <span className="text-gray-400">No image</span>
           </div>
         )}
-        <div className="absolute top-2 right-2 bg-primary text-white px-2 py-1 rounded text-xs">
-          For Sale
+        <div className="absolute top-2 right-2">
+          <Badge className="bg-roomie-purple text-white">
+            {getStatusLabel(property.propertyStatus)}
+          </Badge>
         </div>
       </div>
-      <CardContent className="p-4">
-        <h3 className="font-semibold truncate">{property.title}</h3>
-        <p className="text-sm text-muted-foreground truncate">{property.address}</p>
-        <div className="flex justify-between items-center mt-2">
-          <span className="font-bold">${property.price.toLocaleString()}</span>
-          <span className="text-sm">{property.bedrooms} bd | {property.bathrooms} ba</span>
+      
+      <CardContent className="p-4 flex-1 flex flex-col">
+        <h3 className="font-semibold text-lg truncate">{property.title}</h3>
+        <div className="flex items-center text-muted-foreground text-sm mt-1 mb-2">
+          <MapPin size={14} className="mr-1" />
+          <span className="truncate">{property.address}</span>
+        </div>
+        
+        <div className="grid grid-cols-2 gap-2 mb-3">
+          <div className="flex items-center text-sm">
+            <Bed size={14} className="mr-1 text-muted-foreground" />
+            <span>{property.bedrooms} Beds</span>
+          </div>
+          <div className="flex items-center text-sm">
+            <Bath size={14} className="mr-1 text-muted-foreground" />
+            <span>{property.bathrooms} Baths</span>
+          </div>
+          <div className="flex items-center text-sm">
+            <Building size={14} className="mr-1 text-muted-foreground" />
+            <span>{property.squareFeet} sq ft</span>
+          </div>
+          <div className="flex items-center text-sm">
+            <Home size={14} className="mr-1 text-muted-foreground" />
+            <span>{property.yearBuilt || "N/A"}</span>
+          </div>
+        </div>
+        
+        {property.developmentName && (
+          <div className="mt-2 mb-3">
+            <Badge variant="outline" className="text-xs">
+              {property.developmentName}
+            </Badge>
+          </div>
+        )}
+        
+        <div className="mt-auto pt-3 border-t flex items-center justify-between">
+          <span className="font-bold text-lg flex items-center">
+            <DollarSign size={16} className="text-roomie-purple" />
+            {property.price.toLocaleString()}
+          </span>
+          <Button variant="outline" size="sm" asChild>
+            <Link to={`/dashboard/developer/properties/${property.id}`}>View Details</Link>
+          </Button>
         </div>
       </CardContent>
     </Card>

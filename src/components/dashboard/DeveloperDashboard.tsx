@@ -59,7 +59,7 @@ export function DeveloperDashboard() {
                 <>
                   <p className="mb-4">No properties listed yet</p>
                   <Button className="bg-roomie-purple hover:bg-roomie-dark" asChild>
-                    <Link to="/dashboard/developer/properties">Add Property</Link>
+                    <Link to="/dashboard/developer/add-property">Add Property</Link>
                   </Button>
                 </>
               )}
