@@ -3,6 +3,12 @@ import { UseFormReturn } from "react-hook-form";
 import { ProfileFormValues } from "@/types/profile";
 import { Button } from "@/components/ui/button";
 import { IdealRoommateTabs } from "./IdealRoommateTabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
+import { PreferencesTab } from "./PreferencesTab";
+import { LifestyleMatchTab } from "./LifestyleMatchTab";
+import { HouseHabitsTab } from "./HouseHabitsTab";
+import { DealBreakersTab } from "./DealBreakersTab";
+import { useState } from "react";
 
 interface IdealRoommateFormProps {
   form: UseFormReturn<ProfileFormValues>;
@@ -11,6 +17,8 @@ interface IdealRoommateFormProps {
 }
 
 export function IdealRoommateForm({ form, onSubmit, isSaving }: IdealRoommateFormProps) {
+  const [activeTab, setActiveTab] = useState("preferences");
+
   const handleSubmit = async () => {
     const data = form.getValues();
     await onSubmit(data);
@@ -25,7 +33,25 @@ export function IdealRoommateForm({ form, onSubmit, isSaving }: IdealRoommateFor
         </p>
       </div>
 
-      <IdealRoommateTabs form={form} />
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <IdealRoommateTabs activeTab={activeTab} onTabChange={setActiveTab} />
+        
+        <TabsContent value="preferences">
+          <PreferencesTab form={form} />
+        </TabsContent>
+        
+        <TabsContent value="lifestyle-match">
+          <LifestyleMatchTab form={form} />
+        </TabsContent>
+        
+        <TabsContent value="house-habits">
+          <HouseHabitsTab form={form} />
+        </TabsContent>
+        
+        <TabsContent value="deal-breakers">
+          <DealBreakersTab form={form} />
+        </TabsContent>
+      </Tabs>
 
       <div className="flex justify-end pt-6">
         <Button 

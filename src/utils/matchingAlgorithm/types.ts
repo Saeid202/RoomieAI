@@ -27,6 +27,50 @@ export type ProfileData = {
   };
 };
 
+export type Roommate = {
+  id: string;
+  name: string;
+  age: number;
+  gender: string;
+  email: string;
+  phone: string;
+  profileImage: string;
+  
+  // Location and housing
+  preferredLocation: string;
+  budgetRange: number[];
+  moveInDate: Date;
+  housingType: string;
+  livingSpace: string;
+  
+  // Basic preferences
+  location: string;
+  occupation: string;
+  
+  // Lifestyle
+  smoking: boolean;
+  pets: boolean;
+  workSchedule: string;
+  hobbies: string[];
+  diet: string;
+  
+  // Social preferences
+  socialLevel: string;
+  guestsOver: string;
+  dailyRoutine: string;
+  
+  // Preferences for roommates
+  roommatePreferences: {
+    genderPreference: string[];
+    ageRange: number[];
+    traits: string[];
+    workSchedulePreference: string;
+  };
+  
+  compatibilityScore: number;
+  sharedInterests: string[];
+};
+
 export type CompatibilityBreakdown = {
   budget: number;
   location: number;
@@ -47,4 +91,3 @@ export type CompatibilityResult = {
 };
 
 export type { ProfileFormValues } from "@/types/profile";
-

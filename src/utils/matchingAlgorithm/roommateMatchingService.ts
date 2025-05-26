@@ -1,35 +1,32 @@
 
-import { calculateCompatibilityScore } from "./compatibilityCalculator";
-import { MatchResult, ProfileData, ProfileFormValues } from "./types";
-import { potentialRoommates } from "./mockData";
+import { ProfileFormValues } from "@/types/profile";
+import { MatchResult } from "./types";
+import { mockRoommates } from "./mockData";
 import { convertFormToProfileData } from "./profileMapper";
+import { calculateCompatibilityScore } from "./compatibilityCalculator";
 
-/**
- * Find potential roommate matches based on user profile
- */
-export const findMatches = (userProfile: ProfileFormValues): MatchResult[] => {
-  console.log("Finding matches for user profile:", userProfile);
+export function findMatches(userProfile: ProfileFormValues): MatchResult[] {
+  console.log("Finding roommate matches for:", userProfile);
   
-  // Convert the form values to the format expected by the matching algorithm
-  const profileData = convertFormToProfileData(userProfile);
-  
-  // For a real application, this would query a database of potential matches
-  // For this demo, we'll use mock data
-  const potentialMatches = potentialRoommates;
-  
-  // Calculate compatibility scores for each potential match
-  const matches = potentialMatches.map(match => {
-    const compatibility = calculateCompatibilityScore(profileData, match);
+  try {
+    const userProfileData = convertFormToProfileData(userProfile);
     
-    return {
-      ...match,
-      compatibilityScore: compatibility.score,
-      compatibilityBreakdown: compatibility.breakdown
-    };
-  });
-  
-  // Sort matches by compatibility score (highest first)
-  const sortedMatches = matches.sort((a, b) => b.compatibilityScore - a.compatibilityScore);
-  
-  return sortedMatches;
-};
+    const matchesWithScores = mockRoommates.map(roommate => {
+      const compatibility = calculateCompatibilityScore(userProfileData, roommate);
+      
+      return {
+        ...roommate,
+        compatibilityScore: compatibility.score,
+        compatibilityBreakdown: compatibility.breakdown
+      };
+    });
+    
+    return matchesWithScores
+      .sort((a, b) => b.compatibilityScore - a.compatibilityScore)
+      .slice(0, 10);
+      
+  } catch (error) {
+    console.error("Error in findMatches:", error);
+    return [];
+  }
+}

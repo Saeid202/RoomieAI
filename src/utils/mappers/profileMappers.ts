@@ -1,4 +1,3 @@
-
 import { ProfileFormValues } from "@/types/profile";
 import { ProfileTableRow } from "@/components/dashboard/types/profileTypes";
 import { safeString, safeBoolean, safeDate, safeArray, safeEnum } from './mapperUtils';
@@ -212,7 +211,7 @@ export function mapFormValuesToDbRow(formData: ProfileFormValues, userId: string
     ethnicity: formData.ethnicity,
     religion: formData.religion,
     occupation: formData.occupation,
-    preferred_location: formData.preferredLocation,
+    preferred_location: Array.isArray(formData.preferredLocation) ? formData.preferredLocation : [formData.preferredLocation].filter(Boolean),
     budget_range: formData.budgetRange,
     move_in_date_start: formData.moveInDateStart.toISOString(),
     move_in_date_end: formData.moveInDateEnd.toISOString(),

@@ -28,7 +28,6 @@ export function AIAssistantSection({ profileData, isLoading = false }: AIAssista
           <CardContent className="p-4">
             <ChatInterface 
               matchingProfileData={profileData}
-              isLoading={isLoading}
             />
           </CardContent>
         </Card>
