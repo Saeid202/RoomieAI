@@ -5,11 +5,16 @@ import { Form } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Check } from "lucide-react";
-import { IdealRoommateForm } from "./IdealRoommateForm";
+import { IdealRoommateTabs } from "./IdealRoommateTabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
+import { PreferencesTab } from "./PreferencesTab";
+import { LifestyleMatchTab } from "./LifestyleMatchTab";
+import { HouseHabitsTab } from "./HouseHabitsTab";
+import { DealBreakersTab } from "./DealBreakersTab";
 
 interface RoommatePreferencesFormProps {
   form: UseFormReturn<ProfileFormValues>;
-  onSubmit: (data: ProfileFormValues) => void;
+  onSubmit: (data: ProfileFormValues) => Promise<void>;
   isSaving: boolean;
 }
 
@@ -19,6 +24,7 @@ export function RoommatePreferencesForm({
   isSaving 
 }: RoommatePreferencesFormProps) {
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [activeTab, setActiveTab] = useState("preferences");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,11 +40,25 @@ export function RoommatePreferencesForm({
   return (
     <Form {...form}>
       <form onSubmit={handleSubmit} className="space-y-4 mt-6">
-        <IdealRoommateForm 
-          form={form} 
-          onSubmit={onSubmit}
-          isSaving={isSaving}
-        />
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <IdealRoommateTabs activeTab={activeTab} onTabChange={setActiveTab} />
+          
+          <TabsContent value="preferences">
+            <PreferencesTab form={form} handleTraitToggle={() => {}} />
+          </TabsContent>
+          
+          <TabsContent value="lifestyle-match">
+            <LifestyleMatchTab form={form} />
+          </TabsContent>
+          
+          <TabsContent value="house-habits">
+            <HouseHabitsTab form={form} />
+          </TabsContent>
+          
+          <TabsContent value="deal-breakers">
+            <DealBreakersTab form={form} />
+          </TabsContent>
+        </Tabs>
         
         <div className="flex justify-end mt-4">
           <Button 

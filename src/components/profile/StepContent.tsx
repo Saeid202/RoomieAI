@@ -5,7 +5,6 @@ import { ProfileFormValues } from "@/types/profile";
 import { BasicInformationSection } from "./BasicInformationSection";
 import { HousingPreferencesSection } from "./HousingPreferencesSection";
 import { IdealRoommateForm } from "@/components/dashboard/recommendations/ideal-roommate/IdealRoommateForm";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface StepContentProps {
   form: UseFormReturn<ProfileFormValues>;
@@ -20,8 +19,6 @@ export function StepContent({
   handleHobbyToggle, 
   handleTraitToggle 
 }: StepContentProps) {
-  const [activeHousingTab, setActiveHousingTab] = useState("housing");
-
   return (
     <div className="w-full h-[420px] overflow-y-auto px-2">
       {step === 1 && (
@@ -40,7 +37,7 @@ export function StepContent({
         <div className="w-full space-y-4 py-4">
           <IdealRoommateForm 
             form={form} 
-            onSubmit={() => {}} 
+            onSubmit={async () => {}} 
             isSaving={false}
           />
         </div>

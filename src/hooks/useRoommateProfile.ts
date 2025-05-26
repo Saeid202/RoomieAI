@@ -122,33 +122,28 @@ export function useRoommateProfile() {
       email: user?.email || "",
       phoneNumber: "",
       budgetRange: [900, 1500],
-      preferredLocation: "",
-      moveInDate: new Date(),
-      dailyRoutine: "mixed",
-      cleanliness: "somewhatTidy",
-      hasPets: false,
+      preferredLocation: [],
+      moveInDateStart: new Date(),
+      moveInDateEnd: new Date(),
+      housingType: "apartment",
+      livingSpace: "privateRoom",
       smoking: false,
-      guestsOver: "occasionally",
+      livesWithSmokers: false,
+      hasPets: false,
+      petType: "",
+      workLocation: "remote",
+      workSchedule: "dayShift",
       hobbies: [],
-      importantRoommateTraits: [],
+      diet: "noRestrictions",
+      genderPreference: [],
+      nationalityPreference: "noPreference",
+      languagePreference: "noPreference",
+      ethnicReligionPreference: "noPreference",
+      occupationPreference: false,
+      workSchedulePreference: "noPreference",
+      roommateHobbies: [],
+      rentOption: "findTogether",
       occupation: "",
-      workSchedule: "9AM-5PM",
-      // Default values for the new fields
-      lifestylePreferences: {
-        similarSchedule: false,
-        similarInterests: false,
-        compatibleWorkStyle: false
-      },
-      houseHabits: {
-        cleansKitchen: false,
-        respectsQuietHours: false,
-        sharesGroceries: false
-      },
-      dealBreakers: {
-        noSmoking: false,
-        noLoudMusic: false,
-        noLatePayments: false
-      }
     };
   };
 

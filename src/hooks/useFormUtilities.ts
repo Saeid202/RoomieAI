@@ -18,14 +18,14 @@ export function useFormUtilities(form: UseFormReturn<ProfileFormValues>) {
 
   // Handle trait toggle
   const handleTraitToggle = (trait: string) => {
-    const currentTraits = form.getValues("importantRoommateTraits") || [];
+    const currentTraits = form.getValues("roommateHobbies") || [];
     if (currentTraits.includes(trait)) {
       form.setValue(
-        "importantRoommateTraits",
+        "roommateHobbies",
         currentTraits.filter((t) => t !== trait)
       );
     } else {
-      form.setValue("importantRoommateTraits", [...currentTraits, trait]);
+      form.setValue("roommateHobbies", [...currentTraits, trait]);
     }
   };
 
