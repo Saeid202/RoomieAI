@@ -60,6 +60,27 @@ export function DealBreakersTab({ form }: DealBreakersTabProps) {
             </FormItem>
           )}
         />
+
+        <FormField
+          control={form.control}
+          name="livesWithSmokers"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+              <div className="space-y-0.5">
+                <FormLabel className="text-base">No Living with Smokers</FormLabel>
+                <div className="text-sm text-muted-foreground">
+                  I don't want to live with anyone who smokes regularly
+                </div>
+              </div>
+              <FormControl>
+                <Switch
+                  checked={!field.value}
+                  onCheckedChange={(checked) => field.onChange(!checked)}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
       </div>
     </div>
   );

@@ -3,6 +3,8 @@ import { UseFormReturn } from "react-hook-form";
 import { ProfileFormValues } from "@/types/profile";
 import { FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface LifestyleMatchTabProps {
   form: UseFormReturn<ProfileFormValues>;
@@ -18,7 +20,7 @@ export function LifestyleMatchTab({ form }: LifestyleMatchTabProps) {
         </p>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-6">
         <FormField
           control={form.control}
           name="genderPreference"
@@ -57,6 +59,80 @@ export function LifestyleMatchTab({ form }: LifestyleMatchTabProps) {
                   />
                 ))}
               </div>
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="nationalityPreference"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Nationality Preference</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select nationality preference" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="noPreference">No preference</SelectItem>
+                  <SelectItem value="sameCountry">Same country</SelectItem>
+                  <SelectItem value="custom">Custom</SelectItem>
+                </SelectContent>
+              </Select>
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="languagePreference"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Language Preference</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select language preference" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="noPreference">No preference</SelectItem>
+                  <SelectItem value="sameLanguage">Same language</SelectItem>
+                  <SelectItem value="specific">Specific language</SelectItem>
+                </SelectContent>
+              </Select>
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="workSchedulePreference"
+          render={({ field }) => (
+            <FormItem className="space-y-3">
+              <FormLabel>Work Schedule Preference</FormLabel>
+              <FormControl>
+                <RadioGroup
+                  onValueChange={field.onChange}
+                  value={field.value}
+                  className="flex flex-col space-y-2"
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="noPreference" id="no-pref" />
+                    <FormLabel htmlFor="no-pref">No preference</FormLabel>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="dayShift" id="day-shift-pref" />
+                    <FormLabel htmlFor="day-shift-pref">Similar schedule (day shift)</FormLabel>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="opposite" id="opposite-shift" />
+                    <FormLabel htmlFor="opposite-shift">Opposite schedule (more privacy)</FormLabel>
+                  </div>
+                </RadioGroup>
+              </FormControl>
             </FormItem>
           )}
         />

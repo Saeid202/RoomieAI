@@ -197,7 +197,7 @@ export function mapBasicInfoFormToDb(formData: ProfileFormValues): Partial<Profi
  */
 export function mapHousingFormToDb(formData: ProfileFormValues): Partial<ProfileTableRow> {
   return {
-    preferred_location: Array.isArray(formData.preferredLocation) ? formData.preferredLocation : [formData.preferredLocation].filter(Boolean),
+    preferred_location: formData.preferredLocation, // This is already an array
     budget_range: formData.budgetRange,
     move_in_date_start: formData.moveInDateStart.toISOString(),
     move_in_date_end: formData.moveInDateEnd.toISOString(),

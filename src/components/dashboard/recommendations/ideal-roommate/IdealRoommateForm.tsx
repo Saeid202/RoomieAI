@@ -11,6 +11,7 @@ import { HouseHabitsTab } from "./HouseHabitsTab";
 import { DealBreakersTab } from "./DealBreakersTab";
 import { useState } from "react";
 import { useFormUtilities } from "@/hooks/useFormUtilities";
+import { useToast } from "@/hooks/use-toast";
 
 interface IdealRoommateFormProps {
   form: UseFormReturn<ProfileFormValues>;
@@ -21,11 +22,29 @@ interface IdealRoommateFormProps {
 export function IdealRoommateForm({ form, onSubmit, isSaving }: IdealRoommateFormProps) {
   const [activeTab, setActiveTab] = useState("preferences");
   const { handleTraitToggle } = useFormUtilities(form);
+  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const data = form.getValues();
-    await onSubmit(data);
+    
+    try {
+      const data = form.getValues();
+      console.log("IdealRoommateForm - Form data being submitted:", data);
+      
+      await onSubmit(data);
+      
+      toast({
+        title: "Success",
+        description: "Your ideal roommate preferences have been saved!",
+      });
+    } catch (error) {
+      console.error("Error in form submission:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save your preferences. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
