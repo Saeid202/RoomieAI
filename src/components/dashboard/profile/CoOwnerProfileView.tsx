@@ -34,21 +34,23 @@ export function CoOwnerProfileView() {
   };
   
   return (
-    <div className="w-full max-w-7xl mx-auto space-y-6 px-4">
-      <div className="flex flex-col gap-4">
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-          <h2 className="text-2xl font-bold">Co-Owner Profile</h2>
-          <span className="text-sm text-muted-foreground">
-            Complete your profile to improve matching results
-          </span>
+    <div className="w-full min-h-screen overflow-hidden">
+      <div className="max-w-full mx-auto p-4 md:p-6 space-y-6">
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+            <h2 className="text-2xl font-bold">Co-Owner Profile</h2>
+            <span className="text-sm text-muted-foreground">
+              Complete your profile to improve matching results
+            </span>
+          </div>
         </div>
-      </div>
-      
-      <div className="w-full">
-        <CoOwnerProfileTabs
-          activeTab={activeTab}
-          setActiveTab={handleTabChange}
-        />
+        
+        <div className="w-full overflow-hidden">
+          <CoOwnerProfileTabs
+            activeTab={activeTab}
+            setActiveTab={handleTabChange}
+          />
+        </div>
       </div>
     </div>
   );
