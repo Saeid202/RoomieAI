@@ -15,15 +15,15 @@ interface IdealRoommateTabsProps {
 
 export function IdealRoommateTabs({ activeTab, onTabChange }: IdealRoommateTabsProps) {
   return (
-    <TabsList className="w-full grid grid-cols-2">
+    <TabsList className="w-full grid grid-cols-2 h-auto">
       {ROOMMATE_TABS.map(tab => (
         <TabsTrigger 
           key={tab.id} 
           value={tab.id} 
-          className="flex items-center gap-2 text-xs sm:text-sm"
+          className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 py-2 sm:py-1.5 min-h-[2.5rem] whitespace-nowrap"
         >
-          <tab.icon className="h-4 w-4" />
-          <span>{tab.label}</span>
+          <tab.icon className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+          <span className="text-center leading-tight">{tab.label}</span>
         </TabsTrigger>
       ))}
     </TabsList>
