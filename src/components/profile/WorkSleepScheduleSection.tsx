@@ -2,7 +2,6 @@
 import { FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Textarea } from "@/components/ui/textarea";
 import { UseFormReturn } from "react-hook-form";
 import { ProfileFormValues } from "@/types/profile";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -33,33 +32,12 @@ export function WorkSleepScheduleSection({ form }: WorkSleepScheduleSectionProps
                   <SelectItem value="night-shift">Night shift</SelectItem>
                   <SelectItem value="remote">Remote work</SelectItem>
                   <SelectItem value="flexible">Flexible hours</SelectItem>
-                  <SelectItem value="other">Other (specify below)</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
                 </SelectContent>
               </Select>
             </FormControl>
             <FormDescription>
               Select the option that best describes your work schedule
-            </FormDescription>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-      
-      <FormField
-        control={form.control}
-        name="workScheduleDetails"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Additional details about your work schedule</FormLabel>
-            <FormControl>
-              <Textarea 
-                placeholder="e.g., I work 9-5 weekdays, or I work nights on weekends..."
-                className="resize-none"
-                {...field} 
-              />
-            </FormControl>
-            <FormDescription>
-              Add any specific details about your work hours
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -74,7 +52,20 @@ export function WorkSleepScheduleSection({ form }: WorkSleepScheduleSectionProps
             <FormItem>
               <FormLabel>What time do you usually go to bed?</FormLabel>
               <FormControl>
-                <Input type="time" {...field} />
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="--:-- --" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="9:00 PM">9:00 PM</SelectItem>
+                    <SelectItem value="10:00 PM">10:00 PM</SelectItem>
+                    <SelectItem value="11:00 PM">11:00 PM</SelectItem>
+                    <SelectItem value="12:00 AM">12:00 AM</SelectItem>
+                    <SelectItem value="1:00 AM">1:00 AM</SelectItem>
+                    <SelectItem value="2:00 AM">2:00 AM</SelectItem>
+                    <SelectItem value="later">Later than 2:00 AM</SelectItem>
+                  </SelectContent>
+                </Select>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -88,7 +79,20 @@ export function WorkSleepScheduleSection({ form }: WorkSleepScheduleSectionProps
             <FormItem>
               <FormLabel>What time do you usually wake up?</FormLabel>
               <FormControl>
-                <Input type="time" {...field} />
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="--:-- --" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="5:00 AM">5:00 AM</SelectItem>
+                    <SelectItem value="6:00 AM">6:00 AM</SelectItem>
+                    <SelectItem value="7:00 AM">7:00 AM</SelectItem>
+                    <SelectItem value="8:00 AM">8:00 AM</SelectItem>
+                    <SelectItem value="9:00 AM">9:00 AM</SelectItem>
+                    <SelectItem value="10:00 AM">10:00 AM</SelectItem>
+                    <SelectItem value="later">Later than 10:00 AM</SelectItem>
+                  </SelectContent>
+                </Select>
               </FormControl>
               <FormMessage />
             </FormItem>

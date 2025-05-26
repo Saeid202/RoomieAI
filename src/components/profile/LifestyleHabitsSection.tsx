@@ -3,6 +3,7 @@ import { FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessa
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
+import { Input } from "@/components/ui/input";
 import { UseFormReturn } from "react-hook-form";
 import { ProfileFormValues } from "@/types/profile";
 
@@ -17,6 +18,8 @@ export function LifestyleHabitsSection({
   handleHobbyToggle, 
   hobbiesList 
 }: LifestyleHabitsSectionProps) {
+  const hasPets = form.watch("hasPets");
+
   return (
     <>
       <div className="space-y-4">
@@ -85,6 +88,28 @@ export function LifestyleHabitsSection({
               </FormItem>
             )}
           />
+          
+          {hasPets && (
+            <FormField
+              control={form.control}
+              name="petType"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>What pet do you have?</FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="e.g., Golden Retriever, Persian Cat, etc."
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Please specify the type/breed of your pet
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
         </div>
       </div>
       

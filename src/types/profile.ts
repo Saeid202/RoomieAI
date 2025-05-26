@@ -29,6 +29,7 @@ export const profileSchema = z.object({
   smoking: z.boolean(),
   livesWithSmokers: z.boolean(),
   hasPets: z.boolean(),
+  petType: z.string().optional(), // New field for pet type
   petPreference: z.enum(["noPets", "onlyCats", "onlyDogs", "both"]),
   workLocation: z.enum(["remote", "office", "hybrid"]),
   dailyRoutine: z.enum(["morning", "night", "mixed"]),
@@ -36,7 +37,6 @@ export const profileSchema = z.object({
   
   // Work/Sleep Schedule
   workSchedule: z.string().min(1, "Work schedule is required"),
-  workScheduleDetails: z.string().optional(),
   sleepTime: z.string().optional(),
   wakeTime: z.string().optional(),
   sleepSchedule: z.string().min(1, "Sleep schedule is required"),
@@ -58,7 +58,7 @@ export const profileSchema = z.object({
   cookingSharing: z.enum(["share", "separate"]),
   dietaryNotes: z.string().optional(),
   
-  // Lease Terms
+  // Lease Terms (moved to housing)
   stayDuration: z.enum(["oneMonth", "threeMonths", "sixMonths", "oneYear", "flexible"]),
   leaseTerm: z.enum(["shortTerm", "longTerm"]),
   
