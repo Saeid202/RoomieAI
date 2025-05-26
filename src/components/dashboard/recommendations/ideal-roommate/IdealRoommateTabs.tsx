@@ -20,11 +20,10 @@ export function IdealRoommateTabs({ activeTab, onTabChange }: IdealRoommateTabsP
         <TabsTrigger 
           key={tab.id} 
           value={tab.id} 
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 text-xs sm:text-sm"
         >
           <tab.icon className="h-4 w-4" />
-          <span className="hidden md:inline">{tab.label}</span>
-          <span className="inline md:hidden">{tab.id.split('-')[0]}</span>
+          <span>{tab.label}</span>
         </TabsTrigger>
       ))}
     </TabsList>
