@@ -1,4 +1,3 @@
-
 import { ProfileFormValues } from "@/types/profile";
 import { ProfileTableRow } from "@/components/dashboard/types/profileTypes";
 import { safeString, safeBoolean, safeDate, safeArray, safeEnum } from './mapperUtils';
@@ -31,7 +30,16 @@ export function mapHousingDbToForm(data: ProfileTableRow): Partial<ProfileFormVa
   const result: Partial<ProfileFormValues> = {};
   
   if ('preferred_location' in data && data.preferred_location) {
-    result.preferredLocation = safeArray(data.preferred_location, String);
+    // Handle both string and array formats for preferred_location
+    if (typeof data.preferred_location === 'string') {
+      try {
+        result.preferredLocation = JSON.parse(data.preferred_location);
+      } catch {
+        result.preferredLocation = [data.preferred_location];
+      }
+    } else {
+      result.preferredLocation = safeArray(data.preferred_location, String);
+    }
   }
   
   if ('budget_range' in data && data.budget_range) {
@@ -197,7 +205,7 @@ export function mapBasicInfoFormToDb(formData: ProfileFormValues): Partial<Profi
  */
 export function mapHousingFormToDb(formData: ProfileFormValues): Partial<ProfileTableRow> {
   return {
-    preferred_location: formData.preferredLocation, // This is already an array
+    preferred_location: JSON.stringify(formData.preferredLocation), // Convert array to JSON string for database
     budget_range: formData.budgetRange,
     move_in_date_start: formData.moveInDateStart.toISOString(),
     move_in_date_end: formData.moveInDateEnd.toISOString(),
