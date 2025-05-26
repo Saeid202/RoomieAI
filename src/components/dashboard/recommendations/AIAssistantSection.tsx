@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { MessageSquare } from "lucide-react";
 import { ChatInterface } from "./chat/ChatInterface";
 import { ProfileFormValues } from "@/types/profile";
+import { createProfileSummary } from "@/utils/profileDataMappers";
 
 interface AIAssistantSectionProps {
   profileData: Partial<ProfileFormValues> | null;
@@ -11,6 +12,9 @@ interface AIAssistantSectionProps {
 }
 
 export function AIAssistantSection({ profileData, isLoading = false }: AIAssistantSectionProps) {
+  // Create a profile summary for the chat interface
+  const profileSummary = profileData ? createProfileSummary(profileData) : "";
+
   return (
     <AccordionItem value="ai-assistant" className="border rounded-lg">
       <AccordionTrigger className="px-4 py-2 hover:no-underline">
@@ -24,6 +28,7 @@ export function AIAssistantSection({ profileData, isLoading = false }: AIAssista
           <CardContent className="p-4">
             <ChatInterface 
               matchingProfileData={profileData}
+              isLoading={isLoading}
             />
           </CardContent>
         </Card>

@@ -16,7 +16,7 @@ export function useFormUtilities(form: UseFormReturn<ProfileFormValues>) {
     }
   };
 
-  // Handle trait toggle
+  // Handle roommate hobbies toggle (using the correct field name)
   const handleTraitToggle = (trait: string) => {
     const currentTraits = form.getValues("roommateHobbies") || [];
     if (currentTraits.includes(trait)) {

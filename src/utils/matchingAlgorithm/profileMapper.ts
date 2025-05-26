@@ -1,61 +1,53 @@
 
-import { ProfileFormValues, ProfileData } from "./types";
+import { ProfileFormValues } from "@/types/profile";
+import { Roommate } from "./types";
 
-/**
- * Maps form data to the profile data format expected by the matching algorithm
- */
-export const mapFormToProfileData = (formData: ProfileFormValues): ProfileData => {
-  // Ensure we have valid data to avoid undefined errors
-  if (!formData) {
-    console.error("No form data provided to mapFormToProfileData");
-    return {
-      name: "Unknown",
-      age: "",
-      gender: "prefer-not-to-say",
-      occupation: "Not specified",
-      movingDate: new Date().toISOString().split('T')[0],
-      budget: [0, 1000],
-      location: "",
-      cleanliness: 50,
-      pets: false,
-      smoking: false,
-      drinking: "sometimes",
-      guests: "rarely",
-      sleepSchedule: "normal",
-      workSchedule: "9AM-5PM",
-      interests: [],
-      traits: [],
-      preferredLiving: "findRoommate"
-    };
-  }
-
+export function mapProfileToRoommate(profileData: Partial<ProfileFormValues>): Roommate {
   return {
-    name: formData.fullName || "Anonymous",
-    age: formData.age || "",
-    gender: formData.gender || "prefer-not-to-say",
-    occupation: formData.occupation || "Not specified",
-    movingDate: formData.moveInDate instanceof Date 
-      ? formData.moveInDate.toISOString().split('T')[0] 
-      : (typeof formData.moveInDate === 'string' 
-          ? formData.moveInDate 
-          : new Date().toISOString().split('T')[0]),
-    budget: Array.isArray(formData.budgetRange) ? formData.budgetRange : [900, 1500],
-    location: formData.preferredLocation || "",
-    cleanliness: formData.cleanliness === "veryTidy" ? 90 : 
-                formData.cleanliness === "somewhatTidy" ? 60 : 30,
-    pets: !!formData.hasPets,
-    smoking: !!formData.smoking,
-    drinking: "sometimes", // Default value
-    guests: formData.guestsOver === "yes" ? "often" : 
-           formData.guestsOver === "occasionally" ? "sometimes" : "rarely",
-    sleepSchedule: formData.dailyRoutine === "morning" ? "early" : 
-                  formData.dailyRoutine === "night" ? "night" : "normal",
-    workSchedule: formData.workSchedule || "9AM-5PM",
-    interests: Array.isArray(formData.hobbies) ? formData.hobbies : [],
-    traits: Array.isArray(formData.importantRoommateTraits) ? formData.importantRoommateTraits : [],
-    preferredLiving: "findRoommate" // Default, would come from form in real implementation
+    id: "current-user",
+    name: profileData.fullName || "You",
+    age: parseInt(profileData.age || "25"),
+    gender: profileData.gender || "not-specified",
+    email: profileData.email || "",
+    phone: profileData.phoneNumber || "",
+    profileImage: "/placeholder.svg",
+    
+    // Location and housing
+    preferredLocation: Array.isArray(profileData.preferredLocation) 
+      ? profileData.preferredLocation[0] || "Any" 
+      : profileData.preferredLocation || "Any",
+    budgetRange: profileData.budgetRange || [800, 1500],
+    moveInDate: profileData.moveInDateStart || new Date(),
+    housingType: profileData.housingType || "apartment",
+    livingSpace: profileData.livingSpace || "privateRoom",
+    
+    // Basic preferences
+    location: Array.isArray(profileData.preferredLocation) 
+      ? profileData.preferredLocation[0] || "Any" 
+      : profileData.preferredLocation || "Any",
+    occupation: profileData.occupation || "Not specified",
+    
+    // Lifestyle
+    smoking: profileData.smoking || false,
+    pets: profileData.hasPets || false,
+    workSchedule: profileData.workSchedule || "dayShift",
+    hobbies: profileData.hobbies || [],
+    diet: profileData.diet || "noRestrictions",
+    
+    // Social preferences - using existing fields as fallbacks
+    socialLevel: "moderate", // Default value
+    guestsOver: "occasionally", // Default value
+    dailyRoutine: "flexible", // Default value
+    
+    // Preferences for roommates
+    roommatePreferences: {
+      genderPreference: profileData.genderPreference || [],
+      ageRange: [20, 35], // Default range
+      traits: profileData.roommateHobbies || [],
+      workSchedulePreference: profileData.workSchedulePreference || "noPreference"
+    },
+    
+    compatibilityScore: 0,
+    sharedInterests: []
   };
-};
-
-// Export the function under both names for backward compatibility
-export const convertFormToProfileData = mapFormToProfileData;
+}
