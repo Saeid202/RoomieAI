@@ -23,7 +23,7 @@ import { FormButtons } from "./profile/FormButtons";
 import { useFormNavigation } from "@/hooks/useFormNavigation";
 import { useFormUtilities } from "@/hooks/useFormUtilities";
 import { useToast } from "@/hooks/use-toast";
-import { initialFormData, formStepLabels } from "@/utils/formSteps";
+import { initialFormData } from "@/utils/formSteps";
 
 interface ProfileFormProps {
   initialData?: any;
@@ -35,7 +35,7 @@ const ProfileForm = ({ initialData, onSave }: ProfileFormProps) => {
   const [matchResults, setMatchResults] = useState([]);
   const { toast } = useToast();
   
-  const totalSteps = 5;
+  const totalSteps = 3; // Reduced from 5 to 3
   
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
@@ -74,10 +74,8 @@ const ProfileForm = ({ initialData, onSave }: ProfileFormProps) => {
   const getCompletedSections = () => {
     const sections = [
       { id: 1, name: "Personal Info" },
-      { id: 2, name: "Housing" },
-      { id: 3, name: "Lifestyle" },
-      { id: 4, name: "Social & Cleaning" },
-      { id: 5, name: "Roommate Preferences" }
+      { id: 2, name: "Housing & Lifestyle" },
+      { id: 3, name: "Roommate Preferences" }
     ];
     
     return sections.map(section => ({
