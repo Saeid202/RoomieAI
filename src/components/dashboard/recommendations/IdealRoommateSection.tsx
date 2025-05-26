@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { profileSchema } from "@/types/profile";
 import { useToast } from "@/hooks/use-toast";
-import { RoommatePreferencesForm } from "./ideal-roommate/RoommatePreferencesForm";
+import { IdealRoommateForm } from "./ideal-roommate/IdealRoommateForm";
 import { useState, useEffect } from "react";
 
 interface IdealRoommateSectionProps {
@@ -23,7 +23,6 @@ export function IdealRoommateSection({
 }: IdealRoommateSectionProps) {
   const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
-  const [activeIdealRoommateTab, setActiveIdealRoommateTab] = useState("preferences");
   
   // Create a default empty form value to prevent null errors
   const defaultFormValues: Partial<ProfileFormValues> = {
@@ -32,50 +31,33 @@ export function IdealRoommateSection({
     gender: "",
     email: "",
     phoneNumber: "",
+    nationality: "",
+    language: "",
+    ethnicity: "",
+    religion: "",
+    occupation: "",
+    preferredLocation: [],
     budgetRange: [800, 1500],
-    preferredLocation: "",
-    moveInDate: new Date(),
+    moveInDateStart: new Date(),
+    moveInDateEnd: new Date(),
     housingType: "apartment",
     livingSpace: "privateRoom",
     smoking: false,
     livesWithSmokers: false,
     hasPets: false,
-    petPreference: "noPets",
     workLocation: "remote",
-    dailyRoutine: "mixed",
-    sleepSchedule: "Regular schedule",
-    overnightGuests: "occasionally",
-    cleanliness: "somewhatTidy",
-    cleaningFrequency: "weekly",
-    socialLevel: "balanced",
-    guestsOver: "occasionally",
-    familyOver: "occasionally",
-    atmosphere: "balanced",
-    hostingFriends: "occasionally",
-    diet: "omnivore",
-    cookingSharing: "separate",
-    stayDuration: "sixMonths",
-    leaseTerm: "longTerm",
-    roommateGenderPreference: "noPreference",
-    roommateAgePreference: "noAgePreference",
-    roommateLifestylePreference: "noLifestylePreference",
+    workSchedule: "dayShift",
     hobbies: [],
-    importantRoommateTraits: [],
-    lifestylePreferences: {
-      similarSchedule: false,
-      similarInterests: false,
-      compatibleWorkStyle: false
-    },
-    houseHabits: {
-      cleansKitchen: false,
-      respectsQuietHours: false,
-      sharesGroceries: false
-    },
-    dealBreakers: {
-      noSmoking: false,
-      noLoudMusic: false,
-      noLatePayments: false
-    }
+    diet: "noRestrictions",
+    // Ideal roommate defaults
+    genderPreference: [],
+    nationalityPreference: "noPreference",
+    languagePreference: "noPreference",
+    ethnicReligionPreference: "noPreference",
+    occupationPreference: false,
+    workSchedulePreference: "noPreference",
+    roommateHobbies: [],
+    rentOption: "findTogether",
   };
 
   const form = useForm<ProfileFormValues>({
@@ -131,10 +113,8 @@ export function IdealRoommateSection({
       <AccordionContent className="px-4 pb-4">
         <Card>
           <CardContent className="p-4">
-            <RoommatePreferencesForm
+            <IdealRoommateForm
               form={form}
-              activeTab={activeIdealRoommateTab}
-              setActiveTab={setActiveIdealRoommateTab}
               onSubmit={onSubmit}
               isSaving={isSaving}
             />

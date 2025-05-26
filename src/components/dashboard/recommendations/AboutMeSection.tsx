@@ -1,3 +1,4 @@
+
 import { User } from "lucide-react";
 import { ProfileFormValues } from "@/types/profile";
 import { AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
@@ -10,9 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { AboutMeTabs } from "./about-me/AboutMeTabs";
 import { PersonalInfoTab } from "./about-me/PersonalInfoTab";
-import { HousingTab } from "./about-me/HousingTab";
-import { LifestyleTab } from "./about-me/LifestyleTab";
-import { SocialCleaningTab } from "./about-me/SocialCleaningTab";
+import { HousingLifestyleTab } from "./about-me/HousingLifestyleTab";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -37,35 +36,33 @@ export function AboutMeSection({
     gender: "",
     email: "",
     phoneNumber: "",
+    nationality: "",
+    language: "",
+    ethnicity: "",
+    religion: "",
+    occupation: "",
+    preferredLocation: [],
     budgetRange: [800, 1500],
-    preferredLocation: "",
-    moveInDate: new Date(),
+    moveInDateStart: new Date(),
+    moveInDateEnd: new Date(),
     housingType: "apartment",
     livingSpace: "privateRoom",
     smoking: false,
     livesWithSmokers: false,
     hasPets: false,
-    petPreference: "noPets",
     workLocation: "remote",
-    dailyRoutine: "mixed",
-    sleepSchedule: "Regular schedule",
-    overnightGuests: "occasionally",
-    cleanliness: "somewhatTidy",
-    cleaningFrequency: "weekly",
-    socialLevel: "balanced",
-    guestsOver: "occasionally",
-    familyOver: "occasionally",
-    atmosphere: "balanced",
-    hostingFriends: "occasionally",
-    diet: "omnivore",
-    cookingSharing: "separate",
-    stayDuration: "sixMonths",
-    leaseTerm: "longTerm",
-    roommateGenderPreference: "noPreference",
-    roommateAgePreference: "noAgePreference",
-    roommateLifestylePreference: "noLifestylePreference",
+    workSchedule: "dayShift",
     hobbies: [],
-    importantRoommateTraits: [],
+    diet: "noRestrictions",
+    // Ideal roommate defaults
+    genderPreference: [],
+    nationalityPreference: "noPreference",
+    languagePreference: "noPreference",
+    ethnicReligionPreference: "noPreference",
+    occupationPreference: false,
+    workSchedulePreference: "noPreference",
+    roommateHobbies: [],
+    rentOption: "findTogether",
   };
 
   const form = useForm<ProfileFormValues>({
@@ -124,16 +121,8 @@ export function AboutMeSection({
                     <PersonalInfoTab form={form} />
                   </TabsContent>
                   
-                  <TabsContent value="housing">
-                    <HousingTab form={form} />
-                  </TabsContent>
-                  
-                  <TabsContent value="lifestyle">
-                    <LifestyleTab form={form} />
-                  </TabsContent>
-                  
-                  <TabsContent value="social-cleaning">
-                    <SocialCleaningTab form={form} />
+                  <TabsContent value="housing-lifestyle">
+                    <HousingLifestyleTab form={form} />
                   </TabsContent>
                   
                   <div className="flex justify-end">

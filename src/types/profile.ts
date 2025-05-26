@@ -13,80 +13,48 @@ export const profileSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
   linkedinProfile: z.string().optional(),
   
-  // Add occupation field
-  occupation: z.string().optional().default(""),
+  // New demographic fields
+  nationality: z.string().optional(),
+  language: z.string().optional(),
+  ethnicity: z.string().optional(),
+  religion: z.string().optional(),
+  occupation: z.string().optional(),
   
-  // Housing Preferences
-  preferredLocation: z.string().min(1, "Location is required"),
+  // Housing Preferences (simplified)
+  preferredLocation: z.array(z.string()).max(15, "Maximum 15 locations allowed"),
   budgetRange: z.array(z.number()).min(2).max(2),
-  moveInDate: z.date({
-    required_error: "Please select a move-in date",
+  moveInDateStart: z.date({
+    required_error: "Please select a move-in start date",
+  }),
+  moveInDateEnd: z.date({
+    required_error: "Please select a move-in end date",
   }),
   housingType: z.enum(["house", "apartment"]),
   livingSpace: z.enum(["privateRoom", "sharedRoom", "entirePlace"]),
   
-  // Lifestyle & Habits
+  // Lifestyle & Habits (simplified)
   smoking: z.boolean(),
   livesWithSmokers: z.boolean(),
   hasPets: z.boolean(),
-  petType: z.string().optional(), // New field for pet type
-  petPreference: z.enum(["noPets", "onlyCats", "onlyDogs", "both"]),
+  petType: z.string().optional(),
   workLocation: z.enum(["remote", "office", "hybrid"]),
-  dailyRoutine: z.enum(["morning", "night", "mixed"]),
+  workSchedule: z.enum(["dayShift", "afternoonShift", "overnightShift"]),
   hobbies: z.array(z.string()),
+  diet: z.enum(["vegetarian", "noRestrictions"]),
   
-  // Work/Sleep Schedule
-  workSchedule: z.string().min(1, "Work schedule is required"),
-  sleepTime: z.string().optional(),
-  wakeTime: z.string().optional(),
-  sleepSchedule: z.string().min(1, "Sleep schedule is required"),
-  overnightGuests: z.enum(["yes", "no", "occasionally"]),
-  
-  // Cleanliness & Organization
-  cleanliness: z.enum(["veryTidy", "somewhatTidy", "doesntMindMess"]),
-  cleaningFrequency: z.enum(["daily", "weekly", "biweekly", "monthly", "asNeeded"]),
-  
-  // Social Preferences
-  socialLevel: z.enum(["extrovert", "introvert", "balanced"]),
-  guestsOver: z.enum(["yes", "no", "occasionally"]),
-  familyOver: z.enum(["yes", "no", "occasionally"]),
-  atmosphere: z.enum(["quiet", "lively", "balanced"]),
-  hostingFriends: z.enum(["yes", "no", "occasionally"]),
-  
-  // Cooking & Meals
-  diet: z.enum(["vegetarian", "vegan", "omnivore", "other"]),
-  cookingSharing: z.enum(["share", "separate"]),
-  dietaryNotes: z.string().optional(),
-  
-  // Lease Terms (moved to housing)
-  stayDuration: z.enum(["oneMonth", "threeMonths", "sixMonths", "oneYear", "flexible"]),
-  leaseTerm: z.enum(["shortTerm", "longTerm"]),
-  
-  // Roommate Preferences
-  roommateGenderPreference: z.enum(["sameGender", "femaleOnly", "maleOnly", "noPreference"]),
-  roommateAgePreference: z.enum(["similar", "younger", "older", "noAgePreference"]),
-  roommateLifestylePreference: z.enum(["similar", "moreActive", "quieter", "noLifestylePreference"]),
-  importantRoommateTraits: z.array(z.string()),
-  additionalComments: z.string().optional(),
-  
-  // New fields for Ideal Roommate sections
-  lifestylePreferences: z.object({
-    similarSchedule: z.boolean().optional().default(false),
-    similarInterests: z.boolean().optional().default(false),
-    compatibleWorkStyle: z.boolean().optional().default(false),
-  }).optional().default({}),
-  
-  houseHabits: z.object({
-    cleansKitchen: z.boolean().optional().default(false),
-    respectsQuietHours: z.boolean().optional().default(false),
-    sharesGroceries: z.boolean().optional().default(false),
-  }).optional().default({}),
-  
-  dealBreakers: z.object({
-    noSmoking: z.boolean().optional().default(false),
-    noLoudMusic: z.boolean().optional().default(false),
-    noLatePayments: z.boolean().optional().default(false),
-  }).optional().default({}),
+  // Ideal Roommate Preferences
+  genderPreference: z.array(z.string()),
+  nationalityPreference: z.enum(["sameCountry", "noPreference", "custom"]),
+  nationalityCustom: z.string().optional(),
+  languagePreference: z.enum(["sameLanguage", "noPreference", "specific"]),
+  languageSpecific: z.string().optional(),
+  ethnicReligionPreference: z.enum(["same", "noPreference", "other"]),
+  ethnicReligionOther: z.string().optional(),
+  occupationPreference: z.boolean(),
+  occupationSpecific: z.string().optional(),
+  workSchedulePreference: z.enum(["opposite", "dayShift", "nightShift", "overnightShift", "noPreference"]),
+  roommateHobbies: z.array(z.string()),
+  rentOption: z.enum(["findTogether", "joinExisting"]),
 });
 
 export type ProfileFormValues = z.infer<typeof profileSchema>;
