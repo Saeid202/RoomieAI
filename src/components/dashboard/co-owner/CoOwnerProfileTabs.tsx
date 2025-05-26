@@ -6,6 +6,7 @@ import {
   TabsContent 
 } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { PersonalDetailsForm } from "@/components/dashboard/co-owner/PersonalDetailsForm";
 import { ResidenceCitizenshipForm } from "@/components/dashboard/co-owner/ResidenceCitizenshipForm";
 import { EmploymentForm } from "@/components/dashboard/co-owner/EmploymentForm";
@@ -29,106 +30,114 @@ export function CoOwnerProfileTabs({
   setActiveTab 
 }: CoOwnerProfileTabsProps) {
   return (
-    <Card className="p-6 shadow-md border-muted">
+    <Card className="w-full max-w-none mx-auto p-4 md:p-6 shadow-md border-muted">
       <Tabs
         defaultValue="personal-details"
         value={activeTab}
         onValueChange={setActiveTab}
         className="w-full"
       >
-        <div className="overflow-x-auto pb-4 sticky top-0 bg-card z-10 border-b mb-6">
-          <TabsList className="w-full bg-muted/50 inline-flex h-auto py-2 px-1 gap-1 flex-nowrap justify-start rounded-xl">
-            <TabsTrigger 
-              value="personal-details"
-              className="whitespace-nowrap flex items-center rounded-lg py-2.5 px-4"
-            >
-              <User className="h-4 w-4 mr-2" />
-              Personal Details
-            </TabsTrigger>
-            <TabsTrigger 
-              value="residence-citizenship"
-              className="whitespace-nowrap flex items-center rounded-lg py-2.5 px-4"
-            >
-              <Home className="h-4 w-4 mr-2" />
-              Residence & Citizenship
-            </TabsTrigger>
-            <TabsTrigger 
-              value="employment"
-              className="whitespace-nowrap flex items-center rounded-lg py-2.5 px-4"
-            >
-              <Briefcase className="h-4 w-4 mr-2" />
-              Employment
-            </TabsTrigger>
-            <TabsTrigger 
-              value="financial-situation"
-              className="whitespace-nowrap flex items-center rounded-lg py-2.5 px-4"
-            >
-              <FileText className="h-4 w-4 mr-2" />
-              Financial Situation
-            </TabsTrigger>
-            <TabsTrigger 
-              value="investment-capacity"
-              className="whitespace-nowrap flex items-center rounded-lg py-2.5 px-4"
-            >
-              <CreditCard className="h-4 w-4 mr-2" />
-              Investment Capacity
-            </TabsTrigger>
-            <TabsTrigger 
-              value="investment-preferences"
-              className="whitespace-nowrap flex items-center rounded-lg py-2.5 px-4"
-            >
-              <BarChart3 className="h-4 w-4 mr-2" />
-              Investment Preferences
-            </TabsTrigger>
-            <TabsTrigger 
-              value="risk-management"
-              className="whitespace-nowrap flex items-center rounded-lg py-2.5 px-4"
-            >
-              <ShieldAlert className="h-4 w-4 mr-2" />
-              Risk Management
-            </TabsTrigger>
-            <TabsTrigger 
-              value="identity-verification"
-              className="whitespace-nowrap flex items-center rounded-lg py-2.5 px-4"
-            >
-              <CheckCircle className="h-4 w-4 mr-2" />
-              Identity Verification
-            </TabsTrigger>
-          </TabsList>
+        <div className="w-full mb-6">
+          <ScrollArea className="w-full">
+            <div className="w-full min-w-fit">
+              <TabsList className="w-full bg-muted/50 h-auto py-2 px-1 gap-1 flex flex-wrap md:flex-nowrap justify-start rounded-xl">
+                <TabsTrigger 
+                  value="personal-details"
+                  className="flex items-center rounded-lg py-2 px-2 md:px-4 text-xs md:text-sm min-w-fit"
+                >
+                  <User className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2 flex-shrink-0" />
+                  <span className="whitespace-nowrap">Personal</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="residence-citizenship"
+                  className="flex items-center rounded-lg py-2 px-2 md:px-4 text-xs md:text-sm min-w-fit"
+                >
+                  <Home className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2 flex-shrink-0" />
+                  <span className="whitespace-nowrap">Residence</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="employment"
+                  className="flex items-center rounded-lg py-2 px-2 md:px-4 text-xs md:text-sm min-w-fit"
+                >
+                  <Briefcase className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2 flex-shrink-0" />
+                  <span className="whitespace-nowrap">Employment</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="financial-situation"
+                  className="flex items-center rounded-lg py-2 px-2 md:px-4 text-xs md:text-sm min-w-fit"
+                >
+                  <FileText className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2 flex-shrink-0" />
+                  <span className="whitespace-nowrap">Financial</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="investment-capacity"
+                  className="flex items-center rounded-lg py-2 px-2 md:px-4 text-xs md:text-sm min-w-fit"
+                >
+                  <CreditCard className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2 flex-shrink-0" />
+                  <span className="whitespace-nowrap">Capacity</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="investment-preferences"
+                  className="flex items-center rounded-lg py-2 px-2 md:px-4 text-xs md:text-sm min-w-fit"
+                >
+                  <BarChart3 className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2 flex-shrink-0" />
+                  <span className="whitespace-nowrap">Preferences</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="risk-management"
+                  className="flex items-center rounded-lg py-2 px-2 md:px-4 text-xs md:text-sm min-w-fit"
+                >
+                  <ShieldAlert className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2 flex-shrink-0" />
+                  <span className="whitespace-nowrap">Risk</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="identity-verification"
+                  className="flex items-center rounded-lg py-2 px-2 md:px-4 text-xs md:text-sm min-w-fit"
+                >
+                  <CheckCircle className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2 flex-shrink-0" />
+                  <span className="whitespace-nowrap">Verification</span>
+                </TabsTrigger>
+              </TabsList>
+            </div>
+          </ScrollArea>
         </div>
 
-        <div className="mt-6 overflow-y-auto max-h-[calc(100vh-300px)] pr-1">
-          <TabsContent value="personal-details" className="mt-0">
-            <PersonalDetailsForm />
-          </TabsContent>
-          
-          <TabsContent value="residence-citizenship" className="mt-0">
-            <ResidenceCitizenshipForm />
-          </TabsContent>
-          
-          <TabsContent value="employment" className="mt-0">
-            <EmploymentForm />
-          </TabsContent>
-          
-          <TabsContent value="financial-situation" className="mt-0">
-            <FinancialSituationForm />
-          </TabsContent>
-          
-          <TabsContent value="investment-capacity" className="mt-0">
-            <InvestmentCapacityForm />
-          </TabsContent>
-          
-          <TabsContent value="investment-preferences" className="mt-0">
-            <InvestmentPreferencesForm />
-          </TabsContent>
-          
-          <TabsContent value="risk-management" className="mt-0">
-            <RiskManagementForm />
-          </TabsContent>
-          
-          <TabsContent value="identity-verification" className="mt-0">
-            <IdentityVerificationForm />
-          </TabsContent>
+        <div className="w-full">
+          <ScrollArea className="h-[calc(100vh-400px)] w-full">
+            <div className="pr-4">
+              <TabsContent value="personal-details" className="mt-0">
+                <PersonalDetailsForm />
+              </TabsContent>
+              
+              <TabsContent value="residence-citizenship" className="mt-0">
+                <ResidenceCitizenshipForm />
+              </TabsContent>
+              
+              <TabsContent value="employment" className="mt-0">
+                <EmploymentForm />
+              </TabsContent>
+              
+              <TabsContent value="financial-situation" className="mt-0">
+                <FinancialSituationForm />
+              </TabsContent>
+              
+              <TabsContent value="investment-capacity" className="mt-0">
+                <InvestmentCapacityForm />
+              </TabsContent>
+              
+              <TabsContent value="investment-preferences" className="mt-0">
+                <InvestmentPreferencesForm />
+              </TabsContent>
+              
+              <TabsContent value="risk-management" className="mt-0">
+                <RiskManagementForm />
+              </TabsContent>
+              
+              <TabsContent value="identity-verification" className="mt-0">
+                <IdentityVerificationForm />
+              </TabsContent>
+            </div>
+          </ScrollArea>
         </div>
       </Tabs>
     </Card>

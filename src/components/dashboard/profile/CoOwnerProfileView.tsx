@@ -34,7 +34,7 @@ export function CoOwnerProfileView() {
   };
   
   return (
-    <div className="w-full space-y-6">
+    <div className="w-full max-w-none space-y-6 overflow-hidden">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">Co-Owner Profile</h2>
         <div className="flex space-x-2">
@@ -44,10 +44,12 @@ export function CoOwnerProfileView() {
         </div>
       </div>
       
-      <CoOwnerProfileTabs
-        activeTab={activeTab}
-        setActiveTab={handleTabChange}
-      />
+      <div className="w-full">
+        <CoOwnerProfileTabs
+          activeTab={activeTab}
+          setActiveTab={handleTabChange}
+        />
+      </div>
     </div>
   );
 }
