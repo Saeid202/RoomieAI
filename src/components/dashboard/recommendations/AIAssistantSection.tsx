@@ -1,123 +1,104 @@
 
-import { ChatInput } from "./chat/ChatInput";
-import { ChatMessageList } from "./chat/ChatMessageList";
-import { AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { useState } from "react";
-import { ChatMessageType } from "./chat/ChatMessage";
+import { AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
+import { Card, CardContent } from "@/components/ui/card";
+import { MessageSquare } from "lucide-react";
+import { ChatInterface } from "./chat/ChatInterface";
 import { ProfileFormValues } from "@/types/profile";
 
 interface AIAssistantSectionProps {
-  expandedSections?: string[];
-  onExpandChange?: (value: string[]) => void;
-  onFindMatch?: () => void;
   profileData: Partial<ProfileFormValues> | null;
-  children?: React.ReactNode;
+  isLoading?: boolean;
 }
 
-export function AIAssistantSection({ 
-  expandedSections = [], 
-  onExpandChange,
-  onFindMatch, 
-  profileData,
-  children
-}: AIAssistantSectionProps) {
-  const [messages, setMessages] = useState<ChatMessageType[]>([
-    {
-      id: "1",
-      content: "Hi there! I'm your AI matching assistant. I can help you find the perfect roommate based on your preferences. Ask me anything about the matching process or your profile!",
-      sender: "assistant",
-      timestamp: new Date(),
-    },
-  ]);
-
-  const handleSendMessage = (content: string) => {
-    // Add user message
-    const userMessage: ChatMessageType = {
-      id: `user-${Date.now()}`,
-      content,
-      sender: "user",
-      timestamp: new Date(),
-    };
+export function AIAssistantSection({ profileData, isLoading = false }: AIAssistantSectionProps) {
+  // Create a summary of the user's profile for the AI assistant
+  const getProfileSummary = () => {
+    if (!profileData) return "No profile data available yet.";
     
-    setMessages((prev) => [...prev, userMessage]);
+    const summary = [];
     
-    // Simulate AI response
-    setTimeout(() => {
-      const aiMessage: ChatMessageType = {
-        id: `ai-${Date.now()}`,
-        content: getAIResponse(content, profileData),
-        sender: "assistant",
-        timestamp: new Date(),
-      };
-      
-      setMessages((prev) => [...prev, aiMessage]);
-    }, 1000);
+    // Basic info
+    if (profileData.fullName) summary.push(`Name: ${profileData.fullName}`);
+    if (profileData.age) summary.push(`Age: ${profileData.age}`);
+    if (profileData.gender) summary.push(`Gender: ${profileData.gender}`);
+    if (profileData.occupation) summary.push(`Occupation: ${profileData.occupation}`);
+    
+    // Demographics
+    if (profileData.nationality) summary.push(`Nationality: ${profileData.nationality}`);
+    if (profileData.language) summary.push(`Language: ${profileData.language}`);
+    if (profileData.ethnicity) summary.push(`Ethnicity: ${profileData.ethnicity}`);
+    if (profileData.religion) summary.push(`Religion: ${profileData.religion}`);
+    
+    // Housing preferences
+    if (profileData.preferredLocation && profileData.preferredLocation.length > 0) {
+      summary.push(`Preferred locations: ${profileData.preferredLocation.join(", ")}`);
+    }
+    if (profileData.budgetRange) {
+      summary.push(`Budget: $${profileData.budgetRange[0]} - $${profileData.budgetRange[1]}`);
+    }
+    if (profileData.housingType) summary.push(`Housing type: ${profileData.housingType}`);
+    if (profileData.livingSpace) summary.push(`Living space: ${profileData.livingSpace}`);
+    
+    // Lifestyle
+    if (profileData.smoking !== undefined) summary.push(`Smoker: ${profileData.smoking ? "Yes" : "No"}`);
+    if (profileData.livesWithSmokers !== undefined) {
+      summary.push(`Comfortable with smokers: ${profileData.livesWithSmokers ? "Yes" : "No"}`);
+    }
+    if (profileData.hasPets !== undefined) summary.push(`Has pets: ${profileData.hasPets ? "Yes" : "No"}`);
+    if (profileData.petType) summary.push(`Pet type: ${profileData.petType}`);
+    if (profileData.workLocation) summary.push(`Work location: ${profileData.workLocation}`);
+    if (profileData.workSchedule) summary.push(`Work schedule: ${profileData.workSchedule}`);
+    if (profileData.diet) summary.push(`Diet: ${profileData.diet}`);
+    
+    // Hobbies
+    if (profileData.hobbies && profileData.hobbies.length > 0) {
+      summary.push(`Hobbies: ${profileData.hobbies.join(", ")}`);
+    }
+    
+    // Roommate preferences
+    if (profileData.genderPreference && profileData.genderPreference.length > 0) {
+      summary.push(`Preferred roommate gender: ${profileData.genderPreference.join(", ")}`);
+    }
+    if (profileData.nationalityPreference) {
+      summary.push(`Nationality preference: ${profileData.nationalityPreference}`);
+    }
+    if (profileData.languagePreference) {
+      summary.push(`Language preference: ${profileData.languagePreference}`);
+    }
+    if (profileData.occupationPreference) {
+      summary.push(`Has occupation preference: ${profileData.occupationPreference ? "Yes" : "No"}`);
+    }
+    if (profileData.workSchedulePreference) {
+      summary.push(`Work schedule preference: ${profileData.workSchedulePreference}`);
+    }
+    if (profileData.roommateHobbies && profileData.roommateHobbies.length > 0) {
+      summary.push(`Preferred roommate hobbies: ${profileData.roommateHobbies.join(", ")}`);
+    }
+    if (profileData.rentOption) {
+      summary.push(`Rent option: ${profileData.rentOption}`);
+    }
+    
+    return summary.length > 0 ? summary.join("\n") : "Profile information is incomplete.";
   };
 
   return (
-    <AccordionItem value="ai-assistant" className="border rounded-lg overflow-hidden">
-      <AccordionTrigger className="px-4 py-4 hover:no-underline hover:bg-muted/50">
-        <div className="flex flex-1 items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <span className="text-lg font-semibold">AI Matching Assistant</span>
-          </div>
+    <AccordionItem value="ai-assistant" className="border rounded-lg">
+      <AccordionTrigger className="px-4 py-2 hover:no-underline">
+        <div className="flex items-center gap-2">
+          <MessageSquare className="h-5 w-5" />
+          <span className="text-xl font-semibold">AI Roommate Assistant</span>
         </div>
       </AccordionTrigger>
-      <AccordionContent className="pb-0">
-        <div className="p-4">
-          <div className="mb-4">
-            <h3 className="text-lg font-medium mb-2">Chatbot</h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              Get help finding your perfect roommate match. Ask questions about
-              compatibility factors, or get suggestions on how to improve your profile.
-            </p>
-            
-            <div className="border rounded-md overflow-hidden bg-background">
-              <ChatMessageList messages={messages} />
-              <ChatInput onSendMessage={handleSendMessage} />
-            </div>
-          </div>
-          
-          {children}
-        </div>
+      <AccordionContent className="px-4 pb-4">
+        <Card>
+          <CardContent className="p-4">
+            <ChatInterface 
+              profileSummary={getProfileSummary()}
+              isLoading={isLoading}
+            />
+          </CardContent>
+        </Card>
       </AccordionContent>
     </AccordionItem>
   );
-}
-
-// Helper function to generate AI responses based on user input
-function getAIResponse(message: string, profileData: Partial<ProfileFormValues> | null): string {
-  const messageLower = message.toLowerCase();
-  
-  if (messageLower.includes("find match") || messageLower.includes("find roommate")) {
-    return "To find your perfect roommate match, please click the 'Find My Match' button below. I'll analyze your profile data and preferences to find compatible roommates for you.";
-  }
-  
-  if (messageLower.includes("how does") && messageLower.includes("match")) {
-    return "Our matching algorithm analyzes 20+ compatibility factors including lifestyle, schedule, budget, location preferences, and personality traits to find your most compatible roommates.";
-  }
-  
-  if (messageLower.includes("profile") && (messageLower.includes("complet") || messageLower.includes("finish"))) {
-    if (!profileData || !profileData.fullName) {
-      return "Your profile isn't complete yet. Please fill in your personal information in the 'About Me' section to improve your matches.";
-    } else {
-      const missingFields = [];
-      if (!profileData.budgetRange) missingFields.push("budget range");
-      if (!profileData.preferredLocation) missingFields.push("preferred location");
-      if (!profileData.cleanliness) missingFields.push("cleanliness preferences");
-      
-      if (missingFields.length > 0) {
-        return `Your profile is partially complete. Consider adding details about your ${missingFields.join(", ")} to get better matches.`;
-      } else {
-        return "Your profile looks great! You've provided good information for our matching algorithm to find compatible roommates for you.";
-      }
-    }
-  }
-  
-  if (messageLower.includes("suggest") || messageLower.includes("recommendation")) {
-    return "Based on trends we've seen, the most successful matches include detailed information about daily routines, cleanliness expectations, and communication style. Adding these details to your profile could improve your matches.";
-  }
-  
-  // Default response
-  return "I'm here to help you find your ideal roommate. You can ask me about how our matching works, get profile suggestions, or click the 'Find My Match' button when you're ready to see your matches.";
 }

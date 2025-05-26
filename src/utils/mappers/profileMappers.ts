@@ -15,36 +15,38 @@ export function mapDbRowToFormValues(data: ProfileTableRow): Partial<ProfileForm
     phoneNumber: "",
     email: "",
     linkedinProfile: "",
-    preferredLocation: "",
+    nationality: "",
+    language: "",
+    ethnicity: "",
+    religion: "",
+    occupation: "",
+    preferredLocation: [],
     budgetRange: [800, 1500],
-    moveInDate: new Date(),
+    moveInDateStart: new Date(),
+    moveInDateEnd: new Date(),
     housingType: "apartment",
     livingSpace: "privateRoom",
     smoking: false,
     livesWithSmokers: false,
     hasPets: false,
-    petPreference: "noPets",
-    workLocation: "office",
-    dailyRoutine: "morning",
+    petType: "",
+    workLocation: "remote",
+    workSchedule: "dayShift",
     hobbies: [],
-    workSchedule: "",
-    sleepSchedule: "",
-    overnightGuests: "occasionally",
-    cleanliness: "somewhatTidy",
-    cleaningFrequency: "weekly",
-    socialLevel: "balanced",
-    guestsOver: "occasionally",
-    familyOver: "occasionally",
-    atmosphere: "balanced",
-    hostingFriends: "occasionally",
-    diet: "omnivore",
-    cookingSharing: "share",
-    stayDuration: "oneYear",
-    leaseTerm: "longTerm",
-    roommateGenderPreference: "noPreference",
-    roommateAgePreference: "similar",
-    roommateLifestylePreference: "similar",
-    importantRoommateTraits: [],
+    diet: "noRestrictions",
+    // Ideal roommate defaults
+    genderPreference: [],
+    nationalityPreference: "noPreference",
+    nationalityCustom: "",
+    languagePreference: "noPreference",
+    languageSpecific: "",
+    ethnicReligionPreference: "noPreference",
+    ethnicReligionOther: "",
+    occupationPreference: false,
+    occupationSpecific: "",
+    workSchedulePreference: "noPreference",
+    roommateHobbies: [],
+    rentOption: "findTogether",
   };
   
   // Basic information
@@ -54,15 +56,29 @@ export function mapDbRowToFormValues(data: ProfileTableRow): Partial<ProfileForm
   if ('phone_number' in data) formattedData.phoneNumber = safeString(data.phone_number);
   if ('email' in data) formattedData.email = safeString(data.email);
   if ('linkedin_profile' in data) formattedData.linkedinProfile = safeString(data.linkedin_profile);
-  if ('preferred_location' in data) formattedData.preferredLocation = safeString(data.preferred_location);
+  
+  // New demographic fields
+  if ('nationality' in data) formattedData.nationality = safeString(data.nationality);
+  if ('language' in data) formattedData.language = safeString(data.language);
+  if ('ethnicity' in data) formattedData.ethnicity = safeString(data.ethnicity);
+  if ('religion' in data) formattedData.religion = safeString(data.religion);
+  if ('occupation' in data) formattedData.occupation = safeString(data.occupation);
   
   // Handle arrays and special types
+  if ('preferred_location' in data && data.preferred_location) {
+    formattedData.preferredLocation = safeArray(data.preferred_location, String);
+  }
+  
   if ('budget_range' in data && data.budget_range) {
     formattedData.budgetRange = safeArray(data.budget_range, Number);
   }
   
-  if ('move_in_date' in data) {
-    formattedData.moveInDate = safeDate(data.move_in_date);
+  if ('move_in_date_start' in data) {
+    formattedData.moveInDateStart = safeDate(data.move_in_date_start);
+  }
+  
+  if ('move_in_date_end' in data) {
+    formattedData.moveInDateEnd = safeDate(data.move_in_date_end);
   }
   
   // Housing preferences
@@ -86,29 +102,21 @@ export function mapDbRowToFormValues(data: ProfileTableRow): Partial<ProfileForm
   if ('smoking' in data) formattedData.smoking = safeBoolean(data.smoking);
   if ('lives_with_smokers' in data) formattedData.livesWithSmokers = safeBoolean(data.lives_with_smokers);
   if ('has_pets' in data) formattedData.hasPets = safeBoolean(data.has_pets);
-  
-  // More enum values
-  if ('pet_preference' in data) {
-    formattedData.petPreference = safeEnum(
-      data.pet_preference,
-      ["noPets", "onlyCats", "onlyDogs", "both"],
-      "noPets"
-    );
-  }
+  if ('pet_type' in data) formattedData.petType = safeString(data.pet_type);
   
   if ('work_location' in data) {
     formattedData.workLocation = safeEnum(
       data.work_location,
       ["remote", "office", "hybrid"],
-      "office"
+      "remote"
     );
   }
   
-  if ('daily_routine' in data) {
-    formattedData.dailyRoutine = safeEnum(
-      data.daily_routine,
-      ["morning", "night", "mixed"],
-      "morning"
+  if ('work_schedule' in data) {
+    formattedData.workSchedule = safeEnum(
+      data.work_schedule,
+      ["dayShift", "afternoonShift", "overnightShift"],
+      "dayShift"
     );
   }
   
@@ -117,135 +125,70 @@ export function mapDbRowToFormValues(data: ProfileTableRow): Partial<ProfileForm
     formattedData.hobbies = safeArray(data.hobbies, String);
   }
   
-  // Simple string values
-  if ('work_schedule' in data) formattedData.workSchedule = safeString(data.work_schedule);
-  if ('sleep_schedule' in data) formattedData.sleepSchedule = safeString(data.sleep_schedule);
-  
-  // Social preferences
-  if ('overnight_guests' in data) {
-    formattedData.overnightGuests = safeEnum(
-      data.overnight_guests,
-      ["yes", "no", "occasionally"],
-      "occasionally"
-    );
-  }
-  
-  if ('cleanliness' in data) {
-    formattedData.cleanliness = safeEnum(
-      data.cleanliness,
-      ["veryTidy", "somewhatTidy", "doesntMindMess"],
-      "somewhatTidy"
-    );
-  }
-  
-  if ('cleaning_frequency' in data) {
-    formattedData.cleaningFrequency = safeEnum(
-      data.cleaning_frequency,
-      ["daily", "weekly", "biweekly", "monthly", "asNeeded"],
-      "weekly"
-    );
-  }
-  
-  if ('social_level' in data) {
-    formattedData.socialLevel = safeEnum(
-      data.social_level,
-      ["extrovert", "introvert", "balanced"],
-      "balanced"
-    );
-  }
-  
-  if ('guests_over' in data) {
-    formattedData.guestsOver = safeEnum(
-      data.guests_over,
-      ["yes", "no", "occasionally"],
-      "occasionally"
-    );
-  }
-  
-  if ('family_over' in data) {
-    formattedData.familyOver = safeEnum(
-      data.family_over,
-      ["yes", "no", "occasionally"],
-      "occasionally"
-    );
-  }
-  
-  if ('atmosphere' in data) {
-    formattedData.atmosphere = safeEnum(
-      data.atmosphere,
-      ["quiet", "lively", "balanced"],
-      "balanced"
-    );
-  }
-  
-  if ('hosting_friends' in data) {
-    formattedData.hostingFriends = safeEnum(
-      data.hosting_friends,
-      ["yes", "no", "occasionally"],
-      "occasionally"
-    );
-  }
-  
-  // Diet and lease preferences
   if ('diet' in data) {
     formattedData.diet = safeEnum(
       data.diet,
-      ["vegetarian", "vegan", "omnivore", "other"],
-      "omnivore"
+      ["vegetarian", "noRestrictions"],
+      "noRestrictions"
     );
   }
   
-  if ('cooking_sharing' in data) {
-    formattedData.cookingSharing = safeEnum(
-      data.cooking_sharing,
-      ["share", "separate"],
-      "share"
-    );
+  // Ideal roommate preferences
+  if ('gender_preference' in data) {
+    formattedData.genderPreference = safeArray(data.gender_preference, String);
   }
   
-  if ('stay_duration' in data) {
-    formattedData.stayDuration = safeEnum(
-      data.stay_duration,
-      ["threeMonths", "sixMonths", "oneYear", "flexible"],
-      "oneYear"
-    );
-  }
-  
-  if ('lease_term' in data) {
-    formattedData.leaseTerm = safeEnum(
-      data.lease_term,
-      ["shortTerm", "longTerm"],
-      "longTerm"
-    );
-  }
-  
-  // Roommate preferences
-  if ('roommate_gender_preference' in data) {
-    formattedData.roommateGenderPreference = safeEnum(
-      data.roommate_gender_preference,
-      ["sameGender", "femaleOnly", "maleOnly", "noPreference"],
+  if ('nationality_preference' in data) {
+    formattedData.nationalityPreference = safeEnum(
+      data.nationality_preference,
+      ["sameCountry", "noPreference", "custom"],
       "noPreference"
     );
   }
   
-  if ('roommate_age_preference' in data) {
-    formattedData.roommateAgePreference = safeEnum(
-      data.roommate_age_preference,
-      ["similar", "younger", "older", "noAgePreference"],
-      "similar"
+  if ('nationality_custom' in data) formattedData.nationalityCustom = safeString(data.nationality_custom);
+  
+  if ('language_preference' in data) {
+    formattedData.languagePreference = safeEnum(
+      data.language_preference,
+      ["sameLanguage", "noPreference", "specific"],
+      "noPreference"
     );
   }
   
-  if ('roommate_lifestyle_preference' in data) {
-    formattedData.roommateLifestylePreference = safeEnum(
-      data.roommate_lifestyle_preference,
-      ["similar", "moreActive", "quieter", "noLifestylePreference"],
-      "similar"
+  if ('language_specific' in data) formattedData.languageSpecific = safeString(data.language_specific);
+  
+  if ('ethnic_religion_preference' in data) {
+    formattedData.ethnicReligionPreference = safeEnum(
+      data.ethnic_religion_preference,
+      ["same", "noPreference", "other"],
+      "noPreference"
     );
   }
   
-  if ('important_roommate_traits' in data) {
-    formattedData.importantRoommateTraits = safeArray(data.important_roommate_traits, String);
+  if ('ethnic_religion_other' in data) formattedData.ethnicReligionOther = safeString(data.ethnic_religion_other);
+  
+  if ('occupation_preference' in data) formattedData.occupationPreference = safeBoolean(data.occupation_preference);
+  if ('occupation_specific' in data) formattedData.occupationSpecific = safeString(data.occupation_specific);
+  
+  if ('work_schedule_preference' in data) {
+    formattedData.workSchedulePreference = safeEnum(
+      data.work_schedule_preference,
+      ["opposite", "dayShift", "nightShift", "overnightShift", "noPreference"],
+      "noPreference"
+    );
+  }
+  
+  if ('roommate_hobbies' in data) {
+    formattedData.roommateHobbies = safeArray(data.roommate_hobbies, String);
+  }
+  
+  if ('rent_option' in data) {
+    formattedData.rentOption = safeEnum(
+      data.rent_option,
+      ["findTogether", "joinExisting"],
+      "findTogether"
+    );
   }
   
   return formattedData;
@@ -264,36 +207,37 @@ export function mapFormValuesToDbRow(formData: ProfileFormValues, userId: string
     phone_number: formData.phoneNumber,
     email: formData.email,
     linkedin_profile: formData.linkedinProfile,
+    nationality: formData.nationality,
+    language: formData.language,
+    ethnicity: formData.ethnicity,
+    religion: formData.religion,
+    occupation: formData.occupation,
     preferred_location: formData.preferredLocation,
     budget_range: formData.budgetRange,
-    move_in_date: formData.moveInDate.toISOString(),
+    move_in_date_start: formData.moveInDateStart.toISOString(),
+    move_in_date_end: formData.moveInDateEnd.toISOString(),
     housing_type: formData.housingType,
     living_space: formData.livingSpace,
     smoking: formData.smoking,
     lives_with_smokers: formData.livesWithSmokers,
     has_pets: formData.hasPets,
-    pet_preference: formData.petPreference,
+    pet_type: formData.petType,
     work_location: formData.workLocation,
-    daily_routine: formData.dailyRoutine,
-    hobbies: formData.hobbies,
     work_schedule: formData.workSchedule,
-    sleep_schedule: formData.sleepSchedule,
-    overnight_guests: formData.overnightGuests,
-    cleanliness: formData.cleanliness,
-    cleaning_frequency: formData.cleaningFrequency,
-    social_level: formData.socialLevel,
-    guests_over: formData.guestsOver,
-    family_over: formData.familyOver,
-    atmosphere: formData.atmosphere,
-    hosting_friends: formData.hostingFriends,
+    hobbies: formData.hobbies,
     diet: formData.diet,
-    cooking_sharing: formData.cookingSharing,
-    stay_duration: formData.stayDuration,
-    lease_term: formData.leaseTerm,
-    roommate_gender_preference: formData.roommateGenderPreference,
-    roommate_age_preference: formData.roommateAgePreference,
-    roommate_lifestyle_preference: formData.roommateLifestylePreference,
-    important_roommate_traits: formData.importantRoommateTraits,
+    gender_preference: formData.genderPreference,
+    nationality_preference: formData.nationalityPreference,
+    nationality_custom: formData.nationalityCustom,
+    language_preference: formData.languagePreference,
+    language_specific: formData.languageSpecific,
+    ethnic_religion_preference: formData.ethnicReligionPreference,
+    ethnic_religion_other: formData.ethnicReligionOther,
+    occupation_preference: formData.occupationPreference,
+    occupation_specific: formData.occupationSpecific,
+    work_schedule_preference: formData.workSchedulePreference,
+    roommate_hobbies: formData.roommateHobbies,
+    rent_option: formData.rentOption,
     updated_at: new Date().toISOString(),
   };
 
