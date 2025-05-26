@@ -9,6 +9,7 @@ import { LifestyleMatchTab } from "./LifestyleMatchTab";
 import { HouseHabitsTab } from "./HouseHabitsTab";
 import { DealBreakersTab } from "./DealBreakersTab";
 import { useState } from "react";
+import { useFormUtilities } from "@/hooks/useFormUtilities";
 
 interface IdealRoommateFormProps {
   form: UseFormReturn<ProfileFormValues>;
@@ -18,6 +19,7 @@ interface IdealRoommateFormProps {
 
 export function IdealRoommateForm({ form, onSubmit, isSaving }: IdealRoommateFormProps) {
   const [activeTab, setActiveTab] = useState("preferences");
+  const { handleTraitToggle } = useFormUtilities(form);
 
   const handleSubmit = async () => {
     const data = form.getValues();
@@ -37,7 +39,7 @@ export function IdealRoommateForm({ form, onSubmit, isSaving }: IdealRoommateFor
         <IdealRoommateTabs activeTab={activeTab} onTabChange={setActiveTab} />
         
         <TabsContent value="preferences">
-          <PreferencesTab form={form} />
+          <PreferencesTab form={form} handleTraitToggle={handleTraitToggle} />
         </TabsContent>
         
         <TabsContent value="lifestyle-match">

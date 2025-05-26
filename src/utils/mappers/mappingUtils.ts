@@ -1,0 +1,243 @@
+
+import { ProfileFormValues } from "@/types/profile";
+import { ProfileTableRow } from "@/components/dashboard/types/profileTypes";
+import { safeString, safeBoolean, safeDate, safeArray, safeEnum } from './mapperUtils';
+
+/**
+ * Maps basic personal information from database to form
+ */
+export function mapBasicInfoDbToForm(data: ProfileTableRow): Partial<ProfileFormValues> {
+  const result: Partial<ProfileFormValues> = {};
+  
+  if ('full_name' in data) result.fullName = safeString(data.full_name);
+  if ('age' in data) result.age = safeString(data.age);
+  if ('gender' in data) result.gender = safeString(data.gender);
+  if ('phone_number' in data) result.phoneNumber = safeString(data.phone_number);
+  if ('email' in data) result.email = safeString(data.email);
+  if ('linkedin_profile' in data) result.linkedinProfile = safeString(data.linkedin_profile);
+  if ('nationality' in data) result.nationality = safeString(data.nationality);
+  if ('language' in data) result.language = safeString(data.language);
+  if ('ethnicity' in data) result.ethnicity = safeString(data.ethnicity);
+  if ('religion' in data) result.religion = safeString(data.religion);
+  if ('occupation' in data) result.occupation = safeString(data.occupation);
+  
+  return result;
+}
+
+/**
+ * Maps housing preferences from database to form
+ */
+export function mapHousingDbToForm(data: ProfileTableRow): Partial<ProfileFormValues> {
+  const result: Partial<ProfileFormValues> = {};
+  
+  if ('preferred_location' in data && data.preferred_location) {
+    result.preferredLocation = safeArray(data.preferred_location, String);
+  }
+  
+  if ('budget_range' in data && data.budget_range) {
+    result.budgetRange = safeArray(data.budget_range, Number);
+  }
+  
+  if ('move_in_date_start' in data) {
+    result.moveInDateStart = safeDate(data.move_in_date_start);
+  }
+  
+  if ('move_in_date_end' in data) {
+    result.moveInDateEnd = safeDate(data.move_in_date_end);
+  }
+  
+  if ('housing_type' in data) {
+    result.housingType = safeEnum(
+      data.housing_type, 
+      ["house", "apartment"], 
+      "apartment"
+    );
+  }
+  
+  if ('living_space' in data) {
+    result.livingSpace = safeEnum(
+      data.living_space, 
+      ["privateRoom", "sharedRoom", "entirePlace"], 
+      "privateRoom"
+    );
+  }
+  
+  return result;
+}
+
+/**
+ * Maps lifestyle preferences from database to form
+ */
+export function mapLifestyleDbToForm(data: ProfileTableRow): Partial<ProfileFormValues> {
+  const result: Partial<ProfileFormValues> = {};
+  
+  if ('smoking' in data) result.smoking = safeBoolean(data.smoking);
+  if ('lives_with_smokers' in data) result.livesWithSmokers = safeBoolean(data.lives_with_smokers);
+  if ('has_pets' in data) result.hasPets = safeBoolean(data.has_pets);
+  if ('pet_type' in data) result.petType = safeString(data.pet_type);
+  
+  if ('work_location' in data) {
+    result.workLocation = safeEnum(
+      data.work_location,
+      ["remote", "office", "hybrid"],
+      "remote"
+    );
+  }
+  
+  if ('work_schedule' in data) {
+    result.workSchedule = safeEnum(
+      data.work_schedule,
+      ["dayShift", "afternoonShift", "overnightShift"],
+      "dayShift"
+    );
+  }
+  
+  if ('hobbies' in data) {
+    result.hobbies = safeArray(data.hobbies, String);
+  }
+  
+  if ('diet' in data) {
+    result.diet = safeEnum(
+      data.diet,
+      ["vegetarian", "noRestrictions"],
+      "noRestrictions"
+    );
+  }
+  
+  return result;
+}
+
+/**
+ * Maps roommate preferences from database to form
+ */
+export function mapRoommatePreferencesDbToForm(data: ProfileTableRow): Partial<ProfileFormValues> {
+  const result: Partial<ProfileFormValues> = {};
+  
+  if ('gender_preference' in data) {
+    result.genderPreference = safeArray(data.gender_preference, String);
+  }
+  
+  if ('nationality_preference' in data) {
+    result.nationalityPreference = safeEnum(
+      data.nationality_preference,
+      ["sameCountry", "noPreference", "custom"],
+      "noPreference"
+    );
+  }
+  
+  if ('nationality_custom' in data) result.nationalityCustom = safeString(data.nationality_custom);
+  
+  if ('language_preference' in data) {
+    result.languagePreference = safeEnum(
+      data.language_preference,
+      ["sameLanguage", "noPreference", "specific"],
+      "noPreference"
+    );
+  }
+  
+  if ('language_specific' in data) result.languageSpecific = safeString(data.language_specific);
+  
+  if ('ethnic_religion_preference' in data) {
+    result.ethnicReligionPreference = safeEnum(
+      data.ethnic_religion_preference,
+      ["same", "noPreference", "other"],
+      "noPreference"
+    );
+  }
+  
+  if ('ethnic_religion_other' in data) result.ethnicReligionOther = safeString(data.ethnic_religion_other);
+  
+  if ('occupation_preference' in data) result.occupationPreference = safeBoolean(data.occupation_preference);
+  if ('occupation_specific' in data) result.occupationSpecific = safeString(data.occupation_specific);
+  
+  if ('work_schedule_preference' in data) {
+    result.workSchedulePreference = safeEnum(
+      data.work_schedule_preference,
+      ["opposite", "dayShift", "nightShift", "overnightShift", "noPreference"],
+      "noPreference"
+    );
+  }
+  
+  if ('roommate_hobbies' in data) {
+    result.roommateHobbies = safeArray(data.roommate_hobbies, String);
+  }
+  
+  if ('rent_option' in data) {
+    result.rentOption = safeEnum(
+      data.rent_option,
+      ["findTogether", "joinExisting"],
+      "findTogether"
+    );
+  }
+  
+  return result;
+}
+
+/**
+ * Maps basic form data to database format
+ */
+export function mapBasicInfoFormToDb(formData: ProfileFormValues): Partial<ProfileTableRow> {
+  return {
+    full_name: formData.fullName,
+    age: formData.age,
+    gender: formData.gender,
+    phone_number: formData.phoneNumber,
+    email: formData.email,
+    linkedin_profile: formData.linkedinProfile,
+    nationality: formData.nationality,
+    language: formData.language,
+    ethnicity: formData.ethnicity,
+    religion: formData.religion,
+    occupation: formData.occupation,
+  };
+}
+
+/**
+ * Maps housing form data to database format
+ */
+export function mapHousingFormToDb(formData: ProfileFormValues): Partial<ProfileTableRow> {
+  return {
+    preferred_location: Array.isArray(formData.preferredLocation) ? formData.preferredLocation : [formData.preferredLocation].filter(Boolean),
+    budget_range: formData.budgetRange,
+    move_in_date_start: formData.moveInDateStart.toISOString(),
+    move_in_date_end: formData.moveInDateEnd.toISOString(),
+    housing_type: formData.housingType,
+    living_space: formData.livingSpace,
+  };
+}
+
+/**
+ * Maps lifestyle form data to database format
+ */
+export function mapLifestyleFormToDb(formData: ProfileFormValues): Partial<ProfileTableRow> {
+  return {
+    smoking: formData.smoking,
+    lives_with_smokers: formData.livesWithSmokers,
+    has_pets: formData.hasPets,
+    pet_type: formData.petType,
+    work_location: formData.workLocation,
+    work_schedule: formData.workSchedule,
+    hobbies: formData.hobbies,
+    diet: formData.diet,
+  };
+}
+
+/**
+ * Maps roommate preferences form data to database format
+ */
+export function mapRoommatePreferencesFormToDb(formData: ProfileFormValues): Partial<ProfileTableRow> {
+  return {
+    gender_preference: formData.genderPreference,
+    nationality_preference: formData.nationalityPreference,
+    nationality_custom: formData.nationalityCustom,
+    language_preference: formData.languagePreference,
+    language_specific: formData.languageSpecific,
+    ethnic_religion_preference: formData.ethnicReligionPreference,
+    ethnic_religion_other: formData.ethnicReligionOther,
+    occupation_preference: formData.occupationPreference,
+    occupation_specific: formData.occupationSpecific,
+    work_schedule_preference: formData.workSchedulePreference,
+    roommate_hobbies: formData.roommateHobbies,
+    rent_option: formData.rentOption,
+  };
+}

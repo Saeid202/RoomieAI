@@ -1,7 +1,5 @@
 
 import { ProfileFormValues } from "@/types/profile";
-import { mapDbRowToFormValues as mapDbRowToFormValuesCore, mapFormValuesToDbRow as mapFormValuesToDbRowCore } from "./mappers/profileMappers";
-import { mapCoOwnerDbRowToFormValues as mapCoOwnerDbRowToFormValuesCore, mapCoOwnerFormToDbRow as mapCoOwnerFormToDbRowCore } from "./mappers/coOwnerMappers";
 
 // Re-export the mapper functions
 export { mapDbRowToFormValues, mapFormValuesToDbRow } from "./mappers/profileMappers";
