@@ -34,10 +34,10 @@ export function CoOwnerProfileView() {
   };
   
   return (
-    <div className="w-full max-w-none space-y-6 overflow-hidden">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">Co-Owner Profile</h2>
-        <div className="flex space-x-2">
+    <div className="w-full max-w-7xl mx-auto space-y-6 px-4">
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+          <h2 className="text-2xl font-bold">Co-Owner Profile</h2>
           <span className="text-sm text-muted-foreground">
             Complete your profile to improve matching results
           </span>
