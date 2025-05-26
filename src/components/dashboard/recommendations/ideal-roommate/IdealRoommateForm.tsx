@@ -2,6 +2,7 @@
 import { UseFormReturn } from "react-hook-form";
 import { ProfileFormValues } from "@/types/profile";
 import { Button } from "@/components/ui/button";
+import { Form } from "@/components/ui/form";
 import { IdealRoommateTabs } from "./IdealRoommateTabs";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { PreferencesTab } from "./PreferencesTab";
@@ -21,7 +22,8 @@ export function IdealRoommateForm({ form, onSubmit, isSaving }: IdealRoommateFor
   const [activeTab, setActiveTab] = useState("preferences");
   const { handleTraitToggle } = useFormUtilities(form);
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     const data = form.getValues();
     await onSubmit(data);
   };
@@ -35,35 +37,39 @@ export function IdealRoommateForm({ form, onSubmit, isSaving }: IdealRoommateFor
         </p>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <IdealRoommateTabs activeTab={activeTab} onTabChange={setActiveTab} />
-        
-        <TabsContent value="preferences">
-          <PreferencesTab form={form} handleTraitToggle={handleTraitToggle} />
-        </TabsContent>
-        
-        <TabsContent value="lifestyle-match">
-          <LifestyleMatchTab form={form} />
-        </TabsContent>
-        
-        <TabsContent value="house-habits">
-          <HouseHabitsTab form={form} />
-        </TabsContent>
-        
-        <TabsContent value="deal-breakers">
-          <DealBreakersTab form={form} />
-        </TabsContent>
-      </Tabs>
+      <Form {...form}>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <IdealRoommateTabs activeTab={activeTab} onTabChange={setActiveTab} />
+            
+            <TabsContent value="preferences">
+              <PreferencesTab form={form} handleTraitToggle={handleTraitToggle} />
+            </TabsContent>
+            
+            <TabsContent value="lifestyle-match">
+              <LifestyleMatchTab form={form} />
+            </TabsContent>
+            
+            <TabsContent value="house-habits">
+              <HouseHabitsTab form={form} />
+            </TabsContent>
+            
+            <TabsContent value="deal-breakers">
+              <DealBreakersTab form={form} />
+            </TabsContent>
+          </Tabs>
 
-      <div className="flex justify-end pt-6">
-        <Button 
-          onClick={handleSubmit}
-          disabled={isSaving}
-          size="lg"
-        >
-          {isSaving ? "Saving..." : "Save Preferences"}
-        </Button>
-      </div>
+          <div className="flex justify-end pt-6">
+            <Button 
+              type="submit"
+              disabled={isSaving}
+              size="lg"
+            >
+              {isSaving ? "Saving..." : "Save Preferences"}
+            </Button>
+          </div>
+        </form>
+      </Form>
     </div>
   );
 }
