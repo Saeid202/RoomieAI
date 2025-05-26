@@ -5,7 +5,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Accordion } from "@/components/ui/accordion";
 import { TabsSection } from "./recommendations/components/TabsSection";
 import { ResultsSection } from "./recommendations/ResultsSection";
-import { RoomieAIIntro } from "./recommendations/RoomieAIIntro";
 import { useRoommateMatching } from "@/hooks/useRoommateMatching";
 import { ProfileLoadingHandler } from "./recommendations/ProfileLoadingHandler";
 
@@ -77,8 +76,6 @@ export function RoommateRecommendations({ onError }: RoommateRecommendationsProp
           </p>
         </div>
       </div>
-      
-      <RoomieAIIntro />
       
       <Card>
         <CardContent className="p-6">

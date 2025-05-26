@@ -7,7 +7,7 @@ import { useRole } from "@/contexts/RoleContext";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useState } from "react";
 import { RoleSelectionDialog } from "@/components/auth/RoleSelectionDialog";
-import { DashboardLanding } from "@/components/dashboard/DashboardLanding";
+import { RoomieAIIntro } from "@/components/dashboard/recommendations/RoomieAIIntro";
 
 export default function Dashboard() {
   const { role } = useRole();
@@ -52,7 +52,9 @@ export default function Dashboard() {
         <RouteGuard>
           <DashboardLayout>
             {showDashboardContent ? (
-              <DashboardLanding />
+              <div className="container mx-auto py-6">
+                <RoomieAIIntro />
+              </div>
             ) : (
               <Outlet />
             )}
