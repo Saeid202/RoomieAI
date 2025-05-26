@@ -8,8 +8,6 @@ import { Check } from "lucide-react";
 import { IdealRoommateTabs } from "./IdealRoommateTabs";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { PreferencesTab } from "./PreferencesTab";
-import { LifestyleMatchTab } from "./LifestyleMatchTab";
-import { HouseHabitsTab } from "./HouseHabitsTab";
 import { DealBreakersTab } from "./DealBreakersTab";
 
 interface RoommatePreferencesFormProps {
@@ -45,14 +43,6 @@ export function RoommatePreferencesForm({
           
           <TabsContent value="preferences">
             <PreferencesTab form={form} handleTraitToggle={() => {}} />
-          </TabsContent>
-          
-          <TabsContent value="lifestyle-match">
-            <LifestyleMatchTab form={form} />
-          </TabsContent>
-          
-          <TabsContent value="house-habits">
-            <HouseHabitsTab form={form} />
           </TabsContent>
           
           <TabsContent value="deal-breakers">
