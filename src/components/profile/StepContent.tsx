@@ -20,7 +20,7 @@ export function StepContent({
   handleTraitToggle 
 }: StepContentProps) {
   return (
-    <div className="w-full h-[420px] overflow-y-auto px-2">
+    <div className="w-full px-2">
       {step === 1 && (
         <div className="w-full space-y-4 py-4">
           <BasicInformationSection form={form} />

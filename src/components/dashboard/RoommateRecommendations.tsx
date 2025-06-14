@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent } from "@/components/ui/card";
@@ -67,8 +66,8 @@ export function RoommateRecommendations({ onError }: RoommateRecommendationsProp
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-start">
+    <div className="w-full max-w-screen-sm mx-auto px-2 sm:px-4 space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start gap-2 sm:gap-0">
         <div>
           <h1 className="text-2xl font-bold mb-2">Find Your Ideal Roommate</h1>
           <p className="text-muted-foreground">
@@ -77,8 +76,8 @@ export function RoommateRecommendations({ onError }: RoommateRecommendationsProp
         </div>
       </div>
       
-      <Card>
-        <CardContent className="p-6">
+      <Card className="w-full !max-w-full overflow-visible">
+        <CardContent className="p-4 sm:p-6 w-full">
           <TabsSection
             activeTab={activeTab}
             expandedSections={expandedSections}
@@ -90,17 +89,19 @@ export function RoommateRecommendations({ onError }: RoommateRecommendationsProp
         </CardContent>
       </Card>
       
-      <ResultsSection
-        roommates={roommates}
-        properties={properties}
-        selectedMatch={selectedMatch}
-        activeTab={activeTab === "about-me" || activeTab === "ideal-roommate" || activeTab === "ai-assistant" 
-          ? "roommates" 
-          : activeTab}
-        setActiveTab={setActiveTab}
-        onViewDetails={handleViewDetails}
-        onCloseDetails={handleCloseDetails}
-      />
+      <div className="w-full">
+        <ResultsSection
+          roommates={roommates}
+          properties={properties}
+          selectedMatch={selectedMatch}
+          activeTab={activeTab === "about-me" || activeTab === "ideal-roommate" || activeTab === "ai-assistant" 
+            ? "roommates" 
+            : activeTab}
+          setActiveTab={setActiveTab}
+          onViewDetails={handleViewDetails}
+          onCloseDetails={handleCloseDetails}
+        />
+      </div>
     </div>
   );
 }
