@@ -9,135 +9,7 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      co_owner: {
-        Row: {
-          age: string | null
-          co_ownership_experience: string | null
-          created_at: string
-          email: string | null
-          full_name: string | null
-          id: number
-          investment_capacity: number[] | null
-          investment_timeline: string | null
-          occupation: string | null
-          phone_number: string | null
-          preferred_location: string | null
-          property_type: string | null
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          age?: string | null
-          co_ownership_experience?: string | null
-          created_at?: string
-          email?: string | null
-          full_name?: string | null
-          id?: number
-          investment_capacity?: number[] | null
-          investment_timeline?: string | null
-          occupation?: string | null
-          phone_number?: string | null
-          preferred_location?: string | null
-          property_type?: string | null
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          age?: string | null
-          co_ownership_experience?: string | null
-          created_at?: string
-          email?: string | null
-          full_name?: string | null
-          id?: number
-          investment_capacity?: number[] | null
-          investment_timeline?: string | null
-          occupation?: string | null
-          phone_number?: string | null
-          preferred_location?: string | null
-          property_type?: string | null
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      "Find My Ideal Roommate": {
-        Row: {
-          created_at: string
-          id: number
-          profile_data: Json | null
-          updated_at: string | null
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string
-          id?: number
-          profile_data?: Json | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string
-          id?: number
-          profile_data?: Json | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
-      "My Future Housing Plan": {
-        Row: {
-          additional_requirements: string | null
-          budget: number | null
-          created_at: string
-          desired_location: string | null
-          housing_type: string | null
-          id: number
-          moving_date: string | null
-          user_id: string | null
-        }
-        Insert: {
-          additional_requirements?: string | null
-          budget?: number | null
-          created_at?: string
-          desired_location?: string | null
-          housing_type?: string | null
-          id?: number
-          moving_date?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          additional_requirements?: string | null
-          budget?: number | null
-          created_at?: string
-          desired_location?: string | null
-          housing_type?: string | null
-          id?: number
-          moving_date?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
-      profiles: {
-        Row: {
-          created_at: string | null
-          id: string
-          role: Database["public"]["Enums"]["user_role"] | null
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          id: string
-          role?: Database["public"]["Enums"]["user_role"] | null
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          role?: Database["public"]["Enums"]["user_role"] | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Views: {
       [_ in never]: never
@@ -146,7 +18,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      user_role: "seeker" | "landlord" | "developer"
+      [_ in never]: never
     }
     CompositeTypes: {
       [_ in never]: never
@@ -261,8 +133,6 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {
-      user_role: ["seeker", "landlord", "developer"],
-    },
+    Enums: {},
   },
 } as const
