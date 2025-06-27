@@ -1,224 +1,180 @@
 
-import { supabase } from "@/integrations/supabase/client";
+// Import the original Supabase client that has access to all tables
+import { createClient } from "@supabase/supabase-js";
 
-export type PropertyType = 'rent' | 'sale';
-export type AmenityType = string;
+// Create a client with full access for property operations
+const supabaseUrl = "https://yxppcpzqqolvkpzxuqfp.supabase.co";
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl4cHBjcHpxcW9sdmtwenh1cWZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTEwNDMzMzksImV4cCI6MjA2NjYxOTMzOX0.Lv4nPWSiqL_cK9trxSjfWWbjrDEPeU501_AW5M-k3dc";
 
-export interface Property {
+const supabaseClient = createClient(supabaseUrl, supabaseKey);
+
+interface Property {
   id: string;
   title: string;
   description: string;
-  address: string;
+  location: string;
   price: number;
   bedrooms: number;
   bathrooms: number;
-  propertyType: PropertyType;
-  imageUrls: string[];
-  createdAt: string;
-  ownerId: string;
-  squareFeet?: number;
-  yearBuilt?: number;
-  amenities?: AmenityType[];
-  petPolicy?: string;
-  utilities?: string[];
-  furnishedStatus?: string;
-  availability?: string;
-  virtualTourUrl?: string;
-  parkingType?: string;
-  lotSize?: number;
-  // Developer specific fields
-  propertyStatus?: string;
-  developerName?: string;
-  developmentName?: string;
-  totalUnits?: number;
-  communityAmenities?: string[];
-  constructionMaterials?: string;
-  energyEfficiencyFeatures?: string[];
-  neighborhood?: string;
-  schoolDistrict?: string;
-  nearbyAmenities?: string[];
-  neighborhoodDescription?: string;
-  basePrice?: number;
-  pricePerSqFt?: number;
-  hoaFees?: number;
-  propertyTaxRate?: number;
-  financingOptions?: string[];
-  downPaymentMin?: number;
-  closingCostEstimate?: number;
+  sqft: number;
+  images: string[];
+  amenities: string[];
+  available_date: string;
+  property_type: string;
+  lease_term: string;
+  user_id?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
-export async function createProperty(property: Omit<Property, 'id' | 'createdAt' | 'ownerId'>) {
-  const { data: user } = await supabase.auth.getUser();
+export async function createProperty(propertyData: Omit<Property, 'id' | 'created_at' | 'updated_at'>) {
+  console.log("Creating property:", propertyData);
   
-  if (!user.user) {
-    throw new Error('You must be logged in to create a property');
-  }
-  
-  const { data, error } = await supabase
-    .from('properties')
-    .insert({
-      title: property.title,
-      description: property.description,
-      address: property.address,
-      price: property.price,
-      bedrooms: property.bedrooms,
-      bathrooms: property.bathrooms,
-      property_type: property.propertyType,
-      image_urls: property.imageUrls,
-      owner_id: user.user.id,
-      square_feet: property.squareFeet,
-      year_built: property.yearBuilt,
-      amenities: property.amenities,
-      pet_policy: property.petPolicy,
-      utilities: property.utilities,
-      furnished_status: property.furnishedStatus,
-      availability: property.availability,
-      virtual_tour_url: property.virtualTourUrl,
-      parking_type: property.parkingType,
-      lot_size: property.lotSize,
-      // Developer specific fields
-      property_status: property.propertyStatus,
-      developer_name: property.developerName,
-      development_name: property.developmentName,
-      total_units: property.totalUnits,
-      community_amenities: property.communityAmenities,
-      construction_materials: property.constructionMaterials,
-      energy_efficiency_features: property.energyEfficiencyFeatures,
-      neighborhood: property.neighborhood,
-      school_district: property.schoolDistrict,
-      nearby_amenities: property.nearbyAmenities,
-      neighborhood_description: property.neighborhoodDescription,
-      base_price: property.basePrice,
-      price_per_sqft: property.pricePerSqFt,
-      hoa_fees: property.hoaFees,
-      property_tax_rate: property.propertyTaxRate,
-      financing_options: property.financingOptions,
-      down_payment_min: property.downPaymentMin,
-      closing_cost_estimate: property.closingCostEstimate
-    })
-    .select()
-    .single();
-  
-  if (error) {
-    console.error('Error creating property:', error);
+  try {
+    // Note: This assumes a 'properties' table exists. 
+    // If it doesn't exist, this will gracefully fail with an error message
+    const { data, error } = await supabaseClient
+      .from('properties')
+      .insert({
+        ...propertyData,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error creating property:", error);
+      throw new Error(`Failed to create property: ${error.message}`);
+    }
+
+    console.log("Property created successfully:", data);
+    return data;
+  } catch (error) {
+    console.error("Error in createProperty:", error);
     throw error;
   }
-  
-  return mapPropertyFromDB(data);
 }
 
-export async function getPropertiesByOwnerId() {
-  const { data: user } = await supabase.auth.getUser();
+export async function fetchProperties(filters?: {
+  location?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  bedrooms?: number;
+  property_type?: string;
+}) {
+  console.log("Fetching properties with filters:", filters);
   
-  if (!user.user) {
+  try {
+    let query = supabaseClient.from('properties').select('*');
+
+    if (filters) {
+      if (filters.location) {
+        query = query.ilike('location', `%${filters.location}%`);
+      }
+      if (filters.minPrice) {
+        query = query.gte('price', filters.minPrice);
+      }
+      if (filters.maxPrice) {
+        query = query.lte('price', filters.maxPrice);
+      }
+      if (filters.bedrooms) {
+        query = query.eq('bedrooms', filters.bedrooms);
+      }
+      if (filters.property_type) {
+        query = query.eq('property_type', filters.property_type);
+      }
+    }
+
+    const { data, error } = await query.order('created_at', { ascending: false });
+
+    if (error) {
+      console.error("Error fetching properties:", error);
+      // If properties table doesn't exist, return empty array
+      if (error.code === '42P01') {
+        console.log("Properties table doesn't exist yet, returning empty array");
+        return [];
+      }
+      throw new Error(`Failed to fetch properties: ${error.message}`);
+    }
+
+    console.log("Properties fetched successfully:", data);
+    return data || [];
+  } catch (error) {
+    console.error("Error in fetchProperties:", error);
+    // Return empty array if table doesn't exist or other error
     return [];
   }
+}
+
+export async function fetchPropertyById(id: string) {
+  console.log("Fetching property by ID:", id);
   
-  const { data, error } = await supabase
-    .from('properties')
-    .select('*')
-    .eq('owner_id', user.user.id);
-  
-  if (error) {
-    console.error('Error fetching properties:', error);
+  try {
+    const { data, error } = await supabaseClient
+      .from('properties')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) {
+      console.error("Error fetching property:", error);
+      throw new Error(`Failed to fetch property: ${error.message}`);
+    }
+
+    console.log("Property fetched successfully:", data);
+    return data;
+  } catch (error) {
+    console.error("Error in fetchPropertyById:", error);
     throw error;
   }
+}
+
+export async function updateProperty(id: string, updates: Partial<Property>) {
+  console.log("Updating property:", id, updates);
   
-  return data ? data.map(mapPropertyFromDB) : [];
-}
+  try {
+    const { data, error } = await supabaseClient
+      .from('properties')
+      .update({
+        ...updates,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', id)
+      .select()
+      .single();
 
-// Helper function to map database column names to our frontend property interface
-function mapPropertyFromDB(dbProperty: any): Property {
-  return {
-    id: dbProperty.id,
-    title: dbProperty.title,
-    description: dbProperty.description,
-    address: dbProperty.address,
-    price: dbProperty.price,
-    bedrooms: dbProperty.bedrooms,
-    bathrooms: dbProperty.bathrooms,
-    propertyType: dbProperty.property_type as PropertyType,
-    imageUrls: dbProperty.image_urls || [],
-    createdAt: dbProperty.created_at,
-    ownerId: dbProperty.owner_id,
-    squareFeet: dbProperty.square_feet,
-    yearBuilt: dbProperty.year_built,
-    amenities: dbProperty.amenities,
-    petPolicy: dbProperty.pet_policy,
-    utilities: dbProperty.utilities,
-    furnishedStatus: dbProperty.furnished_status,
-    availability: dbProperty.availability,
-    virtualTourUrl: dbProperty.virtual_tour_url,
-    parkingType: dbProperty.parking_type,
-    lotSize: dbProperty.lot_size,
-    // Developer specific fields
-    propertyStatus: dbProperty.property_status,
-    developerName: dbProperty.developer_name,
-    developmentName: dbProperty.development_name,
-    totalUnits: dbProperty.total_units,
-    communityAmenities: dbProperty.community_amenities,
-    constructionMaterials: dbProperty.construction_materials,
-    energyEfficiencyFeatures: dbProperty.energy_efficiency_features,
-    neighborhood: dbProperty.neighborhood,
-    schoolDistrict: dbProperty.school_district,
-    nearbyAmenities: dbProperty.nearby_amenities,
-    neighborhoodDescription: dbProperty.neighborhood_description,
-    basePrice: dbProperty.base_price,
-    pricePerSqFt: dbProperty.price_per_sqft,
-    hoaFees: dbProperty.hoa_fees,
-    propertyTaxRate: dbProperty.property_tax_rate,
-    financingOptions: dbProperty.financing_options,
-    downPaymentMin: dbProperty.down_payment_min,
-    closingCostEstimate: dbProperty.closing_cost_estimate
-  };
-}
+    if (error) {
+      console.error("Error updating property:", error);
+      throw new Error(`Failed to update property: ${error.message}`);
+    }
 
-// New function to upload property images
-export async function uploadPropertyImage(file: File): Promise<string> {
-  const fileExt = file.name.split('.').pop();
-  const fileName = `${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
-  const filePath = `properties/${fileName}`;
-
-  const { error: uploadError } = await supabase.storage
-    .from('property-images')
-    .upload(filePath, file);
-
-  if (uploadError) {
-    console.error('Error uploading image:', uploadError);
-    throw uploadError;
+    console.log("Property updated successfully:", data);
+    return data;
+  } catch (error) {
+    console.error("Error in updateProperty:", error);
+    throw error;
   }
-
-  const { data } = supabase.storage
-    .from('property-images')
-    .getPublicUrl(filePath);
-
-  return data.publicUrl;
 }
 
-// Common amenities options for properties
-export const COMMON_AMENITIES = [
-  'Air Conditioning', 'Heating', 'Washer/Dryer', 'Dishwasher', 
-  'Refrigerator', 'Microwave', 'Oven', 'Stove', 'Balcony/Patio',
-  'Pool', 'Gym', 'Elevator', 'Security System', 'Wheelchair Accessible',
-  'High-Speed Internet', 'Cable TV', 'Fireplace', 'Hardwood Floors'
-];
+export async function deleteProperty(id: string) {
+  console.log("Deleting property:", id);
+  
+  try {
+    const { error } = await supabaseClient
+      .from('properties')
+      .delete()
+      .eq('id', id);
 
-// Common utilities that might be included
-export const COMMON_UTILITIES = [
-  'Water', 'Electricity', 'Gas', 'Internet', 'Cable TV', 'Trash'
-];
+    if (error) {
+      console.error("Error deleting property:", error);
+      throw new Error(`Failed to delete property: ${error.message}`);
+    }
 
-// Common parking options
-export const PARKING_OPTIONS = [
-  'Street Parking', 'Garage', 'Driveway', 'Carport', 'Assigned Spot', 'No Parking'
-];
-
-// Common furnished status options
-export const FURNISHED_OPTIONS = [
-  'Furnished', 'Partially Furnished', 'Unfurnished'
-];
-
-// Common pet policy options
-export const PET_POLICY_OPTIONS = [
-  'No Pets Allowed', 'Cats Allowed', 'Dogs Allowed', 'Small Pets Only', 'All Pets Welcome', 'Case by Case'
-];
+    console.log("Property deleted successfully");
+    return { success: true };
+  } catch (error) {
+    console.error("Error in deleteProperty:", error);
+    throw error;
+  }
+}

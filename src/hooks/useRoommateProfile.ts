@@ -60,7 +60,7 @@ export function useRoommateProfile() {
           
           if (data) {
             console.log("Fetched roommate profile:", data);
-            // Map database fields to form format
+            // Map database fields to form format with proper type assertions
             const profileData: Partial<ProfileFormValues> = {
               fullName: data.full_name || "",
               age: data.age || "",
@@ -72,22 +72,22 @@ export function useRoommateProfile() {
               budgetRange: data.budget_range || [900, 1500],
               moveInDateStart: data.move_in_date ? new Date(data.move_in_date) : new Date(),
               moveInDateEnd: data.move_in_date ? new Date(data.move_in_date) : new Date(),
-              housingType: data.housing_type || "apartment",
-              livingSpace: data.living_space || "privateRoom",
+              housingType: (data.housing_type as "apartment" | "house") || "apartment",
+              livingSpace: (data.living_space as "privateRoom" | "sharedRoom" | "entirePlace") || "privateRoom",
               smoking: data.smoking || false,
               livesWithSmokers: data.lives_with_smokers || false,
               hasPets: data.has_pets || false,
               petType: data.pet_preference || "",
-              workLocation: data.work_location || "remote",
-              workSchedule: data.work_schedule || "dayShift",
+              workLocation: (data.work_location as "remote" | "office" | "hybrid") || "remote",
+              workSchedule: (data.work_schedule as "dayShift" | "afternoonShift" | "overnightShift") || "dayShift",
               hobbies: data.hobbies || [],
-              diet: data.diet || "noRestrictions",
+              diet: (data.diet as "vegetarian" | "noRestrictions") || "noRestrictions",
               genderPreference: data.roommate_gender_preference ? [data.roommate_gender_preference] : [],
               nationalityPreference: "noPreference",
               languagePreference: "noPreference",
               ethnicReligionPreference: "noPreference",
               occupationPreference: false,
-              workSchedulePreference: data.roommate_lifestyle_preference || "noPreference",
+              workSchedulePreference: (data.roommate_lifestyle_preference as "dayShift" | "overnightShift" | "noPreference" | "opposite" | "nightShift") || "noPreference",
               roommateHobbies: data.important_roommate_traits || [],
               rentOption: "findTogether",
               occupation: data.work_location || "",

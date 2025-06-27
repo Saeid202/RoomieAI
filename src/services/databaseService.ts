@@ -6,56 +6,8 @@ import { supabase } from "@/integrations/supabase/client";
  */
 export async function initializeDatabase() {
   console.log("Initializing database...");
-  // Create the table info function for debugging
-  await createTableInfoFunction();
-  
   // Ensure the co-owner table exists with correct structure
   await ensureCoOwnerTableExists();
-}
-
-/**
- * Creates a function in Supabase to get table information (columns, types)
- * This helps with debugging database structure issues
- */
-export async function createTableInfoFunction() {
-  try {
-    const { error } = await supabase.rpc('get_table_info', { table_name: 'co_owner' });
-    
-    // If function doesn't exist, create it
-    if (error && error.message.includes('does not exist')) {
-      console.log("Creating table info function...");
-      
-      // Create the function using raw SQL
-      const { error: createError } = await supabase.rpc('exec_sql', {
-        sql: `
-          CREATE OR REPLACE FUNCTION get_table_info(table_name text)
-          RETURNS TABLE(column_name text, data_type text, is_nullable boolean)
-          LANGUAGE SQL
-          AS $$
-            SELECT 
-              column_name::text, 
-              data_type::text,
-              (is_nullable = 'YES') as is_nullable
-            FROM 
-              information_schema.columns
-            WHERE 
-              table_name = $1
-              AND table_schema = 'public'
-            ORDER BY 
-              ordinal_position;
-          $$;
-        `
-      });
-      
-      if (createError) {
-        console.error("Error creating table info function:", createError);
-      } else {
-        console.log("Table info function created successfully");
-      }
-    }
-  } catch (error) {
-    console.error("Error with table info function:", error);
-  }
 }
 
 /**
@@ -66,15 +18,16 @@ export async function ensureCoOwnerTableExists() {
   try {
     console.log("Checking co_owner table...");
     
-    // Try to access the table to verify it exists
-    const { data: tableInfo, error: tableError } = await supabase.rpc('get_table_info', { 
-      table_name: 'co_owner' 
-    });
+    // Try to access the table to verify it exists by querying it
+    const { data: tableData, error: tableError } = await supabase
+      .from('co_owner')
+      .select('id')
+      .limit(1);
     
     if (tableError) {
       console.error("Error checking co_owner table:", tableError);
     } else {
-      console.log("co_owner table exists with columns:", tableInfo);
+      console.log("co_owner table exists and is accessible");
     }
   } catch (error) {
     console.error("Error checking co_owner table existence:", error);
