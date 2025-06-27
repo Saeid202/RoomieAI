@@ -47,7 +47,7 @@ export type RoommateTableRow = {
 };
 
 // Define common type for all tables to avoid redundancy
-// The id can be either string (for roommate table) or number (for co-owner table)
+// The id can be either string (for roommate table) or number (for co_owner table)
 export type ProfileTableRow = {
   id?: string | number;
   user_id?: string | null;
@@ -95,9 +95,8 @@ export type ProfileTableRow = {
 // Use these type aliases for better readability
 export type CoOwnerTableRow = ProfileTableRow;
 
-// Define a type for the table names accepted by Supabase
-// Removed "Both" from the options
-export type TableName = "roommate" | "co-owner";
+// Define a type for the table names accepted by Supabase - using underscores to match database
+export type TableName = "roommate" | "co_owner";
 
 export interface ProfileContentProps {
   profileData: Partial<ProfileFormValues> | null;

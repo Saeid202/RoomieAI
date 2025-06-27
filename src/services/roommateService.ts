@@ -14,7 +14,7 @@ export async function fetchRoommateProfile(userId: string) {
   console.log("Fetching roommate profile for user:", userId);
   
   const { data, error } = await supabase
-    .from('Find My Ideal Roommate')
+    .from('roommate')
     .select('*')
     .eq('user_id', userId)
     .maybeSingle();
@@ -42,21 +42,36 @@ export async function saveRoommateProfile(
   
   console.log("Saving roommate profile for user:", userId);
   
-  // Ensure all dates are properly serialized for storage
-  const preparedFormData = {
-    ...formData,
-    moveInDateStart: formData.moveInDateStart instanceof Date 
-      ? formData.moveInDateStart.toISOString() 
-      : formData.moveInDateStart,
-    moveInDateEnd: formData.moveInDateEnd instanceof Date 
-      ? formData.moveInDateEnd.toISOString() 
-      : formData.moveInDateEnd,
-  };
-  
-  // Prepare data for saving to the database
+  // Map form data to database format
   const dbData = {
     user_id: userId,
-    profile_data: preparedFormData,
+    full_name: formData.fullName,
+    age: formData.age,
+    gender: formData.gender,
+    email: formData.email,
+    phone_number: formData.phoneNumber,
+    linkedin_profile: formData.linkedinProfile,
+    preferred_location: Array.isArray(formData.preferredLocation) 
+      ? formData.preferredLocation.join(',') 
+      : formData.preferredLocation,
+    budget_range: formData.budgetRange,
+    move_in_date: formData.moveInDateStart instanceof Date 
+      ? formData.moveInDateStart.toISOString() 
+      : formData.moveInDateStart,
+    housing_type: formData.housingType,
+    living_space: formData.livingSpace,
+    smoking: formData.smoking,
+    lives_with_smokers: formData.livesWithSmokers,
+    has_pets: formData.hasPets,
+    pet_preference: formData.petType,
+    work_location: formData.workLocation,
+    work_schedule: formData.workSchedule,
+    hobbies: formData.hobbies,
+    diet: formData.diet,
+    roommate_gender_preference: Array.isArray(formData.genderPreference) 
+      ? formData.genderPreference.join(',') 
+      : formData.genderPreference,
+    important_roommate_traits: formData.roommateHobbies,
     updated_at: new Date().toISOString()
   };
   
@@ -64,7 +79,7 @@ export async function saveRoommateProfile(
   
   // Check if user already has a profile
   const { data: existingProfile, error: checkError } = await supabase
-    .from('Find My Ideal Roommate')
+    .from('roommate')
     .select('id')
     .eq('user_id', userId)
     .maybeSingle();
@@ -79,14 +94,14 @@ export async function saveRoommateProfile(
     // Update existing profile
     console.log("Updating existing profile with ID:", existingProfile.id);
     result = await supabase
-      .from('Find My Ideal Roommate')
+      .from('roommate')
       .update(dbData)
       .eq('user_id', userId);
   } else {
     // Insert new profile
     console.log("Creating new profile for user:", userId);
     result = await supabase
-      .from('Find My Ideal Roommate')
+      .from('roommate')
       .insert(dbData);
   }
   

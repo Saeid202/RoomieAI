@@ -87,7 +87,7 @@ export async function ensureCoOwnerTableExists() {
  * @param userId The user ID to associate with this profile
  * @returns The result of the save operation
  */
-export async function saveCoOwnerProfile(formData, userId) {
+export async function saveCoOwnerProfile(formData: any, userId: string) {
   if (!userId) {
     console.error("Cannot save profile: No user ID provided");
     throw new Error("You must be logged in to save your profile");
@@ -163,7 +163,7 @@ export async function saveCoOwnerProfile(formData, userId) {
  * @param userId The user ID to fetch the profile for
  * @returns The profile data
  */
-export async function fetchCoOwnerProfile(userId) {
+export async function fetchCoOwnerProfile(userId: string) {
   if (!userId) {
     console.error("Cannot fetch profile: No user ID provided");
     throw new Error("You must be logged in to fetch your profile");

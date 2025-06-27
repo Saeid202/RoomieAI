@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { ProfileFormValues } from "@/types/profile";
 import { ProfileTableRow, TableName } from "@/components/dashboard/types/profileTypes";
@@ -12,7 +13,7 @@ export function getTableNameFromPreference(preference: UserPreference): TableNam
   if (!preference) return null;
   
   if (preference === 'co-owner') {
-    return 'co-owner';
+    return 'co_owner'; // Use underscore to match database table name
   }
   
   return null;
@@ -49,7 +50,7 @@ export async function saveProfileData(
   // Convert form data to database format based on table type
   let dbData: ProfileTableRow;
   
-  if (tableName === 'co-owner') {
+  if (tableName === 'co_owner') {
     dbData = mapCoOwnerFormToDbRow(formData as CoOwnerFormValues, userId);
   } else {
     dbData = mapFormValuesToDbRow(formData as ProfileFormValues, userId);

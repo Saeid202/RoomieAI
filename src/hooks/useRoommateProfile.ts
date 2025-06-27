@@ -1,8 +1,9 @@
+
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { ProfileFormValues } from "@/types/profile";
-import { fetchRoommateProfile } from "@/services/roommateService";
+import { supabase } from "@/integrations/supabase/client";
 
 export function useRoommateProfile() {
   const { user } = useAuth();
@@ -45,37 +46,61 @@ export function useRoommateProfile() {
         }, 2000);
       });
       
-      // Fetch profile data
-      const fetchPromise = fetchRoommateProfile(user.id).then(({ data, error: fetchError }) => {
-        if (fetchError && fetchError.code !== 'PGRST116') {
-          console.error("Error fetching roommate profile:", fetchError);
-          throw new Error(`Failed to fetch profile: ${fetchError.message}`);
-        }
-        
-        if (data) {
-          console.log("Fetched roommate profile:", data);
-          // If profile data exists in JSONB field, use it
-          if (data.profile_data) {
-            // Convert moveInDate from string to Date
-            const profileData = {
-              ...data.profile_data,
-              moveInDate: data.profile_data.moveInDate 
-                ? new Date(data.profile_data.moveInDate) 
-                : new Date()
+      // Fetch profile data from roommate table
+      const fetchPromise = supabase
+        .from('roommate')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle()
+        .then(({ data, error: fetchError }) => {
+          if (fetchError && fetchError.code !== 'PGRST116') {
+            console.error("Error fetching roommate profile:", fetchError);
+            throw new Error(`Failed to fetch profile: ${fetchError.message}`);
+          }
+          
+          if (data) {
+            console.log("Fetched roommate profile:", data);
+            // Map database fields to form format
+            const profileData: Partial<ProfileFormValues> = {
+              fullName: data.full_name || "",
+              age: data.age || "",
+              gender: data.gender || "",
+              email: data.email || user.email || "",
+              phoneNumber: data.phone_number || "",
+              linkedinProfile: data.linkedin_profile || "",
+              preferredLocation: data.preferred_location ? data.preferred_location.split(',') : [],
+              budgetRange: data.budget_range || [900, 1500],
+              moveInDateStart: data.move_in_date ? new Date(data.move_in_date) : new Date(),
+              moveInDateEnd: data.move_in_date ? new Date(data.move_in_date) : new Date(),
+              housingType: data.housing_type || "apartment",
+              livingSpace: data.living_space || "privateRoom",
+              smoking: data.smoking || false,
+              livesWithSmokers: data.lives_with_smokers || false,
+              hasPets: data.has_pets || false,
+              petType: data.pet_preference || "",
+              workLocation: data.work_location || "remote",
+              workSchedule: data.work_schedule || "dayShift",
+              hobbies: data.hobbies || [],
+              diet: data.diet || "noRestrictions",
+              genderPreference: data.roommate_gender_preference ? [data.roommate_gender_preference] : [],
+              nationalityPreference: "noPreference",
+              languagePreference: "noPreference",
+              ethnicReligionPreference: "noPreference",
+              occupationPreference: false,
+              workSchedulePreference: data.roommate_lifestyle_preference || "noPreference",
+              roommateHobbies: data.important_roommate_traits || [],
+              rentOption: "findTogether",
+              occupation: data.work_location || "",
             };
             
             setProfileData(profileData);
             console.log("Set profile data from database:", profileData);
           } else {
-            // Otherwise use defaults
+            // If no profile exists yet, use default values
+            console.log("No existing profile found, using default values");
             setProfileData(getDefaultProfileData());
           }
-        } else {
-          // If no profile exists yet, use default values
-          console.log("No existing profile found, using default values");
-          setProfileData(getDefaultProfileData());
-        }
-      });
+        });
       
       // Race between timeout and fetch
       await Promise.race([fetchPromise, timeoutPromise]);

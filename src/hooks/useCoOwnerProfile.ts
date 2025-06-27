@@ -66,7 +66,7 @@ export function useCoOwnerProfile() {
         } else if (data) {
           console.log("Found profile data:", data);
           
-          // Map database fields to form fields
+          // Map database fields to form fields with proper type assertions
           const formData: CoOwnerFormValues = {
             fullName: data.full_name || "",
             age: data.age || "",
@@ -75,9 +75,9 @@ export function useCoOwnerProfile() {
             occupation: data.occupation || "",
             preferredLocation: data.preferred_location || "",
             investmentCapacity: data.investment_capacity || [100000, 500000],
-            investmentTimeline: data.investment_timeline || "0-6 months",
-            propertyType: data.property_type || "Any",
-            coOwnershipExperience: data.co_ownership_experience || "None",
+            investmentTimeline: (data.investment_timeline as "0-6 months" | "6-12 months" | "1-2 years" | "2+ years") || "0-6 months",
+            propertyType: (data.property_type as "House" | "Apartment" | "Condo" | "Townhouse" | "Multi-family" | "Any") || "Any",
+            coOwnershipExperience: (data.co_ownership_experience as "None" | "Some" | "Extensive") || "None",
           };
           
           setProfileData(formData);
