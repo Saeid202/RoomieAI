@@ -6,33 +6,32 @@ import { AuthProvider } from "@/providers/AuthProvider";
 import Dashboard from "@/pages/Dashboard";
 import HomePage from "@/pages/Home";
 import RoommateRecommendationsPage from "@/pages/dashboard/RoommateRecommendations";
+import StandardMatchingPage from "@/pages/dashboard/StandardMatching";
+import PlanAheadMatchingPage from "@/pages/dashboard/PlanAheadMatching";
+import OppositeSchedulePage from "@/pages/dashboard/OppositeSchedule";
+import ListSpacePage from "@/pages/dashboard/ListSpace";
+import LandlordListingsPage from "@/pages/dashboard/LandlordListings";
+import ShortTermPage from "@/pages/dashboard/ShortTerm";
+import EmergencySearchPage from "@/pages/dashboard/EmergencySearch";
+import GroupMatchingPage from "@/pages/dashboard/GroupMatching";
+import WorkExchangePage from "@/pages/dashboard/WorkExchange";
+import LGBTQMatchingPage from "@/pages/dashboard/LGBTQMatching";
+import FindPropertyPage from "@/pages/dashboard/FindProperty";
 import AuthPage from "@/pages/Auth";
 import Callback from "@/pages/auth/Callback";
 import Profile from "@/pages/dashboard/Profile";
-import WalletPage from "@/pages/dashboard/Wallet";
 import LegalAssistantPage from "@/pages/dashboard/LegalAssistant";
 import RentOpportunitiesPage from "@/pages/dashboard/RentOpportunities";
 import ChatsPage from "@/pages/dashboard/Chats";
 import RentSavingsPage from "@/pages/dashboard/RentSavings";
-import CoOwnerRecommendationsPage from "@/pages/dashboard/CoOwnerRecommendations";
-import CoOwnershipOpportunitiesPage from "@/pages/dashboard/CoOwnershipOpportunities";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import LandlordHomePage from "@/pages/dashboard/landlord/LandlordHome";
-import DeveloperHomePage from "@/pages/dashboard/developer/DeveloperHome";
 import AdminHomePage from "@/pages/dashboard/admin/AdminHome";
 import PagesPage from "@/pages/dashboard/admin/Pages";
 import UsersPage from "@/pages/dashboard/admin/Users";
-import SettingsPage from "@/pages/dashboard/admin/Settings";
-import AddPropertyPage from "@/pages/dashboard/landlord/AddProperty";
-import DeveloperAddPropertyPage from "@/pages/dashboard/developer/AddProperty";
-import AddRentalListingPage from "@/pages/dashboard/landlord/AddRentalListing";
-import CoOwnerProfilePage from "@/pages/dashboard/profile/CoOwnerProfile";
+import SettingsPage from "@/pages/dashboard/Settings";
 import PropertiesPage from "@/pages/dashboard/landlord/Properties";
 import ApplicationsPage from "@/pages/dashboard/landlord/Applications";
-import DeveloperPropertiesPage from "@/pages/dashboard/developer/Properties"; 
-import MarketAnalysisPage from "@/pages/dashboard/developer/MarketAnalysis";
-import BuyerInquiriesPage from "@/pages/dashboard/developer/BuyerInquiries";
-import FindPropertyPage from "@/pages/dashboard/FindProperty";
 import { useAuth } from "@/hooks/useAuth";
 
 function AppRoutes() {
@@ -51,36 +50,30 @@ function AppRoutes() {
           </ProtectedRoute>
         }>
           <Route path="profile" element={<Profile />} />
-          <Route path="profile/co-owner" element={<CoOwnerProfilePage />} />
-          <Route path="profile/roommate" element={<Profile />} />
           <Route path="roommate-recommendations" element={<RoommateRecommendationsPage />} />
+          <Route path="standard-matching" element={<StandardMatchingPage />} />
+          <Route path="plan-ahead-matching" element={<PlanAheadMatchingPage />} />
+          <Route path="opposite-schedule" element={<OppositeSchedulePage />} />
+          <Route path="list-space" element={<ListSpacePage />} />
+          <Route path="landlord-listings" element={<LandlordListingsPage />} />
+          <Route path="short-term" element={<ShortTermPage />} />
+          <Route path="emergency-search" element={<EmergencySearchPage />} />
+          <Route path="group-matching" element={<GroupMatchingPage />} />
+          <Route path="work-exchange" element={<WorkExchangePage />} />
+          <Route path="lgbtq-matching" element={<LGBTQMatchingPage />} />
           <Route path="rent-opportunities" element={<RentOpportunitiesPage />} />
-          <Route path="add-rental-listing" element={<AddRentalListingPage />} />
-          <Route path="rent" element={<RentOpportunitiesPage />} />
-          <Route path="roommate" element={<RoommateRecommendationsPage />} />
-          <Route path="list-room" element={<Profile />} />
           <Route path="find-property" element={<FindPropertyPage />} />
-          <Route path="rent-savings" element={<RentSavingsPage />} />
-          <Route path="co-owner-recommendations" element={<CoOwnerRecommendationsPage />} />
-          <Route path="co-ownership-opportunities" element={<CoOwnershipOpportunitiesPage />} />
-          <Route path="wallet" element={<WalletPage />} />
-          <Route path="legal-assistant" element={<LegalAssistantPage />} />
           <Route path="chats" element={<ChatsPage />} />
-          <Route path="create-listing" element={<Profile />} />
+          <Route path="rent-savings" element={<RentSavingsPage />} />
+          <Route path="legal-assistant" element={<LegalAssistantPage />} />
+          <Route path="settings" element={<SettingsPage />} />
           <Route path="landlord" element={<LandlordHomePage />} />
-          <Route path="landlord/add-property" element={<AddPropertyPage />} />
           <Route path="landlord/properties" element={<PropertiesPage />} />
           <Route path="landlord/applications" element={<ApplicationsPage />} />
-          <Route path="developer" element={<DeveloperHomePage />} />
-          <Route path="developer/properties" element={<DeveloperPropertiesPage />} />
-          <Route path="developer/market" element={<MarketAnalysisPage />} />
-          <Route path="developer/inquiries" element={<BuyerInquiriesPage />} />
-          <Route path="developer/add-property" element={<DeveloperAddPropertyPage />} />
           <Route path="admin" element={<AdminHomePage />} />
           <Route path="admin/pages" element={<PagesPage />} />
           <Route path="admin/users" element={<UsersPage />} />
           <Route path="admin/settings" element={<SettingsPage />} />
-          <Route path="settings" element={<SettingsPage />} />
         </Route>
       </Routes>
     );
@@ -98,36 +91,30 @@ function AppRoutes() {
         </ProtectedRoute>
       }>
         <Route path="profile" element={<Profile />} />
-        <Route path="profile/co-owner" element={<CoOwnerProfilePage />} />
-        <Route path="profile/roommate" element={<Profile />} />
         <Route path="roommate-recommendations" element={<RoommateRecommendationsPage />} />
+        <Route path="standard-matching" element={<StandardMatchingPage />} />
+        <Route path="plan-ahead-matching" element={<PlanAheadMatchingPage />} />
+        <Route path="opposite-schedule" element={<OppositeSchedulePage />} />
+        <Route path="list-space" element={<ListSpacePage />} />
+        <Route path="landlord-listings" element={<LandlordListingsPage />} />
+        <Route path="short-term" element={<ShortTermPage />} />
+        <Route path="emergency-search" element={<EmergencySearchPage />} />
+        <Route path="group-matching" element={<GroupMatchingPage />} />
+        <Route path="work-exchange" element={<WorkExchangePage />} />
+        <Route path="lgbtq-matching" element={<LGBTQMatchingPage />} />
         <Route path="rent-opportunities" element={<RentOpportunitiesPage />} />
-        <Route path="add-rental-listing" element={<AddRentalListingPage />} />
-        <Route path="rent" element={<RentOpportunitiesPage />} />
-        <Route path="roommate" element={<RoommateRecommendationsPage />} />
-        <Route path="list-room" element={<Profile />} />
         <Route path="find-property" element={<FindPropertyPage />} />
-        <Route path="rent-savings" element={<RentSavingsPage />} />
-        <Route path="co-owner-recommendations" element={<CoOwnerRecommendationsPage />} />
-        <Route path="co-ownership-opportunities" element={<CoOwnershipOpportunitiesPage />} />
-        <Route path="wallet" element={<WalletPage />} />
-        <Route path="legal-assistant" element={<LegalAssistantPage />} />
         <Route path="chats" element={<ChatsPage />} />
-        <Route path="create-listing" element={<Profile />} />
+        <Route path="rent-savings" element={<RentSavingsPage />} />
+        <Route path="legal-assistant" element={<LegalAssistantPage />} />
+        <Route path="settings" element={<SettingsPage />} />
         <Route path="landlord" element={<LandlordHomePage />} />
-        <Route path="landlord/add-property" element={<AddPropertyPage />} />
         <Route path="landlord/properties" element={<PropertiesPage />} />
         <Route path="landlord/applications" element={<ApplicationsPage />} />
-        <Route path="developer" element={<DeveloperHomePage />} />
-        <Route path="developer/properties" element={<DeveloperPropertiesPage />} />
-        <Route path="developer/market" element={<MarketAnalysisPage />} />
-        <Route path="developer/inquiries" element={<BuyerInquiriesPage />} />
-        <Route path="developer/add-property" element={<DeveloperAddPropertyPage />} />
         <Route path="admin" element={<AdminHomePage />} />
         <Route path="admin/pages" element={<PagesPage />} />
         <Route path="admin/users" element={<UsersPage />} />
         <Route path="admin/settings" element={<SettingsPage />} />
-        <Route path="settings" element={<SettingsPage />} />
       </Route>
     </Routes>
   );

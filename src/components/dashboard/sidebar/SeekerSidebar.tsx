@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { 
   Home, Users, Building, Search, MessageSquare, 
   Settings, Calendar, Clock, List, MapPin, Group, 
-  Briefcase, Flag, User
+  Briefcase, Flag
 } from "lucide-react";
 import { SidebarSimpleMenuItem } from "./SidebarSimpleMenuItem";
 
