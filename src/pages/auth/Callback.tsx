@@ -11,7 +11,7 @@ export default function Callback() {
 
   // Helper function to validate if a role is one of the expected values
   function isValidRole(role: any): boolean {
-    const validRoles: UserRole[] = ['seeker', 'landlord', 'developer'];
+    const validRoles: UserRole[] = ['seeker', 'landlord'];
     return validRoles.includes(role as UserRole);
   }
 
@@ -85,9 +85,7 @@ export default function Callback() {
         // Redirect based on role
         console.log("Auth callback - redirecting based on role:", effectiveRole);
         
-        if (effectiveRole === 'developer') {
-          navigate('/dashboard/developer');
-        } else if (effectiveRole === 'landlord') {
+        if (effectiveRole === 'landlord') {
           navigate('/dashboard/landlord');
         } else {
           navigate('/dashboard/profile');

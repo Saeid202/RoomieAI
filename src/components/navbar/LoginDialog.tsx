@@ -78,8 +78,6 @@ export const LoginDialog = ({ isOpen, setIsOpen }: LoginDialogProps) => {
       // Redirect based on user role
       if (userRole === 'landlord' || localStorage.getItem('userRole') === 'landlord') {
         navigate("/dashboard/landlord");
-      } else if (userRole === 'developer' || localStorage.getItem('userRole') === 'developer') {
-        navigate("/dashboard/developer");
       } else {
         // Default to profile dashboard for seekers
         navigate("/dashboard/profile");

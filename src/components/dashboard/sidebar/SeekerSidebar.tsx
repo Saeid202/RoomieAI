@@ -2,7 +2,8 @@
 import { Link } from "react-router-dom";
 import { 
   Home, Users, Building, Search, MessageSquare, 
-  Wallet, Scale, Settings, User, UserPlus 
+  Settings, Calendar, Clock, List, MapPin, Group, 
+  Briefcase, Flag, User
 } from "lucide-react";
 import { SidebarSimpleMenuItem } from "./SidebarSimpleMenuItem";
 
@@ -22,44 +23,72 @@ export function SeekerSidebar({ isActive }: SeekerSidebarProps) {
       
       <SidebarSimpleMenuItem 
         icon={<Users size={18} />} 
-        label="Roommate Matches"
-        to="/dashboard/roommate-recommendations" 
-        isActive={isActive('/dashboard/roommate-recommendations')}
+        label="Standard Matching"
+        to="/dashboard/standard-matching" 
+        isActive={isActive('/dashboard/standard-matching')}
       />
       
       <SidebarSimpleMenuItem 
-        icon={<User size={18} />} 
-        label="Co-Owner Profile"
-        to="/dashboard/profile/co-owner" 
-        isActive={isActive('/dashboard/profile/co-owner')}
+        icon={<Calendar size={18} />} 
+        label="Plan Ahead Matching"
+        to="/dashboard/plan-ahead-matching" 
+        isActive={isActive('/dashboard/plan-ahead-matching')}
       />
       
       <SidebarSimpleMenuItem 
-        icon={<UserPlus size={18} />} 
-        label="Co-Owner Matches"
-        to="/dashboard/co-owner-recommendations" 
-        isActive={isActive('/dashboard/co-owner-recommendations')}
+        icon={<Clock size={18} />} 
+        label="Opposite Schedule"
+        to="/dashboard/opposite-schedule" 
+        isActive={isActive('/dashboard/opposite-schedule')}
+      />
+      
+      <SidebarSimpleMenuItem 
+        icon={<Home size={18} />} 
+        label="List Your Space"
+        to="/dashboard/list-space" 
+        isActive={isActive('/dashboard/list-space')}
       />
       
       <SidebarSimpleMenuItem 
         icon={<Building size={18} />} 
-        label="Rent Opportunities"
-        to="/dashboard/rent-opportunities" 
-        isActive={isActive('/dashboard/rent-opportunities')}
+        label="Landlord Listings"
+        to="/dashboard/landlord-listings" 
+        isActive={isActive('/dashboard/landlord-listings')}
       />
       
       <SidebarSimpleMenuItem 
-        icon={<Building size={18} />} 
-        label="Co-Own Opportunities"
-        to="/dashboard/co-ownership-opportunities" 
-        isActive={isActive('/dashboard/co-ownership-opportunities')}
+        icon={<MapPin size={18} />} 
+        label="Short Term Housing"
+        to="/dashboard/short-term" 
+        isActive={isActive('/dashboard/short-term')}
       />
       
       <SidebarSimpleMenuItem 
-        icon={<Search size={18} />} 
-        label="Find Property"
-        to="/dashboard/find-property" 
-        isActive={isActive('/dashboard/find-property')}
+        icon={<List size={18} />} 
+        label="Emergency Search"
+        to="/dashboard/emergency-search" 
+        isActive={isActive('/dashboard/emergency-search')}
+      />
+      
+      <SidebarSimpleMenuItem 
+        icon={<Group size={18} />} 
+        label="Group Matching"
+        to="/dashboard/group-matching" 
+        isActive={isActive('/dashboard/group-matching')}
+      />
+      
+      <SidebarSimpleMenuItem 
+        icon={<Briefcase size={18} />} 
+        label="Work Exchange"
+        to="/dashboard/work-exchange" 
+        isActive={isActive('/dashboard/work-exchange')}
+      />
+      
+      <SidebarSimpleMenuItem 
+        icon={<Flag size={18} />} 
+        label="LGBTQ+ Matching"
+        to="/dashboard/lgbtq-matching" 
+        isActive={isActive('/dashboard/lgbtq-matching')}
       />
       
       <SidebarSimpleMenuItem 
@@ -67,20 +96,6 @@ export function SeekerSidebar({ isActive }: SeekerSidebarProps) {
         label="Messages"
         to="/dashboard/chats" 
         isActive={isActive('/dashboard/chats')}
-      />
-      
-      <SidebarSimpleMenuItem 
-        icon={<Wallet size={18} />} 
-        label="Wallet"
-        to="/dashboard/wallet" 
-        isActive={isActive('/dashboard/wallet')}
-      />
-      
-      <SidebarSimpleMenuItem 
-        icon={<Scale size={18} />} 
-        label="Legal Assistant"
-        to="/dashboard/legal-assistant" 
-        isActive={isActive('/dashboard/legal-assistant')}
       />
       
       <SidebarSimpleMenuItem 

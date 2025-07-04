@@ -20,8 +20,6 @@ export function MobileNavigation() {
     switch (role) {
       case 'landlord':
         return '/dashboard/landlord';
-      case 'developer':
-        return '/dashboard/developer';
       default:
         return '/dashboard/roommate-recommendations';
     }

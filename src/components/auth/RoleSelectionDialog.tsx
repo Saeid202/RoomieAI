@@ -75,9 +75,6 @@ export function RoleSelectionDialog({
       case 'landlord':
         navigate('/dashboard/landlord');
         break;
-      case 'developer':
-        navigate('/dashboard/developer');
-        break;
       case 'admin':
         navigate('/dashboard/admin');
         break;
@@ -93,8 +90,6 @@ export function RoleSelectionDialog({
         return 'Seeker';
       case 'landlord':
         return 'Landlord';
-      case 'developer':
-        return 'Builder/Realtor';
       case 'admin':
         return 'Administrator';
       default:
@@ -105,11 +100,9 @@ export function RoleSelectionDialog({
   const getRoleDescription = (role: UserRole): string => {
     switch (role) {
       case 'seeker':
-        return 'Looking for a roommate, rental property, or to co-own a property.';
+        return 'Looking for a roommate or rental property.';
       case 'landlord':
         return 'List and manage rental properties, communicate with potential tenants.';
-      case 'developer':
-        return 'List properties for sale, manage property listings, engage with potential buyers.';
       case 'admin':
         return 'Manage the website content, user accounts, and system settings.';
       default:
@@ -154,17 +147,6 @@ export function RoleSelectionDialog({
               onClick={() => handleRoleSelect('landlord')}
               isLoading={loading && selectedRole === 'landlord'}
               isCurrent={currentRole === 'landlord'}
-            />
-            
-            <RoleCard
-              role="developer"
-              icon={<HardHat size={24} />}
-              title="Builder/Realtor"
-              description={getRoleDescription('developer')}
-              isSelected={selectedRole === 'developer'}
-              onClick={() => handleRoleSelect('developer')}
-              isLoading={loading && selectedRole === 'developer'}
-              isCurrent={currentRole === 'developer'}
             />
             
             <RoleCard

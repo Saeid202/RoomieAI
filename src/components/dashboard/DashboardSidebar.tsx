@@ -43,7 +43,6 @@ export function DashboardSidebar() {
         <SidebarHeader className="flex items-center justify-center p-4">
           <h2 className="text-xl font-bold">
             {role === 'landlord' ? 'Landlord Portal' : 
-             role === 'developer' ? 'Developer Portal' : 
              role === 'admin' ? 'Admin Portal' :
              'Roommate Finder'}
           </h2>
@@ -61,8 +60,6 @@ export function DashboardSidebar() {
                   <AdminSidebar isActive={isActive} />
                 ) : role === 'landlord' ? (
                   <LandlordSidebar isActive={isActive} />
-                ) : role === 'developer' ? (
-                  <DeveloperSidebar isActive={isActive} />
                 ) : (
                   <SeekerSidebar isActive={isActive} />
                 )}

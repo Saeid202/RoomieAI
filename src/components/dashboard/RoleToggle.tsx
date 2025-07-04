@@ -34,12 +34,6 @@ export function RoleToggle() {
           description: 'List and manage rental properties and tenants',
           icon: <Building className="h-5 w-5 text-roomie-purple" />
         };
-      case 'developer':
-        return {
-          title: 'Developer Portal',
-          description: 'List and manage properties for sale only',
-          icon: <HardHat className="h-5 w-5 text-roomie-purple" />
-        };
       case 'admin':
         return {
           title: 'Admin Portal',

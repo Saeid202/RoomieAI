@@ -53,8 +53,6 @@ export function UserMenu() {
         return 'Seeker';
       case 'landlord':
         return 'Landlord';
-      case 'developer':
-        return 'Builder/Realtor';
       case 'admin':
         return 'Administrator';
       default:
@@ -68,8 +66,6 @@ export function UserMenu() {
         return <User className="h-4 w-4 text-roomie-purple" />;
       case 'landlord':
         return <Building className="h-4 w-4 text-roomie-purple" />;
-      case 'developer':
-        return <HardHat className="h-4 w-4 text-roomie-purple" />;
       case 'admin':
         return <Shield className="h-4 w-4 text-roomie-purple" />;
       default:
