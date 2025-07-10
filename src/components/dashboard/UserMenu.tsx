@@ -74,21 +74,26 @@ export function UserMenu() {
   };
 
   return (
-    <div className="flex items-center justify-between p-4">
+    <div className="flex items-center justify-between px-4 py-3 bg-background/95 backdrop-blur-sm">
       <div className="block md:hidden">
-        <h2 className="text-xl font-bold text-roomie-purple">RoomieMatch</h2>
+        <h2 className="text-xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+          RoomieMatch
+        </h2>
       </div>
-      <div className="flex items-center space-x-4">
+      <div className="flex items-center space-x-3">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="flex items-center gap-2">
-              <div className="h-6 w-6 rounded-full bg-roomie-purple text-white flex items-center justify-center">
+            <Button 
+              variant="outline" 
+              className="flex items-center gap-2 rounded-xl border-2 hover:border-primary/30 md:px-4 px-2"
+            >
+              <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground flex items-center justify-center font-semibold shadow-sm">
                 {user?.email?.[0].toUpperCase() || 'U'}
               </div>
               <span className="hidden md:block text-sm font-medium">
                 {getRoleDisplay(role as UserRole)}
               </span>
-              <ChevronDown className="h-4 w-4" />
+              <ChevronDown className="h-4 w-4 md:block hidden" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-56 bg-white" align="end">

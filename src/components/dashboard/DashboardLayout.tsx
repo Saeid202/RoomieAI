@@ -28,9 +28,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               <UserMenu />
             </div>
             
-            {/* Scrollable content area - adjusted padding for mobile */}
-            <main className="flex-1 overflow-y-auto p-4 md:p-6 pb-24 md:pb-6 mt-16 md:mt-0">
-              {children}
+            {/* Scrollable content area - optimized for mobile */}
+            <main className="flex-1 overflow-y-auto px-4 py-6 md:p-6 pb-32 md:pb-6 mt-16 md:mt-0 bg-gradient-to-b from-background to-muted/30">
+              <div className="max-w-screen-xl mx-auto">
+                {children}
+              </div>
             </main>
             
             {/* Footer that spans full width under content - hidden on mobile */}
