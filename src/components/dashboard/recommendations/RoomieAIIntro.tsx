@@ -12,12 +12,7 @@ export function RoomieAIIntro() {
           <div className="p-2 bg-primary/10 rounded-xl">
             <Bot className="h-6 w-6 md:h-8 md:w-8 text-primary" />
           </div>
-          <div>
-            <div className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-              Welcome to Roomie AI
-            </div>
-            <p className="text-sm text-muted-foreground font-normal mt-1">Your intelligent roommate matching assistant</p>
-          </div>
+          Welcome to Roomie AI
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -41,7 +36,7 @@ export function RoomieAIIntro() {
                   </div>
                   <h3 className="font-bold text-foreground text-lg mb-2">Smart Matching</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    AI analyzes 20+ compatibility factors to find your perfect match
+                    AI analyzes 20+ compatibility factors
                   </p>
                 </div>
                 
@@ -51,7 +46,7 @@ export function RoomieAIIntro() {
                   </div>
                   <h3 className="font-bold text-foreground text-lg mb-2">Verified Profiles</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    Safe and secure profile verification for peace of mind
+                    Safe and secure profile verification
                   </p>
                 </div>
                 
@@ -61,7 +56,7 @@ export function RoomieAIIntro() {
                   </div>
                   <h3 className="font-bold text-foreground text-lg mb-2">AI Assistant</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    24/7 chat support for all your roommate questions
+                    24/7 chat support for your questions
                   </p>
                 </div>
               </div>

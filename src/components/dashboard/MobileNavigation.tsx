@@ -60,14 +60,14 @@ export function MobileNavigation() {
           
           <NavItem 
             icon={<Building size={22} />} 
-            label={role === 'seeker' ? "Co-own" : "Properties"} 
+            label={role === 'seeker' ? "Buy & Co-own" : "Properties"} 
             to={getBuyCoOwnRoute()}
             isActive={isActive(getBuyCoOwnRoute())}
           />
           
           <NavItem 
             icon={<Search size={22} />} 
-            label={role === 'seeker' ? "Discover" : "Listings"} 
+            label={role === 'seeker' ? "Rent & Roommate" : "Listings"} 
             to={getRentRoommateRoute()}
             isActive={isActive(getRentRoommateRoute())}
           />
@@ -181,8 +181,7 @@ function AddButton({
       <DialogContent className="sm:max-w-md mx-4 rounded-2xl">
         <div className="space-y-6 py-2">
           <div className="text-center">
-            <h3 className="font-bold text-xl text-foreground">Quick Actions</h3>
-            <p className="text-sm text-muted-foreground mt-1">What would you like to do?</p>
+            <h3 className="font-bold text-xl text-foreground">Create a Listing</h3>
           </div>
           <div className="grid gap-3">
             <Button 
@@ -195,7 +194,6 @@ function AddButton({
                 <Building className="mr-3 h-5 w-5 text-primary" />
                 <div className="text-left">
                   <div className="font-medium">{getListingLabel()}</div>
-                  <div className="text-xs text-muted-foreground">Start earning today</div>
                 </div>
               </Link>
             </Button>
@@ -211,7 +209,6 @@ function AddButton({
                   <User className="mr-3 h-5 w-5 text-primary" />
                   <div className="text-left">
                     <div className="font-medium">Update Profile</div>
-                    <div className="text-xs text-muted-foreground">Improve your matches</div>
                   </div>
                 </Link>
               </Button>
