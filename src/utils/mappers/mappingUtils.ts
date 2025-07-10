@@ -145,15 +145,25 @@ export function mapRoommatePreferencesDbToForm(data: ProfileTableRow): Partial<P
   
   if ('language_specific' in data) result.languageSpecific = safeString(data.language_specific);
   
-  if ('ethnic_religion_preference' in data) {
-    result.ethnicReligionPreference = safeEnum(
-      data.ethnic_religion_preference,
-      ["same", "noPreference", "other"],
+  if ('ethnicity_preference' in data) {
+    result.ethnicityPreference = safeEnum(
+      data.ethnicity_preference,
+      ["same", "noPreference", "others"],
       "noPreference"
     );
   }
   
-  if ('ethnic_religion_other' in data) result.ethnicReligionOther = safeString(data.ethnic_religion_other);
+  if ('ethnicity_other' in data) result.ethnicityOther = safeString(data.ethnicity_other);
+  
+  if ('religion_preference' in data) {
+    result.religionPreference = safeEnum(
+      data.religion_preference,
+      ["same", "noPreference", "others"],
+      "noPreference"
+    );
+  }
+  
+  if ('religion_other' in data) result.religionOther = safeString(data.religion_other);
   
   if ('occupation_preference' in data) result.occupationPreference = safeBoolean(data.occupation_preference);
   if ('occupation_specific' in data) result.occupationSpecific = safeString(data.occupation_specific);
@@ -240,8 +250,10 @@ export function mapRoommatePreferencesFormToDb(formData: ProfileFormValues): Par
     nationality_custom: formData.nationalityCustom,
     language_preference: formData.languagePreference,
     language_specific: formData.languageSpecific,
-    ethnic_religion_preference: formData.ethnicReligionPreference,
-    ethnic_religion_other: formData.ethnicReligionOther,
+    ethnicity_preference: formData.ethnicityPreference,
+    ethnicity_other: formData.ethnicityOther,
+    religion_preference: formData.religionPreference,
+    religion_other: formData.religionOther,
     occupation_preference: formData.occupationPreference,
     occupation_specific: formData.occupationSpecific,
     work_schedule_preference: formData.workSchedulePreference,

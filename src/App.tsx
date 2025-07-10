@@ -25,13 +25,10 @@ import RentOpportunitiesPage from "@/pages/dashboard/RentOpportunities";
 import ChatsPage from "@/pages/dashboard/Chats";
 import RentSavingsPage from "@/pages/dashboard/RentSavings";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import LandlordHomePage from "@/pages/dashboard/landlord/LandlordHome";
 import AdminHomePage from "@/pages/dashboard/admin/AdminHome";
 import PagesPage from "@/pages/dashboard/admin/Pages";
 import UsersPage from "@/pages/dashboard/admin/Users";
 import SettingsPage from "@/pages/dashboard/Settings";
-import PropertiesPage from "@/pages/dashboard/landlord/Properties";
-import ApplicationsPage from "@/pages/dashboard/landlord/Applications";
 import { useAuth } from "@/hooks/useAuth";
 
 function AppRoutes() {
@@ -67,9 +64,6 @@ function AppRoutes() {
           <Route path="rent-savings" element={<RentSavingsPage />} />
           <Route path="legal-assistant" element={<LegalAssistantPage />} />
           <Route path="settings" element={<SettingsPage />} />
-          <Route path="landlord" element={<LandlordHomePage />} />
-          <Route path="landlord/properties" element={<PropertiesPage />} />
-          <Route path="landlord/applications" element={<ApplicationsPage />} />
           <Route path="admin" element={<AdminHomePage />} />
           <Route path="admin/pages" element={<PagesPage />} />
           <Route path="admin/users" element={<UsersPage />} />
@@ -108,9 +102,6 @@ function AppRoutes() {
         <Route path="rent-savings" element={<RentSavingsPage />} />
         <Route path="legal-assistant" element={<LegalAssistantPage />} />
         <Route path="settings" element={<SettingsPage />} />
-        <Route path="landlord" element={<LandlordHomePage />} />
-        <Route path="landlord/properties" element={<PropertiesPage />} />
-        <Route path="landlord/applications" element={<ApplicationsPage />} />
         <Route path="admin" element={<AdminHomePage />} />
         <Route path="admin/pages" element={<PagesPage />} />
         <Route path="admin/users" element={<UsersPage />} />

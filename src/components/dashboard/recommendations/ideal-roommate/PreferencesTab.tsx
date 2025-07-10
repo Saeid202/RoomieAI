@@ -1,4 +1,3 @@
-
 import { UseFormReturn } from "react-hook-form";
 import { ProfileFormValues } from "@/types/profile";
 import { FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
@@ -7,6 +6,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Slider } from "@/components/ui/slider";
 
 interface PreferencesTabProps {
   form: UseFormReturn<ProfileFormValues>;
@@ -23,33 +23,65 @@ export function PreferencesTab({ form, handleTraitToggle }: PreferencesTabProps)
   const nationalityPreference = form.watch("nationalityPreference");
   const languagePreference = form.watch("languagePreference");
   const occupationPreference = form.watch("occupationPreference");
+  const ethnicityPreference = form.watch("ethnicityPreference");
+  const religionPreference = form.watch("religionPreference");
+  const petPreference = form.watch("petPreference");
+  const dietaryPreferences = form.watch("dietaryPreferences");
   const roommateHobbies = form.watch("roommateHobbies") || [];
+  const ageRange = form.watch("ageRangePreference") || [18, 65];
 
   return (
     <div className="space-y-8">
       <div>
-        <h3 className="text-lg font-semibold mb-4">Lifestyle Compatibility 🌟</h3>
+        <h3 className="text-lg font-semibold mb-4">Roommate Preferences 🏠</h3>
         <p className="text-muted-foreground mb-6">
-          What lifestyle factors are important for a great roommate match?
+          Tell us about your ideal roommate preferences to help us find the perfect match.
         </p>
       </div>
 
       <div className="space-y-8">
-        {/* Question 1: Gender Preference */}
+        {/* Question 1: Age Range */}
+        <FormField
+          control={form.control}
+          name="ageRangePreference"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-base font-bold">**1.** Age Range</FormLabel>
+              <div className="px-4 py-6">
+                <FormControl>
+                  <Slider
+                    min={18}
+                    max={65}
+                    step={1}
+                    value={field.value || [18, 65]}
+                    onValueChange={field.onChange}
+                    className="w-full"
+                  />
+                </FormControl>
+                <div className="flex justify-between text-sm text-muted-foreground mt-2">
+                  <span>{ageRange[0]} years</span>
+                  <span>{ageRange[1]} years</span>
+                </div>
+              </div>
+            </FormItem>
+          )}
+        />
+
+        {/* Question 2: Gender Preference */}
         <FormField
           control={form.control}
           name="genderPreference"
           render={() => (
             <FormItem>
-              <FormLabel className="text-base font-semibold">1. Gender Preference</FormLabel>
+              <FormLabel className="text-base font-bold">**2.** Gender Preference</FormLabel>
               <div className="grid grid-cols-2 gap-3 mt-3">
-                {["male", "female", "non-binary", "no-preference"].map((option) => (
+                {["Male", "Female", "Gay", "Lesbian", "Transgender", "Bisexual", "Non-Binary", "No preference"].map((option) => (
                   <FormField
                     key={option}
                     control={form.control}
                     name="genderPreference"
                     render={({ field }) => {
-                      const isChecked = Array.isArray(field.value) && field.value.includes(option);
+                      const isChecked = Array.isArray(field.value) && field.value.includes(option.toLowerCase().replace(" ", "-"));
                       return (
                         <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                           <FormControl>
@@ -57,16 +89,17 @@ export function PreferencesTab({ form, handleTraitToggle }: PreferencesTabProps)
                               checked={isChecked}
                               onCheckedChange={(checked) => {
                                 const currentValue = Array.isArray(field.value) ? field.value : [];
+                                const optionValue = option.toLowerCase().replace(" ", "-");
                                 if (checked) {
-                                  field.onChange([...currentValue, option]);
+                                  field.onChange([...currentValue, optionValue]);
                                 } else {
-                                  field.onChange(currentValue.filter((value) => value !== option));
+                                  field.onChange(currentValue.filter((value) => value !== optionValue));
                                 }
                               }}
                             />
                           </FormControl>
-                          <FormLabel className="text-sm font-normal capitalize">
-                            {option.replace("-", " ")}
+                          <FormLabel className="text-sm font-normal">
+                            {option}
                           </FormLabel>
                         </FormItem>
                       );
@@ -78,19 +111,23 @@ export function PreferencesTab({ form, handleTraitToggle }: PreferencesTabProps)
           )}
         />
 
-        {/* Question 2: Nationality Preference */}
+        {/* Question 3: Nationality */}
         <FormField
           control={form.control}
           name="nationalityPreference"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-base font-semibold">2. Nationality Preference</FormLabel>
+              <FormLabel className="text-base font-bold">**3.** Nationality</FormLabel>
               <div className="space-y-3 mt-3">
                 <FormControl>
                   <RadioGroup onValueChange={field.onChange} value={field.value}>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="sameCountry" id="same-country" />
-                      <FormLabel htmlFor="same-country">Same country</FormLabel>
+                      <FormLabel htmlFor="same-country">Same country as me</FormLabel>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="noPreference" id="no-pref-nationality" />
+                      <FormLabel htmlFor="no-pref-nationality">No preference</FormLabel>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="custom" id="other-nationality" />
@@ -120,13 +157,13 @@ export function PreferencesTab({ form, handleTraitToggle }: PreferencesTabProps)
           )}
         />
 
-        {/* Question 3: Language Preference */}
+        {/* Question 4: Language Preference */}
         <FormField
           control={form.control}
           name="languagePreference"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-base font-semibold">3. Language Preference</FormLabel>
+              <FormLabel className="text-base font-bold">**4.** Language Preference</FormLabel>
               <div className="space-y-3 mt-3">
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
@@ -135,8 +172,8 @@ export function PreferencesTab({ form, handleTraitToggle }: PreferencesTabProps)
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
+                    <SelectItem value="sameLanguage">Same language as me</SelectItem>
                     <SelectItem value="noPreference">No preference</SelectItem>
-                    <SelectItem value="sameLanguage">Same language</SelectItem>
                     <SelectItem value="specific">Specific language</SelectItem>
                   </SelectContent>
                 </Select>
@@ -162,13 +199,13 @@ export function PreferencesTab({ form, handleTraitToggle }: PreferencesTabProps)
           )}
         />
 
-        {/* Question 4: Dietary Preferences */}
+        {/* Question 5: Dietary Preferences */}
         <FormField
           control={form.control}
-          name="diet"
+          name="dietaryPreferences"
           render={({ field }) => (
             <FormItem className="space-y-3">
-              <FormLabel className="text-base font-semibold">4. Dietary Preferences</FormLabel>
+              <FormLabel className="text-base font-bold">**5.** Dietary Preferences</FormLabel>
               <FormControl>
                 <RadioGroup
                   onValueChange={field.onChange}
@@ -176,26 +213,55 @@ export function PreferencesTab({ form, handleTraitToggle }: PreferencesTabProps)
                   className="flex flex-col space-y-2 mt-3"
                 >
                   <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="noRestrictions" id="no-restrictions" />
-                    <FormLabel htmlFor="no-restrictions">No dietary restrictions</FormLabel>
+                    <RadioGroupItem value="vegetarian" id="only-vegetarian" />
+                    <FormLabel htmlFor="only-vegetarian">Only vegetarian</FormLabel>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="vegetarian" id="vegetarian" />
-                    <FormLabel htmlFor="vegetarian">Vegetarian</FormLabel>
+                    <RadioGroupItem value="halal" id="only-halal" />
+                    <FormLabel htmlFor="only-halal">Only halal</FormLabel>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="kosher" id="only-kosher" />
+                    <FormLabel htmlFor="only-kosher">Only Kosher</FormLabel>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="others" id="dietary-others" />
+                    <FormLabel htmlFor="dietary-others">Others</FormLabel>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="noPreference" id="no-dietary-pref" />
+                    <FormLabel htmlFor="no-dietary-pref">No preference</FormLabel>
                   </div>
                 </RadioGroup>
               </FormControl>
+              
+              {dietaryPreferences === "others" && (
+                <FormField
+                  control={form.control}
+                  name="dietaryOther"
+                  render={({ field }) => (
+                    <FormItem className="ml-6">
+                      <FormControl>
+                        <Input 
+                          placeholder="Please specify dietary preference..." 
+                          {...field} 
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              )}
             </FormItem>
           )}
         />
 
-        {/* Question 5: Occupation Preference */}
+        {/* Question 6: Occupation Preference */}
         <FormField
           control={form.control}
           name="occupationPreference"
           render={({ field }) => (
             <FormItem className="space-y-3">
-              <FormLabel className="text-base font-semibold">5. Do you have an occupation preference for your roommate?</FormLabel>
+              <FormLabel className="text-base font-bold">**6.** Do you have an occupation preference for your roommate?</FormLabel>
               <div className="space-y-3 mt-3">
                 <FormControl>
                   <RadioGroup
@@ -234,13 +300,13 @@ export function PreferencesTab({ form, handleTraitToggle }: PreferencesTabProps)
           )}
         />
 
-        {/* Question 6: Work Schedule Preference */}
+        {/* Question 7: Work Schedule Preference */}
         <FormField
           control={form.control}
           name="workSchedulePreference"
           render={({ field }) => (
             <FormItem className="space-y-3">
-              <FormLabel className="text-base font-semibold">6. Do you have a work schedule preference for your roommate?</FormLabel>
+              <FormLabel className="text-base font-bold">**7.** Do you have a work schedule preference for your roommate?</FormLabel>
               <FormControl>
                 <RadioGroup
                   onValueChange={field.onChange}
@@ -249,19 +315,19 @@ export function PreferencesTab({ form, handleTraitToggle }: PreferencesTabProps)
                 >
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="dayShift" id="day-shift-pref" />
-                    <FormLabel htmlFor="day-shift-pref">Yes, I'm looking for a roommate with Day shift</FormLabel>
+                    <FormLabel htmlFor="day-shift-pref">Day shift</FormLabel>
                   </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="nightShift" id="night-shift-pref" />
-                    <FormLabel htmlFor="night-shift-pref">I'm looking for a roommate with Night shift</FormLabel>
+                    <FormLabel htmlFor="night-shift-pref">Night shift</FormLabel>
                   </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="overnightShift" id="overnight-shift-pref" />
-                    <FormLabel htmlFor="overnight-shift-pref">I'm looking for a roommate with Overnight shift</FormLabel>
+                    <FormLabel htmlFor="overnight-shift-pref">Overnight shift</FormLabel>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="noPreference" id="no-pref" />
-                    <FormLabel htmlFor="no-pref">No Preference</FormLabel>
+                    <RadioGroupItem value="noPreference" id="no-work-pref" />
+                    <FormLabel htmlFor="no-work-pref">No Preference</FormLabel>
                   </div>
                 </RadioGroup>
               </FormControl>
@@ -269,31 +335,168 @@ export function PreferencesTab({ form, handleTraitToggle }: PreferencesTabProps)
           )}
         />
 
-        {/* Question 7: Desired Roommate Qualities */}
+        {/* Question 8: Ethnicity */}
         <FormField
           control={form.control}
-          name="roommateHobbies"
-          render={() => (
+          name="ethnicityPreference"
+          render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-base font-semibold">7. Desired Roommate Qualities</FormLabel>
-              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 mt-3">
-                {roommateQualities.map((quality) => {
-                  const isSelected = roommateHobbies.includes(quality);
-                  return (
-                    <Badge
-                      key={quality}
-                      variant={isSelected ? "default" : "outline"}
-                      className={`cursor-pointer transition-all hover:scale-105 text-center justify-center py-2 ${
-                        isSelected 
-                          ? "bg-primary text-primary-foreground" 
-                          : "hover:bg-secondary"
-                      }`}
-                      onClick={() => handleTraitToggle(quality)}
-                    >
-                      {quality}
-                    </Badge>
-                  );
-                })}
+              <FormLabel className="text-base font-bold">**8.** Ethnicity</FormLabel>
+              <div className="space-y-3 mt-3">
+                <FormControl>
+                  <RadioGroup onValueChange={field.onChange} value={field.value}>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="same" id="same-ethnicity" />
+                      <FormLabel htmlFor="same-ethnicity">The same as me</FormLabel>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="noPreference" id="no-ethnicity-pref" />
+                      <FormLabel htmlFor="no-ethnicity-pref">No preference</FormLabel>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="others" id="other-ethnicity" />
+                      <FormLabel htmlFor="other-ethnicity">Others</FormLabel>
+                    </div>
+                  </RadioGroup>
+                </FormControl>
+                
+                {ethnicityPreference === "others" && (
+                  <FormField
+                    control={form.control}
+                    name="ethnicityOther"
+                    render={({ field }) => (
+                      <FormItem className="ml-6">
+                        <FormControl>
+                          <Input 
+                            placeholder="Please specify ethnicity preference..." 
+                            {...field} 
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                )}
+              </div>
+            </FormItem>
+          )}
+        />
+
+        {/* Question 9: Religion */}
+        <FormField
+          control={form.control}
+          name="religionPreference"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-base font-bold">**9.** Religion</FormLabel>
+              <div className="space-y-3 mt-3">
+                <FormControl>
+                  <RadioGroup onValueChange={field.onChange} value={field.value}>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="same" id="same-religion" />
+                      <FormLabel htmlFor="same-religion">The same as me</FormLabel>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="noPreference" id="no-religion-pref" />
+                      <FormLabel htmlFor="no-religion-pref">No preference</FormLabel>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="others" id="other-religion" />
+                      <FormLabel htmlFor="other-religion">Others</FormLabel>
+                    </div>
+                  </RadioGroup>
+                </FormControl>
+                
+                {religionPreference === "others" && (
+                  <FormField
+                    control={form.control}
+                    name="religionOther"
+                    render={({ field }) => (
+                      <FormItem className="ml-6">
+                        <FormControl>
+                          <Input 
+                            placeholder="Please specify religion preference..." 
+                            {...field} 
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                )}
+              </div>
+            </FormItem>
+          )}
+        />
+
+        {/* Question 10: Pet */}
+        <FormField
+          control={form.control}
+          name="petPreference"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-base font-bold">**10.** Pet</FormLabel>
+              <div className="space-y-3 mt-3">
+                <FormControl>
+                  <RadioGroup onValueChange={field.onChange} value={field.value}>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="noPets" id="no-pets" />
+                      <FormLabel htmlFor="no-pets">No pet at all</FormLabel>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="catOk" id="cat-ok" />
+                      <FormLabel htmlFor="cat-ok">Cat is ok</FormLabel>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="smallPetsOk" id="small-pets-ok" />
+                      <FormLabel htmlFor="small-pets-ok">Small pet is fine (specify which pet you won't accept)</FormLabel>
+                    </div>
+                  </RadioGroup>
+                </FormControl>
+                
+                {petPreference === "smallPetsOk" && (
+                  <FormField
+                    control={form.control}
+                    name="petSpecification"
+                    render={({ field }) => (
+                      <FormItem className="ml-6">
+                        <FormControl>
+                          <Input 
+                            placeholder="Specify pets you won't accept..." 
+                            {...field} 
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                )}
+              </div>
+            </FormItem>
+          )}
+        />
+
+        {/* Question 11: Smokers */}
+        <FormField
+          control={form.control}
+          name="smokingPreference"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-base font-bold">**11.** Smokers</FormLabel>
+              <div className="space-y-3 mt-3">
+                <FormControl>
+                  <RadioGroup onValueChange={field.onChange} value={field.value}>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="noSmoking" id="no-smoking" />
+                      <FormLabel htmlFor="no-smoking">No smoke at all</FormLabel>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="noVaping" id="no-vaping" />
+                      <FormLabel htmlFor="no-vaping">No vape</FormLabel>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="socialOk" id="social-ok" />
+                      <FormLabel htmlFor="social-ok">Social cigarette is ok</FormLabel>
+                    </div>
+                  </RadioGroup>
+                </FormControl>
               </div>
             </FormItem>
           )}

@@ -8,7 +8,6 @@ import { Check } from "lucide-react";
 import { IdealRoommateTabs } from "./IdealRoommateTabs";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { PreferencesTab } from "./PreferencesTab";
-import { DealBreakersTab } from "./DealBreakersTab";
 
 interface RoommatePreferencesFormProps {
   form: UseFormReturn<ProfileFormValues>;
@@ -43,10 +42,6 @@ export function RoommatePreferencesForm({
           
           <TabsContent value="preferences">
             <PreferencesTab form={form} handleTraitToggle={() => {}} />
-          </TabsContent>
-          
-          <TabsContent value="deal-breakers">
-            <DealBreakersTab form={form} />
           </TabsContent>
         </Tabs>
         
