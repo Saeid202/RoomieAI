@@ -1,0 +1,605 @@
+import React, { useState } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Progress } from "@/components/ui/progress";
+import { ArrowLeft, ArrowRight, Home, MapPin, DollarSign, Camera, FileText, CheckCircle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+
+interface PropertyFormData {
+  // Basic Info
+  propertyType: string;
+  listingTitle: string;
+  description: string;
+  
+  // Location
+  address: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  neighborhood: string;
+  
+  // Property Details
+  bedrooms: string;
+  bathrooms: string;
+  squareFootage: string;
+  lotSize: string;
+  yearBuilt: string;
+  propertyCondition: string;
+  
+  // Rental Information
+  monthlyRent: string;
+  securityDeposit: string;
+  leaseTerms: string;
+  availableDate: string;
+  furnished: string;
+  
+  // Amenities
+  amenities: string[];
+  parking: string;
+  petPolicy: string;
+  utilitiesIncluded: string[];
+  
+  // Additional Info
+  specialInstructions: string;
+  roommatePreference: string;
+}
+
+const initialFormData: PropertyFormData = {
+  propertyType: "",
+  listingTitle: "",
+  description: "",
+  address: "",
+  city: "",
+  state: "",
+  zipCode: "",
+  neighborhood: "",
+  bedrooms: "",
+  bathrooms: "",
+  squareFootage: "",
+  lotSize: "",
+  yearBuilt: "",
+  propertyCondition: "",
+  monthlyRent: "",
+  securityDeposit: "",
+  leaseTerms: "",
+  availableDate: "",
+  furnished: "",
+  amenities: [],
+  parking: "",
+  petPolicy: "",
+  utilitiesIncluded: [],
+  specialInstructions: "",
+  roommatePreference: ""
+};
+
+const steps = [
+  { id: 1, title: "Basic Information", icon: Home },
+  { id: 2, title: "Location Details", icon: MapPin },
+  { id: 3, title: "Property Details", icon: Home },
+  { id: 4, title: "Rental Information", icon: DollarSign },
+  { id: 5, title: "Amenities & Features", icon: CheckCircle },
+  { id: 6, title: "Photos & Final Details", icon: Camera }
+];
+
+export default function AddPropertyPage() {
+  const navigate = useNavigate();
+  const [currentStep, setCurrentStep] = useState(1);
+  const [formData, setFormData] = useState<PropertyFormData>(initialFormData);
+
+  const progress = (currentStep / steps.length) * 100;
+
+  const handleInputChange = (field: keyof PropertyFormData, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleArrayChange = (field: keyof PropertyFormData, value: string, checked: boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: checked 
+        ? [...(prev[field] as string[]), value]
+        : (prev[field] as string[]).filter(item => item !== value)
+    }));
+  };
+
+  const nextStep = () => {
+    if (currentStep < steps.length) {
+      setCurrentStep(prev => prev + 1);
+    }
+  };
+
+  const prevStep = () => {
+    if (currentStep > 1) {
+      setCurrentStep(prev => prev - 1);
+    }
+  };
+
+  const handleSubmit = () => {
+    console.log("Property form submitted:", formData);
+    // TODO: Submit to backend
+    navigate("/dashboard/landlord/properties");
+  };
+
+  const renderStepContent = () => {
+    switch (currentStep) {
+      case 1:
+        return (
+          <div className="space-y-6">
+            <div>
+              <Label htmlFor="propertyType">**1.** Property Type</Label>
+              <Select value={formData.propertyType} onValueChange={(value) => handleInputChange("propertyType", value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select property type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="apartment">Apartment</SelectItem>
+                  <SelectItem value="house">House</SelectItem>
+                  <SelectItem value="condo">Condo</SelectItem>
+                  <SelectItem value="townhouse">Townhouse</SelectItem>
+                  <SelectItem value="studio">Studio</SelectItem>
+                  <SelectItem value="room">Room</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="listingTitle">**2.** Listing Title</Label>
+              <Input
+                id="listingTitle"
+                placeholder="e.g., Beautiful 2-bedroom apartment in downtown"
+                value={formData.listingTitle}
+                onChange={(e) => handleInputChange("listingTitle", e.target.value)}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="description">**3.** Property Description</Label>
+              <Textarea
+                id="description"
+                placeholder="Describe your property, highlighting key features and what makes it special..."
+                value={formData.description}
+                onChange={(e) => handleInputChange("description", e.target.value)}
+                className="min-h-[120px]"
+              />
+            </div>
+          </div>
+        );
+
+      case 2:
+        return (
+          <div className="space-y-6">
+            <div>
+              <Label htmlFor="address">**1.** Street Address</Label>
+              <Input
+                id="address"
+                placeholder="123 Main Street"
+                value={formData.address}
+                onChange={(e) => handleInputChange("address", e.target.value)}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="city">**2.** City</Label>
+                <Input
+                  id="city"
+                  placeholder="City"
+                  value={formData.city}
+                  onChange={(e) => handleInputChange("city", e.target.value)}
+                />
+              </div>
+              <div>
+                <Label htmlFor="state">**3.** State/Province</Label>
+                <Input
+                  id="state"
+                  placeholder="State"
+                  value={formData.state}
+                  onChange={(e) => handleInputChange("state", e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="zipCode">**4.** ZIP/Postal Code</Label>
+                <Input
+                  id="zipCode"
+                  placeholder="12345"
+                  value={formData.zipCode}
+                  onChange={(e) => handleInputChange("zipCode", e.target.value)}
+                />
+              </div>
+              <div>
+                <Label htmlFor="neighborhood">**5.** Neighborhood</Label>
+                <Input
+                  id="neighborhood"
+                  placeholder="Downtown, Midtown, etc."
+                  value={formData.neighborhood}
+                  onChange={(e) => handleInputChange("neighborhood", e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+        );
+
+      case 3:
+        return (
+          <div className="space-y-6">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="bedrooms">**1.** Bedrooms</Label>
+                <Select value={formData.bedrooms} onValueChange={(value) => handleInputChange("bedrooms", value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="0">Studio</SelectItem>
+                    <SelectItem value="1">1 Bedroom</SelectItem>
+                    <SelectItem value="2">2 Bedrooms</SelectItem>
+                    <SelectItem value="3">3 Bedrooms</SelectItem>
+                    <SelectItem value="4">4 Bedrooms</SelectItem>
+                    <SelectItem value="5+">5+ Bedrooms</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="bathrooms">**2.** Bathrooms</Label>
+                <Select value={formData.bathrooms} onValueChange={(value) => handleInputChange("bathrooms", value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">1 Bathroom</SelectItem>
+                    <SelectItem value="1.5">1.5 Bathrooms</SelectItem>
+                    <SelectItem value="2">2 Bathrooms</SelectItem>
+                    <SelectItem value="2.5">2.5 Bathrooms</SelectItem>
+                    <SelectItem value="3">3 Bathrooms</SelectItem>
+                    <SelectItem value="3+">3+ Bathrooms</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="squareFootage">**3.** Square Footage</Label>
+                <Input
+                  id="squareFootage"
+                  placeholder="1200"
+                  type="number"
+                  value={formData.squareFootage}
+                  onChange={(e) => handleInputChange("squareFootage", e.target.value)}
+                />
+              </div>
+              <div>
+                <Label htmlFor="yearBuilt">**4.** Year Built</Label>
+                <Input
+                  id="yearBuilt"
+                  placeholder="2010"
+                  type="number"
+                  value={formData.yearBuilt}
+                  onChange={(e) => handleInputChange("yearBuilt", e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="propertyCondition">**5.** Property Condition</Label>
+              <Select value={formData.propertyCondition} onValueChange={(value) => handleInputChange("propertyCondition", value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select condition" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="excellent">Excellent</SelectItem>
+                  <SelectItem value="good">Good</SelectItem>
+                  <SelectItem value="fair">Fair</SelectItem>
+                  <SelectItem value="needs-work">Needs Work</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        );
+
+      case 4:
+        return (
+          <div className="space-y-6">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="monthlyRent">**1.** Monthly Rent ($)</Label>
+                <Input
+                  id="monthlyRent"
+                  placeholder="2500"
+                  type="number"
+                  value={formData.monthlyRent}
+                  onChange={(e) => handleInputChange("monthlyRent", e.target.value)}
+                />
+              </div>
+              <div>
+                <Label htmlFor="securityDeposit">**2.** Security Deposit ($)</Label>
+                <Input
+                  id="securityDeposit"
+                  placeholder="2500"
+                  type="number"
+                  value={formData.securityDeposit}
+                  onChange={(e) => handleInputChange("securityDeposit", e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="leaseTerms">**3.** Lease Terms</Label>
+              <Select value={formData.leaseTerms} onValueChange={(value) => handleInputChange("leaseTerms", value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select lease terms" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="month-to-month">Month-to-Month</SelectItem>
+                  <SelectItem value="6-months">6 Months</SelectItem>
+                  <SelectItem value="1-year">1 Year</SelectItem>
+                  <SelectItem value="2-years">2 Years</SelectItem>
+                  <SelectItem value="flexible">Flexible</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="availableDate">**4.** Available Date</Label>
+                <Input
+                  id="availableDate"
+                  type="date"
+                  value={formData.availableDate}
+                  onChange={(e) => handleInputChange("availableDate", e.target.value)}
+                />
+              </div>
+              <div>
+                <Label htmlFor="furnished">**5.** Furnishing</Label>
+                <Select value={formData.furnished} onValueChange={(value) => handleInputChange("furnished", value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="furnished">Fully Furnished</SelectItem>
+                    <SelectItem value="semi-furnished">Semi-Furnished</SelectItem>
+                    <SelectItem value="unfurnished">Unfurnished</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 5:
+        return (
+          <div className="space-y-6">
+            <div>
+              <Label>**1.** Property Amenities</Label>
+              <div className="grid grid-cols-2 gap-3 mt-2">
+                {[
+                  "Air Conditioning", "Heating", "Dishwasher", "Washer/Dryer",
+                  "Balcony/Patio", "Hardwood Floors", "Carpet", "Fireplace",
+                  "Swimming Pool", "Gym/Fitness Center", "Elevator", "Garden"
+                ].map((amenity) => (
+                  <div key={amenity} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={amenity}
+                      checked={formData.amenities.includes(amenity)}
+                      onCheckedChange={(checked) => handleArrayChange("amenities", amenity, checked as boolean)}
+                    />
+                    <Label htmlFor={amenity} className="text-sm">{amenity}</Label>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="parking">**2.** Parking</Label>
+              <Select value={formData.parking} onValueChange={(value) => handleInputChange("parking", value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select parking option" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No Parking</SelectItem>
+                  <SelectItem value="street">Street Parking</SelectItem>
+                  <SelectItem value="driveway">Driveway</SelectItem>
+                  <SelectItem value="garage">Garage</SelectItem>
+                  <SelectItem value="covered">Covered Parking</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="petPolicy">**3.** Pet Policy</Label>
+              <Select value={formData.petPolicy} onValueChange={(value) => handleInputChange("petPolicy", value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select pet policy" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="no-pets">No Pets</SelectItem>
+                  <SelectItem value="cats-only">Cats Only</SelectItem>
+                  <SelectItem value="dogs-only">Dogs Only</SelectItem>
+                  <SelectItem value="cats-dogs">Cats & Dogs</SelectItem>
+                  <SelectItem value="small-pets">Small Pets Only</SelectItem>
+                  <SelectItem value="all-pets">All Pets Welcome</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label>**4.** Utilities Included</Label>
+              <div className="grid grid-cols-2 gap-3 mt-2">
+                {["Water", "Electricity", "Gas", "Internet", "Cable TV", "Trash"].map((utility) => (
+                  <div key={utility} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={utility}
+                      checked={formData.utilitiesIncluded.includes(utility)}
+                      onCheckedChange={(checked) => handleArrayChange("utilitiesIncluded", utility, checked as boolean)}
+                    />
+                    <Label htmlFor={utility} className="text-sm">{utility}</Label>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+
+      case 6:
+        return (
+          <div className="space-y-6">
+            <div>
+              <Label htmlFor="roommatePreference">**1.** Roommate Preference</Label>
+              <Select value={formData.roommatePreference} onValueChange={(value) => handleInputChange("roommatePreference", value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select preference" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="any">No Preference</SelectItem>
+                  <SelectItem value="students">Students Only</SelectItem>
+                  <SelectItem value="professionals">Professionals Only</SelectItem>
+                  <SelectItem value="same-gender">Same Gender</SelectItem>
+                  <SelectItem value="non-smokers">Non-Smokers</SelectItem>
+                  <SelectItem value="quiet">Quiet Lifestyle</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="specialInstructions">**2.** Special Instructions or Requirements</Label>
+              <Textarea
+                id="specialInstructions"
+                placeholder="Any special requirements, rules, or instructions for potential tenants..."
+                value={formData.specialInstructions}
+                onChange={(e) => handleInputChange("specialInstructions", e.target.value)}
+                className="min-h-[100px]"
+              />
+            </div>
+
+            <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center">
+              <Camera className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+              <h3 className="text-lg font-medium mb-2">**3.** Property Photos</h3>
+              <p className="text-muted-foreground mb-4">
+                Upload high-quality photos of your property (Coming Soon)
+              </p>
+              <Button variant="outline" disabled>
+                Upload Photos
+              </Button>
+            </div>
+
+            <div className="bg-muted/50 rounded-lg p-4">
+              <h4 className="font-medium mb-2">Review Your Listing</h4>
+              <p className="text-sm text-muted-foreground">
+                Please review all the information above before submitting your property listing. 
+                You'll be able to edit these details after submission.
+              </p>
+            </div>
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto py-6 max-w-4xl">
+        {/* Header */}
+        <div className="flex items-center gap-4 mb-6">
+          <Button variant="outline" size="sm" onClick={() => navigate("/dashboard/landlord/properties")}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Properties
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Add New Property</h1>
+            <p className="text-muted-foreground">Fill out the details to list your property</p>
+          </div>
+        </div>
+
+        {/* Progress Bar */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium">Step {currentStep} of {steps.length}</span>
+            <span className="text-sm text-muted-foreground">{Math.round(progress)}% Complete</span>
+          </div>
+          <Progress value={progress} className="h-2" />
+        </div>
+
+        {/* Steps Navigation */}
+        <div className="flex justify-between mb-8 overflow-x-auto">
+          {steps.map((step) => {
+            const Icon = step.icon;
+            return (
+              <div
+                key={step.id}
+                className={`flex flex-col items-center min-w-0 flex-1 ${
+                  step.id <= currentStep ? "text-primary" : "text-muted-foreground"
+                }`}
+              >
+                <div
+                  className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${
+                    step.id <= currentStep
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted text-muted-foreground"
+                  }`}
+                >
+                  <Icon className="h-5 w-5" />
+                </div>
+                <span className="text-xs text-center font-medium">{step.title}</span>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Form Content */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              {React.createElement(steps[currentStep - 1].icon, { className: "h-5 w-5" })}
+              {steps[currentStep - 1].title}
+            </CardTitle>
+            <CardDescription>
+              {currentStep === 1 && "Let's start with basic information about your property"}
+              {currentStep === 2 && "Where is your property located?"}
+              {currentStep === 3 && "Tell us about the property specifications"}
+              {currentStep === 4 && "Set your rental terms and pricing"}
+              {currentStep === 5 && "What amenities and features does your property offer?"}
+              {currentStep === 6 && "Add photos and final details"}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {renderStepContent()}
+          </CardContent>
+        </Card>
+
+        {/* Navigation Buttons */}
+        <div className="flex justify-between">
+          <Button
+            variant="outline"
+            onClick={prevStep}
+            disabled={currentStep === 1}
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Previous
+          </Button>
+
+          {currentStep < steps.length ? (
+            <Button onClick={nextStep}>
+              Next
+              <ArrowRight className="h-4 w-4 ml-2" />
+            </Button>
+          ) : (
+            <Button onClick={handleSubmit} className="bg-primary">
+              <CheckCircle className="h-4 w-4 mr-2" />
+              Submit Property Listing
+            </Button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

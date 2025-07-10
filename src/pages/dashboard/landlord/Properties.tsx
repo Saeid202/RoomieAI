@@ -1,8 +1,11 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, Building, MapPin, DollarSign } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export default function PropertiesPage() {
+  const navigate = useNavigate();
+  
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between mb-6">
@@ -10,7 +13,7 @@ export default function PropertiesPage() {
           <h1 className="text-3xl font-bold tracking-tight">My Properties</h1>
           <p className="text-muted-foreground mt-1">Manage and monitor your rental properties</p>
         </div>
-        <Button>
+        <Button onClick={() => navigate("/dashboard/landlord/add-property")}>
           <Plus className="mr-2 h-4 w-4" />
           Add Property
         </Button>
@@ -31,7 +34,7 @@ export default function PropertiesPage() {
             <p className="text-muted-foreground mb-4">
               Start by adding your first rental property to attract potential tenants.
             </p>
-            <Button>
+            <Button onClick={() => navigate("/dashboard/landlord/add-property")}>
               <Plus className="mr-2 h-4 w-4" />
               Add Your First Property
             </Button>
