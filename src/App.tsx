@@ -6,13 +6,10 @@ import { AuthProvider } from "@/providers/AuthProvider";
 import Dashboard from "@/pages/Dashboard";
 import HomePage from "@/pages/Home";
 import RoommateRecommendationsPage from "@/pages/dashboard/RoommateRecommendations";
-import StandardMatchingPage from "@/pages/dashboard/StandardMatching";
+import RentalOptionsPage from "@/pages/dashboard/RentalOptions";
 import PlanAheadMatchingPage from "@/pages/dashboard/PlanAheadMatching";
 import OppositeSchedulePage from "@/pages/dashboard/OppositeSchedule";
-import ListSpacePage from "@/pages/dashboard/ListSpace";
-import LandlordListingsPage from "@/pages/dashboard/LandlordListings";
 import ShortTermPage from "@/pages/dashboard/ShortTerm";
-import EmergencySearchPage from "@/pages/dashboard/EmergencySearch";
 import GroupMatchingPage from "@/pages/dashboard/GroupMatching";
 import WorkExchangePage from "@/pages/dashboard/WorkExchange";
 import LGBTQMatchingPage from "@/pages/dashboard/LGBTQMatching";
@@ -48,13 +45,10 @@ function AppRoutes() {
         }>
           <Route path="profile" element={<Profile />} />
           <Route path="roommate-recommendations" element={<RoommateRecommendationsPage />} />
-          <Route path="standard-matching" element={<StandardMatchingPage />} />
+          <Route path="rental-options" element={<RentalOptionsPage />} />
           <Route path="plan-ahead-matching" element={<PlanAheadMatchingPage />} />
           <Route path="opposite-schedule" element={<OppositeSchedulePage />} />
-          <Route path="list-space" element={<ListSpacePage />} />
-          <Route path="landlord-listings" element={<LandlordListingsPage />} />
           <Route path="short-term" element={<ShortTermPage />} />
-          <Route path="emergency-search" element={<EmergencySearchPage />} />
           <Route path="group-matching" element={<GroupMatchingPage />} />
           <Route path="work-exchange" element={<WorkExchangePage />} />
           <Route path="lgbtq-matching" element={<LGBTQMatchingPage />} />
@@ -86,13 +80,10 @@ function AppRoutes() {
       }>
         <Route path="profile" element={<Profile />} />
         <Route path="roommate-recommendations" element={<RoommateRecommendationsPage />} />
-        <Route path="standard-matching" element={<StandardMatchingPage />} />
+        <Route path="rental-options" element={<RentalOptionsPage />} />
         <Route path="plan-ahead-matching" element={<PlanAheadMatchingPage />} />
         <Route path="opposite-schedule" element={<OppositeSchedulePage />} />
-        <Route path="list-space" element={<ListSpacePage />} />
-        <Route path="landlord-listings" element={<LandlordListingsPage />} />
         <Route path="short-term" element={<ShortTermPage />} />
-        <Route path="emergency-search" element={<EmergencySearchPage />} />
         <Route path="group-matching" element={<GroupMatchingPage />} />
         <Route path="work-exchange" element={<WorkExchangePage />} />
         <Route path="lgbtq-matching" element={<LGBTQMatchingPage />} />

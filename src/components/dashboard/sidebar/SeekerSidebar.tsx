@@ -22,10 +22,10 @@ export function SeekerSidebar({ isActive }: SeekerSidebarProps) {
       />
       
       <SidebarSimpleMenuItem 
-        icon={<Users size={18} />} 
-        label="Standard Matching"
-        to="/dashboard/standard-matching" 
-        isActive={isActive('/dashboard/standard-matching')}
+        icon={<Building size={18} />} 
+        label="Rental Options"
+        to="/dashboard/rental-options" 
+        isActive={isActive('/dashboard/rental-options')}
       />
       
       <SidebarSimpleMenuItem 
@@ -43,31 +43,10 @@ export function SeekerSidebar({ isActive }: SeekerSidebarProps) {
       />
       
       <SidebarSimpleMenuItem 
-        icon={<Home size={18} />} 
-        label="List Your Space"
-        to="/dashboard/list-space" 
-        isActive={isActive('/dashboard/list-space')}
-      />
-      
-      <SidebarSimpleMenuItem 
-        icon={<Building size={18} />} 
-        label="Landlord Listings"
-        to="/dashboard/landlord-listings" 
-        isActive={isActive('/dashboard/landlord-listings')}
-      />
-      
-      <SidebarSimpleMenuItem 
         icon={<MapPin size={18} />} 
         label="Short Term Housing"
         to="/dashboard/short-term" 
         isActive={isActive('/dashboard/short-term')}
-      />
-      
-      <SidebarSimpleMenuItem 
-        icon={<List size={18} />} 
-        label="Emergency Search"
-        to="/dashboard/emergency-search" 
-        isActive={isActive('/dashboard/emergency-search')}
       />
       
       <SidebarSimpleMenuItem 
