@@ -13,6 +13,9 @@ import ShortTermPage from "@/pages/dashboard/ShortTerm";
 import GroupMatchingPage from "@/pages/dashboard/GroupMatching";
 import WorkExchangePage from "@/pages/dashboard/WorkExchange";
 import LGBTQMatchingPage from "@/pages/dashboard/LGBTQMatching";
+import LandlordDashboardPage from "@/pages/dashboard/landlord/LandlordDashboard";
+import PropertiesPage from "@/pages/dashboard/landlord/Properties";
+import ApplicationsPage from "@/pages/dashboard/landlord/Applications";
 import FindPropertyPage from "@/pages/dashboard/FindProperty";
 import AuthPage from "@/pages/Auth";
 import Callback from "@/pages/auth/Callback";
@@ -52,6 +55,9 @@ function AppRoutes() {
           <Route path="group-matching" element={<GroupMatchingPage />} />
           <Route path="work-exchange" element={<WorkExchangePage />} />
           <Route path="lgbtq-matching" element={<LGBTQMatchingPage />} />
+          <Route path="landlord" element={<LandlordDashboardPage />} />
+          <Route path="landlord/properties" element={<PropertiesPage />} />
+          <Route path="landlord/applications" element={<ApplicationsPage />} />
           <Route path="rent-opportunities" element={<RentOpportunitiesPage />} />
           <Route path="find-property" element={<FindPropertyPage />} />
           <Route path="chats" element={<ChatsPage />} />
@@ -87,6 +93,9 @@ function AppRoutes() {
         <Route path="group-matching" element={<GroupMatchingPage />} />
         <Route path="work-exchange" element={<WorkExchangePage />} />
         <Route path="lgbtq-matching" element={<LGBTQMatchingPage />} />
+        <Route path="landlord" element={<LandlordDashboardPage />} />
+        <Route path="landlord/properties" element={<PropertiesPage />} />
+        <Route path="landlord/applications" element={<ApplicationsPage />} />
         <Route path="rent-opportunities" element={<RentOpportunitiesPage />} />
         <Route path="find-property" element={<FindPropertyPage />} />
         <Route path="chats" element={<ChatsPage />} />
