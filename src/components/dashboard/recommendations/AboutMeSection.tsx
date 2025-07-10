@@ -54,6 +54,8 @@ export function AboutMeSection({
     workSchedule: "dayShift",
     hobbies: [],
     diet: "noRestrictions",
+    dietOther: "",
+    profileVisibility: [],
     // Ideal roommate defaults
     genderPreference: [],
     nationalityPreference: "noPreference",
@@ -125,11 +127,28 @@ export function AboutMeSection({
                     <HousingLifestyleTab form={form} />
                   </TabsContent>
                   
-                  <div className="flex justify-end">
-                    <Button type="submit" disabled={isSaving}>
-                      {isSaving ? "Saving..." : "Save Profile"}
-                    </Button>
-                  </div>
+                   <div className="flex justify-between items-center">
+                     <Button 
+                       type="button" 
+                       variant="outline"
+                       onClick={() => setActiveAboutMeTab("personal-info")}
+                       disabled={activeAboutMeTab === "personal-info"}
+                     >
+                       Back
+                     </Button>
+                     
+                     <Button type="submit" disabled={isSaving}>
+                       {isSaving ? "Saving..." : "Save Profile"}
+                     </Button>
+                     
+                     <Button 
+                       type="button" 
+                       onClick={() => setActiveAboutMeTab("housing-lifestyle")}
+                       disabled={activeAboutMeTab === "housing-lifestyle"}
+                     >
+                       Next
+                     </Button>
+                   </div>
                 </form>
               </Form>
             </Tabs>

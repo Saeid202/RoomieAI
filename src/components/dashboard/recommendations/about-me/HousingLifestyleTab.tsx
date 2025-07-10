@@ -65,7 +65,7 @@ export function HousingLifestyleTab({ form }: HousingLifestyleTabProps) {
           name="preferredLocation"
           render={() => (
             <FormItem>
-              <FormLabel>Preferred Locations (up to 15)</FormLabel>
+              <FormLabel><span className="font-bold">1.</span> Preferred Locations (up to 15)</FormLabel>
               <div className="space-y-2">
                 <div className="flex gap-2">
                   <Input
@@ -113,7 +113,7 @@ export function HousingLifestyleTab({ form }: HousingLifestyleTabProps) {
             name="moveInDateStart"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Move-in Start Date</FormLabel>
+                <FormLabel><span className="font-bold">2.</span> Move-in Start Date</FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
                     <FormControl>
@@ -149,7 +149,7 @@ export function HousingLifestyleTab({ form }: HousingLifestyleTabProps) {
             name="moveInDateEnd"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Move-in End Date</FormLabel>
+                <FormLabel><span className="font-bold">3.</span> Move-in End Date</FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
                     <FormControl>
@@ -187,7 +187,7 @@ export function HousingLifestyleTab({ form }: HousingLifestyleTabProps) {
             name="housingType"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Housing Type</FormLabel>
+                <FormLabel><span className="font-bold">4.</span> Housing Type</FormLabel>
                 <FormControl>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <SelectTrigger>
@@ -209,7 +209,7 @@ export function HousingLifestyleTab({ form }: HousingLifestyleTabProps) {
             name="livingSpace"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Living Space</FormLabel>
+                <FormLabel><span className="font-bold">5.</span> Living Space</FormLabel>
                 <FormControl>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <SelectTrigger>
@@ -240,7 +240,7 @@ export function HousingLifestyleTab({ form }: HousingLifestyleTabProps) {
             render={({ field }) => (
               <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                 <div className="space-y-0.5">
-                  <FormLabel className="text-base">Do you smoke?</FormLabel>
+                  <FormLabel className="text-base"><span className="font-bold">6.</span> Do you smoke?</FormLabel>
                 </div>
                 <FormControl>
                   <Switch checked={field.value} onCheckedChange={field.onChange} />
@@ -255,7 +255,7 @@ export function HousingLifestyleTab({ form }: HousingLifestyleTabProps) {
             render={({ field }) => (
               <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                 <div className="space-y-0.5">
-                  <FormLabel className="text-base">Are you comfortable living with smokers?</FormLabel>
+                  <FormLabel className="text-base"><span className="font-bold">7.</span> Are you comfortable living with smokers?</FormLabel>
                 </div>
                 <FormControl>
                   <Switch checked={field.value} onCheckedChange={field.onChange} />
@@ -272,7 +272,7 @@ export function HousingLifestyleTab({ form }: HousingLifestyleTabProps) {
             render={({ field }) => (
               <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                 <div className="space-y-0.5">
-                  <FormLabel className="text-base">Do you have pets?</FormLabel>
+                  <FormLabel className="text-base"><span className="font-bold">8.</span> Do you have pets?</FormLabel>
                 </div>
                 <FormControl>
                   <Switch checked={field.value} onCheckedChange={field.onChange} />
@@ -287,7 +287,7 @@ export function HousingLifestyleTab({ form }: HousingLifestyleTabProps) {
               name="petType"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>What pet do you have?</FormLabel>
+                  <FormLabel><span className="font-bold">9.</span> What pet do you have?</FormLabel>
                   <FormControl>
                     <Input placeholder="e.g., Golden Retriever, Persian Cat, etc." {...field} />
                   </FormControl>
@@ -297,124 +297,6 @@ export function HousingLifestyleTab({ form }: HousingLifestyleTabProps) {
             />
           )}
         </div>
-
-        <FormField
-          control={form.control}
-          name="workLocation"
-          render={({ field }) => (
-            <FormItem className="space-y-3">
-              <FormLabel>Do you work from home or go to an office?</FormLabel>
-              <FormControl>
-                <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col space-y-1">
-                  <FormItem className="flex items-center space-x-3 space-y-0">
-                    <FormControl>
-                      <RadioGroupItem value="remote" />
-                    </FormControl>
-                    <FormLabel className="font-normal">Work from home</FormLabel>
-                  </FormItem>
-                  <FormItem className="flex items-center space-x-3 space-y-0">
-                    <FormControl>
-                      <RadioGroupItem value="office" />
-                    </FormControl>
-                    <FormLabel className="font-normal">Go to office</FormLabel>
-                  </FormItem>
-                  <FormItem className="flex items-center space-x-3 space-y-0">
-                    <FormControl>
-                      <RadioGroupItem value="hybrid" />
-                    </FormControl>
-                    <FormLabel className="font-normal">Hybrid (both)</FormLabel>
-                  </FormItem>
-                </RadioGroup>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="workSchedule"
-          render={({ field }) => (
-            <FormItem className="space-y-3">
-              <FormLabel>What's your typical work schedule?</FormLabel>
-              <FormControl>
-                <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col space-y-1">
-                  <FormItem className="flex items-center space-x-3 space-y-0">
-                    <FormControl>
-                      <RadioGroupItem value="dayShift" />
-                    </FormControl>
-                    <FormLabel className="font-normal">Day shift</FormLabel>
-                  </FormItem>
-                  <FormItem className="flex items-center space-x-3 space-y-0">
-                    <FormControl>
-                      <RadioGroupItem value="afternoonShift" />
-                    </FormControl>
-                    <FormLabel className="font-normal">Afternoon shift</FormLabel>
-                  </FormItem>
-                  <FormItem className="flex items-center space-x-3 space-y-0">
-                    <FormControl>
-                      <RadioGroupItem value="overnightShift" />
-                    </FormControl>
-                    <FormLabel className="font-normal">Overnight shift</FormLabel>
-                  </FormItem>
-                </RadioGroup>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="hobbies"
-          render={() => (
-            <FormItem>
-              <FormLabel>Hobbies & Activities</FormLabel>
-              <FormDescription>Select activities you enjoy at home</FormDescription>
-              <div className="grid grid-cols-3 md:grid-cols-5 gap-3">
-                {HOBBIES_LIST.map((hobby) => (
-                  <FormItem key={hobby} className="flex flex-row items-start space-x-3 space-y-0">
-                    <FormControl>
-                      <Checkbox
-                        checked={selectedHobbies.includes(hobby)}
-                        onCheckedChange={() => handleHobbyToggle(hobby)}
-                      />
-                    </FormControl>
-                    <FormLabel className="font-normal text-sm">{hobby}</FormLabel>
-                  </FormItem>
-                ))}
-              </div>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="diet"
-          render={({ field }) => (
-            <FormItem className="space-y-3">
-              <FormLabel>Dietary Preferences</FormLabel>
-              <FormControl>
-                <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col space-y-1">
-                  <FormItem className="flex items-center space-x-3 space-y-0">
-                    <FormControl>
-                      <RadioGroupItem value="vegetarian" />
-                    </FormControl>
-                    <FormLabel className="font-normal">I'm vegetarian</FormLabel>
-                  </FormItem>
-                  <FormItem className="flex items-center space-x-3 space-y-0">
-                    <FormControl>
-                      <RadioGroupItem value="noRestrictions" />
-                    </FormControl>
-                    <FormLabel className="font-normal">I don't have restrictions</FormLabel>
-                  </FormItem>
-                </RadioGroup>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
       </div>
     </div>
   );

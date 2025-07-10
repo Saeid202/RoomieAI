@@ -40,7 +40,9 @@ export const profileSchema = z.object({
   workLocation: z.enum(["remote", "office", "hybrid"]),
   workSchedule: z.enum(["dayShift", "afternoonShift", "overnightShift"]),
   hobbies: z.array(z.string()),
-  diet: z.enum(["vegetarian", "noRestrictions"]),
+  diet: z.enum(["vegetarian", "halal", "kosher", "noRestrictions", "other"]),
+  dietOther: z.string().optional(),
+  profileVisibility: z.array(z.string()).optional(),
   
   // Ideal Roommate Preferences
   genderPreference: z.array(z.string()),
