@@ -5,8 +5,7 @@ import { ThemeProvider } from "@/providers/ThemeProvider";
 import { AuthProvider } from "@/providers/AuthProvider";
 import Dashboard from "@/pages/Dashboard";
 import HomePage from "@/pages/Home";
-import DashboardHomePage from "@/pages/dashboard/Home";
-
+import RoommateRecommendationsPage from "@/pages/dashboard/RoommateRecommendations";
 import RentalOptionsPage from "@/pages/dashboard/RentalOptions";
 import PlanAheadMatchingPage from "@/pages/dashboard/PlanAheadMatching";
 import OppositeSchedulePage from "@/pages/dashboard/OppositeSchedule";
@@ -21,7 +20,7 @@ import AddPropertyPage from "@/pages/dashboard/landlord/AddProperty";
 import FindPropertyPage from "@/pages/dashboard/FindProperty";
 import AuthPage from "@/pages/Auth";
 import Callback from "@/pages/auth/Callback";
-
+import Profile from "@/pages/dashboard/Profile";
 import LegalAssistantPage from "@/pages/dashboard/LegalAssistant";
 import RentOpportunitiesPage from "@/pages/dashboard/RentOpportunities";
 import ChatsPage from "@/pages/dashboard/Chats";
@@ -48,9 +47,8 @@ function AppRoutes() {
             <Dashboard />
           </ProtectedRoute>
         }>
-          <Route index element={<DashboardHomePage />} />
-          <Route path="profile" element={<Navigate to="/dashboard" replace />} />
-          <Route path="roommate-recommendations" element={<Navigate to="/dashboard" replace />} />
+          <Route path="profile" element={<Profile />} />
+          <Route path="roommate-recommendations" element={<RoommateRecommendationsPage />} />
           <Route path="rental-options" element={<RentalOptionsPage />} />
           <Route path="plan-ahead-matching" element={<PlanAheadMatchingPage />} />
           <Route path="opposite-schedule" element={<OppositeSchedulePage />} />
@@ -88,9 +86,8 @@ function AppRoutes() {
           <Dashboard />
         </ProtectedRoute>
       }>
-        <Route index element={<DashboardHomePage />} />
-        <Route path="profile" element={<Navigate to="/dashboard" replace />} />
-        <Route path="roommate-recommendations" element={<Navigate to="/dashboard" replace />} />
+        <Route path="profile" element={<Profile />} />
+        <Route path="roommate-recommendations" element={<RoommateRecommendationsPage />} />
         <Route path="rental-options" element={<RentalOptionsPage />} />
         <Route path="plan-ahead-matching" element={<PlanAheadMatchingPage />} />
         <Route path="opposite-schedule" element={<OppositeSchedulePage />} />
