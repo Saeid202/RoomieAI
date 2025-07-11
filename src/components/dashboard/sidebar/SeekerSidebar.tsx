@@ -1,7 +1,7 @@
 
 import { Link } from "react-router-dom";
 import { 
-  Home, Users, Building, Search, MessageSquare, 
+  Home, User, Users, Building, Search, MessageSquare, 
   Settings, Calendar, Clock, List, MapPin, Group, 
   Briefcase, Flag
 } from "lucide-react";
@@ -16,9 +16,16 @@ export function SeekerSidebar({ isActive }: SeekerSidebarProps) {
     <>
       <SidebarSimpleMenuItem 
         icon={<Home size={18} />} 
-        label="Dashboard"
+        label="Home"
         to="/dashboard" 
         isActive={isActive('/dashboard')}
+      />
+      
+      <SidebarSimpleMenuItem 
+        icon={<User size={18} />} 
+        label="Profile"
+        to="/dashboard/profile" 
+        isActive={isActive('/dashboard/profile')}
       />
       
       <SidebarSimpleMenuItem 
