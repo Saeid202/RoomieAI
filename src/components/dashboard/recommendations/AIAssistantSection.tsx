@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { MessageSquare } from "lucide-react";
 import { ChatInterface } from "./chat/ChatInterface";
 import { ProfileFormValues } from "@/types/profile";
-import { createProfileSummary } from "@/utils/profileDataMappers";
+
 
 interface AIAssistantSectionProps {
   profileData: Partial<ProfileFormValues> | null;
@@ -13,7 +13,7 @@ interface AIAssistantSectionProps {
 
 export function AIAssistantSection({ profileData, isLoading = false }: AIAssistantSectionProps) {
   // Create a profile summary for the chat interface
-  const profileSummary = profileData ? createProfileSummary(profileData) : "";
+  const profileSummary = "";
 
   return (
     <AccordionItem value="ai-assistant" className="border rounded-lg">
