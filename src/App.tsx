@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/providers/ThemeProvider";
 import { AuthProvider } from "@/providers/AuthProvider";
 import Dashboard from "@/pages/Dashboard";
 import HomePage from "@/pages/Home";
+import DashboardHomePage from "@/pages/dashboard/Home";
 
 import RentalOptionsPage from "@/pages/dashboard/RentalOptions";
 import PlanAheadMatchingPage from "@/pages/dashboard/PlanAheadMatching";
@@ -47,6 +48,7 @@ function AppRoutes() {
             <Dashboard />
           </ProtectedRoute>
         }>
+          <Route index element={<DashboardHomePage />} />
           <Route path="rental-options" element={<RentalOptionsPage />} />
           <Route path="plan-ahead-matching" element={<PlanAheadMatchingPage />} />
           <Route path="opposite-schedule" element={<OppositeSchedulePage />} />
@@ -84,8 +86,7 @@ function AppRoutes() {
           <Dashboard />
         </ProtectedRoute>
       }>
-        
-        
+        <Route index element={<DashboardHomePage />} />
         <Route path="rental-options" element={<RentalOptionsPage />} />
         <Route path="plan-ahead-matching" element={<PlanAheadMatchingPage />} />
         <Route path="opposite-schedule" element={<OppositeSchedulePage />} />
