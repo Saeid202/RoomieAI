@@ -49,6 +49,7 @@ function AppRoutes() {
           </ProtectedRoute>
         }>
           <Route index element={<DashboardHomePage />} />
+          <Route path="profile" element={<Navigate to="/dashboard" replace />} />
           <Route path="rental-options" element={<RentalOptionsPage />} />
           <Route path="plan-ahead-matching" element={<PlanAheadMatchingPage />} />
           <Route path="opposite-schedule" element={<OppositeSchedulePage />} />
@@ -87,6 +88,7 @@ function AppRoutes() {
         </ProtectedRoute>
       }>
         <Route index element={<DashboardHomePage />} />
+        <Route path="profile" element={<Navigate to="/dashboard" replace />} />
         <Route path="rental-options" element={<RentalOptionsPage />} />
         <Route path="plan-ahead-matching" element={<PlanAheadMatchingPage />} />
         <Route path="opposite-schedule" element={<OppositeSchedulePage />} />
