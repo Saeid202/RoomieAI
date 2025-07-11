@@ -30,6 +30,7 @@ import AdminHomePage from "@/pages/dashboard/admin/AdminHome";
 import PagesPage from "@/pages/dashboard/admin/Pages";
 import UsersPage from "@/pages/dashboard/admin/Users";
 import SettingsPage from "@/pages/dashboard/Settings";
+import MatchesPage from "@/pages/dashboard/Matches";
 import { useAuth } from "@/hooks/useAuth";
 
 function AppRoutes() {
@@ -48,6 +49,7 @@ function AppRoutes() {
           </ProtectedRoute>
         }>
           <Route path="profile" element={<Profile />} />
+          <Route path="matches" element={<MatchesPage />} />
           <Route path="roommate-recommendations" element={<RoommateRecommendationsPage />} />
           <Route path="rental-options" element={<RentalOptionsPage />} />
           <Route path="plan-ahead-matching" element={<PlanAheadMatchingPage />} />
@@ -87,6 +89,7 @@ function AppRoutes() {
         </ProtectedRoute>
       }>
         <Route path="profile" element={<Profile />} />
+        <Route path="matches" element={<MatchesPage />} />
         <Route path="roommate-recommendations" element={<RoommateRecommendationsPage />} />
         <Route path="rental-options" element={<RentalOptionsPage />} />
         <Route path="plan-ahead-matching" element={<PlanAheadMatchingPage />} />

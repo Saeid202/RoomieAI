@@ -22,6 +22,13 @@ export function SeekerSidebar({ isActive }: SeekerSidebarProps) {
       />
       
       <SidebarSimpleMenuItem 
+        icon={<Users size={18} />} 
+        label="Matches"
+        to="/dashboard/matches" 
+        isActive={isActive('/dashboard/matches')}
+      />
+      
+      <SidebarSimpleMenuItem 
         icon={<Building size={18} />} 
         label="Rental Options"
         to="/dashboard/rental-options" 
