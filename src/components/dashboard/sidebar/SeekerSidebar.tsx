@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { 
   Home, Users, Building, Search, MessageSquare, 
   Settings, Calendar, Clock, List, MapPin, Group, 
-  Briefcase, Flag
+  Briefcase, Flag, Scale
 } from "lucide-react";
 import { SidebarSimpleMenuItem } from "./SidebarSimpleMenuItem";
 
@@ -79,7 +79,14 @@ export function SeekerSidebar({ isActive }: SeekerSidebarProps) {
       
       <SidebarSimpleMenuItem 
         icon={<MessageSquare size={18} />} 
-        label="Messages"
+        label="Messenger"
+        to="/dashboard/messenger" 
+        isActive={isActive('/dashboard/messenger')}
+      />
+      
+      <SidebarSimpleMenuItem 
+        icon={<Scale size={18} />} 
+        label="AI Legal Assistant"
         to="/dashboard/chats" 
         isActive={isActive('/dashboard/chats')}
       />

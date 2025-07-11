@@ -64,7 +64,8 @@ export default function ChatsPage() {
     <div className="container mx-auto py-6">
       <Card className="h-[calc(100vh-240px)] flex flex-col">
         <CardHeader className="px-6 py-4 border-b">
-          <CardTitle>Chats</CardTitle>
+          <CardTitle>AI Legal Assistant</CardTitle>
+          <p className="text-sm text-muted-foreground">Ask questions about real estate law and housing regulations</p>
         </CardHeader>
         <CardContent className="flex-1 p-0 flex flex-col">
           <ScrollArea className="flex-1 p-4">
@@ -171,5 +172,5 @@ function getAIResponse(message: string): string {
     return "Interested in buying a property? Our co-ownership feature helps you find like-minded individuals to share the investment with and make homeownership more accessible.";
   }
   
-  return "I'm here to help with any housing-related questions. You can ask about finding roommates, rental opportunities, co-ownership options, or legal assistance.";
+  return "I'm here to help with legal questions about real estate, tenant rights, landlord responsibilities, lease agreements, security deposits, and housing regulations. What would you like to know?";
 }
