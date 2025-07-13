@@ -7,8 +7,14 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
+import { LogOut } from "lucide-react";
 
 export default function SettingsPage() {
+  const { signOut } = useAuth();
+  const navigate = useNavigate();
+  
   const [accountForm, setAccountForm] = useState({
     name: "John Doe",
     email: "john.doe@example.com",
@@ -67,6 +73,23 @@ export default function SettingsPage() {
       title: "Security settings updated",
       description: "Your security settings have been saved.",
     });
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      toast({
+        title: "Logged out successfully",
+        description: "You have been signed out of your account.",
+      });
+      navigate("/");
+    } catch (error) {
+      toast({
+        title: "Error logging out",
+        description: "There was an error signing you out. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -225,9 +248,19 @@ export default function SettingsPage() {
                 </div>
               </div>
               
-              <Button onClick={handleSaveSecurity} className="bg-roomie-purple hover:bg-roomie-dark">
-                Update Security Settings
-              </Button>
+              <div className="flex gap-3">
+                <Button onClick={handleSaveSecurity} className="bg-roomie-purple hover:bg-roomie-dark">
+                  Update Security Settings
+                </Button>
+                <Button 
+                  onClick={handleLogout} 
+                  variant="destructive"
+                  className="flex items-center gap-2"
+                >
+                  <LogOut size={16} />
+                  Logout
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
