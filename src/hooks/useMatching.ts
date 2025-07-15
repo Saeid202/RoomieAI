@@ -43,7 +43,7 @@ export function useMatching() {
       
       // Use the algorithm directly on the form values
       // The algorithm will handle the conversion internally
-      const matchesFound = findMatchesAlgorithm(formValues);
+      const matchesFound = await findMatchesAlgorithm(formValues);
       console.log("Matches found:", matchesFound);
       
       // Update state with found matches

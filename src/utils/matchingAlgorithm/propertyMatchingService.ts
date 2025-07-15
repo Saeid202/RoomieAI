@@ -1,17 +1,18 @@
 
 import { ProfileFormValues } from "@/types/profile";
 import { MatchResult } from "./types";
-import { mockProperties } from "./mockData";
+import { getMockProperties } from "./mockData";
 import { mapFormToProfileData } from "./profileMapper";
 import { calculateCompatibilityScore } from "./compatibilityCalculator";
 
-export function findPropertyShareMatches(userProfile: ProfileFormValues): MatchResult[] {
+export async function findPropertyShareMatches(userProfile: ProfileFormValues): Promise<MatchResult[]> {
   console.log("Finding property share matches for:", userProfile);
   
   try {
     const userProfileData = mapFormToProfileData(userProfile);
+    const allProperties = await getMockProperties();
     
-    const propertiesWithScores = mockProperties.map(property => {
+    const propertiesWithScores = allProperties.map(property => {
       const compatibility = calculateCompatibilityScore(userProfileData, property);
       
       return {

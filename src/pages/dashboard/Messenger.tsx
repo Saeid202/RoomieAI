@@ -8,6 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
 import { Badge } from "@/components/ui/badge";
+import { getMockRoommates } from "@/utils/matchingAlgorithm/mockData";
 
 interface ChatMessage {
   id: string;
@@ -32,37 +33,48 @@ export default function MessengerPage() {
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
   const [messageInput, setMessageInput] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [conversations, setConversations] = useState<ChatConversation[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Mock data for conversations
-  const [conversations] = useState<ChatConversation[]>([
-    {
-      id: "1",
-      participantName: "Sarah Johnson",
-      participantId: "user-2",
-      lastMessage: "Hi! I saw we matched. Would love to chat about our housing preferences.",
-      lastMessageTime: new Date(Date.now() - 30000), // 30 seconds ago
-      unreadCount: 2,
-      matchPercentage: 92,
-    },
-    {
-      id: "2",
-      participantName: "Alex Chen",
-      participantId: "user-3",
-      lastMessage: "Thanks for reaching out! When are you looking to move?",
-      lastMessageTime: new Date(Date.now() - 3600000), // 1 hour ago
-      unreadCount: 0,
-      matchPercentage: 87,
-    },
-    {
-      id: "3",
-      participantName: "Emma Davis",
-      participantId: "user-4",
-      lastMessage: "Great! Let's discuss the budget and location preferences.",
-      lastMessageTime: new Date(Date.now() - 86400000), // 1 day ago
-      unreadCount: 1,
-      matchPercentage: 89,
-    },
-  ]);
+  useEffect(() => {
+    const loadConversations = async () => {
+      try {
+        setLoading(true);
+        const dbMatches = await getMockRoommates();
+        
+        // Convert first few matches to conversations for demo
+        const mockConversations: ChatConversation[] = dbMatches.slice(0, 5).map((match, index) => ({
+          id: `conv-${index}`,
+          participantName: match.name,
+          participantId: `user-${index + 2}`,
+          lastMessage: getRandomMessage(),
+          lastMessageTime: new Date(Date.now() - Math.random() * 86400000), // Random time within last day
+          unreadCount: Math.floor(Math.random() * 3),
+          matchPercentage: match.compatibilityScore,
+        }));
+        
+        setConversations(mockConversations);
+      } catch (error) {
+        console.error("Error loading conversations:", error);
+        setConversations([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadConversations();
+  }, []);
+
+  const getRandomMessage = () => {
+    const messages = [
+      "Hi! I saw we matched. Would love to chat about our housing preferences.",
+      "Thanks for reaching out! When are you looking to move?",
+      "Great! Let's discuss the budget and location preferences.",
+      "I'm really interested in finding a compatible roommate. What do you think?",
+      "Your profile looks great! Are you still looking for a place?"
+    ];
+    return messages[Math.floor(Math.random() * messages.length)];
+  };
 
   // Mock messages for selected conversation
   const [messages, setMessages] = useState<ChatMessage[]>([

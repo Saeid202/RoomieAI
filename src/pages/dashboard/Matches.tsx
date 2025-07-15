@@ -1,60 +1,85 @@
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { MapPin, Calendar, Users, MessageSquare, Heart } from "lucide-react";
+import { getMockRoommates } from "@/utils/matchingAlgorithm/mockData";
+import { MatchResult } from "@/utils/matchingAlgorithm/types";
 
-// Mock data for matches - this would come from your matching algorithm
-const mockMatches = [
-  {
-    id: 1,
-    name: "Sarah Chen",
-    age: 28,
-    location: "Downtown, Seattle",
-    compatibility: 95,
-    housingType: "Apartment",
-    budget: "$1,200-1,500",
-    moveInDate: "March 2024",
-    traits: ["Clean", "Quiet", "Professional"],
-    bio: "Software engineer looking for a quiet, clean roommate. I enjoy cooking and weekend hiking.",
-    image: "SC"
-  },
-  {
-    id: 2,
-    name: "Mike Rodriguez",
-    age: 25,
-    location: "Capitol Hill, Seattle", 
-    compatibility: 88,
-    housingType: "House",
-    budget: "$800-1,200",
-    moveInDate: "April 2024",
-    traits: ["Social", "Pet-friendly", "Student"],
-    bio: "Graduate student who loves music and cooking. Looking for someone who's okay with occasional guests.",
-    image: "MR"
-  },
-  {
-    id: 3,
-    name: "Emma Thompson",
-    age: 30,
-    location: "Fremont, Seattle",
-    compatibility: 82,
-    housingType: "Apartment",
-    budget: "$1,000-1,400",
-    moveInDate: "May 2024", 
-    traits: ["Organized", "Non-smoker", "Early riser"],
-    bio: "Marketing professional with a love for yoga and healthy living. Seeking a like-minded roommate.",
-    image: "ET"
-  }
-];
+interface MatchDisplay {
+  id: string;
+  name: string;
+  age: number;
+  location: string;
+  compatibility: number;
+  housingType: string;
+  budget: string;
+  moveInDate: string;
+  traits: string[];
+  bio: string;
+  image: string;
+}
+
+function convertMatchResultToDisplay(match: MatchResult, index: number): MatchDisplay {
+  const budgetStr = Array.isArray(match.budget) 
+    ? `$${match.budget[0].toLocaleString()}-${match.budget[1].toLocaleString()}`
+    : `$${match.budget}`;
+
+  return {
+    id: `match-${index}`,
+    name: match.name,
+    age: parseInt(match.age),
+    location: match.location,
+    compatibility: match.compatibilityScore,
+    housingType: match.propertyDetails?.propertyType || "Apartment",
+    budget: budgetStr,
+    moveInDate: match.movingDate || "Flexible",
+    traits: match.traits || [],
+    bio: `${match.occupation || "Professional"} looking for a compatible roommate. Interests include ${match.interests?.slice(0, 2).join(" and ") || "various activities"}.`,
+    image: match.name.split(" ").map(n => n[0]).join("")
+  };
+}
 
 export default function MatchesPage() {
+  const [matches, setMatches] = useState<MatchDisplay[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadMatches = async () => {
+      try {
+        setLoading(true);
+        const dbMatches = await getMockRoommates();
+        const displayMatches = dbMatches.map(convertMatchResultToDisplay);
+        setMatches(displayMatches);
+      } catch (error) {
+        console.error("Error loading matches:", error);
+        // Fallback to empty array
+        setMatches([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadMatches();
+  }, []);
+  if (loading) {
+    return (
+      <div className="container mx-auto p-6 space-y-6">
+        <div className="flex items-center justify-center h-64">
+          <p className="text-muted-foreground">Loading matches...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Your Matches</h1>
           <p className="text-muted-foreground mt-2">
-            Found {mockMatches.length} compatible roommates based on your preferences
+            Found {matches.length} compatible roommates based on your preferences
           </p>
         </div>
         <Button variant="outline">
@@ -64,7 +89,7 @@ export default function MatchesPage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {mockMatches.map((match) => (
+        {matches.map((match) => (
           <Card key={match.id} className="overflow-hidden hover:shadow-lg transition-shadow">
             <CardHeader className="pb-4">
               <div className="flex items-start justify-between">
@@ -127,7 +152,7 @@ export default function MatchesPage() {
         ))}
       </div>
 
-      {mockMatches.length === 0 && (
+      {matches.length === 0 && (
         <Card className="text-center py-12">
           <CardContent>
             <Users className="w-12 h-12 mx-auto text-muted-foreground mb-4" />

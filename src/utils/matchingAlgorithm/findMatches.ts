@@ -1,14 +1,14 @@
 
 import { ProfileFormValues } from "@/types/profile";
 import { MatchResult } from "./types";
-import { mockRoommates, mockProperties } from "./mockData";
+import { getMockRoommates, getMockProperties } from "./mockData";
 import { mapFormToProfileData } from "./profileMapper";
 import { calculateCompatibilityScore } from "./compatibilityCalculator";
 
 /**
  * Main function to find matches based on user profile
  */
-export function findMatches(userProfile: ProfileFormValues): MatchResult[] {
+export async function findMatches(userProfile: ProfileFormValues): Promise<MatchResult[]> {
   console.log("Finding matches for user profile:", userProfile);
   
   try {
@@ -16,8 +16,8 @@ export function findMatches(userProfile: ProfileFormValues): MatchResult[] {
     const userProfileData = mapFormToProfileData(userProfile);
     console.log("Converted user profile data:", userProfileData);
     
-    // Get all potential matches (mock data for now)
-    const allRoommates = [...mockRoommates];
+    // Get all potential matches from database
+    const allRoommates = await getMockRoommates();
     
     // Calculate compatibility scores for each potential match
     const matchesWithScores = allRoommates.map(roommate => {

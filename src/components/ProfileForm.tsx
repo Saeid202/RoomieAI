@@ -61,9 +61,12 @@ const ProfileForm = ({ initialData, onSave }: ProfileFormProps) => {
         description: "Your profile has been saved successfully",
       });
     } else {
-      const matches = findMatches(data);
-      setMatchResults(matches);
-      setShowResults(true);
+      const handleMatches = async () => {
+        const matches = await findMatches(data);
+        setMatchResults(matches);
+        setShowResults(true);
+      };
+      handleMatches();
     }
   };
 
