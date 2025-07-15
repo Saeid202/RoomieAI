@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { MapPin, Calendar, Users, MessageSquare, Heart } from "lucide-react";
-import { getMockRoommates } from "@/utils/matchingAlgorithm/mockData";
+import { useRoommateMatching } from "@/hooks/useRoommateMatching";
 import { MatchResult } from "@/utils/matchingAlgorithm/types";
 
 interface MatchDisplay {
@@ -44,16 +44,27 @@ function convertMatchResultToDisplay(match: MatchResult, index: number): MatchDi
 export default function MatchesPage() {
   const [matches, setMatches] = useState<MatchDisplay[]>([]);
   const [loading, setLoading] = useState(true);
+  const { findMatches, profileData, loading: profileLoading } = useRoommateMatching();
 
   useEffect(() => {
     const loadMatches = async () => {
+      if (profileLoading) return;
+      
       try {
         setLoading(true);
-        const dbMatches = await getMockRoommates();
-        const displayMatches = dbMatches.map(convertMatchResultToDisplay);
+        
+        if (!profileData) {
+          console.warn("No profile data available for matching");
+          setMatches([]);
+          return;
+        }
+
+        // Use the actual matching algorithm to find compatible roommates
+        const matchResults = await findMatches();
+        const displayMatches = matchResults.map(convertMatchResultToDisplay);
         setMatches(displayMatches);
       } catch (error) {
-        console.error("Error loading matches:", error);
+        console.error("Error finding matches:", error);
         // Fallback to empty array
         setMatches([]);
       } finally {
@@ -62,7 +73,7 @@ export default function MatchesPage() {
     };
 
     loadMatches();
-  }, []);
+  }, [profileData, profileLoading, findMatches]);
   if (loading) {
     return (
       <div className="container mx-auto p-6 space-y-6">
