@@ -40,7 +40,8 @@ export async function saveRoommateProfile(
     throw new Error("User ID is required to save profile");
   }
   
-  console.log("Saving roommate profile for user:", userId);
+  console.log("roommateService - Saving roommate profile for user:", userId);
+  console.log("roommateService - Form data received:", formData);
   
   // Map form data to database format
   const dbData = {
