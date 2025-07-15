@@ -14,7 +14,195 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      Both: {
+        Row: {
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      co_owner: {
+        Row: {
+          age: number | null
+          co_ownership_experience: string | null
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+          investment_capacity: number[] | null
+          investment_timeline: string | null
+          occupation: string | null
+          phone_number: string | null
+          preferred_location: string | null
+          property_type: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          age?: number | null
+          co_ownership_experience?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          investment_capacity?: number[] | null
+          investment_timeline?: string | null
+          occupation?: string | null
+          phone_number?: string | null
+          preferred_location?: string | null
+          property_type?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          age?: number | null
+          co_ownership_experience?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          investment_capacity?: number[] | null
+          investment_timeline?: string | null
+          occupation?: string | null
+          phone_number?: string | null
+          preferred_location?: string | null
+          property_type?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      roommate: {
+        Row: {
+          age: number | null
+          budget_range: string | null
+          created_at: string
+          diet: string | null
+          email: string | null
+          full_name: string | null
+          gender: string | null
+          has_pets: boolean | null
+          hobbies: string[] | null
+          housing_type: string | null
+          id: string
+          important_roommate_traits: string[] | null
+          linkedin_profile: string | null
+          lives_with_smokers: boolean | null
+          living_space: string | null
+          move_in_date: string | null
+          pet_preference: string | null
+          phone_number: string | null
+          preferred_location: string | null
+          roommate_gender_preference: string | null
+          roommate_lifestyle_preference: string | null
+          smoking: boolean | null
+          updated_at: string
+          user_id: string
+          work_location: string | null
+          work_schedule: string | null
+        }
+        Insert: {
+          age?: number | null
+          budget_range?: string | null
+          created_at?: string
+          diet?: string | null
+          email?: string | null
+          full_name?: string | null
+          gender?: string | null
+          has_pets?: boolean | null
+          hobbies?: string[] | null
+          housing_type?: string | null
+          id?: string
+          important_roommate_traits?: string[] | null
+          linkedin_profile?: string | null
+          lives_with_smokers?: boolean | null
+          living_space?: string | null
+          move_in_date?: string | null
+          pet_preference?: string | null
+          phone_number?: string | null
+          preferred_location?: string | null
+          roommate_gender_preference?: string | null
+          roommate_lifestyle_preference?: string | null
+          smoking?: boolean | null
+          updated_at?: string
+          user_id: string
+          work_location?: string | null
+          work_schedule?: string | null
+        }
+        Update: {
+          age?: number | null
+          budget_range?: string | null
+          created_at?: string
+          diet?: string | null
+          email?: string | null
+          full_name?: string | null
+          gender?: string | null
+          has_pets?: boolean | null
+          hobbies?: string[] | null
+          housing_type?: string | null
+          id?: string
+          important_roommate_traits?: string[] | null
+          linkedin_profile?: string | null
+          lives_with_smokers?: boolean | null
+          living_space?: string | null
+          move_in_date?: string | null
+          pet_preference?: string | null
+          phone_number?: string | null
+          preferred_location?: string | null
+          roommate_gender_preference?: string | null
+          roommate_lifestyle_preference?: string | null
+          smoking?: boolean | null
+          updated_at?: string
+          user_id?: string
+          work_location?: string | null
+          work_schedule?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
