@@ -434,24 +434,24 @@ class EnhancedMatchingEngine {
   // Convert to existing MatchResult format for compatibility
   convertToMatchResult(enhancedResult: EnhancedMatchResult): MatchResult {
     const user = enhancedResult.user;
-    const budget = user.budget_range.match(/\$?(\d+)-?\$?(\d+)?/);
-    const budgetArray = budget ? [parseInt(budget[1]), parseInt(budget[2] || budget[1])] : [0, 0];
+    const budget = user.budget_range?.match(/\$?(\d+)-?\$?(\d+)?/);
+    const budgetArray = budget ? [parseInt(budget[1]), parseInt(budget[2] || budget[1])] : [1000, 2000];
 
     return {
-      name: user.full_name,
-      age: user.age.toString(),
-      gender: user.gender,
+      name: user.full_name || "Unknown User",
+      age: user.age?.toString() || "25",
+      gender: user.gender || "not specified",
       occupation: "Professional",
-      movingDate: user.move_in_date,
+      movingDate: user.move_in_date || "Flexible",
       budget: budgetArray,
-      location: user.preferred_location,
+      location: user.preferred_location || "Location not specified",
       cleanliness: enhancedResult.compatibilityAnalysis.cleanliness,
-      pets: user.has_pets,
-      smoking: user.smoking,
+      pets: user.has_pets || false,
+      smoking: user.smoking || false,
       drinking: "socially",
       guests: "sometimes",
       sleepSchedule: user.work_schedule?.includes("AM") ? "early" : "normal",
-      workSchedule: user.work_schedule,
+      workSchedule: user.work_schedule || "9AM-5PM",
       interests: user.hobbies || [],
       traits: user.important_roommate_traits || [],
       preferredLiving: "findRoommate",
