@@ -3,7 +3,7 @@ import { MatchResult } from "./types";
 
 export const mockRoommates: MatchResult[] = [
   {
-    name: "Alex Johnson",
+    name: "Mock Alex Johnson",
     age: "25", 
     gender: "Male",
     occupation: "Software Engineer",
@@ -31,7 +31,7 @@ export const mockRoommates: MatchResult[] = [
     }
   },
   {
-    name: "Sarah Chen",
+    name: "Mock Sarah Chen",
     age: "28",
     gender: "Female", 
     occupation: "Marketing Manager",
@@ -62,7 +62,7 @@ export const mockRoommates: MatchResult[] = [
 
 export const mockProperties: MatchResult[] = [
   {
-    name: "Modern Downtown Apartment",
+    name: "Mock Modern Downtown Apartment",
     age: "2",
     gender: "N/A",
     occupation: "Property Owner",
