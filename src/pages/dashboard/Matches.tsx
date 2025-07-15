@@ -50,7 +50,9 @@ export default function MatchesPage() {
       try {
         setLoading(true);
         const dbMatches = await getMockRoommates();
-        const displayMatches = dbMatches.map(convertMatchResultToDisplay);
+        const displayMatches = dbMatches
+          .map(convertMatchResultToDisplay)
+          .filter(match => match.compatibility > 40); // Only show matches with score > 40
         setMatches(displayMatches);
       } catch (error) {
         console.error("Error loading matches:", error);
