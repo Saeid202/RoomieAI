@@ -15,9 +15,9 @@ export function useRoommateProfile() {
   const [loadCounter, setLoadCounter] = useState(0);
 
   const loadProfileData = useCallback(async (): Promise<void> => {
-    // Prevent multiple simultaneous loads using a ref-like pattern
-    if (hasAttemptedLoad) {
-      console.log("Profile data already loaded, skipping duplicate request");
+    // Prevent multiple simultaneous loads
+    if (loading && loadCounter > 0) {
+      console.log("Already loading profile data, skipping duplicate request");
       return Promise.resolve();
     }
     
@@ -118,7 +118,7 @@ export function useRoommateProfile() {
       setHasAttemptedLoad(true);
       setLoading(false);
     }
-  }, [user, hasAttemptedLoad]); // Removed loading and loadCounter dependencies
+  }, [user, toast, loading, loadCounter]);
 
   // Load profile data on mount - with optimization to load faster
   useEffect(() => {
