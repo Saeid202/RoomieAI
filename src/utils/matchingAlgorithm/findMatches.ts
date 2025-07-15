@@ -1,45 +1,33 @@
 
 import { ProfileFormValues } from "@/types/profile";
 import { MatchResult } from "./types";
-import { getMockRoommates, getMockProperties } from "./mockData";
-import { mapFormToProfileData } from "./profileMapper";
-import { calculateCompatibilityScore } from "./compatibilityCalculator";
+import { enhancedMatchingEngine } from "@/services/enhancedMatchingService";
 
 /**
- * Main function to find matches based on user profile
+ * Main function to find matches based on user profile using enhanced matching algorithm
  */
 export async function findMatches(userProfile: ProfileFormValues): Promise<MatchResult[]> {
-  console.log("Finding matches for user profile:", userProfile);
+  console.log("Finding matches for user profile using enhanced algorithm:", userProfile);
   
   try {
-    // Convert ProfileFormValues to ProfileData format
-    const userProfileData = mapFormToProfileData(userProfile);
-    console.log("Converted user profile data:", userProfileData);
-    
-    // Get all potential matches from database
-    const allRoommates = await getMockRoommates();
-    
-    // Calculate compatibility scores for each potential match
-    const matchesWithScores = allRoommates.map(roommate => {
-      const compatibility = calculateCompatibilityScore(userProfileData, roommate);
-      
-      return {
-        ...roommate,
-        compatibilityScore: compatibility.score,
-        compatibilityBreakdown: compatibility.breakdown
-      };
+    // Use the enhanced matching engine with the example.ts patterns
+    const enhancedResults = await enhancedMatchingEngine.findMatches({
+      currentUser: userProfile,
+      maxResults: 10,
+      minScore: 60,
+      useAI: false // Can be enabled later for AI-enhanced matching
     });
     
-    // Sort by compatibility score (highest first) and return top matches
-    const sortedMatches = matchesWithScores
-      .sort((a, b) => b.compatibilityScore - a.compatibilityScore)
-      .slice(0, 10); // Return top 10 matches
+    // Convert enhanced results to standard MatchResult format for compatibility
+    const standardResults = enhancedResults.map(result => 
+      enhancedMatchingEngine.convertToMatchResult(result)
+    );
     
-    console.log("Found matches:", sortedMatches);
-    return sortedMatches;
+    console.log("Enhanced matching found results:", standardResults);
+    return standardResults;
     
   } catch (error) {
-    console.error("Error in findMatches:", error);
+    console.error("Error in enhanced findMatches:", error);
     // Return empty array on error rather than throwing
     return [];
   }
