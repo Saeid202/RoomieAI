@@ -46,7 +46,7 @@ export async function saveRoommateProfile(
   const dbData = {
     user_id: userId,
     full_name: formData.fullName,
-    age: formData.age,
+    age: parseInt(formData.age),
     gender: formData.gender,
     email: formData.email,
     phone_number: formData.phoneNumber,
@@ -54,7 +54,9 @@ export async function saveRoommateProfile(
     preferred_location: Array.isArray(formData.preferredLocation) 
       ? formData.preferredLocation.join(',') 
       : formData.preferredLocation,
-    budget_range: formData.budgetRange,
+    budget_range: Array.isArray(formData.budgetRange) 
+      ? formData.budgetRange.join('-') 
+      : String(formData.budgetRange),
     move_in_date: formData.moveInDateStart instanceof Date 
       ? formData.moveInDateStart.toISOString() 
       : formData.moveInDateStart,

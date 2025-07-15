@@ -43,7 +43,17 @@ export function mapHousingDbToForm(data: ProfileTableRow): Partial<ProfileFormVa
   }
   
   if ('budget_range' in data && data.budget_range) {
-    result.budgetRange = safeArray(data.budget_range, Number);
+    // Handle both string and array formats for budget_range
+    if (typeof data.budget_range === 'string') {
+      try {
+        const parts = data.budget_range.split('-').map(Number);
+        result.budgetRange = parts.length >= 2 ? parts.slice(0, 2) : [900, 1500];
+      } catch {
+        result.budgetRange = [900, 1500];
+      }
+    } else {
+      result.budgetRange = safeArray(data.budget_range, Number);
+    }
   }
   
   if ('move_in_date_start' in data) {
@@ -197,7 +207,7 @@ export function mapRoommatePreferencesDbToForm(data: ProfileTableRow): Partial<P
 export function mapBasicInfoFormToDb(formData: ProfileFormValues): Partial<ProfileTableRow> {
   return {
     full_name: formData.fullName,
-    age: formData.age,
+    age: parseInt(formData.age),
     gender: formData.gender,
     phone_number: formData.phoneNumber,
     email: formData.email,
@@ -216,7 +226,9 @@ export function mapBasicInfoFormToDb(formData: ProfileFormValues): Partial<Profi
 export function mapHousingFormToDb(formData: ProfileFormValues): Partial<ProfileTableRow> {
   return {
     preferred_location: JSON.stringify(formData.preferredLocation), // Convert array to JSON string for database
-    budget_range: formData.budgetRange,
+    budget_range: Array.isArray(formData.budgetRange) 
+      ? formData.budgetRange.join('-') 
+      : String(formData.budgetRange),
     move_in_date_start: formData.moveInDateStart.toISOString(),
     move_in_date_end: formData.moveInDateEnd.toISOString(),
     housing_type: formData.housingType,

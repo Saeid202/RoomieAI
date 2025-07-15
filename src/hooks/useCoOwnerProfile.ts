@@ -69,7 +69,7 @@ export function useCoOwnerProfile() {
           // Map database fields to form fields with proper type assertions
           const formData: CoOwnerFormValues = {
             fullName: data.full_name || "",
-            age: data.age || "",
+            age: data.age ? String(data.age) : "",
             email: data.email || "",
             phoneNumber: data.phone_number || "",
             occupation: data.occupation || "",
@@ -123,7 +123,7 @@ export function useCoOwnerProfile() {
       const profileData = {
         user_id: user.id,
         full_name: formData.fullName,
-        age: formData.age,
+        age: parseInt(formData.age),
         email: formData.email,
         phone_number: formData.phoneNumber,
         occupation: formData.occupation,

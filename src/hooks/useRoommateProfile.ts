@@ -63,13 +63,13 @@ export function useRoommateProfile() {
             // Map database fields to form format with proper type assertions
             const profileData: Partial<ProfileFormValues> = {
               fullName: data.full_name || "",
-              age: data.age || "",
+              age: data.age ? String(data.age) : "",
               gender: data.gender || "",
               email: data.email || user.email || "",
               phoneNumber: data.phone_number || "",
               linkedinProfile: data.linkedin_profile || "",
               preferredLocation: data.preferred_location ? data.preferred_location.split(',') : [],
-              budgetRange: data.budget_range || [900, 1500],
+              budgetRange: typeof data.budget_range === 'string' ? [900, 1500] : data.budget_range || [900, 1500],
               moveInDateStart: data.move_in_date ? new Date(data.move_in_date) : new Date(),
               moveInDateEnd: data.move_in_date ? new Date(data.move_in_date) : new Date(),
               housingType: (data.housing_type as "apartment" | "house") || "apartment",

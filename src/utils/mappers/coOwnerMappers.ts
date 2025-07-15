@@ -73,7 +73,7 @@ export function mapCoOwnerFormToDbRow(formData: CoOwnerFormValues, userId: strin
   const dbRow: ProfileTableRow = {
     user_id: userId,
     full_name: formData.fullName,
-    age: formData.age,
+    age: parseInt(formData.age),
     email: formData.email,
     phone_number: formData.phoneNumber,
     occupation: formData.occupation,
