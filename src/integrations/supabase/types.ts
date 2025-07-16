@@ -119,153 +119,171 @@ export type Database = {
       roommate: {
         Row: {
           age: number | null
+          age_range_preference: number[] | null
+          age_range_preference_importance: string | null
           budget_range: string | null
           created_at: string
           diet: string | null
+          dietary_other: string | null
+          dietary_preferences: string | null
+          dietary_preferences_importance: string | null
           email: string | null
+          ethnicity_other: string | null
+          ethnicity_preference: string | null
+          ethnicity_preference_importance: string | null
           full_name: string | null
           gender: string | null
+          gender_preference: string[] | null
+          gender_preference_importance: string | null
           has_pets: boolean | null
           hobbies: string[] | null
           housing_type: string | null
           id: string
           important_roommate_traits: string[] | null
+          language_preference: string | null
+          language_preference_importance: string | null
+          language_specific: string | null
           linkedin_profile: string | null
           lives_with_smokers: boolean | null
           living_space: string | null
           move_in_date: string | null
+          nationality_custom: string | null
+          nationality_preference: string | null
+          nationality_preference_importance: string | null
+          occupation_preference: boolean | null
+          occupation_preference_importance: string | null
+          occupation_specific: string | null
           pet_preference: string | null
+          pet_preference_importance: string | null
+          pet_specification: string | null
           phone_number: string | null
           preferred_location: string | null
+          religion_other: string | null
+          religion_preference: string | null
+          religion_preference_importance: string | null
           roommate_gender_preference: string | null
           roommate_lifestyle_preference: string | null
           smoking: boolean | null
+          smoking_preference: string | null
+          smoking_preference_importance: string | null
           updated_at: string
           user_id: string
           work_location: string | null
           work_schedule: string | null
-          // New preference fields
-          age_range_preference: number[] | null
-          gender_preference: string[] | null
-          nationality_preference: string | null
-          nationality_custom: string | null
-          language_preference: string | null
-          language_specific: string | null
-          dietary_preferences: string | null
-          dietary_other: string | null
-          occupation_preference: boolean | null
-          occupation_specific: string | null
           work_schedule_preference: string | null
-          ethnicity_preference: string | null
-          ethnicity_other: string | null
-          religion_preference: string | null
-          religion_other: string | null
-          pet_specification: string | null
-          smoking_preference: string | null
+          work_schedule_preference_importance: string | null
         }
         Insert: {
           age?: number | null
+          age_range_preference?: number[] | null
+          age_range_preference_importance?: string | null
           budget_range?: string | null
           created_at?: string
           diet?: string | null
+          dietary_other?: string | null
+          dietary_preferences?: string | null
+          dietary_preferences_importance?: string | null
           email?: string | null
+          ethnicity_other?: string | null
+          ethnicity_preference?: string | null
+          ethnicity_preference_importance?: string | null
           full_name?: string | null
           gender?: string | null
+          gender_preference?: string[] | null
+          gender_preference_importance?: string | null
           has_pets?: boolean | null
           hobbies?: string[] | null
           housing_type?: string | null
           id?: string
           important_roommate_traits?: string[] | null
+          language_preference?: string | null
+          language_preference_importance?: string | null
+          language_specific?: string | null
           linkedin_profile?: string | null
           lives_with_smokers?: boolean | null
           living_space?: string | null
           move_in_date?: string | null
+          nationality_custom?: string | null
+          nationality_preference?: string | null
+          nationality_preference_importance?: string | null
+          occupation_preference?: boolean | null
+          occupation_preference_importance?: string | null
+          occupation_specific?: string | null
           pet_preference?: string | null
+          pet_preference_importance?: string | null
+          pet_specification?: string | null
           phone_number?: string | null
           preferred_location?: string | null
+          religion_other?: string | null
+          religion_preference?: string | null
+          religion_preference_importance?: string | null
           roommate_gender_preference?: string | null
           roommate_lifestyle_preference?: string | null
           smoking?: boolean | null
+          smoking_preference?: string | null
+          smoking_preference_importance?: string | null
           updated_at?: string
           user_id: string
           work_location?: string | null
           work_schedule?: string | null
-          // New preference fields
-          age_range_preference?: number[] | null
-          gender_preference?: string[] | null
-          nationality_preference?: string | null
-          nationality_custom?: string | null
-          language_preference?: string | null
-          language_specific?: string | null
-          dietary_preferences?: string | null
-          dietary_other?: string | null
-          occupation_preference?: boolean | null
-          occupation_specific?: string | null
           work_schedule_preference?: string | null
-          ethnicity_preference?: string | null
-          ethnicity_other?: string | null
-          religion_preference?: string | null
-          religion_other?: string | null
-          pet_specification?: string | null
-          smoking_preference?: string | null
-          // Preference importance fields
-          age_range_importance?: string | null
-          gender_importance?: string | null
-          nationality_importance?: string | null
-          language_importance?: string | null
-          dietary_importance?: string | null
-          occupation_importance?: string | null
-          work_schedule_importance?: string | null
-          ethnicity_importance?: string | null
-          religion_importance?: string | null
-          pet_importance?: string | null
-          smoking_importance?: string | null
+          work_schedule_preference_importance?: string | null
         }
         Update: {
           age?: number | null
+          age_range_preference?: number[] | null
+          age_range_preference_importance?: string | null
           budget_range?: string | null
           created_at?: string
           diet?: string | null
+          dietary_other?: string | null
+          dietary_preferences?: string | null
+          dietary_preferences_importance?: string | null
           email?: string | null
+          ethnicity_other?: string | null
+          ethnicity_preference?: string | null
+          ethnicity_preference_importance?: string | null
           full_name?: string | null
           gender?: string | null
+          gender_preference?: string[] | null
+          gender_preference_importance?: string | null
           has_pets?: boolean | null
           hobbies?: string[] | null
           housing_type?: string | null
           id?: string
           important_roommate_traits?: string[] | null
+          language_preference?: string | null
+          language_preference_importance?: string | null
+          language_specific?: string | null
           linkedin_profile?: string | null
           lives_with_smokers?: boolean | null
           living_space?: string | null
           move_in_date?: string | null
+          nationality_custom?: string | null
+          nationality_preference?: string | null
+          nationality_preference_importance?: string | null
+          occupation_preference?: boolean | null
+          occupation_preference_importance?: string | null
+          occupation_specific?: string | null
           pet_preference?: string | null
+          pet_preference_importance?: string | null
+          pet_specification?: string | null
           phone_number?: string | null
           preferred_location?: string | null
+          religion_other?: string | null
+          religion_preference?: string | null
+          religion_preference_importance?: string | null
           roommate_gender_preference?: string | null
           roommate_lifestyle_preference?: string | null
           smoking?: boolean | null
+          smoking_preference?: string | null
+          smoking_preference_importance?: string | null
           updated_at?: string
           user_id?: string
           work_location?: string | null
           work_schedule?: string | null
-          // New preference fields
-          age_range_preference?: number[] | null
-          gender_preference?: string[] | null
-          nationality_preference?: string | null
-          nationality_custom?: string | null
-          language_preference?: string | null
-          language_specific?: string | null
-          dietary_preferences?: string | null
-          dietary_other?: string | null
-          occupation_preference?: boolean | null
-          occupation_specific?: string | null
           work_schedule_preference?: string | null
-          ethnicity_preference?: string | null
-          ethnicity_other?: string | null
-          religion_preference?: string | null
-          religion_other?: string | null
-          pet_specification?: string | null
-          smoking_preference?: string | null
+          work_schedule_preference_importance?: string | null
         }
         Relationships: []
       }
