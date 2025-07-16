@@ -151,9 +151,9 @@ class IdealRoommateMatchingEngine {
       return 100;
     }
     
-    // Calculate how far outside the range
-    const distance = candidateAge < minAge ? minAge - candidateAge : candidateAge - maxAge;
-    return Math.max(0, 100 - (distance * 10));
+    // For strict age filtering: anyone outside range gets 0 score
+    // This ensures "must" importance will filter them out completely
+    return 0;
   }
 
   private calculateLocationCompatibility(
@@ -317,7 +317,7 @@ class IdealRoommateMatchingEngine {
     // Check each preference importance field
     const checks = [
       {
-        importance: currentUserDbRecord.gender_preference_importance,
+        importance: currentUserDbRecord.gender_preference_importance as PreferenceImportance,
         name: 'Gender',
         check: () => {
           if (currentUser.genderPreference?.length) {
@@ -332,7 +332,7 @@ class IdealRoommateMatchingEngine {
         }
       },
       {
-        importance: currentUserDbRecord.age_range_preference_importance,
+        importance: currentUserDbRecord.age_range_preference_importance as PreferenceImportance,
         name: 'Age Range',
         check: () => {
           if (currentUser.ageRangePreference?.length === 2) {
@@ -341,13 +341,13 @@ class IdealRoommateMatchingEngine {
               currentUser.ageRangePreference,
               candidate.age
             );
-            return score >= 70;
+            return score === 100; // Must be exact match (within range)
           }
           return true;
         }
       },
       {
-        importance: currentUserDbRecord.smoking_preference_importance,
+        importance: currentUserDbRecord.smoking_preference_importance as PreferenceImportance,
         name: 'Smoking',
         check: () => {
           const score = this.calculateSmokingCompatibility(
@@ -368,6 +368,18 @@ class IdealRoommateMatchingEngine {
             candidate.has_pets
           );
           return score >= 70;
+        }
+      },
+      {
+        importance: currentUserDbRecord.pet_preference_importance as PreferenceImportance,
+        name: 'Pets',
+        check: () => {
+          const score = this.calculatePetCompatibility(
+            currentUser.hasPets || false,
+            currentUser.petPreference || 'noPets',
+            candidate.has_pets
+          );
+          return score >= 80;
         }
       }
     ];
@@ -505,7 +517,7 @@ class IdealRoommateMatchingEngine {
           .single();
 
         if (userRecord) {
-          currentUserDbRecord = userRecord;
+          currentUserDbRecord = userRecord as DatabaseUser;
         }
       }
 
@@ -522,7 +534,9 @@ class IdealRoommateMatchingEngine {
 
       const results: IdealRoommateMatchResult[] = [];
 
-      for (const candidate of candidates) {
+      for (const candidateRaw of candidates) {
+        const candidate = candidateRaw as DatabaseUser;
+        
         // Skip self-matching
         if (currentUserId && candidate.user_id === currentUserId) {
           continue;
@@ -551,17 +565,17 @@ class IdealRoommateMatchingEngine {
 
         if (currentUserDbRecord) {
           const weightMap = [
-            { score: compatibilityAnalysis.gender, importance: currentUserDbRecord.gender_preference_importance },
-            { score: compatibilityAnalysis.age, importance: currentUserDbRecord.age_range_preference_importance },
-            { score: compatibilityAnalysis.smoking, importance: currentUserDbRecord.smoking_preference_importance },
-            { score: compatibilityAnalysis.pets, importance: currentUserDbRecord.pet_preference_importance },
-            { score: compatibilityAnalysis.diet, importance: currentUserDbRecord.dietary_preferences_importance },
-            { score: compatibilityAnalysis.workSchedule, importance: currentUserDbRecord.work_schedule_preference_importance },
+            { score: compatibilityAnalysis.gender, importance: (currentUserDbRecord.gender_preference_importance || 'notImportant') as PreferenceImportance },
+            { score: compatibilityAnalysis.age, importance: (currentUserDbRecord.age_range_preference_importance || 'notImportant') as PreferenceImportance },
+            { score: compatibilityAnalysis.smoking, importance: (currentUserDbRecord.smoking_preference_importance || 'notImportant') as PreferenceImportance },
+            { score: compatibilityAnalysis.pets, importance: (currentUserDbRecord.pet_preference_importance || 'notImportant') as PreferenceImportance },
+            { score: compatibilityAnalysis.diet, importance: (currentUserDbRecord.dietary_preferences_importance || 'notImportant') as PreferenceImportance },
+            { score: compatibilityAnalysis.workSchedule, importance: (currentUserDbRecord.work_schedule_preference_importance || 'notImportant') as PreferenceImportance },
             // Add other preferences as needed
           ];
 
           for (const { score, importance } of weightMap) {
-            const weight = IMPORTANCE_WEIGHTS[importance || 'notImportant'];
+            const weight = IMPORTANCE_WEIGHTS[importance];
             totalScore += score * weight;
             totalWeight += weight;
           }

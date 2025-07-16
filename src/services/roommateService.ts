@@ -98,6 +98,20 @@ export async function saveRoommateProfile(
     religion_other: formData.religionOther || null,
     pet_specification: formData.petSpecification || null,
     smoking_preference: formData.smokingPreference || null,
+    
+    // Add importance fields for ideal roommate preferences
+    age_range_preference_importance: formData.age_range_preference_importance || 'notImportant',
+    gender_preference_importance: formData.gender_preference_importance || 'notImportant',
+    nationality_preference_importance: formData.nationality_preference_importance || 'notImportant',
+    language_preference_importance: formData.language_preference_importance || 'notImportant',
+    dietary_preferences_importance: formData.dietary_preferences_importance || 'notImportant',
+    occupation_preference_importance: formData.occupation_preference_importance || 'notImportant',
+    work_schedule_preference_importance: formData.work_schedule_preference_importance || 'notImportant',
+    ethnicity_preference_importance: formData.ethnicity_preference_importance || 'notImportant',
+    religion_preference_importance: formData.religion_preference_importance || 'notImportant',
+    pet_preference_importance: formData.pet_preference_importance || 'notImportant',
+    smoking_preference_importance: formData.smoking_preference_importance || 'notImportant',
+    
     updated_at: new Date().toISOString()
   };
   
