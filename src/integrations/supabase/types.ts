@@ -144,6 +144,24 @@ export type Database = {
           user_id: string
           work_location: string | null
           work_schedule: string | null
+          // New preference fields
+          age_range_preference: number[] | null
+          gender_preference: string[] | null
+          nationality_preference: string | null
+          nationality_custom: string | null
+          language_preference: string | null
+          language_specific: string | null
+          dietary_preferences: string | null
+          dietary_other: string | null
+          occupation_preference: boolean | null
+          occupation_specific: string | null
+          work_schedule_preference: string | null
+          ethnicity_preference: string | null
+          ethnicity_other: string | null
+          religion_preference: string | null
+          religion_other: string | null
+          pet_specification: string | null
+          smoking_preference: string | null
         }
         Insert: {
           age?: number | null
@@ -172,6 +190,36 @@ export type Database = {
           user_id: string
           work_location?: string | null
           work_schedule?: string | null
+          // New preference fields
+          age_range_preference?: number[] | null
+          gender_preference?: string[] | null
+          nationality_preference?: string | null
+          nationality_custom?: string | null
+          language_preference?: string | null
+          language_specific?: string | null
+          dietary_preferences?: string | null
+          dietary_other?: string | null
+          occupation_preference?: boolean | null
+          occupation_specific?: string | null
+          work_schedule_preference?: string | null
+          ethnicity_preference?: string | null
+          ethnicity_other?: string | null
+          religion_preference?: string | null
+          religion_other?: string | null
+          pet_specification?: string | null
+          smoking_preference?: string | null
+          // Preference importance fields
+          age_range_importance?: string | null
+          gender_importance?: string | null
+          nationality_importance?: string | null
+          language_importance?: string | null
+          dietary_importance?: string | null
+          occupation_importance?: string | null
+          work_schedule_importance?: string | null
+          ethnicity_importance?: string | null
+          religion_importance?: string | null
+          pet_importance?: string | null
+          smoking_importance?: string | null
         }
         Update: {
           age?: number | null
@@ -200,32 +248,58 @@ export type Database = {
           user_id?: string
           work_location?: string | null
           work_schedule?: string | null
+          // New preference fields
+          age_range_preference?: number[] | null
+          gender_preference?: string[] | null
+          nationality_preference?: string | null
+          nationality_custom?: string | null
+          language_preference?: string | null
+          language_specific?: string | null
+          dietary_preferences?: string | null
+          dietary_other?: string | null
+          occupation_preference?: boolean | null
+          occupation_specific?: string | null
+          work_schedule_preference?: string | null
+          ethnicity_preference?: string | null
+          ethnicity_other?: string | null
+          religion_preference?: string | null
+          religion_other?: string | null
+          pet_specification?: string | null
+          smoking_preference?: string | null
         }
         Relationships: []
       }
       user_preferences: {
         Row: {
-          created_at: string
           id: string
-          preferences: Json
-          updated_at: string
           user_id: string
+          preferences: Json
+          created_at: string
+          updated_at: string
         }
         Insert: {
-          created_at?: string
           id?: string
-          preferences?: Json
-          updated_at?: string
           user_id: string
+          preferences: Json
+          created_at?: string
+          updated_at?: string
         }
         Update: {
-          created_at?: string
           id?: string
-          preferences?: Json
-          updated_at?: string
           user_id?: string
+          preferences?: Json
+          created_at?: string
+          updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
       }
     }
     Views: {

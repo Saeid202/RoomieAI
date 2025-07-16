@@ -71,24 +71,24 @@ export async function fetchCoOwnerProfiles(): Promise<DatabaseCoOwner[]> {
 
 export function convertRoommateToMatchResult(roommate: DatabaseRoommate): MatchResult {
   // Parse budget range (e.g., "$1200-$1800" -> [1200, 1800])
-  const budgetMatch = roommate.budget_range.match(/\$?(\d+)-?\$?(\d+)?/);
+  const budgetMatch = roommate.budget_range?.match(/\$?(\d+)-?\$?(\d+)?/);
   const budget = budgetMatch ? [parseInt(budgetMatch[1]), parseInt(budgetMatch[2] || budgetMatch[1])] : [0, 0];
 
   return {
-    name: roommate.full_name,
-    age: roommate.age.toString(),
-    gender: roommate.gender,
+    name: roommate.full_name || "Unknown",
+    age: roommate.age?.toString() || "N/A",
+    gender: roommate.gender || "Not specified",
     occupation: "Professional", // Default since not in roommate table
-    movingDate: roommate.move_in_date,
+    movingDate: roommate.move_in_date || "TBD",
     budget: budget,
-    location: roommate.preferred_location,
+    location: roommate.preferred_location || "Any location",
     cleanliness: 85, // Default score
-    pets: roommate.has_pets,
-    smoking: roommate.smoking,
+    pets: roommate.has_pets || false,
+    smoking: roommate.smoking || false,
     drinking: "socially", // Default
     guests: "sometimes", // Default
-    sleepSchedule: roommate.work_schedule.includes("AM") ? "early" : "normal",
-    workSchedule: roommate.work_schedule,
+    sleepSchedule: roommate.work_schedule?.includes("AM") ? "early" : "normal",
+    workSchedule: roommate.work_schedule || "Not specified",
     interests: roommate.hobbies || [],
     traits: roommate.important_roommate_traits || [],
     preferredLiving: "findRoommate",
@@ -106,13 +106,13 @@ export function convertRoommateToMatchResult(roommate: DatabaseRoommate): MatchR
 
 export function convertCoOwnerToMatchResult(coOwner: DatabaseCoOwner): MatchResult {
   return {
-    name: coOwner.full_name,
-    age: coOwner.age.toString(),
+    name: coOwner.full_name || "Unknown",
+    age: coOwner.age?.toString() || "N/A",
     gender: "N/A",
-    occupation: coOwner.occupation,
+    occupation: coOwner.occupation || "Not specified",
     movingDate: "Flexible",
     budget: coOwner.investment_capacity || [0, 0],
-    location: coOwner.preferred_location,
+    location: coOwner.preferred_location || "Any location",
     cleanliness: 90,
     pets: true,
     smoking: false,
@@ -121,13 +121,13 @@ export function convertCoOwnerToMatchResult(coOwner: DatabaseCoOwner): MatchResu
     sleepSchedule: "flexible",
     workSchedule: "flexible",
     interests: ["real estate", "investment"],
-    traits: ["professional", "experienced", coOwner.co_ownership_experience.toLowerCase()],
+    traits: ["professional", "experienced", coOwner.co_ownership_experience?.toLowerCase() || "beginner"],
     preferredLiving: "shareProperty",
     propertyDetails: {
       propertyType: coOwner.property_type?.toLowerCase() || "apartment",
       bedrooms: 2,
       bathrooms: 2,
-      address: coOwner.preferred_location
+      address: coOwner.preferred_location || "Any location"
     },
     compatibilityScore: Math.floor(Math.random() * 20) + 75, // Random score 75-94
     compatibilityBreakdown: {

@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { 
   Home, Users, Building, Search, MessageSquare, 
   Settings, Calendar, Clock, List, MapPin, Group, 
-  Briefcase, Flag, Scale
+  Briefcase, Flag, Scale, Sliders
 } from "lucide-react";
 import { SidebarSimpleMenuItem } from "./SidebarSimpleMenuItem";
 
@@ -89,6 +89,13 @@ export function SeekerSidebar({ isActive }: SeekerSidebarProps) {
         label="AI Legal Assistant"
         to="/dashboard/chats" 
         isActive={isActive('/dashboard/chats')}
+      />
+      
+      <SidebarSimpleMenuItem 
+        icon={<Sliders size={18} />} 
+        label="Matching Preferences"
+        to="/dashboard/preferences/matching" 
+        isActive={isActive('/dashboard/preferences/matching')}
       />
       
       <SidebarSimpleMenuItem 
