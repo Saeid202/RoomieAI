@@ -391,84 +391,111 @@ class CustomPreferenceMatchingEngine {
       minScore = 60 
     } = criteria;
 
-    // Fetch candidate users from database
-    const { data: candidates, error } = await supabase
-      .from('roommate')
-      .select('*')
-      .order('created_at', { ascending: false });
+    try {
+      // Fetch all roommate records
+      const { data: candidates, error } = await supabase
+        .from('roommate')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-    console.log("candidates===================>", candidates);
+      console.log("candidates===================>", candidates);
+      console.log("Number of candidates found:", candidates?.length || 0);
 
-    if (error) {
-      console.error('Error fetching candidates:', error);
-      return [];
-    }
-
-    const results: CustomMatchResult[] = [];
-
-    for (const candidate of candidates || []) {
-      // Skip self-matching if userId is provided
-      if (currentUserId && candidate.user_id === currentUserId) {
-        console.log(`Skipping self-match for user ${currentUserId}`);
-        continue;
+      if (error) {
+        console.error('Error fetching candidates:', error);
+        console.error('This might be due to Row Level Security (RLS) policies.');
+        console.error('You may need to update the RLS policy to allow authenticated users to view all roommate profiles for matching.');
+        return [];
       }
 
-      // Check required criteria first
-      const requirementCheck = this.checkRequiredCriteria(
-        currentUser, 
-        candidate, 
-        userPreferences
-      );
-
-      // Skip candidates who don't meet required criteria
-      if (!requirementCheck.passes) {
-        continue;
+      if (!candidates || candidates.length === 0) {
+        console.warn('No candidates found.');
+        console.warn('Possible reasons:');
+        console.warn('1. No data in the roommate table');
+        console.warn('2. RLS policies are restricting access (users can only see their own records)');
+        console.warn('3. Authentication issues');
+        return [];
       }
 
-      // Calculate compatibility scores
-      const compatibilityAnalysis = this.calculateCompatibilityScore(
-        currentUser, 
-        candidate, 
-        userPreferences
-      );
+      // If only one candidate and it's the current user, RLS policy is restricting access
+      if (candidates.length === 1 && currentUserId && candidates[0].user_id === currentUserId) {
+        console.warn('⚠️  RLS POLICY ISSUE DETECTED:');
+        console.warn('Only your own record is visible due to Row Level Security policies.');
+        console.warn('To fix this, you need to update the database policy to allow viewing other profiles for matching.');
+        console.warn('Current policy: "Users can view their own roommate profile"');
+        console.warn('Suggested fix: Create a policy that allows authenticated users to view all roommate profiles.');
+        return [];
+      }
 
-      // Calculate weighted total score using user preferences
-      let totalScore = 0;
-      let totalWeight = 0;
+      const results: CustomMatchResult[] = [];
 
-      Object.entries(userPreferences).forEach(([key, preference]) => {
-        const score = compatibilityAnalysis[key as keyof CompatibilityAnalysis];
-        if (typeof score === 'number') {
-          totalScore += score * preference.weight;
-          totalWeight += preference.weight;
+      for (const candidate of candidates || []) {
+        // Skip self-matching if userId is provided
+        if (currentUserId && candidate.user_id === currentUserId) {
+          console.log(`Skipping self-match for user ${currentUserId}`);
+          continue;
         }
-      });
 
-      // Normalize score
-      const normalizedScore = totalWeight > 0 ? (totalScore / totalWeight) : 0;
-
-      // Only include matches above minimum score
-      if (normalizedScore >= minScore) {
-        const matchReasons = this.generateMatchReasons(
+        // Check required criteria first
+        const requirementCheck = this.checkRequiredCriteria(
           currentUser, 
           candidate, 
-          compatibilityAnalysis
+          userPreferences
         );
 
-        results.push({
-          user: candidate,
-          matchScore: Math.round(normalizedScore),
-          matchReasons,
-          compatibilityAnalysis,
-          failedRequirements: []
-        });
-      }
-    }
+        // Skip candidates who don't meet required criteria
+        if (!requirementCheck.passes) {
+          continue;
+        }
 
-    // Sort by match score and limit results
-    return results
-      .sort((a, b) => b.matchScore - a.matchScore)
-      .slice(0, maxResults);
+        // Calculate compatibility scores
+        const compatibilityAnalysis = this.calculateCompatibilityScore(
+          currentUser, 
+          candidate, 
+          userPreferences
+        );
+
+        // Calculate weighted total score using user preferences
+        let totalScore = 0;
+        let totalWeight = 0;
+
+        Object.entries(userPreferences).forEach(([key, preference]) => {
+          const score = compatibilityAnalysis[key as keyof CompatibilityAnalysis];
+          if (typeof score === 'number') {
+            totalScore += score * preference.weight;
+            totalWeight += preference.weight;
+          }
+        });
+
+        // Normalize score
+        const normalizedScore = totalWeight > 0 ? (totalScore / totalWeight) : 0;
+
+        // Only include matches above minimum score
+        if (normalizedScore >= minScore) {
+          const matchReasons = this.generateMatchReasons(
+            currentUser, 
+            candidate, 
+            compatibilityAnalysis
+          );
+
+          results.push({
+            user: candidate,
+            matchScore: Math.round(normalizedScore),
+            matchReasons,
+            compatibilityAnalysis,
+            failedRequirements: []
+          });
+        }
+      }
+
+      // Sort by match score and limit results
+      return results
+        .sort((a, b) => b.matchScore - a.matchScore)
+        .slice(0, maxResults);
+    } catch (error) {
+      console.error('Error in findMatches:', error);
+      return [];
+    }
   }
 
   // Convert to standard MatchResult format for compatibility
