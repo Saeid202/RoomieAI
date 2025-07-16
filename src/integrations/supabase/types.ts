@@ -121,7 +121,7 @@ export type Database = {
           age: number | null
           age_range_preference: number[] | null
           age_range_preference_importance: string | null
-          budget_range: string | null
+          budget_range: number[] | null
           created_at: string
           diet: string | null
           dietary_other: string | null
@@ -159,7 +159,8 @@ export type Database = {
           pet_preference_importance: string | null
           pet_specification: string | null
           phone_number: string | null
-          preferred_location: string | null
+          preferred_location: string[] | null
+          profile_visibility: string[] | null
           religion_other: string | null
           religion_preference: string | null
           religion_preference_importance: string | null
@@ -179,7 +180,7 @@ export type Database = {
           age?: number | null
           age_range_preference?: number[] | null
           age_range_preference_importance?: string | null
-          budget_range?: string | null
+          budget_range?: number[] | null
           created_at?: string
           diet?: string | null
           dietary_other?: string | null
@@ -217,7 +218,8 @@ export type Database = {
           pet_preference_importance?: string | null
           pet_specification?: string | null
           phone_number?: string | null
-          preferred_location?: string | null
+          preferred_location?: string[] | null
+          profile_visibility?: string[] | null
           religion_other?: string | null
           religion_preference?: string | null
           religion_preference_importance?: string | null
@@ -237,7 +239,7 @@ export type Database = {
           age?: number | null
           age_range_preference?: number[] | null
           age_range_preference_importance?: string | null
-          budget_range?: string | null
+          budget_range?: number[] | null
           created_at?: string
           diet?: string | null
           dietary_other?: string | null
@@ -275,7 +277,8 @@ export type Database = {
           pet_preference_importance?: string | null
           pet_specification?: string | null
           phone_number?: string | null
-          preferred_location?: string | null
+          preferred_location?: string[] | null
+          profile_visibility?: string[] | null
           religion_other?: string | null
           religion_preference?: string | null
           religion_preference_importance?: string | null
