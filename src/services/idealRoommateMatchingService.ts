@@ -14,8 +14,8 @@ export interface DatabaseUser {
   email: string;
   phone_number: string;
   linkedin_profile?: string;
-  preferred_location: string;
-  budget_range: string;
+  preferred_location: string[] | null;
+  budget_range: number[] | null;
   move_in_date_start?: string;
   move_in_date_end?: string;
   move_in_date: string; // Legacy field for compatibility
@@ -166,21 +166,25 @@ class IdealRoommateMatchingEngine {
 
   private calculateLocationCompatibility(
     userLocations: string[],
-    candidateLocation: string
+    candidateLocation: string[] | null | undefined
   ): number {
     if (!userLocations || userLocations.length === 0) return 50;
+    if (!candidateLocation || !Array.isArray(candidateLocation) || candidateLocation.length === 0) return 30;
     
     const userLocationLower = userLocations.map(loc => loc.toLowerCase());
-    const candidateLocationLower = candidateLocation.toLowerCase();
+    const candidateLocationLower = candidateLocation.map(loc => loc.toLowerCase());
     
-    // Exact match
-    if (userLocationLower.includes(candidateLocationLower)) return 100;
+    // Exact match - any user location matches any candidate location
+    for (const userLoc of userLocationLower) {
+      if (candidateLocationLower.includes(userLoc)) return 100;
+    }
     
     // Partial match
     for (const userLoc of userLocationLower) {
-      if (userLoc.includes(candidateLocationLower) || 
-          candidateLocationLower.includes(userLoc)) {
-        return 85;
+      for (const candidateLoc of candidateLocationLower) {
+        if (userLoc.includes(candidateLoc) || candidateLoc.includes(userLoc)) {
+          return 85;
+        }
       }
     }
     
@@ -189,15 +193,13 @@ class IdealRoommateMatchingEngine {
 
   private calculateBudgetCompatibility(
     userBudget: number[],
-    candidateBudget: string
+    candidateBudget: number[] | null
   ): number {
     if (!userBudget || userBudget.length !== 2) return 50;
+    if (!candidateBudget || !Array.isArray(candidateBudget) || candidateBudget.length !== 2) return 50;
     
-    const budgetMatch = candidateBudget?.match(/\$?(\d+)-?\$?(\d+)?/);
-    if (!budgetMatch) return 50;
-    
-    const candidateMin = parseInt(budgetMatch[1]);
-    const candidateMax = parseInt(budgetMatch[2] || budgetMatch[1]);
+    const candidateMin = candidateBudget[0];
+    const candidateMax = candidateBudget[1];
     
     const [userMin, userMax] = userBudget;
     
@@ -1011,8 +1013,9 @@ class IdealRoommateMatchingEngine {
   // Convert to standard MatchResult format
   convertToMatchResult(idealRoommateResult: IdealRoommateMatchResult): MatchResult {
     const user = idealRoommateResult.user;
-    const budget = user.budget_range?.match(/\$?(\d+)-?\$?(\d+)?/);
-    const budgetArray = budget ? [parseInt(budget[1]), parseInt(budget[2] || budget[1])] : [0, 0];
+    const budgetArray = Array.isArray(user.budget_range) && user.budget_range.length === 2
+      ? user.budget_range
+      : [0, 0];
 
     return {
       name: user.full_name || "Unknown",
@@ -1021,7 +1024,9 @@ class IdealRoommateMatchingEngine {
       occupation: "Professional",
       movingDate: user.move_in_date || "TBD",
       budget: budgetArray,
-      location: user.preferred_location || "Any location",
+      location: Array.isArray(user.preferred_location) 
+        ? user.preferred_location.join(', ') || "Any location"
+        : user.preferred_location || "Any location",
       cleanliness: idealRoommateResult.compatibilityAnalysis.cleanliness,
       pets: user.has_pets || false,
       smoking: user.smoking || false,
