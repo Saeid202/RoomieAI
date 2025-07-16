@@ -58,9 +58,12 @@ export async function saveRoommateProfile(
     budget_range: Array.isArray(formData.budgetRange) 
       ? `$${formData.budgetRange[0]}-$${formData.budgetRange[1]}` 
       : String(formData.budgetRange) || null,
-    move_in_date: formData.moveInDateStart instanceof Date 
+    move_in_date_start: formData.moveInDateStart instanceof Date 
       ? formData.moveInDateStart.toISOString().split('T')[0] 
       : formData.moveInDateStart || null,
+    move_in_date_end: formData.moveInDateEnd instanceof Date 
+      ? formData.moveInDateEnd.toISOString().split('T')[0] 
+      : formData.moveInDateEnd || null,
     housing_type: formData.housingType || null,
     living_space: formData.livingSpace || null,
     smoking: formData.smoking || false,

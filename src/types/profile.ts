@@ -55,7 +55,7 @@ export const profileSchema = z.object({
   dietaryOther: z.string().optional(),
   occupationPreference: z.boolean().optional(),
   occupationSpecific: z.string().optional(),
-  workSchedulePreference: z.enum(["opposite", "dayShift", "nightShift", "overnightShift", "noPreference"]).optional(),
+  workSchedulePreference: z.enum(["opposite", "dayShift", "afternoonShift", "overnightShift", "noPreference"]).optional(),
   ethnicityPreference: z.enum(["same", "noPreference", "others"]).optional(),
   ethnicityOther: z.string().optional(),
   religionPreference: z.enum(["same", "noPreference", "others"]).optional(),

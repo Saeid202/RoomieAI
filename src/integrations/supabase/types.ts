@@ -146,7 +146,9 @@ export type Database = {
           linkedin_profile: string | null
           lives_with_smokers: boolean | null
           living_space: string | null
-          move_in_date: string | null
+          move_in_date_start: string | null
+  move_in_date_end: string | null
+  move_in_date: string | null // Legacy field for compatibility
           nationality_custom: string | null
           nationality_preference: string | null
           nationality_preference_importance: string | null
@@ -202,7 +204,9 @@ export type Database = {
           linkedin_profile?: string | null
           lives_with_smokers?: boolean | null
           living_space?: string | null
-          move_in_date?: string | null
+          move_in_date_start?: string | null
+          move_in_date_end?: string | null
+          move_in_date?: string | null // Legacy field for compatibility
           nationality_custom?: string | null
           nationality_preference?: string | null
           nationality_preference_importance?: string | null
@@ -258,7 +262,9 @@ export type Database = {
           linkedin_profile?: string | null
           lives_with_smokers?: boolean | null
           living_space?: string | null
-          move_in_date?: string | null
+          move_in_date_start?: string | null
+          move_in_date_end?: string | null
+          move_in_date?: string | null // Legacy field for compatibility
           nationality_custom?: string | null
           nationality_preference?: string | null
           nationality_preference_importance?: string | null

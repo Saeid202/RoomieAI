@@ -10,7 +10,9 @@ export interface DatabaseRoommate {
   phone_number: string;
   preferred_location: string;
   budget_range: string;
-  move_in_date: string;
+  move_in_date_start?: string;
+  move_in_date_end?: string;
+  move_in_date: string; // Legacy field for compatibility
   housing_type: string;
   living_space: string;
   has_pets: boolean;

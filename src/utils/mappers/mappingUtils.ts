@@ -197,7 +197,7 @@ export function mapRoommatePreferencesDbToForm(data: ProfileTableRow): Partial<P
   if ('work_schedule_preference' in data) {
     result.workSchedulePreference = safeEnum(
       data.work_schedule_preference,
-      ["opposite", "dayShift", "nightShift", "overnightShift", "noPreference"],
+      ["opposite", "dayShift", "afternoonShift", "overnightShift", "noPreference"],
       "noPreference"
     );
   }

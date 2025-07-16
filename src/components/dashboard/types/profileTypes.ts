@@ -13,7 +13,9 @@ export type RoommateTableRow = {
   linkedin_profile: string | null;
   preferred_location: string | null;
   budget_range: string | null;
-  move_in_date: string | null;
+  move_in_date_start: string | null;
+  move_in_date_end: string | null;
+  move_in_date: string | null; // Legacy field for compatibility
   housing_type: string | null;
   living_space: string | null;
   smoking: boolean | null;
@@ -59,7 +61,9 @@ export type ProfileTableRow = {
   linkedin_profile?: string | null;
   preferred_location?: string | null;
   budget_range?: string | null;
-  move_in_date?: string | null;
+  move_in_date_start?: string | null;
+  move_in_date_end?: string | null;
+  move_in_date?: string | null; // Legacy field for compatibility
   housing_type?: string | null;
   living_space?: string | null;
   smoking?: boolean | null;

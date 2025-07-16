@@ -16,7 +16,9 @@ export interface DatabaseUser {
   linkedin_profile?: string;
   preferred_location: string;
   budget_range: string;
-  move_in_date: string;
+  move_in_date_start?: string;
+  move_in_date_end?: string;
+  move_in_date: string; // Legacy field for compatibility
   housing_type: string;
   living_space: string;
   smoking: boolean;
@@ -30,6 +32,12 @@ export interface DatabaseUser {
   roommate_gender_preference?: string;
   roommate_lifestyle_preference?: string;
   important_roommate_traits: string[];
+  
+  // Actual demographic information
+  nationality?: string;
+  language?: string;
+  ethnicity?: string;
+  religion?: string;
   
   // Enhanced preference fields
   age_range_preference?: number[];
@@ -285,6 +293,130 @@ class IdealRoommateMatchingEngine {
     return currentUserOccupation === candidateOccupation ? 100 : 60;
   }
 
+  private calculateNationalityCompatibility(
+    currentUserNationality: string,
+    currentUserNationalityPreference: string,
+    currentUserNationalityCustom: string,
+    candidateNationality: string
+  ): number {
+    if (currentUserNationalityPreference === 'noPreference') {
+      return 75; // Neutral - no specific preference
+    }
+
+    if (currentUserNationalityPreference === 'sameCountry') {
+      if (!candidateNationality) {
+        return 50; // Missing data, but not completely negative
+      }
+      return currentUserNationality.toLowerCase() === candidateNationality.toLowerCase() ? 100 : 30;
+    }
+
+    if (currentUserNationalityPreference === 'custom' && currentUserNationalityCustom) {
+      if (!candidateNationality) {
+        return 50; // Missing data, but not completely negative
+      }
+      const preferredNationalities = currentUserNationalityCustom.toLowerCase().split(',').map(s => s.trim());
+      const candidateNationalityLower = candidateNationality.toLowerCase();
+      return preferredNationalities.some(nat => 
+        nat.includes(candidateNationalityLower) || candidateNationalityLower.includes(nat)
+      ) ? 100 : 30;
+    }
+
+    return 75; // Default neutral score
+  }
+
+  private calculateLanguageCompatibility(
+    currentUserLanguage: string,
+    currentUserLanguagePreference: string,
+    currentUserLanguageSpecific: string,
+    candidateLanguage: string
+  ): number {
+    if (currentUserLanguagePreference === 'noPreference') {
+      return 75; // Neutral - no specific preference
+    }
+
+    if (currentUserLanguagePreference === 'sameLanguage') {
+      if (!candidateLanguage) {
+        return 50; // Missing data, but not completely negative
+      }
+      return currentUserLanguage.toLowerCase() === candidateLanguage.toLowerCase() ? 100 : 30;
+    }
+
+    if (currentUserLanguagePreference === 'specific' && currentUserLanguageSpecific) {
+      if (!candidateLanguage) {
+        return 50; // Missing data, but not completely negative
+      }
+      const preferredLanguages = currentUserLanguageSpecific.toLowerCase().split(',').map(s => s.trim());
+      const candidateLanguageLower = candidateLanguage.toLowerCase();
+      return preferredLanguages.some(lang => 
+        lang.includes(candidateLanguageLower) || candidateLanguageLower.includes(lang)
+      ) ? 100 : 30;
+    }
+
+    return 75; // Default neutral score
+  }
+
+  private calculateEthnicityCompatibility(
+    currentUserEthnicity: string,
+    currentUserEthnicityPreference: string,
+    currentUserEthnicityOther: string,
+    candidateEthnicity: string
+  ): number {
+    if (currentUserEthnicityPreference === 'noPreference') {
+      return 75; // Neutral - no specific preference
+    }
+
+    if (currentUserEthnicityPreference === 'same') {
+      if (!candidateEthnicity) {
+        return 50; // Missing data, but not completely negative
+      }
+      return currentUserEthnicity.toLowerCase() === candidateEthnicity.toLowerCase() ? 100 : 30;
+    }
+
+    if (currentUserEthnicityPreference === 'others' && currentUserEthnicityOther) {
+      if (!candidateEthnicity) {
+        return 50; // Missing data, but not completely negative
+      }
+      const preferredEthnicities = currentUserEthnicityOther.toLowerCase().split(',').map(s => s.trim());
+      const candidateEthnicityLower = candidateEthnicity.toLowerCase();
+      return preferredEthnicities.some(eth => 
+        eth.includes(candidateEthnicityLower) || candidateEthnicityLower.includes(eth)
+      ) ? 100 : 30;
+    }
+
+    return 75; // Default neutral score
+  }
+
+  private calculateReligionCompatibility(
+    currentUserReligion: string,
+    currentUserReligionPreference: string,
+    currentUserReligionOther: string,
+    candidateReligion: string
+  ): number {
+    if (currentUserReligionPreference === 'noPreference') {
+      return 75; // Neutral - no specific preference
+    }
+
+    if (currentUserReligionPreference === 'same') {
+      if (!candidateReligion) {
+        return 50; // Missing data, but not completely negative
+      }
+      return currentUserReligion.toLowerCase() === candidateReligion.toLowerCase() ? 100 : 30;
+    }
+
+    if (currentUserReligionPreference === 'others' && currentUserReligionOther) {
+      if (!candidateReligion) {
+        return 50; // Missing data, but not completely negative
+      }
+      const preferredReligions = currentUserReligionOther.toLowerCase().split(',').map(s => s.trim());
+      const candidateReligionLower = candidateReligion.toLowerCase();
+      return preferredReligions.some(rel => 
+        rel.includes(candidateReligionLower) || candidateReligionLower.includes(rel)
+      ) ? 100 : 30;
+    }
+
+    return 75; // Default neutral score
+  }
+
   private calculateWorkScheduleCompatibility(
     currentUserSchedule: string,
     currentUserSchedulePreference: string,
@@ -469,6 +601,118 @@ class IdealRoommateMatchingEngine {
           }
           return true;
         }
+      },
+      {
+        importance: currentUserDbRecord.nationality_preference_importance as PreferenceImportance,
+        name: 'Nationality Preference',
+        check: () => {
+          if (currentUser.nationalityPreference && currentUser.nationalityPreference !== 'noPreference') {
+            if (currentUser.nationalityPreference === 'custom' && currentUser.nationalityCustom) {
+              const candidateNationality = candidate.nationality || '';
+              // For "must" importance, candidates without nationality info should be filtered out
+              if (!candidateNationality || candidateNationality.trim() === '') {
+                return false; // No nationality info - cannot match specific requirement
+              }
+              const preferredNationalities = currentUser.nationalityCustom.toLowerCase().split(',').map(s => s.trim());
+              const candidateNationalityLower = candidateNationality.toLowerCase();
+              return preferredNationalities.some(nat => 
+                nat.includes(candidateNationalityLower) || candidateNationalityLower.includes(nat)
+              );
+            } else if (currentUser.nationalityPreference === 'sameCountry') {
+              const candidateNationality = candidate.nationality || '';
+              const userNationality = currentUser.nationality || '';
+              if (!candidateNationality || candidateNationality.trim() === '') {
+                return false; // No nationality info - cannot match requirement
+              }
+              return userNationality.toLowerCase() === candidateNationality.toLowerCase();
+            }
+          }
+          return true; // If no specific preference, pass the check
+        }
+      },
+      {
+        importance: currentUserDbRecord.language_preference_importance as PreferenceImportance,
+        name: 'Language Preference',
+        check: () => {
+          if (currentUser.languagePreference && currentUser.languagePreference !== 'noPreference') {
+            if (currentUser.languagePreference === 'specific' && currentUser.languageSpecific) {
+              const candidateLanguage = candidate.language || '';
+              // For "must" importance, candidates without language info should be filtered out
+              if (!candidateLanguage || candidateLanguage.trim() === '') {
+                return false; // No language info - cannot match specific requirement
+              }
+              const preferredLanguages = currentUser.languageSpecific.toLowerCase().split(',').map(s => s.trim());
+              const candidateLanguageLower = candidateLanguage.toLowerCase();
+              return preferredLanguages.some(lang => 
+                lang.includes(candidateLanguageLower) || candidateLanguageLower.includes(lang)
+              );
+            } else if (currentUser.languagePreference === 'sameLanguage') {
+              const candidateLanguage = candidate.language || '';
+              const userLanguage = currentUser.language || '';
+              if (!candidateLanguage || candidateLanguage.trim() === '') {
+                return false; // No language info - cannot match requirement
+              }
+              return userLanguage.toLowerCase() === candidateLanguage.toLowerCase();
+            }
+          }
+          return true; // If no specific preference, pass the check
+        }
+      },
+      {
+        importance: currentUserDbRecord.ethnicity_preference_importance as PreferenceImportance,
+        name: 'Ethnicity Preference',
+        check: () => {
+          if (currentUser.ethnicityPreference && currentUser.ethnicityPreference !== 'noPreference') {
+            if (currentUser.ethnicityPreference === 'others' && currentUser.ethnicityOther) {
+              const candidateEthnicity = candidate.ethnicity || '';
+              // For "must" importance, candidates without ethnicity info should be filtered out
+              if (!candidateEthnicity || candidateEthnicity.trim() === '') {
+                return false; // No ethnicity info - cannot match specific requirement
+              }
+              const preferredEthnicities = currentUser.ethnicityOther.toLowerCase().split(',').map(s => s.trim());
+              const candidateEthnicityLower = candidateEthnicity.toLowerCase();
+              return preferredEthnicities.some(eth => 
+                eth.includes(candidateEthnicityLower) || candidateEthnicityLower.includes(eth)
+              );
+            } else if (currentUser.ethnicityPreference === 'same') {
+              const candidateEthnicity = candidate.ethnicity || '';
+              const userEthnicity = currentUser.ethnicity || '';
+              if (!candidateEthnicity || candidateEthnicity.trim() === '') {
+                return false; // No ethnicity info - cannot match requirement
+              }
+              return userEthnicity.toLowerCase() === candidateEthnicity.toLowerCase();
+            }
+          }
+          return true; // If no specific preference, pass the check
+        }
+      },
+      {
+        importance: currentUserDbRecord.religion_preference_importance as PreferenceImportance,
+        name: 'Religion Preference',
+        check: () => {
+          if (currentUser.religionPreference && currentUser.religionPreference !== 'noPreference') {
+            if (currentUser.religionPreference === 'others' && currentUser.religionOther) {
+              const candidateReligion = candidate.religion || '';
+              // For "must" importance, candidates without religion info should be filtered out
+              if (!candidateReligion || candidateReligion.trim() === '') {
+                return false; // No religion info - cannot match specific requirement
+              }
+              const preferredReligions = currentUser.religionOther.toLowerCase().split(',').map(s => s.trim());
+              const candidateReligionLower = candidateReligion.toLowerCase();
+              return preferredReligions.some(rel => 
+                rel.includes(candidateReligionLower) || candidateReligionLower.includes(rel)
+              );
+            } else if (currentUser.religionPreference === 'same') {
+              const candidateReligion = candidate.religion || '';
+              const userReligion = currentUser.religion || '';
+              if (!candidateReligion || candidateReligion.trim() === '') {
+                return false; // No religion info - cannot match requirement
+              }
+              return userReligion.toLowerCase() === candidateReligion.toLowerCase();
+            }
+          }
+          return true; // If no specific preference, pass the check
+        }
       }
     ];
 
@@ -531,11 +775,31 @@ class IdealRoommateMatchingEngine {
         currentUser.roommateHobbies || [],
         candidate.hobbies || []
       ),
-      // Default values for fields not implemented
-      nationality: 75,
-      language: 75,
-      ethnicity: 75,
-      religion: 75,
+      // Calculate actual compatibility scores
+      nationality: this.calculateNationalityCompatibility(
+        currentUser.nationality || '',
+        currentUser.nationalityPreference || 'noPreference',
+        currentUser.nationalityCustom || '',
+        candidate.nationality || ''
+      ),
+      language: this.calculateLanguageCompatibility(
+        currentUser.language || '',
+        currentUser.languagePreference || 'noPreference',
+        currentUser.languageSpecific || '',
+        candidate.language || ''
+      ),
+      ethnicity: this.calculateEthnicityCompatibility(
+        currentUser.ethnicity || '',
+        currentUser.ethnicityPreference || 'noPreference',
+        currentUser.ethnicityOther || '',
+        candidate.ethnicity || ''
+      ),
+      religion: this.calculateReligionCompatibility(
+        currentUser.religion || '',
+        currentUser.religionPreference || 'noPreference',
+        currentUser.religionOther || '',
+        candidate.religion || ''
+      ),
       occupation: this.calculateOccupationCompatibility(
         currentUser.occupation || '',
         currentUser.occupationPreference || false,
@@ -581,6 +845,38 @@ class IdealRoommateMatchingEngine {
 
     if (compatibilityAnalysis.gender >= 95) {
       reasons.push('👤 Perfect gender preference match');
+    }
+
+    if (compatibilityAnalysis.nationality === 100) {
+      if (currentUser.nationalityPreference === 'sameCountry') {
+        reasons.push('🌍 Same nationality match');
+      } else if (currentUser.nationalityPreference === 'custom') {
+        reasons.push('🌍 Preferred nationality match');
+      }
+    }
+
+    if (compatibilityAnalysis.language === 100) {
+      if (currentUser.languagePreference === 'sameLanguage') {
+        reasons.push('🗣️ Same language speakers');
+      } else if (currentUser.languagePreference === 'specific') {
+        reasons.push('🗣️ Preferred language match');
+      }
+    }
+
+    if (compatibilityAnalysis.ethnicity === 100) {
+      if (currentUser.ethnicityPreference === 'same') {
+        reasons.push('👥 Same ethnicity background');
+      } else if (currentUser.ethnicityPreference === 'others') {
+        reasons.push('👥 Preferred ethnicity match');
+      }
+    }
+
+    if (compatibilityAnalysis.religion === 100) {
+      if (currentUser.religionPreference === 'same') {
+        reasons.push('🙏 Same religious background');
+      } else if (currentUser.religionPreference === 'others') {
+        reasons.push('🙏 Preferred religious match');
+      }
     }
 
     if (reasons.length === 0) {

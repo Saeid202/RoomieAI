@@ -16,7 +16,9 @@ export interface DatabaseUser {
   linkedin_profile?: string;
   preferred_location: string;
   budget_range: string;
-  move_in_date: string;
+  move_in_date_start?: string;
+  move_in_date_end?: string;
+  move_in_date: string; // Legacy field for compatibility
   housing_type: string;
   living_space: string;
   smoking: boolean;
@@ -980,7 +982,7 @@ class CustomPreferenceMatchingEngine {
         dietaryPreferences: (currentUserDbRecord?.dietary_preferences as "vegetarian" | "halal" | "kosher" | "others" | "noPreference") || currentUser.dietaryPreferences,
         dietaryOther: currentUserDbRecord?.dietary_other || currentUser.dietaryOther,
         smokingPreference: (currentUserDbRecord?.smoking_preference as "noSmoking" | "noVaping" | "socialOk") || currentUser.smokingPreference,
-        workSchedulePreference: (currentUserDbRecord?.work_schedule_preference as "dayShift" | "overnightShift" | "noPreference" | "opposite" | "nightShift") || currentUser.workSchedulePreference,
+        workSchedulePreference: (currentUserDbRecord?.work_schedule_preference as "dayShift" | "overnightShift" | "noPreference" | "opposite" | "afternoonShift") || currentUser.workSchedulePreference,
         ethnicityPreference: (currentUserDbRecord?.ethnicity_preference as "noPreference" | "same" | "others") || currentUser.ethnicityPreference,
         ethnicityOther: currentUserDbRecord?.ethnicity_other || currentUser.ethnicityOther,
         religionPreference: (currentUserDbRecord?.religion_preference as "noPreference" | "same" | "others") || currentUser.religionPreference,
