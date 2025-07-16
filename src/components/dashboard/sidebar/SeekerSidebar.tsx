@@ -91,12 +91,7 @@ export function SeekerSidebar({ isActive }: SeekerSidebarProps) {
         isActive={isActive('/dashboard/chats')}
       />
       
-      <SidebarSimpleMenuItem 
-        icon={<Sliders size={18} />} 
-        label="Matching Preferences"
-        to="/dashboard/preferences/matching" 
-        isActive={isActive('/dashboard/preferences/matching')}
-      />
+
       
       <SidebarSimpleMenuItem 
         icon={<Settings size={18} />} 

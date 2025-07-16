@@ -1,7 +1,8 @@
 import { supabase } from "@/integrations/supabase/client";
 import { ProfileFormValues } from "@/types/profile";
-import { UserPreferences, PreferenceImportance } from "@/types/preferences";
 import { MatchResult } from "@/utils/matchingAlgorithm/types";
+
+export type PreferenceImportance = 'notImportant' | 'important' | 'must';
 
 // Enhanced database roommate interface including all preference fields
 export interface DatabaseUser {
@@ -49,6 +50,19 @@ export interface DatabaseUser {
   pet_specification?: string;
   smoking_preference?: string;
   
+  // Importance fields for ideal roommate preferences
+  age_range_preference_importance?: PreferenceImportance;
+  gender_preference_importance?: PreferenceImportance;
+  nationality_preference_importance?: PreferenceImportance;
+  language_preference_importance?: PreferenceImportance;
+  dietary_preferences_importance?: PreferenceImportance;
+  occupation_preference_importance?: PreferenceImportance;
+  work_schedule_preference_importance?: PreferenceImportance;
+  ethnicity_preference_importance?: PreferenceImportance;
+  religion_preference_importance?: PreferenceImportance;
+  pet_preference_importance?: PreferenceImportance;
+  smoking_preference_importance?: PreferenceImportance;
+  
   created_at: string;
   updated_at: string;
 }
@@ -56,7 +70,6 @@ export interface DatabaseUser {
 export interface CustomMatchCriteria {
   currentUser: ProfileFormValues;
   currentUserId?: string;
-  userPreferences: UserPreferences;
   maxResults?: number;
   minScore?: number;
 }

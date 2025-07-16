@@ -5,8 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { MapPin, Calendar, Users, MessageSquare, Heart, Loader2 } from "lucide-react";
 import { MatchResult } from "@/utils/matchingAlgorithm/types";
-import { customPreferenceMatchingEngine } from "@/services/customPreferenceMatchingService";
-import { useUserPreferences } from "@/hooks/useUserPreferences";
+import { idealRoommateMatchingEngine } from "@/services/idealRoommateMatchingService";
 import { useRoommateProfile } from "@/hooks/useRoommateProfile";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -35,7 +34,7 @@ function convertMatchResultToDisplay(match: MatchResult, index: number): MatchDi
     age: parseInt(match.age),
     location: match.location,
     compatibility: match.compatibilityScore,
-    housingType: match.propertyDetails?.propertyType || "Apartment",
+    housingType: "Apartment", // Default value since propertyDetails is not available in MatchResult
     budget: budgetStr,
     moveInDate: match.movingDate || "Flexible",
     traits: match.traits || [],
@@ -50,12 +49,11 @@ export default function MatchesPage() {
   const [error, setError] = useState<string | null>(null);
   
   const { user } = useAuth();
-  const { preferences, loading: preferencesLoading } = useUserPreferences();
   const { profileData, loading: profileLoading } = useRoommateProfile();
 
   useEffect(() => {
     const loadMatches = async () => {
-      if (!profileData || preferencesLoading || profileLoading) {
+      if (!profileData || profileLoading) {
         return;
       }
 
@@ -63,23 +61,21 @@ export default function MatchesPage() {
         setLoading(true);
         setError(null);
         
-        console.log("Loading matches with user preferences:", preferences);
-        console.log("User profile data:", profileData);
+        console.log("Loading matches with profile data:", profileData);
         
-        // Use the custom preference matching engine with user preferences
-        const customResults = await customPreferenceMatchingEngine.findMatches({
+        // Use the enhanced matching algorithm with importance from roommate table
+        const idealRoommateResults = await idealRoommateMatchingEngine.findMatches({
           currentUser: profileData,
           currentUserId: user?.id,
-          userPreferences: preferences,
           maxResults: 15,
           minScore: 40 // Lower minimum score to get more results
         });
 
-        console.log("Raw custom matches from algorithm:", customResults);
+        console.log("Raw ideal roommate matches from algorithm:", idealRoommateResults);
         
         // Convert to standard MatchResult format
-        const matchResults = customResults.map(result => 
-          customPreferenceMatchingEngine.convertToMatchResult(result)
+        const matchResults = idealRoommateResults.map(result => 
+          idealRoommateMatchingEngine.convertToMatchResult(result)
         );
         
         console.log("Converted match results:", matchResults);
@@ -89,7 +85,6 @@ export default function MatchesPage() {
         
         console.log("Processed display matches:", displayMatches);
         console.log("Total matches found:", displayMatches.length);
-        console.log("Match details:");
         displayMatches.forEach((match, index) => {
           console.log(`Match ${index + 1}:`, {
             name: match.name,
@@ -113,16 +108,15 @@ export default function MatchesPage() {
     };
 
     loadMatches();
-  }, [profileData, preferences, preferencesLoading, profileLoading, user?.id]);
-  if (loading || preferencesLoading || profileLoading) {
+  }, [profileData, profileLoading, user?.id]);
+  if (loading || profileLoading) {
     return (
       <div className="container mx-auto p-6 space-y-6">
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
             <p className="text-muted-foreground">
-              {preferencesLoading ? "Loading your preferences..." : 
-               profileLoading ? "Loading your profile..." : 
+              {profileLoading ? "Loading your profile..." : 
                "Finding compatible matches..."}
             </p>
           </div>

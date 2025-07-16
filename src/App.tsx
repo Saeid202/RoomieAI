@@ -32,7 +32,7 @@ import UsersPage from "@/pages/dashboard/admin/Users";
 import SettingsPage from "@/pages/dashboard/Settings";
 import MatchesPage from "@/pages/dashboard/Matches";
 import MessengerPage from "@/pages/dashboard/Messenger";
-import MatchingPreferencesPage from "@/pages/dashboard/preferences/MatchingPreferences";
+
 import { useAuth } from "@/hooks/useAuth";
 
 function AppRoutes() {
@@ -70,7 +70,7 @@ function AppRoutes() {
           <Route path="messenger" element={<MessengerPage />} />
           <Route path="rent-savings" element={<RentSavingsPage />} />
           <Route path="legal-assistant" element={<LegalAssistantPage />} />
-          <Route path="preferences/matching" element={<MatchingPreferencesPage />} />
+
           <Route path="settings" element={<SettingsPage />} />
           <Route path="admin" element={<AdminHomePage />} />
           <Route path="admin/pages" element={<PagesPage />} />
@@ -112,7 +112,7 @@ function AppRoutes() {
         <Route path="messenger" element={<MessengerPage />} />
         <Route path="rent-savings" element={<RentSavingsPage />} />
         <Route path="legal-assistant" element={<LegalAssistantPage />} />
-        <Route path="preferences/matching" element={<MatchingPreferencesPage />} />
+
         <Route path="settings" element={<SettingsPage />} />
         <Route path="admin" element={<AdminHomePage />} />
         <Route path="admin/pages" element={<PagesPage />} />

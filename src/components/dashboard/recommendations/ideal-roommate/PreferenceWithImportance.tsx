@@ -2,28 +2,30 @@ import { ReactNode } from "react";
 import { UseFormReturn } from "react-hook-form";
 import { ProfileFormValues } from "@/types/profile";
 import { PreferenceImportanceSelector, PreferenceImportance } from "@/components/ui/preference-importance-selector";
-import { useUserPreferences } from "@/hooks/useUserPreferences";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface PreferenceWithImportanceProps {
   children: ReactNode;
   form: UseFormReturn<ProfileFormValues>;
-  preferenceKey: string; // Maps to user_preferences keys like 'gender', 'age', etc.
+  preferenceKey: string; // Maps to roommate table importance fields
   title: string;
 }
 
-// Map preference keys from profile form to user_preferences keys
-const PREFERENCE_KEY_MAP: Record<string, string> = {
-  "ageRangePreference": "age",
-  "genderPreference": "gender", 
-  "nationalityPreference": "nationality",
-  "languagePreference": "language",
-  "dietaryPreferences": "diet",
-  "occupationPreference": "occupation",
-  "workSchedulePreference": "workSchedule",
-  "ethnicityPreference": "ethnicity",
-  "religionPreference": "religion",
-  "petPreference": "pets",
-  "smokingPreference": "smoking"
+// Map preference keys from profile form to roommate table importance field names
+const PREFERENCE_IMPORTANCE_FIELD_MAP: Record<string, string> = {
+  "ageRangePreference": "age_range_preference_importance",
+  "genderPreference": "gender_preference_importance", 
+  "nationalityPreference": "nationality_preference_importance",
+  "languagePreference": "language_preference_importance",
+  "dietaryPreferences": "dietary_preferences_importance",
+  "occupationPreference": "occupation_preference_importance",
+  "workSchedulePreference": "work_schedule_preference_importance",
+  "ethnicityPreference": "ethnicity_preference_importance",
+  "religionPreference": "religion_preference_importance",
+  "petPreference": "pet_preference_importance",
+  "smokingPreference": "smoking_preference_importance"
 };
 
 export function PreferenceWithImportance({ 
@@ -32,22 +34,50 @@ export function PreferenceWithImportance({
   preferenceKey, 
   title 
 }: PreferenceWithImportanceProps) {
-  const { preferences, updatePreference, savePreferences } = useUserPreferences();
+  const { user } = useAuth();
+  const { toast } = useToast();
   
-  // Map the profile form field name to user_preferences key
-  const userPrefKey = PREFERENCE_KEY_MAP[preferenceKey] || preferenceKey;
+  // Map the profile form field name to roommate table importance field
+  const importanceFieldName = PREFERENCE_IMPORTANCE_FIELD_MAP[preferenceKey] || `${preferenceKey}_importance`;
   
-  // Get current importance from user_preferences
-  const currentImportance = preferences[userPrefKey as keyof typeof preferences]?.importance || "notImportant";
+  // Get current importance from form watch (this will be updated when we load profile data)
+  const currentImportance = form.watch(importanceFieldName as keyof ProfileFormValues) as PreferenceImportance || "notImportant";
 
   const handleImportanceChange = async (importance: PreferenceImportance) => {
-    // Update user preferences
-    updatePreference(userPrefKey as keyof typeof preferences, importance);
-    
-    // Auto-save preferences after a short delay
-    setTimeout(() => {
-      savePreferences();
-    }, 500);
+    if (!user?.id) return;
+
+    try {
+      // Update the form value
+      form.setValue(importanceFieldName as keyof ProfileFormValues, importance, { shouldDirty: true });
+      
+      // Save to database immediately
+      const { error } = await supabase
+        .from('roommate')
+        .update({ [importanceFieldName]: importance })
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error('Error saving importance:', error);
+        toast({
+          title: "Error",
+          description: "Failed to save preference importance",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({
+        title: "Saved",
+        description: `${title} importance updated to ${importance}`,
+      });
+    } catch (error) {
+      console.error('Error updating importance:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update preference importance",
+        variant: "destructive",
+      });
+    }
   };
 
   return (

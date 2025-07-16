@@ -1,43 +1,78 @@
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import React from 'react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { AlertCircle, Star, Circle } from 'lucide-react';
 
-export type PreferenceImportance = "notImportant" | "important" | "must";
+export type PreferenceImportance = 'notImportant' | 'important' | 'must';
 
 interface PreferenceImportanceSelectorProps {
-  value?: PreferenceImportance;
+  value: PreferenceImportance;
   onValueChange: (value: PreferenceImportance) => void;
   className?: string;
 }
 
-export function PreferenceImportanceSelector({ 
-  value = "notImportant", 
-  onValueChange, 
-  className 
-}: PreferenceImportanceSelectorProps) {
-  const options = [
-    { value: "notImportant" as const, label: "Not Important", color: "text-gray-500" },
-    { value: "important" as const, label: "Important", color: "text-blue-600" },
-    { value: "must" as const, label: "Must Have", color: "text-red-600" },
-  ];
+const IMPORTANCE_CONFIG = {
+  must: {
+    label: 'Must Have',
+    description: 'Required - absolute deal-breaker',
+    icon: AlertCircle,
+    color: 'bg-red-500',
+    textColor: 'text-red-700',
+    badgeVariant: 'destructive' as const
+  },
+  important: {
+    label: 'Important',
+    description: 'Significant preference',
+    icon: Star,
+    color: 'bg-orange-500',
+    textColor: 'text-orange-700',
+    badgeVariant: 'default' as const
+  },
+  notImportant: {
+    label: 'Not Important',
+    description: 'Flexible or optional',
+    icon: Circle,
+    color: 'bg-gray-500',
+    textColor: 'text-gray-700',
+    badgeVariant: 'secondary' as const
+  }
+};
 
-  const selectedOption = options.find(opt => opt.value === value) || options[0];
+export function PreferenceImportanceSelector({ 
+  value, 
+  onValueChange, 
+  className = '' 
+}: PreferenceImportanceSelectorProps) {
+  const currentConfig = IMPORTANCE_CONFIG[value];
+  const Icon = currentConfig.icon;
 
   return (
     <Select value={value} onValueChange={onValueChange}>
-      <SelectTrigger className={`w-32 h-8 text-xs ${className}`}>
+      <SelectTrigger className={`w-36 ${className}`}>
         <SelectValue>
-          <span className={selectedOption.color}>
-            {selectedOption.label}
-          </span>
+          <div className="flex items-center gap-2">
+            <div className={`w-3 h-3 ${currentConfig.color} rounded-full`} />
+            <span className="text-sm">{currentConfig.label}</span>
+          </div>
         </SelectValue>
       </SelectTrigger>
       <SelectContent>
-        {options.map((option) => (
-          <SelectItem key={option.value} value={option.value} className="text-xs">
-            <span className={option.color}>
-              {option.label}
-            </span>
-          </SelectItem>
-        ))}
+        {(Object.keys(IMPORTANCE_CONFIG) as PreferenceImportance[]).map((importance) => {
+          const config = IMPORTANCE_CONFIG[importance];
+          const ConfigIcon = config.icon;
+          
+          return (
+            <SelectItem key={importance} value={importance}>
+              <div className="flex items-center gap-3 py-1">
+                <div className={`w-3 h-3 ${config.color} rounded-full`} />
+                <div className="flex-1">
+                  <div className="font-medium text-sm">{config.label}</div>
+                  <div className="text-xs text-muted-foreground">{config.description}</div>
+                </div>
+              </div>
+            </SelectItem>
+          );
+        })}
       </SelectContent>
     </Select>
   );

@@ -5,8 +5,7 @@ import { ProfileFormValues } from "@/types/profile";
 import { findMatches as findMatchesAlgorithm } from "@/utils/matchingAlgorithm/findMatches";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { UserPreferences } from "@/types/preferences";
-import { useUserPreferences } from "./useUserPreferences";
+
 
 export function useMatching() {
   const [roommates, setRoommates] = useState<MatchResult[]>([]);
@@ -16,7 +15,7 @@ export function useMatching() {
   const [isFindingMatches, setIsFindingMatches] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
-  const { preferences } = useUserPreferences();
+
 
   const setActiveTabAndClearSelection = (tab: string) => {
     setActiveTab(tab);
@@ -51,7 +50,7 @@ export function useMatching() {
       const formValues = profileData as ProfileFormValues;
       
       // Use the algorithm directly on the form values, passing the current user ID and preferences
-      const matchesFound = await findMatchesAlgorithm(formValues, user?.id, preferences);
+      const matchesFound = await findMatchesAlgorithm(formValues, user?.id);
       console.log("Matches found with user preferences:", matchesFound);
       
       // Update state with found matches

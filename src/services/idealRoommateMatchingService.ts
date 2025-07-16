@@ -1,0 +1,648 @@
+import { supabase } from "@/integrations/supabase/client";
+import { ProfileFormValues } from "@/types/profile";
+import { MatchResult } from "@/utils/matchingAlgorithm/types";
+
+export type PreferenceImportance = 'notImportant' | 'important' | 'must';
+
+// Enhanced database roommate interface including all preference fields and importance
+export interface DatabaseUser {
+  id: string;
+  user_id: string;
+  full_name: string;
+  age: number;
+  gender: string;
+  email: string;
+  phone_number: string;
+  linkedin_profile?: string;
+  preferred_location: string;
+  budget_range: string;
+  move_in_date: string;
+  housing_type: string;
+  living_space: string;
+  smoking: boolean;
+  lives_with_smokers: boolean;
+  has_pets: boolean;
+  pet_preference?: string;
+  work_location?: string;
+  work_schedule: string;
+  hobbies: string[];
+  diet: string;
+  roommate_gender_preference?: string;
+  roommate_lifestyle_preference?: string;
+  important_roommate_traits: string[];
+  
+  // Enhanced preference fields
+  age_range_preference?: number[];
+  gender_preference?: string[];
+  nationality_preference?: string;
+  nationality_custom?: string;
+  language_preference?: string;
+  language_specific?: string;
+  dietary_preferences?: string;
+  dietary_other?: string;
+  occupation_preference?: boolean;
+  occupation_specific?: string;
+  work_schedule_preference?: string;
+  ethnicity_preference?: string;
+  ethnicity_other?: string;
+  religion_preference?: string;
+  religion_other?: string;
+  pet_specification?: string;
+  smoking_preference?: string;
+  
+  // Importance fields for ideal roommate preferences
+  age_range_preference_importance?: PreferenceImportance;
+  gender_preference_importance?: PreferenceImportance;
+  nationality_preference_importance?: PreferenceImportance;
+  language_preference_importance?: PreferenceImportance;
+  dietary_preferences_importance?: PreferenceImportance;
+  occupation_preference_importance?: PreferenceImportance;
+  work_schedule_preference_importance?: PreferenceImportance;
+  ethnicity_preference_importance?: PreferenceImportance;
+  religion_preference_importance?: PreferenceImportance;
+  pet_preference_importance?: PreferenceImportance;
+  smoking_preference_importance?: PreferenceImportance;
+  
+  created_at: string;
+  updated_at: string;
+}
+
+export interface IdealRoommateMatchCriteria {
+  currentUser: ProfileFormValues;
+  currentUserId?: string;
+  maxResults?: number;
+  minScore?: number;
+}
+
+export interface IdealRoommateMatchResult {
+  user: DatabaseUser;
+  matchScore: number;
+  matchReasons: string[];
+  compatibilityAnalysis: CompatibilityAnalysis;
+  failedRequirements: string[];
+}
+
+export interface CompatibilityAnalysis {
+  gender: number;
+  age: number;
+  nationality: number;
+  language: number;
+  ethnicity: number;
+  religion: number;
+  occupation: number;
+  location: number;
+  budget: number;
+  housingType: number;
+  livingSpace: number;
+  smoking: number;
+  pets: number;
+  workSchedule: number;
+  diet: number;
+  hobbies: number;
+  cleanliness: number;
+  socialLevel: number;
+  guests: number;
+  sleepSchedule: number;
+}
+
+// Importance weight mapping
+const IMPORTANCE_WEIGHTS = {
+  notImportant: 0.3,
+  important: 0.7,
+  must: 1.0
+};
+
+class IdealRoommateMatchingEngine {
+  
+  // Basic compatibility calculations
+  private calculateGenderCompatibility(
+    currentUserGender: string,
+    currentUserGenderPreference: string[],
+    candidateGender: string
+  ): number {
+    if (!currentUserGenderPreference || currentUserGenderPreference.length === 0) {
+      return 75; // Neutral
+    }
+    
+    if (currentUserGenderPreference.includes('noPreference') || 
+        currentUserGenderPreference.includes('any')) {
+      return 85;
+    }
+    
+    const matches = currentUserGenderPreference.some(pref => 
+      pref.toLowerCase() === candidateGender.toLowerCase()
+    );
+    
+    return matches ? 100 : 20;
+  }
+
+  private calculateAgeCompatibility(
+    currentUserAge: number,
+    currentUserAgePreference: number[],
+    candidateAge: number
+  ): number {
+    if (!currentUserAgePreference || currentUserAgePreference.length !== 2) {
+      return 75; // Neutral
+    }
+    
+    const [minAge, maxAge] = currentUserAgePreference;
+    
+    if (candidateAge >= minAge && candidateAge <= maxAge) {
+      return 100;
+    }
+    
+    // Calculate how far outside the range
+    const distance = candidateAge < minAge ? minAge - candidateAge : candidateAge - maxAge;
+    return Math.max(0, 100 - (distance * 10));
+  }
+
+  private calculateLocationCompatibility(
+    userLocations: string[],
+    candidateLocation: string
+  ): number {
+    if (!userLocations || userLocations.length === 0) return 50;
+    
+    const userLocationLower = userLocations.map(loc => loc.toLowerCase());
+    const candidateLocationLower = candidateLocation.toLowerCase();
+    
+    // Exact match
+    if (userLocationLower.includes(candidateLocationLower)) return 100;
+    
+    // Partial match
+    for (const userLoc of userLocationLower) {
+      if (userLoc.includes(candidateLocationLower) || 
+          candidateLocationLower.includes(userLoc)) {
+        return 85;
+      }
+    }
+    
+    return 20;
+  }
+
+  private calculateBudgetCompatibility(
+    userBudget: number[],
+    candidateBudget: string
+  ): number {
+    if (!userBudget || userBudget.length !== 2) return 50;
+    
+    const budgetMatch = candidateBudget?.match(/\$?(\d+)-?\$?(\d+)?/);
+    if (!budgetMatch) return 50;
+    
+    const candidateMin = parseInt(budgetMatch[1]);
+    const candidateMax = parseInt(budgetMatch[2] || budgetMatch[1]);
+    
+    const [userMin, userMax] = userBudget;
+    
+    // Check for overlap
+    const overlapMin = Math.max(userMin, candidateMin);
+    const overlapMax = Math.min(userMax, candidateMax);
+    
+    if (overlapMin <= overlapMax) {
+      const overlapSize = overlapMax - overlapMin;
+      const userRange = userMax - userMin;
+      const overlapPercentage = overlapSize / userRange;
+      return Math.min(100, 60 + (overlapPercentage * 40));
+    }
+    
+    return 10;
+  }
+
+  private calculateSmokingCompatibility(
+    currentUserSmoking: boolean,
+    currentUserSmokingPreference: string,
+    candidateSmoking: boolean
+  ): number {
+    if (currentUserSmokingPreference === 'socialOk') return 90;
+    
+    if (currentUserSmokingPreference === 'noSmoking' || 
+        currentUserSmokingPreference === 'noVaping') {
+      return candidateSmoking ? 0 : 100;
+    }
+    
+    return currentUserSmoking === candidateSmoking ? 100 : 30;
+  }
+
+  private calculatePetCompatibility(
+    currentUserHasPets: boolean,
+    currentUserPetPreference: string,
+    candidateHasPets: boolean
+  ): number {
+    if (currentUserPetPreference === 'noPets') {
+      return candidateHasPets ? 0 : 100;
+    }
+    
+    if (currentUserPetPreference === 'catOk' || 
+        currentUserPetPreference === 'smallPetsOk') {
+      return 85; // Generally compatible
+    }
+    
+    return currentUserHasPets === candidateHasPets ? 100 : 70;
+  }
+
+  private calculateDietCompatibility(
+    currentUserDiet: string,
+    currentUserDietaryPreferences: string,
+    candidateDiet: string
+  ): number {
+    if (!currentUserDietaryPreferences || 
+        currentUserDietaryPreferences === 'noPreference') {
+      return 75;
+    }
+    
+    if (currentUserDietaryPreferences === candidateDiet) {
+      return 100;
+    }
+    
+    // Basic compatibility matrix
+    const compatibilityMap: { [key: string]: { [key: string]: number } } = {
+      vegetarian: { vegetarian: 100, halal: 80, kosher: 80, noRestrictions: 60 },
+      halal: { halal: 100, vegetarian: 85, kosher: 70, noRestrictions: 50 },
+      kosher: { kosher: 100, vegetarian: 85, halal: 70, noRestrictions: 50 }
+    };
+    
+    return compatibilityMap[currentUserDietaryPreferences]?.[candidateDiet] || 50;
+  }
+
+  private calculateWorkScheduleCompatibility(
+    currentUserSchedule: string,
+    currentUserSchedulePreference: string,
+    candidateSchedule: string
+  ): number {
+    if (!currentUserSchedulePreference || 
+        currentUserSchedulePreference === 'noPreference') {
+      return 75;
+    }
+    
+    if (currentUserSchedulePreference === 'opposite') {
+      // Check if schedules are complementary
+      const isOpposite = (currentUserSchedule.includes('night') && candidateSchedule.includes('day')) ||
+                        (currentUserSchedule.includes('day') && candidateSchedule.includes('night'));
+      return isOpposite ? 100 : 30;
+    }
+    
+    return currentUserSchedule === candidateSchedule ? 100 : 50;
+  }
+
+  private calculateHobbiesCompatibility(
+    currentUserHobbies: string[],
+    roommateHobbies: string[],
+    candidateHobbies: string[]
+  ): number {
+    if (!currentUserHobbies || currentUserHobbies.length === 0) return 50;
+    
+    const allUserHobbies = [...currentUserHobbies, ...(roommateHobbies || [])];
+    const commonHobbies = allUserHobbies.filter(hobby =>
+      candidateHobbies.some(ch => 
+        ch.toLowerCase().includes(hobby.toLowerCase()) ||
+        hobby.toLowerCase().includes(ch.toLowerCase())
+      )
+    );
+    
+    const compatibility = (commonHobbies.length / allUserHobbies.length) * 100;
+    return Math.min(100, Math.max(30, compatibility));
+  }
+
+  // Check required criteria using importance from database
+  private checkRequiredCriteria(
+    currentUser: ProfileFormValues,
+    candidate: DatabaseUser,
+    currentUserDbRecord: DatabaseUser | null
+  ): { passes: boolean; failures: string[] } {
+    const failures: string[] = [];
+    
+    if (!currentUserDbRecord) {
+      return { passes: true, failures: [] };
+    }
+
+    // Check each preference importance field
+    const checks = [
+      {
+        importance: currentUserDbRecord.gender_preference_importance,
+        name: 'Gender',
+        check: () => {
+          if (currentUser.genderPreference?.length) {
+            const score = this.calculateGenderCompatibility(
+              currentUser.gender || '',
+              currentUser.genderPreference,
+              candidate.gender
+            );
+            return score >= 80;
+          }
+          return true;
+        }
+      },
+      {
+        importance: currentUserDbRecord.age_range_preference_importance,
+        name: 'Age Range',
+        check: () => {
+          if (currentUser.ageRangePreference?.length === 2) {
+            const score = this.calculateAgeCompatibility(
+              parseInt(currentUser.age || '25'),
+              currentUser.ageRangePreference,
+              candidate.age
+            );
+            return score >= 70;
+          }
+          return true;
+        }
+      },
+      {
+        importance: currentUserDbRecord.smoking_preference_importance,
+        name: 'Smoking',
+        check: () => {
+          const score = this.calculateSmokingCompatibility(
+            currentUser.smoking || false,
+            currentUser.smokingPreference || 'noSmoking',
+            candidate.smoking
+          );
+          return score >= 80;
+        }
+      },
+      {
+        importance: currentUserDbRecord.pet_preference_importance,
+        name: 'Pets',
+        check: () => {
+          const score = this.calculatePetCompatibility(
+            currentUser.hasPets || false,
+            currentUser.petPreference || 'noPets',
+            candidate.has_pets
+          );
+          return score >= 70;
+        }
+      }
+    ];
+
+    for (const { importance, name, check } of checks) {
+      if (importance === 'must' && !check()) {
+        failures.push(`${name} requirement not met`);
+      }
+    }
+
+    return { passes: failures.length === 0, failures };
+  }
+
+  // Calculate compatibility scores
+  private calculateCompatibilityScore(
+    currentUser: ProfileFormValues,
+    candidate: DatabaseUser
+  ): CompatibilityAnalysis {
+    return {
+      gender: this.calculateGenderCompatibility(
+        currentUser.gender || '',
+        currentUser.genderPreference || [],
+        candidate.gender
+      ),
+      age: this.calculateAgeCompatibility(
+        parseInt(currentUser.age || '25'),
+        currentUser.ageRangePreference || [18, 65],
+        candidate.age
+      ),
+      location: this.calculateLocationCompatibility(
+        currentUser.preferredLocation || [],
+        candidate.preferred_location
+      ),
+      budget: this.calculateBudgetCompatibility(
+        currentUser.budgetRange || [0, 0],
+        candidate.budget_range
+      ),
+      smoking: this.calculateSmokingCompatibility(
+        currentUser.smoking || false,
+        currentUser.smokingPreference || 'noSmoking',
+        candidate.smoking
+      ),
+      pets: this.calculatePetCompatibility(
+        currentUser.hasPets || false,
+        currentUser.petPreference || 'noPets',
+        candidate.has_pets
+      ),
+      workSchedule: this.calculateWorkScheduleCompatibility(
+        currentUser.workSchedule || '',
+        currentUser.workSchedulePreference || 'noPreference',
+        candidate.work_schedule
+      ),
+      diet: this.calculateDietCompatibility(
+        currentUser.diet || '',
+        currentUser.dietaryPreferences || 'noPreference',
+        candidate.diet
+      ),
+      hobbies: this.calculateHobbiesCompatibility(
+        currentUser.hobbies || [],
+        currentUser.roommateHobbies || [],
+        candidate.hobbies || []
+      ),
+      // Default values for fields not implemented
+      nationality: 75,
+      language: 75,
+      ethnicity: 75,
+      religion: 75,
+      occupation: 75,
+      housingType: 75,
+      livingSpace: 75,
+      cleanliness: 75,
+      socialLevel: 75,
+      guests: 75,
+      sleepSchedule: 75
+    };
+  }
+
+  // Generate match reasons
+  private generateMatchReasons(
+    currentUser: ProfileFormValues,
+    candidate: DatabaseUser,
+    compatibilityAnalysis: CompatibilityAnalysis
+  ): string[] {
+    const reasons: string[] = [];
+
+    if (compatibilityAnalysis.location >= 95) {
+      reasons.push(`✨ Perfect location match in ${candidate.preferred_location}`);
+    }
+
+    if (compatibilityAnalysis.budget >= 90) {
+      reasons.push(`💰 Excellent budget alignment`);
+    }
+
+    if (compatibilityAnalysis.smoking === 100) {
+      reasons.push(currentUser.smoking ? '🚬 Both comfortable with smoking' : '🚭 Both prefer smoke-free environment');
+    }
+
+    if (compatibilityAnalysis.pets === 100) {
+      reasons.push(currentUser.hasPets ? '🐕 Both are pet lovers' : '🏠 Both prefer pet-free living');
+    }
+
+    if (compatibilityAnalysis.hobbies >= 80) {
+      reasons.push('🎯 Shared interests and hobbies');
+    }
+
+    if (compatibilityAnalysis.gender >= 95) {
+      reasons.push('👤 Perfect gender preference match');
+    }
+
+    if (reasons.length === 0) {
+      reasons.push('🤝 Good overall compatibility');
+    }
+
+    return reasons;
+  }
+
+  // Main matching method
+  async findMatches(criteria: IdealRoommateMatchCriteria): Promise<IdealRoommateMatchResult[]> {
+    const { 
+      currentUser, 
+      currentUserId,
+      maxResults = 10, 
+      minScore = 60 
+    } = criteria;
+
+    try {
+      // Fetch current user's complete database record to get importance preferences
+      let currentUserDbRecord: DatabaseUser | null = null;
+      
+      if (currentUserId) {
+        const { data: userRecord } = await supabase
+          .from('roommate')
+          .select('*')
+          .eq('user_id', currentUserId)
+          .single();
+
+        if (userRecord) {
+          currentUserDbRecord = userRecord;
+        }
+      }
+
+      // Fetch all roommate records for matching
+      const { data: candidates, error } = await supabase
+        .from('roommate')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error || !candidates) {
+        console.error('Error fetching candidates:', error);
+        return [];
+      }
+
+      const results: IdealRoommateMatchResult[] = [];
+
+      for (const candidate of candidates) {
+        // Skip self-matching
+        if (currentUserId && candidate.user_id === currentUserId) {
+          continue;
+        }
+
+        // Check required criteria
+        const requirementCheck = this.checkRequiredCriteria(
+          currentUser, 
+          candidate, 
+          currentUserDbRecord
+        );
+
+        if (!requirementCheck.passes) {
+          continue;
+        }
+
+        // Calculate compatibility scores
+        const compatibilityAnalysis = this.calculateCompatibilityScore(
+          currentUser, 
+          candidate
+        );
+
+        // Calculate weighted total score using importance from database
+        let totalScore = 0;
+        let totalWeight = 0;
+
+        if (currentUserDbRecord) {
+          const weightMap = [
+            { score: compatibilityAnalysis.gender, importance: currentUserDbRecord.gender_preference_importance },
+            { score: compatibilityAnalysis.age, importance: currentUserDbRecord.age_range_preference_importance },
+            { score: compatibilityAnalysis.smoking, importance: currentUserDbRecord.smoking_preference_importance },
+            { score: compatibilityAnalysis.pets, importance: currentUserDbRecord.pet_preference_importance },
+            { score: compatibilityAnalysis.diet, importance: currentUserDbRecord.dietary_preferences_importance },
+            { score: compatibilityAnalysis.workSchedule, importance: currentUserDbRecord.work_schedule_preference_importance },
+            // Add other preferences as needed
+          ];
+
+          for (const { score, importance } of weightMap) {
+            const weight = IMPORTANCE_WEIGHTS[importance || 'notImportant'];
+            totalScore += score * weight;
+            totalWeight += weight;
+          }
+        }
+
+        // Include location and budget with default importance
+        totalScore += compatibilityAnalysis.location * IMPORTANCE_WEIGHTS.important;
+        totalScore += compatibilityAnalysis.budget * IMPORTANCE_WEIGHTS.important;
+        totalWeight += IMPORTANCE_WEIGHTS.important * 2;
+
+        // Normalize score
+        const normalizedScore = totalWeight > 0 ? (totalScore / totalWeight) : 50;
+
+        if (normalizedScore >= minScore) {
+          const matchReasons = this.generateMatchReasons(
+            currentUser, 
+            candidate, 
+            compatibilityAnalysis
+          );
+
+          results.push({
+            user: candidate,
+            matchScore: Math.round(normalizedScore),
+            matchReasons,
+            compatibilityAnalysis,
+            failedRequirements: []
+          });
+        }
+      }
+
+      // Sort by match score and limit results
+      return results
+        .sort((a, b) => b.matchScore - a.matchScore)
+        .slice(0, maxResults);
+
+    } catch (error) {
+      console.error('Error in findMatches:', error);
+      return [];
+    }
+  }
+
+  // Convert to standard MatchResult format
+  convertToMatchResult(idealRoommateResult: IdealRoommateMatchResult): MatchResult {
+    const user = idealRoommateResult.user;
+    const budget = user.budget_range?.match(/\$?(\d+)-?\$?(\d+)?/);
+    const budgetArray = budget ? [parseInt(budget[1]), parseInt(budget[2] || budget[1])] : [0, 0];
+
+    return {
+      name: user.full_name || "Unknown",
+      age: user.age?.toString() || "N/A",
+      gender: user.gender || "Not specified",
+      occupation: "Professional",
+      movingDate: user.move_in_date || "TBD",
+      budget: budgetArray,
+      location: user.preferred_location || "Any location",
+      cleanliness: idealRoommateResult.compatibilityAnalysis.cleanliness,
+      pets: user.has_pets || false,
+      smoking: user.smoking || false,
+      drinking: "socially",
+      guests: "sometimes",
+      sleepSchedule: user.work_schedule?.includes("morning") ? "early" : "normal",
+      workSchedule: user.work_schedule || "Not specified",
+      interests: user.hobbies || [],
+      traits: user.important_roommate_traits || [],
+      preferredLiving: "findRoommate",
+      compatibilityScore: idealRoommateResult.matchScore,
+      compatibilityBreakdown: {
+        budget: idealRoommateResult.compatibilityAnalysis.budget,
+        location: idealRoommateResult.compatibilityAnalysis.location,
+        lifestyle: Math.round((
+          idealRoommateResult.compatibilityAnalysis.smoking + 
+          idealRoommateResult.compatibilityAnalysis.pets + 
+          idealRoommateResult.compatibilityAnalysis.diet
+        ) / 3),
+        schedule: idealRoommateResult.compatibilityAnalysis.workSchedule,
+        interests: idealRoommateResult.compatibilityAnalysis.hobbies,
+        cleanliness: idealRoommateResult.compatibilityAnalysis.cleanliness
+      }
+    };
+  }
+}
+
+// Export a singleton instance
+export const idealRoommateMatchingEngine = new IdealRoommateMatchingEngine(); 
