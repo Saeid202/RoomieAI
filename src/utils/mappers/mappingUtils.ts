@@ -131,6 +131,11 @@ export function mapLifestyleDbToForm(data: ProfileTableRow): Partial<ProfileForm
 export function mapRoommatePreferencesDbToForm(data: ProfileTableRow): Partial<ProfileFormValues> {
   const result: Partial<ProfileFormValues> = {};
   
+  // Age range preference
+  if ('age_range_preference' in data) {
+    result.ageRangePreference = safeArray(data.age_range_preference, Number);
+  }
+  
   if ('gender_preference' in data) {
     result.genderPreference = safeArray(data.gender_preference, String);
   }
@@ -154,6 +159,17 @@ export function mapRoommatePreferencesDbToForm(data: ProfileTableRow): Partial<P
   }
   
   if ('language_specific' in data) result.languageSpecific = safeString(data.language_specific);
+  
+  // Dietary preferences
+  if ('dietary_preferences' in data) {
+    result.dietaryPreferences = safeEnum(
+      data.dietary_preferences,
+      ["vegetarian", "halal", "kosher", "others", "noPreference"],
+      "noPreference"
+    );
+  }
+  
+  if ('dietary_other' in data) result.dietaryOther = safeString(data.dietary_other);
   
   if ('ethnicity_preference' in data) {
     result.ethnicityPreference = safeEnum(
@@ -183,6 +199,26 @@ export function mapRoommatePreferencesDbToForm(data: ProfileTableRow): Partial<P
       data.work_schedule_preference,
       ["opposite", "dayShift", "nightShift", "overnightShift", "noPreference"],
       "noPreference"
+    );
+  }
+  
+  // Pet preferences
+  if ('pet_preference' in data) {
+    result.petPreference = safeEnum(
+      data.pet_preference,
+      ["noPets", "catOk", "smallPetsOk"],
+      "noPets"
+    );
+  }
+  
+  if ('pet_specification' in data) result.petSpecification = safeString(data.pet_specification);
+  
+  // Smoking preferences
+  if ('smoking_preference' in data) {
+    result.smokingPreference = safeEnum(
+      data.smoking_preference,
+      ["noSmoking", "noVaping", "socialOk"],
+      "noSmoking"
     );
   }
   
@@ -257,6 +293,7 @@ export function mapLifestyleFormToDb(formData: ProfileFormValues): Partial<Profi
  */
 export function mapRoommatePreferencesFormToDb(formData: ProfileFormValues): Partial<ProfileTableRow> {
   return {
+    // Original preference fields
     gender_preference: formData.genderPreference,
     nationality_preference: formData.nationalityPreference,
     nationality_custom: formData.nationalityCustom,
@@ -271,5 +308,12 @@ export function mapRoommatePreferencesFormToDb(formData: ProfileFormValues): Par
     work_schedule_preference: formData.workSchedulePreference,
     roommate_hobbies: formData.roommateHobbies,
     rent_option: formData.rentOption,
+    
+    // Add missing ideal roommate preference fields
+    age_range_preference: formData.ageRangePreference,
+    dietary_preferences: formData.dietaryPreferences,
+    dietary_other: formData.dietaryOther,
+    pet_specification: formData.petSpecification,
+    smoking_preference: formData.smokingPreference,
   };
 }
