@@ -86,7 +86,7 @@ export function useRoommateProfile() {
                 workLocation: (data.work_location as "remote" | "office" | "hybrid") || "remote",
                 workSchedule: (data.work_schedule as "dayShift" | "afternoonShift" | "overnightShift") || "dayShift",
                 hobbies: data.hobbies || [],
-                diet: (data.diet as "vegetarian" | "noRestrictions") || "noRestrictions",
+                diet: (data.diet as "vegetarian" | "halal" | "kosher" | "noPreference" | "other") || "noPreference",
                 // Map ideal roommate preference fields from database
                 ageRangePreference: data.age_range_preference || [18, 65],
                 genderPreference: data.gender_preference || [],
@@ -192,7 +192,7 @@ export function useRoommateProfile() {
       workLocation: "remote",
       workSchedule: "dayShift",
       hobbies: [],
-      diet: "noRestrictions",
+      diet: "noPreference",
       // Ideal roommate preferences with default values
       ageRangePreference: [18, 65],
       genderPreference: [],

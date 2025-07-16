@@ -117,8 +117,8 @@ export function mapLifestyleDbToForm(data: ProfileTableRow): Partial<ProfileForm
   if ('diet' in data) {
     result.diet = safeEnum(
       data.diet,
-      ["vegetarian", "noRestrictions"],
-      "noRestrictions"
+      ["vegetarian", "halal", "kosher", "noPreference", "other"],
+      "noPreference"
     );
   }
   

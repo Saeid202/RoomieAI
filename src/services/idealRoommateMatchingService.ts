@@ -255,12 +255,34 @@ class IdealRoommateMatchingEngine {
     
     // Basic compatibility matrix
     const compatibilityMap: { [key: string]: { [key: string]: number } } = {
-      vegetarian: { vegetarian: 100, halal: 80, kosher: 80, noRestrictions: 60 },
-      halal: { halal: 100, vegetarian: 85, kosher: 70, noRestrictions: 50 },
-      kosher: { kosher: 100, vegetarian: 85, halal: 70, noRestrictions: 50 }
+      vegetarian: { vegetarian: 100, halal: 80, kosher: 80, noPreference: 60 },
+      halal: { halal: 100, vegetarian: 85, kosher: 70, noPreference: 50 },
+      kosher: { kosher: 100, vegetarian: 85, halal: 70, noPreference: 50 }
     };
     
     return compatibilityMap[currentUserDietaryPreferences]?.[candidateDiet] || 50;
+  }
+
+  private calculateOccupationCompatibility(
+    currentUserOccupation: string,
+    currentUserOccupationPreference: boolean,
+    currentUserOccupationSpecific: string,
+    candidateOccupation: string
+  ): number {
+    if (!currentUserOccupationPreference) {
+      return 75; // Neutral - no specific preference
+    }
+
+    if (currentUserOccupationSpecific) {
+      const specificOccupations = currentUserOccupationSpecific.toLowerCase().split(',').map(s => s.trim());
+      const candidateOccupationLower = candidateOccupation.toLowerCase();
+      return specificOccupations.some(occ => 
+        occ.includes(candidateOccupationLower) || candidateOccupationLower.includes(occ)
+      ) ? 100 : 30;
+    }
+
+    // If preference is enabled but no specific occupation mentioned, prefer similar occupations
+    return currentUserOccupation === candidateOccupation ? 100 : 60;
   }
 
   private calculateWorkScheduleCompatibility(
@@ -273,14 +295,43 @@ class IdealRoommateMatchingEngine {
       return 75;
     }
     
-    if (currentUserSchedulePreference === 'opposite') {
+    // Clean the schedules by removing any whitespace/newlines
+    const cleanCurrentSchedule = currentUserSchedule.trim();
+    const cleanCandidateSchedule = candidateSchedule.trim();
+    const cleanPreference = currentUserSchedulePreference.trim();
+    
+    if (cleanPreference === 'opposite') {
       // Check if schedules are complementary
-      const isOpposite = (currentUserSchedule.includes('night') && candidateSchedule.includes('day')) ||
-                        (currentUserSchedule.includes('day') && candidateSchedule.includes('night'));
+      const isOpposite = (cleanCurrentSchedule.includes('night') && cleanCandidateSchedule.includes('day')) ||
+                        (cleanCurrentSchedule.includes('day') && cleanCandidateSchedule.includes('night')) ||
+                        (cleanCurrentSchedule.includes('Day') && cleanCandidateSchedule.includes('night')) ||
+                        (cleanCurrentSchedule.includes('Night') && cleanCandidateSchedule.includes('day'));
       return isOpposite ? 100 : 30;
     }
     
-    return currentUserSchedule === candidateSchedule ? 100 : 50;
+    // Direct preference match (e.g., user wants "dayShift" roommates)
+    if (cleanPreference === cleanCandidateSchedule) {
+      return 100;
+    }
+    
+    // More flexible matching for common schedule terms
+    if (cleanPreference.toLowerCase().includes('day') && 
+        cleanCandidateSchedule.toLowerCase().includes('day')) {
+      return 90;
+    }
+    
+    if (cleanPreference.toLowerCase().includes('night') && 
+        cleanCandidateSchedule.toLowerCase().includes('night')) {
+      return 90;
+    }
+    
+    if (cleanPreference.toLowerCase().includes('afternoon') && 
+        cleanCandidateSchedule.toLowerCase().includes('afternoon')) {
+      return 90;
+    }
+    
+    // If no match found
+    return 30;
   }
 
   private calculateHobbiesCompatibility(
@@ -328,7 +379,7 @@ class IdealRoommateMatchingEngine {
             );
             return score >= 80;
           }
-          return true;
+          return true; // If no gender preference, pass the check
         }
       },
       {
@@ -359,18 +410,6 @@ class IdealRoommateMatchingEngine {
         }
       },
       {
-        importance: currentUserDbRecord.pet_preference_importance,
-        name: 'Pets',
-        check: () => {
-          const score = this.calculatePetCompatibility(
-            currentUser.hasPets || false,
-            currentUser.petPreference || 'noPets',
-            candidate.has_pets
-          );
-          return score >= 70;
-        }
-      },
-      {
         importance: currentUserDbRecord.pet_preference_importance as PreferenceImportance,
         name: 'Pets',
         check: () => {
@@ -381,11 +420,61 @@ class IdealRoommateMatchingEngine {
           );
           return score >= 80;
         }
+      },
+      {
+        importance: currentUserDbRecord.dietary_preferences_importance as PreferenceImportance,
+        name: 'Dietary Preferences',
+        check: () => {
+          if (currentUser.dietaryPreferences && currentUser.dietaryPreferences !== 'noPreference') {
+            const score = this.calculateDietCompatibility(
+              currentUser.diet || '',
+              currentUser.dietaryPreferences,
+              candidate.diet
+            );
+            return score >= 80; // Must have high compatibility for dietary preferences
+          }
+          return true;
+        }
+      },
+      {
+        importance: currentUserDbRecord.occupation_preference_importance as PreferenceImportance,
+        name: 'Occupation Preference',
+        check: () => {
+          if (currentUser.occupationPreference && currentUser.occupationSpecific) {
+            const candidateOccupation = candidate.occupation_specific || '';
+            // If candidate has no occupation specified, allow them through (data might be incomplete)
+            if (!candidateOccupation || candidateOccupation.trim() === '') {
+              return true; // Allow candidates with no occupation data
+            }
+            const specificOccupations = currentUser.occupationSpecific.toLowerCase().split(',').map(s => s.trim());
+            const candidateOccupationLower = candidateOccupation.toLowerCase();
+            return specificOccupations.some(occ => 
+              occ.includes(candidateOccupationLower) || candidateOccupationLower.includes(occ)
+            );
+          }
+          return true; // If no specific preference, pass the check
+        }
+      },
+      {
+        importance: currentUserDbRecord.work_schedule_preference_importance as PreferenceImportance,
+        name: 'Work Schedule',
+        check: () => {
+          if (currentUser.workSchedulePreference && currentUser.workSchedulePreference !== 'noPreference') {
+            const score = this.calculateWorkScheduleCompatibility(
+              currentUser.workSchedule || '',
+              currentUser.workSchedulePreference,
+              candidate.work_schedule
+            );
+            return score >= 70; // Lowered threshold to accommodate data variations
+          }
+          return true;
+        }
       }
     ];
 
     for (const { importance, name, check } of checks) {
       if (importance === 'must' && !check()) {
+        console.log(`❌ ${name} requirement failed for candidate ${candidate.full_name}`);
         failures.push(`${name} requirement not met`);
       }
     }
@@ -447,7 +536,12 @@ class IdealRoommateMatchingEngine {
       language: 75,
       ethnicity: 75,
       religion: 75,
-      occupation: 75,
+      occupation: this.calculateOccupationCompatibility(
+        currentUser.occupation || '',
+        currentUser.occupationPreference || false,
+        currentUser.occupationSpecific || '',
+        candidate.occupation_specific || ''
+      ),
       housingType: 75,
       livingSpace: 75,
       cleanliness: 75,
@@ -571,6 +665,7 @@ class IdealRoommateMatchingEngine {
             { score: compatibilityAnalysis.pets, importance: (currentUserDbRecord.pet_preference_importance || 'notImportant') as PreferenceImportance },
             { score: compatibilityAnalysis.diet, importance: (currentUserDbRecord.dietary_preferences_importance || 'notImportant') as PreferenceImportance },
             { score: compatibilityAnalysis.workSchedule, importance: (currentUserDbRecord.work_schedule_preference_importance || 'notImportant') as PreferenceImportance },
+            { score: compatibilityAnalysis.occupation, importance: (currentUserDbRecord.occupation_preference_importance || 'notImportant') as PreferenceImportance },
             // Add other preferences as needed
           ];
 

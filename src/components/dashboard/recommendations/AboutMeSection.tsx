@@ -53,7 +53,7 @@ export function AboutMeSection({
     workLocation: "remote",
     workSchedule: "dayShift",
     hobbies: [],
-    diet: "noRestrictions",
+    diet: "noPreference",
     dietOther: "",
     profileVisibility: [],
     // Ideal roommate defaults

@@ -494,33 +494,21 @@ class CustomPreferenceMatchingEngine {
 
     // Compatibility matrix for different diets
     const dietCompatibility: { [key: string]: { [key: string]: number } } = {
-      'vegetarian': { 
-        'vegetarian': 100, 
-        'halal': 80, 
-        'kosher': 80, 
-        'noRestrictions': 60,
-        'other': 70
+      'vegetarian': {
+        'vegetarian': 100, 'halal': 85, 'kosher': 85, 'others': 40, 
+        'noPreference': 60, 'vegan': 95
       },
-      'halal': { 
-        'halal': 100, 
-        'vegetarian': 85, 
-        'kosher': 70, 
-        'noRestrictions': 50,
-        'other': 60
+      'halal': {
+        'halal': 100, 'vegetarian': 80, 'kosher': 70, 'others': 40, 
+        'noPreference': 50, 'pescatarian': 70
       },
-      'kosher': { 
-        'kosher': 100, 
-        'vegetarian': 85, 
-        'halal': 70, 
-        'noRestrictions': 50,
-        'other': 60
+      'kosher': {
+        'kosher': 100, 'vegetarian': 80, 'halal': 70, 'others': 40, 
+        'noPreference': 50, 'pescatarian': 70
       },
       'others': {
-        'vegetarian': 70,
-        'halal': 60,
-        'kosher': 60,
-        'noRestrictions': 80,
-        'other': 90
+        'others': 100, 'vegetarian': 70, 'halal': 60, 'kosher': 60, 
+        'noPreference': 80, 'paleo': 90, 'keto': 85, 'vegan': 70
       }
     };
 

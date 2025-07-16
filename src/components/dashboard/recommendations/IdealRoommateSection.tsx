@@ -48,7 +48,7 @@ export function IdealRoommateSection({
     workLocation: "remote",
     workSchedule: "dayShift",
     hobbies: [],
-    diet: "noRestrictions",
+    diet: "noPreference",
     // Ideal roommate defaults
     ageRangePreference: [18, 65],
     genderPreference: [],

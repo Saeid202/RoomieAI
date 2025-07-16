@@ -355,7 +355,7 @@ export function PersonalInfoTab({ form }: PersonalInfoTabProps) {
                   </FormItem>
                   <FormItem className="flex items-center space-x-3 space-y-0">
                     <FormControl>
-                      <RadioGroupItem value="noRestrictions" />
+                      <RadioGroupItem value="noPreference" />
                     </FormControl>
                     <FormLabel className="font-normal">I don't have restrictions</FormLabel>
                   </FormItem>
