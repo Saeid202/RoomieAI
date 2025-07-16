@@ -442,9 +442,9 @@ class IdealRoommateMatchingEngine {
         check: () => {
           if (currentUser.occupationPreference && currentUser.occupationSpecific) {
             const candidateOccupation = candidate.occupation_specific || '';
-            // If candidate has no occupation specified, allow them through (data might be incomplete)
+            // For "must" importance, candidates without occupation info should be filtered out
             if (!candidateOccupation || candidateOccupation.trim() === '') {
-              return true; // Allow candidates with no occupation data
+              return false; // No occupation info - cannot match specific requirement
             }
             const specificOccupations = currentUser.occupationSpecific.toLowerCase().split(',').map(s => s.trim());
             const candidateOccupationLower = candidateOccupation.toLowerCase();
