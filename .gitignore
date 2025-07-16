@@ -28,3 +28,7 @@ package.json
 package-lock.json
 package.json
 vite.config.ts
+vite.config.ts
+supabase/migrations/20250115_add_sample_roommate_data.sql
+package.json
+package-lock.json
