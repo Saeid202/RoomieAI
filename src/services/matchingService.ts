@@ -47,6 +47,8 @@ export async function fetchRoommateProfiles(): Promise<DatabaseRoommate[]> {
     .select('*')
     .order('created_at', { ascending: false });
 
+  console.log("data===================>", data);
+
   if (error) {
     console.error('Error fetching roommate profiles:', error);
     return [];

@@ -35,6 +35,7 @@ export interface DatabaseUser {
 
 export interface CustomMatchCriteria {
   currentUser: ProfileFormValues;
+  currentUserId?: string;
   userPreferences: UserPreferences;
   maxResults?: number;
   minScore?: number;
@@ -384,6 +385,7 @@ class CustomPreferenceMatchingEngine {
   async findMatches(criteria: CustomMatchCriteria): Promise<CustomMatchResult[]> {
     const { 
       currentUser, 
+      currentUserId,
       userPreferences, 
       maxResults = 10, 
       minScore = 60 
@@ -405,6 +407,12 @@ class CustomPreferenceMatchingEngine {
     const results: CustomMatchResult[] = [];
 
     for (const candidate of candidates || []) {
+      // Skip self-matching if userId is provided
+      if (currentUserId && candidate.user_id === currentUserId) {
+        console.log(`Skipping self-match for user ${currentUserId}`);
+        continue;
+      }
+
       // Check required criteria first
       const requirementCheck = this.checkRequiredCriteria(
         currentUser, 

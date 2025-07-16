@@ -75,6 +75,24 @@ export async function saveRoommateProfile(
       ? formData.genderPreference.join(',') 
       : formData.genderPreference,
     important_roommate_traits: formData.roommateHobbies,
+    // Add new preference fields for Ideal Roommate
+    age_range_preference: formData.ageRangePreference,
+    gender_preference: formData.genderPreference,
+    nationality_preference: formData.nationalityPreference,
+    nationality_custom: formData.nationalityCustom,
+    language_preference: formData.languagePreference,
+    language_specific: formData.languageSpecific,
+    dietary_preferences: formData.dietaryPreferences,
+    dietary_other: formData.dietaryOther,
+    occupation_preference: formData.occupationPreference,
+    occupation_specific: formData.occupationSpecific,
+    work_schedule_preference: formData.workSchedulePreference,
+    ethnicity_preference: formData.ethnicityPreference,
+    ethnicity_other: formData.ethnicityOther,
+    religion_preference: formData.religionPreference,
+    religion_other: formData.religionOther,
+    pet_specification: formData.petSpecification,
+    smoking_preference: formData.smokingPreference,
     updated_at: new Date().toISOString()
   };
   

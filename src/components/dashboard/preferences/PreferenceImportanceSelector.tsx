@@ -23,7 +23,7 @@ interface PreferenceImportanceSelectorProps {
 }
 
 const IMPORTANCE_CONFIG = {
-  required: {
+  must: {
     label: 'Must Have',
     description: 'This is absolutely required - no exceptions',
     icon: AlertCircle,
@@ -79,7 +79,39 @@ export function PreferenceImportanceSelector({
 
   const PreferenceItem = ({ option }: { option: typeof PREFERENCE_OPTIONS[0] }) => {
     const currentPreference = preferences[option.key];
+    
+    // Safety check: use default if preference is missing or invalid
+    if (!currentPreference || !currentPreference.importance) {
+      console.warn(`Missing preference for ${option.key}, using default`);
+      const defaultPreference = DEFAULT_PREFERENCES[option.key];
+      const config = IMPORTANCE_CONFIG[defaultPreference.importance];
+      const Icon = config.icon;
+      
+      return (
+        <Card className="transition-all hover:shadow-md">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <CardTitle className="text-sm font-medium">{option.label}</CardTitle>
+                <Badge variant="outline" className="text-xs">
+                  Default
+                </Badge>
+              </div>
+              <Icon className="h-4 w-4 text-muted-foreground" />
+            </div>
+          </CardHeader>
+        </Card>
+      );
+    }
+    
     const config = IMPORTANCE_CONFIG[currentPreference.importance];
+    
+    // Additional safety check
+    if (!config) {
+      console.error(`Invalid importance value for ${option.key}: ${currentPreference.importance}`);
+      return null;
+    }
+    
     const Icon = config.icon;
 
     return (

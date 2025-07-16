@@ -3,9 +3,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { MapPin, Calendar, Users, MessageSquare, Heart } from "lucide-react";
-import { getMockRoommates } from "@/utils/matchingAlgorithm/mockData";
+import { MapPin, Calendar, Users, MessageSquare, Heart, Loader2 } from "lucide-react";
 import { MatchResult } from "@/utils/matchingAlgorithm/types";
+import { customPreferenceMatchingEngine } from "@/services/customPreferenceMatchingService";
+import { useUserPreferences } from "@/hooks/useUserPreferences";
+import { useRoommateProfile } from "@/hooks/useRoommateProfile";
+import { useAuth } from "@/hooks/useAuth";
 
 interface MatchDisplay {
   id: string;
@@ -44,19 +47,65 @@ function convertMatchResultToDisplay(match: MatchResult, index: number): MatchDi
 export default function MatchesPage() {
   const [matches, setMatches] = useState<MatchDisplay[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  const { user } = useAuth();
+  const { preferences, loading: preferencesLoading } = useUserPreferences();
+  const { profileData, loading: profileLoading } = useRoommateProfile();
 
   useEffect(() => {
     const loadMatches = async () => {
+      if (!profileData || preferencesLoading || profileLoading) {
+        return;
+      }
+
       try {
         setLoading(true);
-        const dbMatches = await getMockRoommates();
-        const displayMatches = dbMatches
-          .map(convertMatchResultToDisplay)
-          .filter(match => match.compatibility > 40); // Only show matches with score > 40
+        setError(null);
+        
+        console.log("Loading matches with user preferences:", preferences);
+        console.log("User profile data:", profileData);
+        
+        // Use the custom preference matching engine with user preferences
+        const customResults = await customPreferenceMatchingEngine.findMatches({
+          currentUser: profileData,
+          currentUserId: user?.id,
+          userPreferences: preferences,
+          maxResults: 15,
+          minScore: 40 // Lower minimum score to get more results
+        });
+
+        console.log("Raw custom matches from algorithm:", customResults);
+        
+        // Convert to standard MatchResult format
+        const matchResults = customResults.map(result => 
+          customPreferenceMatchingEngine.convertToMatchResult(result)
+        );
+        
+        console.log("Converted match results:", matchResults);
+        
+        // Convert to display format
+        const displayMatches = matchResults.map(convertMatchResultToDisplay);
+        
+        console.log("Processed display matches:", displayMatches);
+        console.log("Total matches found:", displayMatches.length);
+        console.log("Match details:");
+        displayMatches.forEach((match, index) => {
+          console.log(`Match ${index + 1}:`, {
+            name: match.name,
+            age: match.age,
+            location: match.location,
+            compatibility: `${match.compatibility}%`,
+            budget: match.budget,
+            traits: match.traits,
+            bio: match.bio
+          });
+        });
+        
         setMatches(displayMatches);
       } catch (error) {
         console.error("Error loading matches:", error);
-        // Fallback to empty array
+        setError("Failed to load matches. Please try again.");
         setMatches([]);
       } finally {
         setLoading(false);
@@ -64,13 +113,52 @@ export default function MatchesPage() {
     };
 
     loadMatches();
-  }, []);
-  if (loading) {
+  }, [profileData, preferences, preferencesLoading, profileLoading, user?.id]);
+  if (loading || preferencesLoading || profileLoading) {
     return (
       <div className="container mx-auto p-6 space-y-6">
         <div className="flex items-center justify-center h-64">
-          <p className="text-muted-foreground">Loading matches...</p>
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+            <p className="text-muted-foreground">
+              {preferencesLoading ? "Loading your preferences..." : 
+               profileLoading ? "Loading your profile..." : 
+               "Finding compatible matches..."}
+            </p>
+          </div>
         </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto p-6 space-y-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <p className="text-destructive mb-4">{error}</p>
+            <Button onClick={() => window.location.reload()}>Try Again</Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!profileData) {
+    return (
+      <div className="container mx-auto p-6 space-y-6">
+        <Card className="text-center py-12">
+          <CardContent>
+            <Users className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+            <h3 className="text-lg font-semibold mb-2">Complete Your Profile</h3>
+            <p className="text-muted-foreground mb-4">
+              Please complete your profile to start finding compatible roommates
+            </p>
+            <Button onClick={() => window.location.href = '/dashboard/profile'}>
+              Complete Profile
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
