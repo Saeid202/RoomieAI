@@ -125,12 +125,6 @@ export function convertCoOwnerToMatchResult(coOwner: DatabaseCoOwner): MatchResu
     interests: ["real estate", "investment"],
     traits: ["professional", "experienced", coOwner.co_ownership_experience?.toLowerCase() || "beginner"],
     preferredLiving: "shareProperty",
-    propertyDetails: {
-      propertyType: coOwner.property_type?.toLowerCase() || "apartment",
-      bedrooms: 2,
-      bathrooms: 2,
-      address: coOwner.preferred_location || "Any location"
-    },
     compatibilityScore: Math.floor(Math.random() * 20) + 75, // Random score 75-94
     compatibilityBreakdown: {
       budget: 14,

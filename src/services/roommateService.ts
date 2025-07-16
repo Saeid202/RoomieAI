@@ -47,52 +47,57 @@ export async function saveRoommateProfile(
   const dbData = {
     user_id: userId,
     full_name: formData.fullName,
-    age: parseInt(formData.age),
-    gender: formData.gender,
-    email: formData.email,
-    phone_number: formData.phoneNumber,
-    linkedin_profile: formData.linkedinProfile,
+    age: formData.age ? parseInt(formData.age) : null,
+    gender: formData.gender || null,
+    email: formData.email || null,
+    phone_number: formData.phoneNumber || null,
+    linkedin_profile: formData.linkedinProfile || null,
     preferred_location: Array.isArray(formData.preferredLocation) 
       ? formData.preferredLocation.join(',') 
-      : formData.preferredLocation,
+      : formData.preferredLocation || null,
     budget_range: Array.isArray(formData.budgetRange) 
-      ? formData.budgetRange.join('-') 
-      : String(formData.budgetRange),
+      ? `$${formData.budgetRange[0]}-$${formData.budgetRange[1]}` 
+      : String(formData.budgetRange) || null,
     move_in_date: formData.moveInDateStart instanceof Date 
-      ? formData.moveInDateStart.toISOString() 
-      : formData.moveInDateStart,
-    housing_type: formData.housingType,
-    living_space: formData.livingSpace,
-    smoking: formData.smoking,
-    lives_with_smokers: formData.livesWithSmokers,
-    has_pets: formData.hasPets,
-    pet_preference: formData.petType,
-    work_location: formData.workLocation,
-    work_schedule: formData.workSchedule,
-    hobbies: formData.hobbies,
-    diet: formData.diet,
+      ? formData.moveInDateStart.toISOString().split('T')[0] 
+      : formData.moveInDateStart || null,
+    housing_type: formData.housingType || null,
+    living_space: formData.livingSpace || null,
+    smoking: formData.smoking || false,
+    lives_with_smokers: formData.livesWithSmokers || false,
+    has_pets: formData.hasPets || false,
+    pet_preference: formData.petType || null,
+    work_location: formData.workLocation || null,
+    work_schedule: formData.workSchedule || null,
+    hobbies: formData.hobbies || [],
+    diet: formData.diet || null,
     roommate_gender_preference: Array.isArray(formData.genderPreference) 
       ? formData.genderPreference.join(',') 
-      : formData.genderPreference,
-    important_roommate_traits: formData.roommateHobbies,
-    // Add new preference fields for Ideal Roommate
-    age_range_preference: formData.ageRangePreference,
-    gender_preference: formData.genderPreference,
-    nationality_preference: formData.nationalityPreference,
-    nationality_custom: formData.nationalityCustom,
-    language_preference: formData.languagePreference,
-    language_specific: formData.languageSpecific,
-    dietary_preferences: formData.dietaryPreferences,
-    dietary_other: formData.dietaryOther,
-    occupation_preference: formData.occupationPreference,
-    occupation_specific: formData.occupationSpecific,
-    work_schedule_preference: formData.workSchedulePreference,
-    ethnicity_preference: formData.ethnicityPreference,
-    ethnicity_other: formData.ethnicityOther,
-    religion_preference: formData.religionPreference,
-    religion_other: formData.religionOther,
-    pet_specification: formData.petSpecification,
-    smoking_preference: formData.smokingPreference,
+      : formData.genderPreference || null,
+    important_roommate_traits: formData.roommateHobbies || [],
+    
+    // 🎯 FIXED: Ideal Roommate preference fields with proper validation
+    age_range_preference: Array.isArray(formData.ageRangePreference) && formData.ageRangePreference.length === 2
+      ? formData.ageRangePreference 
+      : [18, 65], // Default fallback
+    gender_preference: Array.isArray(formData.genderPreference) && formData.genderPreference.length > 0
+      ? formData.genderPreference 
+      : null,
+    nationality_preference: formData.nationalityPreference || null,
+    nationality_custom: formData.nationalityCustom || null,
+    language_preference: formData.languagePreference || null,
+    language_specific: formData.languageSpecific || null,
+    dietary_preferences: formData.dietaryPreferences || null,
+    dietary_other: formData.dietaryOther || null,
+    occupation_preference: formData.occupationPreference || false,
+    occupation_specific: formData.occupationSpecific || null,
+    work_schedule_preference: formData.workSchedulePreference || null,
+    ethnicity_preference: formData.ethnicityPreference || null,
+    ethnicity_other: formData.ethnicityOther || null,
+    religion_preference: formData.religionPreference || null,
+    religion_other: formData.religionOther || null,
+    pet_specification: formData.petSpecification || null,
+    smoking_preference: formData.smokingPreference || null,
     updated_at: new Date().toISOString()
   };
   
@@ -117,13 +122,15 @@ export async function saveRoommateProfile(
     result = await supabase
       .from('roommate')
       .update(dbData)
-      .eq('user_id', userId);
+      .eq('user_id', userId)
+      .select();
   } else {
     // Insert new profile
     console.log("Creating new profile for user:", userId);
     result = await supabase
       .from('roommate')
-      .insert(dbData);
+      .insert(dbData)
+      .select();
   }
   
   if (result.error) {
