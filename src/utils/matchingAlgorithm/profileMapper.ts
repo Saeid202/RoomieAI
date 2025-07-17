@@ -32,7 +32,7 @@ export function mapProfileToRoommate(profileData: Partial<ProfileFormValues>): R
     pets: profileData.hasPets || false,
     workSchedule: profileData.workSchedule || "dayShift",
     hobbies: profileData.hobbies || [],
-    diet: profileData.diet || "noRestrictions",
+    diet: profileData.diet || "noPreference",
     
     // Social preferences - using existing fields as fallbacks
     socialLevel: "moderate", // Default value

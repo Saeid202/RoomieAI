@@ -119,113 +119,214 @@ export type Database = {
       roommate: {
         Row: {
           age: number | null
-          budget_range: string | null
+          age_range_preference: number[] | null
+          age_range_preference_importance: string | null
+          budget_range: number[] | null
           created_at: string
           diet: string | null
+          dietary_other: string | null
+          dietary_preferences: string | null
+          dietary_preferences_importance: string | null
           email: string | null
+          ethnicity_other: string | null
+          ethnicity_preference: string | null
+          ethnicity_preference_importance: string | null
           full_name: string | null
           gender: string | null
+          gender_preference: string[] | null
+          gender_preference_importance: string | null
           has_pets: boolean | null
           hobbies: string[] | null
           housing_type: string | null
           id: string
           important_roommate_traits: string[] | null
+          language_preference: string | null
+          language_preference_importance: string | null
+          language_specific: string | null
           linkedin_profile: string | null
           lives_with_smokers: boolean | null
           living_space: string | null
-          move_in_date: string | null
+          move_in_date_start: string | null
+  move_in_date_end: string | null
+  move_in_date: string | null // Legacy field for compatibility
+          nationality_custom: string | null
+          nationality_preference: string | null
+          nationality_preference_importance: string | null
+          occupation_preference: boolean | null
+          occupation_preference_importance: string | null
+          occupation_specific: string | null
           pet_preference: string | null
+          pet_preference_importance: string | null
+          pet_specification: string | null
           phone_number: string | null
-          preferred_location: string | null
+          preferred_location: string[] | null
+          profile_visibility: string[] | null
+          religion_other: string | null
+          religion_preference: string | null
+          religion_preference_importance: string | null
           roommate_gender_preference: string | null
           roommate_lifestyle_preference: string | null
           smoking: boolean | null
+          smoking_preference: string | null
+          smoking_preference_importance: string | null
           updated_at: string
           user_id: string
           work_location: string | null
           work_schedule: string | null
+          work_schedule_preference: string | null
+          work_schedule_preference_importance: string | null
         }
         Insert: {
           age?: number | null
-          budget_range?: string | null
+          age_range_preference?: number[] | null
+          age_range_preference_importance?: string | null
+          budget_range?: number[] | null
           created_at?: string
           diet?: string | null
+          dietary_other?: string | null
+          dietary_preferences?: string | null
+          dietary_preferences_importance?: string | null
           email?: string | null
+          ethnicity_other?: string | null
+          ethnicity_preference?: string | null
+          ethnicity_preference_importance?: string | null
           full_name?: string | null
           gender?: string | null
+          gender_preference?: string[] | null
+          gender_preference_importance?: string | null
           has_pets?: boolean | null
           hobbies?: string[] | null
           housing_type?: string | null
           id?: string
           important_roommate_traits?: string[] | null
+          language_preference?: string | null
+          language_preference_importance?: string | null
+          language_specific?: string | null
           linkedin_profile?: string | null
           lives_with_smokers?: boolean | null
           living_space?: string | null
-          move_in_date?: string | null
+          move_in_date_start?: string | null
+          move_in_date_end?: string | null
+          move_in_date?: string | null // Legacy field for compatibility
+          nationality_custom?: string | null
+          nationality_preference?: string | null
+          nationality_preference_importance?: string | null
+          occupation_preference?: boolean | null
+          occupation_preference_importance?: string | null
+          occupation_specific?: string | null
           pet_preference?: string | null
+          pet_preference_importance?: string | null
+          pet_specification?: string | null
           phone_number?: string | null
-          preferred_location?: string | null
+          preferred_location?: string[] | null
+          profile_visibility?: string[] | null
+          religion_other?: string | null
+          religion_preference?: string | null
+          religion_preference_importance?: string | null
           roommate_gender_preference?: string | null
           roommate_lifestyle_preference?: string | null
           smoking?: boolean | null
+          smoking_preference?: string | null
+          smoking_preference_importance?: string | null
           updated_at?: string
           user_id: string
           work_location?: string | null
           work_schedule?: string | null
+          work_schedule_preference?: string | null
+          work_schedule_preference_importance?: string | null
         }
         Update: {
           age?: number | null
-          budget_range?: string | null
+          age_range_preference?: number[] | null
+          age_range_preference_importance?: string | null
+          budget_range?: number[] | null
           created_at?: string
           diet?: string | null
+          dietary_other?: string | null
+          dietary_preferences?: string | null
+          dietary_preferences_importance?: string | null
           email?: string | null
+          ethnicity_other?: string | null
+          ethnicity_preference?: string | null
+          ethnicity_preference_importance?: string | null
           full_name?: string | null
           gender?: string | null
+          gender_preference?: string[] | null
+          gender_preference_importance?: string | null
           has_pets?: boolean | null
           hobbies?: string[] | null
           housing_type?: string | null
           id?: string
           important_roommate_traits?: string[] | null
+          language_preference?: string | null
+          language_preference_importance?: string | null
+          language_specific?: string | null
           linkedin_profile?: string | null
           lives_with_smokers?: boolean | null
           living_space?: string | null
-          move_in_date?: string | null
+          move_in_date_start?: string | null
+          move_in_date_end?: string | null
+          move_in_date?: string | null // Legacy field for compatibility
+          nationality_custom?: string | null
+          nationality_preference?: string | null
+          nationality_preference_importance?: string | null
+          occupation_preference?: boolean | null
+          occupation_preference_importance?: string | null
+          occupation_specific?: string | null
           pet_preference?: string | null
+          pet_preference_importance?: string | null
+          pet_specification?: string | null
           phone_number?: string | null
-          preferred_location?: string | null
+          preferred_location?: string[] | null
+          profile_visibility?: string[] | null
+          religion_other?: string | null
+          religion_preference?: string | null
+          religion_preference_importance?: string | null
           roommate_gender_preference?: string | null
           roommate_lifestyle_preference?: string | null
           smoking?: boolean | null
+          smoking_preference?: string | null
+          smoking_preference_importance?: string | null
           updated_at?: string
           user_id?: string
           work_location?: string | null
           work_schedule?: string | null
+          work_schedule_preference?: string | null
+          work_schedule_preference_importance?: string | null
         }
         Relationships: []
       }
       user_preferences: {
         Row: {
-          created_at: string
           id: string
-          preferences: Json
-          updated_at: string
           user_id: string
+          preferences: Json
+          created_at: string
+          updated_at: string
         }
         Insert: {
-          created_at?: string
           id?: string
-          preferences?: Json
-          updated_at?: string
           user_id: string
+          preferences: Json
+          created_at?: string
+          updated_at?: string
         }
         Update: {
-          created_at?: string
           id?: string
-          preferences?: Json
-          updated_at?: string
           user_id?: string
+          preferences?: Json
+          created_at?: string
+          updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
       }
     }
     Views: {

@@ -86,7 +86,7 @@ export function PersonalInfoTab({ form }: PersonalInfoTabProps) {
             <FormItem>
               <FormLabel><span className="font-bold">3.</span> Gender</FormLabel>
               <FormControl>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} value={field.value}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select gender" />
                   </SelectTrigger>
@@ -145,7 +145,7 @@ export function PersonalInfoTab({ form }: PersonalInfoTabProps) {
             <FormItem>
               <FormLabel><span className="font-bold">5.</span> Nationality</FormLabel>
               <FormControl>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} value={field.value}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select nationality" />
                   </SelectTrigger>
@@ -170,7 +170,7 @@ export function PersonalInfoTab({ form }: PersonalInfoTabProps) {
             <FormItem>
               <FormLabel><span className="font-bold">6.</span> Primary Language</FormLabel>
               <FormControl>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} value={field.value}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select language" />
                   </SelectTrigger>
@@ -195,7 +195,7 @@ export function PersonalInfoTab({ form }: PersonalInfoTabProps) {
             <FormItem>
               <FormLabel><span className="font-bold">7.</span> Ethnicity</FormLabel>
               <FormControl>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} value={field.value}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select ethnicity" />
                   </SelectTrigger>
@@ -220,7 +220,7 @@ export function PersonalInfoTab({ form }: PersonalInfoTabProps) {
             <FormItem>
               <FormLabel><span className="font-bold">8.</span> Religion</FormLabel>
               <FormControl>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} value={field.value}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select religion" />
                   </SelectTrigger>
@@ -265,7 +265,7 @@ export function PersonalInfoTab({ form }: PersonalInfoTabProps) {
             <FormItem className="space-y-3">
               <FormLabel><span className="font-bold">10.</span> Do you work from home or go to an office?</FormLabel>
               <FormControl>
-                <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col space-y-1">
+                <RadioGroup onValueChange={field.onChange} value={field.value} className="flex flex-col space-y-1">
                   <FormItem className="flex items-center space-x-3 space-y-0">
                     <FormControl>
                       <RadioGroupItem value="remote" />
@@ -298,7 +298,7 @@ export function PersonalInfoTab({ form }: PersonalInfoTabProps) {
             <FormItem className="space-y-3">
               <FormLabel><span className="font-bold">11.</span> What's your typical work schedule?</FormLabel>
               <FormControl>
-                <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col space-y-1">
+                <RadioGroup onValueChange={field.onChange} value={field.value} className="flex flex-col space-y-1">
                   <FormItem className="flex items-center space-x-3 space-y-0">
                     <FormControl>
                       <RadioGroupItem value="dayShift" />
@@ -334,7 +334,7 @@ export function PersonalInfoTab({ form }: PersonalInfoTabProps) {
             <FormItem className="space-y-3">
               <FormLabel><span className="font-bold">12.</span> Dietary Preferences</FormLabel>
               <FormControl>
-                <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col space-y-1">
+                <RadioGroup onValueChange={field.onChange} value={field.value} className="flex flex-col space-y-1">
                   <FormItem className="flex items-center space-x-3 space-y-0">
                     <FormControl>
                       <RadioGroupItem value="vegetarian" />
@@ -355,7 +355,7 @@ export function PersonalInfoTab({ form }: PersonalInfoTabProps) {
                   </FormItem>
                   <FormItem className="flex items-center space-x-3 space-y-0">
                     <FormControl>
-                      <RadioGroupItem value="noRestrictions" />
+                      <RadioGroupItem value="noPreference" />
                     </FormControl>
                     <FormLabel className="font-normal">I don't have restrictions</FormLabel>
                   </FormItem>

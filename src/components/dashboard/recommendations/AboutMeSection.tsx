@@ -53,7 +53,7 @@ export function AboutMeSection({
     workLocation: "remote",
     workSchedule: "dayShift",
     hobbies: [],
-    diet: "noRestrictions",
+    diet: "noPreference",
     dietOther: "",
     profileVisibility: [],
     // Ideal roommate defaults
@@ -76,7 +76,28 @@ export function AboutMeSection({
   useEffect(() => {
     if (profileData) {
       console.log("Updating AboutMeSection form with profile data:", profileData);
-      form.reset({ ...defaultFormValues, ...profileData });
+      // Create merged data to ensure all fields have values
+      const mergedData = { ...defaultFormValues, ...profileData };
+      console.log("Merged form data:", mergedData);
+      
+      // Log specific fields that might be problematic
+      console.log("Key fields:", {
+        fullName: mergedData.fullName,
+        age: mergedData.age,
+        gender: mergedData.gender,
+        nationality: mergedData.nationality,
+        language: mergedData.language,
+        ethnicity: mergedData.ethnicity,
+        religion: mergedData.religion,
+        preferredLocation: mergedData.preferredLocation,
+        hobbies: mergedData.hobbies,
+        profileVisibility: mergedData.profileVisibility
+      });
+      
+      form.reset(mergedData);
+    } else {
+      console.log("No profile data available, using default values");
+      form.reset(defaultFormValues);
     }
   }, [profileData, form]);
 

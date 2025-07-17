@@ -11,7 +11,9 @@ export interface DatabaseUser {
   phone_number: string;
   preferred_location: string;
   budget_range: string;
-  move_in_date: string;
+  move_in_date_start?: string;
+  move_in_date_end?: string;
+  move_in_date: string; // Legacy field for compatibility
   housing_type: string;
   living_space: string;
   has_pets: boolean;
@@ -46,6 +48,7 @@ export interface EnhancedMatchResult {
 
 export interface MatchingCriteria {
   currentUser: ProfileFormValues;
+  currentUserId?: string;
   maxResults?: number;
   minScore?: number;
   useAI?: boolean;
@@ -367,7 +370,7 @@ class EnhancedMatchingEngine {
 
   // Main matching method
   async findMatches(criteria: MatchingCriteria): Promise<EnhancedMatchResult[]> {
-    const { currentUser, maxResults = 10, minScore = 60 } = criteria;
+    const { currentUser, currentUserId, maxResults = 10, minScore = 60 } = criteria;
     
     // Fetch candidate users from database
     const { data: candidates, error } = await supabase
@@ -383,8 +386,11 @@ class EnhancedMatchingEngine {
     const results: EnhancedMatchResult[] = [];
 
     for (const candidate of candidates || []) {
-      // Skip self-matching - no userId in ProfileFormValues, so just proceed with all candidates
-      // if (candidate.user_id === currentUser.userId) continue;
+      // Skip self-matching if userId is provided
+      if (currentUserId && candidate.user_id === currentUserId) {
+        console.log(`Skipping self-match for user ${currentUserId}`);
+        continue;
+      }
 
       // Calculate compatibility scores
       const scheduleScore = this.calculateScheduleCompatibility(currentUser, candidate);

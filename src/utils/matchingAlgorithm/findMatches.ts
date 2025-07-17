@@ -1,34 +1,37 @@
 
 import { ProfileFormValues } from "@/types/profile";
 import { MatchResult } from "./types";
-import { enhancedMatchingEngine } from "@/services/enhancedMatchingService";
+import { idealRoommateMatchingEngine } from "@/services/idealRoommateMatchingService";
 
 /**
- * Main function to find matches based on user profile using enhanced matching algorithm
+ * Main function to find matches based on user profile using preference-aware matching algorithm
  */
-export async function findMatches(userProfile: ProfileFormValues): Promise<MatchResult[]> {
-  console.log("Finding matches for user profile using enhanced algorithm:", userProfile);
+export async function findMatches(
+  userProfile: ProfileFormValues, 
+  userId?: string
+): Promise<MatchResult[]> {
+  console.log("Finding matches for user profile using ideal roommate preferences:", userProfile);
+  console.log("Current user ID for filtering:", userId);
   
   try {
-    // Use the enhanced matching engine with the example.ts patterns
-    const enhancedResults = await enhancedMatchingEngine.findMatches({
+    // Use the ideal roommate matching engine with importance fields from database
+    const idealRoommateResults = await idealRoommateMatchingEngine.findMatches({
       currentUser: userProfile,
+      currentUserId: userId,
       maxResults: 10,
-      minScore: 60,
-      useAI: false // Can be enabled later for AI-enhanced matching
+      minScore: 50
     });
     
-    // Convert enhanced results to standard MatchResult format for compatibility
-    const standardResults = enhancedResults.map(result => 
-      enhancedMatchingEngine.convertToMatchResult(result)
+    // Convert results to standard MatchResult format for compatibility
+    const standardResults = idealRoommateResults.map(result => 
+      idealRoommateMatchingEngine.convertToMatchResult(result)
     );
     
-    console.log("Enhanced matching found results:", standardResults);
+    console.log("Ideal roommate preference matching found results:", standardResults);
     return standardResults;
     
   } catch (error) {
-    console.error("Error in enhanced findMatches:", error);
-    // Return empty array on error rather than throwing
+    console.error("Ideal roommate matching failed:", error);
     return [];
   }
 }

@@ -40,7 +40,7 @@ export const profileSchema = z.object({
   workLocation: z.enum(["remote", "office", "hybrid"]),
   workSchedule: z.enum(["dayShift", "afternoonShift", "overnightShift"]),
   hobbies: z.array(z.string()),
-  diet: z.enum(["vegetarian", "halal", "kosher", "noRestrictions", "other"]),
+  diet: z.enum(["vegetarian", "halal", "kosher", "noPreference", "other"]),
   dietOther: z.string().optional(),
   profileVisibility: z.array(z.string()).optional(),
   
@@ -55,7 +55,7 @@ export const profileSchema = z.object({
   dietaryOther: z.string().optional(),
   occupationPreference: z.boolean().optional(),
   occupationSpecific: z.string().optional(),
-  workSchedulePreference: z.enum(["opposite", "dayShift", "nightShift", "overnightShift", "noPreference"]).optional(),
+  workSchedulePreference: z.enum(["opposite", "dayShift", "afternoonShift", "overnightShift", "noPreference"]).optional(),
   ethnicityPreference: z.enum(["same", "noPreference", "others"]).optional(),
   ethnicityOther: z.string().optional(),
   religionPreference: z.enum(["same", "noPreference", "others"]).optional(),
@@ -65,6 +65,19 @@ export const profileSchema = z.object({
   smokingPreference: z.enum(["noSmoking", "noVaping", "socialOk"]).optional(),
   roommateHobbies: z.array(z.string()).optional(),
   rentOption: z.enum(["findTogether", "joinExisting"]).optional(),
+  
+  // Preference importance fields
+  age_range_preference_importance: z.enum(["notImportant", "important", "must"]).optional(),
+  gender_preference_importance: z.enum(["notImportant", "important", "must"]).optional(),
+  nationality_preference_importance: z.enum(["notImportant", "important", "must"]).optional(),
+  language_preference_importance: z.enum(["notImportant", "important", "must"]).optional(),
+  dietary_preferences_importance: z.enum(["notImportant", "important", "must"]).optional(),
+  occupation_preference_importance: z.enum(["notImportant", "important", "must"]).optional(),
+  work_schedule_preference_importance: z.enum(["notImportant", "important", "must"]).optional(),
+  ethnicity_preference_importance: z.enum(["notImportant", "important", "must"]).optional(),
+  religion_preference_importance: z.enum(["notImportant", "important", "must"]).optional(),
+  pet_preference_importance: z.enum(["notImportant", "important", "must"]).optional(),
+  smoking_preference_importance: z.enum(["notImportant", "important", "must"]).optional(),
 });
 
 export type ProfileFormValues = z.infer<typeof profileSchema>;

@@ -42,7 +42,7 @@ export function mapDbRowToFormValues(data: ProfileTableRow): Partial<ProfileForm
     workLocation: "remote",
     workSchedule: "dayShift",
     hobbies: [],
-    diet: "noRestrictions",
+    diet: "noPreference",
     genderPreference: [],
     nationalityPreference: "noPreference",
     nationalityCustom: "",

@@ -1,21 +1,28 @@
 
 import { useState } from "react";
-import { useToast } from "@/hooks/use-toast";
-import { ProfileFormValues } from "@/types/profile";
-import { findMatches as findMatchesAlgorithm } from "@/utils/matchingAlgorithm";
 import { MatchResult } from "@/utils/matchingAlgorithm/types";
+import { ProfileFormValues } from "@/types/profile";
+import { findMatches as findMatchesAlgorithm } from "@/utils/matchingAlgorithm/findMatches";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+
 
 export function useMatching() {
-  const { toast } = useToast();
   const [roommates, setRoommates] = useState<MatchResult[]>([]);
   const [properties, setProperties] = useState<MatchResult[]>([]);
   const [selectedMatch, setSelectedMatch] = useState<MatchResult | null>(null);
   const [activeTab, setActiveTab] = useState("roommates");
   const [isFindingMatches, setIsFindingMatches] = useState(false);
+  const { toast } = useToast();
+  const { user } = useAuth();
+
+
+  const setActiveTabAndClearSelection = (tab: string) => {
+    setActiveTab(tab);
+    setSelectedMatch(null);
+  };
 
   const handleViewDetails = (match: MatchResult) => {
-    // Scroll to top when viewing details to prevent footer jumps
-    window.scrollTo({ top: 0, behavior: 'smooth' });
     setSelectedMatch(match);
   };
 
@@ -37,14 +44,14 @@ export function useMatching() {
     
     try {
       console.log("Finding matches with profile data:", profileData);
+      console.log("Current user ID:", user?.id);
       
       // First convert to ProfileFormValues to ensure the right types
       const formValues = profileData as ProfileFormValues;
       
-      // Use the algorithm directly on the form values
-      // The algorithm will handle the conversion internally
-      const matchesFound = await findMatchesAlgorithm(formValues);
-      console.log("Matches found:", matchesFound);
+      // Use the algorithm directly on the form values, passing the current user ID and preferences
+      const matchesFound = await findMatchesAlgorithm(formValues, user?.id);
+      console.log("Matches found with user preferences:", matchesFound);
       
       // Update state with found matches
       setRoommates(matchesFound);

@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { 
   Home, Users, Building, Search, MessageSquare, 
   Settings, Calendar, Clock, List, MapPin, Group, 
-  Briefcase, Flag, Scale
+  Briefcase, Flag, Scale, Sliders
 } from "lucide-react";
 import { SidebarSimpleMenuItem } from "./SidebarSimpleMenuItem";
 
@@ -90,6 +90,8 @@ export function SeekerSidebar({ isActive }: SeekerSidebarProps) {
         to="/dashboard/chats" 
         isActive={isActive('/dashboard/chats')}
       />
+      
+
       
       <SidebarSimpleMenuItem 
         icon={<Settings size={18} />} 
