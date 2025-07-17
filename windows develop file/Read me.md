@@ -1,1 +1,0 @@
-In case you need to develop on Windows, use these files to replace the ones outside this folder.
