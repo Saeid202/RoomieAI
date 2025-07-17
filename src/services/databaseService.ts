@@ -49,9 +49,8 @@ export async function saveCoOwnerProfile(formData: any, userId: string) {
   try {
     console.log("Saving co-owner profile for user:", userId);
     
-    try {
-      // Map form data to database format
-      const dbData = {
+    // Map form data to database format
+    const dbData = {
       user_id: userId,
       full_name: formData.fullName,
       age: formData.age,
@@ -126,17 +125,12 @@ export async function fetchCoOwnerProfile(userId: string) {
   try {
     console.log("Fetching co-owner profile for user:", userId);
     
-    try {
-      const { data, error } = await supabase
+    const { data, error } = await supabase
       .from('co_owner')
       .select('*')
       .eq('user_id', userId)
       .maybeSingle();
               
-      if (error) {
-        throw error;
-      }
-      
     if (error) {
       console.error("Error fetching co-owner profile:", error);
       throw error;
