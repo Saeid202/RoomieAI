@@ -71,25 +71,36 @@ export async function saveRoommateProfile(
         ]
       : null,
       
+    // Fix: Use correct database column names for move-in dates
     move_in_date_start: formData.moveInDateStart instanceof Date 
       ? formData.moveInDateStart.toISOString().split('T')[0] 
       : formData.moveInDateStart || null,
     move_in_date_end: formData.moveInDateEnd instanceof Date 
       ? formData.moveInDateEnd.toISOString().split('T')[0] 
       : formData.moveInDateEnd || null,
+    
     housing_type: formData.housingType || null,
     living_space: formData.livingSpace || null,
     smoking: formData.smoking || false,
     lives_with_smokers: formData.livesWithSmokers || false,
     has_pets: formData.hasPets || false,
-    pet_preference: formData.petType || null,
+    pet_type: formData.petType || null,
     work_location: formData.workLocation || null,
     work_schedule: formData.workSchedule || null,
     
     // Fix: hobbies should be TEXT[] array
     hobbies: Array.isArray(formData.hobbies) ? formData.hobbies : [],
     
-    diet: formData.diet || null,
+    // Fix: diet enum value - map "noRestrictions" to "noPreference"
+    diet: formData.diet === "noRestrictions" ? "noPreference" : (formData.diet || "noPreference"),
+    diet_other: formData.dietOther || null,
+    
+    // Add demographic fields
+    nationality: formData.nationality || null,
+    language: formData.language || null,
+    ethnicity: formData.ethnicity || null,
+    religion: formData.religion || null,
+    occupation: formData.occupation || null,
     
     // Fix: roommate_gender_preference should be string, not array
     roommate_gender_preference: Array.isArray(formData.genderPreference) 
