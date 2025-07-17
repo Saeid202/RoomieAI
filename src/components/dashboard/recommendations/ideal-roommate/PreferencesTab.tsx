@@ -34,7 +34,6 @@ export function PreferencesTab({ form, handleTraitToggle }: PreferencesTabProps)
   return (
     <div className="space-y-8">
       <div>
-        <h3 className="text-lg font-semibold mb-4">Roommate Preferences 🏠</h3>
         <p className="text-muted-foreground mb-6">
           Tell us about your ideal roommate preferences to help us find the perfect match.
         </p>

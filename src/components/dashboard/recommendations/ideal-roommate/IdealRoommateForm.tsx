@@ -49,15 +49,12 @@ export function IdealRoommateForm({ form, onSubmit, isSaving }: IdealRoommateFor
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold mb-2">Ideal Roommate Preferences</h2>
-        <p className="text-muted-foreground">
-          Tell us what you're looking for in your ideal roommate to get better matches.
-        </p>
       </div>
 
       <Form {...form}>
         <form onSubmit={handleSubmit} className="space-y-6">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <IdealRoommateTabs activeTab={activeTab} onTabChange={setActiveTab} />
+            {/*<IdealRoommateTabs activeTab={activeTab} onTabChange={setActiveTab} />*/}
             
             <TabsContent value="preferences">
               <PreferencesTab form={form} handleTraitToggle={handleTraitToggle} />
