@@ -1,0 +1,212 @@
+-- Add sample roommate data for testing the matching algorithm
+-- Note: These are fictional profiles for development and testing purposes
+
+INSERT INTO public.roommate (
+  user_id, full_name, age, gender, email, phone_number, 
+  preferred_location, budget_range, move_in_date, housing_type, 
+  living_space, smoking, lives_with_smokers, has_pets, 
+  work_schedule, hobbies, diet, roommate_gender_preference, 
+  important_roommate_traits, created_at, updated_at
+) VALUES 
+-- Sample User 1: Sarah Chen
+(
+  '550e8400-e29b-41d4-a716-446655440001',
+  'Sarah Chen',
+  25,
+  'female',
+  'sarah.chen@example.com',
+  '+1-555-0101',
+  'Downtown',
+  '$1200-$1800',
+  '2024-03-01',
+  'apartment',
+  'privateRoom',
+  false,
+  false,
+  false,
+  'dayShift',
+  ARRAY['reading', 'yoga', 'cooking'],
+  'vegetarian',
+  'female',
+  ARRAY['clean', 'quiet', 'professional'],
+  now(),
+  now()
+),
+
+-- Sample User 2: Mike Johnson
+(
+  '550e8400-e29b-41d4-a716-446655440002',
+  'Mike Johnson',
+  28,
+  'male',
+  'mike.johnson@example.com',
+  '+1-555-0102',
+  'Midtown',
+  '$1000-$1500',
+  '2024-02-15',
+  'house',
+  'privateRoom',
+  false,
+  false,
+  true,
+  'afternoonShift',
+  ARRAY['gaming', 'movies', 'hiking'],
+  'noRestrictions',
+  'any',
+  ARRAY['friendly', 'pet-friendly', 'social'],
+  now(),
+  now()
+),
+
+-- Sample User 3: Emily Rodriguez
+(
+  '550e8400-e29b-41d4-a716-446655440003',
+  'Emily Rodriguez',
+  23,
+  'female',
+  'emily.rodriguez@example.com',
+  '+1-555-0103',
+  'Uptown',
+  '$800-$1200',
+  '2024-04-01',
+  'apartment',
+  'sharedRoom',
+  false,
+  false,
+  false,
+  'overnightShift',
+  ARRAY['dancing', 'music', 'art'],
+  'halal',
+  'female',
+  ARRAY['artistic', 'night-owl', 'respectful'],
+  now(),
+  now()
+),
+
+-- Sample User 4: David Kim
+(
+  '550e8400-e29b-41d4-a716-446655440004',
+  'David Kim',
+  30,
+  'male',
+  'david.kim@example.com',
+  '+1-555-0104',
+  'Downtown',
+  '$1500-$2000',
+  '2024-03-15',
+  'apartment',
+  'privateRoom',
+  false,
+  false,
+  false,
+  'dayShift',
+  ARRAY['fitness', 'technology', 'travel'],
+  'noRestrictions',
+  'any',
+  ARRAY['professional', 'clean', 'tech-savvy'],
+  now(),
+  now()
+),
+
+-- Sample User 5: Jessica Liu
+(
+  '550e8400-e29b-41d4-a716-446655440005',
+  'Jessica Liu',
+  26,
+  'female',
+  'jessica.liu@example.com',
+  '+1-555-0105',
+  'Suburbs',
+  '$900-$1400',
+  '2024-05-01',
+  'house',
+  'privateRoom',
+  false,
+  false,
+  true,
+  'dayShift',
+  ARRAY['gardening', 'baking', 'volunteering'],
+  'vegetarian',
+  'any',
+  ARRAY['kind', 'organized', 'pet-loving'],
+  now(),
+  now()
+),
+
+-- Sample User 6: Alex Thompson
+(
+  '550e8400-e29b-41d4-a716-446655440006',
+  'Alex Thompson',
+  24,
+  'non-binary',
+  'alex.thompson@example.com',
+  '+1-555-0106',
+  'Downtown',
+  '$1100-$1600',
+  '2024-02-20',
+  'apartment',
+  'privateRoom',
+  false,
+  false,
+  false,
+  'afternoonShift',
+  ARRAY['photography', 'coffee', 'podcasts'],
+  'vegan',
+  'any',
+  ARRAY['creative', 'lgbtq-friendly', 'intellectual'],
+  now(),
+  now()
+),
+
+-- Sample User 7: Maria Santos
+(
+  '550e8400-e29b-41d4-a716-446655440007',
+  'Maria Santos',
+  29,
+  'female',
+  'maria.santos@example.com',
+  '+1-555-0107',
+  'Westside',
+  '$1300-$1700',
+  '2024-06-01',
+  'apartment',
+  'privateRoom',
+  false,
+  false,
+  false,
+  'dayShift',
+  ARRAY['language learning', 'cooking', 'netflix'],
+  'noRestrictions',
+  'female',
+  ARRAY['multilingual', 'foodie', 'easygoing'],
+  now(),
+  now()
+),
+
+-- Sample User 8: James Wilson
+(
+  '550e8400-e29b-41d4-a716-446655440008',
+  'James Wilson',
+  27,
+  'male',
+  'james.wilson@example.com',
+  '+1-555-0108',
+  'Eastside',
+  '$1000-$1300',
+  '2024-03-10',
+  'house',
+  'privateRoom',
+  false,
+  false,
+  true,
+  'overnightShift',
+  ARRAY['music production', 'sports', 'cooking'],
+  'noRestrictions',
+  'any',
+  ARRAY['musician', 'night-person', 'athletic'],
+  now(),
+  now()
+);
+
+-- Note: The user_id values used here are fictional UUIDs for testing.
+-- In a real application, these would reference actual user accounts in auth.users table. 
