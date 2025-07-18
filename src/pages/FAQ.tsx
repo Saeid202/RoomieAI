@@ -77,22 +77,6 @@ const FAQ = () => {
     {
       category: "Co-Investment",
       questions: [
-        {
-          question: "What is the co-investment matching feature?",
-          answer: "Our co-investment matching connects people interested in pooling their resources to purchase property together. It's designed for those who cannot afford to buy alone but want to enter the property market by sharing ownership with compatible co-investors."
-        },
-        {
-          question: "How does co-ownership work legally?",
-          answer: "Co-ownership typically involves creating a legal agreement that outlines ownership percentages, responsibilities, and exit strategies. We provide templates and guidance, but we recommend consulting with a real estate attorney to finalize any co-ownership arrangement."
-        },
-        {
-          question: "What happens if my co-investor wants to sell their share?",
-          answer: "This should be addressed in your co-ownership agreement. Common options include giving the remaining owner(s) first right of refusal to buy the share, mutually agreeing to sell the entire property, or finding a replacement co-investor."
-        },
-        {
-          question: "Do you offer legal assistance for co-ownership?",
-          answer: "We provide basic templates and guidelines, but we are not a legal service. We recommend working with a qualified real estate attorney to create a binding co-ownership agreement that protects all parties' interests."
-        }
       ]
     },
     {

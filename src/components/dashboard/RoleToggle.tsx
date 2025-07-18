@@ -25,7 +25,7 @@ export function RoleToggle() {
       case 'seeker':
         return {
           title: 'Roommate Finder',
-          description: 'Find your ideal rental or co-ownership opportunity',
+          description: 'Find your ideal rental opportunity',
           icon: <User className="h-5 w-5 text-roomie-purple" />
         };
       case 'landlord':

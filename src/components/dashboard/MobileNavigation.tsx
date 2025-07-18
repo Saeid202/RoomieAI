@@ -30,7 +30,7 @@ export function MobileNavigation() {
   };
 
   const getBuyCoOwnRoute = () => {
-    return role === 'seeker' ? '/dashboard/co-owner-recommendations' : '/dashboard/developer';
+    return '/dashboard/developer';
   };
 
   return (

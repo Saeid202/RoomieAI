@@ -169,7 +169,7 @@ function getAIResponse(message: string): string {
   }
   
   if (lowerMessage.includes("buy") || lowerMessage.includes("purchase")) {
-    return "Interested in buying a property? Our co-ownership feature helps you find like-minded individuals to share the investment with and make homeownership more accessible.";
+    return "Browse our property listings to find rental opportunities that match your budget and preferences.";
   }
   
   return "I'm here to help with legal questions about real estate, tenant rights, landlord responsibilities, lease agreements, security deposits, and housing regulations. What would you like to know?";

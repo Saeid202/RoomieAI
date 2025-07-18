@@ -24,13 +24,9 @@ export function PreferenceSelectionSection({
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-1 gap-6 mt-4 mx-auto max-w-3xl">
-        <PreferenceCard
-          title="Co-owner"
-          description="I'm looking for someone to purchase property with me"
-          icon={Home}
-          selected={preference === "co-owner"}
-          onSelect={() => handlePreferenceSelect("co-owner")}
-        />
+        <div className="text-center text-gray-500 py-8">
+          <p>Co-owner functionality has been removed.</p>
+        </div>
       </div>
       
       <div className="flex justify-end mt-6">

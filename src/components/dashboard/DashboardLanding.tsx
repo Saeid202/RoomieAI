@@ -24,7 +24,7 @@ export function DashboardLanding() {
         <div>
           <h1 className="text-3xl font-bold mb-2">Welcome to Roomie AI</h1>
           <p className="text-muted-foreground">
-            Your intelligent roommate and co-ownership matching platform powered by advanced AI
+            Your intelligent roommate matching platform powered by advanced AI
           </p>
         </div>
       </div>
@@ -66,7 +66,7 @@ export function DashboardLanding() {
                     <h3 className="text-lg font-medium">About Roomie AI</h3>
                     <p>
                       Roomie AI is our advanced artificial intelligence system designed to revolutionize
-                      how people find compatible roommates and co-ownership partners. Using sophisticated 
+                      how people find compatible roommates. Using sophisticated 
                       algorithms and machine learning, Roomie AI analyzes over 20 compatibility factors 
                       including lifestyle habits, schedules, financial goals, and personal preferences.
                     </p>
@@ -103,7 +103,7 @@ export function DashboardLanding() {
                         <div>
                           <h4 className="font-medium">Dual Matching Systems</h4>
                           <p className="text-sm text-muted-foreground">
-                            Find roommates for rentals or co-owners for property investments
+                            Find roommates for rentals
                           </p>
                         </div>
                       </li>
@@ -208,7 +208,7 @@ export function DashboardLanding() {
                 )}
                 <div className="mt-4 text-sm text-muted-foreground">
                   <p>
-                    Learn how Roomie AI works and how it can help you find your perfect roommate or co-owner match. 
+                    Learn how Roomie AI works and how it can help you find your perfect roommate match. 
                     This short video explains our matching process and how to get the most out of our platform.
                   </p>
                 </div>
@@ -238,14 +238,14 @@ export function DashboardLanding() {
             <CardContent className="p-6">
               <div className="flex items-center gap-3 mb-4">
                 <Home className="h-6 w-6 text-primary" />
-                <h3 className="font-semibold text-lg">Co-Owner Matching</h3>
+                <h3 className="font-semibold text-lg">Property Listings</h3>
               </div>
               <p className="mb-4">
-                Ready to invest in real estate? Find reliable co-owners to share property investments
-                matched by financial goals, investment capacity, and risk tolerance.
+                Browse through verified property listings to find rental opportunities
+                and connect with landlords for your ideal housing solution.
               </p>
               <Button variant="default" asChild className="w-full">
-                <a href="/dashboard/co-owner-recommendations">Find Co-Owner Matches</a>
+                <a href="/dashboard/find-property">Browse Properties</a>
               </Button>
             </CardContent>
           </Card>
