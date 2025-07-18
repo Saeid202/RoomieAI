@@ -104,10 +104,12 @@ export default function AddPropertyPage() {
   };
 
   const handleImageUpload = (files: FileList | null) => {
+    console.log("handleImageUpload called with:", files);
     if (files) {
       const newImages = Array.from(files).filter(file => 
         file.type.startsWith('image/') && file.size <= 10 * 1024 * 1024 // 10MB limit
       );
+      console.log("Filtered images:", newImages);
       setFormData(prev => ({
         ...prev,
         images: [...prev.images, ...newImages].slice(0, 10) // Max 10 images
