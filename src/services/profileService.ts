@@ -76,7 +76,7 @@ export async function saveProfileData(
     const { id, ...dataWithoutId } = dbData;
     result = await supabase
       .from(tableName)
-      .update(dataWithoutId)
+      .update(dataWithoutId as any)
       .eq('user_id', userId);
   } else {
     // Insert new record

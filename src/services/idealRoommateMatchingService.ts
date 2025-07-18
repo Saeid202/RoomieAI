@@ -746,11 +746,11 @@ class IdealRoommateMatchingEngine {
       ),
       location: this.calculateLocationCompatibility(
         currentUser.preferredLocation || [],
-        candidate.preferred_location
+        Array.isArray(candidate.preferred_location) ? candidate.preferred_location : [candidate.preferred_location || ""]
       ),
       budget: this.calculateBudgetCompatibility(
         currentUser.budgetRange || [0, 0],
-        candidate.budget_range
+        Array.isArray(candidate.budget_range) ? candidate.budget_range : [900, 1500]
       ),
       smoking: this.calculateSmokingCompatibility(
         currentUser.smoking || false,
@@ -1022,7 +1022,7 @@ class IdealRoommateMatchingEngine {
       age: user.age?.toString() || "N/A",
       gender: user.gender || "Not specified",
       occupation: "Professional",
-      movingDate: user.move_in_date || "TBD",
+      movingDate: user.move_in_date_start || "TBD",
       budget: budgetArray,
       location: Array.isArray(user.preferred_location) 
         ? user.preferred_location.join(', ') || "Any location"

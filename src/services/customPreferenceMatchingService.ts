@@ -695,7 +695,7 @@ class CustomPreferenceMatchingEngine {
             if (currentUser.preferredLocation && currentUser.preferredLocation.length > 0) {
               const locationMatch = this.calculateLocationCompatibility(
                 currentUser.preferredLocation, 
-                candidate.preferred_location
+                Array.isArray(candidate.preferred_location) ? candidate.preferred_location[0] || "" : candidate.preferred_location || ""
               );
               // Hard filter: Location is critical - no tolerance for mismatch when MUST
               if (locationMatch < 70) {
@@ -709,7 +709,7 @@ class CustomPreferenceMatchingEngine {
             if (currentUser.budgetRange && currentUser.budgetRange.length === 2) {
               const budgetCompatibility = this.calculateBudgetCompatibility(
                 currentUser.budgetRange || [0, 0], 
-                candidate.budget_range
+                JSON.stringify(Array.isArray(candidate.budget_range) ? candidate.budget_range : [900, 1500])
               );
               // Hard filter: Budget overlap is essential when MUST
               if (budgetCompatibility < 60) {
@@ -821,11 +821,11 @@ class CustomPreferenceMatchingEngine {
       ),
       location: this.calculateLocationCompatibility(
         currentUser.preferredLocation || [], 
-        candidate.preferred_location
+        Array.isArray(candidate.preferred_location) ? candidate.preferred_location[0] || "" : candidate.preferred_location || ""
       ),
       budget: this.calculateBudgetCompatibility(
         currentUser.budgetRange || [0, 0], 
-        candidate.budget_range
+        JSON.stringify(Array.isArray(candidate.budget_range) ? candidate.budget_range : [900, 1500])
       ),
       housingType: this.calculateHousingTypeCompatibility(
         currentUser.housingType || '', 
@@ -1109,7 +1109,7 @@ class CustomPreferenceMatchingEngine {
   // Convert to standard MatchResult format for compatibility
   convertToMatchResult(customResult: CustomMatchResult): MatchResult {
     const user = customResult.user;
-    const budget = user.budget_range?.match(/\$?(\d+)-?\$?(\d+)?/);
+    const budget = typeof user.budget_range === 'string' ? user.budget_range.match(/\$?(\d+)-?\$?(\d+)?/) : null;
     const budgetArray = budget ? [parseInt(budget[1]), parseInt(budget[2] || budget[1])] : [0, 0];
 
     return {
@@ -1119,7 +1119,7 @@ class CustomPreferenceMatchingEngine {
       occupation: "Professional",
       movingDate: user.move_in_date_start || "TBD",
       budget: budgetArray,
-      location: user.preferred_location || "Any location",
+      location: Array.isArray(user.preferred_location) ? user.preferred_location[0] || "" : user.preferred_location || "",
       cleanliness: customResult.compatibilityAnalysis.cleanliness,
       pets: user.has_pets || false,
       smoking: user.smoking || false,

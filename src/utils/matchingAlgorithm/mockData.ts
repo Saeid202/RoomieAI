@@ -105,12 +105,7 @@ function getFallbackProperties(): MatchResult[] {
       interests: ["modern living", "city life"],
       traits: ["luxury", "convenient", "secure"],
       preferredLiving: "shareProperty",
-      propertyDetails: {
-        propertyType: "apartment",
-        bedrooms: 2,
-        bathrooms: 2,
-        address: "123 Main St, Downtown"
-      },
+      // propertyDetails removed as it's not in MatchResult type
       compatibilityScore: 89,
       compatibilityBreakdown: {
         budget: 14,

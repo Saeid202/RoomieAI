@@ -56,7 +56,7 @@ export async function fetchRoommateProfiles(): Promise<DatabaseRoommate[]> {
     return [];
   }
 
-  return data || [];
+  return data as any;
 }
 
 export async function fetchCoOwnerProfiles(): Promise<DatabaseCoOwner[]> {

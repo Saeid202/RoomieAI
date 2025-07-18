@@ -258,7 +258,7 @@ class EnhancedMatchingEngine {
   private calculateLocationCompatibility(user1: ProfileFormValues, user2: DatabaseUser): number {
     // Use preferredLocation array's first element as primary location
     const loc1 = user1.preferredLocation?.[0];
-    const loc2 = user2.preferred_location;
+    const loc2 = Array.isArray(user2.preferred_location) ? user2.preferred_location[0] || "" : user2.preferred_location || "";
 
     if (!loc1 || !loc2) return 50;
 
@@ -287,7 +287,7 @@ class EnhancedMatchingEngine {
   // Calculate budget compatibility
   private calculateBudgetCompatibility(user1: ProfileFormValues, user2: DatabaseUser): number {
     const budget1 = user1.budgetRange;
-    const budget2Str = user2.budget_range;
+    const budget2Str = typeof user2.budget_range === 'string' ? user2.budget_range : JSON.stringify(user2.budget_range);
 
     if (!budget1 || !budget2Str) return 50;
 
@@ -438,7 +438,7 @@ class EnhancedMatchingEngine {
   // Convert to existing MatchResult format for compatibility
   convertToMatchResult(enhancedResult: EnhancedMatchResult): MatchResult {
     const user = enhancedResult.user;
-    const budget = user.budget_range.match(/\$?(\d+)-?\$?(\d+)?/);
+    const budget = typeof user.budget_range === 'string' ? user.budget_range.match(/\$?(\d+)-?\$?(\d+)?/) : null;
     const budgetArray = budget ? [parseInt(budget[1]), parseInt(budget[2] || budget[1])] : [0, 0];
 
     return {
@@ -446,9 +446,9 @@ class EnhancedMatchingEngine {
       age: user.age.toString(),
       gender: user.gender,
       occupation: "Professional",
-      movingDate: user.move_in_date,
+      movingDate: user.move_in_date_start || "TBD",
       budget: budgetArray,
-      location: user.preferred_location,
+      location: Array.isArray(user.preferred_location) ? user.preferred_location[0] || "" : user.preferred_location || "",
       cleanliness: enhancedResult.compatibilityAnalysis.cleanliness,
       pets: user.has_pets,
       smoking: user.smoking,
