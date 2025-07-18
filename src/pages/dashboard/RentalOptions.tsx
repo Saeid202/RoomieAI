@@ -10,6 +10,7 @@ import { fetchProperties, Property } from "@/services/propertyService";
 export default function RentalOptionsPage() {
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState({
     location: "",
     minPrice: "",
@@ -18,6 +19,8 @@ export default function RentalOptionsPage() {
     property_type: ""
   });
 
+  console.log("RentalOptionsPage component rendered");
+
   useEffect(() => {
     loadProperties();
   }, []);
@@ -25,6 +28,7 @@ export default function RentalOptionsPage() {
   const loadProperties = async () => {
     try {
       setLoading(true);
+      setError(null);
       console.log("Loading properties with filters:", filters);
       const processedFilters = {
         location: filters.location || undefined,
@@ -39,6 +43,7 @@ export default function RentalOptionsPage() {
       setProperties(data);
     } catch (error) {
       console.error("Error loading properties:", error);
+      setError(error instanceof Error ? error.message : "Unknown error");
     } finally {
       setLoading(false);
     }
@@ -65,6 +70,8 @@ export default function RentalOptionsPage() {
     return typeMap[type] || type;
   };
 
+  console.log("About to render, loading:", loading, "properties:", properties.length, "error:", error);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between mb-6">
@@ -78,6 +85,7 @@ export default function RentalOptionsPage() {
       <Card className="bg-muted/50">
         <CardContent className="p-4">
           <p className="text-sm">Debug: Loading = {loading.toString()}, Properties count = {properties.length}</p>
+          {error && <p className="text-sm text-red-500">Error: {error}</p>}
           {properties.length > 0 && (
             <p className="text-sm">First property: {properties[0]?.listing_title}</p>
           )}
