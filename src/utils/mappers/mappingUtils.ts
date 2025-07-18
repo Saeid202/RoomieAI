@@ -60,9 +60,6 @@ export function mapHousingDbToForm(data: ProfileTableRow): Partial<ProfileFormVa
     result.moveInDateStart = safeDate(data.move_in_date_start);
   }
   
-  if ('move_in_date_end' in data) {
-    result.moveInDateEnd = safeDate(data.move_in_date_end);
-  }
   
   if ('housing_type' in data) {
     result.housingType = safeEnum(
@@ -266,7 +263,7 @@ export function mapHousingFormToDb(formData: ProfileFormValues): Partial<Profile
       ? formData.budgetRange.join('-') 
       : String(formData.budgetRange),
     move_in_date_start: formData.moveInDateStart.toISOString(),
-    move_in_date_end: formData.moveInDateEnd.toISOString(),
+    
     housing_type: formData.housingType,
     living_space: formData.livingSpace,
   };

@@ -44,7 +44,7 @@ export function AboutMeSection({
     preferredLocation: [],
     budgetRange: [800, 1500],
     moveInDateStart: new Date(),
-    moveInDateEnd: new Date(),
+    
     housingType: "apartment",
     livingSpace: "privateRoom",
     smoking: false,

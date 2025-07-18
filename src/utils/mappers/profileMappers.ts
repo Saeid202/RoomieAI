@@ -32,7 +32,7 @@ export function mapDbRowToFormValues(data: ProfileTableRow): Partial<ProfileForm
     preferredLocation: [],
     budgetRange: [800, 1500],
     moveInDateStart: new Date(),
-    moveInDateEnd: new Date(),
+    
     housingType: "apartment",
     livingSpace: "privateRoom",
     smoking: false,

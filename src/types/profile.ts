@@ -26,9 +26,6 @@ export const profileSchema = z.object({
   moveInDateStart: z.date({
     required_error: "Please select a move-in start date",
   }),
-  moveInDateEnd: z.date({
-    required_error: "Please select a move-in end date",
-  }),
   housingType: z.enum(["house", "apartment"]),
   livingSpace: z.enum(["privateRoom", "sharedRoom", "entirePlace"]),
   

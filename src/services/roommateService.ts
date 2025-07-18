@@ -74,9 +74,6 @@ export async function saveRoommateProfile(
     move_in_date_start: formData.moveInDateStart instanceof Date 
       ? formData.moveInDateStart.toISOString().split('T')[0] 
       : formData.moveInDateStart || null,
-    move_in_date_end: formData.moveInDateEnd instanceof Date 
-      ? formData.moveInDateEnd.toISOString().split('T')[0] 
-      : formData.moveInDateEnd || null,
     housing_type: formData.housingType || null,
     living_space: formData.livingSpace || null,
     smoking: formData.smoking || false,

@@ -144,41 +144,6 @@ export function HousingLifestyleTab({ form }: HousingLifestyleTabProps) {
             )}
           />
 
-          <FormField
-            control={form.control}
-            name="moveInDateEnd"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel><span className="font-bold">3.</span> Move-in End Date</FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full pl-3 text-left font-normal",
-                          !field.value && "text-muted-foreground"
-                        )}
-                      >
-                        {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={field.value}
-                      onSelect={field.onChange}
-                      disabled={(date) => date < new Date()}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -187,7 +152,7 @@ export function HousingLifestyleTab({ form }: HousingLifestyleTabProps) {
             name="housingType"
             render={({ field }) => (
               <FormItem>
-                <FormLabel><span className="font-bold">4.</span> Housing Type</FormLabel>
+                <FormLabel><span className="font-bold">3.</span> Housing Type</FormLabel>
                 <FormControl>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <SelectTrigger>
@@ -209,7 +174,7 @@ export function HousingLifestyleTab({ form }: HousingLifestyleTabProps) {
             name="livingSpace"
             render={({ field }) => (
               <FormItem>
-                <FormLabel><span className="font-bold">5.</span> Living Space</FormLabel>
+                <FormLabel><span className="font-bold">4.</span> Living Space</FormLabel>
                 <FormControl>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <SelectTrigger>
