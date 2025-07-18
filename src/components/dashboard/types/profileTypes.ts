@@ -59,8 +59,8 @@ export type ProfileTableRow = {
   phone_number?: string | null;
   email?: string | null;
   linkedin_profile?: string | null;
-  preferred_location?: string | null;
-  budget_range?: string | null;
+  preferred_location?: string | string[] | null;
+  budget_range?: string | number[] | null;
   move_in_date_start?: string | null;
   move_in_date_end?: string | null;
   move_in_date?: string | null; // Legacy field for compatibility

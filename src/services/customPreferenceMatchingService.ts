@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { ProfileFormValues } from "@/types/profile";
 import { MatchResult } from "@/utils/matchingAlgorithm/types";
+import { UserPreferences } from "@/types/preferences";
 
 export type PreferenceImportance = 'notImportant' | 'important' | 'must';
 
@@ -14,11 +15,9 @@ export interface DatabaseUser {
   email: string;
   phone_number: string;
   linkedin_profile?: string;
-  preferred_location: string;
-  budget_range: string;
+  preferred_location: string | string[];
+  budget_range: string | number[];
   move_in_date_start?: string;
-  move_in_date_end?: string;
-  move_in_date: string; // Legacy field for compatibility
   housing_type: string;
   living_space: string;
   smoking: boolean;
@@ -53,17 +52,17 @@ export interface DatabaseUser {
   smoking_preference?: string;
   
   // Importance fields for ideal roommate preferences
-  age_range_preference_importance?: PreferenceImportance;
-  gender_preference_importance?: PreferenceImportance;
-  nationality_preference_importance?: PreferenceImportance;
-  language_preference_importance?: PreferenceImportance;
-  dietary_preferences_importance?: PreferenceImportance;
-  occupation_preference_importance?: PreferenceImportance;
-  work_schedule_preference_importance?: PreferenceImportance;
-  ethnicity_preference_importance?: PreferenceImportance;
-  religion_preference_importance?: PreferenceImportance;
-  pet_preference_importance?: PreferenceImportance;
-  smoking_preference_importance?: PreferenceImportance;
+  age_range_preference_importance?: string;
+  gender_preference_importance?: string;
+  nationality_preference_importance?: string;
+  language_preference_importance?: string;
+  dietary_preferences_importance?: string;
+  occupation_preference_importance?: string;
+  work_schedule_preference_importance?: string;
+  ethnicity_preference_importance?: string;
+  religion_preference_importance?: string;
+  pet_preference_importance?: string;
+  smoking_preference_importance?: string;
   
   created_at: string;
   updated_at: string;
@@ -72,6 +71,7 @@ export interface DatabaseUser {
 export interface CustomMatchCriteria {
   currentUser: ProfileFormValues;
   currentUserId?: string;
+  userPreferences: UserPreferences;
   maxResults?: number;
   minScore?: number;
 }
@@ -1117,7 +1117,7 @@ class CustomPreferenceMatchingEngine {
       age: user.age?.toString() || "N/A",
       gender: user.gender || "Not specified",
       occupation: "Professional",
-      movingDate: user.move_in_date || "TBD",
+      movingDate: user.move_in_date_start || "TBD",
       budget: budgetArray,
       location: user.preferred_location || "Any location",
       cleanliness: customResult.compatibilityAnalysis.cleanliness,

@@ -9,11 +9,9 @@ export interface DatabaseUser {
   age: number;
   gender: string;
   phone_number: string;
-  preferred_location: string;
-  budget_range: string;
+  preferred_location: string | string[];
+  budget_range: string | number[];
   move_in_date_start?: string;
-  move_in_date_end?: string;
-  move_in_date: string; // Legacy field for compatibility
   housing_type: string;
   living_space: string;
   has_pets: boolean;

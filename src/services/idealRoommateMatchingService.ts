@@ -14,11 +14,11 @@ export interface DatabaseUser {
   email: string;
   phone_number: string;
   linkedin_profile?: string;
-  preferred_location: string[] | null;
-  budget_range: number[] | null;
+  preferred_location: string | string[] | null;
+  budget_range: string | number[] | null;
   move_in_date_start?: string;
   move_in_date_end?: string;
-  move_in_date: string; // Legacy field for compatibility
+  
   housing_type: string;
   living_space: string;
   smoking: boolean;

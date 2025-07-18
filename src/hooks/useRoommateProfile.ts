@@ -76,8 +76,7 @@ export function useRoommateProfile() {
                 // Fix: preferred_location is already a string[] array in database
                 preferredLocation: Array.isArray(data.preferred_location) ? data.preferred_location : [],
                 budgetRange: typeof data.budget_range === 'string' ? [900, 1500] : data.budget_range || [900, 1500],
-                moveInDateStart: data.move_in_date_start ? new Date(data.move_in_date_start) : (data.move_in_date ? new Date(data.move_in_date) : new Date()),
-                moveInDateEnd: data.move_in_date_end ? new Date(data.move_in_date_end) : (data.move_in_date ? new Date(data.move_in_date) : new Date()),
+                moveInDateStart: data.move_in_date_start ? new Date(data.move_in_date_start) : new Date(),
                 housingType: (data.housing_type as "apartment" | "house") || "apartment",
                 livingSpace: (data.living_space as "privateRoom" | "sharedRoom" | "entirePlace") || "privateRoom",
                 smoking: data.smoking || false,
@@ -189,7 +188,6 @@ export function useRoommateProfile() {
       budgetRange: [900, 1500],
       preferredLocation: [],
       moveInDateStart: new Date(),
-      moveInDateEnd: new Date(),
       housingType: "apartment",
       livingSpace: "privateRoom",
       smoking: false,
