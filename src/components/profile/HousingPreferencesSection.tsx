@@ -46,7 +46,7 @@ export function HousingPreferencesSection({ form }: HousingPreferencesSectionPro
         name="preferredLocation"
         render={() => (
           <FormItem>
-            <FormLabel>Preferred Locations (up to 15)</FormLabel>
+            <FormLabel><span className="font-bold">1.</span> Preferred Locations (up to 15)</FormLabel>
             <div className="space-y-2">
               <div className="flex gap-2">
                 <Input
@@ -88,79 +88,45 @@ export function HousingPreferencesSection({ form }: HousingPreferencesSectionPro
         )}
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <FormField
-          control={form.control}
-          name="moveInDateStart"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Move-in Start Date</FormLabel>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <FormControl>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full pl-3 text-left font-normal",
-                        !field.value && "text-muted-foreground"
-                      )}
-                    >
-                      {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
-                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={field.value}
-                    onSelect={field.onChange}
-                    disabled={(date) => date < new Date()}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="moveInDateEnd"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Move-in End Date</FormLabel>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <FormControl>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full pl-3 text-left font-normal",
-                        !field.value && "text-muted-foreground"
-                      )}
-                    >
-                      {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
-                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={field.value}
-                    onSelect={field.onChange}
-                    disabled={(date) => date < new Date()}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      </div>
+      <FormField
+        control={form.control}
+        name="moveInDateStart"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel><span className="font-bold">2.</span> Move-in Start Date</FormLabel>
+            <Popover>
+              <PopoverTrigger asChild>
+                <FormControl>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full pl-3 text-left font-normal",
+                      !field.value && "text-muted-foreground"
+                    )}
+                  >
+                    {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                  </Button>
+                </FormControl>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={field.value}
+                  onSelect={(date) => {
+                    field.onChange(date);
+                    // Auto-close the popover after selection
+                    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+                  }}
+                  disabled={(date) => date < new Date()}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <FormField
@@ -168,7 +134,7 @@ export function HousingPreferencesSection({ form }: HousingPreferencesSectionPro
           name="housingType"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Housing Type</FormLabel>
+              <FormLabel><span className="font-bold">3.</span> Housing Type</FormLabel>
               <FormControl>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <SelectTrigger>
@@ -190,7 +156,7 @@ export function HousingPreferencesSection({ form }: HousingPreferencesSectionPro
           name="livingSpace"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Living Space</FormLabel>
+              <FormLabel><span className="font-bold">4.</span> Living Space</FormLabel>
               <FormControl>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <SelectTrigger>

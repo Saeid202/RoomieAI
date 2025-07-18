@@ -18,7 +18,7 @@ const NATIONALITIES = [
 
 const LANGUAGES = [
   "English", "Spanish", "French", "German", "Italian", "Portuguese", "Chinese", 
-  "Japanese", "Arabic", "Hindi", "Russian", "Other"
+  "Japanese", "Arabic", "Hindi", "Russian", "Farsi", "Other"
 ];
 
 const ETHNICITIES = [
