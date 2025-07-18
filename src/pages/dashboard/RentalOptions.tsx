@@ -25,6 +25,7 @@ export default function RentalOptionsPage() {
   const loadProperties = async () => {
     try {
       setLoading(true);
+      console.log("Loading properties with filters:", filters);
       const processedFilters = {
         location: filters.location || undefined,
         minPrice: filters.minPrice ? parseInt(filters.minPrice) : undefined,
@@ -32,7 +33,9 @@ export default function RentalOptionsPage() {
         bedrooms: filters.bedrooms ? parseInt(filters.bedrooms) : undefined,
         property_type: filters.property_type || undefined,
       };
+      console.log("Processed filters:", processedFilters);
       const data = await fetchProperties(processedFilters);
+      console.log("Fetched properties:", data);
       setProperties(data);
     } catch (error) {
       console.error("Error loading properties:", error);
@@ -70,6 +73,16 @@ export default function RentalOptionsPage() {
           <p className="text-muted-foreground mt-1">Browse all available properties listed on our platform</p>
         </div>
       </div>
+
+      {/* Debug info */}
+      <Card className="bg-muted/50">
+        <CardContent className="p-4">
+          <p className="text-sm">Debug: Loading = {loading.toString()}, Properties count = {properties.length}</p>
+          {properties.length > 0 && (
+            <p className="text-sm">First property: {properties[0]?.listing_title}</p>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Filters */}
       <Card>
