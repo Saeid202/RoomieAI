@@ -31,10 +31,6 @@ interface PropertyFormData {
   leaseTerms: string;
   availableDate: string;
   furnished: string;
-  bedrooms: string;
-  bathrooms: string;
-  squareFootage: string;
-  yearBuilt: string;
   
   // Amenities
   amenities: string[];
@@ -63,10 +59,6 @@ const initialFormData: PropertyFormData = {
   leaseTerms: "",
   availableDate: "",
   furnished: "",
-  bedrooms: "",
-  bathrooms: "",
-  squareFootage: "",
-  yearBuilt: "",
   amenities: [],
   parking: "",
   petPolicy: "",
@@ -324,63 +316,6 @@ export default function AddPropertyPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="bedrooms">**6.** Bedrooms</Label>
-                <Select value={formData.bedrooms} onValueChange={(value) => handleInputChange("bedrooms", value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="0">Studio</SelectItem>
-                    <SelectItem value="1">1 Bedroom</SelectItem>
-                    <SelectItem value="2">2 Bedrooms</SelectItem>
-                    <SelectItem value="3">3 Bedrooms</SelectItem>
-                    <SelectItem value="4">4 Bedrooms</SelectItem>
-                    <SelectItem value="5+">5+ Bedrooms</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="bathrooms">**7.** Bathrooms</Label>
-                <Select value={formData.bathrooms} onValueChange={(value) => handleInputChange("bathrooms", value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="1">1 Bathroom</SelectItem>
-                    <SelectItem value="1.5">1.5 Bathrooms</SelectItem>
-                    <SelectItem value="2">2 Bathrooms</SelectItem>
-                    <SelectItem value="2.5">2.5 Bathrooms</SelectItem>
-                    <SelectItem value="3">3 Bathrooms</SelectItem>
-                    <SelectItem value="3+">3+ Bathrooms</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="squareFootage">**8.** Square Footage</Label>
-                <Input
-                  id="squareFootage"
-                  placeholder="1200"
-                  type="number"
-                  value={formData.squareFootage}
-                  onChange={(e) => handleInputChange("squareFootage", e.target.value)}
-                />
-              </div>
-              <div>
-                <Label htmlFor="yearBuilt">**9.** Year Built</Label>
-                <Input
-                  id="yearBuilt"
-                  placeholder="2010"
-                  type="number"
-                  value={formData.yearBuilt}
-                  onChange={(e) => handleInputChange("yearBuilt", e.target.value)}
-                />
-              </div>
-            </div>
           </div>
         );
 
