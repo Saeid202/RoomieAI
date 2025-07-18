@@ -63,6 +63,9 @@ export const profileSchema = z.object({
   roommateHobbies: z.array(z.string()).optional(),
   rentOption: z.enum(["findTogether", "joinExisting"]).optional(),
   
+  // New housing preference field
+  housingPreference: z.enum(["onlyRoommate", "sharingRoom", "sharingApartment", "sharingHouse", "singleOneBed", "twoBed", "entireHouse"]).optional(),
+  
   // Preference importance fields
   age_range_preference_importance: z.enum(["notImportant", "important", "must"]).optional(),
   gender_preference_importance: z.enum(["notImportant", "important", "must"]).optional(),
@@ -75,6 +78,7 @@ export const profileSchema = z.object({
   religion_preference_importance: z.enum(["notImportant", "important", "must"]).optional(),
   pet_preference_importance: z.enum(["notImportant", "important", "must"]).optional(),
   smoking_preference_importance: z.enum(["notImportant", "important", "must"]).optional(),
+  housing_preference_importance: z.enum(["notImportant", "important", "must"]).optional(),
 });
 
 export type ProfileFormValues = z.infer<typeof profileSchema>;

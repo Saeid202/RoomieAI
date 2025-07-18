@@ -1,3 +1,4 @@
+
 import { ReactNode } from "react";
 import { UseFormReturn } from "react-hook-form";
 import { ProfileFormValues } from "@/types/profile";
@@ -25,7 +26,8 @@ const PREFERENCE_IMPORTANCE_FIELD_MAP: Record<string, string> = {
   "ethnicityPreference": "ethnicity_preference_importance",
   "religionPreference": "religion_preference_importance",
   "petPreference": "pet_preference_importance",
-  "smokingPreference": "smoking_preference_importance"
+  "smokingPreference": "smoking_preference_importance",
+  "housingPreference": "housing_preference_importance"
 };
 
 export function PreferenceWithImportance({ 

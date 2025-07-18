@@ -567,6 +567,57 @@ export function PreferencesTab({ form, handleTraitToggle }: PreferencesTabProps)
             )}
           />
         </PreferenceWithImportance>
+
+        {/* Question 12: Housing */}
+        <PreferenceWithImportance
+          form={form}
+          preferenceKey="housingPreference"
+          title="Housing"
+        >
+          <FormField
+            control={form.control}
+            name="housingPreference"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-base font-bold">**12.** Housing</FormLabel>
+                <div className="space-y-3 mt-3">
+                  <FormControl>
+                    <RadioGroup onValueChange={field.onChange} value={field.value}>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="onlyRoommate" id="only-roommate" />
+                        <FormLabel htmlFor="only-roommate">Only roommate</FormLabel>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="sharingRoom" id="sharing-room" />
+                        <FormLabel htmlFor="sharing-room">A sharing room</FormLabel>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="sharingApartment" id="sharing-apartment" />
+                        <FormLabel htmlFor="sharing-apartment">A sharing apartment (Cando)</FormLabel>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="sharingHouse" id="sharing-house" />
+                        <FormLabel htmlFor="sharing-house">A sharing house</FormLabel>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="singleOneBed" id="single-one-bed" />
+                        <FormLabel htmlFor="single-one-bed">A single one bed (Cando)</FormLabel>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="twoBed" id="two-bed" />
+                        <FormLabel htmlFor="two-bed">Two Bed (Cando)</FormLabel>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="entireHouse" id="entire-house" />
+                        <FormLabel htmlFor="entire-house">Entire house or Cando</FormLabel>
+                      </div>
+                    </RadioGroup>
+                  </FormControl>
+                </div>
+              </FormItem>
+            )}
+          />
+        </PreferenceWithImportance>
       </div>
     </div>
   );

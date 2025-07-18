@@ -57,6 +57,7 @@ export function mapDbRowToFormValues(data: ProfileTableRow): Partial<ProfileForm
     workSchedulePreference: "noPreference",
     roommateHobbies: [],
     rentOption: "findTogether",
+    housingPreference: "onlyRoommate",
   };
   
   // Map different sections

@@ -134,7 +134,7 @@ export function HousingPreferencesSection({ form }: HousingPreferencesSectionPro
           name="housingType"
           render={({ field }) => (
             <FormItem>
-              <FormLabel><span className="font-bold">3.</span> Housing Type</FormLabel>
+              <FormLabel><span className="font-bold">3.</span> Housing Type (tell us what are you looking for)</FormLabel>
               <FormControl>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <SelectTrigger>
