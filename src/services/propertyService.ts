@@ -1,30 +1,54 @@
 
-// Import the original Supabase client that has access to all tables
-import { createClient } from "@supabase/supabase-js";
-
-// Create a client with full access for property operations
-const supabaseUrl = "https://yxppcpzqqolvkpzxuqfp.supabase.co";
-const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl4cHBjcHpxcW9sdmtwenh1cWZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTEwNDMzMzksImV4cCI6MjA2NjYxOTMzOX0.Lv4nPWSiqL_cK9trxSjfWWbjrDEPeU501_AW5M-k3dc";
-
-const supabaseClient = createClient(supabaseUrl, supabaseKey);
+import { supabase } from "@/integrations/supabase/client";
 
 export interface Property {
   id: string;
-  title: string;
-  description: string;
-  location: string;
-  price: number;
-  bedrooms: number;
-  bathrooms: number;
-  sqft: number;
-  images: string[];
-  amenities: string[];
-  available_date: string;
+  user_id: string;
+  
+  // Basic Information
   property_type: string;
-  lease_term: string;
-  user_id?: string;
-  created_at?: string;
-  updated_at?: string;
+  listing_title: string;
+  description: string;
+  
+  // Location Details
+  address: string;
+  city: string;
+  state: string;
+  zip_code: string;
+  neighborhood: string;
+  latitude?: number;
+  longitude?: number;
+  public_transport_access?: string;
+  nearby_amenities?: string[];
+  
+  // Rental Information  
+  monthly_rent: number;
+  security_deposit?: number;
+  lease_terms?: string;
+  available_date?: string;
+  furnished?: string;
+  
+  // Property Features
+  bedrooms?: number;
+  bathrooms?: number;
+  square_footage?: number;
+  year_built?: number;
+  property_condition?: string;
+  
+  // Amenities & Features
+  amenities?: string[];
+  parking?: string;
+  pet_policy?: string;
+  utilities_included?: string[];
+  
+  // Additional Info
+  special_instructions?: string;
+  roommate_preference?: string;
+  images?: string[];
+  
+  // Metadata
+  created_at: string;
+  updated_at: string;
 }
 
 export type PropertyType = "Apartment" | "House" | "Condo" | "Townhouse" | "Commercial" | "rent" | "sale";
@@ -49,11 +73,11 @@ export const PARKING_OPTIONS = [
   "Street Parking", "Garage", "Driveway", "No Parking", "Paid Parking"
 ];
 
-export async function getPropertiesByOwnerId(userId: string) {
+export async function getPropertiesByOwnerId(userId: string): Promise<Property[]> {
   console.log("Fetching properties for owner:", userId);
   
   try {
-    const { data, error } = await supabaseClient
+    const { data, error } = await supabase
       .from('properties')
       .select('*')
       .eq('user_id', userId)
@@ -85,19 +109,13 @@ export async function uploadPropertyImage(file: File): Promise<string> {
   return "/placeholder.svg";
 }
 
-export async function createProperty(propertyData: Omit<Property, 'id' | 'created_at' | 'updated_at'>) {
+export async function createProperty(propertyData: Omit<Property, 'id' | 'created_at' | 'updated_at'>): Promise<Property | null> {
   console.log("Creating property:", propertyData);
   
   try {
-    // Note: This assumes a 'properties' table exists. 
-    // If it doesn't exist, this will gracefully fail with an error message
-    const { data, error } = await supabaseClient
+    const { data, error } = await supabase
       .from('properties')
-      .insert({
-        ...propertyData,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
+      .insert(propertyData)
       .select()
       .single();
 
@@ -120,21 +138,21 @@ export async function fetchProperties(filters?: {
   maxPrice?: number;
   bedrooms?: number;
   property_type?: string;
-}) {
+}): Promise<Property[]> {
   console.log("Fetching properties with filters:", filters);
   
   try {
-    let query = supabaseClient.from('properties').select('*');
+    let query = supabase.from('properties').select('*');
 
     if (filters) {
       if (filters.location) {
-        query = query.ilike('location', `%${filters.location}%`);
+        query = query.or(`city.ilike.%${filters.location}%,state.ilike.%${filters.location}%`);
       }
       if (filters.minPrice) {
-        query = query.gte('price', filters.minPrice);
+        query = query.gte('monthly_rent', filters.minPrice);
       }
       if (filters.maxPrice) {
-        query = query.lte('price', filters.maxPrice);
+        query = query.lte('monthly_rent', filters.maxPrice);
       }
       if (filters.bedrooms) {
         query = query.eq('bedrooms', filters.bedrooms);
@@ -169,7 +187,7 @@ export async function fetchPropertyById(id: string) {
   console.log("Fetching property by ID:", id);
   
   try {
-    const { data, error } = await supabaseClient
+    const { data, error } = await supabase
       .from('properties')
       .select('*')
       .eq('id', id)
@@ -192,12 +210,9 @@ export async function updateProperty(id: string, updates: Partial<Property>) {
   console.log("Updating property:", id, updates);
   
   try {
-    const { data, error } = await supabaseClient
+    const { data, error } = await supabase
       .from('properties')
-      .update({
-        ...updates,
-        updated_at: new Date().toISOString(),
-      })
+      .update(updates)
       .eq('id', id)
       .select()
       .single();
@@ -219,7 +234,7 @@ export async function deleteProperty(id: string) {
   console.log("Deleting property:", id);
   
   try {
-    const { error } = await supabaseClient
+    const { error } = await supabase
       .from('properties')
       .delete()
       .eq('id', id);

@@ -22,14 +22,8 @@ interface PropertyFormData {
   state: string;
   zipCode: string;
   neighborhood: string;
-  
-  // Property Details
-  bedrooms: string;
-  bathrooms: string;
-  squareFootage: string;
-  lotSize: string;
-  yearBuilt: string;
-  propertyCondition: string;
+  publicTransportAccess?: string;
+  nearbyAmenities?: string[];
   
   // Rental Information
   monthlyRent: string;
@@ -37,6 +31,10 @@ interface PropertyFormData {
   leaseTerms: string;
   availableDate: string;
   furnished: string;
+  bedrooms: string;
+  bathrooms: string;
+  squareFootage: string;
+  yearBuilt: string;
   
   // Amenities
   amenities: string[];
@@ -58,17 +56,17 @@ const initialFormData: PropertyFormData = {
   state: "",
   zipCode: "",
   neighborhood: "",
-  bedrooms: "",
-  bathrooms: "",
-  squareFootage: "",
-  lotSize: "",
-  yearBuilt: "",
-  propertyCondition: "",
+  publicTransportAccess: "",
+  nearbyAmenities: [],
   monthlyRent: "",
   securityDeposit: "",
   leaseTerms: "",
   availableDate: "",
   furnished: "",
+  bedrooms: "",
+  bathrooms: "",
+  squareFootage: "",
+  yearBuilt: "",
   amenities: [],
   parking: "",
   petPolicy: "",
@@ -80,10 +78,9 @@ const initialFormData: PropertyFormData = {
 const steps = [
   { id: 1, title: "Basic Information", icon: Home },
   { id: 2, title: "Location Details", icon: MapPin },
-  { id: 3, title: "Property Details", icon: Home },
-  { id: 4, title: "Rental Information", icon: DollarSign },
-  { id: 5, title: "Amenities & Features", icon: CheckCircle },
-  { id: 6, title: "Photos & Final Details", icon: Camera }
+  { id: 3, title: "Rental Information", icon: DollarSign },
+  { id: 4, title: "Amenities & Features", icon: CheckCircle },
+  { id: 5, title: "Photos & Final Details", icon: Camera }
 ];
 
 export default function AddPropertyPage() {
@@ -118,10 +115,14 @@ export default function AddPropertyPage() {
     }
   };
 
-  const handleSubmit = () => {
-    console.log("Property form submitted:", formData);
-    // TODO: Submit to backend
-    navigate("/dashboard/landlord/properties");
+  const handleSubmit = async () => {
+    try {
+      // TODO: Implement property creation using propertyService
+      console.log("Property form submitted:", formData);
+      navigate("/dashboard/landlord/properties");
+    } catch (error) {
+      console.error("Error creating property:", error);
+    }
   };
 
   const renderStepContent = () => {
@@ -136,13 +137,13 @@ export default function AddPropertyPage() {
                   <SelectValue placeholder="Select property type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="apartment">Apartment</SelectItem>
-                  <SelectItem value="house">House</SelectItem>
-                  <SelectItem value="condo">Condo</SelectItem>
-                  <SelectItem value="townhouse">Townhouse</SelectItem>
+                  <SelectItem value="sharing-room">A sharing room</SelectItem>
+                  <SelectItem value="sharing-apartment">A sharing apartment (Cando)</SelectItem>
+                  <SelectItem value="sharing-house">A sharing house</SelectItem>
+                  <SelectItem value="single-one-bed">A single one bed (Cando)</SelectItem>
                   <SelectItem value="studio">Studio</SelectItem>
-                  <SelectItem value="room">Room</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
+                  <SelectItem value="two-bed">Two Bed (Cando)</SelectItem>
+                  <SelectItem value="entire-house">Entire house or Cando</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -224,88 +225,39 @@ export default function AddPropertyPage() {
                 />
               </div>
             </div>
+
+            <div>
+              <Label htmlFor="publicTransport">**6.** Public Transport Access</Label>
+              <Textarea
+                id="publicTransport"
+                placeholder="Describe nearby public transport options (bus stops, train stations, etc.)"
+                value={formData.publicTransportAccess || ""}
+                onChange={(e) => handleInputChange("publicTransportAccess", e.target.value)}
+              />
+            </div>
+
+            <div>
+              <Label>**7.** Nearby Amenities</Label>
+              <div className="grid grid-cols-2 gap-3 mt-2">
+                {[
+                  "Shopping Centers", "Restaurants", "Schools", "Hospitals",
+                  "Parks", "Gyms", "Banks", "Pharmacies"
+                ].map((amenity) => (
+                  <div key={amenity} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`nearby-${amenity}`}
+                      checked={formData.nearbyAmenities?.includes(amenity) || false}
+                      onCheckedChange={(checked) => handleArrayChange("nearbyAmenities", amenity, checked as boolean)}
+                    />
+                    <Label htmlFor={`nearby-${amenity}`} className="text-sm">{amenity}</Label>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         );
 
       case 3:
-        return (
-          <div className="space-y-6">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="bedrooms">**1.** Bedrooms</Label>
-                <Select value={formData.bedrooms} onValueChange={(value) => handleInputChange("bedrooms", value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="0">Studio</SelectItem>
-                    <SelectItem value="1">1 Bedroom</SelectItem>
-                    <SelectItem value="2">2 Bedrooms</SelectItem>
-                    <SelectItem value="3">3 Bedrooms</SelectItem>
-                    <SelectItem value="4">4 Bedrooms</SelectItem>
-                    <SelectItem value="5+">5+ Bedrooms</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="bathrooms">**2.** Bathrooms</Label>
-                <Select value={formData.bathrooms} onValueChange={(value) => handleInputChange("bathrooms", value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="1">1 Bathroom</SelectItem>
-                    <SelectItem value="1.5">1.5 Bathrooms</SelectItem>
-                    <SelectItem value="2">2 Bathrooms</SelectItem>
-                    <SelectItem value="2.5">2.5 Bathrooms</SelectItem>
-                    <SelectItem value="3">3 Bathrooms</SelectItem>
-                    <SelectItem value="3+">3+ Bathrooms</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="squareFootage">**3.** Square Footage</Label>
-                <Input
-                  id="squareFootage"
-                  placeholder="1200"
-                  type="number"
-                  value={formData.squareFootage}
-                  onChange={(e) => handleInputChange("squareFootage", e.target.value)}
-                />
-              </div>
-              <div>
-                <Label htmlFor="yearBuilt">**4.** Year Built</Label>
-                <Input
-                  id="yearBuilt"
-                  placeholder="2010"
-                  type="number"
-                  value={formData.yearBuilt}
-                  onChange={(e) => handleInputChange("yearBuilt", e.target.value)}
-                />
-              </div>
-            </div>
-
-            <div>
-              <Label htmlFor="propertyCondition">**5.** Property Condition</Label>
-              <Select value={formData.propertyCondition} onValueChange={(value) => handleInputChange("propertyCondition", value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select condition" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="excellent">Excellent</SelectItem>
-                  <SelectItem value="good">Good</SelectItem>
-                  <SelectItem value="fair">Fair</SelectItem>
-                  <SelectItem value="needs-work">Needs Work</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        );
-
-      case 4:
         return (
           <div className="space-y-6">
             <div className="grid grid-cols-2 gap-4">
@@ -371,10 +323,68 @@ export default function AddPropertyPage() {
                 </Select>
               </div>
             </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="bedrooms">**6.** Bedrooms</Label>
+                <Select value={formData.bedrooms} onValueChange={(value) => handleInputChange("bedrooms", value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="0">Studio</SelectItem>
+                    <SelectItem value="1">1 Bedroom</SelectItem>
+                    <SelectItem value="2">2 Bedrooms</SelectItem>
+                    <SelectItem value="3">3 Bedrooms</SelectItem>
+                    <SelectItem value="4">4 Bedrooms</SelectItem>
+                    <SelectItem value="5+">5+ Bedrooms</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="bathrooms">**7.** Bathrooms</Label>
+                <Select value={formData.bathrooms} onValueChange={(value) => handleInputChange("bathrooms", value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">1 Bathroom</SelectItem>
+                    <SelectItem value="1.5">1.5 Bathrooms</SelectItem>
+                    <SelectItem value="2">2 Bathrooms</SelectItem>
+                    <SelectItem value="2.5">2.5 Bathrooms</SelectItem>
+                    <SelectItem value="3">3 Bathrooms</SelectItem>
+                    <SelectItem value="3+">3+ Bathrooms</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="squareFootage">**8.** Square Footage</Label>
+                <Input
+                  id="squareFootage"
+                  placeholder="1200"
+                  type="number"
+                  value={formData.squareFootage}
+                  onChange={(e) => handleInputChange("squareFootage", e.target.value)}
+                />
+              </div>
+              <div>
+                <Label htmlFor="yearBuilt">**9.** Year Built</Label>
+                <Input
+                  id="yearBuilt"
+                  placeholder="2010"
+                  type="number"
+                  value={formData.yearBuilt}
+                  onChange={(e) => handleInputChange("yearBuilt", e.target.value)}
+                />
+              </div>
+            </div>
           </div>
         );
 
-      case 5:
+      case 4:
         return (
           <div className="space-y-6">
             <div>
@@ -448,7 +458,7 @@ export default function AddPropertyPage() {
           </div>
         );
 
-      case 6:
+      case 5:
         return (
           <div className="space-y-6">
             <div>
@@ -499,6 +509,7 @@ export default function AddPropertyPage() {
             </div>
           </div>
         );
+
 
       default:
         return null;

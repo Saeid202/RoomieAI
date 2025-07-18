@@ -116,6 +116,129 @@ export type Database = {
         }
         Relationships: []
       }
+      properties: {
+        Row: {
+          address: string
+          amenities: string[] | null
+          available_date: string | null
+          bathrooms: number | null
+          bedrooms: number | null
+          city: string
+          created_at: string
+          description: string | null
+          furnished: string | null
+          id: string
+          images: string[] | null
+          latitude: number | null
+          lease_terms: string | null
+          listing_title: string
+          longitude: number | null
+          monthly_rent: number
+          nearby_amenities: string[] | null
+          neighborhood: string | null
+          parking: string | null
+          pet_policy: string | null
+          property_condition: string | null
+          property_type: string
+          public_transport_access: string | null
+          roommate_preference: string | null
+          security_deposit: number | null
+          special_instructions: string | null
+          square_footage: number | null
+          state: string
+          updated_at: string
+          user_id: string
+          utilities_included: string[] | null
+          year_built: number | null
+          zip_code: string
+        }
+        Insert: {
+          address: string
+          amenities?: string[] | null
+          available_date?: string | null
+          bathrooms?: number | null
+          bedrooms?: number | null
+          city: string
+          created_at?: string
+          description?: string | null
+          furnished?: string | null
+          id?: string
+          images?: string[] | null
+          latitude?: number | null
+          lease_terms?: string | null
+          listing_title: string
+          longitude?: number | null
+          monthly_rent: number
+          nearby_amenities?: string[] | null
+          neighborhood?: string | null
+          parking?: string | null
+          pet_policy?: string | null
+          property_condition?: string | null
+          property_type: string
+          public_transport_access?: string | null
+          roommate_preference?: string | null
+          security_deposit?: number | null
+          special_instructions?: string | null
+          square_footage?: number | null
+          state: string
+          updated_at?: string
+          user_id: string
+          utilities_included?: string[] | null
+          year_built?: number | null
+          zip_code: string
+        }
+        Update: {
+          address?: string
+          amenities?: string[] | null
+          available_date?: string | null
+          bathrooms?: number | null
+          bedrooms?: number | null
+          city?: string
+          created_at?: string
+          description?: string | null
+          furnished?: string | null
+          id?: string
+          images?: string[] | null
+          latitude?: number | null
+          lease_terms?: string | null
+          listing_title?: string
+          longitude?: number | null
+          monthly_rent?: number
+          nearby_amenities?: string[] | null
+          neighborhood?: string | null
+          parking?: string | null
+          pet_policy?: string | null
+          property_condition?: string | null
+          property_type?: string
+          public_transport_access?: string | null
+          roommate_preference?: string | null
+          security_deposit?: number | null
+          special_instructions?: string | null
+          square_footage?: number | null
+          state?: string
+          updated_at?: string
+          user_id?: string
+          utilities_included?: string[] | null
+          year_built?: number | null
+          zip_code?: string
+        }
+        Relationships: []
+      }
+      Properties: {
+        Row: {
+          created_at: string
+          id: number
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+        }
+        Update: {
+          created_at?: string
+          id?: number
+        }
+        Relationships: []
+      }
       roommate: {
         Row: {
           age: number | null
