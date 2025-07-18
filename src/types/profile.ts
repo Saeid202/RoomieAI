@@ -64,7 +64,7 @@ export const profileSchema = z.object({
   rentOption: z.enum(["findTogether", "joinExisting"]).optional(),
   
   // New housing preference field
-  housingPreference: z.enum(["onlyRoommate", "sharingRoom", "sharingApartment", "sharingHouse", "singleOneBed", "twoBed", "entireHouse"]).optional(),
+  housingPreference: z.array(z.enum(["onlyRoommate", "sharingRoom", "sharingApartment", "sharingHouse", "singleOneBed", "twoBed", "entireHouse"])).optional(),
   
   // Preference importance fields
   age_range_preference_importance: z.enum(["notImportant", "important", "must"]).optional(),

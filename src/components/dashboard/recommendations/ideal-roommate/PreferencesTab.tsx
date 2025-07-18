@@ -582,36 +582,113 @@ export function PreferencesTab({ form, handleTraitToggle }: PreferencesTabProps)
                 <FormLabel className="text-base font-bold">**12.** Housing</FormLabel>
                 <div className="space-y-3 mt-3">
                   <FormControl>
-                    <RadioGroup onValueChange={field.onChange} value={field.value}>
+                    <div className="flex flex-col space-y-2">
                       <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="onlyRoommate" id="only-roommate" />
+                        <Checkbox
+                          id="only-roommate"
+                          checked={field.value?.includes("onlyRoommate") || false}
+                          onCheckedChange={(checked) => {
+                            const currentValue = field.value || [];
+                            if (checked) {
+                              field.onChange([...currentValue, "onlyRoommate"]);
+                            } else {
+                              field.onChange(currentValue.filter((v) => v !== "onlyRoommate"));
+                            }
+                          }}
+                        />
                         <FormLabel htmlFor="only-roommate">Only roommate</FormLabel>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="sharingRoom" id="sharing-room" />
+                        <Checkbox
+                          id="sharing-room"
+                          checked={field.value?.includes("sharingRoom") || false}
+                          onCheckedChange={(checked) => {
+                            const currentValue = field.value || [];
+                            if (checked) {
+                              field.onChange([...currentValue, "sharingRoom"]);
+                            } else {
+                              field.onChange(currentValue.filter((v) => v !== "sharingRoom"));
+                            }
+                          }}
+                        />
                         <FormLabel htmlFor="sharing-room">A sharing room</FormLabel>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="sharingApartment" id="sharing-apartment" />
+                        <Checkbox
+                          id="sharing-apartment"
+                          checked={field.value?.includes("sharingApartment") || false}
+                          onCheckedChange={(checked) => {
+                            const currentValue = field.value || [];
+                            if (checked) {
+                              field.onChange([...currentValue, "sharingApartment"]);
+                            } else {
+                              field.onChange(currentValue.filter((v) => v !== "sharingApartment"));
+                            }
+                          }}
+                        />
                         <FormLabel htmlFor="sharing-apartment">A sharing apartment (Cando)</FormLabel>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="sharingHouse" id="sharing-house" />
+                        <Checkbox
+                          id="sharing-house"
+                          checked={field.value?.includes("sharingHouse") || false}
+                          onCheckedChange={(checked) => {
+                            const currentValue = field.value || [];
+                            if (checked) {
+                              field.onChange([...currentValue, "sharingHouse"]);
+                            } else {
+                              field.onChange(currentValue.filter((v) => v !== "sharingHouse"));
+                            }
+                          }}
+                        />
                         <FormLabel htmlFor="sharing-house">A sharing house</FormLabel>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="singleOneBed" id="single-one-bed" />
+                        <Checkbox
+                          id="single-one-bed"
+                          checked={field.value?.includes("singleOneBed") || false}
+                          onCheckedChange={(checked) => {
+                            const currentValue = field.value || [];
+                            if (checked) {
+                              field.onChange([...currentValue, "singleOneBed"]);
+                            } else {
+                              field.onChange(currentValue.filter((v) => v !== "singleOneBed"));
+                            }
+                          }}
+                        />
                         <FormLabel htmlFor="single-one-bed">A single one bed (Cando)</FormLabel>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="twoBed" id="two-bed" />
+                        <Checkbox
+                          id="two-bed"
+                          checked={field.value?.includes("twoBed") || false}
+                          onCheckedChange={(checked) => {
+                            const currentValue = field.value || [];
+                            if (checked) {
+                              field.onChange([...currentValue, "twoBed"]);
+                            } else {
+                              field.onChange(currentValue.filter((v) => v !== "twoBed"));
+                            }
+                          }}
+                        />
                         <FormLabel htmlFor="two-bed">Two Bed (Cando)</FormLabel>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="entireHouse" id="entire-house" />
+                        <Checkbox
+                          id="entire-house"
+                          checked={field.value?.includes("entireHouse") || false}
+                          onCheckedChange={(checked) => {
+                            const currentValue = field.value || [];
+                            if (checked) {
+                              field.onChange([...currentValue, "entireHouse"]);
+                            } else {
+                              field.onChange(currentValue.filter((v) => v !== "entireHouse"));
+                            }
+                          }}
+                        />
                         <FormLabel htmlFor="entire-house">Entire house or Cando</FormLabel>
                       </div>
-                    </RadioGroup>
+                    </div>
                   </FormControl>
                 </div>
               </FormItem>
