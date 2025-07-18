@@ -30,7 +30,7 @@ export function LifestyleHabitsSection({
           name="smoking"
           render={({ field }) => (
             <FormItem className="space-y-3">
-              <FormLabel className="text-base font-semibold"><span className="font-bold">5.</span> Do you smoke?</FormLabel>
+              <FormLabel className="text-base font-semibold"><span className="font-bold">6.</span> Do you smoke?</FormLabel>
               <FormControl>
                 <RadioGroup 
                   onValueChange={(value) => field.onChange(value === "true")} 
@@ -61,7 +61,7 @@ export function LifestyleHabitsSection({
           name="livesWithSmokers"
           render={({ field }) => (
             <FormItem className="space-y-3">
-              <FormLabel className="text-base font-semibold"><span className="font-bold">6.</span> Are you comfortable living with smokers?</FormLabel>
+              <FormLabel className="text-base font-semibold"><span className="font-bold">7.</span> Are you comfortable living with smokers?</FormLabel>
               <FormControl>
                 <RadioGroup 
                   onValueChange={(value) => field.onChange(value === "true")} 
@@ -92,7 +92,7 @@ export function LifestyleHabitsSection({
           name="hasPets"
           render={({ field }) => (
             <FormItem className="space-y-3">
-              <FormLabel className="text-base font-semibold"><span className="font-bold">7.</span> Do you have pets?</FormLabel>
+              <FormLabel className="text-base font-semibold"><span className="font-bold">8.</span> Do you have pets?</FormLabel>
               <FormControl>
                 <RadioGroup 
                   onValueChange={(value) => field.onChange(value === "true")} 
@@ -120,7 +120,7 @@ export function LifestyleHabitsSection({
       </div>
 
       <div>
-        <FormLabel className="text-base mb-4 block font-semibold"><span className="font-bold">8.</span> Hobbies & Interests</FormLabel>
+        <FormLabel className="text-base mb-4 block font-semibold"><span className="font-bold">9.</span> Hobbies & Interests</FormLabel>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
           {hobbiesList.map((hobby) => (
             <Badge
