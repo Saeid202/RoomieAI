@@ -139,6 +139,8 @@ export type Database = {
           gender_preference_importance: string | null
           has_pets: boolean | null
           hobbies: string[] | null
+          housing_preference: string[] | null
+          housing_preference_importance: string | null
           housing_type: string | null
           id: string
           important_roommate_traits: string[] | null
@@ -208,6 +210,8 @@ export type Database = {
           gender_preference_importance?: string | null
           has_pets?: boolean | null
           hobbies?: string[] | null
+          housing_preference?: string[] | null
+          housing_preference_importance?: string | null
           housing_type?: string | null
           id?: string
           important_roommate_traits?: string[] | null
@@ -277,6 +281,8 @@ export type Database = {
           gender_preference_importance?: string | null
           has_pets?: boolean | null
           hobbies?: string[] | null
+          housing_preference?: string[] | null
+          housing_preference_importance?: string | null
           housing_type?: string | null
           id?: string
           important_roommate_traits?: string[] | null
