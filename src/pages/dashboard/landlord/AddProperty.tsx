@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, ArrowRight, Home, MapPin, DollarSign, Camera, FileText, CheckCircle } from "lucide-react";
+import { ArrowLeft, ArrowRight, Home, MapPin, DollarSign, Camera, FileText, CheckCircle, X, Upload } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface PropertyFormData {
@@ -41,6 +41,7 @@ interface PropertyFormData {
   // Additional Info
   specialInstructions: string;
   roommatePreference: string;
+  images: File[];
 }
 
 const initialFormData: PropertyFormData = {
@@ -64,7 +65,8 @@ const initialFormData: PropertyFormData = {
   petPolicy: "",
   utilitiesIncluded: [],
   specialInstructions: "",
-  roommatePreference: ""
+  roommatePreference: "",
+  images: []
 };
 
 const steps = [
@@ -99,6 +101,25 @@ export default function AddPropertyPage() {
     if (currentStep < steps.length) {
       setCurrentStep(prev => prev + 1);
     }
+  };
+
+  const handleImageUpload = (files: FileList | null) => {
+    if (files) {
+      const newImages = Array.from(files).filter(file => 
+        file.type.startsWith('image/') && file.size <= 10 * 1024 * 1024 // 10MB limit
+      );
+      setFormData(prev => ({
+        ...prev,
+        images: [...prev.images, ...newImages].slice(0, 10) // Max 10 images
+      }));
+    }
+  };
+
+  const removeImage = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index)
+    }));
   };
 
   const prevStep = () => {
@@ -424,15 +445,56 @@ export default function AddPropertyPage() {
               />
             </div>
 
-            <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center">
-              <Camera className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium mb-2">**3.** Property Photos</h3>
-              <p className="text-muted-foreground mb-4">
-                Upload high-quality photos of your property (Coming Soon)
-              </p>
-              <Button variant="outline" disabled>
-                Upload Photos
-              </Button>
+            <div>
+              <Label>**3.** Property Photos</Label>
+              <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6">
+                <div className="text-center mb-4">
+                  <Camera className="mx-auto h-12 w-12 text-muted-foreground mb-2" />
+                  <p className="text-muted-foreground mb-4">
+                    Upload high-quality photos of your property (up to 10 images, max 10MB each)
+                  </p>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => document.getElementById('photo-upload')?.click()}
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    Upload Photos
+                  </Button>
+                  <input
+                    id="photo-upload"
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => handleImageUpload(e.target.files)}
+                  />
+                </div>
+                
+                {formData.images.length > 0 && (
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4">
+                    {formData.images.map((image, index) => (
+                      <div key={index} className="relative group">
+                        <img
+                          src={URL.createObjectURL(image)}
+                          alt={`Property photo ${index + 1}`}
+                          className="w-full h-24 object-cover rounded-lg border"
+                        />
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          className="absolute top-1 right-1 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={() => removeImage(index)}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                        <p className="text-xs text-muted-foreground mt-1 truncate">
+                          {image.name}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="bg-muted/50 rounded-lg p-4">
