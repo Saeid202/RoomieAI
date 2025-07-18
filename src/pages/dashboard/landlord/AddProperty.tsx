@@ -9,6 +9,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, ArrowRight, Home, MapPin, DollarSign, Camera, FileText, CheckCircle, X, Upload } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { createProperty } from "@/services/propertyService";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface PropertyFormData {
   // Basic Info
@@ -132,11 +135,63 @@ export default function AddPropertyPage() {
 
   const handleSubmit = async () => {
     try {
-      // TODO: Implement property creation using propertyService
-      console.log("Property form submitted:", formData);
-      navigate("/dashboard/landlord/properties");
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("You must be logged in to create a property");
+        return;
+      }
+
+      // Validate required fields
+      if (!formData.propertyType || !formData.listingTitle || !formData.address || 
+          !formData.city || !formData.state || !formData.zipCode || !formData.monthlyRent) {
+        toast.error("Please fill in all required fields");
+        return;
+      }
+
+      // TODO: Upload images to storage (placeholder for now)
+      const imageUrls: string[] = [];
+      
+      // Prepare property data for database
+      const propertyData = {
+        user_id: user.id,
+        property_type: formData.propertyType,
+        listing_title: formData.listingTitle,
+        description: formData.description || null,
+        address: formData.address,
+        city: formData.city,
+        state: formData.state,
+        zip_code: formData.zipCode,
+        neighborhood: formData.neighborhood || null,
+        public_transport_access: formData.publicTransportAccess || null,
+        nearby_amenities: formData.nearbyAmenities || [],
+        monthly_rent: parseFloat(formData.monthlyRent),
+        security_deposit: formData.securityDeposit ? parseFloat(formData.securityDeposit) : null,
+        lease_terms: formData.leaseTerms || null,
+        available_date: formData.availableDate || null,
+        furnished: formData.furnished || null,
+        amenities: formData.amenities || [],
+        parking: formData.parking || null,
+        pet_policy: formData.petPolicy || null,
+        utilities_included: formData.utilitiesIncluded || [],
+        special_instructions: formData.specialInstructions || null,
+        roommate_preference: formData.roommatePreference || null,
+        images: imageUrls
+      };
+
+      console.log("Submitting property data:", propertyData);
+      
+      const result = await createProperty(propertyData);
+      
+      if (result) {
+        toast.success("Property listed successfully!");
+        navigate("/dashboard/landlord/properties");
+      } else {
+        toast.error("Failed to create property");
+      }
     } catch (error) {
       console.error("Error creating property:", error);
+      toast.error("An error occurred while creating the property");
     }
   };
 
