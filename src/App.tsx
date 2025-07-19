@@ -16,7 +16,7 @@ import LGBTQMatchingPage from "@/pages/dashboard/LGBTQMatching";
 import LandlordDashboardPage from "@/pages/dashboard/landlord/LandlordDashboard";
 import PropertiesPage from "@/pages/dashboard/landlord/Properties";
 import ApplicationsPage from "@/pages/dashboard/landlord/Applications";
-import AddPropertyPage from "@/pages/dashboard/landlordpage/AddProperty";
+import AddPropertyPage from "@/pages/dashboard/landlord/AddProperty";
 import FindPropertyPage from "@/pages/dashboard/FindProperty";
 import AuthPage from "@/pages/Auth";
 import Callback from "@/pages/auth/Callback";
