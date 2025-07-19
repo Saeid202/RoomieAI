@@ -72,8 +72,12 @@ export default function RentalOptionsPage() {
 
   console.log("About to render, loading:", loading, "properties:", properties.length, "error:", error);
 
+  if (error) {
+    console.error("RentalOptionsPage - Rendering with error:", error);
+  }
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-4 md:p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Rental Options</h1>
