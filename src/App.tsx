@@ -42,7 +42,8 @@ function AppRoutes() {
   if (!loading && user) {
     return (
       <Routes>
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/" element={<HomePage />} />
+        <Route path="/rental-options" element={<RentalOptionsPage />} />
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/auth/callback" element={<Callback />} />
         <Route path="/dashboard" element={
