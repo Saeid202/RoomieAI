@@ -16,7 +16,7 @@ import LGBTQMatchingPage from "@/pages/dashboard/LGBTQMatching";
 import LandlordDashboardPage from "@/pages/dashboard/landlord/LandlordDashboard";
 import PropertiesPage from "@/pages/dashboard/landlord/Properties";
 import ApplicationsPage from "@/pages/dashboard/landlord/Applications";
-import AddPropertyPage from "@/pages/dashboard/landlord/AddProperty";
+import AddPropertyPage from "@/pages/dashboard/landlordpage/AddProperty";
 import FindPropertyPage from "@/pages/dashboard/FindProperty";
 import AuthPage from "@/pages/Auth";
 import Callback from "@/pages/auth/Callback";
@@ -38,56 +38,15 @@ import { useAuth } from "@/hooks/useAuth";
 function AppRoutes() {
   const { user, loading } = useAuth();
   
-  // If user is authenticated, redirect from root to dashboard
-  if (!loading && user) {
-    return (
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/rental-options" element={<RentalOptionsPage />} />
-        <Route path="/auth" element={<AuthPage />} />
-        <Route path="/auth/callback" element={<Callback />} />
-        <Route path="/dashboard" element={
-          <ProtectedRoute>
-            <Dashboard />
-          </ProtectedRoute>
-        }>
-          <Route path="profile" element={<Profile />} />
-          <Route path="matches" element={<MatchesPage />} />
-          <Route path="roommate-recommendations" element={<RoommateRecommendationsPage />} />
-          <Route path="rental-options" element={<RentalOptionsPage />} />
-          <Route path="plan-ahead-matching" element={<PlanAheadMatchingPage />} />
-          <Route path="opposite-schedule" element={<OppositeSchedulePage />} />
-          <Route path="short-term" element={<ShortTermPage />} />
-          <Route path="group-matching" element={<GroupMatchingPage />} />
-          <Route path="work-exchange" element={<WorkExchangePage />} />
-          <Route path="lgbtq-matching" element={<LGBTQMatchingPage />} />
-          <Route path="landlord" element={<LandlordDashboardPage />} />
-          <Route path="landlord/properties" element={<PropertiesPage />} />
-          <Route path="landlord/applications" element={<ApplicationsPage />} />
-          <Route path="landlord/add-property" element={<AddPropertyPage />} />
-          <Route path="rent-opportunities" element={<RentOpportunitiesPage />} />
-          <Route path="find-property" element={<FindPropertyPage />} />
-          <Route path="chats" element={<ChatsPage />} />
-          <Route path="messenger" element={<MessengerPage />} />
-          <Route path="rent-savings" element={<RentSavingsPage />} />
-          <Route path="legal-assistant" element={<LegalAssistantPage />} />
-
-          <Route path="settings" element={<SettingsPage />} />
-          <Route path="admin" element={<AdminHomePage />} />
-          <Route path="admin/pages" element={<PagesPage />} />
-          <Route path="admin/users" element={<UsersPage />} />
-          <Route path="admin/settings" element={<SettingsPage />} />
-        </Route>
-      </Routes>
-    );
-  }
-  
-  // If user is not authenticated, show normal routes
   return (
     <Routes>
+      {/* Public routes - accessible to everyone */}
       <Route path="/" element={<HomePage />} />
+      <Route path="/rental-options" element={<RentalOptionsPage />} />
       <Route path="/auth" element={<AuthPage />} />
       <Route path="/auth/callback" element={<Callback />} />
+      
+      {/* Protected dashboard routes */}
       <Route path="/dashboard" element={
         <ProtectedRoute>
           <Dashboard />
@@ -113,7 +72,6 @@ function AppRoutes() {
         <Route path="messenger" element={<MessengerPage />} />
         <Route path="rent-savings" element={<RentSavingsPage />} />
         <Route path="legal-assistant" element={<LegalAssistantPage />} />
-
         <Route path="settings" element={<SettingsPage />} />
         <Route path="admin" element={<AdminHomePage />} />
         <Route path="admin/pages" element={<PagesPage />} />

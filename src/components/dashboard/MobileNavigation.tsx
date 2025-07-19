@@ -2,6 +2,7 @@
 import { Home, Search, PlusCircle, Building, User, MessageSquare, Users, Settings, Calendar, Clock, List, MapPin, Group, Briefcase, Flag, Scale } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useRole } from "@/contexts/RoleContext";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { useState } from "react";
@@ -9,14 +10,26 @@ import { useState } from "react";
 export function MobileNavigation() {
   const location = useLocation();
   const { role } = useRole();
+  const { user } = useAuth();
   const [isAddMenuOpen, setIsAddMenuOpen] = useState(false);
 
   const isActive = (path: string) => {
     return location.pathname === path || location.pathname.startsWith(path + '/');
   };
 
-  // Get navigation items based on role - matching desktop sidebars exactly
+  // Get navigation items based on role and authentication status
   const getNavigationItems = () => {
+    // If user is not authenticated, show public navigation
+    if (!user) {
+      return [
+        { icon: <Home size={22} />, label: "Home", to: "/" },
+        { icon: <Building size={22} />, label: "Rentals", to: "/rental-options" },
+        { icon: <MessageSquare size={22} />, label: "About", to: "/" },
+        { icon: <User size={22} />, label: "Login", to: "/auth" }
+      ];
+    }
+
+    // Authenticated user navigation based on role
     switch (role) {
       case 'landlord':
         return [
@@ -48,15 +61,18 @@ export function MobileNavigation() {
   };
 
   const navItems = getNavigationItems();
-  const firstTwoItems = navItems.slice(0, 2); // First 2 items
-  const lastTwoItems = navItems.slice(2, 4); // Next 2 items
+  const firstTwoItems = navItems.slice(0, 2);
+  const lastTwoItems = navItems.slice(2, 4);
+
+  // Don't show mobile navigation on auth pages
+  if (location.pathname.startsWith('/auth')) {
+    return null;
+  }
 
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-white via-white to-white/95 backdrop-blur-sm border-t border-border/20 z-40 md:hidden pb-safe">
-      {/* Modern glass morphism navigation bar */}
       <div className="px-2 py-3">
         <div className="grid grid-cols-5 gap-1 max-w-sm mx-auto">
-          {/* First 2 navigation items */}
           {firstTwoItems.map((item, index) => (
             <NavItem 
               key={index}
@@ -67,14 +83,22 @@ export function MobileNavigation() {
             />
           ))}
           
-          {/* Add button in the center */}
-          <AddButton 
-            isOpen={isAddMenuOpen}
-            setIsOpen={setIsAddMenuOpen}
-            role={role as string}
-          />
+          {/* Add button in the center - only show for authenticated users */}
+          {user ? (
+            <AddButton 
+              isOpen={isAddMenuOpen}
+              setIsOpen={setIsAddMenuOpen}
+              role={role as string}
+            />
+          ) : (
+            <div className="flex flex-col items-center justify-center py-2">
+              <div className="w-12 h-12 rounded-2xl bg-muted flex items-center justify-center">
+                <Search size={20} className="text-muted-foreground" />
+              </div>
+              <span className="text-xs font-medium text-muted-foreground mt-1">Search</span>
+            </div>
+          )}
           
-          {/* Last 2 navigation items */}
           {lastTwoItems.map((item, index) => (
             <NavItem 
               key={index + 2}
@@ -87,7 +111,6 @@ export function MobileNavigation() {
         </div>
       </div>
       
-      {/* Safe area indicator */}
       <div className="h-safe bg-white"></div>
     </div>
   );
@@ -134,7 +157,6 @@ function NavItem({
         {label}
       </span>
       
-      {/* Active indicator */}
       {isActive && (
         <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-primary rounded-full animate-pulse" />
       )}
@@ -190,7 +212,6 @@ function AddButton({
           >
             <PlusCircle size={26} className="drop-shadow-sm" />
             
-            {/* Floating animation */}
             <div className="absolute inset-0 rounded-2xl bg-primary/20 animate-ping" />
           </Button>
           <span className="text-xs font-medium text-foreground mt-2">Add</span>
