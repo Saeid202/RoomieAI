@@ -104,9 +104,14 @@ function NavItem({
   to: string, 
   isActive: boolean 
 }) {
+  const handleClick = () => {
+    console.log(`NavItem clicked: ${label} -> ${to}`);
+  };
+
   return (
     <Link 
       to={to} 
+      onClick={handleClick}
       className={`
         relative flex flex-col items-center justify-center 
         py-2 px-3 rounded-xl transition-all duration-300 active:scale-95
