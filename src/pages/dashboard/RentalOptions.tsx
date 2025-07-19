@@ -76,6 +76,8 @@ export default function RentalOptionsPage() {
     console.error("RentalOptionsPage - Rendering with error:", error);
   }
 
+  console.log("RentalOptionsPage render - About to return JSX");
+  
   return (
     <div className="space-y-6 p-4 md:p-6">
       <div className="flex items-center justify-between mb-6">

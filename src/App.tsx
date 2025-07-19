@@ -38,6 +38,8 @@ import { useAuth } from "@/hooks/useAuth";
 function AppRoutes() {
   const { user, loading } = useAuth();
   
+  console.log("AppRoutes rendering, user:", user, "loading:", loading);
+  
   return (
     <Routes>
       {/* Public routes - accessible to everyone */}
