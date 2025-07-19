@@ -23,7 +23,6 @@ export function MobileNavigation() {
     if (!user) {
       return [
         { icon: <Home size={22} />, label: "Home", to: "/" },
-        { icon: <Building size={22} />, label: "Rent", to: "/rental-options" },
         { icon: <MessageSquare size={22} />, label: "About", to: "/" },
         { icon: <User size={22} />, label: "Login", to: "/auth" }
       ];
@@ -53,7 +52,6 @@ export function MobileNavigation() {
         return [
           { icon: <Home size={22} />, label: "Dashboard", to: "/dashboard" },
           { icon: <Users size={22} />, label: "Matches", to: "/dashboard/matches" },
-          { icon: <Building size={22} />, label: "Rent", to: "/dashboard/rental-options" },
           { icon: <MessageSquare size={22} />, label: "Legal AI", to: "/dashboard/chats" },
           { icon: <Settings size={22} />, label: "Settings", to: "/dashboard/settings" }
         ];
@@ -61,8 +59,12 @@ export function MobileNavigation() {
   };
 
   const navItems = getNavigationItems();
+  
+  // For non-authenticated users: 3 items, no Add button
+  // For authenticated users: 4 items + Add button in center
+  const gridCols = !user ? "grid-cols-3" : "grid-cols-5";
   const firstTwoItems = navItems.slice(0, 2);
-  const lastTwoItems = navItems.slice(2, 4);
+  const lastItems = navItems.slice(2);
 
   // Don't show mobile navigation on auth pages
   if (location.pathname.startsWith('/auth')) {
@@ -72,7 +74,7 @@ export function MobileNavigation() {
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-white via-white to-white/95 backdrop-blur-sm border-t border-border/20 z-40 md:hidden pb-safe">
       <div className="px-2 py-3">
-        <div className="grid grid-cols-5 gap-1 max-w-sm mx-auto">
+        <div className={`${gridCols} gap-1 max-w-sm mx-auto grid`}>
           {firstTwoItems.map((item, index) => (
             <NavItem 
               key={index}
@@ -99,15 +101,29 @@ export function MobileNavigation() {
             </div>
           )}
           
-          {lastTwoItems.map((item, index) => (
-            <NavItem 
-              key={index + 2}
-              icon={item.icon} 
-              label={item.label} 
-              to={item.to}
-              isActive={isActive(item.to)}
-            />
-          ))}
+          {user ? (
+            // Authenticated: show last 2 items after Add button  
+            lastItems.slice(0, 2).map((item, index) => (
+              <NavItem 
+                key={index + 2}
+                icon={item.icon} 
+                label={item.label} 
+                to={item.to}
+                isActive={isActive(item.to)}
+              />
+            ))
+          ) : (
+            // Non-authenticated: show all remaining items
+            lastItems.map((item, index) => (
+              <NavItem 
+                key={index + 2}
+                icon={item.icon} 
+                label={item.label} 
+                to={item.to}
+                isActive={isActive(item.to)}
+              />
+            ))
+          )}
         </div>
       </div>
       

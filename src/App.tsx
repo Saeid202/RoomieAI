@@ -44,7 +44,7 @@ function AppRoutes() {
     <Routes>
       {/* Public routes - accessible to everyone */}
       <Route path="/" element={<HomePage />} />
-      <Route path="/rental-options" element={<RentalOptionsPage />} />
+      
       <Route path="/auth" element={<AuthPage />} />
       <Route path="/auth/callback" element={<Callback />} />
       
@@ -57,7 +57,7 @@ function AppRoutes() {
         <Route path="profile" element={<Profile />} />
         <Route path="matches" element={<MatchesPage />} />
         <Route path="roommate-recommendations" element={<RoommateRecommendationsPage />} />
-        <Route path="rental-options" element={<RentalOptionsPage />} />
+        
         <Route path="plan-ahead-matching" element={<PlanAheadMatchingPage />} />
         <Route path="opposite-schedule" element={<OppositeSchedulePage />} />
         <Route path="short-term" element={<ShortTermPage />} />
