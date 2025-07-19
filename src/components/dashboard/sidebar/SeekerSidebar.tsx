@@ -30,7 +30,7 @@ export function SeekerSidebar({ isActive }: SeekerSidebarProps) {
       
       <SidebarSimpleMenuItem 
         icon={<Building size={18} />} 
-        label="Rental Options"
+        label="Rent"
         to="/dashboard/rental-options" 
         isActive={isActive('/dashboard/rental-options')}
       />

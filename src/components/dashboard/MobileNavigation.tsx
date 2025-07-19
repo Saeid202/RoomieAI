@@ -23,7 +23,7 @@ export function MobileNavigation() {
     if (!user) {
       return [
         { icon: <Home size={22} />, label: "Home", to: "/" },
-        { icon: <Building size={22} />, label: "Rentals", to: "/rental-options" },
+        { icon: <Building size={22} />, label: "Rent", to: "/rental-options" },
         { icon: <MessageSquare size={22} />, label: "About", to: "/" },
         { icon: <User size={22} />, label: "Login", to: "/auth" }
       ];
@@ -53,7 +53,7 @@ export function MobileNavigation() {
         return [
           { icon: <Home size={22} />, label: "Dashboard", to: "/dashboard" },
           { icon: <Users size={22} />, label: "Matches", to: "/dashboard/matches" },
-          { icon: <Building size={22} />, label: "Rentals", to: "/dashboard/rental-options" },
+          { icon: <Building size={22} />, label: "Rent", to: "/dashboard/rental-options" },
           { icon: <MessageSquare size={22} />, label: "Legal AI", to: "/dashboard/chats" },
           { icon: <Settings size={22} />, label: "Settings", to: "/dashboard/settings" }
         ];

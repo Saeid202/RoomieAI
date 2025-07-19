@@ -56,7 +56,7 @@ export default function FindPropertyPage() {
             <TabsList className="grid grid-cols-2 w-full">
               <TabsTrigger value="rental" className="flex items-center gap-1">
                 <Building className="h-4 w-4" />
-                Rentals
+                Rent
               </TabsTrigger>
               <TabsTrigger value="purchase" className="flex items-center gap-1">
                 <Home className="h-4 w-4" />
