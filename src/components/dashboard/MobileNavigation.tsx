@@ -1,5 +1,5 @@
 
-import { Home, Search, PlusCircle, Building, User, MessageSquare } from "lucide-react";
+import { Home, Search, PlusCircle, Building, User, MessageSquare, Users, Settings, Calendar, Clock, List, MapPin, Group, Briefcase, Flag, Scale } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useRole } from "@/contexts/RoleContext";
 import { Button } from "@/components/ui/button";
@@ -15,62 +15,75 @@ export function MobileNavigation() {
     return location.pathname === path || location.pathname.startsWith(path + '/');
   };
 
-  // Determine role-specific routes
-  const getHomeRoute = () => {
+  // Get navigation items based on role - matching desktop sidebars exactly
+  const getNavigationItems = () => {
     switch (role) {
       case 'landlord':
-        return '/dashboard/landlord';
-      default:
-        return '/dashboard/roommate-recommendations';
+        return [
+          { icon: <Home size={22} />, label: "Dashboard", to: "/dashboard/landlord" },
+          { icon: <Building size={22} />, label: "Properties", to: "/dashboard/landlord/properties" },
+          { icon: <Users size={22} />, label: "Applications", to: "/dashboard/landlord/applications" },
+          { icon: <MessageSquare size={22} />, label: "Messages", to: "/dashboard/chats" },
+          { icon: <Settings size={22} />, label: "Settings", to: "/dashboard/settings" }
+        ];
+      
+      case 'admin':
+        return [
+          { icon: <Home size={22} />, label: "Dashboard", to: "/dashboard/admin" },
+          { icon: <Users size={22} />, label: "Users", to: "/dashboard/admin/users" },
+          { icon: <Building size={22} />, label: "Pages", to: "/dashboard/admin/pages" },
+          { icon: <MessageSquare size={22} />, label: "Messages", to: "/dashboard/chats" },
+          { icon: <Settings size={22} />, label: "Settings", to: "/dashboard/admin/settings" }
+        ];
+      
+      default: // seeker
+        return [
+          { icon: <Home size={22} />, label: "Dashboard", to: "/dashboard" },
+          { icon: <Users size={22} />, label: "Matches", to: "/dashboard/matches" },
+          { icon: <Building size={22} />, label: "Rentals", to: "/dashboard/rental-options" },
+          { icon: <MessageSquare size={22} />, label: "Legal AI", to: "/dashboard/chats" },
+          { icon: <Settings size={22} />, label: "Settings", to: "/dashboard/settings" }
+        ];
     }
   };
 
-  const getRentRoommateRoute = () => {
-    return role === 'seeker' ? '/dashboard/roommate-recommendations' : '/dashboard/landlord';
-  };
-
-  const getBuyCoOwnRoute = () => {
-    return '/dashboard/developer';
-  };
+  const navItems = getNavigationItems();
+  const firstTwoItems = navItems.slice(0, 2); // First 2 items
+  const lastTwoItems = navItems.slice(2, 4); // Next 2 items
 
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-white via-white to-white/95 backdrop-blur-sm border-t border-border/20 z-40 md:hidden pb-safe">
       {/* Modern glass morphism navigation bar */}
       <div className="px-2 py-3">
         <div className="grid grid-cols-5 gap-1 max-w-sm mx-auto">
-          <NavItem 
-            icon={<Home size={22} />} 
-            label="Home" 
-            to={getHomeRoute()}
-            isActive={isActive(getHomeRoute())}
-          />
+          {/* First 2 navigation items */}
+          {firstTwoItems.map((item, index) => (
+            <NavItem 
+              key={index}
+              icon={item.icon} 
+              label={item.label} 
+              to={item.to}
+              isActive={isActive(item.to)}
+            />
+          ))}
           
-          <NavItem 
-            icon={<MessageSquare size={22} />} 
-            label="Legal AI" 
-            to="/dashboard/legal-assistant"
-            isActive={isActive('/dashboard/legal-assistant')}
-          />
-          
+          {/* Add button in the center */}
           <AddButton 
             isOpen={isAddMenuOpen}
             setIsOpen={setIsAddMenuOpen}
             role={role as string}
           />
           
-          <NavItem 
-            icon={<Building size={22} />} 
-            label={role === 'seeker' ? "Buy & Co-own" : "Properties"} 
-            to={getBuyCoOwnRoute()}
-            isActive={isActive(getBuyCoOwnRoute())}
-          />
-          
-          <NavItem 
-            icon={<Search size={22} />} 
-            label={role === 'seeker' ? "Rent & Roommate" : "Listings"} 
-            to={getRentRoommateRoute()}
-            isActive={isActive(getRentRoommateRoute())}
-          />
+          {/* Last 2 navigation items */}
+          {lastTwoItems.map((item, index) => (
+            <NavItem 
+              key={index + 2}
+              icon={item.icon} 
+              label={item.label} 
+              to={item.to}
+              isActive={isActive(item.to)}
+            />
+          ))}
         </div>
       </div>
       
