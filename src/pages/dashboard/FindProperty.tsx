@@ -39,7 +39,7 @@ export default function FindPropertyPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Find Property</h1>
           <p className="text-muted-foreground mt-1">
-            Search for properties to rent, buy, or co-own
+            Search for properties to rent or buy
           </p>
         </div>
       </div>
