@@ -31,6 +31,11 @@ const RELIGIONS = [
   "Atheist", "Agnostic", "Other", "Prefer not to say"
 ];
 
+const EDUCATION_LEVELS = [
+  "High School", "Some College", "Associate Degree", "Bachelor's Degree", 
+  "Master's Degree", "Doctoral Degree", "Trade School", "Other"
+];
+
 export function PersonalInfoTab({ form }: PersonalInfoTabProps) {
   const profileVisibility = form.watch("profileVisibility") || [];
   const hasPets = form.watch("hasPets");
@@ -252,6 +257,31 @@ export function PersonalInfoTab({ form }: PersonalInfoTabProps) {
           )}
         />
         
+        <FormField
+          control={form.control}
+          name="educationLevel"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel><span className="font-bold">10.</span> Level of Education</FormLabel>
+              <FormControl>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select education level" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {EDUCATION_LEVELS.map((level) => (
+                      <SelectItem key={level} value={level.toLowerCase()}>
+                        {level}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
       </div>
 
       {/* Work Schedule Section */}
@@ -263,7 +293,7 @@ export function PersonalInfoTab({ form }: PersonalInfoTabProps) {
           name="workLocation"
           render={({ field }) => (
             <FormItem className="space-y-3">
-              <FormLabel><span className="font-bold">10.</span> Do you work from home or go to an office?</FormLabel>
+              <FormLabel><span className="font-bold">11.</span> Do you work from home or go to an office?</FormLabel>
               <FormControl>
                 <RadioGroup onValueChange={field.onChange} value={field.value} className="flex flex-col space-y-1">
                   <FormItem className="flex items-center space-x-3 space-y-0">
@@ -296,7 +326,7 @@ export function PersonalInfoTab({ form }: PersonalInfoTabProps) {
           name="workSchedule"
           render={({ field }) => (
             <FormItem className="space-y-3">
-              <FormLabel><span className="font-bold">11.</span> What's your typical work schedule?</FormLabel>
+              <FormLabel><span className="font-bold">12.</span> What's your typical work schedule?</FormLabel>
               <FormControl>
                 <RadioGroup onValueChange={field.onChange} value={field.value} className="flex flex-col space-y-1">
                   <FormItem className="flex items-center space-x-3 space-y-0">
@@ -332,7 +362,7 @@ export function PersonalInfoTab({ form }: PersonalInfoTabProps) {
           name="diet"
           render={({ field }) => (
             <FormItem className="space-y-3">
-              <FormLabel><span className="font-bold">12.</span> Dietary Preferences</FormLabel>
+              <FormLabel><span className="font-bold">13.</span> Dietary Preferences</FormLabel>
               <FormControl>
                 <RadioGroup onValueChange={field.onChange} value={field.value} className="flex flex-col space-y-1">
                   <FormItem className="flex items-center space-x-3 space-y-0">
@@ -395,7 +425,7 @@ export function PersonalInfoTab({ form }: PersonalInfoTabProps) {
           name="phoneNumber"
           render={({ field }) => (
             <FormItem>
-              <FormLabel><span className="font-bold">13.</span> Phone Number</FormLabel>
+              <FormLabel><span className="font-bold">14.</span> Phone Number</FormLabel>
               <FormControl>
                 <Input placeholder="Enter your phone number" {...field} />
               </FormControl>
@@ -409,7 +439,7 @@ export function PersonalInfoTab({ form }: PersonalInfoTabProps) {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel><span className="font-bold">14.</span> Email</FormLabel>
+              <FormLabel><span className="font-bold">15.</span> Email</FormLabel>
               <FormControl>
                 <Input type="email" placeholder="Enter your email" {...field} />
               </FormControl>
@@ -423,7 +453,7 @@ export function PersonalInfoTab({ form }: PersonalInfoTabProps) {
           name="linkedinProfile"
           render={({ field }) => (
             <FormItem>
-              <FormLabel><span className="font-bold">15.</span> LinkedIn Profile (Optional)</FormLabel>
+              <FormLabel><span className="font-bold">16.</span> LinkedIn Profile (Optional)</FormLabel>
               <FormControl>
                 <Input placeholder="Enter your LinkedIn URL" {...field} />
               </FormControl>
