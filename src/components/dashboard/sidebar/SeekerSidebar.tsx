@@ -57,19 +57,6 @@ export function SeekerSidebar({ isActive }: SeekerSidebarProps) {
         isActive={isActive('/dashboard/group-matching')}
       />
       
-      <SidebarSimpleMenuItem 
-        icon={<Briefcase size={18} />} 
-        label="Work Exchange"
-        to="/dashboard/work-exchange" 
-        isActive={isActive('/dashboard/work-exchange')}
-      />
-      
-      <SidebarSimpleMenuItem 
-        icon={<Flag size={18} />} 
-        label="LGBTQ+ Matching"
-        to="/dashboard/lgbtq-matching" 
-        isActive={isActive('/dashboard/lgbtq-matching')}
-      />
       
       <SidebarSimpleMenuItem 
         icon={<MessageSquare size={18} />} 
