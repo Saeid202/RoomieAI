@@ -284,77 +284,6 @@ export function PersonalInfoTab({ form }: PersonalInfoTabProps) {
         
       </div>
 
-      {/* Work Schedule Section */}
-      <div className="space-y-4">
-        <h4 className="text-lg font-semibold">Work Schedule</h4>
-        
-        <FormField
-          control={form.control}
-          name="workLocation"
-          render={({ field }) => (
-            <FormItem className="space-y-3">
-              <FormLabel><span className="font-bold">11.</span> Do you work from home or go to an office?</FormLabel>
-              <FormControl>
-                <RadioGroup onValueChange={field.onChange} value={field.value} className="flex flex-col space-y-1">
-                  <FormItem className="flex items-center space-x-3 space-y-0">
-                    <FormControl>
-                      <RadioGroupItem value="remote" />
-                    </FormControl>
-                    <FormLabel className="font-normal">Work from home</FormLabel>
-                  </FormItem>
-                  <FormItem className="flex items-center space-x-3 space-y-0">
-                    <FormControl>
-                      <RadioGroupItem value="office" />
-                    </FormControl>
-                    <FormLabel className="font-normal">Go to office</FormLabel>
-                  </FormItem>
-                  <FormItem className="flex items-center space-x-3 space-y-0">
-                    <FormControl>
-                      <RadioGroupItem value="hybrid" />
-                    </FormControl>
-                    <FormLabel className="font-normal">Hybrid (both)</FormLabel>
-                  </FormItem>
-                </RadioGroup>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="workSchedule"
-          render={({ field }) => (
-            <FormItem className="space-y-3">
-              <FormLabel><span className="font-bold">12.</span> What's your typical work schedule?</FormLabel>
-              <FormControl>
-                <RadioGroup onValueChange={field.onChange} value={field.value} className="flex flex-col space-y-1">
-                  <FormItem className="flex items-center space-x-3 space-y-0">
-                    <FormControl>
-                      <RadioGroupItem value="dayShift" />
-                    </FormControl>
-                    <FormLabel className="font-normal">Day shift</FormLabel>
-                  </FormItem>
-                  <FormItem className="flex items-center space-x-3 space-y-0">
-                    <FormControl>
-                      <RadioGroupItem value="afternoonShift" />
-                    </FormControl>
-                    <FormLabel className="font-normal">Afternoon shift</FormLabel>
-                  </FormItem>
-                  <FormItem className="flex items-center space-x-3 space-y-0">
-                    <FormControl>
-                      <RadioGroupItem value="overnightShift" />
-                    </FormControl>
-                    <FormLabel className="font-normal">Overnight shift</FormLabel>
-                  </FormItem>
-                </RadioGroup>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      </div>
-
       {/* Dietary Preferences Section */}
       <div className="space-y-4">
         <FormField
@@ -362,7 +291,7 @@ export function PersonalInfoTab({ form }: PersonalInfoTabProps) {
           name="diet"
           render={({ field }) => (
             <FormItem className="space-y-3">
-              <FormLabel><span className="font-bold">13.</span> Dietary Preferences</FormLabel>
+              <FormLabel><span className="font-bold">11.</span> Dietary Preferences</FormLabel>
               <FormControl>
                 <RadioGroup onValueChange={field.onChange} value={field.value} className="flex flex-col space-y-1">
                   <FormItem className="flex items-center space-x-3 space-y-0">
@@ -425,7 +354,7 @@ export function PersonalInfoTab({ form }: PersonalInfoTabProps) {
           name="phoneNumber"
           render={({ field }) => (
             <FormItem>
-              <FormLabel><span className="font-bold">14.</span> Phone Number</FormLabel>
+              <FormLabel><span className="font-bold">12.</span> Phone Number</FormLabel>
               <FormControl>
                 <Input placeholder="Enter your phone number" {...field} />
               </FormControl>
@@ -439,7 +368,7 @@ export function PersonalInfoTab({ form }: PersonalInfoTabProps) {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel><span className="font-bold">15.</span> Email</FormLabel>
+              <FormLabel><span className="font-bold">13.</span> Email</FormLabel>
               <FormControl>
                 <Input type="email" placeholder="Enter your email" {...field} />
               </FormControl>
@@ -453,7 +382,7 @@ export function PersonalInfoTab({ form }: PersonalInfoTabProps) {
           name="linkedinProfile"
           render={({ field }) => (
             <FormItem>
-              <FormLabel><span className="font-bold">16.</span> LinkedIn Profile (Optional)</FormLabel>
+              <FormLabel><span className="font-bold">14.</span> LinkedIn Profile (Optional)</FormLabel>
               <FormControl>
                 <Input placeholder="Enter your LinkedIn URL" {...field} />
               </FormControl>
