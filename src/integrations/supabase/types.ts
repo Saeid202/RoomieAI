@@ -41,54 +41,231 @@ export type Database = {
         }
         Relationships: []
       }
-      co_owner: {
+      plan_ahead_matches: {
         Row: {
-          age: number | null
-          co_ownership_experience: string | null
-          created_at: string
-          email: string | null
-          full_name: string | null
+          compatibility_score: number
+          created_at: string | null
           id: string
-          investment_capacity: number[] | null
-          investment_timeline: string | null
-          occupation: string | null
-          phone_number: string | null
-          preferred_location: string | null
-          property_type: string | null
-          updated_at: string
+          match_factors: Json | null
+          matched_profile_id: string
+          matched_user_action: string | null
+          matched_user_id: string
+          profile_id: string
+          status: string | null
+          updated_at: string | null
+          user_action: string | null
           user_id: string
         }
         Insert: {
-          age?: number | null
-          co_ownership_experience?: string | null
-          created_at?: string
-          email?: string | null
-          full_name?: string | null
+          compatibility_score: number
+          created_at?: string | null
           id?: string
-          investment_capacity?: number[] | null
-          investment_timeline?: string | null
-          occupation?: string | null
-          phone_number?: string | null
-          preferred_location?: string | null
-          property_type?: string | null
-          updated_at?: string
+          match_factors?: Json | null
+          matched_profile_id: string
+          matched_user_action?: string | null
+          matched_user_id: string
+          profile_id: string
+          status?: string | null
+          updated_at?: string | null
+          user_action?: string | null
           user_id: string
         }
         Update: {
-          age?: number | null
-          co_ownership_experience?: string | null
-          created_at?: string
-          email?: string | null
-          full_name?: string | null
+          compatibility_score?: number
+          created_at?: string | null
           id?: string
-          investment_capacity?: number[] | null
-          investment_timeline?: string | null
-          occupation?: string | null
-          phone_number?: string | null
-          preferred_location?: string | null
-          property_type?: string | null
-          updated_at?: string
+          match_factors?: Json | null
+          matched_profile_id?: string
+          matched_user_action?: string | null
+          matched_user_id?: string
+          profile_id?: string
+          status?: string | null
+          updated_at?: string | null
+          user_action?: string | null
           user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plan_ahead_matches_matched_profile_id_fkey"
+            columns: ["matched_profile_id"]
+            isOneToOne: false
+            referencedRelation: "plan_ahead_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "plan_ahead_matches_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "plan_ahead_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      plan_ahead_profiles: {
+        Row: {
+          accessibility_needs: string[] | null
+          additional_notes: string | null
+          age_range_preference: number[] | null
+          auto_match_enabled: boolean | null
+          budget_range: number[]
+          cleanliness_level: number | null
+          communication_frequency: string | null
+          created_at: string | null
+          current_city: string | null
+          current_country: string | null
+          current_state: string | null
+          daily_schedule: string | null
+          flexibility_weeks: number | null
+          flexible_move_date: boolean | null
+          gender_preference: string[] | null
+          guest_policy: string | null
+          housing_search_status:
+            | Database["public"]["Enums"]["housing_search_status"]
+            | null
+          id: string
+          is_active: boolean | null
+          lease_duration_preference: string | null
+          lifestyle_compatibility: string[] | null
+          looking_for_roommate: boolean | null
+          match_notification_preferences: string[] | null
+          max_distance_from_target: number | null
+          max_roommates: number | null
+          move_reason: string | null
+          noise_tolerance: string | null
+          pet_preferences: string | null
+          pet_situation: string | null
+          planned_move_date: string
+          preferred_housing_types: string[]
+          preferred_living_arrangements: string[]
+          prior_roommate_experience: string | null
+          profile_completion_percentage: number | null
+          profile_visibility: string | null
+          room_type_preference: string | null
+          school_situation: string | null
+          shared_interests: string[] | null
+          smoking_preference: string | null
+          social_level: string | null
+          special_requirements: string[] | null
+          substance_policies: string[] | null
+          target_cities: string[]
+          target_states: string[]
+          timeline_status:
+            | Database["public"]["Enums"]["move_timeline_status"]
+            | null
+          updated_at: string | null
+          user_id: string
+          willing_to_relocate_anywhere: boolean | null
+          work_situation: string | null
+        }
+        Insert: {
+          accessibility_needs?: string[] | null
+          additional_notes?: string | null
+          age_range_preference?: number[] | null
+          auto_match_enabled?: boolean | null
+          budget_range: number[]
+          cleanliness_level?: number | null
+          communication_frequency?: string | null
+          created_at?: string | null
+          current_city?: string | null
+          current_country?: string | null
+          current_state?: string | null
+          daily_schedule?: string | null
+          flexibility_weeks?: number | null
+          flexible_move_date?: boolean | null
+          gender_preference?: string[] | null
+          guest_policy?: string | null
+          housing_search_status?:
+            | Database["public"]["Enums"]["housing_search_status"]
+            | null
+          id?: string
+          is_active?: boolean | null
+          lease_duration_preference?: string | null
+          lifestyle_compatibility?: string[] | null
+          looking_for_roommate?: boolean | null
+          match_notification_preferences?: string[] | null
+          max_distance_from_target?: number | null
+          max_roommates?: number | null
+          move_reason?: string | null
+          noise_tolerance?: string | null
+          pet_preferences?: string | null
+          pet_situation?: string | null
+          planned_move_date: string
+          preferred_housing_types: string[]
+          preferred_living_arrangements: string[]
+          prior_roommate_experience?: string | null
+          profile_completion_percentage?: number | null
+          profile_visibility?: string | null
+          room_type_preference?: string | null
+          school_situation?: string | null
+          shared_interests?: string[] | null
+          smoking_preference?: string | null
+          social_level?: string | null
+          special_requirements?: string[] | null
+          substance_policies?: string[] | null
+          target_cities: string[]
+          target_states: string[]
+          timeline_status?:
+            | Database["public"]["Enums"]["move_timeline_status"]
+            | null
+          updated_at?: string | null
+          user_id: string
+          willing_to_relocate_anywhere?: boolean | null
+          work_situation?: string | null
+        }
+        Update: {
+          accessibility_needs?: string[] | null
+          additional_notes?: string | null
+          age_range_preference?: number[] | null
+          auto_match_enabled?: boolean | null
+          budget_range?: number[]
+          cleanliness_level?: number | null
+          communication_frequency?: string | null
+          created_at?: string | null
+          current_city?: string | null
+          current_country?: string | null
+          current_state?: string | null
+          daily_schedule?: string | null
+          flexibility_weeks?: number | null
+          flexible_move_date?: boolean | null
+          gender_preference?: string[] | null
+          guest_policy?: string | null
+          housing_search_status?:
+            | Database["public"]["Enums"]["housing_search_status"]
+            | null
+          id?: string
+          is_active?: boolean | null
+          lease_duration_preference?: string | null
+          lifestyle_compatibility?: string[] | null
+          looking_for_roommate?: boolean | null
+          match_notification_preferences?: string[] | null
+          max_distance_from_target?: number | null
+          max_roommates?: number | null
+          move_reason?: string | null
+          noise_tolerance?: string | null
+          pet_preferences?: string | null
+          pet_situation?: string | null
+          planned_move_date?: string
+          preferred_housing_types?: string[]
+          preferred_living_arrangements?: string[]
+          prior_roommate_experience?: string | null
+          profile_completion_percentage?: number | null
+          profile_visibility?: string | null
+          room_type_preference?: string | null
+          school_situation?: string | null
+          shared_interests?: string[] | null
+          smoking_preference?: string | null
+          social_level?: string | null
+          special_requirements?: string[] | null
+          substance_policies?: string[] | null
+          target_cities?: string[]
+          target_states?: string[]
+          timeline_status?:
+            | Database["public"]["Enums"]["move_timeline_status"]
+            | null
+          updated_at?: string | null
+          user_id?: string
+          willing_to_relocate_anywhere?: boolean | null
+          work_situation?: string | null
         }
         Relationships: []
       }
@@ -113,129 +290,6 @@ export type Database = {
           full_name?: string | null
           id?: string
           updated_at?: string
-        }
-        Relationships: []
-      }
-      properties: {
-        Row: {
-          address: string
-          amenities: string[] | null
-          available_date: string | null
-          bathrooms: number | null
-          bedrooms: number | null
-          city: string
-          created_at: string
-          description: string | null
-          furnished: string | null
-          id: string
-          images: string[] | null
-          latitude: number | null
-          lease_terms: string | null
-          listing_title: string
-          longitude: number | null
-          monthly_rent: number
-          nearby_amenities: string[] | null
-          neighborhood: string | null
-          parking: string | null
-          pet_policy: string | null
-          property_condition: string | null
-          property_type: string
-          public_transport_access: string | null
-          roommate_preference: string | null
-          security_deposit: number | null
-          special_instructions: string | null
-          square_footage: number | null
-          state: string
-          updated_at: string
-          user_id: string
-          utilities_included: string[] | null
-          year_built: number | null
-          zip_code: string
-        }
-        Insert: {
-          address: string
-          amenities?: string[] | null
-          available_date?: string | null
-          bathrooms?: number | null
-          bedrooms?: number | null
-          city: string
-          created_at?: string
-          description?: string | null
-          furnished?: string | null
-          id?: string
-          images?: string[] | null
-          latitude?: number | null
-          lease_terms?: string | null
-          listing_title: string
-          longitude?: number | null
-          monthly_rent: number
-          nearby_amenities?: string[] | null
-          neighborhood?: string | null
-          parking?: string | null
-          pet_policy?: string | null
-          property_condition?: string | null
-          property_type: string
-          public_transport_access?: string | null
-          roommate_preference?: string | null
-          security_deposit?: number | null
-          special_instructions?: string | null
-          square_footage?: number | null
-          state: string
-          updated_at?: string
-          user_id: string
-          utilities_included?: string[] | null
-          year_built?: number | null
-          zip_code: string
-        }
-        Update: {
-          address?: string
-          amenities?: string[] | null
-          available_date?: string | null
-          bathrooms?: number | null
-          bedrooms?: number | null
-          city?: string
-          created_at?: string
-          description?: string | null
-          furnished?: string | null
-          id?: string
-          images?: string[] | null
-          latitude?: number | null
-          lease_terms?: string | null
-          listing_title?: string
-          longitude?: number | null
-          monthly_rent?: number
-          nearby_amenities?: string[] | null
-          neighborhood?: string | null
-          parking?: string | null
-          pet_policy?: string | null
-          property_condition?: string | null
-          property_type?: string
-          public_transport_access?: string | null
-          roommate_preference?: string | null
-          security_deposit?: number | null
-          special_instructions?: string | null
-          square_footage?: number | null
-          state?: string
-          updated_at?: string
-          user_id?: string
-          utilities_included?: string[] | null
-          year_built?: number | null
-          zip_code?: string
-        }
-        Relationships: []
-      }
-      Properties: {
-        Row: {
-          created_at: string
-          id: number
-        }
-        Insert: {
-          created_at?: string
-          id?: number
-        }
-        Update: {
-          created_at?: string
-          id?: number
         }
         Relationships: []
       }
@@ -463,7 +517,13 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      housing_search_status:
+        | "not_started"
+        | "actively_searching"
+        | "applications_submitted"
+        | "offer_received"
+        | "signed_lease"
+      move_timeline_status: "planning" | "active" | "completed" | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -590,6 +650,15 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      housing_search_status: [
+        "not_started",
+        "actively_searching",
+        "applications_submitted",
+        "offer_received",
+        "signed_lease",
+      ],
+      move_timeline_status: ["planning", "active", "completed", "cancelled"],
+    },
   },
 } as const
