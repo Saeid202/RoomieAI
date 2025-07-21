@@ -38,7 +38,7 @@ export default function RentalOptionsPage() {
         property_type: filters.property_type || undefined,
       };
       console.log("Processed filters:", processedFilters);
-      const data = await fetchProperties(processedFilters);
+      const data = await fetchProperties();
       console.log("Fetched properties:", data);
       setProperties(data);
     } catch (error) {

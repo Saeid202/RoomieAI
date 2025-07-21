@@ -167,7 +167,7 @@ export default function AddPropertyPage() {
         nearby_amenities: formData.nearbyAmenities || [],
         monthly_rent: parseFloat(formData.monthlyRent),
         security_deposit: formData.securityDeposit ? parseFloat(formData.securityDeposit) : null,
-        lease_terms: formData.leaseTerms || null,
+        lease_duration: formData.leaseTerms || "12 months",
         available_date: formData.availableDate || null,
         furnished: formData.furnished || null,
         amenities: formData.amenities || [],

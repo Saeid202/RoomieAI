@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 /**
@@ -6,62 +5,29 @@ import { supabase } from "@/integrations/supabase/client";
  */
 export async function initializeDatabase() {
   console.log("Initializing database...");
-  // Ensure the co-owner table exists with correct structure
-  await ensureCoOwnerTableExists();
+  // Database is now handled via Supabase migrations
+  console.log("Database initialization complete - using Supabase managed schema");
 }
 
 /**
- * Ensures that the co_owner table exists with the correct structure
- * This function is called when the application initializes
- */
-export async function ensureCoOwnerTableExists() {
-  try {
-    console.log("Checking co_owner table...");
-    
-    // Try to access the table to verify it exists by querying it
-    const { data: tableData, error: tableError } = await supabase
-      .from('co_owner')
-      .select('id')
-      .limit(1);
-    
-    if (tableError) {
-      console.error("Error checking co_owner table:", tableError);
-    } else {
-      console.log("co_owner table exists and is accessible");
-    }
-  } catch (error) {
-    console.error("Error checking co_owner table existence:", error);
-  }
-}
-
-/**
- * Saves co-owner profile data to the database
+ * Saves profile data to the roommate table specifically
  * @param formData The form data to save
  * @param userId The user ID to associate with this profile
  * @returns The result of the save operation
  */
-export async function saveCoOwnerProfile(formData: any, userId: string) {
+export async function saveRoommateProfile(formData: any, userId: string) {
   if (!userId) {
     console.error("Cannot save profile: No user ID provided");
     throw new Error("You must be logged in to save your profile");
   }
   
   try {
-    console.log("Saving co-owner profile for user:", userId);
+    console.log("Saving roommate profile for user:", userId);
     
-    // Map form data to database format
+    // Add user_id and timestamp to the data
     const dbData = {
+      ...formData,
       user_id: userId,
-      full_name: formData.fullName,
-      age: formData.age,
-      email: formData.email,
-      phone_number: formData.phoneNumber,
-      occupation: formData.occupation,
-      preferred_location: formData.preferredLocation,
-      investment_capacity: formData.investmentCapacity,
-      investment_timeline: formData.investmentTimeline,
-      property_type: formData.propertyType,
-      co_ownership_experience: formData.coOwnershipExperience,
       updated_at: new Date().toISOString(),
     };
     
@@ -69,7 +35,7 @@ export async function saveCoOwnerProfile(formData: any, userId: string) {
     
     // First check if a profile exists for this user
     const { data: existingProfile, error: fetchError } = await supabase
-      .from('co_owner')
+      .from('roommate')
       .select('id')
       .eq('user_id', userId)
       .maybeSingle();
@@ -85,15 +51,15 @@ export async function saveCoOwnerProfile(formData: any, userId: string) {
       // Update existing profile
       console.log("Updating existing profile with ID:", existingProfile.id);
       result = await supabase
-        .from('co_owner')
+        .from('roommate')
         .update(dbData)
         .eq('user_id', userId)
         .select();
     } else {
       // Insert new profile
-      console.log("Creating new co-owner profile");
+      console.log("Creating new roommate profile");
       result = await supabase
-        .from('co_owner')
+        .from('roommate')
         .insert(dbData)
         .select();
     }
@@ -106,40 +72,40 @@ export async function saveCoOwnerProfile(formData: any, userId: string) {
     console.log("Profile saved successfully:", result.data);
     return result;
   } catch (error) {
-    console.error("Error in saveCoOwnerProfile:", error);
+    console.error("Error in saveRoommateProfile:", error);
     throw error;
   }
 }
 
 /**
- * Fetches co-owner profile data for a user
+ * Fetches roommate profile data for a user
  * @param userId The user ID to fetch the profile for
  * @returns The profile data
  */
-export async function fetchCoOwnerProfile(userId: string) {
+export async function fetchRoommateProfile(userId: string) {
   if (!userId) {
     console.error("Cannot fetch profile: No user ID provided");
     throw new Error("You must be logged in to fetch your profile");
   }
   
   try {
-    console.log("Fetching co-owner profile for user:", userId);
+    console.log("Fetching roommate profile for user:", userId);
     
     const { data, error } = await supabase
-      .from('co_owner')
+      .from('roommate')
       .select('*')
       .eq('user_id', userId)
       .maybeSingle();
               
     if (error) {
-      console.error("Error fetching co-owner profile:", error);
+      console.error("Error fetching roommate profile:", error);
       throw error;
     }
     
-    console.log("Co-owner profile fetched:", data);
+    console.log("Roommate profile fetched:", data);
     return data;
   } catch (error) {
-    console.error("Error in fetchCoOwnerProfile:", error);
+    console.error("Error in fetchRoommateProfile:", error);
     throw error;
   }
 }

@@ -112,7 +112,7 @@ export const planAheadMatchingService = {
       .order('compatibility_score', { ascending: false });
 
     if (error) throw error;
-    return (data as PlanAheadMatch[]) || [];
+    return (data as unknown as PlanAheadMatch[]) || [];
   },
 
   // Update match action
