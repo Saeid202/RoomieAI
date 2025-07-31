@@ -27,6 +27,8 @@ window.addEventListener('error', (event) => {
   console.error('Global error caught:', event.error);
 });
 
+console.log('App loading...'); // Force refresh
+
 // Render the application
 const rootElement = document.getElementById("root");
 if (!rootElement) throw new Error("Failed to find the root element");
