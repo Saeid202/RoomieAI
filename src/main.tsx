@@ -39,11 +39,8 @@ const rootElement = document.getElementById("root");
 if (!rootElement) throw new Error("Failed to find the root element");
 
 createRoot(rootElement).render(
-  <BrowserRouter>
-    <QueryClientProvider client={queryClient}>
-      <RoleProvider>
-        <App />
-      </RoleProvider>
-    </QueryClientProvider>
-  </BrowserRouter>
+  <div>
+    <h1>App Loading Test</h1>
+    <p>If you see this, React is working</p>
+  </div>
 );
