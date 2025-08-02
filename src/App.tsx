@@ -89,10 +89,12 @@ function App() {
   console.log("App component rendering");
   
   return (
-    <div style={{padding: '20px'}}>
-      <h1>App Component Test</h1>
-      <p>App component is rendering successfully</p>
-    </div>
+    <ThemeProvider>
+      <div style={{padding: '20px'}}>
+        <h1>ThemeProvider Test</h1>
+        <p>ThemeProvider is working</p>
+      </div>
+    </ThemeProvider>
   );
 }
 
