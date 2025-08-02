@@ -89,14 +89,10 @@ function App() {
   console.log("App component rendering");
   
   return (
-    <ThemeProvider>
-      <AuthProvider>
-        <SimpleRoleProvider>
-          <AppRoutes />
-          <Toaster />
-        </SimpleRoleProvider>
-      </AuthProvider>
-    </ThemeProvider>
+    <div style={{padding: '20px'}}>
+      <h1>App Component Test</h1>
+      <p>App component is rendering successfully</p>
+    </div>
   );
 }
 
