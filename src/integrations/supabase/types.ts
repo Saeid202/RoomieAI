@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      audit_logs: {
+        Row: {
+          action: string
+          created_at: string | null
+          id: string
+          ip_address: unknown | null
+          new_data: Json | null
+          old_data: Json | null
+          record_id: string | null
+          table_name: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          new_data?: Json | null
+          old_data?: Json | null
+          record_id?: string | null
+          table_name?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          new_data?: Json | null
+          old_data?: Json | null
+          record_id?: string | null
+          table_name?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       Both: {
         Row: {
           created_at: string
@@ -275,21 +314,123 @@ export type Database = {
           email: string | null
           full_name: string | null
           id: string
+          telegram_id: number | null
           updated_at: string
+          username: string | null
         }
         Insert: {
           created_at?: string
           email?: string | null
           full_name?: string | null
           id: string
+          telegram_id?: number | null
           updated_at?: string
+          username?: string | null
         }
         Update: {
           created_at?: string
           email?: string | null
           full_name?: string | null
           id?: string
+          telegram_id?: number | null
           updated_at?: string
+          username?: string | null
+        }
+        Relationships: []
+      }
+      properties: {
+        Row: {
+          address: string
+          amenities: string[] | null
+          available_date: string | null
+          bathrooms: number | null
+          bedrooms: number | null
+          city: string | null
+          created_at: string | null
+          description: string | null
+          furnished: boolean | null
+          id: string
+          images: string[] | null
+          lease_duration: string | null
+          listing_title: string
+          monthly_rent: number
+          nearby_amenities: string[] | null
+          neighborhood: string | null
+          parking: string | null
+          pet_policy: string | null
+          property_type: string
+          public_transport_access: string | null
+          roommate_preference: string | null
+          security_deposit: number | null
+          special_instructions: string | null
+          square_footage: number | null
+          state: string | null
+          updated_at: string | null
+          user_id: string
+          utilities_included: string[] | null
+          zip_code: string | null
+        }
+        Insert: {
+          address: string
+          amenities?: string[] | null
+          available_date?: string | null
+          bathrooms?: number | null
+          bedrooms?: number | null
+          city?: string | null
+          created_at?: string | null
+          description?: string | null
+          furnished?: boolean | null
+          id?: string
+          images?: string[] | null
+          lease_duration?: string | null
+          listing_title: string
+          monthly_rent: number
+          nearby_amenities?: string[] | null
+          neighborhood?: string | null
+          parking?: string | null
+          pet_policy?: string | null
+          property_type: string
+          public_transport_access?: string | null
+          roommate_preference?: string | null
+          security_deposit?: number | null
+          special_instructions?: string | null
+          square_footage?: number | null
+          state?: string | null
+          updated_at?: string | null
+          user_id: string
+          utilities_included?: string[] | null
+          zip_code?: string | null
+        }
+        Update: {
+          address?: string
+          amenities?: string[] | null
+          available_date?: string | null
+          bathrooms?: number | null
+          bedrooms?: number | null
+          city?: string | null
+          created_at?: string | null
+          description?: string | null
+          furnished?: boolean | null
+          id?: string
+          images?: string[] | null
+          lease_duration?: string | null
+          listing_title?: string
+          monthly_rent?: number
+          nearby_amenities?: string[] | null
+          neighborhood?: string | null
+          parking?: string | null
+          pet_policy?: string | null
+          property_type?: string
+          public_transport_access?: string | null
+          roommate_preference?: string | null
+          security_deposit?: number | null
+          special_instructions?: string | null
+          square_footage?: number | null
+          state?: string | null
+          updated_at?: string | null
+          user_id?: string
+          utilities_included?: string[] | null
+          zip_code?: string | null
         }
         Relationships: []
       }
@@ -509,14 +650,88 @@ export type Database = {
         }
         Relationships: []
       }
+      telegram_profiles: {
+        Row: {
+          budget: number | null
+          city: string | null
+          created_at: string | null
+          gender: string | null
+          id: string
+          lifestyle: string | null
+          pets: boolean | null
+          smoker: boolean | null
+          telegram_id: number
+          username: string | null
+        }
+        Insert: {
+          budget?: number | null
+          city?: string | null
+          created_at?: string | null
+          gender?: string | null
+          id?: string
+          lifestyle?: string | null
+          pets?: boolean | null
+          smoker?: boolean | null
+          telegram_id: number
+          username?: string | null
+        }
+        Update: {
+          budget?: number | null
+          city?: string | null
+          created_at?: string | null
+          gender?: string | null
+          id?: string
+          lifestyle?: string | null
+          pets?: boolean | null
+          smoker?: boolean | null
+          telegram_id?: number
+          username?: string | null
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          assigned_at: string | null
+          assigned_by: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_role: {
+        Args: { _user_id: string }
+        Returns: Database["public"]["Enums"]["app_role"]
+      }
+      has_role: {
+        Args: {
+          _user_id: string
+          _role: Database["public"]["Enums"]["app_role"]
+        }
+        Returns: boolean
+      }
     }
     Enums: {
+      app_role: "admin" | "landlord" | "seeker" | "developer"
       housing_search_status:
         | "not_started"
         | "actively_searching"
@@ -651,6 +866,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["admin", "landlord", "seeker", "developer"],
       housing_search_status: [
         "not_started",
         "actively_searching",

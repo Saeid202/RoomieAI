@@ -27,7 +27,7 @@ window.addEventListener('error', (event) => {
   console.error('Global error caught:', event.error);
 });
 
-console.log('App loading...'); // Force refresh
+// Remove development logging for security
 
 // Render the application
 const rootElement = document.getElementById("root");

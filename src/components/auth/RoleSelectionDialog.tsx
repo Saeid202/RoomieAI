@@ -24,7 +24,7 @@ export function RoleSelectionDialog({
   showCloseButton = false 
 }: RoleSelectionDialogProps) {
   const { updateMetadata, user } = useAuth();
-  const { setRole } = useRole();
+  const { refreshRole } = useRole();
   const [loading, setLoading] = useState(false);
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
   const navigate = useNavigate();
@@ -47,7 +47,7 @@ export function RoleSelectionDialog({
         await onRoleSelect(role);
       } else {
         await updateMetadata({ role });
-        setRole(role);
+        await refreshRole();
         
         toast({
           title: "Role selected",

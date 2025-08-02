@@ -24,7 +24,7 @@ interface SignupDialogProps {
 export const SignupDialog = ({ isOpen, setIsOpen }: SignupDialogProps) => {
   const navigate = useNavigate();
   const { signUp, signInWithGoogle, signInWithFacebook, signInWithLinkedIn } = useAuth();
-  const { setRole } = useRole();
+  const { refreshRole } = useRole();
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSignupSubmit = async (values: SignupFormValues) => {
@@ -36,16 +36,9 @@ export const SignupDialog = ({ isOpen, setIsOpen }: SignupDialogProps) => {
         role: values.role,
       };
       
-      // Store role directly for immediate access
-      localStorage.setItem('userRole', values.role);
-      console.log("Stored user role in localStorage:", values.role);
-      
-      // For social auth without prior signup
+      // Store metadata for role assignment after email verification
       localStorage.setItem('pendingRole', values.role);
-      console.log("Stored pending role in localStorage:", values.role);
-      
-      // Set role in context for consistent UI
-      setRole(values.role);
+      console.log("Stored pending role for post-verification:", values.role);
       
       // Store signup data for use in callback
       localStorage.setItem('signupData', JSON.stringify(metadata));

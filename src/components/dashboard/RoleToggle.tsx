@@ -6,18 +6,13 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/hooks/use-toast";
 
 export function RoleToggle() {
-  const { role, setRole } = useRole();
+  const { role } = useRole();
   const { user } = useAuth();
   
   // Get the user's assigned role from metadata
   const assignedRole = user?.user_metadata?.role as UserRole | undefined;
   
-  useEffect(() => {
-    // Ensure the user's role matches their assigned role if they have one
-    if (assignedRole && role !== assignedRole) {
-      setRole(assignedRole);
-    }
-  }, [role, assignedRole, setRole]);
+  // Role is now managed server-side only
 
   // Display appropriate role name and description based on user's assigned role
   const getRoleDisplay = () => {
