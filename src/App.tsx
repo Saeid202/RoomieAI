@@ -33,6 +33,7 @@ import SettingsPage from "@/pages/dashboard/Settings";
 import MatchesPage from "@/pages/dashboard/Matches";
 import MessengerPage from "@/pages/dashboard/Messenger";
 
+import { SimpleRoleProvider } from "@/contexts/SimpleRoleContext";
 import { useAuth } from "@/hooks/useAuth";
 
 function AppRoutes() {
@@ -40,8 +41,7 @@ function AppRoutes() {
   
   console.log("AppRoutes rendering, user:", user?.email, "loading:", loading);
   
-  try {
-    return (
+  return (
     <Routes>
       {/* Public routes - accessible to everyone */}
       <Route path="/" element={<HomePage />} />
@@ -83,28 +83,21 @@ function AppRoutes() {
       </Route>
     </Routes>
     );
-  } catch (error) {
-    console.error("Error in AppRoutes:", error);
-    return <div>Error in routing: {error.message}</div>;
-  }
 }
 
 function App() {
   console.log("App component rendering");
   
-  try {
-    return (
-      <ThemeProvider>
-        <AuthProvider>
+  return (
+    <ThemeProvider>
+      <AuthProvider>
+        <SimpleRoleProvider>
           <AppRoutes />
           <Toaster />
-        </AuthProvider>
-      </ThemeProvider>
-    );
-  } catch (error) {
-    console.error("Error in App component:", error);
-    return <div>Error loading app: {error.message}</div>;
-  }
+        </SimpleRoleProvider>
+      </AuthProvider>
+    </ThemeProvider>
+  );
 }
 
 export default App;
