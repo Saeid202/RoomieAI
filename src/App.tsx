@@ -38,9 +38,10 @@ import { useAuth } from "@/hooks/useAuth";
 function AppRoutes() {
   const { user, loading } = useAuth();
   
-  console.log("AppRoutes rendering, user:", user, "loading:", loading);
+  console.log("AppRoutes rendering, user:", user?.email, "loading:", loading);
   
-  return (
+  try {
+    return (
     <Routes>
       {/* Public routes - accessible to everyone */}
       <Route path="/" element={<HomePage />} />
@@ -81,20 +82,29 @@ function AppRoutes() {
         <Route path="admin/settings" element={<SettingsPage />} />
       </Route>
     </Routes>
-  );
+    );
+  } catch (error) {
+    console.error("Error in AppRoutes:", error);
+    return <div>Error in routing: {error.message}</div>;
+  }
 }
 
 function App() {
   console.log("App component rendering");
   
-  return (
-    <ThemeProvider>
-      <AuthProvider>
-        <AppRoutes />
-        <Toaster />
-      </AuthProvider>
-    </ThemeProvider>
-  );
+  try {
+    return (
+      <ThemeProvider>
+        <AuthProvider>
+          <AppRoutes />
+          <Toaster />
+        </AuthProvider>
+      </ThemeProvider>
+    );
+  } catch (error) {
+    console.error("Error in App component:", error);
+    return <div>Error loading app: {error.message}</div>;
+  }
 }
 
 export default App;

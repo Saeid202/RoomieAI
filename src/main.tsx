@@ -25,6 +25,11 @@ const queryClient = new QueryClient({
 // Add error boundary for the entire application
 window.addEventListener('error', (event) => {
   console.error('Global error caught:', event.error);
+  console.error('Stack:', event.error.stack);
+});
+
+window.addEventListener('unhandledrejection', (event) => {
+  console.error('Unhandled promise rejection:', event.reason);
 });
 
 console.log('App starting up...');
