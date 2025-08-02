@@ -11,18 +11,21 @@ export class RoleService {
    */
   static async getUserRole(userId: string): Promise<UserRole | null> {
     try {
+      console.log('RoleService: getUserRole called for user:', userId);
+      
       const { data, error } = await supabase.rpc('get_user_role', {
         _user_id: userId
       });
 
       if (error) {
-        console.error('Error fetching user role:', error);
+        console.error('RoleService: Error fetching user role:', error);
         return null;
       }
 
+      console.log('RoleService: getUserRole returned:', data);
       return data;
     } catch (error) {
-      console.error('Error in getUserRole:', error);
+      console.error('RoleService: Exception in getUserRole:', error);
       return null;
     }
   }
