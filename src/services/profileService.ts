@@ -3,13 +3,19 @@ import { supabase } from "@/integrations/supabase/client";
 import { ProfileFormValues } from "@/types/profile";
 import { ProfileTableRow, TableName } from "@/components/dashboard/types/profileTypes";
 import { UserPreference } from "@/components/dashboard/types";
-import { mapFormValuesToDbRow } from "@/utils/profileDataMappers";
+import { mapFormValuesToDbRow, mapCoOwnerFormToDbRow } from "@/utils/profileDataMappers";
+import { CoOwnerFormValues } from "@/components/dashboard/co-owner/types";
 
 /**
  * Determine which table to use based on user preference
  */
 export function getTableNameFromPreference(preference: UserPreference): TableName | null {
-  // Co-owner functionality has been removed
+  if (!preference) return null;
+  
+  if (preference === 'co-owner') {
+    return 'co_owner'; // Use underscore to match database table name
+  }
+  
   return null;
 }
 
@@ -34,15 +40,21 @@ export async function fetchProfileData(userId: string, tableName: TableName) {
  * Save profile data to the database
  */
 export async function saveProfileData(
-  formData: ProfileFormValues, 
+  formData: ProfileFormValues | CoOwnerFormValues, 
   userId: string, 
   tableName: TableName
 ) {
   console.log("Saving to table:", tableName);
   console.log("User ID:", userId);
   
-  // Convert form data to database format
-  let dbData: ProfileTableRow = mapFormValuesToDbRow(formData, userId);
+  // Convert form data to database format based on table type
+  let dbData: ProfileTableRow;
+  
+  if (tableName === 'co_owner') {
+    dbData = mapCoOwnerFormToDbRow(formData as CoOwnerFormValues, userId);
+  } else {
+    dbData = mapFormValuesToDbRow(formData as ProfileFormValues, userId);
+  }
 
   // First check if a record already exists with the user_id
   const { data: existingData, error: fetchError } = await supabase

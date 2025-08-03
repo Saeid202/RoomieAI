@@ -1,7 +1,7 @@
 
 import { Outlet, useLocation, Navigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
-import { SecureRouteGuard } from "@/components/dashboard/SecureRouteGuard";
+import { RouteGuard } from "@/components/dashboard/RouteGuard";
 import { RoleInitializer } from "@/components/dashboard/RoleInitializer";
 import { useRole } from "@/contexts/RoleContext";
 import { useAuth } from "@/hooks/useAuth";
@@ -49,7 +49,7 @@ export default function Dashboard() {
   return (
     <>
       <RoleInitializer>
-        <SecureRouteGuard>
+        <RouteGuard>
           <DashboardLayout>
             {showDashboardContent ? (
               <div className="container mx-auto py-6">
@@ -59,7 +59,7 @@ export default function Dashboard() {
               <Outlet />
             )}
           </DashboardLayout>
-        </SecureRouteGuard>
+        </RouteGuard>
       </RoleInitializer>
       
       <RoleSelectionDialog 

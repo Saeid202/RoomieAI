@@ -10,7 +10,6 @@ import { fetchProperties, Property } from "@/services/propertyService";
 export default function RentalOptionsPage() {
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState({
     location: "",
     minPrice: "",
@@ -19,8 +18,6 @@ export default function RentalOptionsPage() {
     property_type: ""
   });
 
-  console.log("RentalOptionsPage component rendered");
-
   useEffect(() => {
     loadProperties();
   }, []);
@@ -28,7 +25,6 @@ export default function RentalOptionsPage() {
   const loadProperties = async () => {
     try {
       setLoading(true);
-      setError(null);
       console.log("Loading properties with filters:", filters);
       const processedFilters = {
         location: filters.location || undefined,
@@ -38,12 +34,11 @@ export default function RentalOptionsPage() {
         property_type: filters.property_type || undefined,
       };
       console.log("Processed filters:", processedFilters);
-      const data = await fetchProperties();
+      const data = await fetchProperties(processedFilters);
       console.log("Fetched properties:", data);
       setProperties(data);
     } catch (error) {
       console.error("Error loading properties:", error);
-      setError(error instanceof Error ? error.message : "Unknown error");
     } finally {
       setLoading(false);
     }
@@ -70,19 +65,11 @@ export default function RentalOptionsPage() {
     return typeMap[type] || type;
   };
 
-  console.log("About to render, loading:", loading, "properties:", properties.length, "error:", error);
-
-  if (error) {
-    console.error("RentalOptionsPage - Rendering with error:", error);
-  }
-
-  console.log("RentalOptionsPage render - About to return JSX");
-  
   return (
-    <div className="space-y-6 p-4 md:p-6">
+    <div className="space-y-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Rent</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Rental Options</h1>
           <p className="text-muted-foreground mt-1">Browse all available properties listed on our platform</p>
         </div>
       </div>
@@ -91,7 +78,6 @@ export default function RentalOptionsPage() {
       <Card className="bg-muted/50">
         <CardContent className="p-4">
           <p className="text-sm">Debug: Loading = {loading.toString()}, Properties count = {properties.length}</p>
-          {error && <p className="text-sm text-red-500">Error: {error}</p>}
           {properties.length > 0 && (
             <p className="text-sm">First property: {properties[0]?.listing_title}</p>
           )}

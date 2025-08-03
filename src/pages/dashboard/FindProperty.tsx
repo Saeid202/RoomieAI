@@ -39,7 +39,7 @@ export default function FindPropertyPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Find Property</h1>
           <p className="text-muted-foreground mt-1">
-            Search for properties to rent or buy
+            Search for properties to rent, buy, or co-own
           </p>
         </div>
       </div>
@@ -53,14 +53,18 @@ export default function FindPropertyPage() {
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="rental" value={searchType} onValueChange={setSearchType} className="w-full mb-6">
-            <TabsList className="grid grid-cols-2 w-full">
+            <TabsList className="grid grid-cols-3 w-full">
               <TabsTrigger value="rental" className="flex items-center gap-1">
                 <Building className="h-4 w-4" />
-                Rent
+                Rentals
               </TabsTrigger>
               <TabsTrigger value="purchase" className="flex items-center gap-1">
                 <Home className="h-4 w-4" />
                 For Sale
+              </TabsTrigger>
+              <TabsTrigger value="co-ownership" className="flex items-center gap-1">
+                <Users className="h-4 w-4" />
+                Co-ownership
               </TabsTrigger>
             </TabsList>
             

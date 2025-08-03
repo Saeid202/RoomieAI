@@ -29,6 +29,20 @@ export interface DatabaseRoommate {
   linkedin_profile: string;
 }
 
+export interface DatabaseCoOwner {
+  user_id: string;
+  full_name: string;
+  email: string;
+  age: number;
+  occupation: string;
+  phone_number: string;
+  preferred_location: string;
+  investment_capacity: number[];
+  investment_timeline: string;
+  property_type: string;
+  co_ownership_experience: string;
+}
+
 export async function fetchRoommateProfiles(): Promise<DatabaseRoommate[]> {
   const { data, error } = await supabase
     .from('roommate')
@@ -45,11 +59,18 @@ export async function fetchRoommateProfiles(): Promise<DatabaseRoommate[]> {
   return data as any;
 }
 
-// Note: Co-owner functionality is currently disabled as the table doesn't exist
-// This can be re-enabled when the co_owner table is created
-export async function fetchCoOwnerProfiles(): Promise<any[]> {
-  console.log('Co-owner profiles feature is currently disabled');
-  return [];
+export async function fetchCoOwnerProfiles(): Promise<DatabaseCoOwner[]> {
+  const { data, error } = await supabase
+    .from('co_owner')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching co-owner profiles:', error);
+    return [];
+  }
+
+  return data || [];
 }
 
 export function convertRoommateToMatchResult(roommate: DatabaseRoommate): MatchResult {
@@ -82,6 +103,37 @@ export function convertRoommateToMatchResult(roommate: DatabaseRoommate): MatchR
       lifestyle: 22,
       schedule: 14,
       interests: 8,
+      cleanliness: 18
+    }
+  };
+}
+
+export function convertCoOwnerToMatchResult(coOwner: DatabaseCoOwner): MatchResult {
+  return {
+    name: coOwner.full_name || "Unknown",
+    age: coOwner.age?.toString() || "N/A",
+    gender: "N/A",
+    occupation: coOwner.occupation || "Not specified",
+    movingDate: "Flexible",
+    budget: coOwner.investment_capacity || [0, 0],
+    location: coOwner.preferred_location || "Any location",
+    cleanliness: 90,
+    pets: true,
+    smoking: false,
+    drinking: "allowed",
+    guests: "welcome",
+    sleepSchedule: "flexible",
+    workSchedule: "flexible",
+    interests: ["real estate", "investment"],
+    traits: ["professional", "experienced", coOwner.co_ownership_experience?.toLowerCase() || "beginner"],
+    preferredLiving: "shareProperty",
+    compatibilityScore: Math.floor(Math.random() * 20) + 75, // Random score 75-94
+    compatibilityBreakdown: {
+      budget: 14,
+      location: 15,
+      lifestyle: 20,
+      schedule: 15,
+      interests: 7,
       cleanliness: 18
     }
   };

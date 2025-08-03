@@ -6,13 +6,18 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/hooks/use-toast";
 
 export function RoleToggle() {
-  const { role } = useRole();
+  const { role, setRole } = useRole();
   const { user } = useAuth();
   
   // Get the user's assigned role from metadata
   const assignedRole = user?.user_metadata?.role as UserRole | undefined;
   
-  // Role is now managed server-side only
+  useEffect(() => {
+    // Ensure the user's role matches their assigned role if they have one
+    if (assignedRole && role !== assignedRole) {
+      setRole(assignedRole);
+    }
+  }, [role, assignedRole, setRole]);
 
   // Display appropriate role name and description based on user's assigned role
   const getRoleDisplay = () => {
@@ -20,7 +25,7 @@ export function RoleToggle() {
       case 'seeker':
         return {
           title: 'Roommate Finder',
-          description: 'Find your ideal rental opportunity',
+          description: 'Find your ideal rental or co-ownership opportunity',
           icon: <User className="h-5 w-5 text-roomie-purple" />
         };
       case 'landlord':

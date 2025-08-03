@@ -28,6 +28,12 @@ export function SeekerSidebar({ isActive }: SeekerSidebarProps) {
         isActive={isActive('/dashboard/matches')}
       />
       
+      <SidebarSimpleMenuItem 
+        icon={<Building size={18} />} 
+        label="Rental Options"
+        to="/dashboard/rental-options" 
+        isActive={isActive('/dashboard/rental-options')}
+      />
       
       <SidebarSimpleMenuItem 
         icon={<Calendar size={18} />} 
@@ -45,11 +51,31 @@ export function SeekerSidebar({ isActive }: SeekerSidebarProps) {
       
       <SidebarSimpleMenuItem 
         icon={<MapPin size={18} />} 
-        label="Rent"
+        label="Short Term Housing"
         to="/dashboard/short-term" 
         isActive={isActive('/dashboard/short-term')}
       />
       
+      <SidebarSimpleMenuItem 
+        icon={<Group size={18} />} 
+        label="Group Matching"
+        to="/dashboard/group-matching" 
+        isActive={isActive('/dashboard/group-matching')}
+      />
+      
+      <SidebarSimpleMenuItem 
+        icon={<Briefcase size={18} />} 
+        label="Work Exchange"
+        to="/dashboard/work-exchange" 
+        isActive={isActive('/dashboard/work-exchange')}
+      />
+      
+      <SidebarSimpleMenuItem 
+        icon={<Flag size={18} />} 
+        label="LGBTQ+ Matching"
+        to="/dashboard/lgbtq-matching" 
+        isActive={isActive('/dashboard/lgbtq-matching')}
+      />
       
       <SidebarSimpleMenuItem 
         icon={<MessageSquare size={18} />} 

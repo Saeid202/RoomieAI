@@ -18,15 +18,22 @@ export function ProfileContent() {
   const location = useLocation();
   const path = location.pathname;
   
+  // Determine if we're on a specific profile page
+  const isCoOwnerPage = path.includes('/profile/co-owner');
+
   // Log the current path and view for debugging
   useEffect(() => {
     console.log("ProfileContent - Current path:", path);
+    console.log("ProfileContent - Is co-owner page:", isCoOwnerPage);
     console.log("ProfileContent - User preference:", userPreference);
     console.log("ProfileContent - Profile data:", profileData);
-  }, [path, userPreference, profileData]);
+  }, [path, isCoOwnerPage, userPreference, profileData]);
 
   // Set the title based on the current page or preference
   let title = "My Profile";
+  if (isCoOwnerPage || userPreference === 'co-owner') {
+    title = "Co-Owner Profile";
+  }
 
   return (
     <div className="space-y-8">
@@ -42,7 +49,7 @@ export function ProfileContent() {
             navigate={navigate}
             activeTab={activeTab}
             setActiveTab={setActiveTab}
-            forcedView={null}
+            forcedView={isCoOwnerPage ? 'co-owner' : null}
           />
         </div>
       </div>

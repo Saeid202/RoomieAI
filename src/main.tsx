@@ -1,26 +1,30 @@
 
-import { createRoot } from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import App from './App.tsx';
-import './index.css';
+import { createRoot } from 'react-dom/client'
+import { BrowserRouter } from 'react-router-dom'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import App from './App.tsx'
+import './index.css'
+import { RoleProvider } from './contexts/RoleContext.tsx'
 
-console.log('App starting up... Version 2');
-
-// Initialize React Query client
+// Initialize React Query client with better error handling
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: 1,
       refetchOnWindowFocus: false,
-      staleTime: 5 * 60 * 1000,
+      staleTime: 5 * 60 * 1000, // 5 minutes
     },
+    mutations: {
+      onError: (error) => {
+        console.error('Mutation error:', error);
+      }
+    }
   },
-});
+})
 
-// Error handlers
+// Add error boundary for the entire application
 window.addEventListener('error', (event) => {
-  console.error('Global error:', event.error);
+  console.error('Global error caught:', event.error);
 });
 
 // Render the application
@@ -30,7 +34,9 @@ if (!rootElement) throw new Error("Failed to find the root element");
 createRoot(rootElement).render(
   <BrowserRouter>
     <QueryClientProvider client={queryClient}>
-      <App />
+      <RoleProvider>
+        <App />
+      </RoleProvider>
     </QueryClientProvider>
   </BrowserRouter>
 );

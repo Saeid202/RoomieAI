@@ -19,7 +19,6 @@ export const profileSchema = z.object({
   ethnicity: z.string().optional(),
   religion: z.string().optional(),
   occupation: z.string().optional(),
-  educationLevel: z.string().optional(),
   
   // Housing Preferences (simplified)
   preferredLocation: z.array(z.string()).max(15, "Maximum 15 locations allowed"),

@@ -105,7 +105,7 @@ export const SignupForm = ({ onSubmit, isLoading }: SignupFormProps) => {
                       <RadioGroupItem value="seeker" />
                     </FormControl>
                     <FormLabel className="font-normal cursor-pointer">
-                      Seeker - Looking for rent
+                      Seeker - Looking for rent or co-ownership
                     </FormLabel>
                   </FormItem>
                   <FormItem className="flex items-center space-x-3 space-y-0">

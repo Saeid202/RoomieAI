@@ -31,7 +31,7 @@ export function LegalAssistant() {
             <div className="flex-1 p-4 bg-gray-50 rounded-md mb-4 overflow-y-auto">
               <div className="bg-white p-3 rounded-lg shadow-sm inline-block mb-2">
                 <p className="font-medium text-sm text-roomie-purple">Legal Assistant</p>
-                <p>Hello! I'm your AI legal assistant. I can help with questions about housing rights, rental agreements, and more. What would you like to know?</p>
+                <p>Hello! I'm your AI legal assistant. I can help with questions about housing rights, rental agreements, co-ownership, and more. What would you like to know?</p>
               </div>
               
               {/* This would be a component for chat messages in production */}

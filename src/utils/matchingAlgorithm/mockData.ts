@@ -1,6 +1,6 @@
 
 import { MatchResult } from "./types";
-import { fetchRoommateProfiles, convertRoommateToMatchResult } from "@/services/matchingService";
+import { fetchRoommateProfiles, fetchCoOwnerProfiles, convertRoommateToMatchResult, convertCoOwnerToMatchResult } from "@/services/matchingService";
 
 // Cache for fetched data
 let cachedRoommates: MatchResult[] | null = null;
@@ -28,9 +28,9 @@ export async function getMockProperties(): Promise<MatchResult[]> {
   }
 
   try {
-    // Co-owner functionality is currently disabled
-    console.log('Co-owner properties feature is currently disabled');
-    return getFallbackProperties();
+    const dbCoOwners = await fetchCoOwnerProfiles();
+    cachedProperties = dbCoOwners.map(convertCoOwnerToMatchResult);
+    return cachedProperties;
   } catch (error) {
     console.error('Error fetching co-owners from database:', error);
     // Return fallback data if database fails

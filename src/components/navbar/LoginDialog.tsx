@@ -25,7 +25,7 @@ interface LoginDialogProps {
 export const LoginDialog = ({ isOpen, setIsOpen }: LoginDialogProps) => {
   const navigate = useNavigate();
   const { signIn, signInWithGoogle, signInWithFacebook, signInWithLinkedIn, resetPassword } = useAuth();
-  const { refreshRole } = useRole();
+  const { setRole } = useRole();
   
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -56,8 +56,24 @@ export const LoginDialog = ({ isOpen, setIsOpen }: LoginDialogProps) => {
       const userRole = data.user?.user_metadata?.role as UserRole | undefined;
       console.log("User logged in with role:", userRole);
       
-      // Refresh role from server-side database
-      await refreshRole();
+      // Set role in context
+      if (userRole) {
+        setRole(userRole);
+        // Also update in localStorage
+        localStorage.setItem('userRole', userRole);
+      } else {
+        console.warn("No role found in user metadata after login, checking localStorage...");
+        const storedRole = localStorage.getItem('userRole') as UserRole | null;
+        
+        if (storedRole) {
+          console.log("Using role from localStorage:", storedRole);
+          setRole(storedRole);
+        } else {
+          console.warn("No role found in localStorage either, defaulting to seeker");
+          setRole('seeker');
+          localStorage.setItem('userRole', 'seeker');
+        }
+      }
       
       // Redirect based on user role
       if (userRole === 'landlord' || localStorage.getItem('userRole') === 'landlord') {

@@ -96,8 +96,11 @@ export type ProfileTableRow = {
   [key: string]: any; // Allow dynamic properties
 };
 
+// Use these type aliases for better readability
+export type CoOwnerTableRow = ProfileTableRow;
+
 // Define a type for the table names accepted by Supabase - using underscores to match database
-export type TableName = "roommate";
+export type TableName = "roommate" | "co_owner";
 
 export interface ProfileContentProps {
   profileData: Partial<ProfileFormValues> | null;

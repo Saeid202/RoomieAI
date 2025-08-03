@@ -18,7 +18,7 @@ import { RoleSelectionDialog } from "@/components/auth/RoleSelectionDialog";
 
 export function UserMenu() {
   const { user, signOut, updateMetadata } = useAuth();
-  const { role } = useRole();
+  const { role, setRole } = useRole();
   const [isRoleSwitching, setIsRoleSwitching] = useState(false);
   const [showRoleDialog, setShowRoleDialog] = useState(false);
 
@@ -28,6 +28,8 @@ export function UserMenu() {
     setIsRoleSwitching(true);
     try {
       await updateMetadata({ role: newRole });
+      
+      setRole(newRole);
       
       toast({
         title: "Role updated",

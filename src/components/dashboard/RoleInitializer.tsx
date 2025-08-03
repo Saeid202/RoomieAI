@@ -9,32 +9,37 @@ interface RoleInitializerProps {
 }
 
 export function RoleInitializer({ children }: RoleInitializerProps) {
-  const { role, loading, refreshRole } = useRole();
+  const { role, setRole } = useRole();
   const { user } = useAuth();
   
   useEffect(() => {
-    const initializeRole = async () => {
-      if (!user || loading) return;
-      
-      console.log("RoleInitializer - user:", user?.email);
-      console.log("RoleInitializer - current role:", role);
-      
-      // Refresh role from server-side database
-      await refreshRole();
-      
-      if (role) {
-        toast({
-          title: "Role initialized",
-          description: `You are using Roomi AI as a ${getRoleDisplay(role)}`,
-          duration: 3000,
-        });
-      } else {
-        console.warn("No role found for user in database");
+    console.log("RoleInitializer - current role:", role);
+    console.log("RoleInitializer - user:", user?.email);
+    console.log("RoleInitializer - user metadata:", user?.user_metadata);
+    
+    const checkUserRole = async () => {
+      if (user) {
+        const userRole = user.user_metadata?.role;
+        console.log("RoleInitializer - checking role from metadata:", userRole);
+        
+        if (userRole && role !== userRole) {
+          console.log("Setting role to match user metadata:", userRole);
+          setRole(userRole);
+          
+          // Show a toast notification when role is set/changed
+          toast({
+            title: "Role initialized",
+            description: `You are using Roomi AI as a ${getRoleDisplay(userRole)}`,
+            duration: 3000,
+          });
+        } else if (!userRole) {
+          console.warn("No role found in user metadata in RoleInitializer");
+        }
       }
     };
     
-    initializeRole();
-  }, [user, refreshRole]); // Removed role and loading from dependencies to avoid loops
+    checkUserRole();
+  }, [user, setRole, role]);
 
   // Helper function to get a display-friendly role name
   const getRoleDisplay = (roleValue: string): string => {
@@ -45,8 +50,6 @@ export function RoleInitializer({ children }: RoleInitializerProps) {
         return 'Landlord';
       case 'developer':
         return 'Builder/Realtor';
-      case 'admin':
-        return 'Administrator';
       default:
         return 'User';
     }

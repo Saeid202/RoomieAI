@@ -4,6 +4,21 @@ import { useCallback } from "react";
 
 export const useAuth = () => {
   const auth = useAuthOriginal();
-  console.log("useAuth called - user:", auth.user?.email, "loading:", auth.loading);
-  return auth;
+  
+  // Use memoized logging to prevent excessive console output
+  const loggedAuth = useCallback(() => {
+    // Only log in development environment
+    if (process.env.NODE_ENV === 'development') {
+      console.log("useAuth hook called, auth state:", { 
+        user: auth.user?.email || null, 
+        authenticated: !!auth.user, 
+        loading: auth.loading,
+        hasSession: !!auth.session
+      });
+    }
+    
+    return auth;
+  }, [auth]);
+  
+  return loggedAuth();
 };
