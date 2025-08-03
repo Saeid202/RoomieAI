@@ -87,14 +87,14 @@ function AppRoutes() {
 
 function App() {
   console.log("App component rendering");
+  console.log("ThemeProvider imported:", !!ThemeProvider);
   
   return (
-    <ThemeProvider>
-      <div style={{padding: '20px'}}>
-        <h1>ThemeProvider Test</h1>
-        <p>ThemeProvider is working</p>
-      </div>
-    </ThemeProvider>
+    <div style={{padding: '20px', backgroundColor: 'white', color: 'black'}}>
+      <h1>Basic App Test</h1>
+      <p>No providers, just basic React</p>
+      <p>Time: {new Date().toISOString()}</p>
+    </div>
   );
 }
 

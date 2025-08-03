@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import App from './App.tsx';
 import './index.css';
 
-console.log('App starting up...');
+console.log('App starting up... Version 2');
 
 // Initialize React Query client
 const queryClient = new QueryClient({
