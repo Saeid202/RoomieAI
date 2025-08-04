@@ -66,29 +66,36 @@ export function RoommateRecommendations({ onError }: RoommateRecommendationsProp
   }
 
   return (
-    <div className="w-full max-w-screen-sm mx-auto px-2 sm:px-4 space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start gap-2 sm:gap-0">
-        <div>
-          <h1 className="text-2xl font-bold mb-2">Find Your Ideal Roommate</h1>
-          <p className="text-muted-foreground">
+    <div className="w-full max-w-none mx-auto space-y-6 md:max-w-screen-xl md:px-4">
+      {/* Mobile-optimized header */}
+      <div className="px-4 md:px-0">
+        <div className="flex flex-col space-y-3">
+          <h1 className="text-3xl md:text-4xl font-bold text-foreground">
+            Find Your Ideal Roommate
+          </h1>
+          <p className="text-lg text-muted-foreground">
             Update your profile and preferences to get matched with potential roommates
           </p>
         </div>
       </div>
       
-      <Card className="w-full !max-w-full overflow-visible">
-        <CardContent className="p-4 sm:p-6 w-full">
-          <TabsSection
-            activeTab={activeTab}
-            expandedSections={expandedSections}
-            setExpandedSections={setExpandedSections}
-            handleTabChange={handleTabChange}
-            profileData={profileData}
-            onSaveProfile={handleSaveProfile}
-          />
-        </CardContent>
-      </Card>
+      {/* Mobile-optimized profile section */}
+      <div className="w-full">
+        <div className="bg-background/95 backdrop-blur-sm">
+          <div className="px-4 py-6 md:p-6">
+            <TabsSection
+              activeTab={activeTab}
+              expandedSections={expandedSections}
+              setExpandedSections={setExpandedSections}
+              handleTabChange={handleTabChange}
+              profileData={profileData}
+              onSaveProfile={handleSaveProfile}
+            />
+          </div>
+        </div>
+      </div>
       
+      {/* Mobile-optimized results section */}
       <div className="w-full">
         <ResultsSection
           roommates={roommates}

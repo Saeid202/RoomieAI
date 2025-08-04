@@ -27,12 +27,15 @@ export function ResultsSection({
   }
 
   return (
-    <Card className="mt-8">
-      <CardContent className="p-6">
-        <h2 className="text-2xl font-bold mb-4">Your Matches</h2>
-        <p className="mb-6">
-          Based on your preferences, we found {roommates.length + properties.length} potential matches!
-        </p>
+    <div className="px-4 md:px-0">
+      <div className="bg-background/95 backdrop-blur-sm rounded-3xl border border-border/20 shadow-sm">
+        <div className="p-6 md:p-8">
+          <div className="text-center md:text-left mb-6">
+            <h2 className="text-3xl md:text-4xl font-bold mb-3 text-foreground">Your Matches</h2>
+            <p className="text-lg text-muted-foreground">
+              Based on your preferences, we found {roommates.length + properties.length} potential matches!
+            </p>
+          </div>
         
         {selectedMatch ? (
           <MatchDetailView match={selectedMatch} onClose={onCloseDetails} />
@@ -45,7 +48,8 @@ export function ResultsSection({
             onViewDetails={onViewDetails}
           />
         )}
-      </CardContent>
-    </Card>
+        </div>
+      </div>
+    </div>
   );
 }

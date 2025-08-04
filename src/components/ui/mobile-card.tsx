@@ -21,34 +21,44 @@ export function MobileCard({
 }: MobileCardProps) {
   return (
     <Card className={cn(
-      "rounded-2xl shadow-sm border-border/50 bg-background/95 backdrop-blur-sm",
-      "hover:shadow-md transition-all duration-300",
+      "rounded-3xl shadow-sm border-border/20 bg-background/95 backdrop-blur-sm",
+      "hover:shadow-lg active:scale-[0.98] transition-all duration-300",
+      "touch-manipulation", // Optimizes touch interactions
       compact && "p-0",
       className
     )}>
       {title && (
         <CardHeader className={cn(
-          "pb-4",
-          compact && "pb-2 px-4 pt-4"
+          "pb-4 px-6 pt-6",
+          compact && "pb-3 px-4 pt-4"
         )}>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-4">
             <CardTitle className={cn(
-              "flex items-center gap-3 text-foreground",
-              compact ? "text-lg" : "text-xl"
+              "flex items-center gap-4 text-foreground font-bold",
+              compact ? "text-xl" : "text-2xl"
             )}>
               {icon && (
-                <div className="p-2 bg-primary/10 rounded-xl">
+                <div className={cn(
+                  "p-3 bg-primary/10 rounded-2xl flex-shrink-0",
+                  compact && "p-2 rounded-xl"
+                )}>
                   {icon}
                 </div>
               )}
-              {title}
+              <span className="truncate">{title}</span>
             </CardTitle>
-            {headerAction}
+            {headerAction && (
+              <div className="flex-shrink-0">
+                {headerAction}
+              </div>
+            )}
           </div>
         </CardHeader>
       )}
       <CardContent className={cn(
-        compact && "px-4 pb-4"
+        "px-6 pb-6",
+        compact && "px-4 pb-4",
+        !title && "pt-6"
       )}>
         {children}
       </CardContent>
