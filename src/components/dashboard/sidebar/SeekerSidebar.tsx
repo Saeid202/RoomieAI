@@ -49,19 +49,6 @@ export function SeekerSidebar({ isActive }: SeekerSidebarProps) {
         isActive={isActive('/dashboard/opposite-schedule')}
       />
       
-      <SidebarSimpleMenuItem 
-        icon={<MapPin size={18} />} 
-        label="Short Term Housing"
-        to="/dashboard/short-term" 
-        isActive={isActive('/dashboard/short-term')}
-      />
-      
-      <SidebarSimpleMenuItem 
-        icon={<Group size={18} />} 
-        label="Group Matching"
-        to="/dashboard/group-matching" 
-        isActive={isActive('/dashboard/group-matching')}
-      />
       
       <SidebarSimpleMenuItem 
         icon={<Briefcase size={18} />} 

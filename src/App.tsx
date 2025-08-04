@@ -9,8 +9,6 @@ import RoommateRecommendationsPage from "@/pages/dashboard/RoommateRecommendatio
 import RentalOptionsPage from "@/pages/dashboard/RentalOptions";
 import PlanAheadMatchingPage from "@/pages/dashboard/PlanAheadMatching";
 import OppositeSchedulePage from "@/pages/dashboard/OppositeSchedule";
-import ShortTermPage from "@/pages/dashboard/ShortTerm";
-import GroupMatchingPage from "@/pages/dashboard/GroupMatching";
 import WorkExchangePage from "@/pages/dashboard/WorkExchange";
 import LGBTQMatchingPage from "@/pages/dashboard/LGBTQMatching";
 import LandlordDashboardPage from "@/pages/dashboard/landlord/LandlordDashboard";
@@ -56,8 +54,6 @@ function AppRoutes() {
           <Route path="rental-options" element={<RentalOptionsPage />} />
           <Route path="plan-ahead-matching" element={<PlanAheadMatchingPage />} />
           <Route path="opposite-schedule" element={<OppositeSchedulePage />} />
-          <Route path="short-term" element={<ShortTermPage />} />
-          <Route path="group-matching" element={<GroupMatchingPage />} />
           <Route path="work-exchange" element={<WorkExchangePage />} />
           <Route path="lgbtq-matching" element={<LGBTQMatchingPage />} />
           <Route path="landlord" element={<LandlordDashboardPage />} />
@@ -98,8 +94,6 @@ function AppRoutes() {
         <Route path="rental-options" element={<RentalOptionsPage />} />
         <Route path="plan-ahead-matching" element={<PlanAheadMatchingPage />} />
         <Route path="opposite-schedule" element={<OppositeSchedulePage />} />
-        <Route path="short-term" element={<ShortTermPage />} />
-        <Route path="group-matching" element={<GroupMatchingPage />} />
         <Route path="work-exchange" element={<WorkExchangePage />} />
         <Route path="lgbtq-matching" element={<LGBTQMatchingPage />} />
         <Route path="landlord" element={<LandlordDashboardPage />} />
