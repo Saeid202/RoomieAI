@@ -9,7 +9,7 @@ export function EmptyProfileState() {
   return (
     <div className="text-center py-8 px-4 max-w-full">
       <p className="text-base md:text-lg text-gray-600 mb-6">
-        Please select your preference (roommate, co-owner, or both) before filling out your profile.
+        Please complete your roommate profile to start finding matches.
       </p>
       <Button 
         onClick={() => navigate('/dashboard')}
