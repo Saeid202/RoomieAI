@@ -29,9 +29,6 @@ export function MobileNavigation() {
     return role === 'seeker' ? '/dashboard/roommate-recommendations' : '/dashboard/landlord';
   };
 
-  const getBuyCoOwnRoute = () => {
-    return role === 'seeker' ? '/dashboard/co-owner-recommendations' : '/dashboard/developer';
-  };
 
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-white via-white to-white/95 backdrop-blur-sm border-t border-border/20 z-40 md:hidden pb-safe">
@@ -59,10 +56,10 @@ export function MobileNavigation() {
           />
           
           <NavItem 
-            icon={<Building size={22} />} 
-            label={role === 'seeker' ? "Buy & Co-own" : "Properties"} 
-            to={getBuyCoOwnRoute()}
-            isActive={isActive(getBuyCoOwnRoute())}
+            icon={<User size={22} />} 
+            label="Profile" 
+            to="/dashboard/profile"
+            isActive={isActive('/dashboard/profile')}
           />
           
           <NavItem 
@@ -197,22 +194,6 @@ function AddButton({
                 </div>
               </Link>
             </Button>
-            
-            {role === 'seeker' && (
-              <Button 
-                variant="outline" 
-                className="justify-start h-12 rounded-xl border-2 hover:border-primary hover:bg-primary/5"
-                onClick={() => setIsOpen(false)}
-                asChild
-              >
-                <Link to="/dashboard/profile">
-                  <User className="mr-3 h-5 w-5 text-primary" />
-                  <div className="text-left">
-                    <div className="font-medium">Update Profile</div>
-                  </div>
-                </Link>
-              </Button>
-            )}
           </div>
         </div>
       </DialogContent>

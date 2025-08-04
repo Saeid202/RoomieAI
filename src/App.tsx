@@ -20,6 +20,7 @@ import AuthPage from "@/pages/Auth";
 import Callback from "@/pages/auth/Callback";
 import Profile from "@/pages/dashboard/Profile";
 import LegalAssistantPage from "@/pages/dashboard/LegalAssistant";
+import ListRoomPage from "@/pages/dashboard/ListRoom";
 import RentOpportunitiesPage from "@/pages/dashboard/RentOpportunities";
 import ChatsPage from "@/pages/dashboard/Chats";
 import RentSavingsPage from "@/pages/dashboard/RentSavings";
@@ -66,6 +67,7 @@ function AppRoutes() {
           <Route path="messenger" element={<MessengerPage />} />
           <Route path="rent-savings" element={<RentSavingsPage />} />
           <Route path="legal-assistant" element={<LegalAssistantPage />} />
+          <Route path="list-room" element={<ListRoomPage />} />
 
           <Route path="settings" element={<SettingsPage />} />
           <Route path="admin" element={<AdminHomePage />} />
@@ -106,6 +108,7 @@ function AppRoutes() {
         <Route path="messenger" element={<MessengerPage />} />
         <Route path="rent-savings" element={<RentSavingsPage />} />
         <Route path="legal-assistant" element={<LegalAssistantPage />} />
+        <Route path="list-room" element={<ListRoomPage />} />
 
         <Route path="settings" element={<SettingsPage />} />
         <Route path="admin" element={<AdminHomePage />} />
