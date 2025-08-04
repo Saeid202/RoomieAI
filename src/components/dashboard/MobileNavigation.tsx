@@ -34,7 +34,7 @@ export function MobileNavigation() {
     <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-white via-white to-white/95 backdrop-blur-sm border-t border-border/20 z-40 md:hidden pb-safe">
       {/* Modern glass morphism navigation bar */}
       <div className="px-2 py-3">
-        <div className="grid grid-cols-5 gap-1 max-w-sm mx-auto">
+        <div className="grid grid-cols-4 gap-1 max-w-sm mx-auto">
           <NavItem 
             icon={<Home size={22} />} 
             label="Home" 
@@ -53,13 +53,6 @@ export function MobileNavigation() {
             isOpen={isAddMenuOpen}
             setIsOpen={setIsAddMenuOpen}
             role={role as string}
-          />
-          
-          <NavItem 
-            icon={<User size={22} />} 
-            label="Profile" 
-            to="/dashboard/profile"
-            isActive={isActive('/dashboard/profile')}
           />
           
           <NavItem 

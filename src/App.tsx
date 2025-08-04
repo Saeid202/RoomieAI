@@ -18,7 +18,7 @@ import AddPropertyPage from "@/pages/dashboard/landlord/AddProperty";
 import FindPropertyPage from "@/pages/dashboard/FindProperty";
 import AuthPage from "@/pages/Auth";
 import Callback from "@/pages/auth/Callback";
-import Profile from "@/pages/dashboard/Profile";
+
 import LegalAssistantPage from "@/pages/dashboard/LegalAssistant";
 import ListRoomPage from "@/pages/dashboard/ListRoom";
 import RentOpportunitiesPage from "@/pages/dashboard/RentOpportunities";
@@ -49,7 +49,6 @@ function AppRoutes() {
             <Dashboard />
           </ProtectedRoute>
         }>
-          <Route path="profile" element={<Profile />} />
           <Route path="matches" element={<MatchesPage />} />
           <Route path="roommate-recommendations" element={<RoommateRecommendationsPage />} />
           <Route path="rental-options" element={<RentalOptionsPage />} />
@@ -90,7 +89,7 @@ function AppRoutes() {
           <Dashboard />
         </ProtectedRoute>
       }>
-        <Route path="profile" element={<Profile />} />
+        
         <Route path="matches" element={<MatchesPage />} />
         <Route path="roommate-recommendations" element={<RoommateRecommendationsPage />} />
         <Route path="rental-options" element={<RentalOptionsPage />} />
