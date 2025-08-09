@@ -1,9 +1,5 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-
-export default function PlanAheadMatchingPage() {
-  return (
-    import React, { useState, useEffect } from 'react';
-import { FaRobot, FaLightbulb, FaMapMarkerAlt, FaCalendarAlt, FaCommentAlt, FaPaperPlane, FaSave, FaBrain, FaCalendarCheck, FaFileContract } from 'react-icons/fa';
+import React, { useState, useEffect } from 'react';
+import { Bot, Lightbulb, MapPin, Calendar, MessageSquare, Save, Brain, CalendarCheck, FileText } from 'lucide-react';
 
 const RoomiAIForm = () => {
   const [formData, setFormData] = useState({
@@ -116,7 +112,7 @@ const RoomiAIForm = () => {
     <div className="container">
       <header>
         <h1 className="logo">
-          <FaRobot /> Roomi AI
+          <Bot /> Roomi AI
         </h1>
         <p className="tagline">The World's First Fully Automated Co-Living Platform</p>
       </header>
@@ -135,7 +131,7 @@ const RoomiAIForm = () => {
             
             <div className="form-note">
               <div className="ai-icon">
-                <FaLightbulb />
+                <Lightbulb />
               </div>
               <div>
                 <strong>AI Tip:</strong> The more details you provide, the better our AI can match you with compatible roommates and living spaces.
@@ -145,7 +141,7 @@ const RoomiAIForm = () => {
             {/* Location Preferences */}
             <div className="form-section">
               <div className="section-title">
-                <FaMapMarkerAlt />
+                <MapPin />
                 <h3>Location Preferences</h3>
               </div>
               
@@ -216,7 +212,7 @@ const RoomiAIForm = () => {
             {/* Lifestyle & Schedule Preferences */}
             <div className="form-section">
               <div className="section-title">
-                <FaCalendarAlt />
+                <Calendar />
                 <h3>Lifestyle & Schedule Preferences</h3>
               </div>
               
@@ -434,7 +430,7 @@ const RoomiAIForm = () => {
             
             <div className="form-section">
               <div className="section-title">
-                <FaCommentAlt />
+                <MessageSquare />
                 <h3>Additional Preferences</h3>
               </div>
               
@@ -445,7 +441,7 @@ const RoomiAIForm = () => {
                   name="additionalInfo"
                   value={formData.additionalInfo}
                   onChange={handleInputChange}
-                  rows="4"
+                  rows={4}
                   placeholder="Special requirements, additional preferences, or other information that might help us find your perfect match..."
                 ></textarea>
               </div>
@@ -453,7 +449,7 @@ const RoomiAIForm = () => {
             
             <div className="submit-section">
               <button type="submit" className="btn" disabled={isSubmitting}>
-                <FaSave /> {isSubmitting ? 'Saving...' : 'Save and Find My Perfect Match'}
+                <Save /> {isSubmitting ? 'Saving...' : 'Save and Find My Perfect Match'}
               </button>
             </div>
           </form>
@@ -464,17 +460,17 @@ const RoomiAIForm = () => {
       
       <div className="ai-features">
         <div className="feature-card">
-          <h3><FaBrain /> AI-Powered Matching</h3>
+          <h3><Brain /> AI-Powered Matching</h3>
           <p>Our algorithm pairs roommates based on lifestyle, values, schedules, and preferences for the perfect match.</p>
         </div>
         
         <div className="feature-card">
-          <h3><FaCalendarCheck /> Smart Move-In Coordination</h3>
+          <h3><CalendarCheck /> Smart Move-In Coordination</h3>
           <p>Plan your relocation in advance with our "Plan Ahead" system that matches you with future availability.</p>
         </div>
         
         <div className="feature-card">
-          <h3><FaFileContract /> Automated Lease Agreements</h3>
+          <h3><FileText /> Automated Lease Agreements</h3>
           <p>Generate and e-sign legally compliant leases in minutes—no lawyers or paperwork required.</p>
         </div>
       </div>
