@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Plus, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -7,24 +7,22 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-
-// Dummy data for demonstration
-const dummyPages = [
-  { id: 1, title: "Home Page", slug: "/", lastModified: "2025-05-15" },
-  { id: 2, title: "About Us", slug: "/about", lastModified: "2025-05-10" },
-  { id: 3, title: "Contact", slug: "/contact", lastModified: "2025-05-12" },
-  { id: 4, title: "FAQ", slug: "/faq", lastModified: "2025-05-14" },
-];
+import PageEditor from "@/components/admin/PageEditor";
+import { fetchPages as cmsFetchPages, createPage as cmsCreatePage, getPageById, updatePage as cmsUpdatePage, deletePage as cmsDeletePage, CmsPage, CmsPageSummary } from "@/services/cmsService";
 
 export default function PagesPage() {
   const { toast } = useToast();
-  const [pages, setPages] = useState(dummyPages);
+  const [pages, setPages] = useState<CmsPageSummary[]>([]);
   const [query, setQuery] = useState("");
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [mode, setMode] = useState<"add" | "edit">("edit");
-  const [editingId, setEditingId] = useState<number | null>(null);
+  const [mode, setMode] = useState<"add" | "edit">("add");
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({ title: "", slug: "" });
+
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
+  const [editingPage, setEditingPage] = useState<CmsPage | null>(null);
+
 
   const filteredPages = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -34,53 +32,80 @@ export default function PagesPage() {
     );
   }, [pages, query]);
 
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const data = await cmsFetchPages();
+        setPages(data);
+      } catch (e: any) {
+        console.error(e);
+        toast({ title: "Failed to load pages", description: e.message || "" });
+      }
+    };
+    load();
+  }, []);
+
   const openAdd = () => {
     setMode("add");
     setEditingId(null);
     setForm({ title: "", slug: "" });
     setIsDialogOpen(true);
   };
-
-  const openEdit = (id: number) => {
-    const page = pages.find(p => p.id === id);
-    if (!page) return;
-    setMode("edit");
-    setEditingId(id);
-    setForm({ title: page.title, slug: page.slug });
-    setIsDialogOpen(true);
+  const openEdit = async (id: string) => {
+    try {
+      const full = await getPageById(id);
+      if (full) {
+        setEditingPage(full);
+        setIsEditorOpen(true);
+      }
+    } catch (e: any) {
+      toast({ title: "Failed to open editor", description: e.message || "" });
+    }
   };
-
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!form.title.trim() || !form.slug.trim()) {
       toast({ title: "Missing fields", description: "Please enter title and slug." });
       return;
     }
 
-    const today = new Date().toISOString().slice(0, 10);
-
-    if (mode === "add") {
-      const nextId = Math.max(0, ...pages.map(p => p.id)) + 1;
-      setPages(prev => [...prev, { id: nextId, title: form.title.trim(), slug: form.slug.trim(), lastModified: today }]);
-      toast({ title: "Page created", description: `${form.title} has been added.` });
-    } else if (mode === "edit" && editingId != null) {
-      setPages(prev => prev.map(p =>
-        p.id === editingId ? { ...p, title: form.title.trim(), slug: form.slug.trim(), lastModified: today } : p
-      ));
-      toast({ title: "Page updated", description: `${form.title} has been saved.` });
+    try {
+      if (mode === "add") {
+        const created = await cmsCreatePage({ title: form.title.trim(), slug: form.slug.trim(), status: "draft" });
+        toast({ title: "Page created", description: `${form.title} has been added.` });
+        setIsDialogOpen(false);
+        // Refresh list
+        const data = await cmsFetchPages();
+        setPages(data);
+        // Open editor
+        setEditingPage(created);
+        setIsEditorOpen(true);
+      } else if (mode === "edit" && editingId) {
+        const updated = await cmsUpdatePage(editingId, { title: form.title.trim(), slug: form.slug.trim() });
+        toast({ title: "Page updated", description: `${form.title} has been saved.` });
+        setIsDialogOpen(false);
+        const data = await cmsFetchPages();
+        setPages(data);
+        setEditingPage(updated);
+        setIsEditorOpen(true);
+      }
+    } catch (e: any) {
+      toast({ title: "Save failed", description: e.message || "Unknown error" });
     }
-
-    setIsDialogOpen(false);
   };
-
-  const handleDelete = (id: number) => {
+  const handleDelete = async (id: string) => {
     const page = pages.find(p => p.id === id);
     if (!page) return;
     if (confirm(`Delete "${page.title}"?`)) {
-      setPages(prev => prev.filter(p => p.id !== id));
-      toast({ title: "Page deleted", description: `${page.title} was removed.` });
+      try {
+        await cmsDeletePage(id);
+        const data = await cmsFetchPages();
+        setPages(data);
+        toast({ title: "Page deleted", description: `${page.title} was removed.` });
+      } catch (e: any) {
+        toast({ title: "Delete failed", description: e.message || "Unknown error" });
+      }
     }
   };
-
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6">
@@ -124,7 +149,7 @@ export default function PagesPage() {
                   <TableRow key={page.id}>
                     <TableCell className="font-medium">{page.title}</TableCell>
                     <TableCell>{page.slug}</TableCell>
-                    <TableCell>{page.lastModified}</TableCell>
+                    <TableCell>{page.updated_at ? new Date(page.updated_at).toLocaleDateString() : "-"}</TableCell>
                     <TableCell>
                       <div className="flex gap-2">
                         <Button variant="outline" size="sm" onClick={() => openEdit(page.id)}>Edit</Button>
