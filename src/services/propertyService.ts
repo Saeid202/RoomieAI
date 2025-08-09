@@ -113,10 +113,27 @@ export async function uploadPropertyImage(file: File): Promise<string> {
 export async function createProperty(propertyData: Omit<Property, 'id' | 'created_at' | 'updated_at'>): Promise<Property | null> {
   console.log("Creating property:", propertyData);
   
+  // Normalize fields for DB (e.g., furnished must be boolean in DB)
+  const normalizeToBoolean = (val: unknown): boolean | undefined => {
+    if (val === undefined || val === null) return undefined;
+    if (typeof val === 'boolean') return val;
+    if (typeof val === 'string') {
+      const v = val.toLowerCase();
+      if (["yes","true","1","fully furnished","partially furnished","furnished"].includes(v)) return true;
+      if (["no","false","0","unfurnished"].includes(v)) return false;
+    }
+    return undefined;
+  };
+
+  const payload: any = {
+    ...propertyData,
+    furnished: normalizeToBoolean((propertyData as any).furnished),
+  };
+  
   try {
     const { data, error } = await sb
       .from('properties')
-      .insert(propertyData as any)
+      .insert(payload)
       .select()
       .single();
 
@@ -210,10 +227,27 @@ export async function fetchPropertyById(id: string) {
 export async function updateProperty(id: string, updates: Partial<Property>) {
   console.log("Updating property:", id, updates);
   
+  // Normalize fields for DB
+  const normalizeToBoolean = (val: unknown): boolean | undefined => {
+    if (val === undefined || val === null) return undefined;
+    if (typeof val === 'boolean') return val;
+    if (typeof val === 'string') {
+      const v = val.toLowerCase();
+      if (["yes","true","1","fully furnished","partially furnished","furnished"].includes(v)) return true;
+      if (["no","false","0","unfurnished"].includes(v)) return false;
+    }
+    return undefined;
+  };
+
+  const payload: any = {
+    ...updates,
+    furnished: normalizeToBoolean((updates as any).furnished),
+  };
+  
   try {
-    const { data, error } = await supabase
+    const { data, error } = await sb
       .from('properties')
-      .update(updates)
+      .update(payload)
       .eq('id', id)
       .select()
       .single();
