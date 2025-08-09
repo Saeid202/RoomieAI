@@ -27,7 +27,7 @@ export interface Property {
   security_deposit?: number;
   lease_terms?: string;
   available_date?: string;
-  furnished?: boolean | string;
+  furnished?: boolean;
   
   // Property Features
   bedrooms?: number;
@@ -74,6 +74,9 @@ export const PARKING_OPTIONS = [
   "Street Parking", "Garage", "Driveway", "No Parking", "Paid Parking"
 ];
 
+export type CreatePropertyInput = Omit<Property, 'id' | 'created_at' | 'updated_at' | 'furnished'> & { furnished?: string | boolean };
+export type UpdatePropertyInput = Partial<Omit<Property, 'furnished'>> & { furnished?: string | boolean };
+
 export async function getPropertiesByOwnerId(userId: string): Promise<Property[]> {
   console.log("Fetching properties for owner:", userId);
   
@@ -110,7 +113,7 @@ export async function uploadPropertyImage(file: File): Promise<string> {
   return "/placeholder.svg";
 }
 
-export async function createProperty(propertyData: Omit<Property, 'id' | 'created_at' | 'updated_at'>): Promise<Property | null> {
+export async function createProperty(propertyData: any): Promise<Property | null> {
   console.log("Creating property:", propertyData);
   
   // Normalize fields for DB (e.g., furnished must be boolean in DB)
@@ -224,7 +227,7 @@ export async function fetchPropertyById(id: string) {
   }
 }
 
-export async function updateProperty(id: string, updates: Partial<Property>) {
+export async function updateProperty(id: string, updates: (Partial<Property> & { furnished?: boolean | string })) {
   console.log("Updating property:", id, updates);
   
   // Normalize fields for DB
