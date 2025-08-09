@@ -80,6 +80,128 @@ export type Database = {
         }
         Relationships: []
       }
+      cms_navigation: {
+        Row: {
+          created_at: string
+          id: string
+          label: string
+          location: string
+          order_index: number
+          updated_at: string
+          url: string
+          visible: boolean
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          label: string
+          location: string
+          order_index?: number
+          updated_at?: string
+          url: string
+          visible?: boolean
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          label?: string
+          location?: string
+          order_index?: number
+          updated_at?: string
+          url?: string
+          visible?: boolean
+        }
+        Relationships: []
+      }
+      cms_pages: {
+        Row: {
+          author_id: string | null
+          content: Json | null
+          created_at: string
+          excerpt: string | null
+          id: string
+          open_graph: Json | null
+          published_at: string | null
+          seo_canonical: string | null
+          seo_description: string | null
+          seo_title: string | null
+          slug: string
+          status: Database["public"]["Enums"]["cms_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author_id?: string | null
+          content?: Json | null
+          created_at?: string
+          excerpt?: string | null
+          id?: string
+          open_graph?: Json | null
+          published_at?: string | null
+          seo_canonical?: string | null
+          seo_description?: string | null
+          seo_title?: string | null
+          slug: string
+          status?: Database["public"]["Enums"]["cms_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string | null
+          content?: Json | null
+          created_at?: string
+          excerpt?: string | null
+          id?: string
+          open_graph?: Json | null
+          published_at?: string | null
+          seo_canonical?: string | null
+          seo_description?: string | null
+          seo_title?: string | null
+          slug?: string
+          status?: Database["public"]["Enums"]["cms_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      cms_sections: {
+        Row: {
+          created_at: string
+          data: Json
+          id: string
+          order_index: number
+          page_id: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          data?: Json
+          id?: string
+          order_index?: number
+          page_id: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          data?: Json
+          id?: string
+          order_index?: number
+          page_id?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cms_sections_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: false
+            referencedRelation: "cms_pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       plan_ahead_matches: {
         Row: {
           compatibility_score: number
@@ -732,6 +854,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "landlord" | "seeker" | "developer"
+      cms_status: "draft" | "published"
       housing_search_status:
         | "not_started"
         | "actively_searching"
@@ -867,6 +990,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "landlord", "seeker", "developer"],
+      cms_status: ["draft", "published"],
       housing_search_status: [
         "not_started",
         "actively_searching",
