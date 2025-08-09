@@ -8,6 +8,9 @@ import { Badge } from "@/components/ui/badge";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
+import { savePlanAheadProfile } from "@/services/planAheadService";
 
 const ageRanges = ["18-24", "25-30", "31-40", "41-50", "51+"] as const;
 const genderOptions = ["any", "male", "female", "nonbinary"] as const;
@@ -48,6 +51,8 @@ export default function PlanAheadForm() {
 
   const [newLocation, setNewLocation] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { user } = useAuth();
+  const { toast } = useToast();
 
   useEffect(() => {
     const today = new Date();
@@ -78,17 +83,52 @@ export default function PlanAheadForm() {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!user) {
+      toast({
+        title: "Please sign in",
+        description: "Log in to save your plan ahead profile.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
-    // Simulate API call
-    setTimeout(() => {
-      // eslint-disable-next-line no-alert
-      alert(
-        "Your preferences have been saved! Our AI is now finding your perfect co-living match."
-      );
+    try {
+      await savePlanAheadProfile(user.id, {
+        currentLocation: formData.currentLocation,
+        targetLocations: formData.targetLocations,
+        moveDate: formData.moveDate,
+        ageRange: formData.ageRange,
+        genderPref: formData.genderPref,
+        nationality: formData.nationality,
+        languagePref: formData.languagePref,
+        dietaryPref: formData.dietaryPref,
+        occupationPref: formData.occupationPref,
+        workSchedulePref: formData.workSchedulePref,
+        ethnicityPref: formData.ethnicityPref,
+        religionPref: formData.religionPref,
+        petPref: formData.petPref,
+        smokePref: formData.smokePref,
+        additionalInfo: formData.additionalInfo,
+      });
+
+      toast({
+        title: "Saved",
+        description: "Preferences saved. We’ll start finding matches.",
+      });
+    } catch (error) {
+      console.error("Failed to save plan ahead profile", error);
+      toast({
+        title: "Save failed",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
       setIsSubmitting(false);
-    }, 900);
+    }
   };
 
   return (
