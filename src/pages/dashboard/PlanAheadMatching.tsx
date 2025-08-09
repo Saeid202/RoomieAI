@@ -10,14 +10,15 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import PlanAheadForm from "@/components/dashboard/plan-ahead/PlanAheadForm";
+import { usePlanAheadMatches } from "@/hooks/usePlanAheadMatches";
+import PlanAheadMatchesList from "@/components/dashboard/plan-ahead/PlanAheadMatchesList";
 
 export default function PlanAheadMatchingPage() {
   useEffect(() => {
     document.title = "Plan Ahead Matching | Roomi AI";
   }, []);
 
-  // Placeholder state for future AI results integration
-  const [hasResults] = useState(false);
+  const { matches, loading: matchesLoading, hasMatches } = usePlanAheadMatches();
 
   return (
     <div className="max-w-7xl mx-auto px-4 md:px-6 py-6">
@@ -60,16 +61,15 @@ export default function PlanAheadMatchingPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {hasResults ? (
-                // ... keep existing code (results grid rendering when integrated)
-                <div className="text-muted-foreground">Results coming soon…</div>
+              {hasMatches ? (
+                <PlanAheadMatchesList matches={matches} />
               ) : (
                 <div className="flex flex-col items-center justify-center text-center py-16">
                   <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
                     <Brain className="h-6 w-6 text-primary" aria-hidden="true" />
                   </div>
                   <h2 className="text-lg font-medium text-foreground">
-                    Start planning to see your matches
+                    {matchesLoading ? "Loading matches…" : "Start planning to see your matches"}
                   </h2>
                   <p className="mt-2 max-w-md text-sm text-muted-foreground">
                     Fill out the form on the right. Roomi AI will analyze your

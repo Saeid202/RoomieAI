@@ -1,5 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
+const sb: any = supabase;
 
 export interface Property {
   id: string;
@@ -26,7 +27,7 @@ export interface Property {
   security_deposit?: number;
   lease_terms?: string;
   available_date?: string;
-  furnished?: string;
+  furnished?: boolean | string;
   
   // Property Features
   bedrooms?: number;
@@ -77,7 +78,7 @@ export async function getPropertiesByOwnerId(userId: string): Promise<Property[]
   console.log("Fetching properties for owner:", userId);
   
   try {
-    const { data, error } = await supabase
+    const { data, error } = await sb
       .from('properties')
       .select('*')
       .eq('user_id', userId)
@@ -93,7 +94,7 @@ export async function getPropertiesByOwnerId(userId: string): Promise<Property[]
     }
 
     console.log("Properties fetched successfully:", data);
-    return data || [];
+    return (data as any as Property[]) || [];
   } catch (error) {
     console.error("Error in getPropertiesByOwnerId:", error);
     return [];
@@ -113,9 +114,9 @@ export async function createProperty(propertyData: Omit<Property, 'id' | 'create
   console.log("Creating property:", propertyData);
   
   try {
-    const { data, error } = await supabase
+    const { data, error } = await sb
       .from('properties')
-      .insert(propertyData)
+      .insert(propertyData as any)
       .select()
       .single();
 
@@ -125,7 +126,7 @@ export async function createProperty(propertyData: Omit<Property, 'id' | 'create
     }
 
     console.log("Property created successfully:", data);
-    return data;
+    return data as any as Property;
   } catch (error) {
     console.error("Error in createProperty:", error);
     throw error;
@@ -142,7 +143,7 @@ export async function fetchProperties(filters?: {
   console.log("Fetching properties with filters:", filters);
   
   try {
-    let query = supabase.from('properties').select('*');
+    let query = sb.from('properties').select('*');
 
     if (filters) {
       if (filters.location) {
@@ -175,7 +176,7 @@ export async function fetchProperties(filters?: {
     }
 
     console.log("Properties fetched successfully:", data);
-    return data || [];
+    return (data as any as Property[]) || [];
   } catch (error) {
     console.error("Error in fetchProperties:", error);
     // Return empty array if table doesn't exist or other error
@@ -187,7 +188,7 @@ export async function fetchPropertyById(id: string) {
   console.log("Fetching property by ID:", id);
   
   try {
-    const { data, error } = await supabase
+    const { data, error } = await sb
       .from('properties')
       .select('*')
       .eq('id', id)

@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { CoOwnerFormValues } from "@/components/dashboard/co-owner/types";
 import { supabase } from "@/integrations/supabase/client";
+const sb: any = supabase;
 
 export function useCoOwnerProfile() {
   const { user, loading: authLoading } = useAuth();
@@ -35,7 +36,7 @@ export function useCoOwnerProfile() {
         setLoading(true);
         console.log("Fetching co-owner profile for user:", user.id);
         
-        const { data, error: fetchError } = await supabase
+        const { data, error: fetchError } = await sb
           .from('co_owner')
           .select('*')
           .eq('user_id', user.id)
@@ -135,7 +136,7 @@ export function useCoOwnerProfile() {
         updated_at: new Date().toISOString(),
       };
 
-      const { error: saveError } = await supabase
+      const { error: saveError } = await sb
         .from('co_owner')
         .upsert(profileData)
         .select();

@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+const sb: any = supabase;
 import { MatchResult } from "@/utils/matchingAlgorithm/types";
 
 export interface DatabaseRoommate {
@@ -60,7 +61,7 @@ export async function fetchRoommateProfiles(): Promise<DatabaseRoommate[]> {
 }
 
 export async function fetchCoOwnerProfiles(): Promise<DatabaseCoOwner[]> {
-  const { data, error } = await supabase
+  const { data, error } = await sb
     .from('co_owner')
     .select('*')
     .order('created_at', { ascending: false });

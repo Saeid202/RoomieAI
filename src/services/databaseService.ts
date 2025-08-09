@@ -1,5 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
+const sb: any = supabase;
 
 /**
  * Creates and initializes database tables and functions needed for the application
@@ -19,7 +20,7 @@ export async function ensureCoOwnerTableExists() {
     console.log("Checking co_owner table...");
     
     // Try to access the table to verify it exists by querying it
-    const { data: tableData, error: tableError } = await supabase
+    const { data: tableData, error: tableError } = await sb
       .from('co_owner')
       .select('id')
       .limit(1);
@@ -68,7 +69,7 @@ export async function saveCoOwnerProfile(formData: any, userId: string) {
     console.log("Database data to save:", dbData);
     
     // First check if a profile exists for this user
-    const { data: existingProfile, error: fetchError } = await supabase
+    const { data: existingProfile, error: fetchError } = await sb
       .from('co_owner')
       .select('id')
       .eq('user_id', userId)
@@ -84,7 +85,7 @@ export async function saveCoOwnerProfile(formData: any, userId: string) {
     if (existingProfile) {
       // Update existing profile
       console.log("Updating existing profile with ID:", existingProfile.id);
-      result = await supabase
+      result = await sb
         .from('co_owner')
         .update(dbData)
         .eq('user_id', userId)
@@ -92,7 +93,7 @@ export async function saveCoOwnerProfile(formData: any, userId: string) {
     } else {
       // Insert new profile
       console.log("Creating new co-owner profile");
-      result = await supabase
+      result = await sb
         .from('co_owner')
         .insert(dbData)
         .select();
@@ -125,7 +126,7 @@ export async function fetchCoOwnerProfile(userId: string) {
   try {
     console.log("Fetching co-owner profile for user:", userId);
     
-    const { data, error } = await supabase
+    const { data, error } = await sb
       .from('co_owner')
       .select('*')
       .eq('user_id', userId)

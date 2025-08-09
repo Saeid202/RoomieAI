@@ -1,5 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
+const sb: any = supabase;
 import { ProfileFormValues } from "@/types/profile";
 import { ProfileTableRow, TableName } from "@/components/dashboard/types/profileTypes";
 import { UserPreference } from "@/components/dashboard/types";
@@ -27,7 +28,7 @@ export async function fetchProfileData(userId: string, tableName: TableName) {
   console.log("User ID:", userId);
 
   // Query by user_id field for user-specific data
-  const { data, error } = await supabase
+  const { data, error } = await sb
     .from(tableName)
     .select('*')
     .eq('user_id', userId)
@@ -57,7 +58,7 @@ export async function saveProfileData(
   }
 
   // First check if a record already exists with the user_id
-  const { data: existingData, error: fetchError } = await supabase
+  const { data: existingData, error: fetchError } = await sb
     .from(tableName)
     .select('id, user_id')
     .eq('user_id', userId)
@@ -74,7 +75,7 @@ export async function saveProfileData(
     console.log("Updating existing record:", existingData);
     // Remove id from the data for update
     const { id, ...dataWithoutId } = dbData;
-    result = await supabase
+    result = await sb
       .from(tableName)
       .update(dataWithoutId as any)
       .eq('user_id', userId);
@@ -82,7 +83,7 @@ export async function saveProfileData(
     // Insert new record
     console.log("Inserting new record");
     // Type cast to any to avoid TypeScript strict checking since different tables have different id types
-    result = await supabase
+    result = await sb
       .from(tableName)
       .insert(dbData as any);
   }
