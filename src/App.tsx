@@ -68,7 +68,8 @@ function AppRoutes() {
           <Route path="legal-assistant" element={<LegalAssistantPage />} />
           <Route path="list-room" element={<ListRoomPage />} />
 
-          <Route path="profile" element={<Navigate to="roommate-recommendations" replace />} />
+          <Route path="profile" element={<Navigate to="/dashboard/roommate-recommendations" replace />} />
+          <Route path="profile/*" element={<Navigate to="/dashboard/roommate-recommendations" replace />} />
 
           <Route path="settings" element={<SettingsPage />} />
           <Route path="admin" element={<AdminHomePage />} />
@@ -111,7 +112,8 @@ function AppRoutes() {
         <Route path="legal-assistant" element={<LegalAssistantPage />} />
         <Route path="list-room" element={<ListRoomPage />} />
 
-        <Route path="profile" element={<Navigate to="roommate-recommendations" replace />} />
+        <Route path="profile" element={<Navigate to="/dashboard/roommate-recommendations" replace />} />
+        <Route path="profile/*" element={<Navigate to="/dashboard/roommate-recommendations" replace />} />
 
         <Route path="settings" element={<SettingsPage />} />
         <Route path="admin" element={<AdminHomePage />} />
