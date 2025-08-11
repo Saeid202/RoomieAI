@@ -79,8 +79,8 @@ export const LoginDialog = ({ isOpen, setIsOpen }: LoginDialogProps) => {
       if (userRole === 'landlord' || localStorage.getItem('userRole') === 'landlord') {
         navigate("/dashboard/landlord");
       } else {
-        // Default to profile dashboard for seekers
-        navigate("/dashboard/profile");
+        // Default to roommate recommendations for seekers
+        navigate("/dashboard/roommate-recommendations");
       }
       
       toast({

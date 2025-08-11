@@ -88,7 +88,7 @@ export default function Callback() {
         if (effectiveRole === 'landlord') {
           navigate('/dashboard/landlord');
         } else {
-          navigate('/dashboard/profile');
+          navigate('/dashboard/roommate-recommendations');
         }
       } else {
         console.log("Auth callback - no session found");
