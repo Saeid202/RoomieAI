@@ -1,5 +1,5 @@
 
-import { ProfileContent } from "@/components/dashboard/ProfileContent";
+import { Navigate } from "react-router-dom";
 import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -10,5 +10,5 @@ export default function Profile() {
     console.log("Profile page mounted, user:", user?.email ?? "none", "loading:", loading);
   }, [user, loading]);
 
-  return <ProfileContent />;
+  return <Navigate to="/dashboard/roommate-recommendations" replace />;
 }

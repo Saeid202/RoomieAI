@@ -222,7 +222,7 @@ export default function MatchesPage() {
             <p className="text-muted-foreground mb-4">
               Please complete your profile and set your ideal roommate preferences to start finding compatible roommates
             </p>
-            <Button onClick={() => window.location.href = '/dashboard/profile'}>
+            <Button onClick={() => window.location.href = '/dashboard/roommate-recommendations'}>
               Complete Profile
             </Button>
           </CardContent>

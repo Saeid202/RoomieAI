@@ -58,7 +58,7 @@ export function PreferenceSelector({ defaultPreference = null }: PreferenceSelec
     localStorage.setItem(`formCompleted_${preference}`, 'true');
     
     // Navigate to profile page after selecting preference
-    navigate('/dashboard/profile');
+    navigate('/dashboard/roommate-recommendations');
   };
   
   const handleReset = () => {

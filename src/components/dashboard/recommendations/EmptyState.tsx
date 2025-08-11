@@ -25,7 +25,7 @@ export function EmptyState() {
           </ul>
         </CardContent>
         <CardFooter>
-          <Button onClick={() => window.location.href = '/dashboard/profile'} className="w-full">
+          <Button onClick={() => window.location.href = '/dashboard/roommate-recommendations'} className="w-full">
             Update Your Profile
           </Button>
         </CardFooter>
