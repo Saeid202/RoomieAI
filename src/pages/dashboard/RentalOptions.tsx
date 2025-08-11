@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MapPin, BedDouble, Bath, Square, Calendar, DollarSign, Users } from "lucide-react";
+import { MapPin, Calendar, DollarSign } from "lucide-react";
 import { fetchProperties, Property } from "@/services/propertyService";
 
 export default function RentalOptionsPage() {
@@ -188,21 +188,12 @@ export default function RentalOptionsPage() {
                   <span className="line-clamp-1">{property.city}, {property.state}</span>
                 </div>
 
-                <div className="flex gap-3 mb-3 text-sm">
-                  <div className="flex items-center gap-1">
-                    <BedDouble className="h-4 w-4" />
-                    <span>{property.bedrooms || 0}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Bath className="h-4 w-4" />
-                    <span>{property.bathrooms || 0}</span>
-                  </div>
-                  {property.square_footage && (
-                    <div className="flex items-center gap-1">
-                      <Square className="h-4 w-4" />
-                      <span>{property.square_footage} sq ft</span>
-                    </div>
-                  )}
+                <div className="flex gap-3 mb-3 text-sm text-muted-foreground">
+                  <span>{(property.bedrooms ?? 0)} bd</span>
+                  <span>{(property.bathrooms ?? 0)} ba</span>
+                  {property.square_footage ? (
+                    <span>{property.square_footage} sq ft</span>
+                  ) : null}
                 </div>
 
                 <div className="flex items-center justify-between">
