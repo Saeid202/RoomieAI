@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MapPin, Calendar, DollarSign } from "lucide-react";
 import { fetchProperties, Property } from "@/services/propertyService";
+import { Link } from "react-router-dom";
 
 export default function RentalOptionsPage() {
   const [properties, setProperties] = useState<Property[]>([]);
@@ -170,10 +171,8 @@ export default function RentalOptionsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {properties.map((property) => (
             <Card key={property.id} className="hover:shadow-lg transition-shadow">
-              <div className="relative">
-                <div className="h-48 bg-gradient-to-br from-primary/10 to-primary/5 rounded-t-lg flex items-center justify-center">
-                  <div className="text-6xl text-primary/20">🏠</div>
-                </div>
+              <div className="relative" aria-label={`Listing image for ${property.listing_title}`}>
+                <img src={property.images?.[0] || "/placeholder.svg"} alt={`${property.listing_title} photo`} className="h-48 w-full object-cover rounded-t-lg" loading="lazy" />
                 <Badge className="absolute top-3 left-3" variant="secondary">
                   {getPropertyTypeDisplay(property.property_type)}
                 </Badge>
@@ -211,8 +210,8 @@ export default function RentalOptionsPage() {
                   )}
                 </div>
 
-                <Button className="w-full mt-4" variant="outline">
-                  View Details
+                <Button className="w-full mt-4" variant="outline" asChild>
+                  <Link to={`/dashboard/rental-options/${property.id}`}>View Details</Link>
                 </Button>
               </CardContent>
             </Card>
