@@ -65,6 +65,18 @@ export default function RentalOptionsPage() {
     return typeMap[type] || type;
   };
 
+  // Safely format available dates to avoid runtime errors
+  const formatAvailableDate = (dateStr?: string | null) => {
+    if (!dateStr) return null;
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return null;
+    try {
+      return d.toLocaleDateString();
+    } catch {
+      return null;
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between mb-6">
@@ -200,10 +212,10 @@ export default function RentalOptionsPage() {
                     <span className="text-sm font-normal text-muted-foreground">/month</span>
                   </div>
                   
-                  {property.available_date && (
+                  {formatAvailableDate(property.available_date) && (
                     <div className="flex items-center gap-1 text-sm text-muted-foreground">
                       <Calendar className="h-4 w-4" />
-                      <span>{new Date(property.available_date).toLocaleDateString()}</span>
+                      <span>{formatAvailableDate(property.available_date)}</span>
                     </div>
                   )}
                 </div>

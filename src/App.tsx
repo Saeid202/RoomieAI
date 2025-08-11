@@ -18,6 +18,7 @@ import AddPropertyPage from "@/pages/dashboard/landlord/AddProperty";
 import FindPropertyPage from "@/pages/dashboard/FindProperty";
 import AuthPage from "@/pages/Auth";
 import Callback from "@/pages/auth/Callback";
+import { ErrorBoundary } from "@/components/utility/ErrorBoundary";
 
 import LegalAssistantPage from "@/pages/dashboard/LegalAssistant";
 import ListRoomPage from "@/pages/dashboard/ListRoom";
@@ -51,7 +52,7 @@ function AppRoutes() {
         }>
           <Route path="matches" element={<MatchesPage />} />
           <Route path="roommate-recommendations" element={<RoommateRecommendationsPage />} />
-          <Route path="rental-options" element={<RentalOptionsPage />} />
+          <Route path="rental-options" element={<ErrorBoundary componentName="RentalOptionsPage"><RentalOptionsPage /></ErrorBoundary>} />
           <Route path="plan-ahead-matching" element={<PlanAheadMatchingPage />} />
           <Route path="opposite-schedule" element={<OppositeSchedulePage />} />
           <Route path="work-exchange" element={<WorkExchangePage />} />
@@ -95,7 +96,7 @@ function AppRoutes() {
         
         <Route path="matches" element={<MatchesPage />} />
         <Route path="roommate-recommendations" element={<RoommateRecommendationsPage />} />
-        <Route path="rental-options" element={<RentalOptionsPage />} />
+        <Route path="rental-options" element={<ErrorBoundary componentName="RentalOptionsPage"><RentalOptionsPage /></ErrorBoundary>} />
         <Route path="plan-ahead-matching" element={<PlanAheadMatchingPage />} />
         <Route path="opposite-schedule" element={<OppositeSchedulePage />} />
         <Route path="work-exchange" element={<WorkExchangePage />} />
