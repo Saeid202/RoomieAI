@@ -25,7 +25,7 @@ export interface Property {
   // Rental Information  
   monthly_rent: number;
   security_deposit?: number;
-  lease_terms?: string;
+  lease_duration?: string;
   available_date?: string;
   furnished?: boolean;
   
@@ -122,7 +122,12 @@ export async function createProperty(propertyData: any): Promise<Property | null
     if (typeof val === 'boolean') return val;
     if (typeof val === 'string') {
       const v = val.toLowerCase();
-      if (["yes","true","1","fully furnished","partially furnished","furnished"].includes(v)) return true;
+      if ([
+        "yes","true","1",
+        "fully furnished","partially furnished","partially-furnished",
+        "semi furnished","semi-furnished",
+        "furnished"
+      ].includes(v)) return true;
       if (["no","false","0","unfurnished"].includes(v)) return false;
     }
     return undefined;
@@ -132,6 +137,12 @@ export async function createProperty(propertyData: any): Promise<Property | null
     ...propertyData,
     furnished: normalizeToBoolean((propertyData as any).furnished),
   };
+  
+  // Backward compatibility: map legacy lease_terms to lease_duration
+  if (payload.lease_terms && !payload.lease_duration) {
+    payload.lease_duration = payload.lease_terms;
+  }
+  delete payload.lease_terms;
   
   try {
     const { data, error } = await sb
@@ -236,7 +247,12 @@ export async function updateProperty(id: string, updates: (Partial<Property> & {
     if (typeof val === 'boolean') return val;
     if (typeof val === 'string') {
       const v = val.toLowerCase();
-      if (["yes","true","1","fully furnished","partially furnished","furnished"].includes(v)) return true;
+      if ([
+        "yes","true","1",
+        "fully furnished","partially furnished","partially-furnished",
+        "semi furnished","semi-furnished",
+        "furnished"
+      ].includes(v)) return true;
       if (["no","false","0","unfurnished"].includes(v)) return false;
     }
     return undefined;
@@ -246,6 +262,12 @@ export async function updateProperty(id: string, updates: (Partial<Property> & {
     ...updates,
     furnished: normalizeToBoolean((updates as any).furnished),
   };
+  
+  // Backward compatibility: map legacy lease_terms to lease_duration
+  if (payload.lease_terms && !payload.lease_duration) {
+    payload.lease_duration = payload.lease_terms;
+  }
+  delete payload.lease_terms;
   
   try {
     const { data, error } = await sb
