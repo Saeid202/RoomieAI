@@ -121,12 +121,12 @@ export default function RentalOptionsPage() {
               value={filters.maxPrice}
               onChange={(e) => handleFilterChange("maxPrice", e.target.value)}
             />
-            <Select value={filters.bedrooms} onValueChange={(value) => handleFilterChange("bedrooms", value)}>
+            <Select value={filters.bedrooms || undefined} onValueChange={(value) => handleFilterChange("bedrooms", value === "any" ? "" : value)}>
               <SelectTrigger>
                 <SelectValue placeholder="Bedrooms" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Any</SelectItem>
+                <SelectItem value="any">Any</SelectItem>
                 <SelectItem value="0">Studio</SelectItem>
                 <SelectItem value="1">1 Bedroom</SelectItem>
                 <SelectItem value="2">2 Bedrooms</SelectItem>

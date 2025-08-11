@@ -27,6 +27,11 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
         <div className="p-6 rounded-lg border bg-card text-card-foreground">
           <h2 className="text-base font-semibold">Something went wrong</h2>
           <p className="text-sm text-muted-foreground mt-2">Please try again or refresh the page.</p>
+          {this.state.error?.message && (
+            <pre className="mt-3 text-xs text-destructive/80 whitespace-pre-wrap break-words">
+              {this.state.error.message}
+            </pre>
+          )}
         </div>
       );
     }
