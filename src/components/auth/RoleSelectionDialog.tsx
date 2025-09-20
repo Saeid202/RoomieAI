@@ -54,9 +54,8 @@ export function RoleSelectionDialog({
           description: `You are now using Roomi AI as a ${getRoleLabel(role)}`,
         });
         
-        // Redirect to appropriate dashboard
-        redirectToRoleDashboard(role);
       }
+      redirectToRoleDashboard(role);
     } catch (error) {
       console.error("Error selecting role:", error);
       toast({

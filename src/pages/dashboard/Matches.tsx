@@ -1,18 +1,24 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { 
-  MapPin, 
-  Calendar, 
-  Users, 
-  MessageSquare, 
-  Heart, 
-  Loader2, 
+import {
+  MapPin,
+  Calendar,
+  Users,
+  MessageSquare,
+  Heart,
+  Loader2,
   Star,
   TrendingUp,
   Filter,
@@ -20,12 +26,15 @@ import {
   Info,
   Target,
   BarChart3,
-  Sparkles
+  Sparkles,
 } from "lucide-react";
 import { MatchResult } from "@/utils/matchingAlgorithm/types";
 import { idealRoommateMatchingEngine } from "@/services/idealRoommateMatchingService";
 import { useRoommateProfile } from "@/hooks/useRoommateProfile";
 import { useAuth } from "@/hooks/useAuth";
+import { useRoommateMatching } from "@/hooks/useRoommateMatching";
+import { TabsSection } from "@/components/dashboard/recommendations/components/TabsSection";
+import { ResultsSection } from "@/components/dashboard/recommendations/ResultsSection";
 
 interface MatchDisplay {
   id: string;
@@ -40,20 +49,24 @@ interface MatchDisplay {
   bio: string;
   image: string;
   matchReasons?: string[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   compatibilityBreakdown?: any;
 }
 
 interface MatchStats {
   total: number;
   excellent: number; // 85%+
-  great: number;     // 70-84%
-  good: number;      // 55-69%
-  average: number;   // <55%
+  great: number; // 70-84%
+  good: number; // 55-69%
+  average: number; // <55%
   averageScore: number;
 }
 
-function convertMatchResultToDisplay(match: MatchResult, index: number): MatchDisplay {
-  const budgetStr = Array.isArray(match.budget) 
+function convertMatchResultToDisplay(
+  match: MatchResult,
+  index: number
+): MatchDisplay {
+  const budgetStr = Array.isArray(match.budget)
     ? `$${match.budget[0].toLocaleString()}-${match.budget[1].toLocaleString()}`
     : `$${match.budget}`;
 
@@ -67,32 +80,51 @@ function convertMatchResultToDisplay(match: MatchResult, index: number): MatchDi
     budget: budgetStr,
     moveInDate: match.movingDate || "Flexible",
     traits: match.traits || [],
-    bio: `${match.occupation || "Professional"} looking for a compatible roommate. Interests include ${match.interests?.slice(0, 2).join(" and ") || "various activities"}.`,
-    image: match.name.split(" ").map(n => n[0]).join(""),
+    bio: `${
+      match.occupation || "Professional"
+    } looking for a compatible roommate. Interests include ${
+      match.interests?.slice(0, 2).join(" and ") || "various activities"
+    }.`,
+    image: match.name
+      .split(" ")
+      .map((n) => n[0])
+      .join(""),
     matchReasons: match.enhancedReasons || [],
-    compatibilityBreakdown: match.compatibilityBreakdown
+    compatibilityBreakdown: match.compatibilityBreakdown,
   };
 }
 
 function calculateMatchStats(matches: MatchDisplay[]): MatchStats {
   if (matches.length === 0) {
-    return { total: 0, excellent: 0, great: 0, good: 0, average: 0, averageScore: 0 };
+    return {
+      total: 0,
+      excellent: 0,
+      great: 0,
+      good: 0,
+      average: 0,
+      averageScore: 0,
+    };
   }
 
-  const stats = matches.reduce((acc, match) => {
-    if (match.compatibility >= 85) acc.excellent++;
-    else if (match.compatibility >= 70) acc.great++;
-    else if (match.compatibility >= 55) acc.good++;
-    else acc.average++;
-    return acc;
-  }, { excellent: 0, great: 0, good: 0, average: 0 });
+  const stats = matches.reduce(
+    (acc, match) => {
+      if (match.compatibility >= 85) acc.excellent++;
+      else if (match.compatibility >= 70) acc.great++;
+      else if (match.compatibility >= 55) acc.good++;
+      else acc.average++;
+      return acc;
+    },
+    { excellent: 0, great: 0, good: 0, average: 0 }
+  );
 
-  const averageScore = matches.reduce((sum, match) => sum + match.compatibility, 0) / matches.length;
+  const averageScore =
+    matches.reduce((sum, match) => sum + match.compatibility, 0) /
+    matches.length;
 
   return {
     total: matches.length,
     ...stats,
-    averageScore: Math.round(averageScore)
+    averageScore: Math.round(averageScore),
   };
 }
 
@@ -100,11 +132,47 @@ export default function MatchesPage() {
   const [matches, setMatches] = useState<MatchDisplay[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [sortBy, setSortBy] = useState<'compatibility' | 'age' | 'name'>('compatibility');
-  const [filterBy, setFilterBy] = useState<'all' | 'excellent' | 'great' | 'good'>('all');
-  
+  const [sortBy, setSortBy] = useState<"compatibility" | "age" | "name">(
+    "compatibility"
+  );
+  const [filterBy, setFilterBy] = useState<
+    "all" | "excellent" | "great" | "good"
+  >("all");
+  const [expandedSections, setExpandedSections] = useState<string[]>([]);
+
   const { user } = useAuth();
   const { profileData, loading: profileLoading } = useRoommateProfile();
+
+  const {
+    roommates,
+    properties,
+    selectedMatch,
+    activeTab,
+    setActiveTab,
+    handleViewDetails,
+    handleCloseDetails,
+    findMatches,
+    handleSaveProfile,
+  } = useRoommateMatching();
+
+  const handleTabChange = useCallback(
+    (value: string) => {
+      setActiveTab(value);
+      if (!expandedSections.includes("about-me") && value === "about-me") {
+        setExpandedSections((prev) => [...prev, "about-me"]);
+      } else if (
+        !expandedSections.includes("ideal-roommate") &&
+        value === "ideal-roommate"
+      ) {
+        setExpandedSections((prev) => [...prev, "ideal-roommate"]);
+      }
+    },
+    [expandedSections, setActiveTab]
+  );
+
+  useEffect(() => {
+    handleTabChange("about-me");
+  }, [handleTabChange])
 
   useEffect(() => {
     const loadMatches = async () => {
@@ -115,29 +183,33 @@ export default function MatchesPage() {
       try {
         setLoading(true);
         setError(null);
-        
-        console.log("Loading matches with profile data:", profileData);
-        
-        // Use the enhanced matching algorithm with importance from roommate table
-        const idealRoommateResults = await idealRoommateMatchingEngine.findMatches({
-          currentUser: profileData,
-          currentUserId: user?.id,
-          maxResults: 20, // Increased to get more results
-          minScore: 30 // Lower minimum score to get more results
-        });
 
-        console.log("Raw ideal roommate matches from algorithm:", idealRoommateResults);
-        
+        console.log("Loading matches with profile data:", profileData);
+
+        // Use the enhanced matching algorithm with importance from roommate table
+        const idealRoommateResults =
+          await idealRoommateMatchingEngine.findMatches({
+            currentUser: profileData,
+            currentUserId: user?.id,
+            maxResults: 20, // Increased to get more results
+            minScore: 30, // Lower minimum score to get more results
+          });
+
+        console.log(
+          "Raw ideal roommate matches from algorithm:",
+          idealRoommateResults
+        );
+
         // Convert to standard MatchResult format
-        const matchResults = idealRoommateResults.map(result => 
+        const matchResults = idealRoommateResults.map((result) =>
           idealRoommateMatchingEngine.convertToMatchResult(result)
         );
-        
+
         console.log("Converted match results:", matchResults);
-        
+
         // Convert to display format
         const displayMatches = matchResults.map(convertMatchResultToDisplay);
-        
+
         console.log("Processed display matches:", displayMatches);
         console.log("Total matches found:", displayMatches.length);
         displayMatches.forEach((match, index) => {
@@ -148,10 +220,10 @@ export default function MatchesPage() {
             compatibility: `${match.compatibility}%`,
             budget: match.budget,
             traits: match.traits,
-            bio: match.bio
+            bio: match.bio,
           });
         });
-        
+
         setMatches(displayMatches);
       } catch (error) {
         console.error("Error loading matches:", error);
@@ -167,17 +239,19 @@ export default function MatchesPage() {
 
   // Filter and sort matches
   const filteredAndSortedMatches = matches
-    .filter(match => {
-      if (filterBy === 'all') return true;
-      if (filterBy === 'excellent') return match.compatibility >= 85;
-      if (filterBy === 'great') return match.compatibility >= 70 && match.compatibility < 85;
-      if (filterBy === 'good') return match.compatibility >= 55 && match.compatibility < 70;
+    .filter((match) => {
+      if (filterBy === "all") return true;
+      if (filterBy === "excellent") return match.compatibility >= 85;
+      if (filterBy === "great")
+        return match.compatibility >= 70 && match.compatibility < 85;
+      if (filterBy === "good")
+        return match.compatibility >= 55 && match.compatibility < 70;
       return false;
     })
     .sort((a, b) => {
-      if (sortBy === 'compatibility') return b.compatibility - a.compatibility;
-      if (sortBy === 'age') return a.age - b.age;
-      if (sortBy === 'name') return a.name.localeCompare(b.name);
+      if (sortBy === "compatibility") return b.compatibility - a.compatibility;
+      if (sortBy === "age") return a.age - b.age;
+      if (sortBy === "name") return a.name.localeCompare(b.name);
       return 0;
     });
 
@@ -190,8 +264,9 @@ export default function MatchesPage() {
           <div className="text-center">
             <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
             <p className="text-muted-foreground">
-              {profileLoading ? "Loading your profile..." : 
-               "Finding compatible matches using your importance preferences..."}
+              {profileLoading
+                ? "Loading your profile..."
+                : "Finding compatible matches using your importance preferences..."}
             </p>
           </div>
         </div>
@@ -218,11 +293,18 @@ export default function MatchesPage() {
         <Card className="text-center py-12">
           <CardContent>
             <Users className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Complete Your Profile</h3>
+            <h3 className="text-lg font-semibold mb-2">
+              Complete Your Profile
+            </h3>
             <p className="text-muted-foreground mb-4">
-              Please complete your profile and set your ideal roommate preferences to start finding compatible roommates
+              Please complete your profile and set your ideal roommate
+              preferences to start finding compatible roommates
             </p>
-            <Button onClick={() => window.location.href = '/dashboard/roommate-recommendations'}>
+            <Button
+              onClick={() =>
+                (window.location.href = "/dashboard/roommate-recommendations")
+              }
+            >
               Complete Profile
             </Button>
           </CardContent>
@@ -258,19 +340,29 @@ export default function MatchesPage() {
           </Card>
           <Card>
             <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-green-600">{stats.excellent}</div>
-              <div className="text-sm text-muted-foreground">Excellent (85%+)</div>
+              <div className="text-2xl font-bold text-green-600">
+                {stats.excellent}
+              </div>
+              <div className="text-sm text-muted-foreground">
+                Excellent (85%+)
+              </div>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-blue-600">{stats.great}</div>
-              <div className="text-sm text-muted-foreground">Great (70-84%)</div>
+              <div className="text-2xl font-bold text-blue-600">
+                {stats.great}
+              </div>
+              <div className="text-sm text-muted-foreground">
+                Great (70-84%)
+              </div>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-yellow-600">{stats.good}</div>
+              <div className="text-2xl font-bold text-yellow-600">
+                {stats.good}
+              </div>
               <div className="text-sm text-muted-foreground">Good (55-69%)</div>
             </CardContent>
           </Card>
@@ -287,26 +379,69 @@ export default function MatchesPage() {
           <Alert>
             <Sparkles className="h-4 w-4" />
             <AlertDescription>
-              Matches are ranked using your importance weights: <strong>Must Have</strong> preferences 
-              act as filters, <strong>Important</strong> preferences are weighted at 70%, and 
-              <strong>Not Important</strong> preferences at 30%. Higher compatibility scores indicate 
-              better alignment with your most important preferences.
+              Matches are ranked using your importance weights:{" "}
+              <strong>Must Have</strong> preferences act as filters,{" "}
+              <strong>Important</strong> preferences are weighted at 70%, and
+              <strong>Not Important</strong> preferences at 30%. Higher
+              compatibility scores indicate better alignment with your most
+              important preferences.
             </AlertDescription>
           </Alert>
         )}
+
+        {/* Mobile-optimized profile section */}
+        <div className="w-full">
+          <div className="bg-background/95 backdrop-blur-sm">
+            <div className="px-4 py-6 md:p-6">
+              <TabsSection
+                activeTab={activeTab}
+                expandedSections={expandedSections}
+                setExpandedSections={setExpandedSections}
+                handleTabChange={handleTabChange}
+                profileData={profileData}
+                onSaveProfile={handleSaveProfile}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile-optimized results section */}
+        <div className="w-full">
+          <ResultsSection
+            roommates={roommates}
+            properties={properties}
+            selectedMatch={selectedMatch}
+            activeTab={
+              activeTab === "about-me" ||
+              activeTab === "ideal-roommate" ||
+              activeTab === "ai-assistant"
+                ? "roommates"
+                : activeTab
+            }
+            setActiveTab={setActiveTab}
+            onViewDetails={handleViewDetails}
+            onCloseDetails={handleCloseDetails}
+          />
+        </div>
 
         {/* Filters and Sorting */}
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
           <div className="flex items-center gap-2">
             <Filter className="h-4 w-4 text-muted-foreground" />
             <span className="text-sm font-medium">Filter:</span>
-            <Select value={filterBy} onValueChange={(value: any) => setFilterBy(value)}>
+            <Select
+              value={filterBy}
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              onValueChange={(value: any) => setFilterBy(value)}
+            >
               <SelectTrigger className="w-40">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Matches ({stats.total})</SelectItem>
-                <SelectItem value="excellent">Excellent ({stats.excellent})</SelectItem>
+                <SelectItem value="excellent">
+                  Excellent ({stats.excellent})
+                </SelectItem>
                 <SelectItem value="great">Great ({stats.great})</SelectItem>
                 <SelectItem value="good">Good ({stats.good})</SelectItem>
               </SelectContent>
@@ -316,7 +451,11 @@ export default function MatchesPage() {
           <div className="flex items-center gap-2">
             <SortDesc className="h-4 w-4 text-muted-foreground" />
             <span className="text-sm font-medium">Sort by:</span>
-            <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
+            <Select
+              value={sortBy}
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              onValueChange={(value: any) => setSortBy(value)}
+            >
               <SelectTrigger className="w-40">
                 <SelectValue />
               </SelectTrigger>
@@ -340,17 +479,20 @@ export default function MatchesPage() {
       {filteredAndSortedMatches.length > 0 ? (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {filteredAndSortedMatches.map((match) => (
-            <Card key={match.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-              <div 
+            <Card
+              key={match.id}
+              className="overflow-hidden hover:shadow-lg transition-shadow"
+            >
+              <div
                 className={`h-3 ${
-                  match.compatibility >= 85 
-                    ? "bg-green-500" 
-                    : match.compatibility >= 70 
-                      ? "bg-blue-500"
-                      : match.compatibility >= 55 
-                        ? "bg-yellow-500" 
-                        : "bg-orange-500"
-                }`} 
+                  match.compatibility >= 85
+                    ? "bg-green-500"
+                    : match.compatibility >= 70
+                    ? "bg-blue-500"
+                    : match.compatibility >= 55
+                    ? "bg-yellow-500"
+                    : "bg-orange-500"
+                }`}
               />
               <CardHeader className="pb-4">
                 <div className="flex items-start justify-between">
@@ -367,7 +509,9 @@ export default function MatchesPage() {
                           <Star className="h-4 w-4 text-yellow-500 fill-current" />
                         )}
                       </CardTitle>
-                      <p className="text-sm text-muted-foreground">Age {match.age}</p>
+                      <p className="text-sm text-muted-foreground">
+                        Age {match.age}
+                      </p>
                     </div>
                   </div>
                   <Badge variant="secondary" className="font-semibold">
@@ -378,19 +522,21 @@ export default function MatchesPage() {
                 {/* Match reasons preview */}
                 {match.matchReasons && match.matchReasons.length > 0 && (
                   <div className="mt-3">
-                    <p className="text-xs text-muted-foreground mb-1">Top reasons:</p>
+                    <p className="text-xs text-muted-foreground mb-1">
+                      Top reasons:
+                    </p>
                     <p className="text-sm text-green-700 dark:text-green-400 line-clamp-2">
                       {match.matchReasons[0]}
                     </p>
                   </div>
                 )}
               </CardHeader>
-            
+
               <CardContent className="space-y-4">
                 <p className="text-sm text-muted-foreground line-clamp-2">
                   {match.bio}
                 </p>
-                
+
                 <div className="space-y-2">
                   <div className="flex items-center text-sm">
                     <MapPin className="w-4 h-4 mr-2 text-muted-foreground" />
@@ -425,16 +571,19 @@ export default function MatchesPage() {
             <Target className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
             <h3 className="text-lg font-semibold mb-2">No matches found</h3>
             <p className="text-muted-foreground mb-4">
-              {filterBy === 'all' 
+              {filterBy === "all"
                 ? "Try adjusting your ideal roommate preferences or importance settings to find more matches."
-                : "Try selecting a different filter level to see more matches."
-              }
+                : "Try selecting a different filter level to see more matches."}
             </p>
             <div className="flex gap-2 justify-center">
-              <Button variant="outline" onClick={() => setFilterBy('all')}>
+              <Button variant="outline" onClick={() => setFilterBy("all")}>
                 Show All Matches
               </Button>
-              <Button onClick={() => window.location.href = '/dashboard/roommate-recommendations'}>
+              <Button
+                onClick={() =>
+                  (window.location.href = "/dashboard/roommate-recommendations")
+                }
+              >
                 Update Preferences
               </Button>
             </div>
