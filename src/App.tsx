@@ -1,5 +1,5 @@
 
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/providers/ThemeProvider";
 import { AuthProvider } from "@/providers/AuthProvider";
@@ -35,6 +35,7 @@ import MatchesPage from "@/pages/dashboard/Matches";
 import MessengerPage from "@/pages/dashboard/Messenger";
 
 import { useAuth } from "@/hooks/useAuth";
+import { useEffect } from "react";
 
 function AppRoutes() {
   const { user, loading } = useAuth();
@@ -131,6 +132,12 @@ function AppRoutes() {
 
 function App() {
   console.log("App component rendering");
+  
+  const path = useLocation().pathname;
+  useEffect(() => {
+    scrollTo(0, 0)
+  }, [path]
+  )
   
   return (
     <ThemeProvider>
