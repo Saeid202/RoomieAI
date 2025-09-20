@@ -136,11 +136,11 @@
 /* Mobile-specific enhancements */
 @layer utilities {
   .pb-safe {
-    padding-bottom: env(safe-area-inset-bottom);
+    padding-bottom: 0;
   }
 
   .h-safe {
-    height: env(safe-area-inset-bottom);
+    height: 0;
   }
 
   .mobile-touch-target {
