@@ -104,13 +104,67 @@ export async function getPropertiesByOwnerId(userId: string): Promise<Property[]
   }
 }
 
-export async function uploadPropertyImage(file: File): Promise<string> {
-  // This is a placeholder implementation
-  // In a real app, you would upload to Supabase Storage or another service
-  console.log("Uploading property image:", file.name);
-  
-  // Return a placeholder URL for now
-  return "/placeholder.svg";
+export async function uploadPropertyImage(file: File, userId: string): Promise<string> {
+  try {
+    // Generate unique filename
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+    const filePath = `${userId}/${fileName}`;
+
+    // Upload to Supabase Storage
+    const { data, error } = await supabase.storage
+      .from('property-images')
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false
+      });
+
+    if (error) {
+      console.error('Error uploading image:', error);
+      throw new Error(`Failed to upload image: ${error.message}`);
+    }
+
+    // Get public URL
+    const { data: { publicUrl } } = supabase.storage
+      .from('property-images')
+      .getPublicUrl(filePath);
+
+    console.log('Image uploaded successfully:', publicUrl);
+    return publicUrl;
+  } catch (error) {
+    console.error('Error in uploadPropertyImage:', error);
+    throw error;
+  }
+}
+
+export async function deletePropertyImage(imageUrl: string): Promise<void> {
+  try {
+    // Extract file path from URL
+    const url = new URL(imageUrl);
+    const pathParts = url.pathname.split('/');
+    const bucketIndex = pathParts.findIndex(part => part === 'property-images');
+    
+    if (bucketIndex === -1) {
+      throw new Error('Invalid image URL');
+    }
+    
+    const filePath = pathParts.slice(bucketIndex + 1).join('/');
+    
+    // Delete from Supabase Storage
+    const { error } = await supabase.storage
+      .from('property-images')
+      .remove([filePath]);
+
+    if (error) {
+      console.error('Error deleting image:', error);
+      throw new Error(`Failed to delete image: ${error.message}`);
+    }
+
+    console.log('Image deleted successfully');
+  } catch (error) {
+    console.error('Error in deletePropertyImage:', error);
+    throw error;
+  }
 }
 
 export async function createProperty(propertyData: any): Promise<Property | null> {

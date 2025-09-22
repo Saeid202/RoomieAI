@@ -148,8 +148,23 @@ export default function PropertyDetailsPage() {
       <main className="grid gap-6 lg:grid-cols-3">
         <section className="lg:col-span-2">
           <Card>
-            <div className="h-64 bg-gradient-to-br from-primary/10 to-primary/5 rounded-t-lg flex items-center justify-center">
-              <span className="text-7xl" aria-hidden>🏠</span>
+            <div className="relative h-64 rounded-t-lg overflow-hidden">
+              {property.images && property.images.length > 0 ? (
+                <img 
+                  src={property.images[0]} 
+                  alt={`${property.listing_title} photo`}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    // Fallback to placeholder if image fails to load
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                    target.nextElementSibling?.classList.remove('hidden');
+                  }}
+                />
+              ) : null}
+              <div className={`absolute inset-0 bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center ${property.images && property.images.length > 0 ? 'hidden' : ''}`}>
+                <span className="text-7xl" aria-hidden>🏠</span>
+              </div>
             </div>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -166,6 +181,28 @@ export default function PropertyDetailsPage() {
               </div>
 
               <Separator className="my-6" />
+
+              {/* Image Gallery */}
+              {property.images && property.images.length > 1 && (
+                <div className="mb-6">
+                  <h2 className="text-xl font-semibold mb-4">More Photos</h2>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {property.images.slice(1).map((imageUrl, index) => (
+                      <div key={index} className="relative group cursor-pointer">
+                        <img 
+                          src={imageUrl} 
+                          alt={`${property.listing_title} photo ${index + 2}`}
+                          className="w-full h-32 object-cover rounded-lg border"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                          }}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <article className="prose max-w-none">
                 <h2 className="text-xl font-semibold">Description</h2>
@@ -223,7 +260,12 @@ export default function PropertyDetailsPage() {
             </CardContent>
           </Card>
 
-          <Button variant="outline" className="w-full" onClick={() => navigate(-1)}>Back to results</Button>
+          <div className="space-y-2">
+            <Button variant="default" className="w-full" onClick={() => navigate(`/dashboard/rental-application/${id}`)}>
+              Apply to Rent
+            </Button>
+            <Button variant="outline" className="w-full" onClick={() => navigate(-1)}>Back to results</Button>
+          </div>
         </aside>
       </main>
     </>

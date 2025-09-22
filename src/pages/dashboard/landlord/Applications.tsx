@@ -1,9 +1,70 @@
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Users, FileText, Clock, CheckCircle, XCircle } from "lucide-react";
+import { Users, FileText, Clock, CheckCircle, XCircle, RefreshCw } from "lucide-react";
+import { getLandlordApplications, updateApplicationStatus } from "@/services/rentalApplicationService";
+import { ApplicationsList } from "@/components/landlord/ApplicationsList";
+import { ApplicationDetailModal } from "@/components/landlord/ApplicationDetailModal";
+import { toast } from "sonner";
 
 export default function ApplicationsPage() {
+  const [applications, setApplications] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedApplication, setSelectedApplication] = useState<any>(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+
+  useEffect(() => {
+    loadApplications();
+  }, []);
+
+  const loadApplications = async () => {
+    try {
+      setLoading(true);
+      const data = await getLandlordApplications();
+      setApplications(data);
+    } catch (error) {
+      console.error('Failed to load applications:', error);
+      toast.error('Failed to load applications');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleViewDetails = (application: any) => {
+    setSelectedApplication(application);
+    setShowDetailModal(true);
+  };
+
+  const handleUpdateStatus = async (applicationId: string, status: string, notes?: string) => {
+    try {
+      await updateApplicationStatus(applicationId, status as any);
+      
+      // Update local state
+      setApplications(prev => 
+        prev.map(app => 
+          app.id === applicationId 
+            ? { ...app, status }
+            : app
+        )
+      );
+
+      toast.success(`Application ${status} successfully`);
+    } catch (error) {
+      console.error('Failed to update application status:', error);
+      toast.error('Failed to update application status');
+    }
+  };
+
+  // Calculate statistics
+  const stats = {
+    total: applications.length,
+    pending: applications.filter(app => app.status === 'pending').length,
+    under_review: applications.filter(app => app.status === 'under_review').length,
+    approved: applications.filter(app => app.status === 'approved').length,
+    rejected: applications.filter(app => app.status === 'rejected').length,
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between mb-6">
@@ -11,28 +72,54 @@ export default function ApplicationsPage() {
           <h1 className="text-3xl font-bold tracking-tight">Applications</h1>
           <p className="text-muted-foreground mt-1">Review and manage tenant applications</p>
         </div>
+        <Button 
+          variant="outline" 
+          onClick={loadApplications}
+          disabled={loading}
+        >
+          <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+          Refresh
+        </Button>
       </div>
       
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      {/* Statistics Cards */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Applications</CardTitle>
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">0</div>
-            <p className="text-xs text-muted-foreground">No applications received</p>
+            <div className="text-2xl font-bold">{stats.total}</div>
+            <p className="text-xs text-muted-foreground">
+              {stats.total === 0 ? 'No applications received' : 'Total received'}
+            </p>
           </CardContent>
         </Card>
         
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Review</CardTitle>
+            <CardTitle className="text-sm font-medium">Pending</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">0</div>
-            <p className="text-xs text-muted-foreground">No pending applications</p>
+            <div className="text-2xl font-bold text-yellow-600">{stats.pending}</div>
+            <p className="text-xs text-muted-foreground">
+              {stats.pending === 0 ? 'No pending applications' : 'Awaiting review'}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Under Review</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-blue-600">{stats.under_review}</div>
+            <p className="text-xs text-muted-foreground">
+              {stats.under_review === 0 ? 'None under review' : 'Being reviewed'}
+            </p>
           </CardContent>
         </Card>
         
@@ -42,8 +129,10 @@ export default function ApplicationsPage() {
             <CheckCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">0</div>
-            <p className="text-xs text-muted-foreground">No approved applications</p>
+            <div className="text-2xl font-bold text-green-600">{stats.approved}</div>
+            <p className="text-xs text-muted-foreground">
+              {stats.approved === 0 ? 'No approved applications' : 'Successfully approved'}
+            </p>
           </CardContent>
         </Card>
         
@@ -53,94 +142,29 @@ export default function ApplicationsPage() {
             <XCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">0</div>
-            <p className="text-xs text-muted-foreground">No rejected applications</p>
+            <div className="text-2xl font-bold text-red-600">{stats.rejected}</div>
+            <p className="text-xs text-muted-foreground">
+              {stats.rejected === 0 ? 'No rejected applications' : 'Applications rejected'}
+            </p>
           </CardContent>
         </Card>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5" />
-            Recent Applications
-          </CardTitle>
-          <CardDescription>Review the latest tenant applications for your properties</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-12">
-            <Users className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-medium mb-2">No Applications Yet</h3>
-            <p className="text-muted-foreground mb-4">
-              Applications from potential tenants will appear here once you list your properties.
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Make sure your properties are listed and visible to start receiving applications.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Applications List */}
+      <ApplicationsList
+        applications={applications}
+        loading={loading}
+        onViewDetails={handleViewDetails}
+        onUpdateStatus={handleUpdateStatus}
+      />
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Application Process</CardTitle>
-            <CardDescription>How tenant applications work</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-start gap-3">
-              <Badge variant="outline" className="mt-1">1</Badge>
-              <div>
-                <h4 className="font-medium">Application Received</h4>
-                <p className="text-sm text-muted-foreground">Tenant submits application with required documents</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <Badge variant="outline" className="mt-1">2</Badge>
-              <div>
-                <h4 className="font-medium">Review & Verify</h4>
-                <p className="text-sm text-muted-foreground">Review application details and verify information</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <Badge variant="outline" className="mt-1">3</Badge>
-              <div>
-                <h4 className="font-medium">Decision</h4>
-                <p className="text-sm text-muted-foreground">Approve or reject application with feedback</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader>
-            <CardTitle>Application Requirements</CardTitle>
-            <CardDescription>What tenants need to provide</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <div className="flex items-center gap-2">
-              <CheckCircle className="h-4 w-4 text-green-500" />
-              <span className="text-sm">Valid ID and contact information</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle className="h-4 w-4 text-green-500" />
-              <span className="text-sm">Employment verification</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle className="h-4 w-4 text-green-500" />
-              <span className="text-sm">Income documentation</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle className="h-4 w-4 text-green-500" />
-              <span className="text-sm">References from previous landlords</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle className="h-4 w-4 text-green-500" />
-              <span className="text-sm">Background check consent</span>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Application Detail Modal */}
+      <ApplicationDetailModal
+        application={selectedApplication}
+        isOpen={showDetailModal}
+        onClose={() => setShowDetailModal(false)}
+        onUpdateStatus={handleUpdateStatus}
+      />
     </div>
   );
 }

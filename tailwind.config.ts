@@ -64,11 +64,17 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				},
 				roomie: {
+					orange: '#FF6B35',
+					'orange-light': '#FF8C42',
+					'orange-dark': '#E55A2B',
 					purple: '#8B5CF6',
+					'purple-light': '#A78BFA',
+					'purple-dark': '#7C3AED',
 					lavender: '#D6BCFA',
-					light: '#F3F0FF',
+					light: '#FEF3E2',
 					dark: '#4C1D95',
-					accent: '#EC4899'
+					accent: '#FF6B35',
+					gradient: 'linear-gradient(135deg, #FF6B35 0%, #8B5CF6 100%)'
 				}
 			},
 			borderRadius: {

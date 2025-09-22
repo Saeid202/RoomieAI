@@ -210,9 +210,14 @@ export default function RentalOptionsPage() {
                   )}
                 </div>
 
-                <Button className="w-full mt-4" variant="outline" asChild>
-                  <Link to={`/dashboard/rental-options/${property.id}`}>View Details</Link>
-                </Button>
+                <div className="flex gap-2 mt-4">
+                  <Button className="flex-1" variant="outline" asChild>
+                    <Link to={`/dashboard/rental-options/${property.id}`}>View Details</Link>
+                  </Button>
+                  <Button className="flex-1" variant="default" asChild>
+                    <Link to={`/dashboard/rental-application/${property.id}`}>Rent</Link>
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           ))}

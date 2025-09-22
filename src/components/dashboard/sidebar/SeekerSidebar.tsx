@@ -36,6 +36,13 @@ export function SeekerSidebar({ isActive }: SeekerSidebarProps) {
       />
       
       <SidebarSimpleMenuItem 
+        icon={<List size={18} />} 
+        label="My Applications"
+        to="/dashboard/applications" 
+        isActive={isActive('/dashboard/applications')}
+      />
+      
+      <SidebarSimpleMenuItem 
         icon={<Calendar size={18} />} 
         label="Plan Ahead Matching"
         to="/dashboard/plan-ahead-matching" 

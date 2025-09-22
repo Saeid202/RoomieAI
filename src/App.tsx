@@ -20,7 +20,7 @@ import AuthPage from "@/pages/Auth";
 import Callback from "@/pages/auth/Callback";
 import { ErrorBoundary } from "@/components/utility/ErrorBoundary";
 import PropertyDetailsPage from "@/pages/dashboard/PropertyDetails";
-
+import RentalApplicationPage from "@/pages/dashboard/RentalApplication";
 import LegalAssistantPage from "@/pages/dashboard/LegalAssistant";
 import ListRoomPage from "@/pages/dashboard/ListRoom";
 import RentOpportunitiesPage from "@/pages/dashboard/RentOpportunities";
@@ -33,6 +33,7 @@ import UsersPage from "@/pages/dashboard/admin/Users";
 import SettingsPage from "@/pages/dashboard/Settings";
 import MatchesPage from "@/pages/dashboard/Matches";
 import MessengerPage from "@/pages/dashboard/Messenger";
+import ApplicationsSeekerPage from "@/pages/dashboard/ApplicationsSeeker";
 
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect } from "react";
@@ -56,7 +57,9 @@ function AppRoutes() {
           <Route path="roommate-recommendations" element={<RoommateRecommendationsPage />} />
           <Route path="rental-options" element={<ErrorBoundary componentName="RentalOptionsPage"><RentalOptionsPage /></ErrorBoundary>} />
           <Route path="rental-options/:id" element={<ErrorBoundary componentName="PropertyDetailsPage"><PropertyDetailsPage /></ErrorBoundary>} />
+          <Route path="rental-application/:id" element={<ErrorBoundary componentName="RentalApplicationPage"><RentalApplicationPage /></ErrorBoundary>} />
           <Route path="plan-ahead-matching" element={<PlanAheadMatchingPage />} />
+          <Route path="applications" element={<ApplicationsSeekerPage />} />
           <Route path="opposite-schedule" element={<OppositeSchedulePage />} />
           <Route path="work-exchange" element={<WorkExchangePage />} />
           <Route path="lgbtq-matching" element={<LGBTQMatchingPage />} />
@@ -101,7 +104,9 @@ function AppRoutes() {
         <Route path="roommate-recommendations" element={<RoommateRecommendationsPage />} />
         <Route path="rental-options" element={<ErrorBoundary componentName="RentalOptionsPage"><RentalOptionsPage /></ErrorBoundary>} />
         <Route path="rental-options/:id" element={<ErrorBoundary componentName="PropertyDetailsPage"><PropertyDetailsPage /></ErrorBoundary>} />
+        <Route path="rental-application/:id" element={<ErrorBoundary componentName="RentalApplicationPage"><RentalApplicationPage /></ErrorBoundary>} />
         <Route path="plan-ahead-matching" element={<PlanAheadMatchingPage />} />
+        <Route path="applications" element={<ApplicationsSeekerPage />} />
         <Route path="opposite-schedule" element={<OppositeSchedulePage />} />
         <Route path="work-exchange" element={<WorkExchangePage />} />
         <Route path="lgbtq-matching" element={<LGBTQMatchingPage />} />

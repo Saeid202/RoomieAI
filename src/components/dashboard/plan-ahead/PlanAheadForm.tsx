@@ -1,51 +1,26 @@
 import React, { useEffect, useState } from "react";
-import { Lightbulb, MapPin, Calendar, MessageSquare, Save } from "lucide-react";
+import { MapPin, Calendar, MessageSquare, Save, Users } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { savePlanAheadProfile } from "@/services/planAheadService";
+import { savePlanAheadProfile, getPlanAheadProfile } from "@/services/planAheadService";
 
-const ageRanges = ["18-24", "25-30", "31-40", "41-50", "51+"] as const;
-const genderOptions = ["any", "male", "female", "nonbinary"] as const;
-const petOptions = ["yes", "no", "nopref"] as const;
-const smokeOptions = ["yes", "no", "nopref"] as const;
+// Removed unused constants for simplified form
 
 export default function PlanAheadForm() {
   const [formData, setFormData] = useState({
     currentLocation: "",
     targetLocations: [] as string[],
     moveDate: "",
-    ageRange: "",
-    genderPref: "any",
-    nationality: "",
+    propertyType: "",
+    lookingForRoommate: "",
+    roommateGenderPref: "",
     languagePref: "",
-    dietaryPref: {
-      none: false,
-      veg: false,
-      vegan: false,
-      gluten: false,
-      kosher: false,
-      halal: false,
-    },
-    occupationPref: {
-      student: false,
-      professional: false,
-      freelancer: false,
-      remote: false,
-      none: false,
-    },
-    workSchedulePref: "",
-    ethnicityPref: "",
-    religionPref: "",
-    petPref: "nopref",
-    smokePref: "nopref",
     additionalInfo: "",
   });
 
@@ -61,6 +36,30 @@ export default function PlanAheadForm() {
     const defaultDateStr = defaultDate.toISOString().split("T")[0];
     setFormData((prev) => ({ ...prev, moveDate: defaultDateStr }));
   }, []);
+
+  // Load existing profile data when user is available
+  useEffect(() => {
+    if (!user) return;
+
+    const loadExistingProfile = async () => {
+      try {
+        const existingProfile = await getPlanAheadProfile(user.id);
+        if (existingProfile) {
+          setFormData(existingProfile);
+          toast({
+            title: "Profile loaded",
+            description: "Your existing preferences have been loaded.",
+            duration: 2000,
+          });
+        }
+      } catch (error) {
+        console.error("Failed to load existing profile:", error);
+        // Don't show error toast for this, as it's expected for new users
+      }
+    };
+
+    loadExistingProfile();
+  }, [user, toast]);
 
   const handleAddLocation = () => {
     const value = newLocation.trim();
@@ -101,17 +100,10 @@ export default function PlanAheadForm() {
         currentLocation: formData.currentLocation,
         targetLocations: formData.targetLocations,
         moveDate: formData.moveDate,
-        ageRange: formData.ageRange,
-        genderPref: formData.genderPref,
-        nationality: formData.nationality,
+        propertyType: formData.propertyType,
+        lookingForRoommate: formData.lookingForRoommate,
+        roommateGenderPref: formData.roommateGenderPref,
         languagePref: formData.languagePref,
-        dietaryPref: formData.dietaryPref,
-        occupationPref: formData.occupationPref,
-        workSchedulePref: formData.workSchedulePref,
-        ethnicityPref: formData.ethnicityPref,
-        religionPref: formData.religionPref,
-        petPref: formData.petPref,
-        smokePref: formData.smokePref,
         additionalInfo: formData.additionalInfo,
       });
 
@@ -132,65 +124,68 @@ export default function PlanAheadForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="rounded-md bg-muted/40 p-3 text-sm leading-relaxed text-muted-foreground">
-        <div className="flex items-center gap-2 font-medium text-foreground">
-          <Lightbulb className="h-4 w-4 text-primary" aria-hidden="true" />
-          AI tip
-        </div>
-        <p className="mt-1">
-          The more details you provide, the better our AI can match you with compatible roommates and living spaces.
-        </p>
-      </div>
+    <form onSubmit={handleSubmit} className="space-y-4">
 
-      {/* Location Preferences */}
-      <section className="space-y-4">
+      {/* Ultra-Compact Organized Form */}
+      <div className="space-y-3">
+                {/* Section 1: Location Information */}
+                <div className="bg-slate-50 rounded-lg p-3 border border-slate-200/50">
+                  <h3 className="text-sm font-semibold text-slate-800 mb-2 flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-orange-600" />
+                    Location Information
+                  </h3>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div className="space-y-2">
         <div className="flex items-center gap-2">
-          <MapPin className="h-4 w-4 text-primary" aria-hidden="true" />
-          <h3 className="text-sm font-medium text-foreground">Location preferences</h3>
+                <span className="bg-primary text-primary-foreground text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">1</span>
+                <Label htmlFor="currentLocation" className="text-sm font-medium">Current location</Label>
         </div>
-        <div className="grid grid-cols-1 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="currentLocation">Current location</Label>
             <Input
               id="currentLocation"
               value={formData.currentLocation}
               onChange={(e) =>
                 setFormData((p) => ({ ...p, currentLocation: e.target.value }))
               }
-              placeholder="City or country where you currently live"
+                placeholder="City or country"
               required
+                className="ml-7 h-8 text-sm"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="targetLocation">Target locations (max 5)</Label>
             <div className="flex items-center gap-2">
+                <span className="bg-primary text-primary-foreground text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">2</span>
+                <Label htmlFor="targetLocation" className="text-sm font-medium">Target locations (max 5)</Label>
+              </div>
+              <div className="flex items-center gap-1 ml-7">
               <Input
                 id="targetLocation"
                 value={newLocation}
                 onChange={(e) => setNewLocation(e.target.value)}
-                placeholder="Add cities or countries"
+                  placeholder="Add cities"
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
                     e.preventDefault();
                     handleAddLocation();
                   }
                 }}
+                  className="h-8 text-sm"
               />
               <Button
                 type="button"
                 variant="secondary"
                 onClick={handleAddLocation}
                 disabled={formData.targetLocations.length >= 5}
+                  className="h-8 px-2 text-xs"
               >
                 Add
               </Button>
             </div>
             {formData.targetLocations.length > 0 && (
-              <div className="flex flex-wrap gap-2 pt-1">
+                <div className="flex flex-wrap gap-1 ml-7">
                 {formData.targetLocations.map((loc, i) => (
-                  <Badge key={`${loc}-${i}`} variant="secondary" className="gap-1">
+                    <Badge key={`${loc}-${i}`} variant="secondary" className="gap-1 text-xs px-2 py-0">
                     {loc}
                     <button
                       type="button"
@@ -207,7 +202,10 @@ export default function PlanAheadForm() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="moveDate">Planned move date</Label>
+              <div className="flex items-center gap-2">
+                <span className="bg-primary text-primary-foreground text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">3</span>
+                <Label htmlFor="moveDate" className="text-sm font-medium">Planned move date</Label>
+              </div>
             <Input
               type="date"
               id="moveDate"
@@ -219,265 +217,232 @@ export default function PlanAheadForm() {
                 .toISOString()
                 .split("T")[0]}
               required
+                className="ml-7 h-8 text-sm"
             />
           </div>
         </div>
-      </section>
-
-      <Separator />
-
-      {/* Lifestyle & Schedule */}
-      <section className="space-y-4">
-        <div className="flex items-center gap-2">
-          <Calendar className="h-4 w-4 text-primary" aria-hidden="true" />
-          <h3 className="text-sm font-medium text-foreground">Lifestyle & schedule</h3>
         </div>
 
+                {/* Section 2: Property & Living Preferences */}
+                <div className="bg-slate-50 rounded-lg p-3 border border-slate-200/50">
+                  <h3 className="text-sm font-semibold text-slate-800 mb-2 flex items-center gap-2">
+                    <MessageSquare className="h-4 w-4 text-purple-600" />
+                    Property & Living Preferences
+                  </h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label>Your age range</Label>
-          <RadioGroup
-            value={formData.ageRange}
-            onValueChange={(value) =>
-              setFormData((p) => ({ ...p, ageRange: value }))
-            }
-            className="grid grid-cols-2 gap-2"
-          >
-            {ageRanges.map((range) => (
-              <div key={range} className="flex items-center gap-2 rounded-md border p-2">
-                <RadioGroupItem value={range} id={`age-${range}`} />
-                <Label htmlFor={`age-${range}`}>{range}</Label>
+              <div className="flex items-center gap-2">
+                <span className="bg-purple-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">4</span>
+                <Label htmlFor="propertyType" className="text-sm font-medium">Property type</Label>
               </div>
-            ))}
-          </RadioGroup>
+              <select
+                id="propertyType"
+                className="w-full rounded-md border bg-transparent px-3 py-1 text-sm ml-7 h-8"
+                value={formData.propertyType}
+                onChange={(e) =>
+                  setFormData((p) => ({ ...p, propertyType: e.target.value }))
+                }
+                required
+              >
+                <option value="">Select property type</option>
+                <option value="apartment">Apartment</option>
+                <option value="house">House</option>
+                <option value="condo">Condo</option>
+                <option value="studio">Studio</option>
+                <option value="shared-room">Shared Room</option>
+                <option value="private-room">Private Room</option>
+                <option value="no-preference">No preference</option>
+              </select>
         </div>
 
         <div className="space-y-2">
-          <Label>Gender preference for roommate</Label>
-          <RadioGroup
-            value={formData.genderPref}
-            onValueChange={(value) =>
-              setFormData((p) => ({ ...p, genderPref: value }))
-            }
-            className="grid grid-cols-2 gap-2"
-          >
-            {genderOptions.map((g) => (
-              <div key={g} className="flex items-center gap-2 rounded-md border p-2">
-                <RadioGroupItem value={g} id={`gender-${g}`} />
-                <Label htmlFor={`gender-${g}`}>
-                  {g === "any"
-                    ? "No preference"
-                    : g === "nonbinary"
-                    ? "Non-binary"
-                    : g.charAt(0).toUpperCase() + g.slice(1)}
-                </Label>
+              <div className="flex items-center gap-2">
+                <span className="bg-purple-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">5</span>
+                <Label className="text-sm font-medium">Looking for roommate?</Label>
               </div>
-            ))}
-          </RadioGroup>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="nationality">Nationality preference (optional)</Label>
-            <Input
-              id="nationality"
-              value={formData.nationality}
+              <div className="flex gap-4 ml-7">
+                <label className="flex items-center gap-1">
+                  <input
+                    type="radio"
+                    name="lookingForRoommate"
+                    value="yes"
+                    checked={formData.lookingForRoommate === "yes"}
               onChange={(e) =>
-                setFormData((p) => ({ ...p, nationality: e.target.value }))
-              }
-              placeholder="e.g., American, European, Asian"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="languagePref">Language preference</Label>
-            <Input
-              id="languagePref"
-              value={formData.languagePref}
+                      setFormData((p) => ({ ...p, lookingForRoommate: e.target.value }))
+                    }
+                    className="rounded border-gray-300"
+                  />
+                  <span className="text-xs font-medium">Yes</span>
+                </label>
+                <label className="flex items-center gap-1">
+                  <input
+                    type="radio"
+                    name="lookingForRoommate"
+                    value="no"
+                    checked={formData.lookingForRoommate === "no"}
               onChange={(e) =>
-                setFormData((p) => ({ ...p, languagePref: e.target.value }))
-              }
-              placeholder="e.g., English, Spanish, French"
-              required
-            />
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <Label>Dietary preferences</Label>
-          <div className="grid grid-cols-2 gap-2">
-            {[
-              { key: "none", label: "No restrictions" },
-              { key: "veg", label: "Vegetarian" },
-              { key: "vegan", label: "Vegan" },
-              { key: "gluten", label: "Gluten-free" },
-              { key: "kosher", label: "Kosher" },
-              { key: "halal", label: "Halal" },
-            ].map((item) => (
-              <label
-                key={item.key}
-                className="flex items-center gap-2 rounded-md border p-2 text-sm"
-              >
-                <Checkbox
-                  checked={formData.dietaryPref[item.key as keyof typeof formData.dietaryPref]}
-                  onCheckedChange={(checked) =>
-                    setFormData((p) => ({
-                      ...p,
-                      dietaryPref: {
-                        ...p.dietaryPref,
-                        [item.key]: Boolean(checked),
-                      },
-                    }))
-                  }
-                />
-                <span>{item.label}</span>
+                      setFormData((p) => ({ ...p, lookingForRoommate: e.target.value }))
+                    }
+                    className="rounded border-gray-300"
+                  />
+                  <span className="text-xs font-medium">No</span>
               </label>
-            ))}
+          </div>
+        </div>
           </div>
         </div>
 
-        <div className="space-y-2">
-          <Label>Roommate occupation preference</Label>
-          <div className="grid grid-cols-2 gap-2">
-            {[
-              { key: "student", label: "Student" },
-              { key: "professional", label: "Professional" },
-              { key: "freelancer", label: "Freelancer" },
-              { key: "remote", label: "Remote worker" },
-              { key: "none", label: "No preference" },
-            ].map((item) => (
-              <label
-                key={item.key}
-                className="flex items-center gap-2 rounded-md border p-2 text-sm"
-              >
-                <Checkbox
-                  checked={formData.occupationPref[item.key as keyof typeof formData.occupationPref]}
-                  onCheckedChange={(checked) =>
-                    setFormData((p) => ({
-                      ...p,
-                      occupationPref: {
-                        ...p.occupationPref,
-                        [item.key]: Boolean(checked),
-                      },
-                    }))
+                {/* Section 3: Roommate Preferences (Conditional) */}
+                {formData.lookingForRoommate === "yes" && (
+                  <div className="bg-slate-50 rounded-lg p-3 border border-slate-200/50">
+                    <h3 className="text-sm font-semibold text-slate-800 mb-2 flex items-center gap-2">
+                      <Users className="h-4 w-4 text-orange-600" />
+                      Roommate Preferences
+                    </h3>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="bg-orange-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">6</span>
+                  <Label className="text-sm font-medium">Gender preference</Label>
+                </div>
+                <div className="grid grid-cols-2 gap-2 ml-7">
+                  <label className="flex items-center gap-1 p-1 rounded border bg-white">
+                    <input
+                      type="radio"
+                      name="roommateGenderPref"
+                      value="any"
+                      checked={formData.roommateGenderPref === "any"}
+                      onChange={(e) =>
+                        setFormData((p) => ({ ...p, roommateGenderPref: e.target.value }))
+                      }
+                      className="rounded border-gray-300"
+                    />
+                    <span className="text-xs font-medium">Any</span>
+                  </label>
+                  <label className="flex items-center gap-1 p-1 rounded border bg-white">
+                    <input
+                      type="radio"
+                      name="roommateGenderPref"
+                      value="male"
+                      checked={formData.roommateGenderPref === "male"}
+                      onChange={(e) =>
+                        setFormData((p) => ({ ...p, roommateGenderPref: e.target.value }))
+                      }
+                      className="rounded border-gray-300"
+                    />
+                    <span className="text-xs font-medium">Male</span>
+                  </label>
+                  <label className="flex items-center gap-1 p-1 rounded border bg-white">
+                    <input
+                      type="radio"
+                      name="roommateGenderPref"
+                      value="female"
+                      checked={formData.roommateGenderPref === "female"}
+              onChange={(e) =>
+                        setFormData((p) => ({ ...p, roommateGenderPref: e.target.value }))
+                      }
+                      className="rounded border-gray-300"
+                    />
+                    <span className="text-xs font-medium">Female</span>
+                  </label>
+                  <label className="flex items-center gap-1 p-1 rounded border bg-white">
+                    <input
+                      type="radio"
+                      name="roommateGenderPref"
+                      value="nonbinary"
+                      checked={formData.roommateGenderPref === "nonbinary"}
+              onChange={(e) =>
+                        setFormData((p) => ({ ...p, roommateGenderPref: e.target.value }))
+              }
+                      className="rounded border-gray-300"
+            />
+                    <span className="text-xs font-medium">Non-binary</span>
+                  </label>
+          </div>
+        </div>
+
+          <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="bg-purple-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">7</span>
+                  <Label htmlFor="languagePref" className="text-sm font-medium">Language preference</Label>
+                </div>
+                <select
+                  id="languagePref"
+                  className="w-full rounded-md border bg-transparent px-3 py-1 text-sm ml-7 h-8"
+                  value={formData.languagePref}
+                  onChange={(e) =>
+                    setFormData((p) => ({ ...p, languagePref: e.target.value }))
                   }
-                />
-                <span>{item.label}</span>
-              </label>
-            ))}
+                  required={formData.lookingForRoommate === "yes"}
+                >
+                  <option value="">Select language</option>
+                  <option value="english">English</option>
+                  <option value="spanish">Spanish</option>
+                  <option value="french">French</option>
+                  <option value="german">German</option>
+                  <option value="italian">Italian</option>
+                  <option value="portuguese">Portuguese</option>
+                  <option value="chinese">Chinese</option>
+                  <option value="japanese">Japanese</option>
+                  <option value="korean">Korean</option>
+                  <option value="arabic">Arabic</option>
+                  <option value="hindi">Hindi</option>
+                  <option value="russian">Russian</option>
+                  <option value="dutch">Dutch</option>
+                  <option value="swedish">Swedish</option>
+                  <option value="norwegian">Norwegian</option>
+                  <option value="danish">Danish</option>
+                  <option value="finnish">Finnish</option>
+                  <option value="polish">Polish</option>
+                  <option value="czech">Czech</option>
+                  <option value="hungarian">Hungarian</option>
+                  <option value="romanian">Romanian</option>
+                  <option value="bulgarian">Bulgarian</option>
+                  <option value="greek">Greek</option>
+                  <option value="turkish">Turkish</option>
+                  <option value="hebrew">Hebrew</option>
+                  <option value="thai">Thai</option>
+                  <option value="vietnamese">Vietnamese</option>
+                  <option value="indonesian">Indonesian</option>
+                  <option value="malay">Malay</option>
+                  <option value="tagalog">Tagalog</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+                </div>
           </div>
+        )}
         </div>
 
+      {/* Section 4: Additional Information */}
+      <div className="bg-slate-50 rounded-lg p-3 border border-slate-200/50">
+        <h3 className="text-sm font-semibold text-slate-800 mb-2 flex items-center gap-2">
+          <MessageSquare className="h-4 w-4 text-purple-600" />
+          Additional Information
+        </h3>
+        
         <div className="space-y-2">
-          <Label htmlFor="workSchedulePref">Work schedule preference for roommate</Label>
-          <select
-            id="workSchedulePref"
-            className="w-full rounded-md border bg-transparent px-3 py-2 text-sm"
-            value={formData.workSchedulePref}
-            onChange={(e) =>
-              setFormData((p) => ({ ...p, workSchedulePref: e.target.value }))
-            }
-            required
-          >
-            <option value="">Select preferred schedule</option>
-            <option value="same">Same as mine</option>
-            <option value="9to5">9 AM - 5 PM</option>
-            <option value="flexible">Flexible hours</option>
-            <option value="nightShift">Night shift</option>
-            <option value="shiftWorker">Shift worker</option>
-            <option value="student">Student schedule</option>
-            <option value="remote">Remote/Freelance</option>
-            <option value="none">No preference</option>
-          </select>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="ethnicityPref">Ethnicity preference (optional)</Label>
-            <Input
-              id="ethnicityPref"
-              value={formData.ethnicityPref}
-              onChange={(e) =>
-                setFormData((p) => ({ ...p, ethnicityPref: e.target.value }))
-              }
-              placeholder="e.g., Caucasian, Hispanic, Asian"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="religionPref">Religion preference (optional)</Label>
-            <Input
-              id="religionPref"
-              value={formData.religionPref}
-              onChange={(e) =>
-                setFormData((p) => ({ ...p, religionPref: e.target.value }))
-              }
-              placeholder="e.g., Christian, Muslim, Jewish"
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label>Pet preference</Label>
-            <RadioGroup
-              value={formData.petPref}
-              onValueChange={(value) =>
-                setFormData((p) => ({ ...p, petPref: value }))
-              }
-              className="grid grid-cols-2 gap-2"
-            >
-              {petOptions.map((opt) => (
-                <div key={opt} className="flex items-center gap-2 rounded-md border p-2">
-                  <RadioGroupItem value={opt} id={`pet-${opt}`} />
-                  <Label htmlFor={`pet-${opt}`}>
-                    {opt === "yes" ? "Pets allowed" : opt === "no" ? "No pets" : "No preference"}
-                  </Label>
-                </div>
-              ))}
-            </RadioGroup>
-          </div>
-          <div className="space-y-2">
-            <Label>Smoking preference</Label>
-            <RadioGroup
-              value={formData.smokePref}
-              onValueChange={(value) =>
-                setFormData((p) => ({ ...p, smokePref: value }))
-              }
-              className="grid grid-cols-2 gap-2"
-            >
-              {smokeOptions.map((opt) => (
-                <div key={opt} className="flex items-center gap-2 rounded-md border p-2">
-                  <RadioGroupItem value={opt} id={`smoke-${opt}`} />
-                  <Label htmlFor={`smoke-${opt}`}>
-                    {opt === "yes" ? "Smoking allowed" : opt === "no" ? "Non-smoking only" : "No preference"}
-                  </Label>
-                </div>
-              ))}
-            </RadioGroup>
-          </div>
-        </div>
-      </section>
-
-      <Separator />
-
-      {/* Additional Preferences */}
-      <section className="space-y-2">
         <div className="flex items-center gap-2">
-          <MessageSquare className="h-4 w-4 text-primary" aria-hidden="true" />
-          <h3 className="text-sm font-medium text-foreground">Additional preferences</h3>
+            <span className="bg-purple-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">8</span>
+            <Label htmlFor="additionalInfo" className="text-sm font-medium">Anything else we should know?</Label>
         </div>
-        <Label htmlFor="additionalInfo">Anything else we should know?</Label>
         <Textarea
           id="additionalInfo"
-          rows={4}
+            rows={3}
           value={formData.additionalInfo}
           onChange={(e) =>
             setFormData((p) => ({ ...p, additionalInfo: e.target.value }))
           }
           placeholder="Special requirements, additional preferences, or other helpful information..."
+            className="ml-7 text-sm"
         />
-      </section>
+        </div>
+      </div>
 
       <div className="pt-2">
-        <Button type="submit" className="w-full" disabled={isSubmitting}>
+          <Button type="submit" className="w-full button-gradient text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300" disabled={isSubmitting}>
           <Save className="mr-2 h-4 w-4" />
           {isSubmitting ? "Saving..." : "Save and find my perfect match"}
         </Button>

@@ -5,53 +5,25 @@ export type PlanAheadFormInput = {
   currentLocation: string;
   targetLocations: string[];
   moveDate: string; // YYYY-MM-DD
-  ageRange: string;
-  genderPref: string; // any | male | female | nonbinary
-  nationality: string;
+  propertyType: string;
+  lookingForRoommate: string; // "yes" | "no"
+  roommateGenderPref: string; // "any" | "male" | "female" | "nonbinary"
   languagePref: string;
-  dietaryPref: Record<string, boolean>;
-  occupationPref: Record<string, boolean>;
-  workSchedulePref: string;
-  ethnicityPref: string;
-  religionPref: string;
-  petPref: string; // yes | no | nopref
-  smokePref: string; // yes | no | nopref
   additionalInfo: string;
 };
 
 function mapToPayload(userId: string, input: PlanAheadFormInput) {
-  // Map UI fields to DB columns. Provide safe defaults for NOT NULL arrays
-  const petPref =
-    input.petPref === "nopref"
-      ? "no_preference"
-      : input.petPref === "yes"
-      ? "allowed"
-      : "not_allowed";
-
-  const smokingPref =
-    input.smokePref === "nopref"
-      ? "no_preference"
-      : input.smokePref === "yes"
-      ? "allowed"
-      : "not_allowed";
-
+  // Map UI fields to DB columns based on the new plan_ahead_profiles table schema
   return {
     user_id: userId,
-    planned_move_date: input.moveDate,
-    current_city: input.currentLocation || null,
-    target_cities: input.targetLocations ?? [],
-    gender_preference:
-      input.genderPref && input.genderPref !== "any" ? [input.genderPref] : [],
-    smoking_preference: smokingPref,
-    pet_preferences: petPref,
-    daily_schedule: input.workSchedulePref || null,
-    additional_notes: input.additionalInfo || null,
-
-    // Required arrays in schema → provide empty arrays by default
-    target_states: [],
-    budget_range: [],
-    preferred_living_arrangements: [],
-    preferred_housing_types: [],
+    current_location: input.currentLocation,
+    target_locations: input.targetLocations || [],
+    move_date: input.moveDate,
+    property_type: input.propertyType,
+    looking_for_roommate: input.lookingForRoommate === "yes",
+    roommate_gender_pref: input.lookingForRoommate === "yes" ? input.roommateGenderPref : null,
+    language_pref: input.lookingForRoommate === "yes" ? input.languagePref : null,
+    additional_info: input.additionalInfo || null,
   } as Record<string, any>;
 }
 
@@ -95,4 +67,90 @@ export async function savePlanAheadProfile(
     if (!data) throw new Error("Failed to create plan ahead profile");
     return { id: String(data.id) };
   }
+}
+
+// Fetch user's plan ahead profile
+export async function getPlanAheadProfile(userId: string): Promise<PlanAheadFormInput | null> {
+  const { data, error } = await sb
+    .from("plan_ahead_profiles")
+    .select("*")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (error && (error as any).code !== "PGRST116") {
+    throw error;
+  }
+
+  if (!data) {
+    return null;
+  }
+
+  // Map database fields back to form input format
+  return {
+    currentLocation: data.current_location || "",
+    targetLocations: data.target_locations || [],
+    moveDate: data.move_date || "",
+    propertyType: data.property_type || "",
+    lookingForRoommate: data.looking_for_roommate ? "yes" : "no",
+    roommateGenderPref: data.roommate_gender_pref || "",
+    languagePref: data.language_pref || "",
+    additionalInfo: data.additional_info || "",
+  };
+}
+
+// Get potential matches for the current user
+export async function getPlanAheadMatches(userId: string): Promise<any[]> {
+  // First get the current user's profile
+  const { data: userProfile, error: userError } = await sb
+    .from("plan_ahead_profiles")
+    .select("*")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (userError) {
+    throw userError;
+  }
+
+  if (!userProfile) {
+    return []; // No profile means no matches
+  }
+
+  // Find potential matches based on location and move date
+  const { data: matches, error: matchesError } = await sb
+    .from("plan_ahead_profiles")
+    .select(`
+      *,
+      user:user_id (
+        email,
+        user_metadata
+      )
+    `)
+    .neq("user_id", userId) // Exclude current user
+    .gte("move_date", new Date().toISOString().split('T')[0]) // Only future moves
+    .order("move_date", { ascending: true });
+
+  if (matchesError) {
+    throw matchesError;
+  }
+
+  // Filter matches based on location overlap and other criteria
+  const filteredMatches = matches?.filter((match: any) => {
+    // Check if there's location overlap
+    const hasLocationOverlap = match.target_locations?.some((location: string) =>
+      userProfile.target_locations?.includes(location)
+    ) || userProfile.target_locations?.some((location: string) =>
+      match.target_locations?.includes(location)
+    );
+
+    // Check if both are looking for roommates and have compatible preferences
+    const roommateCompatible = !userProfile.looking_for_roommate || !match.looking_for_roommate || 
+      (userProfile.looking_for_roommate && match.looking_for_roommate && 
+       (userProfile.roommate_gender_pref === "any" || match.roommate_gender_pref === "any" ||
+        userProfile.roommate_gender_pref === match.roommate_gender_pref) &&
+       userProfile.language_pref === match.language_pref);
+
+    return hasLocationOverlap && roommateCompatible;
+  }) || [];
+
+  return filteredMatches;
 }

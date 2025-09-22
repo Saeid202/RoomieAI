@@ -9,7 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, ArrowRight, Home, MapPin, DollarSign, Camera, FileText, CheckCircle, X, Upload } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { createProperty } from "@/services/propertyService";
+import { createProperty, uploadPropertyImage } from "@/services/propertyService";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -77,7 +77,8 @@ const steps = [
   { id: 2, title: "Location Details", icon: MapPin },
   { id: 3, title: "Rental Information", icon: DollarSign },
   { id: 4, title: "Amenities & Features", icon: CheckCircle },
-  { id: 5, title: "Photos & Final Details", icon: Camera }
+  { id: 5, title: "Additional Info", icon: FileText },
+  { id: 6, title: "Photos & Final Details", icon: Camera }
 ];
 
 export default function AddPropertyPage() {
@@ -149,8 +150,25 @@ export default function AddPropertyPage() {
         return;
       }
 
-      // TODO: Upload images to storage (placeholder for now)
+      // Upload images to storage
       const imageUrls: string[] = [];
+      
+      if (formData.images.length > 0) {
+        toast.info("Uploading images...");
+        
+        for (const image of formData.images) {
+          try {
+            const imageUrl = await uploadPropertyImage(image, user.id);
+            imageUrls.push(imageUrl);
+          } catch (error) {
+            console.error('Failed to upload image:', error);
+            toast.error(`Failed to upload ${image.name}. Please try again.`);
+            return;
+          }
+        }
+        
+        toast.success("Images uploaded successfully!");
+      }
       
       // Prepare property data for database
       const propertyData = {
@@ -502,8 +520,14 @@ export default function AddPropertyPage() {
               />
             </div>
 
+          </div>
+        );
+
+      case 6:
+        return (
+          <div className="space-y-6">
             <div>
-              <Label>**3.** Property Photos</Label>
+              <Label>**1.** Property Photos</Label>
               <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6">
                 <div className="text-center mb-4">
                   <Camera className="mx-auto h-12 w-12 text-muted-foreground mb-2" />
@@ -563,7 +587,6 @@ export default function AddPropertyPage() {
             </div>
           </div>
         );
-
 
       default:
         return null;
