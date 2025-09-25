@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF System Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .info { background-color: #d1ecf1; border-color: #bee5eb; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        #results { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>🔧 PDF System Fix Test</h1>
+    
+    <div class="test-section info">
+        <h3>📋 Instructions</h3>
+        <ol>
+            <li><strong>First:</strong> Run the SQL script in Supabase SQL Editor</li>
+            <li><strong>Then:</strong> Click "Test PDF System" below</li>
+            <li><strong>Finally:</strong> Check the results and go back to your app</li>
+        </ol>
+    </div>
+
+    <div class="test-section">
+        <h3>🧪 Test PDF System</h3>
+        <button onclick="testPdfSystem()">Test PDF System</button>
+        <button onclick="testStorageBucket()">Test Storage Bucket</button>
+        <button onclick="clearResults()">Clear Results</button>
+    </div>
+
+    <div id="results"></div>
+
+    <script>
+        // Test the PDF system
+        async function testPdfSystem() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<h3>🔄 Testing PDF System...</h3>';
+            
+            try {
+                // Test 1: Check if we can access the app
+                const response = await fetch('/dashboard/rental-options');
+                if (response.ok) {
+                    addResult('✅ App is accessible', 'success');
+                } else {
+                    addResult('❌ App not accessible', 'error');
+                }
+                
+                // Test 2: Check if we can access Supabase
+                if (typeof window.supabase !== 'undefined') {
+                    addResult('✅ Supabase client available', 'success');
+                    
+                    // Test storage buckets
+                    const { data: buckets, error } = await window.supabase.storage.listBuckets();
+                    if (error) {
+                        addResult(`❌ Storage error: ${error.message}`, 'error');
+                    } else {
+                        addResult('✅ Storage accessible', 'success');
+                        
+                        const legalTemplates = buckets.find(b => b.id === 'legal-templates');
+                        if (legalTemplates) {
+                            addResult('✅ legal-templates bucket found', 'success');
+                            
+                            // Test file listing
+                            const { data: files, error: listError } = await window.supabase.storage
+                                .from('legal-templates')
+                                .list('Ontario');
+                            
+                            if (listError) {
+                                addResult(`❌ File listing error: ${listError.message}`, 'error');
+                            } else {
+                                addResult(`✅ Ontario folder accessible (${files.length} files)`, 'success');
+                                
+                                const pdfFile = files.find(f => f.name.includes('2229e_standard-lease_static.pdf'));
+                                if (pdfFile) {
+                                    addResult('✅ PDF file found', 'success');
+                                } else {
+                                    addResult('❌ PDF file not found', 'error');
+                                }
+                            }
+                        } else {
+                            addResult('❌ legal-templates bucket not found', 'error');
+                        }
+                    }
+                } else {
+                    addResult('❌ Supabase client not available', 'error');
+                }
+                
+            } catch (error) {
+                addResult(`❌ Test error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testStorageBucket() {
+            addResult('🔄 Testing storage bucket creation...', 'info');
+            
+            // This would need to be run in Supabase SQL Editor
+            addResult('📝 Please run the fix-storage-and-database.sql script in Supabase SQL Editor', 'info');
+        }
+
+        function addResult(message, type) {
+            const resultsDiv = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `test-section ${type}`;
+            div.innerHTML = `<p>${message}</p>`;
+            resultsDiv.appendChild(div);
+        }
+
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+
+        // Auto-run basic test on load
+        window.onload = function() {
+            addResult('🚀 PDF System Test Page Loaded', 'info');
+            addResult('Click "Test PDF System" to run diagnostics', 'info');
+        };
+    </script>
+</body>
+</html>
