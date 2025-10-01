@@ -9,7 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, ArrowRight, Home, MapPin, DollarSign, Camera, FileText, CheckCircle, X, Upload } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { createProperty, uploadPropertyImage } from "@/services/propertyService";
+import { createProperty, uploadPropertyImage, fetchPropertyById, updateProperty } from "@/services/propertyService";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import AddressAutocomplete from "@/components/ui/address-autocomplete";
@@ -159,6 +159,7 @@ export default function AddPropertyPage() {
   const [detailedDetection, setDetailedDetection] = useState<PropertyIntelligence | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const DRAFT_KEY = "add_property_draft_v1";
+  const [editId, setEditId] = useState<string | null>(null);
 
   const progress = (currentStep / steps.length) * 100;
 
@@ -172,6 +173,53 @@ export default function AddPropertyPage() {
         toast.info("Draft restored");
       }
     } catch {}
+  }, []);
+
+  // Detect edit mode (?prefill=:id) and load existing property
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const prefillId = params.get('prefill');
+    if (!prefillId) return;
+    (async () => {
+      try {
+        setEditId(prefillId);
+        const data: any = await fetchPropertyById(prefillId);
+        if (!data) return;
+        // Prefill form
+        setFormData(prev => ({
+          ...prev,
+          listingTitle: data.listing_title || "",
+          propertyType: data.property_type || "",
+          propertyAddress: data.address || "",
+          description: data.description || "",
+          address: data.address || "",
+          city: data.city || "",
+          state: data.state || "",
+          zipCode: data.zip_code || "",
+          neighborhood: data.neighborhood || "",
+          latitude: data.latitude ?? undefined,
+          longitude: data.longitude ?? undefined,
+          publicTransportAccess: data.public_transport_access || "",
+          nearbyAmenities: data.nearby_amenities || [],
+          monthlyRent: data.monthly_rent?.toString?.() || "",
+          securityDeposit: data.security_deposit?.toString?.() || "",
+          leaseTerms: data.lease_duration || "",
+          availableDate: data.available_date || "",
+          furnished: (typeof data.furnished === 'boolean' ? (data.furnished ? 'furnished' : '') : (data.furnished || "")) as any,
+          amenities: data.amenities || [],
+          parking: data.parking || "",
+          petPolicy: data.pet_policy || "",
+          utilitiesIncluded: data.utilities_included || [],
+          specialInstructions: data.special_instructions || "",
+          roommatePreference: data.roommate_preference || "",
+          images: []
+        }));
+        toast.success("Loaded listing for editing");
+      } catch (e) {
+        console.error("Failed to load property for edit", e);
+        toast.error("Failed to load property for editing");
+      }
+    })();
   }, []);
 
   // Autosave draft periodically
@@ -344,7 +392,7 @@ export default function AddPropertyPage() {
       
       setErrors({});
 
-      // Upload images to storage
+      // Upload images to storage (create mode only; editing keeps existing URLs as-is)
       const imageUrls: string[] = [];
       
       if (formData.images.length > 0) {
@@ -383,7 +431,7 @@ export default function AddPropertyPage() {
         security_deposit: formData.securityDeposit ? parseFloat(formData.securityDeposit) : null,
         lease_duration: formData.leaseTerms || null,
         available_date: formData.availableDate || null,
-        furnished: formData.furnished || null,
+        furnished: formData.furnished || null as any,
         amenities: formData.amenities || [],
         parking: formData.parking || null,
         pet_policy: formData.petPolicy || null,
@@ -393,17 +441,20 @@ export default function AddPropertyPage() {
         images: imageUrls
       };
 
-      console.log("Submitting property data:", propertyData);
-      
-      const result = await createProperty(propertyData);
-      
-      if (result) {
-        toast.success("Property listed successfully!");
-        try { localStorage.removeItem(DRAFT_KEY); } catch {}
-        navigate("/dashboard/landlord/properties");
+      console.log(editId ? "Updating property:" : "Submitting property data:", propertyData);
+      if (editId) {
+        await updateProperty(editId, propertyData as any);
+        toast.success("Property updated successfully!");
       } else {
-        toast.error("Failed to create property");
+        const result = await createProperty(propertyData);
+        if (!result) {
+          toast.error("Failed to create property");
+          return;
+        }
+        toast.success("Property listed successfully!");
       }
+      try { localStorage.removeItem(DRAFT_KEY); } catch {}
+      navigate("/dashboard/landlord/properties");
     } catch (error) {
       console.error("Error creating property:", error);
       toast.error("An error occurred while creating the property");
@@ -1106,7 +1157,7 @@ export default function AddPropertyPage() {
           </Button>
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Add New Property</h1>
-            <p className="text-muted-foreground">Fill out the details to list your property</p>
+            <p className="text-muted-foreground">{editId ? 'Edit your property listing' : 'Fill out the details to list your property'}</p>
           </div>
         </div>
 
@@ -1153,8 +1204,8 @@ export default function AddPropertyPage() {
               {steps[currentStep - 1].title}
             </CardTitle>
             <CardDescription>
-              {currentStep === 1 && "Let's start with all the basic information about your property"}
-              {currentStep === 2 && "Add photos and review your property listing"}
+              {currentStep === 1 && (editId ? "Update your property's basic information" : "Let's start with all the basic information about your property")}
+              {currentStep === 2 && (editId ? "Review changes and update your listing" : "Add photos and review your property listing")}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -1181,7 +1232,7 @@ export default function AddPropertyPage() {
           ) : (
             <Button onClick={handleSubmit} className="bg-primary">
               <CheckCircle className="h-4 w-4 mr-2" />
-              Submit Property Listing
+              {editId ? 'Save Changes' : 'Submit Property Listing'}
             </Button>
           )}
         </div>
