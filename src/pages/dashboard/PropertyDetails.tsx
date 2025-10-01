@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { fetchPropertyById, Property } from "@/services/propertyService";
+import { useRole } from "@/contexts/RoleContext";
 import { Calendar, DollarSign, MapPin } from "lucide-react";
 
 export default function PropertyDetailsPage() {
@@ -13,6 +14,7 @@ export default function PropertyDetailsPage() {
   const [property, setProperty] = useState<Property | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { role } = useRole();
 
   useEffect(() => {
     let mounted = true;
@@ -261,10 +263,14 @@ export default function PropertyDetailsPage() {
           </Card>
 
           <div className="space-y-2">
-            <Button variant="default" className="w-full" onClick={() => navigate(`/dashboard/rental-application/${id}`)}>
-              Apply to Rent
+            {role !== 'landlord' && (
+              <Button variant="default" className="w-full" onClick={() => navigate(`/dashboard/rental-application/${id}`)}>
+                Apply to Rent
+              </Button>
+            )}
+            <Button variant="outline" className="w-full" onClick={() => navigate(-1)}>
+              {role === 'landlord' ? 'Back to properties' : 'Back to results'}
             </Button>
-            <Button variant="outline" className="w-full" onClick={() => navigate(-1)}>Back to results</Button>
           </div>
         </aside>
       </main>
