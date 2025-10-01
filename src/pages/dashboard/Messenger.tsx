@@ -149,7 +149,7 @@ export default function MessengerPage() {
         <div className="col-span-4">
           <Card className="h-full flex flex-col">
             <CardHeader className="px-6 py-4 border-b">
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2 text-roomie-orange">
                 <User className="h-5 w-5" />
                 Matches & Conversations
               </CardTitle>
