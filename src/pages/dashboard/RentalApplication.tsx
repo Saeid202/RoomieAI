@@ -1083,63 +1083,7 @@ export default function RentalApplicationPage() {
               </div>
             )}
 
-            {/* Digital Signature Section */}
-            <Card className="border-2 border-primary">
-              <CardHeader className="bg-primary/5">
-                <CardTitle className="flex items-center gap-2">
-                  <Pen className="h-5 w-5" />
-                  Digital Signature Required
-                </CardTitle>
-                <CardDescription>
-                  By signing below, you agree to all terms and conditions in the lease contract above.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="pt-6">
-                {!applicationData.contractSigned ? (
-                  <div className="space-y-4">
-                    {/* Simple Signature Input - In production, use a proper signature pad */}
-                    <div>
-                      <Label htmlFor="signatureName">Type your full name as your digital signature</Label>
-                      <Input
-                        id="signatureName"
-                        value={applicationData.signatureData}
-                        onChange={(e) => setApplicationData(prev => ({ ...prev, signatureData: e.target.value }))}
-                        placeholder="Type your full legal name here"
-                        className="text-lg font-cursive"
-                      />
-                      <p className="text-xs text-muted-foreground mt-1">
-                        This constitutes your legal digital signature
-                      </p>
-                    </div>
-                    
-                    <Button 
-                      onClick={() => handleSignContract(applicationData.signatureData)}
-                      disabled={!applicationData.signatureData.trim()}
-                      className="w-full bg-primary hover:bg-primary/90"
-                    >
-                      <Pen className="h-4 w-4 mr-2" />
-                      Sign Contract
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <div className="bg-green-50 border-2 border-green-500 rounded-lg p-6 mb-4">
-                      <CheckCircle className="h-12 w-12 text-green-600 mx-auto mb-3" />
-                      <h3 className="text-lg font-semibold text-green-800 mb-2">Contract Signed Successfully!</h3>
-                      <p className="text-green-700">
-                        Your digital signature: <span className="font-cursive text-xl">{applicationData.signatureData}</span>
-                      </p>
-                      <p className="text-sm text-green-600 mt-2">
-                        Signed on {new Date().toLocaleDateString()} at {new Date().toLocaleTimeString()}
-                      </p>
-                    </div>
-                    <p className="text-muted-foreground">
-                      ✅ Contract signed! Click "Next" below to proceed to payment and complete your rental application.
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+            
 
             {/* Legal Notice */}
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
@@ -1314,7 +1258,7 @@ export default function RentalApplicationPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-6 max-w-4xl">
+      <div>
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
@@ -1327,32 +1271,7 @@ export default function RentalApplicationPage() {
               <p className="text-muted-foreground">Step {currentStep} of {steps.length}</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={async () => {
-                const result = await testDatabaseConnection();
-                if (result.success) {
-                  toast.success("Database connection successful!");
-                } else {
-                  toast.error(`Database error: ${result.error}`);
-                }
-              }}
-            >
-              Test DB
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={async () => {
-                await testEmergencyPdf();
-                toast.info("Emergency PDF test completed. Check browser console for details.");
-              }}
-            >
-              Test PDF
-            </Button>
-          </div>
+          
         </div>
 
         {/* Progress Bar */}
@@ -1395,22 +1314,17 @@ export default function RentalApplicationPage() {
               )}
               <Button 
                 onClick={nextStep}
-                disabled={currentStep === 3 && !applicationData.contractSigned}
+                // disabled={currentStep === 3 && !applicationData.contractSigned}
                 className={applicationData.contractSigned || currentStep !== 3 ? "bg-primary hover:bg-primary/90" : ""}
               >
-                {currentStep === 3 && !applicationData.contractSigned ? "Sign Contract First" : "Next"}
+                Next
               </Button>
             </div>
           ) : (
             <div className="flex flex-col items-end gap-2">
-              {!applicationData.contractSigned && (
-                <p className="text-sm text-muted-foreground">
-                  Please sign the contract first to complete your application
-                </p>
-              )}
               <Button
                 onClick={handleSubmit}
-                disabled={isSubmitting || !applicationData.contractSigned}
+                disabled={isSubmitting}
                 className="bg-primary hover:bg-primary/90"
               >
                 <Send className="h-4 w-4 mr-2" />
