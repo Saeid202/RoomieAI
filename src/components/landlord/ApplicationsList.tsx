@@ -14,8 +14,10 @@ import {
   DollarSign,
   Calendar,
   Search,
-  Filter
+  Filter,
+  MessageSquare
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { RentalApplication } from '@/services/rentalApplicationService';
 
 interface ApplicationsListProps {
@@ -31,6 +33,7 @@ export function ApplicationsList({
   onViewDetails, 
   onUpdateStatus 
 }: ApplicationsListProps) {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [propertyFilter, setPropertyFilter] = useState('all');
@@ -238,6 +241,18 @@ export function ApplicationsList({
                   </div>
                   
                   <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-primary border-primary/30 hover:bg-primary/5"
+                      onClick={() => {
+                        const q = encodeURIComponent(application.full_name || application.email || '');
+                        navigate(`/dashboard/messenger?q=${q}`);
+                      }}
+                    >
+                      <MessageSquare className="h-4 w-4 mr-1" />
+                      Message
+                    </Button>
                     <Button
                       variant="outline"
                       size="sm"
