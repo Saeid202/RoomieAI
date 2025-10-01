@@ -160,6 +160,7 @@ export default function AddPropertyPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const DRAFT_KEY = "add_property_draft_v1";
   const [editId, setEditId] = useState<string | null>(null);
+  const [existingImageUrls, setExistingImageUrls] = useState<string[]>([]);
 
   const progress = (currentStep / steps.length) * 100;
 
@@ -214,6 +215,7 @@ export default function AddPropertyPage() {
           roommatePreference: data.roommate_preference || "",
           images: []
         }));
+        setExistingImageUrls(Array.isArray(data.images) ? data.images : []);
         toast.success("Loaded listing for editing");
       } catch (e) {
         console.error("Failed to load property for edit", e);
@@ -427,7 +429,7 @@ export default function AddPropertyPage() {
         longitude: formData.longitude || null,
         public_transport_access: formData.publicTransportAccess || null,
         nearby_amenities: formData.nearbyAmenities || [],
-        monthly_rent: parseFloat(formData.monthlyRent),
+        monthly_rent: parseFloat(String(formData.monthlyRent).replace(/[^0-9.]/g, '')),
         security_deposit: formData.securityDeposit ? parseFloat(formData.securityDeposit) : null,
         lease_duration: formData.leaseTerms || null,
         available_date: formData.availableDate || null,
@@ -443,7 +445,14 @@ export default function AddPropertyPage() {
 
       console.log(editId ? "Updating property:" : "Submitting property data:", propertyData);
       if (editId) {
-        await updateProperty(editId, propertyData as any);
+        // If no new images uploaded, avoid clobbering existing images
+        const updates: any = { ...propertyData };
+        if (imageUrls.length > 0) {
+          updates.images = [...existingImageUrls, ...imageUrls];
+        } else {
+          delete updates.images;
+        }
+        await updateProperty(editId, updates);
         toast.success("Property updated successfully!");
       } else {
         const result = await createProperty(propertyData);
