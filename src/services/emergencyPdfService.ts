@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 /**
  * Emergency PDF service - tries known buckets directly
  */
-export async function getEmergencyPdf(): Promise<{ url: string; bucket: string; path: string } | null> {
+export async function getEmergencyPdf(): Promise<{ url: string; bucket: string; path: string; publicUrl?: string } | null> {
   console.log("📄 PDF Loader - Searching for Ontario lease contract...");
   
   // Known buckets where the PDF might be
@@ -49,10 +49,22 @@ export async function getEmergencyPdf(): Promise<{ url: string; bucket: string; 
           
           console.log(`  🎉 SUCCESS! PDF loaded from ${bucketId}/${pdfPath}`);
           
+          // Try to get a public URL (works if bucket/object is public)
+          let publicUrl: string | undefined = undefined;
+          try {
+            const { data: publicData } = supabase.storage
+              .from(bucketId)
+              .getPublicUrl(pdfPath);
+            publicUrl = publicData?.publicUrl;
+          } catch (e) {
+            // ignore; not all buckets may be public
+          }
+
           return {
-            url: url,
+            url,
             bucket: bucketId,
-            path: pdfPath
+            path: pdfPath,
+            publicUrl
           };
           
         } catch (error) {

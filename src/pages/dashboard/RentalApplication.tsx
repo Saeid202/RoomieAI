@@ -107,6 +107,7 @@ export default function RentalApplicationPage() {
   const [createdApplicationId, setCreatedApplicationId] = useState<string | null>(null);
   const [existingDocuments, setExistingDocuments] = useState<any[]>([]);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [pdfPublicUrl, setPdfPublicUrl] = useState<string | null>(null);
   const [pdfLoading, setPdfLoading] = useState(false);
 
   useEffect(() => {
@@ -351,6 +352,7 @@ export default function RentalApplicationPage() {
       console.log("Path:", result.path);
       
       setPdfUrl(result.url);
+      setPdfPublicUrl(result.publicUrl || null);
       toast.success(`Contract PDF loaded from ${result.bucket}!`);
       
     } catch (error) {
@@ -1049,7 +1051,7 @@ export default function RentalApplicationPage() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => window.open(pdfUrl, '_blank')}
+                        onClick={() => window.open(pdfPublicUrl || pdfUrl, '_blank')}
                       >
                         Open in New Tab
                       </Button>
@@ -1057,17 +1059,30 @@ export default function RentalApplicationPage() {
                   </div>
                 </div>
                 
-                {/* PDF Viewer */}
+                {/* PDF Viewer (desktop) + Mobile fallback */}
                 {pdfUrl && (
-                  <div className="border rounded-lg overflow-hidden">
-                    <iframe
-                      src={pdfUrl}
-                      width="100%"
-                      height="600"
-                      className="border-0"
-                      title="Lease Contract PDF"
-                    />
-                  </div>
+                  <>
+                    <div className="hidden md:block border rounded-lg overflow-hidden">
+                      <iframe
+                        src={pdfPublicUrl || pdfUrl}
+                        width="100%"
+                        height="600"
+                        className="border-0"
+                        title="Lease Contract PDF"
+                      />
+                    </div>
+                    <div className="md:hidden border rounded-lg p-4 bg-muted">
+                      <p className="text-sm mb-3">
+                        PDF preview isn’t supported on your device. Tap below to open the contract.
+                      </p>
+                      <Button
+                        variant="outline"
+                        onClick={() => window.open((pdfPublicUrl || pdfUrl)!, '_blank')}
+                      >
+                        Open PDF
+                      </Button>
+                    </div>
+                  </>
                 )}
                 
                 {/* Fallback Template */}
