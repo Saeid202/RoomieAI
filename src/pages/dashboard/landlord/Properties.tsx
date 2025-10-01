@@ -108,7 +108,17 @@ export default function PropertiesPage() {
             <CardContent>
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {properties.map((p) => (
-                  <Card key={p.id} className="border">
+                  <Card key={p.id} className="border overflow-hidden">
+                    {/* Image preview */}
+                    <div className="relative">
+                      <img
+                        src={(p.images && p.images[0]) ? p.images[0] : "/placeholder.svg"}
+                        alt={`${p.listing_title} photo`}
+                        className="h-40 w-full object-cover"
+                        onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/placeholder.svg"; }}
+                        loading="lazy"
+                      />
+                    </div>
                     <CardHeader>
                       <CardTitle className="text-base line-clamp-1">{p.listing_title}</CardTitle>
                       <CardDescription className="line-clamp-2">{p.description}</CardDescription>
