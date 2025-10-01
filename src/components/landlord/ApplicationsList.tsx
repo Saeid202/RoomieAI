@@ -188,10 +188,19 @@ export function ApplicationsList({
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-muted-foreground" />
+                  <div className="flex items-center gap-3">
+                    <img
+                      src={(application.property?.images && application.property.images[0]) ? application.property.images[0] : "/placeholder.svg"}
+                      alt={`${application.property?.listing_title || 'Property'} photo`}
+                      className="h-14 w-20 object-cover rounded border"
+                      loading="lazy"
+                      onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/placeholder.svg"; }}
+                    />
                     <div>
-                      <p className="font-medium text-sm">{application.property?.listing_title}</p>
+                      <p className="font-medium text-sm flex items-center gap-1">
+                        <MapPin className="h-4 w-4 text-muted-foreground" />
+                        {application.property?.listing_title}
+                      </p>
                       <p className="text-xs text-muted-foreground">
                         {application.property?.city}, {application.property?.state}
                       </p>
