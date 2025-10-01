@@ -85,7 +85,7 @@ export function PreferencesTab({ form, handleTraitToggle }: PreferencesTabProps)
             render={() => (
               <FormItem>
                 <FormLabel className="text-base font-bold">**2.** Gender Preference</FormLabel>
-                <div className="grid grid-cols-2 gap-3 mt-3">
+                <div className="grid md:grid-cols-2 gap-3 mt-3">
                   {["Male", "Female", "Gay", "Lesbian", "Transgender", "Bisexual", "Non-Binary", "No preference"].map((option) => (
                     <FormField
                       key={option}
@@ -504,9 +504,9 @@ export function PreferencesTab({ form, handleTraitToggle }: PreferencesTabProps)
                         <RadioGroupItem value="catOk" id="cat-ok" />
                         <FormLabel htmlFor="cat-ok">Cat is ok</FormLabel>
                       </div>
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center space-x-2 ">
                         <RadioGroupItem value="smallPetsOk" id="small-pets-ok" />
-                        <FormLabel htmlFor="small-pets-ok">Small pet is fine (specify which pet you won't accept)</FormLabel>
+                        <FormLabel htmlFor="small-pets-ok">Small pet is fine</FormLabel>
                       </div>
                     </RadioGroup>
                   </FormControl>

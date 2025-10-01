@@ -29,7 +29,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             </div>
             
             {/* Scrollable content area - optimized for mobile */}
-            <main className="flex-1 overflow-y-auto py-4 md:p-6 pb-32 md:pb-6 mt-16 md:mt-0 bg-background">
+            <main className="flex-1 overflow-y-auto md:px-6 pb-32 md:pb-6  bg-background">
               {children}
             </main>
             

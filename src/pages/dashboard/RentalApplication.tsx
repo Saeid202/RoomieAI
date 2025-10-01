@@ -512,10 +512,10 @@ export default function RentalApplicationPage() {
         return (
           <div className="space-y-8">
             <div>
-              <h2 className="text-xl font-semibold mb-4">Application Information</h2>
+              <h2 className="text-xl font-semibold mb-4">Applicant Information</h2>
               
               {/* Personal Information */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <div className="grid grid-cols-2 md:grid-cols-2 gap-4 mb-6">
                 <div>
                   <Label htmlFor="fullName">Full Name *</Label>
                   <Input
@@ -570,8 +570,8 @@ export default function RentalApplicationPage() {
                 </div>
 
                 <div>
-                  <Label htmlFor="moveInDate">Preferred Move-in Date</Label>
-                  <Input
+                  <Label htmlFor="moveInDate" className="!line-clamp-1 !leading-6">Preferred Move-in Date</Label>
+                  <Calendar
                     id="moveInDate"
                     type="date"
                     value={applicationData.moveInDate}
@@ -583,7 +583,7 @@ export default function RentalApplicationPage() {
               {/* Emergency Contact */}
               <div className="border-t pt-6 mb-6">
                 <h3 className="text-lg font-medium mb-4">Emergency Contact</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   <div>
                     <Label htmlFor="emergencyContactName">Contact Name</Label>
                     <Input
@@ -626,7 +626,7 @@ export default function RentalApplicationPage() {
                 Accepted formats: PDF, JPG, PNG, DOC, DOCX
               </p>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-2 md:grid-cols-2 gap-6">
                 {/* Reference Letters */}
                 <div className="space-y-3">
                   <Label>Reference Letters</Label>
@@ -636,7 +636,7 @@ export default function RentalApplicationPage() {
                       multiple
                       accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
                       onChange={(e) => handleFileUpload("referenceLetters", e.target.files)}
-                      className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
+                      className="w-full text-xs md:text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-[10px] md:file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
                     />
                     <p className="text-xs text-muted-foreground mt-2">
                       Letters from previous landlords, employers, or character references
@@ -669,7 +669,7 @@ export default function RentalApplicationPage() {
                       multiple
                       accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
                       onChange={(e) => handleFileUpload("employmentLetter", e.target.files)}
-                      className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
+                      className="w-full text-xs md:text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-[10px] md:file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
                     />
                     <p className="text-xs text-muted-foreground mt-2">
                       Letter from employer confirming employment and salary
@@ -702,7 +702,7 @@ export default function RentalApplicationPage() {
                       multiple
                       accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
                       onChange={(e) => handleFileUpload("creditScoreLetter", e.target.files)}
-                      className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
+                      className="w-full text-xs md:text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-[10px] md:file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
                     />
                     <p className="text-xs text-muted-foreground mt-2">
                       Credit report from authorized credit bureau
@@ -728,16 +728,16 @@ export default function RentalApplicationPage() {
 
                 {/* Additional Documents */}
                 <div className="space-y-3">
-                  <Label>Additional Documents</Label>
+                  <Label>Additional</Label>
                   <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
                     <input
                       type="file"
                       multiple
                       accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
                       onChange={(e) => handleFileUpload("additionalDocuments", e.target.files)}
-                      className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
+                      className="w-full text-xs md:text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-[10px] md:file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
                     />
-                    <p className="text-xs text-muted-foreground mt-2">
+                    <p className="text-xs text-muted-foreground mt-2 line-clamp-3">
                       Bank statements, pay stubs, or other supporting documents
                     </p>
                   </div>
@@ -1257,7 +1257,7 @@ export default function RentalApplicationPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="container min-h-screen bg-background">
       <div>
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
