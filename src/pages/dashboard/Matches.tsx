@@ -172,7 +172,7 @@ export default function MatchesPage() {
 
   useEffect(() => {
     handleTabChange("about-me");
-  }, [handleTabChange])
+  }, [handleTabChange]);
 
   useEffect(() => {
     const loadMatches = async () => {
@@ -319,80 +319,24 @@ export default function MatchesPage() {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">Your Roommate Matches</h1>
-            <p className="text-muted-foreground mt-2">
-              Based on your ideal roommate preferences and importance settings
-            </p>
+            <h1 className="text-lg md:text-3xl font-bold">Your Roommate Matches</h1>
           </div>
-          <Button variant="outline">
-            <Heart className="w-4 h-4 mr-2" />
-            Saved Matches
+          <Button
+            variant="outline"
+            className="text-xs md:text-base gap-1 md:gap-2"
+          >
+              <Heart className="size-1 md:size-4 md:mr-2" />
+              Saved Matches
+            
           </Button>
         </div>
 
-        {/* Statistics Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-          <Card>
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold">{stats.total}</div>
-              <div className="text-sm text-muted-foreground">Total Matches</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-green-600">
-                {stats.excellent}
-              </div>
-              <div className="text-sm text-muted-foreground">
-                Excellent (85%+)
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-blue-600">
-                {stats.great}
-              </div>
-              <div className="text-sm text-muted-foreground">
-                Great (70-84%)
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-yellow-600">
-                {stats.good}
-              </div>
-              <div className="text-sm text-muted-foreground">Good (55-69%)</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold">{stats.averageScore}%</div>
-              <div className="text-sm text-muted-foreground">Avg. Score</div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Importance-based matching info */}
-        {matches.length > 0 && (
-          <Alert>
-            <Sparkles className="h-4 w-4" />
-            <AlertDescription>
-              Matches are ranked using your importance weights:{" "}
-              <strong>Must Have</strong> preferences act as filters,{" "}
-              <strong>Important</strong> preferences are weighted at 70%, and
-              <strong>Not Important</strong> preferences at 30%. Higher
-              compatibility scores indicate better alignment with your most
-              important preferences.
-            </AlertDescription>
-          </Alert>
-        )}
+        
 
         {/* Mobile-optimized profile section */}
-        <div className="w-full">
+        <div className="w-full !mt-0">
           <div className="bg-background/95 backdrop-blur-sm">
-            <div className="px-4 py-6 md:p-6">
+            <div className="px-4 py-2 md:!p-6">
               <TabsSection
                 activeTab={activeTab}
                 expandedSections={expandedSections}

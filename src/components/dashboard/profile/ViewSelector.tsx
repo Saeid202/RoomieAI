@@ -17,14 +17,9 @@ export function useViewSelector({
 }: ViewSelectorProps) {
   const location = useLocation();
   const path = location.pathname;
-
-  // Check if we're on a specific profile route
-  const isCoOwnerPage = path.includes('/profile/co-owner');
   
   // Route-based view takes precedence over forcedView and userPreference
-  let displayView = isCoOwnerPage 
-    ? 'co-owner'
-    : forcedView || userPreference;
+  let displayView = forcedView || userPreference;
   
   // Fallback to a default view if none is set
   if (!displayView && path.includes('/profile')) {
@@ -34,13 +29,11 @@ export function useViewSelector({
 
   // Add debugging logs
   console.log("ViewSelector - path:", path);
-  console.log("ViewSelector - isCoOwnerPage:", isCoOwnerPage);
   console.log("ViewSelector - forcedView:", forcedView);
   console.log("ViewSelector - userPreference:", userPreference);
   console.log("ViewSelector - displayView:", displayView);
 
   return {
     displayView,
-    isCoOwnerPage
   };
 }

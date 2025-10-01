@@ -4,8 +4,7 @@ const sb: any = supabase;
 import { ProfileFormValues } from "@/types/profile";
 import { ProfileTableRow, TableName } from "@/components/dashboard/types/profileTypes";
 import { UserPreference } from "@/components/dashboard/types";
-import { mapFormValuesToDbRow, mapCoOwnerFormToDbRow } from "@/utils/profileDataMappers";
-import { CoOwnerFormValues } from "@/components/dashboard/co-owner/types";
+import { mapFormValuesToDbRow } from "@/utils/profileDataMappers";
 
 /**
  * Determine which table to use based on user preference
@@ -41,7 +40,7 @@ export async function fetchProfileData(userId: string, tableName: TableName) {
  * Save profile data to the database
  */
 export async function saveProfileData(
-  formData: ProfileFormValues | CoOwnerFormValues, 
+  formData: ProfileFormValues, 
   userId: string, 
   tableName: TableName
 ) {
@@ -49,13 +48,7 @@ export async function saveProfileData(
   console.log("User ID:", userId);
   
   // Convert form data to database format based on table type
-  let dbData: ProfileTableRow;
-  
-  if (tableName === 'co_owner') {
-    dbData = mapCoOwnerFormToDbRow(formData as CoOwnerFormValues, userId);
-  } else {
-    dbData = mapFormValuesToDbRow(formData as ProfileFormValues, userId);
-  }
+  let dbData: ProfileTableRow = mapFormValuesToDbRow(formData , userId);
 
   // First check if a record already exists with the user_id
   const { data: existingData, error: fetchError } = await sb

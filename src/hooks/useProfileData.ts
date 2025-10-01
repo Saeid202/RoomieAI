@@ -5,8 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ProfileFormValues } from "@/types/profile";
 import { UserPreference } from "@/components/dashboard/types";
 import { fetchProfileData, getTableNameFromPreference, saveProfileData } from "@/services/profileService";
-import { TableName } from "@/components/dashboard/types/profileTypes";
-import { mapDbRowToFormValues, mapCoOwnerDbRowToFormValues } from "@/utils/profileDataMappers";
+import { mapDbRowToFormValues } from "@/utils/profileDataMappers";
 
 export function useProfileData() {
   const { user } = useAuth();
@@ -52,15 +51,8 @@ export function useProfileData() {
 
         if (data) {
           console.log("Fetched data:", data);
-          let formattedData;
           
-          if (validPreference === 'co-owner') {
-            formattedData = mapCoOwnerDbRowToFormValues(data);
-          } else {
-            formattedData = mapDbRowToFormValues(data);
-          }
-          
-          setProfileData(formattedData);
+          setProfileData(mapDbRowToFormValues(data));
         }
       } catch (error: any) {
         console.error("Profile loading error:", error);

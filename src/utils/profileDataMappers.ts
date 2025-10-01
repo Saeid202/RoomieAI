@@ -3,7 +3,6 @@ import { ProfileFormValues } from "@/types/profile";
 
 // Re-export the mapper functions
 export { mapDbRowToFormValues, mapFormValuesToDbRow } from "./mappers/profileMappers";
-export { mapCoOwnerDbRowToFormValues, mapCoOwnerFormToDbRow } from "./mappers/coOwnerMappers";
 
 export function createProfileSummary(profileData: Partial<ProfileFormValues>): string {
   if (!profileData) return "No profile data available";

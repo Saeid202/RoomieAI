@@ -4,7 +4,6 @@ import { UserPreference } from "@/components/dashboard/types";
 import { ProfileLoadingState } from "./ProfileLoadingState";
 import { EmptyProfileState } from "./EmptyProfileState";
 import { useViewSelector } from "./ViewSelector";
-import { CoOwnerProfileView } from "./CoOwnerProfileView";
 
 interface ProfileContentRendererProps {
   loading: boolean;
@@ -37,11 +36,6 @@ export function ProfileContentRenderer({
     return <ProfileLoadingState />;
   }
 
-  // Handle co-owner profile view
-  if (displayView === 'co-owner' || forcedView === 'co-owner') {
-    console.log("ProfileContentRenderer - Rendering Co-Owner view");
-    return <CoOwnerProfileView />;
-  }
   
   // Fallback to empty state if somehow no valid view was determined
   console.log("ProfileContentRenderer - No valid view found, showing empty state");
