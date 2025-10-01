@@ -55,13 +55,16 @@ export default function RentalOptionsPage() {
 
   const getPropertyTypeDisplay = (type: string) => {
     const typeMap: { [key: string]: string } = {
-      'sharing-room': 'Sharing Room',
-      'sharing-apartment': 'Sharing Apartment (Cando)',
-      'sharing-house': 'Sharing House',
-      'single-one-bed': 'Single One Bed (Cando)',
-      'studio': 'Studio',
-      'two-bed': 'Two Bed (Cando)',
-      'entire-house': 'Entire House or Cando'
+      'studio': 'Studio Condominium',
+      'one-bed-room-share-cando': 'Shared One-Bedroom Condominium',
+      'two-bed-room-share-cando': 'Shared Two-Bedroom Condominium',
+      'entire-one-bed-room-cando': 'Entire One-Bedroom Condominium',
+      'entire-two-bed-room-cando': 'Entire Two-Bedroom Condominium',
+      'room-from-house': 'Private Room in a House',
+      'entire-house': 'Entire House',
+      'entire-basement': 'Entire Basement Unit',
+      'room-from-basement': 'Private Room in a Basement',
+      'shared-room': 'Shared Room (two occupants per room)'
     };
     return typeMap[type] || type;
   };

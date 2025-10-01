@@ -22,12 +22,16 @@ export default function PlanAheadMatchesList({ matches }: Props) {
 
   const getPropertyTypeDisplay = (type: string) => {
     const types: Record<string, string> = {
-      'apartment': 'Apartment',
-      'house': 'House',
-      'condo': 'Condo',
-      'studio': 'Studio',
-      'shared-room': 'Shared Room',
-      'private-room': 'Private Room',
+      'studio': 'Studio Condominium',
+      'one-bed-room-share-cando': 'Shared One-Bedroom Condominium',
+      'two-bed-room-share-cando': 'Shared Two-Bedroom Condominium',
+      'entire-one-bed-room-cando': 'Entire One-Bedroom Condominium',
+      'entire-two-bed-room-cando': 'Entire Two-Bedroom Condominium',
+      'room-from-house': 'Private Room in a House',
+      'entire-house': 'Entire House',
+      'entire-basement': 'Entire Basement Unit',
+      'room-from-basement': 'Private Room in a Basement',
+      'shared-room': 'Shared Room (two occupants per room)',
       'no-preference': 'No Preference'
     };
     return types[type] || type;

@@ -12,7 +12,7 @@ export function RentOpportunities() {
           <h1 className="text-3xl font-bold tracking-tight">Rental Opportunities</h1>
           <p className="text-muted-foreground mt-1">Find replacement opportunities for rentals.</p>
         </div>
-        <Button className="flex items-center gap-2 bg-roomie-purple hover:bg-roomie-dark" asChild>
+        <Button className="flex items-center gap-2 bg-primary hover:bg-primary/90" asChild>
           <Link to="/dashboard/add-rental-listing">
             <Plus size={18} />
             Create Listing
