@@ -151,61 +151,7 @@ export default function PropertiesPage() {
             </CardContent>
           </Card>
 
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <MapPin className="h-5 w-5" />
-                  Property Management
-                </CardTitle>
-                <CardDescription>Tools to manage your properties</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-6">
-                  <h4 className="font-medium mb-2">Coming Soon</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Advanced property management features will be available here.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <DollarSign className="h-5 w-5" />
-                  Pricing Tools
-                </CardTitle>
-                <CardDescription>Optimize your rental pricing</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-6">
-                  <h4 className="font-medium mb-2">Coming Soon</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Market analysis and pricing recommendations will be available here.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Building className="h-5 w-5" />
-                  Maintenance
-                </CardTitle>
-                <CardDescription>Track property maintenance</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-6">
-                  <h4 className="font-medium mb-2">Coming Soon</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Maintenance tracking and scheduling tools will be available here.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          {/* Removed placeholder sections (Property Management, Pricing Tools, Maintenance) per request */}
         </>
       )}
     </div>
