@@ -246,12 +246,16 @@ export default function PlanAheadForm() {
                 required
               >
                 <option value="">Select property type</option>
-                <option value="apartment">Apartment</option>
-                <option value="house">House</option>
-                <option value="condo">Condo</option>
-                <option value="studio">Studio</option>
-                <option value="shared-room">Shared Room</option>
-                <option value="private-room">Private Room</option>
+                <option value="studio">Studio Condominium</option>
+                <option value="one-bed-room-share-cando">Shared One-Bedroom Condominium</option>
+                <option value="two-bed-room-share-cando">Shared Two-Bedroom Condominium</option>
+                <option value="entire-one-bed-room-cando">Entire One-Bedroom Condominium</option>
+                <option value="entire-two-bed-room-cando">Entire Two-Bedroom Condominium</option>
+                <option value="room-from-house">Private Room in a House</option>
+                <option value="entire-house">Entire House</option>
+                <option value="entire-basement">Entire Basement Unit</option>
+                <option value="room-from-basement">Private Room in a Basement</option>
+                <option value="shared-room">Shared Room (two occupants per room)</option>
                 <option value="no-preference">No preference</option>
               </select>
         </div>

@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Building, MapPin, DollarSign } from "lucide-react";
+import { Plus, Building, MapPin, DollarSign, Pencil, Eye, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { getPropertiesByOwnerId, Property } from "@/services/propertyService";
+import { getPropertiesByOwnerId, Property, deleteProperty } from "@/services/propertyService";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
 export default function PropertiesPage() {
@@ -31,6 +32,19 @@ export default function PropertiesPage() {
     load();
     return () => { mounted = false; };
   }, []);
+  
+  const handleDelete = async (id: string) => {
+    try {
+      const confirmed = window.confirm("Delete this listing? This cannot be undone.");
+      if (!confirmed) return;
+      await deleteProperty(id);
+      setProperties((prev) => prev.filter(p => p.id !== id));
+      toast.success("Listing deleted");
+    } catch (e: any) {
+      console.error("Delete failed", e);
+      toast.error(e?.message || "Failed to delete listing");
+    }
+  };
   
   return (
     <div className="space-y-6">
@@ -94,7 +108,17 @@ export default function PropertiesPage() {
             <CardContent>
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {properties.map((p) => (
-                  <Card key={p.id} className="border">
+                  <Card key={p.id} className="border overflow-hidden">
+                    {/* Image preview */}
+                    <div className="relative">
+                      <img
+                        src={(p.images && p.images[0]) ? p.images[0] : "/placeholder.svg"}
+                        alt={`${p.listing_title} photo`}
+                        className="h-40 w-full object-cover"
+                        onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/placeholder.svg"; }}
+                        loading="lazy"
+                      />
+                    </div>
                     <CardHeader>
                       <CardTitle className="text-base line-clamp-1">{p.listing_title}</CardTitle>
                       <CardDescription className="line-clamp-2">{p.description}</CardDescription>
@@ -104,7 +128,32 @@ export default function PropertiesPage() {
                         <div className="flex items-center gap-2"><MapPin className="h-4 w-4" /><span>{p.city}, {p.state}</span></div>
                         <div className="flex items-center gap-2"><DollarSign className="h-4 w-4" /><span>{p.monthly_rent}/mo</span></div>
                       </div>
-                      <Button className="mt-4 w-full" variant="outline" onClick={() => navigate("/dashboard/landlord/add-property")}>Edit</Button>
+                      <div className="mt-4 grid grid-cols-3 gap-2">
+                        <Button
+                          variant="outline"
+                          className="flex items-center justify-center gap-1"
+                          onClick={() => navigate(`/dashboard/landlord/add-property?prefill=${p.id}`)}
+                          title="Edit listing"
+                        >
+                          <Pencil className="h-4 w-4" /> Edit
+                        </Button>
+                        <Button
+                          variant="outline"
+                          className="flex items-center justify-center gap-1"
+                          onClick={() => navigate(`/dashboard/rental-options/${p.id}`)}
+                          title="View listing"
+                        >
+                          <Eye className="h-4 w-4" /> View
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          className="flex items-center justify-center gap-1"
+                          onClick={() => handleDelete(p.id)}
+                          title="Delete listing"
+                        >
+                          <Trash2 className="h-4 w-4" /> Delete
+                        </Button>
+                      </div>
                     </CardContent>
                   </Card>
                 ))}
@@ -112,61 +161,7 @@ export default function PropertiesPage() {
             </CardContent>
           </Card>
 
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <MapPin className="h-5 w-5" />
-                  Property Management
-                </CardTitle>
-                <CardDescription>Tools to manage your properties</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-6">
-                  <h4 className="font-medium mb-2">Coming Soon</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Advanced property management features will be available here.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <DollarSign className="h-5 w-5" />
-                  Pricing Tools
-                </CardTitle>
-                <CardDescription>Optimize your rental pricing</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-6">
-                  <h4 className="font-medium mb-2">Coming Soon</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Market analysis and pricing recommendations will be available here.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Building className="h-5 w-5" />
-                  Maintenance
-                </CardTitle>
-                <CardDescription>Track property maintenance</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-6">
-                  <h4 className="font-medium mb-2">Coming Soon</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Maintenance tracking and scheduling tools will be available here.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          {/* Removed placeholder sections (Property Management, Pricing Tools, Maintenance) per request */}
         </>
       )}
     </div>

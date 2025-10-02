@@ -4,8 +4,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { fetchPropertyById, Property } from "@/services/propertyService";
+import { fetchPropertyById, Property, updateProperty } from "@/services/propertyService";
+import { useRole } from "@/contexts/RoleContext";
 import { Calendar, DollarSign, MapPin } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
 
 export default function PropertyDetailsPage() {
   const { id } = useParams<{ id: string }>();
@@ -13,6 +18,30 @@ export default function PropertyDetailsPage() {
   const [property, setProperty] = useState<Property | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { role } = useRole();
+  const { user } = useAuth();
+
+  const isOwner = !!(role === 'landlord' && user && property && user.id === property.user_id);
+
+  // Inline edit states
+  const [editingTitle, setEditingTitle] = useState(false);
+  const [titleDraft, setTitleDraft] = useState("");
+  const [editingDesc, setEditingDesc] = useState(false);
+  const [descDraft, setDescDraft] = useState("");
+  const [editingPrice, setEditingPrice] = useState(false);
+  const [priceDraft, setPriceDraft] = useState<string>("");
+  const [securityDraft, setSecurityDraft] = useState<string>("");
+  const [leaseDraft, setLeaseDraft] = useState<string>("");
+  const [availableDraft, setAvailableDraft] = useState<string>("");
+  const [saving, setSaving] = useState(false);
+
+  const [editingFacts, setEditingFacts] = useState(false);
+  const [bedroomsDraft, setBedroomsDraft] = useState<string>("");
+  const [bathroomsDraft, setBathroomsDraft] = useState<string>("");
+  const [sqftDraft, setSqftDraft] = useState<string>("");
+  const [parkingDraft, setParkingDraft] = useState<string>("");
+  const [petPolicyDraft, setPetPolicyDraft] = useState<string>("");
+  const [furnishedDraft, setFurnishedDraft] = useState<string>("");
 
   useEffect(() => {
     let mounted = true;
@@ -31,6 +60,64 @@ export default function PropertyDetailsPage() {
     load();
     return () => { mounted = false; };
   }, [id]);
+
+  useEffect(() => {
+    if (property) {
+      setTitleDraft(property.listing_title || "");
+      setDescDraft(property.description || "");
+      setPriceDraft(String(property.monthly_rent ?? ""));
+      setSecurityDraft(property.security_deposit != null ? String(property.security_deposit) : "");
+      setLeaseDraft(property.lease_duration || "");
+      setAvailableDraft(property.available_date || "");
+
+      setBedroomsDraft(property.bedrooms != null ? String(property.bedrooms) : "");
+      setBathroomsDraft(property.bathrooms != null ? String(property.bathrooms) : "");
+      setSqftDraft(property.square_footage != null ? String(property.square_footage) : "");
+      setParkingDraft(property.parking || "");
+      setPetPolicyDraft(property.pet_policy || "");
+      setFurnishedDraft(property.furnished ? 'Yes' : 'No');
+    }
+  }, [property]);
+
+  const savePartial = async (updates: Partial<Property>) => {
+    if (!property) return;
+    try {
+      setSaving(true);
+      const clean: any = { ...updates };
+      if (clean.monthly_rent != null) {
+        clean.monthly_rent = parseFloat(String(clean.monthly_rent).replace(/[^0-9.]/g, ''));
+        if (isNaN(clean.monthly_rent)) delete clean.monthly_rent;
+      }
+      if (clean.security_deposit != null) {
+        clean.security_deposit = parseFloat(String(clean.security_deposit).replace(/[^0-9.]/g, ''));
+        if (isNaN(clean.security_deposit)) delete clean.security_deposit;
+      }
+      if (clean.bedrooms != null) {
+        clean.bedrooms = parseInt(String(clean.bedrooms).replace(/[^0-9]/g, ''));
+        if (isNaN(clean.bedrooms)) delete clean.bedrooms;
+      }
+      if (clean.bathrooms != null) {
+        clean.bathrooms = parseInt(String(clean.bathrooms).replace(/[^0-9]/g, ''));
+        if (isNaN(clean.bathrooms)) delete clean.bathrooms;
+      }
+      if (clean.square_footage != null) {
+        clean.square_footage = parseInt(String(clean.square_footage).replace(/[^0-9]/g, ''));
+        if (isNaN(clean.square_footage)) delete clean.square_footage;
+      }
+      if (clean.furnished != null && typeof clean.furnished === 'string') {
+        const v = String(clean.furnished).toLowerCase();
+        clean.furnished = ['yes','true','1'].includes(v);
+      }
+      const updated = await updateProperty(property.id, clean);
+      setProperty(updated as Property);
+      toast.success("Changes saved");
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e?.message || 'Failed to save changes');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   // SEO: title, meta description, canonical
   useEffect(() => {
@@ -139,7 +226,27 @@ export default function PropertyDetailsPage() {
   return (
     <>
       <header className="mb-6">
-        <h1 className="text-3xl font-bold tracking-tight">{property.listing_title}</h1>
+        <div className="flex items-center gap-3">
+          {!isOwner || !editingTitle ? (
+            <h1 className="text-3xl font-bold tracking-tight">{property.listing_title}</h1>
+          ) : (
+            <Input
+              value={titleDraft}
+              onChange={(e) => setTitleDraft(e.target.value)}
+              className="max-w-lg text-3xl font-bold tracking-tight"
+            />
+          )}
+          {isOwner && (
+            !editingTitle ? (
+              <Button variant="outline" size="sm" onClick={() => setEditingTitle(true)}>Edit</Button>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Button size="sm" disabled={saving} onClick={async () => { await savePartial({ listing_title: titleDraft || property.listing_title }); setEditingTitle(false);} }>Save</Button>
+                <Button variant="outline" size="sm" onClick={() => { setTitleDraft(property.listing_title || ""); setEditingTitle(false); }}>Cancel</Button>
+              </div>
+            )
+          )}
+        </div>
         <p className="text-muted-foreground mt-1 flex items-center gap-1">
           <MapPin className="h-4 w-4" /> {property.city}, {property.state}
         </p>
@@ -168,16 +275,56 @@ export default function PropertyDetailsPage() {
             </div>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1 font-semibold text-2xl text-primary">
-                  <DollarSign className="h-6 w-6" />
-                  <span>{property.monthly_rent}</span>
-                  <span className="text-sm font-normal text-muted-foreground">/month</span>
+                <div className="flex items-center gap-2">
+                  {!isOwner || !editingPrice ? (
+                    <div className="flex items-center gap-1 font-semibold text-2xl text-primary">
+                      <DollarSign className="h-6 w-6" />
+                      <span>{property.monthly_rent}</span>
+                      <span className="text-sm font-normal text-muted-foreground">/month</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <Input value={priceDraft} onChange={(e) => setPriceDraft(e.target.value)} placeholder="Monthly rent" className="w-32" />
+                      <Input value={securityDraft} onChange={(e) => setSecurityDraft(e.target.value)} placeholder="Security" className="w-28" />
+                      <Input value={leaseDraft} onChange={(e) => setLeaseDraft(e.target.value)} placeholder="Lease duration" className="w-36" />
+                    </div>
+                  )}
                 </div>
-                {availableDate && (
-                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                    <Calendar className="h-4 w-4" /> Available {availableDate}
-                  </div>
-                )}
+                <div className="flex items-center gap-2">
+                  {!isOwner || !editingPrice ? (
+                    availableDate && (
+                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                        <Calendar className="h-4 w-4" /> Available {availableDate}
+                      </div>
+                    )
+                  ) : (
+                    <Input type="date" value={availableDraft} onChange={(e) => setAvailableDraft(e.target.value)} className="w-44" />
+                  )}
+                  {isOwner && (
+                    !editingPrice ? (
+                      <Button variant="outline" size="sm" onClick={() => setEditingPrice(true)}>Edit</Button>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <Button size="sm" disabled={saving} onClick={async () => {
+                          await savePartial({
+                            monthly_rent: priceDraft,
+                            security_deposit: securityDraft || null as any,
+                            lease_duration: leaseDraft || null as any,
+                            available_date: availableDraft || null as any,
+                          });
+                          setEditingPrice(false);
+                        }}>Save</Button>
+                        <Button variant="outline" size="sm" onClick={() => {
+                          setPriceDraft(String(property.monthly_rent ?? ""));
+                          setSecurityDraft(property.security_deposit != null ? String(property.security_deposit) : "");
+                          setLeaseDraft(property.lease_duration || "");
+                          setAvailableDraft(property.available_date || "");
+                          setEditingPrice(false);
+                        }}>Cancel</Button>
+                      </div>
+                    )
+                  )}
+                </div>
               </div>
 
               <Separator className="my-6" />
@@ -205,18 +352,107 @@ export default function PropertyDetailsPage() {
               )}
 
               <article className="prose max-w-none">
-                <h2 className="text-xl font-semibold">Description</h2>
-                <p className="mt-2 text-muted-foreground whitespace-pre-line">{property.description}</p>
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xl font-semibold">Description</h2>
+                  {isOwner && (
+                    !editingDesc ? (
+                      <Button variant="outline" size="sm" onClick={() => setEditingDesc(true)}>Edit</Button>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <Button size="sm" disabled={saving} onClick={async () => { await savePartial({ description: descDraft }); setEditingDesc(false);} }>Save</Button>
+                        <Button variant="outline" size="sm" onClick={() => { setDescDraft(property.description || ""); setEditingDesc(false); }}>Cancel</Button>
+                      </div>
+                    )
+                  )}
+                </div>
+                {!isOwner || !editingDesc ? (
+                  <p className="mt-2 text-muted-foreground whitespace-pre-line">{property.description}</p>
+                ) : (
+                  <Textarea className="mt-2" value={descDraft} onChange={(e) => setDescDraft(e.target.value)} />
+                )}
               </article>
 
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-6 text-sm">
-                <Card className="p-4"><div className="text-muted-foreground">Bedrooms</div><div className="font-medium">{property.bedrooms ?? '—'}</div></Card>
-                <Card className="p-4"><div className="text-muted-foreground">Bathrooms</div><div className="font-medium">{property.bathrooms ?? '—'}</div></Card>
-                <Card className="p-4"><div className="text-muted-foreground">Square Footage</div><div className="font-medium">{property.square_footage ?? '—'}</div></Card>
-                <Card className="p-4"><div className="text-muted-foreground">Parking</div><div className="font-medium">{property.parking || '—'}</div></Card>
-                <Card className="p-4"><div className="text-muted-foreground">Pet Policy</div><div className="font-medium">{property.pet_policy || '—'}</div></Card>
-                <Card className="p-4"><div className="text-muted-foreground">Furnished</div><div className="font-medium">{property.furnished ? 'Yes' : 'No'}</div></Card>
+                <Card className="p-4">
+                  <div className="text-muted-foreground">Bedrooms</div>
+                  {!isOwner || !editingFacts ? (
+                    <div className="font-medium">{property.bedrooms ?? '—'}</div>
+                  ) : (
+                    <Input value={bedroomsDraft} onChange={(e) => setBedroomsDraft(e.target.value)} placeholder="e.g., 2" />
+                  )}
+                </Card>
+                <Card className="p-4">
+                  <div className="text-muted-foreground">Bathrooms</div>
+                  {!isOwner || !editingFacts ? (
+                    <div className="font-medium">{property.bathrooms ?? '—'}</div>
+                  ) : (
+                    <Input value={bathroomsDraft} onChange={(e) => setBathroomsDraft(e.target.value)} placeholder="e.g., 1" />
+                  )}
+                </Card>
+                <Card className="p-4">
+                  <div className="text-muted-foreground">Square Footage</div>
+                  {!isOwner || !editingFacts ? (
+                    <div className="font-medium">{property.square_footage ?? '—'}</div>
+                  ) : (
+                    <Input value={sqftDraft} onChange={(e) => setSqftDraft(e.target.value)} placeholder="e.g., 850" />
+                  )}
+                </Card>
+                <Card className="p-4">
+                  <div className="text-muted-foreground">Parking</div>
+                  {!isOwner || !editingFacts ? (
+                    <div className="font-medium">{property.parking || '—'}</div>
+                  ) : (
+                    <Input value={parkingDraft} onChange={(e) => setParkingDraft(e.target.value)} placeholder="e.g., driveway" />
+                  )}
+                </Card>
+                <Card className="p-4">
+                  <div className="text-muted-foreground">Pet Policy</div>
+                  {!isOwner || !editingFacts ? (
+                    <div className="font-medium">{property.pet_policy || '—'}</div>
+                  ) : (
+                    <Input value={petPolicyDraft} onChange={(e) => setPetPolicyDraft(e.target.value)} placeholder="e.g., cats-dogs" />
+                  )}
+                </Card>
+                <Card className="p-4">
+                  <div className="text-muted-foreground">Furnished</div>
+                  {!isOwner || !editingFacts ? (
+                    <div className="font-medium">{property.furnished ? 'Yes' : 'No'}</div>
+                  ) : (
+                    <Input value={furnishedDraft} onChange={(e) => setFurnishedDraft(e.target.value)} placeholder="Yes/No" />
+                  )}
+                </Card>
               </div>
+
+              {isOwner && (
+                <div className="mt-3 flex justify-end gap-2">
+                  {!editingFacts ? (
+                    <Button variant="outline" size="sm" onClick={() => setEditingFacts(true)}>Edit Key Facts</Button>
+                  ) : (
+                    <>
+                      <Button size="sm" disabled={saving} onClick={async () => {
+                        await savePartial({
+                          bedrooms: bedroomsDraft,
+                          bathrooms: bathroomsDraft,
+                          square_footage: sqftDraft,
+                          parking: parkingDraft || null as any,
+                          pet_policy: petPolicyDraft || null as any,
+                          furnished: furnishedDraft,
+                        });
+                        setEditingFacts(false);
+                      }}>Save</Button>
+                      <Button variant="outline" size="sm" onClick={() => {
+                        setBedroomsDraft(property.bedrooms != null ? String(property.bedrooms) : "");
+                        setBathroomsDraft(property.bathrooms != null ? String(property.bathrooms) : "");
+                        setSqftDraft(property.square_footage != null ? String(property.square_footage) : "");
+                        setParkingDraft(property.parking || "");
+                        setPetPolicyDraft(property.pet_policy || "");
+                        setFurnishedDraft(property.furnished ? 'Yes' : 'No');
+                        setEditingFacts(false);
+                      }}>Cancel</Button>
+                    </>
+                  )}
+                </div>
+              )}
 
               {Array.isArray(property.utilities_included) && property.utilities_included.length > 0 && (
                 <div className="mt-6">
@@ -261,10 +497,14 @@ export default function PropertyDetailsPage() {
           </Card>
 
           <div className="space-y-2">
-            <Button variant="default" className="w-full" onClick={() => navigate(`/dashboard/rental-application/${id}`)}>
-              Apply to Rent
+            {role !== 'landlord' && (
+              <Button variant="default" className="w-full" onClick={() => navigate(`/dashboard/rental-application/${id}`)}>
+                Apply to Rent
+              </Button>
+            )}
+            <Button variant="outline" className="w-full" onClick={() => navigate(-1)}>
+              {role === 'landlord' ? 'Back to properties' : 'Back to results'}
             </Button>
-            <Button variant="outline" className="w-full" onClick={() => navigate(-1)}>Back to results</Button>
           </div>
         </aside>
       </main>

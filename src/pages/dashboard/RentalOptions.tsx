@@ -102,10 +102,13 @@ export default function RentalOptionsPage() {
       <Card>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4 relative">
-            <div className="border-2 border-gray-300  rounded-full size-7 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-            <button onClick={applyFilters} className="!size-full block min-w-full min-h-full flex items-center justify-center">
-              <Search className="size-4 text-primary"/>
-            </button>
+            <div className="border-2 border-gray-300  rounded-full size-7 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 md:hidden">
+              <button
+                onClick={applyFilters}
+                className="!size-full min-w-full min-h-full flex items-center justify-center"
+              >
+                <Search className="size-4 text-primary" />
+              </button>
             </div>
             <Input
               placeholder="Location (city)"
@@ -142,7 +145,7 @@ export default function RentalOptionsPage() {
                 <SelectItem value="4">4+ Bedrooms</SelectItem>
               </SelectContent>
             </Select>
-            {/* <Button onClick={applyFilters}>Search</Button> */}
+            <Button onClick={applyFilters} className="hidden md:block">Search</Button>
           </div>
         </CardContent>
       </Card>

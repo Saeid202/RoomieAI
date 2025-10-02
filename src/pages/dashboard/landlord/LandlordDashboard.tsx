@@ -57,52 +57,7 @@ export default function LandlordDashboardPage() {
         </Card>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-            <CardDescription>Manage your properties efficiently</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-center py-8">
-              <h3 className="text-lg font-medium mb-2">Coming Soon</h3>
-              <p className="text-muted-foreground">
-                Property management tools and quick actions will be available here.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
-            <CardDescription>Latest updates from your properties</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-center py-8">
-              <h3 className="text-lg font-medium mb-2">No Activity</h3>
-              <p className="text-muted-foreground">
-                Recent activity from your properties will appear here.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader>
-            <CardTitle>Performance Insights</CardTitle>
-            <CardDescription>Analytics and performance metrics</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-center py-8">
-              <h3 className="text-lg font-medium mb-2">Coming Soon</h3>
-              <p className="text-muted-foreground">
-                Detailed analytics and insights will be available here.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Removed placeholder sections: Property Management, Pricing Tools, Maintenance, etc. */}
     </div>
   );
 }

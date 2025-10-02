@@ -106,43 +106,103 @@ export default function FindPropertyPage() {
                 <div className="grid grid-cols-2 gap-2">
                   <div className="flex items-center space-x-2">
                     <Checkbox
-                      id="apartment" 
-                      checked={propertyTypes.includes("apartment")}
+                      id="one-bed-room-share-cando" 
+                      checked={propertyTypes.includes("one-bed-room-share-cando")}
                       onCheckedChange={(checked) => 
-                        handlePropertyTypeChange("apartment", checked as boolean)
+                        handlePropertyTypeChange("one-bed-room-share-cando", checked as boolean)
                       }
                     />
-                    <Label htmlFor="apartment">Apartment</Label>
+                    <Label htmlFor="one-bed-room-share-cando">Shared One-Bedroom Condominium</Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Checkbox
-                      id="house" 
-                      checked={propertyTypes.includes("house")}
+                      id="two-bed-room-share-cando" 
+                      checked={propertyTypes.includes("two-bed-room-share-cando")}
                       onCheckedChange={(checked) => 
-                        handlePropertyTypeChange("house", checked as boolean)
+                        handlePropertyTypeChange("two-bed-room-share-cando", checked as boolean)
                       }
                     />
-                    <Label htmlFor="house">House</Label>
+                    <Label htmlFor="two-bed-room-share-cando">Shared Two-Bedroom Condominium</Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Checkbox
-                      id="condo" 
-                      checked={propertyTypes.includes("condo")}
+                      id="entire-one-bed-room-cando" 
+                      checked={propertyTypes.includes("entire-one-bed-room-cando")}
                       onCheckedChange={(checked) => 
-                        handlePropertyTypeChange("condo", checked as boolean)
+                        handlePropertyTypeChange("entire-one-bed-room-cando", checked as boolean)
                       }
                     />
-                    <Label htmlFor="condo">Condo</Label>
+                    <Label htmlFor="entire-one-bed-room-cando">Entire One-Bedroom Condominium</Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Checkbox
-                      id="townhouse" 
-                      checked={propertyTypes.includes("townhouse")}
+                      id="entire-two-bed-room-cando" 
+                      checked={propertyTypes.includes("entire-two-bed-room-cando")}
                       onCheckedChange={(checked) => 
-                        handlePropertyTypeChange("townhouse", checked as boolean)
+                        handlePropertyTypeChange("entire-two-bed-room-cando", checked as boolean)
                       }
                     />
-                    <Label htmlFor="townhouse">Townhouse</Label>
+                    <Label htmlFor="entire-two-bed-room-cando">Entire Two-Bedroom Condominium</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="entire-house" 
+                      checked={propertyTypes.includes("entire-house")}
+                      onCheckedChange={(checked) => 
+                        handlePropertyTypeChange("entire-house", checked as boolean)
+                      }
+                    />
+                    <Label htmlFor="entire-house">Entire House</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="room-from-house" 
+                      checked={propertyTypes.includes("room-from-house")}
+                      onCheckedChange={(checked) => 
+                        handlePropertyTypeChange("room-from-house", checked as boolean)
+                      }
+                    />
+                    <Label htmlFor="room-from-house">Private Room in a House</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="entire-basement" 
+                      checked={propertyTypes.includes("entire-basement")}
+                      onCheckedChange={(checked) => 
+                        handlePropertyTypeChange("entire-basement", checked as boolean)
+                      }
+                    />
+                    <Label htmlFor="entire-basement">Entire Basement Unit</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="room-from-basement" 
+                      checked={propertyTypes.includes("room-from-basement")}
+                      onCheckedChange={(checked) => 
+                        handlePropertyTypeChange("room-from-basement", checked as boolean)
+                      }
+                    />
+                    <Label htmlFor="room-from-basement">Private Room in a Basement</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="shared-room" 
+                      checked={propertyTypes.includes("shared-room")}
+                      onCheckedChange={(checked) => 
+                        handlePropertyTypeChange("shared-room", checked as boolean)
+                      }
+                    />
+                    <Label htmlFor="shared-room">Shared Room (two occupants per room)</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="studio" 
+                      checked={propertyTypes.includes("studio")}
+                      onCheckedChange={(checked) => 
+                        handlePropertyTypeChange("studio", checked as boolean)
+                      }
+                    />
+                    <Label htmlFor="studio">Studio Condominium</Label>
                   </div>
                 </div>
               </div>
