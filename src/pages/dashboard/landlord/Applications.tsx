@@ -7,7 +7,6 @@ import { getLandlordApplications, updateApplicationStatus } from "@/services/ren
 import { ApplicationsList } from "@/components/landlord/ApplicationsList";
 import { ApplicationDetailModal } from "@/components/landlord/ApplicationDetailModal";
 import { toast } from "sonner";
-import { messagingService } from "@/services/messagingService";
 import { useNavigate } from "react-router-dom";
 
 export default function ApplicationsPage() {

@@ -32,7 +32,6 @@ import PagesPage from "@/pages/dashboard/admin/Pages";
 import UsersPage from "@/pages/dashboard/admin/Users";
 import SettingsPage from "@/pages/dashboard/Settings";
 import MatchesPage from "@/pages/dashboard/Matches";
-import MessengerPage from "@/pages/dashboard/Messenger";
 import ApplicationsSeekerPage from "@/pages/dashboard/ApplicationsSeeker";
 
 import { useAuth } from "@/hooks/useAuth";
@@ -41,8 +40,20 @@ import { useEffect } from "react";
 function AppRoutes() {
   const { user, loading } = useAuth();
   
+  // Show loading state while checking authentication
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p>Loading...</p>
+        </div>
+      </div>
+    );
+  }
+  
   // If user is authenticated, redirect from root to dashboard
-  if (!loading && user) {
+  if (user) {
     return (
       <Routes>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
@@ -70,15 +81,11 @@ function AppRoutes() {
           <Route path="rent-opportunities" element={<RentOpportunitiesPage />} />
           <Route path="find-property" element={<FindPropertyPage />} />
           <Route path="chats" element={<ChatsPage />} />
-          <Route path="messenger" element={<MessengerPage />} />
-          <Route path="messenger/:conversationId" element={<MessengerPage />} />
           <Route path="rent-savings" element={<RentSavingsPage />} />
           <Route path="legal-assistant" element={<LegalAssistantPage />} />
           <Route path="list-room" element={<ListRoomPage />} />
-
           <Route path="profile" element={<Navigate to="/dashboard/roommate-recommendations" replace />} />
           <Route path="profile/*" element={<Navigate to="/dashboard/roommate-recommendations" replace />} />
-
           <Route path="settings" element={<SettingsPage />} />
           <Route path="admin" element={<AdminHomePage />} />
           <Route path="admin/pages" element={<PagesPage />} />
@@ -100,7 +107,6 @@ function AppRoutes() {
           <Dashboard />
         </ProtectedRoute>
       }>
-        
         <Route path="matches" element={<MatchesPage />} />
         <Route path="roommate-recommendations" element={<RoommateRecommendationsPage />} />
         <Route path="rental-options" element={<ErrorBoundary componentName="RentalOptionsPage"><RentalOptionsPage /></ErrorBoundary>} />
@@ -118,15 +124,11 @@ function AppRoutes() {
         <Route path="rent-opportunities" element={<RentOpportunitiesPage />} />
         <Route path="find-property" element={<FindPropertyPage />} />
         <Route path="chats" element={<ChatsPage />} />
-        <Route path="messenger" element={<MessengerPage />} />
-        <Route path="messenger/:conversationId" element={<MessengerPage />} />
         <Route path="rent-savings" element={<RentSavingsPage />} />
         <Route path="legal-assistant" element={<LegalAssistantPage />} />
         <Route path="list-room" element={<ListRoomPage />} />
-
         <Route path="profile" element={<Navigate to="/dashboard/roommate-recommendations" replace />} />
         <Route path="profile/*" element={<Navigate to="/dashboard/roommate-recommendations" replace />} />
-
         <Route path="settings" element={<SettingsPage />} />
         <Route path="admin" element={<AdminHomePage />} />
         <Route path="admin/pages" element={<PagesPage />} />

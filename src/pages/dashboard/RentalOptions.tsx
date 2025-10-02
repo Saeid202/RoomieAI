@@ -16,10 +16,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { MapPin, Calendar, DollarSign, Search, MessageSquare } from "lucide-react";
+import { MapPin, Calendar, DollarSign, Search } from "lucide-react";
 import { fetchProperties, Property } from "@/services/propertyService";
 import { Link, useNavigate } from "react-router-dom";
-import { messagingService } from "@/services/messagingService";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -39,37 +38,6 @@ export default function RentalOptionsPage() {
   useEffect(() => {
     loadProperties();
   }, []);
-
-  const handleMessageLandlord = async (property: Property) => {
-    console.log('=== MESSAGE LANDLORD BUTTON CLICKED ===');
-    
-    // Check if user is authenticated
-    if (!user) {
-      console.error('User not authenticated');
-      toast.error('Please log in to send messages');
-      return;
-    }
-    
-    console.log('User authenticated:', user.email);
-    
-    try {
-      console.log('Property data:', property);
-      console.log('Property user_id:', property.user_id);
-      console.log('Creating direct conversation with landlord...');
-      
-      // Create a direct conversation with the landlord
-      const convId = await messagingService.getOrCreateDirectConversation(property.user_id);
-      console.log('Conversation created/found:', convId);
-      console.log('Navigating to:', `/dashboard/messenger/${convId}`);
-      
-      navigate(`/dashboard/messenger/${convId}`);
-    } catch (e) {
-      console.error('=== ERROR IN MESSAGE LANDLORD HANDLER ===');
-      console.error('Failed to open conversation with landlord', e);
-      console.error('Error details:', e);
-      toast.error(`Could not open conversation: ${e instanceof Error ? e.message : 'Unknown error'}`);
-    }
-  };
 
   const loadProperties = async () => {
     try {
@@ -283,14 +251,6 @@ export default function RentalOptionsPage() {
                     <Link to={`/dashboard/rental-options/${property.id}`}>
                       View Details
                     </Link>
-                  </Button>
-                  <Button 
-                    className="flex-1" 
-                    variant="outline" 
-                    onClick={() => handleMessageLandlord(property)}
-                  >
-                    <MessageSquare className="h-4 w-4 mr-1" />
-                    Message Landlord
                   </Button>
                   <Button className="flex-1" variant="default" asChild>
                     <Link to={`/dashboard/rental-application/${property.id}`}>

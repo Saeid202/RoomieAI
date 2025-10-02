@@ -35,7 +35,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { useRoommateMatching } from "@/hooks/useRoommateMatching";
 import { TabsSection } from "@/components/dashboard/recommendations/components/TabsSection";
 import { ResultsSection } from "@/components/dashboard/recommendations/ResultsSection";
-import { messagingService } from "@/services/messagingService";
 import { useNavigate } from "react-router-dom";
 
 interface MatchDisplay {
@@ -505,17 +504,9 @@ export default function MatchesPage() {
                   <Button variant="outline" className="flex-1" size="sm">
                     View Details
                   </Button>
-                  <Button className="flex-1" size="sm" onClick={async () => {
-                    try {
-                      if (match.userId) {
-                        const convId = await messagingService.getOrCreateDirectConversation(match.userId);
-                        navigate(`/dashboard/messenger/${convId}`);
-                      } else {
-                        navigate('/dashboard/messenger');
-                      }
-                    } catch (e) {
-                      console.error('Failed to start chat', e);
-                    }
+                  <Button className="flex-1" size="sm" onClick={() => {
+                    // TODO: Implement contact functionality
+                    console.log('Contact functionality not yet implemented');
                   }}>
                     <MessageSquare className="w-3 h-3 mr-1" />
                     Contact
