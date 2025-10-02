@@ -504,7 +504,7 @@ export function PreferencesTab({ form, handleTraitToggle }: PreferencesTabProps)
                         <RadioGroupItem value="catOk" id="cat-ok" />
                         <FormLabel htmlFor="cat-ok">Cat is ok</FormLabel>
                       </div>
-                      <div className="flex items-center space-x-2 ">
+                      <div className="flex items-center space-x-2 Add">
                         <RadioGroupItem value="smallPetsOk" id="small-pets-ok" />
                         <FormLabel htmlFor="small-pets-ok">Small pet is fine</FormLabel>
                       </div>

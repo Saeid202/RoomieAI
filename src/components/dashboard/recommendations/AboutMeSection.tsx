@@ -1,4 +1,3 @@
-
 import { User } from "lucide-react";
 import { ProfileFormValues } from "@/types/profile";
 import { AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
@@ -8,12 +7,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { profileSchema } from "@/types/profile";
 import { Form } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent } from "@/components/ui/tabs";
-import { AboutMeTabs } from "./about-me/AboutMeTabs";
-import { PersonalInfoTab } from "./about-me/PersonalInfoTab";
-import { HousingLifestyleTab } from "./about-me/HousingLifestyleTab";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { AboutMeStepper } from "./about-me/AboutMeSection/AboutMeStepper";
 
 interface AboutMeSectionProps {
   profileData: Partial<ProfileFormValues> | null;
@@ -27,7 +23,6 @@ export function AboutMeSection({
   onSaveProfile
 }: AboutMeSectionProps) {
   const [isSaving, setIsSaving] = useState(false);
-  const [activeAboutMeTab, setActiveAboutMeTab] = useState("personal-info");
   const { toast } = useToast();
   
   const defaultFormValues: Partial<ProfileFormValues> = {
@@ -44,7 +39,6 @@ export function AboutMeSection({
     preferredLocation: [],
     budgetRange: [800, 1500],
     moveInDateStart: new Date(),
-    
     housingType: "apartment",
     livingSpace: "privateRoom",
     smoking: false,
@@ -56,7 +50,6 @@ export function AboutMeSection({
     diet: "noPreference",
     dietOther: "",
     profileVisibility: [],
-    // Ideal roommate defaults
     genderPreference: [],
     nationalityPreference: "noPreference",
     languagePreference: "noPreference",
@@ -75,28 +68,9 @@ export function AboutMeSection({
 
   useEffect(() => {
     if (profileData) {
-      console.log("Updating AboutMeSection form with profile data:", profileData);
-      // Create merged data to ensure all fields have values
       const mergedData = { ...defaultFormValues, ...profileData };
-      console.log("Merged form data:", mergedData);
-      
-      // Log specific fields that might be problematic
-      console.log("Key fields:", {
-        fullName: mergedData.fullName,
-        age: mergedData.age,
-        gender: mergedData.gender,
-        nationality: mergedData.nationality,
-        language: mergedData.language,
-        ethnicity: mergedData.ethnicity,
-        religion: mergedData.religion,
-        preferredLocation: mergedData.preferredLocation,
-        hobbies: mergedData.hobbies,
-        profileVisibility: mergedData.profileVisibility
-      });
-      
       form.reset(mergedData);
     } else {
-      console.log("No profile data available, using default values");
       form.reset(defaultFormValues);
     }
   }, [profileData, form]);
@@ -136,44 +110,17 @@ export function AboutMeSection({
       <AccordionContent className="px-4 pb-4">
         <Card>
           <CardContent className="p-4">
-            <Tabs value={activeAboutMeTab} onValueChange={setActiveAboutMeTab}>
-              <AboutMeTabs />
-              
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 mt-6">
-                  <TabsContent value="personal-info">
-                    <PersonalInfoTab form={form} />
-                  </TabsContent>
-                  
-                  <TabsContent value="housing-lifestyle">
-                    <HousingLifestyleTab form={form} />
-                  </TabsContent>
-                  
-                   <div className="flex justify-between items-center">
-                     <Button 
-                       type="button" 
-                       variant="outline"
-                       onClick={() => setActiveAboutMeTab("personal-info")}
-                       disabled={activeAboutMeTab === "personal-info"}
-                     >
-                       Back
-                     </Button>
-                     
-                     <Button type="submit" disabled={isSaving}>
-                       {isSaving ? "Saving..." : "Save Profile"}
-                     </Button>
-                     
-                     <Button 
-                       type="button" 
-                       onClick={() => setActiveAboutMeTab("housing-lifestyle")}
-                       disabled={activeAboutMeTab === "housing-lifestyle"}
-                     >
-                       Next
-                     </Button>
-                   </div>
-                </form>
-              </Form>
-            </Tabs>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <AboutMeStepper form={form} />
+                
+                <div className="flex justify-end pt-4 border-t">
+                  <Button type="submit" disabled={isSaving} size="lg">
+                    {isSaving ? "Saving..." : "Save Profile"}
+                  </Button>
+                </div>
+              </form>
+            </Form>
           </CardContent>
         </Card>
       </AccordionContent>
