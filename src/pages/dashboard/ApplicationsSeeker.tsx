@@ -7,8 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { getUserApplications, updateApplicationStatus } from "@/services/rentalApplicationService";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
-import { FileText, CheckCircle, XCircle, Search, RefreshCw, MapPin, DollarSign, Eye, MessageSquare } from "lucide-react";
-import { messagingService } from "@/services/messagingService";
+import { FileText, CheckCircle, XCircle, Search, RefreshCw, MapPin, DollarSign, Eye } from "lucide-react";
 
 export default function ApplicationsSeekerPage() {
   const navigate = useNavigate();
@@ -78,16 +77,6 @@ export default function ApplicationsSeekerPage() {
     } catch (e) {
       console.error("Withdraw failed", e);
       toast.error("Failed to withdraw application");
-    }
-  };
-
-  const messageLandlord = async (app: any) => {
-    try {
-      const convId = await messagingService.getOrCreateApplicationConversation(app.id);
-      navigate(`/dashboard/messenger/${convId}`);
-    } catch (e) {
-      console.error('Failed to open conversation', e);
-      toast.error('Could not open conversation');
     }
   };
 
@@ -172,9 +161,6 @@ export default function ApplicationsSeekerPage() {
                 </div>
 
                 <div className="flex items-center justify-end gap-2 mt-4">
-                  <Button variant="outline" onClick={() => messageLandlord(a)}>
-                    <MessageSquare className="h-4 w-4 mr-2" /> Message Landlord
-                  </Button>
                   {a.status !== 'withdrawn' && (
                     <Button variant="outline" className="text-red-600 border-red-200 hover:bg-red-50" onClick={() => withdraw(a.id)}>
                       <XCircle className="h-4 w-4 mr-2" /> Withdraw
