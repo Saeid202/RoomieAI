@@ -48,17 +48,34 @@ export function ApplicationDetailModal({
     }
   }, [isOpen, application?.id]);
 
+  // Add state to track active tab
+  const [activeTab, setActiveTab] = useState("overview");
+
+  // Load documents when Documents tab is selected
+  useEffect(() => {
+    if (activeTab === "documents" && application?.id) {
+      console.log("Documents tab selected, loading documents...");
+      loadDocuments();
+    }
+  }, [activeTab, application?.id]);
+
   const loadDocuments = async () => {
-    if (!application?.id) return;
+    if (!application?.id) {
+      console.log('No application ID provided');
+      return;
+    }
     
     try {
       setLoadingDocuments(true);
       console.log('Loading documents for application:', application.id);
+      console.log('Application details:', application);
       const docs = await getApplicationDocuments(application.id);
       console.log('Documents loaded:', docs);
+      console.log('Document count:', docs.length);
       setDocuments(docs);
     } catch (error) {
       console.error('Failed to load documents:', error);
+      console.error('Error details:', error);
       toast.error(`Failed to load application documents: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setLoadingDocuments(false);
@@ -177,7 +194,7 @@ export function ApplicationDetailModal({
           </DialogTitle>
         </DialogHeader>
 
-        <Tabs defaultValue="overview" className="mt-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="documents">Documents</TabsTrigger>

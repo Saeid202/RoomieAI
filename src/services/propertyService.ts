@@ -338,6 +338,35 @@ export async function deleteProperty(id: string) {
   console.log("Deleting property:", id);
   
   try {
+    // First, check if there are any rental applications for this property
+    const { data: applications, error: checkError } = await supabase
+      .from('rental_applications' as any)
+      .select('id, full_name, status')
+      .eq('property_id', id);
+
+    if (checkError) {
+      console.error("Error checking rental applications:", checkError);
+      throw new Error(`Failed to check rental applications: ${checkError.message}`);
+    }
+
+    if (applications && applications.length > 0) {
+      console.log(`Found ${applications.length} rental applications for this property:`, applications);
+      
+      // Delete all rental applications first
+      const { error: deleteAppsError } = await supabase
+        .from('rental_applications' as any)
+        .delete()
+        .eq('property_id', id);
+
+      if (deleteAppsError) {
+        console.error("Error deleting rental applications:", deleteAppsError);
+        throw new Error(`Failed to delete rental applications: ${deleteAppsError.message}`);
+      }
+
+      console.log(`Successfully deleted ${applications.length} rental applications`);
+    }
+
+    // Now delete the property
     const { error } = await supabase
       .from('properties')
       .delete()

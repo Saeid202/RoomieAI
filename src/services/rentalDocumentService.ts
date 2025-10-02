@@ -115,24 +115,34 @@ export async function uploadRentalDocument(input: DocumentUploadInput): Promise<
  * Get documents for a specific application
  */
 export async function getApplicationDocuments(applicationId: string): Promise<RentalDocument[]> {
-  console.log("Fetching documents for application:", applicationId);
+  console.log("🔍 Fetching documents for application:", applicationId);
   
   try {
+    console.log("📡 Making Supabase query...");
     const { data, error } = await sb
       .from('rental_documents')
       .select('*')
       .eq('application_id', applicationId)
       .order('created_at', { ascending: true });
 
+    console.log("📊 Query result:", { data, error });
+
     if (error) {
-      console.error("Error fetching application documents:", error);
+      console.error("❌ Error fetching application documents:", error);
+      console.error("❌ Error details:", {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint
+      });
       throw new Error(`Failed to fetch documents: ${error.message}`);
     }
 
-    console.log("Application documents fetched successfully:", data?.length || 0);
+    console.log("✅ Application documents fetched successfully:", data?.length || 0);
+    console.log("📄 Documents data:", data);
     return (data as RentalDocument[]) || [];
   } catch (error) {
-    console.error("Error in getApplicationDocuments:", error);
+    console.error("💥 Error in getApplicationDocuments:", error);
     return [];
   }
 }

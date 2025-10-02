@@ -141,9 +141,19 @@ export default function RentalApplicationPage() {
   }, [user]);
 
   useEffect(() => {
-    // Check if user has already applied for this property
+    // Check if user has already applied for this property (only if not editing existing application)
     const checkExistingApplication = async () => {
       if (!id || !user) return;
+      
+      // Check URL parameters for applicationId first
+      const urlParams = new URLSearchParams(window.location.search);
+      const appIdParam = urlParams.get('applicationId');
+      
+      // If we have an applicationId, we're editing an existing application
+      if (appIdParam) {
+        setHasAlreadyApplied(false);
+        return;
+      }
       
       try {
         const hasApplied = await hasUserAppliedForProperty(id, user.id);
@@ -367,6 +377,12 @@ export default function RentalApplicationPage() {
     try {
       setIsSubmitting(true);
       
+      // Debug: Log current application data
+      console.log("Current application data:", applicationData);
+      console.log("Contract signed:", applicationData.contractSigned);
+      console.log("User:", user);
+      console.log("Property ID:", id);
+      
       // Validate required fields (only for final submission)
       const missingFields = [];
       if (!applicationData.fullName) missingFields.push("Full Name");
@@ -375,6 +391,8 @@ export default function RentalApplicationPage() {
       if (!applicationData.occupation) missingFields.push("Occupation");
       if (!applicationData.monthlyIncome) missingFields.push("Monthly Income");
       if (!applicationData.contractSigned) missingFields.push("Contract Signature");
+      
+      console.log("Missing fields:", missingFields);
       
       if (missingFields.length > 0) {
         toast.error(`Please complete: ${missingFields.join(", ")}`);
@@ -412,13 +430,15 @@ export default function RentalApplicationPage() {
         // do not send agree_to_terms or document JSON arrays if table doesn't have them
       };
 
+      console.log("Submitting application with data:", applicationInput);
       await submitRentalApplication(applicationInput);
 
       toast.success("Rental application and contract submitted successfully!");
       navigate("/dashboard/rental-options");
     } catch (error) {
       console.error("Error submitting application:", error);
-      toast.error("Failed to submit application. Please try again.");
+      console.error("Error details:", error);
+      toast.error(`Failed to submit application: ${error.message || "Please try again."}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -1099,6 +1119,37 @@ export default function RentalApplicationPage() {
             )}
 
             
+
+            {/* Digital Signature */}
+            <div className="space-y-4">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="contract-signature"
+                  checked={applicationData.contractSigned}
+                  onCheckedChange={(checked) => {
+                    setApplicationData(prev => ({
+                      ...prev,
+                      contractSigned: checked as boolean,
+                      signatureData: checked ? `${user?.email || 'user'} - ${new Date().toISOString()}` : ''
+                    }));
+                  }}
+                />
+                <Label htmlFor="contract-signature" className="text-sm font-medium">
+                  I have read and agree to the lease terms and conditions
+                </Label>
+              </div>
+              
+              {applicationData.contractSigned && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="flex items-center space-x-2">
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                    <p className="text-green-800 text-sm font-medium">
+                      Contract signed digitally by {user?.email || 'user'} on {new Date().toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
 
             {/* Legal Notice */}
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">

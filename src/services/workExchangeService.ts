@@ -57,17 +57,31 @@ class WorkExchangeService {
         throw new Error('User must be authenticated to create a work exchange offer');
       }
 
-      // Get user profile information
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('full_name, email')
-        .eq('id', user.id)
-        .single();
+      // Get user profile information - handle case where profiles table might not exist
+      let userName = 'Anonymous';
+      let userEmail = user.email || '';
+
+      try {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('full_name, email')
+          .eq('id', user.id)
+          .single();
+        
+        if (profile) {
+          userName = profile.full_name || 'Anonymous';
+          userEmail = profile.email || user.email || '';
+        }
+      } catch (profileError) {
+        console.log('Profiles table not found or user profile not available, using auth user data');
+        userName = user.user_metadata?.full_name || user.user_metadata?.name || 'Anonymous';
+        userEmail = user.email || '';
+      }
 
       const offerData = {
         user_id: user.id,
-        user_name: profile?.full_name || 'Anonymous',
-        user_email: profile?.email || user.email,
+        user_name: userName,
+        user_email: userEmail,
         space_type: data.spaceType,
         work_requested: data.workRequested,
         duration: data.duration,
@@ -83,6 +97,8 @@ class WorkExchangeService {
         status: 'active'
       };
 
+      console.log('Attempting to insert work exchange offer:', offerData);
+
       const { data: result, error } = await supabase
         .from('work_exchange_offers')
         .insert(offerData)
@@ -90,9 +106,11 @@ class WorkExchangeService {
         .single();
 
       if (error) {
+        console.error('Database error:', error);
         throw error;
       }
 
+      console.log('Successfully created work exchange offer:', result);
       return this.mapDatabaseToOffer(result);
     } catch (error) {
       console.error('Error creating work exchange offer:', error);
