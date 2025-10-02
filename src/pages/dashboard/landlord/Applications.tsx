@@ -7,8 +7,11 @@ import { getLandlordApplications, updateApplicationStatus } from "@/services/ren
 import { ApplicationsList } from "@/components/landlord/ApplicationsList";
 import { ApplicationDetailModal } from "@/components/landlord/ApplicationDetailModal";
 import { toast } from "sonner";
+import { messagingService } from "@/services/messagingService";
+import { useNavigate } from "react-router-dom";
 
 export default function ApplicationsPage() {
+  const navigate = useNavigate();
   const [applications, setApplications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedApplication, setSelectedApplication] = useState<any>(null);
@@ -34,6 +37,17 @@ export default function ApplicationsPage() {
   const handleViewDetails = (application: any) => {
     setSelectedApplication(application);
     setShowDetailModal(true);
+  };
+  const handleMessageApplicant = async (application: any) => {
+    try {
+      console.log('Creating conversation for application:', application.id);
+      const convId = await messagingService.getOrCreateApplicationConversation(application.id);
+      console.log('Conversation created/found:', convId);
+      navigate(`/dashboard/messenger/${convId}`);
+    } catch (e) {
+      console.error('Failed to open conversation', e);
+      toast.error(`Could not open conversation: ${e instanceof Error ? e.message : 'Unknown error'}`);
+    }
   };
 
   const handleUpdateStatus = async (applicationId: string, status: string, notes?: string) => {

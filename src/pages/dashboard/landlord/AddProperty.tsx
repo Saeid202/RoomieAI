@@ -148,7 +148,7 @@ const initialFormData: PropertyFormData = {
 
 const steps = [
   { id: 1, title: "Basic Information", icon: Home },
-  { id: 2, title: "Photos & Final Details", icon: Camera }
+  { id: 2, title: "Preview & Submit", icon: Camera }
 ];
 
 export default function AddPropertyPage() {
@@ -319,36 +319,46 @@ export default function AddPropertyPage() {
       );
       console.log("Filtered images:", newImages);
       
-      // Check photo for location and auto-detect amenities
+      // Check photo for location and auto-detect amenities (non-blocking)
       if (newImages.length > 0) {
         const firstImage = newImages[0];
-        try {
-          // Extract location from first image (representative location)
-          const locationData = await amenitiesService.extractLocationFromPhoto(firstImage);
-          if (locationData?.coordinates) {
-            // Auto-detect nearby amenities
-            toast.info("📸 Analyzing photo location and detecting nearby amenities...");
-            const autoAmenities = await amenitiesService.autoDetectAmenities(locationData);
-            
-            if (autoAmenities.length > 0) {
-              toast.success(`✅ Auto-detected ${autoAmenities.length} nearby amenities!`);
+        
+        // Always add images first, then try amenities detection in background
+        setFormData(prev => ({
+          ...prev,
+          images: [...prev.images, ...newImages].slice(0, 10) // Max 10 images
+        }));
+        
+        // Try amenities detection in background (don't block image upload)
+        setTimeout(async () => {
+          try {
+            console.log("🔍 Attempting amenities detection from photo...");
+            // Extract location from first image (representative location)
+            const locationData = await amenitiesService.extractLocationFromPhoto(firstImage);
+            if (locationData?.coordinates) {
+              // Auto-detect nearby amenities
+              toast.info("📸 Analyzing photo location and detecting nearby amenities...");
+              const autoAmenities = await amenitiesService.autoDetectAmenities(locationData);
               
-              setFormData(prev => ({
-                ...prev,
-                images: [...prev.images, ...newImages].slice(0, 10), // Max 10 images
-                nearbyAmenities: [...(prev.nearbyAmenities || []), ...autoAmenities].slice(0, 8), // Limit to most relevant
-                // If no coordinates yet set, use photo location as fallback
-                latitude: prev.latitude || locationData.coordinates?.lat,
-                longitude: prev.longitude || locationData.coordinates?.lng,
-              }));
-              
-              return;
+              if (autoAmenities.length > 0) {
+                toast.success(`✅ Auto-detected ${autoAmenities.length} nearby amenities!`);
+                
+                setFormData(prev => ({
+                  ...prev,
+                  nearbyAmenities: [...(prev.nearbyAmenities || []), ...autoAmenities].slice(0, 8), // Limit to most relevant
+                  // If no coordinates yet set, use photo location as fallback
+                  latitude: prev.latitude || locationData.coordinates?.lat,
+                  longitude: prev.longitude || locationData.coordinates?.lng,
+                }));
+              }
             }
+          } catch (error) {
+            console.warn('⚠️ Amenities auto-detection failed (non-blocking):', error);
+            // Don't show error toast since this is background processing
           }
-        } catch (error) {
-          console.error('Amenities auto-detection failed:', error);
-          // Continue with normal upload even if location detection failed
-        }
+        }, 100);
+        
+        return; // Exit early since we've already added the images
       }
       
       setFormData(prev => ({
@@ -372,10 +382,16 @@ export default function AddPropertyPage() {
   };
 
   const handleSubmit = async () => {
+    console.log("🚀 Starting property submission...");
+    console.log("📋 Form data:", formData);
+    
     try {
       // Get current user
       const { data: { user } } = await supabase.auth.getUser();
+      console.log("👤 Current user:", user);
+      
       if (!user) {
+        console.error("❌ No user found");
         toast.error("You must be logged in to create a property");
         return;
       }
@@ -383,10 +399,21 @@ export default function AddPropertyPage() {
       // Validate required fields before submission
       const errors: Record<string, string> = {};
       if (!formData.propertyType) errors.propertyType = 'Property type is required';
-      if (!formData.propertyAddress) errors.propertyAddress = 'Property address is required';
+      if (!formData.propertyAddress && !formData.address) errors.propertyAddress = 'Property address is required';
       if (!formData.monthlyRent) errors.monthlyRent = 'Monthly rent is required';
       
+      console.log("✅ Validation errors:", errors);
+      
+      // Ensure DB required fields are present; fall back to typed address
+      const safeAddress = formData.address || formData.propertyAddress;
+      const safeCity = formData.city || "";
+      const safeState = formData.state || "";
+      const safeZip = formData.zipCode || "";
+      
+      console.log("📍 Address details:", { safeAddress, safeCity, safeState, safeZip });
+      
       if (Object.keys(errors).length > 0) {
+        console.error("❌ Validation failed:", errors);
         setErrors(errors);
         toast.error("Please fill in all required fields before submitting");
         return;
@@ -420,10 +447,10 @@ export default function AddPropertyPage() {
         property_type: formData.propertyType,
         listing_title: formData.listingTitle || formData.propertyAddress,
         description: formData.description || null,
-        address: formData.address,
-        city: formData.city,
-        state: formData.state,
-        zip_code: formData.zipCode,
+        address: safeAddress,
+        city: safeCity,
+        state: safeState,
+        zip_code: safeZip,
         neighborhood: formData.neighborhood || null,
         latitude: formData.latitude || null,
         longitude: formData.longitude || null,
@@ -431,6 +458,7 @@ export default function AddPropertyPage() {
         nearby_amenities: formData.nearbyAmenities || [],
         monthly_rent: parseFloat(String(formData.monthlyRent).replace(/[^0-9.]/g, '')),
         security_deposit: formData.securityDeposit ? parseFloat(formData.securityDeposit) : null,
+        // For current DB (legacy), send lease_terms; service will map if needed
         lease_duration: formData.leaseTerms || null,
         available_date: formData.availableDate || null,
         furnished: formData.furnished || null as any,
@@ -443,8 +471,10 @@ export default function AddPropertyPage() {
         images: imageUrls
       };
 
-      console.log(editId ? "Updating property:" : "Submitting property data:", propertyData);
+      console.log("📦 Property data prepared:", propertyData);
+      console.log(editId ? "🔄 Updating property:" : "📤 Submitting property data:", propertyData);
       if (editId) {
+        console.log("🔄 Updating existing property...");
         // If no new images uploaded, avoid clobbering existing images
         const updates: any = { ...propertyData };
         if (imageUrls.length > 0) {
@@ -452,21 +482,34 @@ export default function AddPropertyPage() {
         } else {
           delete updates.images;
         }
+        console.log("📝 Update payload:", updates);
         await updateProperty(editId, updates);
+        console.log("✅ Property updated successfully!");
         toast.success("Property updated successfully!");
       } else {
+        console.log("🆕 Creating new property...");
         const result = await createProperty(propertyData);
+        console.log("📤 Create result:", result);
         if (!result) {
+          console.error("❌ Failed to create property - no result returned");
           toast.error("Failed to create property");
           return;
         }
+        console.log("✅ Property created successfully!");
         toast.success("Property listed successfully!");
       }
       try { localStorage.removeItem(DRAFT_KEY); } catch {}
       navigate("/dashboard/landlord/properties");
-    } catch (error) {
-      console.error("Error creating property:", error);
-      toast.error("An error occurred while creating the property");
+    } catch (error: any) {
+      console.error("❌ Error creating property:", error);
+      console.error("❌ Error details:", {
+        message: error?.message,
+        code: error?.code,
+        details: error?.details,
+        hint: error?.hint
+      });
+      const message = typeof error?.message === 'string' ? error.message : 'An error occurred while creating the property';
+      toast.error(`❌ ${message}`);
     }
   };
 
@@ -584,7 +627,7 @@ export default function AddPropertyPage() {
                         )}
             </div>
                       <p className="text-xs text-blue-600 mt-1">
-                        💡 You can add more photos later in Step 6
+                        💡 You'll review your listing in the next step before submitting.
                       </p>
               </div>
                   )}
@@ -645,6 +688,7 @@ export default function AddPropertyPage() {
                           // Try enhanced amenities asynchronously (don't wait)
                           setTimeout(async () => {
                             try {
+                              console.log("🔍 Attempting enhanced amenities detection...");
                               const detailedResult = await detailedAmenitiesService.getDetailedPropertyIntelligence(
                                 coordinates,
                                 suggestion.place_name || suggestion.text,
@@ -652,12 +696,13 @@ export default function AddPropertyPage() {
                               );
                               
                               if (detailedResult && detailedResult.detectedAmenities) {
-                                console.log("Enhanced amenities detected");
+                                console.log("✅ Enhanced amenities detected");
                                 // Process enhanced results safely in background
                                 setDetailedDetection(detailedResult);
                               }
                             } catch (e) {
-                              console.log("Enhanced amenities failed in background - that's okay");
+                              console.warn("⚠️ Enhanced amenities failed in background (non-blocking):", e);
+                              // Don't show error since this is background processing
                             }
                           }, 100);
                           
@@ -1001,60 +1046,8 @@ export default function AddPropertyPage() {
       case 2:
         return (
           <div className="space-y-6">
-            <div>
-              <Label>**1.** Property Photos</Label>
-              <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6">
-                <div className="text-center mb-4">
-                  <Camera className="mx-auto h-12 w-12 text-muted-foreground mb-2" />
-                  <p className="text-muted-foreground mb-4">
-                    Upload high-quality photos of your property (up to 10 images, max 10MB each)
-                  </p>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => document.getElementById('photo-upload')?.click()}
-                  >
-                    <Upload className="h-4 w-4 mr-2" />
-                    Upload Photos
-                  </Button>
-                  <input
-                    id="photo-upload"
-                    type="file"
-                    multiple
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => handleImageUpload(e.target.files)}
-                  />
-                </div>
-                
-                {formData.images.length > 0 && (
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4">
-                    {formData.images.map((image, index) => (
-                      <div key={index} className="relative group">
-                        <img
-                          src={URL.createObjectURL(image)}
-                          alt={`Property photo ${index + 1}`}
-                          className="w-full h-24 object-cover rounded-lg border"
-                        />
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          className="absolute top-1 right-1 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                          onClick={() => removeImage(index)}
-                        >
-                          <X className="h-3 w-3" />
-                        </Button>
-                        <p className="text-xs text-muted-foreground mt-1 truncate">
-                          {image.name}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-
             <div className="border-t pt-6">
-              <h3 className="text-lg font-medium mb-3">**2.** Listing Preview</h3>
+              <h3 className="text-lg font-medium mb-3">**1.** Listing Preview</h3>
               <div className="bg-white border rounded-lg p-4 shadow-sm">
                 {/* Address and map */}
                 {(formData.propertyAddress || formData.address) && (
@@ -1214,7 +1207,7 @@ export default function AddPropertyPage() {
             </CardTitle>
             <CardDescription>
               {currentStep === 1 && (editId ? "Update your property's basic information" : "Let's start with all the basic information about your property")}
-              {currentStep === 2 && (editId ? "Review changes and update your listing" : "Add photos and review your property listing")}
+            {currentStep === 2 && (editId ? "Review changes and update your listing" : "Review your property listing before submitting")}
             </CardDescription>
           </CardHeader>
           <CardContent>

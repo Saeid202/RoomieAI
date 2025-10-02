@@ -19,6 +19,8 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { RentalApplication } from '@/services/rentalApplicationService';
+import { messagingService } from '@/services/messagingService';
+import { toast } from 'sonner';
 
 interface ApplicationsListProps {
   applications: any[];
@@ -34,6 +36,17 @@ export function ApplicationsList({
   onUpdateStatus 
 }: ApplicationsListProps) {
   const navigate = useNavigate();
+
+  const handleMessageApplicant = async (application: any) => {
+    try {
+      const convId = await messagingService.getOrCreateApplicationConversation(application.id);
+      navigate(`/dashboard/messenger/${convId}`);
+    } catch (e) {
+      console.error('Failed to open conversation', e);
+      toast.error(`Could not open conversation: ${e instanceof Error ? e.message : 'Unknown error'}`);
+    }
+  };
+
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [propertyFilter, setPropertyFilter] = useState('all');
@@ -245,10 +258,7 @@ export function ApplicationsList({
                       variant="outline"
                       size="sm"
                       className="text-primary border-primary/30 hover:bg-primary/5"
-                      onClick={() => {
-                        const q = encodeURIComponent(application.full_name || application.email || '');
-                        navigate(`/dashboard/messenger?q=${q}`);
-                      }}
+                      onClick={() => handleMessageApplicant(application)}
                     >
                       <MessageSquare className="h-4 w-4 mr-1" />
                       Message

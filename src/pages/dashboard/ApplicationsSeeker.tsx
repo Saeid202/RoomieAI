@@ -8,6 +8,7 @@ import { getUserApplications, updateApplicationStatus } from "@/services/rentalA
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { FileText, CheckCircle, XCircle, Search, RefreshCw, MapPin, DollarSign, Eye, MessageSquare } from "lucide-react";
+import { messagingService } from "@/services/messagingService";
 
 export default function ApplicationsSeekerPage() {
   const navigate = useNavigate();
@@ -80,8 +81,14 @@ export default function ApplicationsSeekerPage() {
     }
   };
 
-  const messageLandlord = (app: any) => {
-    navigate(`/dashboard/messenger`);
+  const messageLandlord = async (app: any) => {
+    try {
+      const convId = await messagingService.getOrCreateApplicationConversation(app.id);
+      navigate(`/dashboard/messenger/${convId}`);
+    } catch (e) {
+      console.error('Failed to open conversation', e);
+      toast.error('Could not open conversation');
+    }
   };
 
   return (

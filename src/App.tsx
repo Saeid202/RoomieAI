@@ -71,6 +71,7 @@ function AppRoutes() {
           <Route path="find-property" element={<FindPropertyPage />} />
           <Route path="chats" element={<ChatsPage />} />
           <Route path="messenger" element={<MessengerPage />} />
+          <Route path="messenger/:conversationId" element={<MessengerPage />} />
           <Route path="rent-savings" element={<RentSavingsPage />} />
           <Route path="legal-assistant" element={<LegalAssistantPage />} />
           <Route path="list-room" element={<ListRoomPage />} />
@@ -118,6 +119,7 @@ function AppRoutes() {
         <Route path="find-property" element={<FindPropertyPage />} />
         <Route path="chats" element={<ChatsPage />} />
         <Route path="messenger" element={<MessengerPage />} />
+        <Route path="messenger/:conversationId" element={<MessengerPage />} />
         <Route path="rent-savings" element={<RentSavingsPage />} />
         <Route path="legal-assistant" element={<LegalAssistantPage />} />
         <Route path="list-room" element={<ListRoomPage />} />
