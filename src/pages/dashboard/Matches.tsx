@@ -35,8 +35,11 @@ import { useAuth } from "@/hooks/useAuth";
 import { useRoommateMatching } from "@/hooks/useRoommateMatching";
 import { TabsSection } from "@/components/dashboard/recommendations/components/TabsSection";
 import { ResultsSection } from "@/components/dashboard/recommendations/ResultsSection";
+import { messagingService } from "@/services/messagingService";
+import { useNavigate } from "react-router-dom";
 
 interface MatchDisplay {
+  userId?: string;
   id: string;
   name: string;
   age: number;
@@ -71,6 +74,7 @@ function convertMatchResultToDisplay(
     : `$${match.budget}`;
 
   return {
+    userId: match.userId,
     id: `match-${index}`,
     name: match.name,
     age: parseInt(match.age),
@@ -129,6 +133,7 @@ function calculateMatchStats(matches: MatchDisplay[]): MatchStats {
 }
 
 export default function MatchesPage() {
+  const navigate = useNavigate();
   const [matches, setMatches] = useState<MatchDisplay[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -500,7 +505,18 @@ export default function MatchesPage() {
                   <Button variant="outline" className="flex-1" size="sm">
                     View Details
                   </Button>
-                  <Button className="flex-1" size="sm">
+                  <Button className="flex-1" size="sm" onClick={async () => {
+                    try {
+                      if (match.userId) {
+                        const convId = await messagingService.getOrCreateDirectConversation(match.userId);
+                        navigate(`/dashboard/messenger/${convId}`);
+                      } else {
+                        navigate('/dashboard/messenger');
+                      }
+                    } catch (e) {
+                      console.error('Failed to start chat', e);
+                    }
+                  }}>
                     <MessageSquare className="w-3 h-3 mr-1" />
                     Contact
                   </Button>

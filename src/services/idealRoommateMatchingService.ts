@@ -1018,6 +1018,7 @@ class IdealRoommateMatchingEngine {
       : [0, 0];
 
     return {
+      userId: user.user_id,
       name: user.full_name || "Unknown",
       age: user.age?.toString() || "N/A",
       gender: user.gender || "Not specified",

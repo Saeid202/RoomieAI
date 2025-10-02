@@ -115,6 +115,8 @@ export type CompatibilityBreakdown = {
 };
 
 export type MatchResult = {
+  // Database user id for starting direct conversations
+  userId?: string;
   name: string;
   age: string;
   gender: string;

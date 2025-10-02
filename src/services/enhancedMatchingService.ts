@@ -442,6 +442,7 @@ class EnhancedMatchingEngine {
     const budgetArray = budget ? [parseInt(budget[1]), parseInt(budget[2] || budget[1])] : [0, 0];
 
     return {
+      userId: user.user_id,
       name: user.full_name,
       age: user.age.toString(),
       gender: user.gender,

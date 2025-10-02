@@ -1113,6 +1113,7 @@ class CustomPreferenceMatchingEngine {
     const budgetArray = budget ? [parseInt(budget[1]), parseInt(budget[2] || budget[1])] : [0, 0];
 
     return {
+      userId: user.user_id,
       name: user.full_name || "Unknown",
       age: user.age?.toString() || "N/A",
       gender: user.gender || "Not specified",

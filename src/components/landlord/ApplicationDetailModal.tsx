@@ -22,6 +22,8 @@ import {
 } from 'lucide-react';
 import { getApplicationDocuments, RentalDocument } from '@/services/rentalDocumentService';
 import { toast } from 'sonner';
+import { messagingService } from '@/services/messagingService';
+import { useNavigate } from 'react-router-dom';
 
 interface ApplicationDetailModalProps {
   application: any;
@@ -36,6 +38,7 @@ export function ApplicationDetailModal({
   onClose, 
   onUpdateStatus 
 }: ApplicationDetailModalProps) {
+  const navigate = useNavigate();
   const [documents, setDocuments] = useState<RentalDocument[]>([]);
   const [loadingDocuments, setLoadingDocuments] = useState(false);
   const [rejectionNotes, setRejectionNotes] = useState('');
@@ -80,6 +83,17 @@ export function ApplicationDetailModal({
     setShowRejectionForm(false);
     setRejectionNotes('');
     toast.success('Application rejected');
+  };
+
+  const handleMessageApplicant = async () => {
+    try {
+      const convId = await messagingService.getOrCreateApplicationConversation(application.id);
+      onClose();
+      navigate(`/dashboard/messenger/${convId}`);
+    } catch (e) {
+      console.error('Failed to open conversation', e);
+      toast.error('Could not open conversation');
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -353,6 +367,18 @@ export function ApplicationDetailModal({
           <TabsContent value="actions" className="space-y-4">
             {application.status === 'pending' || application.status === 'under_review' ? (
               <div className="space-y-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Message Applicant</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground mb-4">Start a conversation with the applicant about this application.</p>
+                    <Button onClick={handleMessageApplicant}>
+                      <MessageSquare className="h-4 w-4 mr-2" />
+                      Open Messenger
+                    </Button>
+                  </CardContent>
+                </Card>
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-green-700">Approve Application</CardTitle>

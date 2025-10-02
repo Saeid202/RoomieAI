@@ -1,125 +1,129 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Send, Search, User } from "lucide-react";
+import { Paperclip, Send, Search, User } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
 import { Badge } from "@/components/ui/badge";
-import { getMockRoommates } from "@/utils/matchingAlgorithm/mockData";
-
-interface ChatMessage {
-  id: string;
-  content: string;
-  sender: string;
-  timestamp: Date;
-  senderId: string;
-}
-
-interface ChatConversation {
-  id: string;
-  participantName: string;
-  participantId: string;
-  lastMessage: string;
-  lastMessageTime: Date;
-  unreadCount: number;
-  matchPercentage: number;
-}
+import { messagingService, Conversation, Message } from "@/services/messagingService";
+import { useNavigate, useParams } from "react-router-dom";
+import { toast } from "sonner";
 
 export default function MessengerPage() {
   const { user } = useAuth();
-  const [selectedChat, setSelectedChat] = useState<string | null>(null);
+  const navigate = useNavigate();
+  const { conversationId } = useParams();
+  const [selectedChat, setSelectedChat] = useState<string | null>(conversationId || null);
   const [messageInput, setMessageInput] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const [conversations, setConversations] = useState<ChatConversation[]>([]);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
+  const [messages, setMessages] = useState<Message[]>([]);
 
   useEffect(() => {
     const loadConversations = async () => {
       try {
         setLoading(true);
-        const dbMatches = await getMockRoommates();
+        console.log('=== LOADING CONVERSATIONS ===');
+        console.log('User:', user);
+        console.log('User ID:', user?.id);
         
-        // Convert first few matches to conversations for demo
-        const mockConversations: ChatConversation[] = dbMatches.slice(0, 5).map((match, index) => ({
-          id: `conv-${index}`,
-          participantName: match.name,
-          participantId: `user-${index + 2}`,
-          lastMessage: getRandomMessage(),
-          lastMessageTime: new Date(Date.now() - Math.random() * 86400000), // Random time within last day
-          unreadCount: Math.floor(Math.random() * 3),
-          matchPercentage: match.compatibilityScore,
-        }));
-        
-        setConversations(mockConversations);
+        const list = await messagingService.listConversations();
+        console.log('Conversations loaded:', list);
+        setConversations(list);
       } catch (error) {
-        console.error("Error loading conversations:", error);
+        console.error("=== ERROR LOADING CONVERSATIONS ===", error);
+        console.error("Error details:", error);
         setConversations([]);
+        toast.error(`Failed to load conversations: ${error instanceof Error ? error.message : 'Unknown error'}`);
       } finally {
         setLoading(false);
       }
     };
-
     loadConversations();
-  }, []);
+  }, [user]);
 
-  const getRandomMessage = () => {
-    const messages = [
-      "Hi! I saw we matched. Would love to chat about our housing preferences.",
-      "Thanks for reaching out! When are you looking to move?",
-      "Great! Let's discuss the budget and location preferences.",
-      "I'm really interested in finding a compatible roommate. What do you think?",
-      "Your profile looks great! Are you still looking for a place?"
-    ];
-    return messages[Math.floor(Math.random() * messages.length)];
-  };
+  // Load messages for selected conversation and subscribe to realtime
+  useEffect(() => {
+    if (!selectedChat) return;
+    let unsubscribe: (() => void) | undefined;
+    (async () => {
+      try {
+        console.log('=== LOADING MESSAGES ===');
+        console.log('Selected chat:', selectedChat);
+        console.log('User:', user);
+        
+        const initial = await messagingService.getMessages(selectedChat);
+        console.log('Messages loaded:', initial);
+        setMessages(initial);
+        
+        unsubscribe = messagingService.subscribeToConversation(selectedChat, {
+          onInsert: (msg) => {
+            console.log('New message received:', msg);
+            setMessages((prev) => [...prev, msg]);
+            if (msg.sender_id !== (user?.id || 'current-user')) {
+              toast.info('New message received');
+            }
+          },
+          onUpdate: (msg) => setMessages((prev) => prev.map(m => m.id === msg.id ? msg : m)),
+          onDelete: (msg) => setMessages((prev) => prev.filter(m => m.id !== msg.id)),
+        });
+        
+        await messagingService.markRead(selectedChat);
+        navigate(`/dashboard/messenger/${selectedChat}`, { replace: true });
+      } catch (e) {
+        console.error('=== FAILED TO LOAD MESSAGES ===', e);
+        console.error('Error details:', e);
+        toast.error(`Failed to load messages: ${e instanceof Error ? e.message : 'Unknown error'}`);
+      }
+    })();
+    return () => { if (unsubscribe) unsubscribe(); };
+  }, [selectedChat, user]);
 
-  // Mock messages for selected conversation
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: "1",
-      content: "Hi! I saw we matched with 92% compatibility. Would love to chat about our housing preferences!",
-      sender: "Sarah Johnson",
-      senderId: "user-2",
-      timestamp: new Date(Date.now() - 120000),
-    },
-    {
-      id: "2",
-      content: "Hi Sarah! Yes, I'd love to discuss that. What area are you looking at?",
-      sender: "You",
-      senderId: user?.id || "current-user",
-      timestamp: new Date(Date.now() - 60000),
-    },
-    {
-      id: "3",
-      content: "I'm primarily looking in the downtown area, close to transit. What about you?",
-      sender: "Sarah Johnson",
-      senderId: "user-2",
-      timestamp: new Date(Date.now() - 30000),
-    },
-  ]);
-
-  const filteredConversations = conversations.filter(conv =>
-    conv.participantName.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredConversations = useMemo(() => {
+    const q = searchTerm.trim().toLowerCase();
+    if (!q) return conversations;
+    return conversations.filter(c => (c.title || '').toLowerCase().includes(q));
+  }, [conversations, searchTerm]);
 
   const selectedConversation = conversations.find(conv => conv.id === selectedChat);
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (!messageInput.trim() || !selectedChat) return;
-
-    const newMessage: ChatMessage = {
-      id: `msg-${Date.now()}`,
-      content: messageInput,
-      sender: "You",
-      senderId: user?.id || "current-user",
-      timestamp: new Date(),
-    };
-
-    setMessages(prev => [...prev, newMessage]);
+    
+    console.log('=== SENDING MESSAGE ===');
+    console.log('Message input:', messageInput);
+    console.log('Selected chat:', selectedChat);
+    console.log('User:', user);
+    
+    const text = messageInput;
     setMessageInput("");
+    try {
+      const result = await messagingService.sendMessage(selectedChat, text, 'text');
+      console.log('Message sent successfully:', result);
+      toast.success('Message sent!');
+    } catch (e) {
+      console.error('=== SEND MESSAGE FAILED ===', e);
+      console.error('Error details:', e);
+      toast.error(`Failed to send message: ${e instanceof Error ? e.message : 'Unknown error'}`);
+      setMessageInput(text); // Restore the message if sending failed
+    }
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!selectedChat) return;
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      await messagingService.uploadAttachment(selectedChat, file);
+    } catch (err) {
+      console.error('Upload failed', err);
+    } finally {
+      e.currentTarget.value = '';
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -129,7 +133,8 @@ export default function MessengerPage() {
     }
   };
 
-  const formatTime = (date: Date): string => {
+  const formatTime = (iso: string): string => {
+    const date = new Date(iso);
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
     const diffMinutes = Math.floor(diffMs / 60000);
@@ -177,34 +182,21 @@ export default function MessengerPage() {
                       <div className="flex items-start gap-3">
                         <Avatar className="h-10 w-10">
                           <AvatarFallback>
-                            {conversation.participantName
-                              .split(" ")
-                              .map((n) => n[0])
-                              .join("")}
+                            {(conversation.title || 'Chat').slice(0,2).toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between">
                             <h4 className="font-medium text-sm truncate">
-                              {conversation.participantName}
+                              {conversation.title || 'Conversation'}
                             </h4>
                             <div className="flex items-center gap-2">
-                              <Badge variant="secondary" className="text-xs">
-                                {conversation.matchPercentage}%
-                              </Badge>
                               <span className="text-xs text-muted-foreground">
-                                {formatTime(conversation.lastMessageTime)}
+                                {conversation.last_message_at ? formatTime(conversation.last_message_at) : ''}
                               </span>
                             </div>
                           </div>
-                          <p className="text-sm text-muted-foreground truncate mt-1">
-                            {conversation.lastMessage}
-                          </p>
-                          {conversation.unreadCount > 0 && (
-                            <Badge variant="destructive" className="text-xs mt-1">
-                              {conversation.unreadCount} new
-                            </Badge>
-                          )}
+                          {/* TODO: show last message preview and unread count via join */}
                         </div>
                       </div>
                     </div>
@@ -223,18 +215,15 @@ export default function MessengerPage() {
                 <div className="flex items-center gap-3">
                   <Avatar className="h-10 w-10">
                     <AvatarFallback>
-                      {selectedConversation?.participantName
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")}
+                      {(selectedConversation?.title || 'Chat').slice(0,2).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                   <div>
                     <CardTitle className="text-lg">
-                      {selectedConversation?.participantName}
+                      {selectedConversation?.title || 'Conversation'}
                     </CardTitle>
                     <p className="text-sm text-muted-foreground">
-                      {selectedConversation?.matchPercentage}% match • Online
+                      Online
                     </p>
                   </div>
                 </div>
@@ -246,38 +235,35 @@ export default function MessengerPage() {
                       <div
                         key={message.id}
                         className={`flex ${
-                          message.senderId === (user?.id || "current-user")
+                          message.sender_id === (user?.id || "current-user")
                             ? "justify-end"
                             : "justify-start"
                         }`}
                       >
                         <div
                           className={`flex items-start gap-2 max-w-[80%] ${
-                            message.senderId === (user?.id || "current-user")
+                            message.sender_id === (user?.id || "current-user")
                               ? "flex-row-reverse"
                               : "flex-row"
                           }`}
                         >
                           <Avatar className="h-8 w-8 mt-1">
                             <AvatarFallback>
-                              {message.senderId === (user?.id || "current-user")
+                              {message.sender_id === (user?.id || "current-user")
                                 ? user?.email?.[0]?.toUpperCase() || "U"
-                                : message.sender.split(" ").map((n) => n[0]).join("")}
+                                : 'U'}
                             </AvatarFallback>
                           </Avatar>
                           <div
                             className={`rounded-lg px-4 py-2 ${
-                              message.senderId === (user?.id || "current-user")
+                              message.sender_id === (user?.id || "current-user")
                                 ? "bg-primary text-primary-foreground"
                                 : "bg-muted"
                             }`}
                           >
                             <p>{message.content}</p>
                             <p className="text-xs opacity-70 mt-1">
-                              {message.timestamp.toLocaleTimeString([], {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}
+                              {new Date(message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             </p>
                           </div>
                         </div>
@@ -287,6 +273,10 @@ export default function MessengerPage() {
                 </ScrollArea>
                 <Separator />
                 <div className="p-4 flex gap-2">
+                  <label className="inline-flex items-center justify-center w-10 h-10 rounded-md border cursor-pointer text-muted-foreground hover:bg-muted">
+                    <Paperclip className="h-4 w-4" />
+                    <input type="file" className="hidden" onChange={handleFileChange} />
+                  </label>
                   <Input
                     placeholder="Type your message..."
                     value={messageInput}
@@ -306,7 +296,7 @@ export default function MessengerPage() {
                 <User className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                 <h3 className="text-lg font-medium mb-2">Select a conversation</h3>
                 <p className="text-muted-foreground">
-                  Choose a matched roommate to start chatting
+                  Choose a conversation to start chatting
                 </p>
               </CardContent>
             </Card>

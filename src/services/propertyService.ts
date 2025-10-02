@@ -168,37 +168,31 @@ export async function deletePropertyImage(imageUrl: string): Promise<void> {
 }
 
 export async function createProperty(propertyData: any): Promise<Property | null> {
-  console.log("Creating property:", propertyData);
-  
-  // Normalize fields for DB (e.g., furnished must be boolean in DB)
-  const normalizeToBoolean = (val: unknown): boolean | undefined => {
-    if (val === undefined || val === null) return undefined;
-    if (typeof val === 'boolean') return val;
-    if (typeof val === 'string') {
-      const v = val.toLowerCase();
-      if ([
-        "yes","true","1",
-        "fully furnished","partially furnished","partially-furnished",
-        "semi furnished","semi-furnished",
-        "furnished"
-      ].includes(v)) return true;
-      if (["no","false","0","unfurnished"].includes(v)) return false;
-    }
-    return undefined;
-  };
+  console.log("🏠 Creating property:", propertyData);
 
+  // Convert furnished string to boolean for database
   const payload: any = {
     ...propertyData,
-    furnished: normalizeToBoolean((propertyData as any).furnished),
   };
-  
-  // Backward compatibility: map legacy lease_terms to lease_duration
-  if (payload.lease_terms && !payload.lease_duration) {
-    payload.lease_duration = payload.lease_terms;
+
+  // Fix furnished field - convert string to boolean
+  if (payload.furnished !== null && payload.furnished !== undefined) {
+    if (typeof payload.furnished === 'string') {
+      payload.furnished = payload.furnished === 'furnished' || payload.furnished === 'true';
+    }
   }
-  delete payload.lease_terms;
+
+  // Backward compatibility: current DB uses lease_terms; app uses lease_duration.
+  // Until migrations are applied, send lease_terms and drop lease_duration.
+  if (payload.lease_duration && !payload.lease_terms) {
+    payload.lease_terms = payload.lease_duration;
+  }
+  delete payload.lease_duration;
+  
+  console.log("📦 Final payload for database:", payload);
   
   try {
+    console.log("🚀 Inserting into properties table...");
     const { data, error } = await sb
       .from('properties')
       .insert(payload)
@@ -206,14 +200,20 @@ export async function createProperty(propertyData: any): Promise<Property | null
       .single();
 
     if (error) {
-      console.error("Error creating property:", error);
+      console.error("❌ Database error creating property:", error);
+      console.error("❌ Error details:", {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint
+      });
       throw new Error(`Failed to create property: ${error.message}`);
     }
 
-    console.log("Property created successfully:", data);
+    console.log("✅ Property created successfully:", data);
     return data as any as Property;
   } catch (error) {
-    console.error("Error in createProperty:", error);
+    console.error("❌ Error in createProperty:", error);
     throw error;
   }
 }
@@ -294,34 +294,24 @@ export async function fetchPropertyById(id: string) {
 
 export async function updateProperty(id: string, updates: (Partial<Property> & { furnished?: boolean | string })) {
   console.log("Updating property:", id, updates);
-  
-  // Normalize fields for DB
-  const normalizeToBoolean = (val: unknown): boolean | undefined => {
-    if (val === undefined || val === null) return undefined;
-    if (typeof val === 'boolean') return val;
-    if (typeof val === 'string') {
-      const v = val.toLowerCase();
-      if ([
-        "yes","true","1",
-        "fully furnished","partially furnished","partially-furnished",
-        "semi furnished","semi-furnished",
-        "furnished"
-      ].includes(v)) return true;
-      if (["no","false","0","unfurnished"].includes(v)) return false;
-    }
-    return undefined;
-  };
 
+  // Convert furnished string to boolean for database
   const payload: any = {
     ...updates,
-    furnished: normalizeToBoolean((updates as any).furnished),
   };
-  
-  // Backward compatibility: map legacy lease_terms to lease_duration
-  if (payload.lease_terms && !payload.lease_duration) {
-    payload.lease_duration = payload.lease_terms;
+
+  // Fix furnished field - convert string to boolean
+  if (payload.furnished !== null && payload.furnished !== undefined) {
+    if (typeof payload.furnished === 'string') {
+      payload.furnished = payload.furnished === 'furnished' || payload.furnished === 'true';
+    }
   }
-  delete payload.lease_terms;
+
+  // Backward compatibility: current DB uses lease_terms; app uses lease_duration.
+  if (payload.lease_duration && !payload.lease_terms) {
+    payload.lease_terms = payload.lease_duration;
+  }
+  delete payload.lease_duration;
   
   try {
     const { data, error } = await sb
