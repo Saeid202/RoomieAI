@@ -1,12 +1,13 @@
 import React from 'react';
 import { LeaseContract } from '@/services/leaseContractService';
+import { OntarioLeaseContract } from '@/types/ontarioLease';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { CheckCircle, Clock, FileText, Users } from 'lucide-react';
 
 interface LeaseContractTemplateProps {
-  contract: LeaseContract;
+  contract: LeaseContract | OntarioLeaseContract;
   isPreview?: boolean;
   showSignatures?: boolean;
 }
@@ -16,6 +17,9 @@ export function LeaseContractTemplate({
   isPreview = false, 
   showSignatures = true 
 }: LeaseContractTemplateProps) {
+  // Check if this is an Ontario lease contract
+  const isOntarioContract = 'ontario_form_data' in contract && contract.ontario_form_data !== null;
+  
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -25,9 +29,9 @@ export function LeaseContractTemplate({
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('en-CA', {
       style: 'currency',
-      currency: 'USD'
+      currency: 'CAD'
     }).format(amount);
   };
 
@@ -64,7 +68,7 @@ export function LeaseContractTemplate({
       {/* Header */}
       <div className="text-center mb-8 border-b-2 border-gray-300 pb-6 print:pb-4">
         <h1 className="text-3xl font-bold text-gray-900 mb-4">
-          RESIDENTIAL LEASE AGREEMENT
+          {isOntarioContract ? 'ONTARIO RESIDENTIAL TENANCY AGREEMENT' : 'RESIDENTIAL LEASE AGREEMENT'}
         </h1>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 text-sm text-gray-600">
           <div className="flex items-center gap-2">
@@ -75,6 +79,12 @@ export function LeaseContractTemplate({
             <span className="font-medium">Created:</span>
             <span>{formatDate(contract.created_at)}</span>
           </div>
+          {isOntarioContract && (
+            <div className="flex items-center gap-2">
+              <span className="font-medium">Form Version:</span>
+              <span>{(contract as OntarioLeaseContract).form_version || '2229E-2024'}</span>
+            </div>
+          )}
           <Badge className={`${getStatusColor(contract.status)} flex items-center gap-1`}>
             {getStatusIcon(contract.status)}
             {contract.status.replace(/_/g, ' ').toUpperCase()}
@@ -129,8 +139,11 @@ export function LeaseContractTemplate({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <p><span className="font-medium">Address:</span> {contract.property_address}</p>
-                <p><span className="font-medium">City, State:</span> {contract.property_city}, {contract.property_state} {contract.property_zip}</p>
+                <p><span className="font-medium">City, Province:</span> {contract.property_city}, {contract.property_state} {contract.property_zip}</p>
                 <p><span className="font-medium">Property Type:</span> {contract.property_type}</p>
+                {isOntarioContract && (contract as OntarioLeaseContract).property_type_other && (
+                  <p><span className="font-medium">Type Details:</span> {(contract as OntarioLeaseContract).property_type_other}</p>
+                )}
               </div>
               <div className="space-y-2">
                 {contract.property_bedrooms && (
@@ -141,6 +154,9 @@ export function LeaseContractTemplate({
                 )}
                 {contract.property_square_footage && (
                   <p><span className="font-medium">Square Footage:</span> {contract.property_square_footage.toLocaleString()} sq ft</p>
+                )}
+                {isOntarioContract && (contract as OntarioLeaseContract).parking_spaces && (
+                  <p><span className="font-medium">Parking Spaces:</span> {(contract as OntarioLeaseContract).parking_spaces}</p>
                 )}
               </div>
             </div>
@@ -171,8 +187,22 @@ export function LeaseContractTemplate({
             </div>
             <div className="mt-4 bg-gray-50 p-3 rounded">
               <p className="font-medium text-gray-900">Total Due at Signing</p>
-              <p className="text-lg font-bold">{formatCurrency(contract.monthly_rent + contract.security_deposit)}</p>
-              <p className="text-sm text-gray-600">(First month rent + Security deposit)</p>
+              <p className="text-lg font-bold">
+                {formatCurrency(
+                  contract.monthly_rent + 
+                  contract.security_deposit + 
+                  (isOntarioContract ? 
+                    ((contract as OntarioLeaseContract).last_month_rent_deposit || 0) + 
+                    ((contract as OntarioLeaseContract).key_deposit || 0) : 0
+                  )
+                )}
+              </p>
+              <p className="text-sm text-gray-600">
+                {isOntarioContract ? 
+                  '(First month rent + Security deposit + Last month rent + Key deposit)' :
+                  '(First month rent + Security deposit)'
+                }
+              </p>
             </div>
           </CardContent>
         </Card>
@@ -262,6 +292,37 @@ export function LeaseContractTemplate({
                 {contract.additional_terms}
               </div>
             </div>
+          )}
+
+          {isOntarioContract && (
+            <>
+              {(contract as OntarioLeaseContract).special_conditions && (
+                <div className="border-l-4 border-purple-500 pl-6 py-2">
+                  <h3 className="font-semibold mb-2 text-lg">10. SPECIAL CONDITIONS</h3>
+                  <div className="text-gray-700 leading-relaxed whitespace-pre-wrap bg-gray-50 p-4 rounded">
+                    {(contract as OntarioLeaseContract).special_conditions}
+                  </div>
+                </div>
+              )}
+              
+              {(contract as OntarioLeaseContract).maintenance_contact && (
+                <div className="border-l-4 border-blue-500 pl-6 py-2">
+                  <h3 className="font-semibold mb-2 text-lg">11. MAINTENANCE CONTACT</h3>
+                  <p className="text-gray-700 leading-relaxed">
+                    <strong>Maintenance Contact:</strong> {(contract as OntarioLeaseContract).maintenance_contact}
+                  </p>
+                </div>
+              )}
+              
+              {(contract as OntarioLeaseContract).emergency_contact && (
+                <div className="border-l-4 border-red-500 pl-6 py-2">
+                  <h3 className="font-semibold mb-2 text-lg">12. EMERGENCY CONTACT</h3>
+                  <p className="text-gray-700 leading-relaxed">
+                    <strong>Emergency Contact:</strong> {(contract as OntarioLeaseContract).emergency_contact}
+                  </p>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
@@ -398,8 +459,15 @@ export function LeaseContractTemplate({
         <p>
           Both parties acknowledge that electronic signatures are legally binding and enforceable under applicable law.
         </p>
+        {isOntarioContract && (
+          <p className="mb-2 text-yellow-700">
+            This agreement complies with the Ontario Residential Tenancies Act, 2006 and Form 2229E requirements.
+          </p>
+        )}
         <p className="mt-2 font-mono text-gray-400">
-          Contract Template Version: {contract.contract_template_version} | Generated: {formatDate(contract.created_at)}
+          Contract Template Version: {contract.contract_template_version} 
+          {isOntarioContract && ` | Ontario Form: ${(contract as OntarioLeaseContract).form_version}`}
+          {' | Generated: ' + formatDate(contract.created_at)}
         </p>
       </div>
     </div>
