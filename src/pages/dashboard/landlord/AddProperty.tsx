@@ -1150,7 +1150,7 @@ export default function AddPropertyPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto py-6 max-w-4xl">
+      <div className="container mx-auto py-6 px-4">
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
           <Button variant="outline" size="sm" onClick={() => navigate("/dashboard/landlord/properties")}>

@@ -51,9 +51,9 @@ export function MobileNavigation() {
 
           <NavItem
             icon={<MessageSquare size={22} />}
-            label="Legal AI"
-            to="/dashboard/legal-assistant"
-            isActive={isActive("/dashboard/legal-assistant")}
+            label={role === "landlord" ? "Messages" : "Legal AI"}
+            to={role === "landlord" ? "/dashboard/chats" : "/dashboard/legal-assistant"}
+            isActive={role === "landlord" ? isActive("/dashboard/chats") : isActive("/dashboard/legal-assistant")}
           />
 
           <AddButton

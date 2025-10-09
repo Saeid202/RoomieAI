@@ -21,6 +21,7 @@ import { fetchProperties, Property } from "@/services/propertyService";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
+import { MessageButton } from "@/components/MessageButton";
 
 export default function RentalOptionsPage() {
   const navigate = useNavigate();
@@ -252,6 +253,11 @@ export default function RentalOptionsPage() {
                       View Details
                     </Link>
                   </Button>
+                  <MessageButton
+                    propertyId={property.id}
+                    landlordId={property.user_id}
+                    className="flex-1"
+                  />
                   <Button className="flex-1" variant="default" asChild>
                     <Link to={`/dashboard/rental-application/${property.id}`}>
                       Rent

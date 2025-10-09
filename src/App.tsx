@@ -26,6 +26,7 @@ import ListRoomPage from "@/pages/dashboard/ListRoom";
 import RentOpportunitiesPage from "@/pages/dashboard/RentOpportunities";
 import ChatsPage from "@/pages/dashboard/Chats";
 import RentSavingsPage from "@/pages/dashboard/RentSavings";
+import TailorAIPage from "@/pages/dashboard/TailorAI";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AdminHomePage from "@/pages/dashboard/admin/AdminHome";
 import PagesPage from "@/pages/dashboard/admin/Pages";
@@ -81,6 +82,7 @@ function AppRoutes() {
           <Route path="rent-opportunities" element={<RentOpportunitiesPage />} />
           <Route path="find-property" element={<FindPropertyPage />} />
           <Route path="chats" element={<ChatsPage />} />
+          <Route path="tailor-ai" element={<TailorAIPage />} />
           <Route path="rent-savings" element={<RentSavingsPage />} />
           <Route path="legal-assistant" element={<LegalAssistantPage />} />
           <Route path="list-room" element={<ListRoomPage />} />
@@ -124,6 +126,7 @@ function AppRoutes() {
         <Route path="rent-opportunities" element={<RentOpportunitiesPage />} />
         <Route path="find-property" element={<FindPropertyPage />} />
         <Route path="chats" element={<ChatsPage />} />
+        <Route path="tailor-ai" element={<TailorAIPage />} />
         <Route path="rent-savings" element={<RentSavingsPage />} />
         <Route path="legal-assistant" element={<LegalAssistantPage />} />
         <Route path="list-room" element={<ListRoomPage />} />

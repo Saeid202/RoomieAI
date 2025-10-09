@@ -11,6 +11,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { MessageButton } from "@/components/MessageButton";
 
 export default function PropertyDetailsPage() {
   const { id } = useParams<{ id: string }>();
@@ -501,6 +502,13 @@ export default function PropertyDetailsPage() {
               <Button variant="default" className="w-full" onClick={() => navigate(`/dashboard/rental-application/${id}`)}>
                 Apply to Rent
               </Button>
+            )}
+            {role !== 'landlord' && property && (
+              <MessageButton
+                propertyId={property.id}
+                landlordId={property.user_id}
+                className="w-full"
+              />
             )}
             <Button variant="outline" className="w-full" onClick={() => navigate(-1)}>
               {role === 'landlord' ? 'Back to properties' : 'Back to results'}

@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { 
   Home, Users, Building, Search, 
   Settings, Calendar, Clock, List, MapPin, Group, 
-  Briefcase, Flag, Scale, Sliders
+  Briefcase, Flag, Scale, Sliders, Bot
 } from "lucide-react";
 import { SidebarSimpleMenuItem } from "./SidebarSimpleMenuItem";
 
@@ -69,6 +69,13 @@ export function SeekerSidebar({ isActive }: SeekerSidebarProps) {
         label="LGBTQ+ Matching"
         to="/dashboard/lgbtq-matching" 
         isActive={isActive('/dashboard/lgbtq-matching')}
+      />
+      
+      <SidebarSimpleMenuItem 
+        icon={<Bot size={18} />} 
+        label="Tailor AI"
+        to="/dashboard/tailor-ai" 
+        isActive={isActive('/dashboard/tailor-ai')}
       />
       
       <SidebarSimpleMenuItem 

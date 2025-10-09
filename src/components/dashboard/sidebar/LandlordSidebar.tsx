@@ -1,6 +1,6 @@
 
 import { Link } from "react-router-dom";
-import { Building, Home, Settings, Users } from "lucide-react";
+import { Building, Home, Settings, Users, MessageCircle } from "lucide-react";
 import { SidebarSimpleMenuItem } from "./SidebarSimpleMenuItem";
 
 interface LandlordSidebarProps {
@@ -29,6 +29,13 @@ export function LandlordSidebar({ isActive }: LandlordSidebarProps) {
         label="Applications"
         to="/dashboard/landlord/applications" 
         isActive={isActive('/dashboard/landlord/applications')}
+      />
+      
+      <SidebarSimpleMenuItem 
+        icon={<MessageCircle size={18} />} 
+        label="Messages"
+        to="/dashboard/chats" 
+        isActive={isActive('/dashboard/chats')}
       />
       
       <SidebarSimpleMenuItem 

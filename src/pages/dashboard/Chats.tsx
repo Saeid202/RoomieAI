@@ -1,176 +1,108 @@
-
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Send } from "lucide-react";
-import { ChatMessageType } from "@/components/dashboard/recommendations/chat/ChatMessage";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
-import { Avatar } from "@/components/ui/avatar";
+import { ConversationList } from "@/components/ConversationList";
+import { ChatWindow } from "@/components/ChatWindow";
+import { ConversationWithMessages } from "@/types/messaging";
 import { useAuth } from "@/hooks/useAuth";
+import { useSearchParams } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function ChatsPage() {
   const { user } = useAuth();
-  const [messages, setMessages] = useState<ChatMessageType[]>([
-    {
-      id: "welcome-message",
-      content: "Hi there! I'm your AI assistant. How can I help you today?",
-      sender: "assistant", // Changed from "ai" to "assistant"
-      timestamp: new Date(),
-    },
-  ]);
-  const [messageInput, setMessageInput] = useState("");
-  const [isTyping, setIsTyping] = useState(false);
+  const [searchParams] = useSearchParams();
+  const [selectedConversation, setSelectedConversation] = useState<ConversationWithMessages | null>(null);
+  const [conversations, setConversations] = useState<ConversationWithMessages[]>([]);
 
-  const handleSendMessage = () => {
-    if (!messageInput.trim()) return;
-
-    // Add user message
-    const userMessage: ChatMessageType = {
-      id: `user-${Date.now()}`,
-      content: messageInput,
-      sender: "user",
-      timestamp: new Date(),
+  // Load conversations and auto-select if conversation ID is in URL
+  useEffect(() => {
+    const loadConversations = async () => {
+      try {
+        const { MessagingService } = await import('@/services/messagingService');
+        const data = await MessagingService.getConversations();
+        setConversations(data);
+        
+        // Auto-select conversation from URL
+        const conversationId = searchParams.get('conversation');
+        if (conversationId) {
+          const conversation = data.find(c => c.id === conversationId);
+          if (conversation) {
+            setSelectedConversation(conversation);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load conversations:', error);
+      }
     };
 
-    setMessages((prev) => [...prev, userMessage]);
-    setMessageInput("");
-    setIsTyping(true);
+    loadConversations();
+  }, [searchParams]);
 
-    // Simulate AI response
-    setTimeout(() => {
-      const aiResponse = getAIResponse(messageInput);
-      const aiMessage: ChatMessageType = {
-        id: `ai-${Date.now()}`,
-        content: aiResponse,
-        sender: "assistant", // Changed from "ai" to "assistant"
-        timestamp: new Date(),
-      };
-
-      setIsTyping(false);
-      setMessages((prev) => [...prev, aiMessage]);
-    }, 1000);
+  const handleSelectConversation = (conversation: ConversationWithMessages) => {
+    setSelectedConversation(conversation);
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
-    }
-  };
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-2">Please log in</h2>
+          <p className="text-muted-foreground">You need to be logged in to access messages.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="container mx-auto py-6">
-      <Card className="h-[calc(100vh-240px)] flex flex-col">
-        <CardHeader className="px-6 py-4 border-b">
-          <CardTitle>AI Legal Assistant</CardTitle>
-          <p className="text-sm text-muted-foreground">Ask questions about real estate law and housing regulations</p>
-        </CardHeader>
-        <CardContent className="flex-1 p-0 flex flex-col">
-          <ScrollArea className="flex-1 p-4">
-            <div className="space-y-4">
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex ${
-                    message.sender === "user" ? "justify-end" : "justify-start"
-                  }`}
-                >
-                  <div
-                    className={`flex items-start gap-2 max-w-[80%] ${
-                      message.sender === "user"
-                        ? "flex-row-reverse"
-                        : "flex-row"
-                    }`}
-                  >
-                    <Avatar className="h-8 w-8 mt-1">
-                      {message.sender === "user" ? (
-                        <div className="bg-blue-500 h-full w-full flex items-center justify-center text-white">
-                          {user?.email?.[0]?.toUpperCase() || "U"}
-                        </div>
-                      ) : (
-                        <div className="bg-green-500 h-full w-full flex items-center justify-center text-white">
-                          A
-                        </div>
-                      )}
-                    </Avatar>
-                    <div
-                      className={`rounded-lg px-4 py-2 ${
-                        message.sender === "user"
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-muted"
-                      }`}
-                    >
-                      <p>{message.content}</p>
-                      <p className="text-xs opacity-70 mt-1">
-                        {formatTime(message.timestamp)}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-              {isTyping && (
-                <div className="flex justify-start">
-                  <div className="flex items-start gap-2">
-                    <Avatar className="h-8 w-8 mt-1">
-                      <div className="bg-green-500 h-full w-full flex items-center justify-center text-white">
-                        A
-                      </div>
-                    </Avatar>
-                    <div className="rounded-lg px-4 py-2 bg-muted">
-                      <div className="typing-indicator">
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </ScrollArea>
-          <Separator />
-          <div className="p-4 flex gap-2">
-            <Input
-              placeholder="Type your message..."
-              value={messageInput}
-              onChange={(e) => setMessageInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              className="flex-1"
-            />
-            <Button onClick={handleSendMessage} size="icon">
-              <Send className="h-4 w-4" />
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+    <div className="container mx-auto py-6 px-4">
+      <h1 className="text-2xl font-bold mb-6">Messages</h1>
+      
+      {/* Debug Info */}
+      <div className="bg-gray-100 p-4 rounded mb-4 text-sm">
+        <p><strong>Debug Info:</strong></p>
+        <p>Conversations loaded: {conversations.length}</p>
+        <p>Selected conversation: {selectedConversation?.id || 'None'}</p>
+        <p>URL conversation param: {searchParams.get('conversation') || 'None'}</p>
+        <p>User: {user?.email || 'Not logged in'}</p>
+        <button 
+          className="bg-blue-500 text-white px-2 py-1 rounded mt-2"
+          onClick={async () => {
+            try {
+              console.log('Testing database connection...');
+              const { data, error } = await supabase
+                .from('conversations' as any)
+                .select('count')
+                .limit(1);
+              
+              if (error) {
+                console.error('Database test failed:', error);
+                alert('Database test failed: ' + error.message);
+              } else {
+                console.log('Database test successful:', data);
+                alert('Database test successful!');
+              }
+            } catch (err) {
+              console.error('Database test error:', err);
+              alert('Database test error: ' + err.message);
+            }
+          }}
+        >
+          Test Database Connection
+        </button>
+      </div>
+      
+      <div className="flex gap-6 h-[calc(100vh-8rem)]">
+        <div className="w-80 flex-shrink-0">
+          <ConversationList
+            selectedConversationId={selectedConversation?.id}
+            onSelectConversation={handleSelectConversation}
+          />
+        </div>
+        <div className="flex-1">
+          <ChatWindow
+            conversation={selectedConversation}
+            onBack={() => setSelectedConversation(null)}
+          />
+        </div>
+      </div>
     </div>
   );
-}
-
-function formatTime(date: Date): string {
-  return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-}
-
-function getAIResponse(message: string): string {
-  const lowerMessage = message.toLowerCase();
-  
-  if (lowerMessage.includes("hello") || lowerMessage.includes("hi")) {
-    return "Hello! How can I help you with your housing search today?";
-  }
-  
-  if (lowerMessage.includes("roommate")) {
-    return "Looking for a roommate? You can use our roommate recommendation system to find your perfect match based on lifestyle, preferences, and compatibility!";
-  }
-  
-  if (lowerMessage.includes("rent") || lowerMessage.includes("price")) {
-    return "Our system can help you find affordable rental options within your budget. You can filter by price range, location, and amenities on our Rent Opportunities page.";
-  }
-  
-  if (lowerMessage.includes("buy") || lowerMessage.includes("purchase")) {
-    return "Interested in buying a property? Our co-ownership feature helps you find like-minded individuals to share the investment with and make homeownership more accessible.";
-  }
-  
-  return "I'm here to help with legal questions about real estate, tenant rights, landlord responsibilities, lease agreements, security deposits, and housing regulations. What would you like to know?";
 }
