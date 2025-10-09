@@ -1473,7 +1473,7 @@ const OntarioLeaseForm2229E: React.FC<OntarioLeaseForm2229EProps> = ({
       </div>
 
       {/* Navigation */}
-      <div className="flex justify-between items-center bg-white border border-gray-200 rounded-lg p-6">
+      <div className="flex justify-between items-center flex-col-reverse gap-2 sm:flex-row bg-white border border-gray-200 rounded-lg p-6">
         <Button
           variant="outline"
           onClick={onCancel}
@@ -1486,10 +1486,10 @@ const OntarioLeaseForm2229E: React.FC<OntarioLeaseForm2229EProps> = ({
         <div className="flex items-center space-x-4">
           <Button
             onClick={handleSubmit}
-            className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700"
+            className="flex items-center bg-blue-600 hover:bg-blue-700 text-xs sm:text-sm md:text-base !gap-1 sm:!gap-2 md:!gap-4 !p-1 sm:!p-2 md:!p-4"
           >
             <Send className="w-4 h-4" />
-            <span>Complete Lease Agreement</span>
+            <span>Complete Lease Agreementt</span>
             </Button>
         </div>
       </div>
