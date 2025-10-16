@@ -5,6 +5,7 @@ import {
   Building,
   User,
   MessageSquare,
+  CreditCard,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useRole } from "@/contexts/RoleContext";
@@ -64,15 +65,6 @@ export function MobileNavigation() {
 
           {role === "seeker" && (
             <NavItem
-              icon={<Building size={22} />}
-              label="Rental Options"
-              to="/dashboard/rental-options"
-              isActive={isActive("/dashboard/rental-options")}
-            />
-          )}
-
-          {role === "seeker" && (
-            <NavItem
               icon={<Search size={22} />}
               label={"Matches"}
               to={"/dashboard/matches"}
@@ -122,7 +114,7 @@ function NavItem({
       </div>
       <span
         className={`
-        text-xs mt-1 font-medium transition-all duration-300
+        text-xs mt-1 font-bold transition-all duration-300
         ${isActive ? "text-primary" : ""}
       `}
       >
@@ -188,13 +180,13 @@ function AddButton({
             {/* Floating animation */}
             <div className="absolute inset-0 rounded-2xl bg-primary/20 animate-ping" />
           </Button>
-          <span className="text-xs font-medium text-foreground mt-2">Add</span>
+          <span className="text-xs font-bold text-foreground mt-2">Add</span>
         </div>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md mx-4 rounded-2xl">
         <div className="space-y-6 py-2">
           <div className="text-center">
-            <h3 className="font-bold text-xl text-foreground">
+            <h3 className="font-bold text-2xl text-foreground">
               Create a Listing
             </h3>
           </div>

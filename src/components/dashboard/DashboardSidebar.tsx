@@ -13,7 +13,6 @@ import {
   useSidebar
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { RoleToggle } from "./RoleToggle";
 import { useRole } from "@/contexts/RoleContext";
 import { SeekerSidebar } from "./sidebar/SeekerSidebar";
 import { LandlordSidebar } from "./sidebar/LandlordSidebar";
@@ -39,16 +38,14 @@ export function DashboardSidebar() {
 
   return (
     <>
-      <Sidebar className="h-screen fixed top-0 left-0 hidden md:flex">
-        <SidebarHeader className="flex items-center justify-center p-4">
-          <h2 className="text-xl font-bold">
-            {role === 'landlord' ? 'Landlord Portal' : 
-             role === 'admin' ? 'Admin Portal' :
-             'Roommate Finder'}
-          </h2>
-        </SidebarHeader>
-        
-        <RoleToggle />
+        <Sidebar className={`h-screen fixed top-0 left-0 ${isMobile ? (open ? 'flex' : 'hidden') : 'hidden md:flex'}`}>
+          <SidebarHeader className="flex items-center justify-center p-4">
+            <h2 className="text-2xl font-bold">
+              {role === 'landlord' ? 'Landlord Portal' :
+               role === 'admin' ? 'Admin Portal' :
+               'Roommate Finder'}
+            </h2>
+          </SidebarHeader>
         
         <SidebarSeparator />
         <SidebarContent>

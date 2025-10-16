@@ -21,10 +21,10 @@ export function SidebarSimpleMenuItem({
 }: SidebarSimpleMenuItemProps) {
   return (
     <SidebarMenuItem>
-      <SidebarMenuButton asChild isActive={isActive}>
+      <SidebarMenuButton asChild isActive={isActive} className="font-semibold">
         <Link to={to}>
           {icon}
-          <span>{label}</span>
+          <span className="font-semibold">{label}</span>
         </Link>
       </SidebarMenuButton>
     </SidebarMenuItem>

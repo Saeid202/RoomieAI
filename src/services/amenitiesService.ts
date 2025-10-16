@@ -146,6 +146,13 @@ export class AmenitiesService {
       };
     } catch (error) {
       console.error('Amenities detection error:', error);
+      console.error('Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        coordinates,
+        filters,
+        timestamp: new Date().toISOString()
+      });
+      
       return {
         amenities: [],
         totalFound: 0,

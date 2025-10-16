@@ -158,11 +158,93 @@ export default function AddPropertyPage() {
   const [formData, setFormData] = useState<PropertyFormData>(initialFormData);
   const [detailedDetection, setDetailedDetection] = useState<PropertyIntelligence | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [selectedFacility, setSelectedFacility] = useState<{name: string, coordinates: {lat: number, lng: number}, distance: number} | null>(null);
   const DRAFT_KEY = "add_property_draft_v1";
   const [editId, setEditId] = useState<string | null>(null);
   const [existingImageUrls, setExistingImageUrls] = useState<string[]>([]);
 
   const progress = (currentStep / steps.length) * 100;
+
+  // Handle facility click to show on map
+  const handleFacilityClick = (facilityName: string) => {
+    console.log("🔍 Facility clicked:", facilityName);
+    alert(`Facility clicked: ${facilityName}`); // Simple test to see if click works
+    console.log("📊 Detailed detection available:", !!detailedDetection);
+    console.log("📊 Detailed detection data:", detailedDetection);
+    
+    if (!detailedDetection?.detectedAmenities) {
+      console.log("❌ No detailed amenities available");
+      toast.warning("Facility details not available");
+      return;
+    }
+
+    // Extract facility name and distance from the display string
+    const match = facilityName.match(/^(.+?)\s*\((\d+)m\)$/);
+    if (!match) {
+      console.log("❌ Could not parse facility name:", facilityName);
+      toast.warning("Could not parse facility information");
+      return;
+    }
+
+    const [, name, distanceStr] = match;
+    const distance = parseInt(distanceStr);
+    console.log("🎯 Parsed facility:", { name, distance });
+
+    // Find the facility in our detailed detection data
+    const allFacilities = [
+      ...detailedDetection.detectedAmenities.metro,
+      ...detailedDetection.detectedAmenities.buses,
+      ...detailedDetection.detectedAmenities.banks,
+      ...detailedDetection.detectedAmenities.shoppingMalls,
+      ...detailedDetection.detectedAmenities.plazas,
+      ...detailedDetection.detectedAmenities.gyms,
+      ...detailedDetection.detectedAmenities.hospitals,
+      ...detailedDetection.detectedAmenities.schools,
+      ...detailedDetection.detectedAmenities.restaurants,
+      ...detailedDetection.detectedAmenities.parks
+    ];
+
+    console.log("🔍 All facilities found:", allFacilities.length);
+    console.log("🔍 Sample facilities:", allFacilities.slice(0, 3));
+
+    const facility = allFacilities.find(f => 
+      f.name.toLowerCase().includes(name.toLowerCase()) || 
+      name.toLowerCase().includes(f.name.toLowerCase())
+    );
+
+    console.log("🎯 Found facility:", facility);
+
+    if (facility && facility.coordinates) {
+      console.log("✅ Setting facility with coordinates:", facility.coordinates);
+      setSelectedFacility({
+        name: facility.name,
+        coordinates: facility.coordinates,
+        distance: facility.distance
+      });
+      toast.success(`📍 Showing ${facility.name} on map`);
+    } else {
+      console.log("⚠️ No exact coordinates found, trying estimation");
+      // If we can't find exact coordinates, estimate based on property location and distance
+      if (formData.latitude && formData.longitude) {
+        // Simple estimation - this is not precise but gives a general direction
+        const estimatedCoords = {
+          lat: formData.latitude + (Math.random() - 0.5) * 0.01,
+          lng: formData.longitude + (Math.random() - 0.5) * 0.01
+        };
+        
+        console.log("📍 Using estimated coordinates:", estimatedCoords);
+        setSelectedFacility({
+          name,
+          coordinates: estimatedCoords,
+          distance
+        });
+        toast.info(`📍 Showing estimated location for ${name}`);
+      } else {
+        console.log("❌ No property coordinates available");
+        toast.warning("Property coordinates not available for facility location");
+      }
+    }
+  };
 
   // Restore draft on mount
   useEffect(() => {
@@ -254,23 +336,98 @@ export default function AddPropertyPage() {
           console.log('🔄 Auto-checking for existing location amenities ...');
           toast.info("🔍 Auto-detecting amenities...");
           
+          // Try real-time amenities detection first
+          const detailedResult = await detailedAmenitiesService.getDetailedPropertyIntelligence(
+            { lat: formData.latitude!, lng: formData.longitude! },
+            formData.address || formData.propertyAddress,
+            formData.propertyType || ""
+          );
+          
+          if (detailedResult && detailedResult.detectedAmenities) {
+            // Convert detailed amenities to simple string array for display
+            const realAmenities: string[] = [];
+            
+            // Add specific facility names with distances
+            detailedResult.detectedAmenities.metro.forEach(metro => {
+              realAmenities.push(`${metro.name} (${Math.round(metro.distance)}m)`);
+            });
+            
+            detailedResult.detectedAmenities.buses.forEach(bus => {
+              realAmenities.push(`${bus.name} (${Math.round(bus.distance)}m)`);
+            });
+            
+            detailedResult.detectedAmenities.banks.forEach(bank => {
+              realAmenities.push(`${bank.name} (${Math.round(bank.distance)}m)`);
+            });
+            
+            detailedResult.detectedAmenities.shoppingMalls.forEach(mall => {
+              realAmenities.push(`${mall.name} (${Math.round(mall.distance)}m)`);
+            });
+            
+            detailedResult.detectedAmenities.plazas.forEach(plaza => {
+              realAmenities.push(`${plaza.name} (${Math.round(plaza.distance)}m)`);
+            });
+            
+            detailedResult.detectedAmenities.gyms.forEach(gym => {
+              realAmenities.push(`${gym.name} (${Math.round(gym.distance)}m)`);
+            });
+            
+            // Add new facility types
+            detailedResult.detectedAmenities.hospitals.forEach(hospital => {
+              realAmenities.push(`${hospital.name} (${Math.round(hospital.distance)}m)`);
+            });
+            
+            detailedResult.detectedAmenities.schools.forEach(school => {
+              realAmenities.push(`${school.name} (${Math.round(school.distance)}m)`);
+            });
+            
+            detailedResult.detectedAmenities.restaurants.forEach(restaurant => {
+              realAmenities.push(`${restaurant.name} (${Math.round(restaurant.distance)}m)`);
+            });
+            
+            detailedResult.detectedAmenities.parks.forEach(park => {
+              realAmenities.push(`${park.name} (${Math.round(park.distance)}m)`);
+            });
+            
+            if (realAmenities.length > 0) {
+              setFormData(prev => ({ ...prev, nearbyAmenities: realAmenities.slice(0, 8) }));
+              setDetailedDetection(detailedResult);
+              console.log("💾 Stored detailed detection (auto-detect):", detailedResult);
+              toast.success(`✅ Found ${realAmenities.length} real facilities nearby!`);
+            } else {
+              // Fallback to basic amenities
+              const addressDetails = {
+                city: formData.city,
+                state: formData.state,
+                address: formData.address
+              };
+              const defaultAmenities = generateDefaultLocationAmenities(addressDetails, { lat: formData.latitude!, lng: formData.longitude! });
+              setFormData(prev => ({ ...prev, nearbyAmenities: defaultAmenities }));
+              toast.warning("⚠️ Using basic amenities - no detailed facilities found");
+            }
+          } else {
+            // Fallback to basic amenities
+            const addressDetails = {
+              city: formData.city,
+              state: formData.state,
+              address: formData.address
+            };
+            const defaultAmenities = generateDefaultLocationAmenities(addressDetails, { lat: formData.latitude!, lng: formData.longitude! });
+            setFormData(prev => ({ ...prev, nearbyAmenities: defaultAmenities }));
+            toast.warning("⚠️ Using basic amenities - detailed detection unavailable");
+          }
+          
+        } catch (e) {
+          console.log('Auto-check failed, using fallback amenities...');
+          // Fallback to basic amenities
           const addressDetails = {
             city: formData.city,
             state: formData.state,
             address: formData.address
           };
-          
           const defaultAmenities = generateDefaultLocationAmenities(addressDetails, { lat: formData.latitude!, lng: formData.longitude! });
-          const combinedAmenities = defaultAmenities;
-          
-          console.log('🎯 Triggered from existing location:', combinedAmenities);
-          if (combinedAmenities.length > 0) {
-            setFormData(prev => ({ ...prev, nearbyAmenities: combinedAmenities }));
-            toast.success(`✅ Found ${combinedAmenities.length} nearby amenities automatically!`);
-          }
-          
-        } catch (e) {
-          console.log('Auto-check failed but that is okay...');
+          setFormData(prev => ({ ...prev, nearbyAmenities: defaultAmenities }));
+          toast.warning("⚠️ Using basic amenities - real-time detection failed");
         }
       }
     };
@@ -333,28 +490,123 @@ export default function AddPropertyPage() {
         setTimeout(async () => {
           try {
             console.log("🔍 Attempting amenities detection from photo...");
+            toast.info("📸 Analyzing photo location and detecting nearby amenities...");
+            
             // Extract location from first image (representative location)
             const locationData = await amenitiesService.extractLocationFromPhoto(firstImage);
             if (locationData?.coordinates) {
-              // Auto-detect nearby amenities
-              toast.info("📸 Analyzing photo location and detecting nearby amenities...");
-              const autoAmenities = await amenitiesService.autoDetectAmenities(locationData);
-              
-              if (autoAmenities.length > 0) {
-                toast.success(`✅ Auto-detected ${autoAmenities.length} nearby amenities!`);
+              // Try real-time amenities detection from photo location
+              try {
+                const detailedResult = await detailedAmenitiesService.getDetailedPropertyIntelligence(
+                  locationData.coordinates,
+                  "Photo Location",
+                  formData.propertyType || ""
+                );
                 
-                setFormData(prev => ({
-                  ...prev,
-                  nearbyAmenities: [...(prev.nearbyAmenities || []), ...autoAmenities].slice(0, 8), // Limit to most relevant
-                  // If no coordinates yet set, use photo location as fallback
-                  latitude: prev.latitude || locationData.coordinates?.lat,
-                  longitude: prev.longitude || locationData.coordinates?.lng,
-                }));
+                if (detailedResult && detailedResult.detectedAmenities) {
+                  // Convert detailed amenities to simple string array for display
+                  const realAmenities: string[] = [];
+                  
+                  // Add specific facility names with distances
+                  detailedResult.detectedAmenities.metro.forEach(metro => {
+                    realAmenities.push(`${metro.name} (${Math.round(metro.distance)}m)`);
+                  });
+                  
+                  detailedResult.detectedAmenities.buses.forEach(bus => {
+                    realAmenities.push(`${bus.name} (${Math.round(bus.distance)}m)`);
+                  });
+                  
+                  detailedResult.detectedAmenities.banks.forEach(bank => {
+                    realAmenities.push(`${bank.name} (${Math.round(bank.distance)}m)`);
+                  });
+                  
+                  detailedResult.detectedAmenities.shoppingMalls.forEach(mall => {
+                    realAmenities.push(`${mall.name} (${Math.round(mall.distance)}m)`);
+                  });
+                  
+                  detailedResult.detectedAmenities.plazas.forEach(plaza => {
+                    realAmenities.push(`${plaza.name} (${Math.round(plaza.distance)}m)`);
+                  });
+                  
+                  detailedResult.detectedAmenities.gyms.forEach(gym => {
+                    realAmenities.push(`${gym.name} (${Math.round(gym.distance)}m)`);
+                  });
+                  
+                  // Add new facility types
+                  detailedResult.detectedAmenities.hospitals.forEach(hospital => {
+                    realAmenities.push(`${hospital.name} (${Math.round(hospital.distance)}m)`);
+                  });
+                  
+                  detailedResult.detectedAmenities.schools.forEach(school => {
+                    realAmenities.push(`${school.name} (${Math.round(school.distance)}m)`);
+                  });
+                  
+                  detailedResult.detectedAmenities.restaurants.forEach(restaurant => {
+                    realAmenities.push(`${restaurant.name} (${Math.round(restaurant.distance)}m)`);
+                  });
+                  
+                  detailedResult.detectedAmenities.parks.forEach(park => {
+                    realAmenities.push(`${park.name} (${Math.round(park.distance)}m)`);
+                  });
+                  
+                  if (realAmenities.length > 0) {
+                    toast.success(`✅ Auto-detected ${realAmenities.length} real facilities from photo!`);
+                    
+                    setFormData(prev => ({
+                      ...prev,
+                      nearbyAmenities: [...(prev.nearbyAmenities || []), ...realAmenities].slice(0, 8), // Limit to most relevant
+                      // If no coordinates yet set, use photo location as fallback
+                      latitude: prev.latitude || locationData.coordinates?.lat,
+                      longitude: prev.longitude || locationData.coordinates?.lng,
+                    }));
+                    
+                    setDetailedDetection(detailedResult);
+                  } else {
+                    toast.info("📍 No facilities detected from photo location");
+                  }
+                } else {
+                  // Fallback to basic amenities detection
+                  const autoAmenities = await amenitiesService.autoDetectAmenities(locationData);
+                  
+                  if (autoAmenities.length > 0) {
+                    toast.success(`✅ Auto-detected ${autoAmenities.length} nearby amenities from photo!`);
+                    
+                    setFormData(prev => ({
+                      ...prev,
+                      nearbyAmenities: [...(prev.nearbyAmenities || []), ...autoAmenities].slice(0, 8), // Limit to most relevant
+                      // If no coordinates yet set, use photo location as fallback
+                      latitude: prev.latitude || locationData.coordinates?.lat,
+                      longitude: prev.longitude || locationData.coordinates?.lng,
+                    }));
+                  } else {
+                    toast.info("📍 No additional amenities detected from photo location");
+                  }
+                }
+              } catch (detailedError) {
+                console.warn('Detailed amenities detection from photo failed:', detailedError);
+                // Fallback to basic amenities detection
+                const autoAmenities = await amenitiesService.autoDetectAmenities(locationData);
+                
+                if (autoAmenities.length > 0) {
+                  toast.success(`✅ Auto-detected ${autoAmenities.length} nearby amenities from photo!`);
+                  
+                  setFormData(prev => ({
+                    ...prev,
+                    nearbyAmenities: [...(prev.nearbyAmenities || []), ...autoAmenities].slice(0, 8), // Limit to most relevant
+                    // If no coordinates yet set, use photo location as fallback
+                    latitude: prev.latitude || locationData.coordinates?.lat,
+                    longitude: prev.longitude || locationData.coordinates?.lng,
+                  }));
+                } else {
+                  toast.info("📍 No additional amenities detected from photo location");
+                }
               }
+            } else {
+              toast.warning("⚠️ Could not extract location from photo for amenities detection");
             }
           } catch (error) {
             console.warn('⚠️ Amenities auto-detection failed (non-blocking):', error);
-            // Don't show error toast since this is background processing
+            toast.warning("⚠️ Could not detect amenities from photo - please enter address manually");
           }
         }, 100);
         
@@ -536,56 +788,57 @@ export default function AddPropertyPage() {
     switch (currentStep) {
       case 1:
         return (
-          <div className="space-y-6">
+          <div className="space-y-10">
             {/* Listing Title - appears before Property Type */}
-            <div>
-              <Label htmlFor="listingTitle">Listing Title</Label>
+            <div className="space-y-4">
+              <Label htmlFor="listingTitle" className="text-lg font-bold text-gray-900">Listing Title</Label>
               <Input
                 id="listingTitle"
                 placeholder="e.g., Bright 2BR Condo near Metro"
                 value={formData.listingTitle}
                 onChange={(e) => handleInputChange("listingTitle", e.target.value)}
+                className="text-lg h-14 border-gray-400 focus:border-blue-600 focus:ring-blue-600 font-semibold"
               />
             </div>
 
-            <div>
-              <Label htmlFor="propertyType">**1.** Property Type</Label>
+            <div className="space-y-4">
+              <Label htmlFor="propertyType" className="text-lg font-bold text-gray-900">**1.** Property Type</Label>
               <Select value={formData.propertyType} onValueChange={(value) => handleInputChange("propertyType", value)}>
-                <SelectTrigger>
+                <SelectTrigger className="text-lg h-14 border-gray-400 focus:border-blue-600 focus:ring-blue-600 font-semibold">
                   <SelectValue placeholder="Select property type" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="studio">Studio Condominium</SelectItem>
-                  <SelectItem value="one-bed-room-share-cando">Shared One-Bedroom Condominium</SelectItem>
-                  <SelectItem value="two-bed-room-share-cando">Shared Two-Bedroom Condominium</SelectItem>
-                  <SelectItem value="entire-one-bed-room-cando">Entire One-Bedroom Condominium</SelectItem>
-                  <SelectItem value="entire-two-bed-room-cando">Entire Two-Bedroom Condominium</SelectItem>
-                  <SelectItem value="room-from-house">Private Room in a House</SelectItem>
-                  <SelectItem value="entire-house">Entire House</SelectItem>
-                  <SelectItem value="entire-basement">Entire Basement Unit</SelectItem>
-                  <SelectItem value="room-from-basement">Private Room in a Basement</SelectItem>
-                  <SelectItem value="shared-room">Shared Room (two occupants per room)</SelectItem>
+                <SelectContent className="font-semibold">
+                  <SelectItem value="studio" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">Studio Condominium</SelectItem>
+                  <SelectItem value="one-bed-room-share-cando" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">Shared One-Bedroom Condominium</SelectItem>
+                  <SelectItem value="two-bed-room-share-cando" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">Shared Two-Bedroom Condominium</SelectItem>
+                  <SelectItem value="entire-one-bed-room-cando" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">Entire One-Bedroom Condominium</SelectItem>
+                  <SelectItem value="entire-two-bed-room-cando" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">Entire Two-Bedroom Condominium</SelectItem>
+                  <SelectItem value="room-from-house" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">Private Room in a House</SelectItem>
+                  <SelectItem value="entire-house" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">Entire House</SelectItem>
+                  <SelectItem value="entire-basement" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">Entire Basement Unit</SelectItem>
+                  <SelectItem value="room-from-basement" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">Private Room in a Basement</SelectItem>
+                  <SelectItem value="shared-room" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">Shared Room (two occupants per room)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             {/* Photo Upload - Right after Property Type, before Address */}
-            <div>
-              <Label htmlFor="quick-photos">**1.5.** Property Photos</Label>
-              <div className="bg-blue-50 border-2 border-dashed border-blue-200 rounded-lg p-4">
+            <div className="space-y-3">
+              <Label htmlFor="quick-photos" className="text-base font-medium text-gray-700">**1.5.** Property Photos</Label>
+              <div className="bg-blue-50 border-2 border-dashed border-blue-200 rounded-xl p-6">
                 <div className="text-center">
-                  <Camera className="mx-auto h-8 w-8 text-blue-600 mb-2" />
-                  <p className="text-sm text-blue-700 mb-2">
+                  <Camera className="mx-auto h-10 w-10 text-blue-600 mb-3" />
+                  <p className="text-base text-blue-700 mb-4 font-medium">
                     📸 Upload photos of your {formData.propertyType ? formData.propertyType.replace(/-/g, ' ') : 'property'} 
                     {formData.propertyType ? ' - this helps verify the property type selected above' : ''}
                   </p>
                   <Button 
                     variant="outline" 
-                    size="sm"
+                    size="lg"
                     onClick={() => document.getElementById('photo-upload-early')?.click()}
-                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                    className="bg-blue-600 hover:bg-blue-700 text-white border-0 shadow-md hover:shadow-lg transition-all duration-200"
                   >
-                    <Camera className="h-4 w-4 mr-1" />
+                    <Camera className="h-5 w-5 mr-2" />
                     Upload Property Photos
                   </Button>
                   <input
@@ -598,35 +851,35 @@ export default function AddPropertyPage() {
                   />
                   
                   {formData.images.length > 0 && (
-                    <div className="mt-3">
-                      <p className="text-xs text-blue-600 mb-2 font-medium">
+                    <div className="mt-6">
+                      <p className="text-base text-blue-700 mb-4 font-bold">
                         ✓ Uploaded {formData.images.length} photo(s)
                       </p>
-                      <div className="flex gap-2 flex-wrap justify-center mt-2">
+                      <div className="flex gap-4 flex-wrap justify-center mt-4">
                         {formData.images.slice(0, 6).map((image, index) => (
                           <div key={index} className="relative group">
                             <img
                               src={URL.createObjectURL(image)}
                               alt={`Property photo ${index + 1}`}
-                              className="w-16 h-12 object-cover rounded shadow-sm border"
+                              className="w-24 h-20 object-cover rounded-lg shadow-lg border-2 border-white"
                             />
                             <Button
                               variant="destructive"
                               size="sm"
-                              className="absolute -top-2 -right-2 h-5 w-5 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                              className="absolute -top-3 -right-3 h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
                               onClick={() => removeImage(index)}
                             >
-                              <X className="h-3 w-3" />
+                              <X className="h-4 w-4" />
                             </Button>
             </div>
                         ))}
                         {formData.images.length > 6 && (
-                          <div className="w-16 h-12 bg-blue-100 rounded flex items-center justify-center text-xs text-blue-700 font-bold border">
+                          <div className="w-24 h-20 bg-blue-100 rounded-lg flex items-center justify-center text-base text-blue-700 font-bold border-2 border-white shadow-lg">
                             +{formData.images.length - 6}
           </div>
                         )}
             </div>
-                      <p className="text-xs text-blue-600 mt-1">
+                      <p className="text-base text-blue-700 mt-3 font-bold">
                         💡 You'll review your listing in the next step before submitting.
                       </p>
               </div>
@@ -673,41 +926,119 @@ export default function AddPropertyPage() {
                       if (coordinates && typeof coordinates.lat === 'number' && typeof coordinates.lng === 'number' && !isNaN(coordinates.lat) && !isNaN(coordinates.lng)) {
                         console.log("Valid coordinates, proceeding with amenities");
                         
-                        // Try default amenities first - this is safest
+                        // Show loading state immediately
+                        toast.info("🔍 Detecting nearby facilities...");
+                        
+                        // Clear any cached generic amenities first
+                        setFormData((prev) => ({
+                          ...prev,
+                          nearbyAmenities: []
+                        }));
+                        
+                        // Clear cache to ensure fresh data
+                        detailedAmenitiesService.clearCache();
+                        
+                        // Try real-time amenities detection first
                         try {
-                          const defaultAmenities = generateDefaultLocationAmenities(addressDetails, coordinates);
+                          console.log("🔍 Starting real-time amenities detection...");
+                          console.log("Coordinates:", coordinates);
+                          console.log("Address:", suggestion.place_name || suggestion.text);
                           
-                          // Set default amenities immediately
+                          const detailedResult = await detailedAmenitiesService.getDetailedPropertyIntelligence(
+                            coordinates,
+                            suggestion.place_name || suggestion.text,
+                            formData.propertyType || ""
+                          );
+                          
+                          console.log("📊 Detailed result:", detailedResult);
+                          
+                          if (detailedResult && detailedResult.detectedAmenities) {
+                            console.log("✅ Real-time amenities detected");
+                            console.log("Detected amenities:", detailedResult.detectedAmenities);
+                            
+                            // Convert detailed amenities to simple string array for display
+                            const realAmenities: string[] = [];
+                            
+                            // Add specific facility names with distances
+                            detailedResult.detectedAmenities.metro.forEach(metro => {
+                              realAmenities.push(`${metro.name} (${Math.round(metro.distance)}m)`);
+                            });
+                            
+                            detailedResult.detectedAmenities.buses.forEach(bus => {
+                              realAmenities.push(`${bus.name} (${Math.round(bus.distance)}m)`);
+                            });
+                            
+                            detailedResult.detectedAmenities.banks.forEach(bank => {
+                              realAmenities.push(`${bank.name} (${Math.round(bank.distance)}m)`);
+                            });
+                            
+                            detailedResult.detectedAmenities.shoppingMalls.forEach(mall => {
+                              realAmenities.push(`${mall.name} (${Math.round(mall.distance)}m)`);
+                            });
+                            
+                            detailedResult.detectedAmenities.plazas.forEach(plaza => {
+                              realAmenities.push(`${plaza.name} (${Math.round(plaza.distance)}m)`);
+                            });
+                            
+                            detailedResult.detectedAmenities.gyms.forEach(gym => {
+                              realAmenities.push(`${gym.name} (${Math.round(gym.distance)}m)`);
+                            });
+                            
+                            // Add new facility types
+                            detailedResult.detectedAmenities.hospitals.forEach(hospital => {
+                              realAmenities.push(`${hospital.name} (${Math.round(hospital.distance)}m)`);
+                            });
+                            
+                            detailedResult.detectedAmenities.schools.forEach(school => {
+                              realAmenities.push(`${school.name} (${Math.round(school.distance)}m)`);
+                            });
+                            
+                            detailedResult.detectedAmenities.restaurants.forEach(restaurant => {
+                              realAmenities.push(`${restaurant.name} (${Math.round(restaurant.distance)}m)`);
+                            });
+                            
+                            detailedResult.detectedAmenities.parks.forEach(park => {
+                              realAmenities.push(`${park.name} (${Math.round(park.distance)}m)`);
+                            });
+                            
+                            console.log("🎯 Real amenities array:", realAmenities);
+                            
+                            // Set real-time amenities
+                            setFormData((prev) => ({
+                              ...prev,
+                              nearbyAmenities: realAmenities.slice(0, 8) // Limit to 8 most relevant
+                            }));
+                            
+                            // Store detailed detection for potential future use
+                            setDetailedDetection(detailedResult);
+                            console.log("💾 Stored detailed detection:", detailedResult);
+                            
+                            if (realAmenities.length > 0) {
+                              toast.success(`✅ Found ${realAmenities.length} real facilities nearby!`);
+                            } else {
+                              toast.info("📍 No facilities detected in this area");
+                            }
+                          } else {
+                            console.log("❌ No detailed amenities detected, falling back to generic");
+                            // Fallback to basic amenities if detailed detection fails
+                            const defaultAmenities = generateDefaultLocationAmenities(addressDetails, coordinates);
+                            setFormData((prev) => ({
+                              ...prev,
+                              nearbyAmenities: defaultAmenities
+                            }));
+                            toast.warning("⚠️ Using basic amenities - detailed detection unavailable");
+                          }
+                        } catch (amenitiesError) {
+                          console.error("❌ Real-time amenities detection failed:", amenitiesError);
+                          console.error("Error details:", amenitiesError);
+                          
+                          // Fallback to basic amenities
+                          const defaultAmenities = generateDefaultLocationAmenities(addressDetails, coordinates);
                           setFormData((prev) => ({
                             ...prev,
                             nearbyAmenities: defaultAmenities
                           }));
-                          
-                          toast.success(`✅ Found ${defaultAmenities.length} amenities nearby!`);
-                          
-                          // Try enhanced amenities asynchronously (don't wait)
-                          setTimeout(async () => {
-                            try {
-                              console.log("🔍 Attempting enhanced amenities detection...");
-                              const detailedResult = await detailedAmenitiesService.getDetailedPropertyIntelligence(
-                                coordinates,
-                                suggestion.place_name || suggestion.text,
-                                formData.propertyType || ""
-                              );
-                              
-                              if (detailedResult && detailedResult.detectedAmenities) {
-                                console.log("✅ Enhanced amenities detected");
-                                // Process enhanced results safely in background
-                                setDetailedDetection(detailedResult);
-                              }
-                            } catch (e) {
-                              console.warn("⚠️ Enhanced amenities failed in background (non-blocking):", e);
-                              // Don't show error since this is background processing
-                            }
-                          }, 100);
-                          
-                        } catch (amenitiesError) {
-                          console.warn("Default amenities generation failed:", amenitiesError);
+                          toast.warning("⚠️ Using basic amenities - real-time detection failed");
                         }
                       } else {
                         console.log("No valid coordinates for amenities");
@@ -741,27 +1072,29 @@ export default function AddPropertyPage() {
 
             {/* Show auto-detected amenities right after address selection */}
             {formData.nearbyAmenities && formData.nearbyAmenities.length > 0 && (
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <div className="flex items-center mb-2">
-                  <MapPin className="h-4 w-4 text-green-600 mr-2" />
-                  <Label className="text-green-700 font-medium">✨ Auto-Detected Nearby Facilities</Label>
+              <div className="bg-green-50 border border-green-300 rounded-xl p-6">
+                <div className="flex items-center mb-4">
+                  <MapPin className="h-6 w-6 text-green-700 mr-3" />
+                  <Label className="text-green-800 font-bold text-lg">✨ Auto-Detected Nearby Facilities</Label>
               </div>
-                <div className="flex flex-wrap gap-2 my-2">
+                <div className="flex flex-wrap gap-3 my-4">
                   {formData.nearbyAmenities.slice(0, 8).map((amenity, index) => (
                     <span 
                       key={index}
-                      className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium"
+                      onClick={() => handleFacilityClick(amenity)}
+                      className="bg-green-100 text-green-900 px-4 py-3 rounded-full text-base font-bold shadow-md cursor-pointer hover:bg-green-200 hover:shadow-lg transition-all duration-200 transform hover:scale-105"
+                      title="Click to view on map"
                     >
                       {amenity}
                     </span>
                   ))}
                   {formData.nearbyAmenities.length > 8 && (
-                    <span className="bg-green-200 text-green-700 px-3 py-1 rounded-full text-sm font-medium">
+                    <span className="bg-green-200 text-green-800 px-4 py-3 rounded-full text-base font-bold shadow-md">
                       +{formData.nearbyAmenities.length - 8} more
                     </span>
                   )}
               </div>
-                <p className="text-xs text-green-600">
+                <p className="text-base text-green-700 font-bold">
                   💡 Enhanced with metro lines, bus routes, bank names, mall names, and condominium amenities
                 </p>
             </div>
@@ -769,34 +1102,57 @@ export default function AddPropertyPage() {
 
             {/* Show map immediately after address selection in Step 1 */}
             {formData.latitude && formData.longitude && (
-              <div className="space-y-2">
-                <Label>📍 Property Location Preview</Label>
+              <div className="space-y-4">
+                <Label className="text-lg font-bold text-gray-900">📍 Property Location Preview</Label>
                 <PropertyMap
                   center={{ lat: formData.latitude, lng: formData.longitude }}
                   selectedAddress={formData.propertyAddress || 
                     `${formData.address}, ${formData.city}, ${formData.state} ${formData.zipCode}`.trim()}
-                  className="w-full h-64 rounded-xl overflow-hidden border border-blue-200 shadow-lg"
+                  className="w-full h-80 rounded-xl overflow-hidden border border-blue-300 shadow-xl"
+                  facilityMarker={selectedFacility}
                 />
-                <p className="text-xs text-blue-600 mt-1 flex items-center">
-                  <MapPin className="h-3 w-3 mr-1" />
+                <p className="text-base text-blue-700 mt-3 flex items-center font-bold">
+                  <MapPin className="h-5 w-5 mr-2" />
                   Address location verified and ready
                 </p>
+                {selectedFacility && (
+                  <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <MapPin className="h-5 w-5 text-green-600 mr-2" />
+                        <span className="text-green-800 font-medium">
+                          Showing: {selectedFacility.name} ({selectedFacility.distance}m)
+                        </span>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setSelectedFacility(null)}
+                        className="text-green-600 border-green-300 hover:bg-green-100"
+                      >
+                        Clear
+                      </Button>
+                    </div>
+                  </div>
+                )}
             </div>
             )}
 
             {/* NEW: Move Nearby Amenities to Step 1 */}
-            <div>
-              <Label>**3.** Nearby Amenities</Label>
+            <div className="space-y-4">
+              <Label className="text-lg font-bold text-gray-900">**3.** Nearby Amenities</Label>
               {formData.nearbyAmenities && formData.nearbyAmenities.length > 0 && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
-                  <p className="text-sm text-blue-700 font-medium mb-2">
+                <div className="bg-blue-50 border border-blue-300 rounded-xl p-5 mb-5">
+                  <p className="text-lg text-blue-800 font-bold mb-4">
                     ✨ Enhanced Amenities based on location:
                   </p>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-3">
                     {formData.nearbyAmenities.map((amenity, index) => (
                       <span 
                         key={index}
-                        className="bg-blue-100 text-blue-800 px-2 py-1 rounded-md text-xs font-medium"
+                        onClick={() => handleFacilityClick(amenity)}
+                        className="bg-blue-100 text-blue-900 px-4 py-3 rounded-lg text-base font-bold shadow-md cursor-pointer hover:bg-blue-200 hover:shadow-lg transition-all duration-200 transform hover:scale-105"
+                        title="Click to view on map"
                       >
                         {amenity}
                       </span>
@@ -804,21 +1160,21 @@ export default function AddPropertyPage() {
                   </div>
             </div>
               )}
-              <div className="grid grid-cols-2 gap-3 mt-2">
+              <div className="grid grid-cols-3 gap-5 mt-5">
                 {[
                   "Shopping Centers", "Restaurants", "Schools", "Hospitals",
                   "Parks", "Gyms", "Banks", "Pharmacies"
                 ].map((amenity) => (
-                  <div key={amenity} className="flex items-center space-x-2">
+                  <div key={amenity} className="flex items-center space-x-4">
                     <Checkbox
                       id={`nearby-${amenity}`}
                       checked={formData.nearbyAmenities?.includes(amenity) || false}
                       onCheckedChange={(checked) => handleArrayChange("nearbyAmenities", amenity, checked as boolean)}
                     />
-                    <Label htmlFor={`nearby-${amenity}`} className="text-sm">
+                    <Label htmlFor={`nearby-${amenity}`} className="text-base font-bold text-gray-900">
                       {amenity}
                       {formData.nearbyAmenities?.includes(amenity) && (
-                        <span className="text-blue-600 text-xs ml-1">(auto-detected)</span>
+                        <span className="text-blue-700 text-sm ml-2 font-bold">(auto-detected)</span>
                       )}
                     </Label>
                   </div>
@@ -827,87 +1183,87 @@ export default function AddPropertyPage() {
             </div>
 
             {/* NEW: Property Amenities & Features section - moved from Step 2 */}
-            <div className="border-t pt-6 mt-6">
-              <h3 className="text-lg font-medium mb-4">🏠 Property Amenities & Features</h3>
+            <div className="border-t pt-10 mt-10">
+              <h3 className="text-2xl font-bold mb-8 text-gray-900">🏠 Property Amenities & Features</h3>
 
-            <div>
-                <Label>**4.** Property Amenities</Label>
-              <div className="grid grid-cols-2 gap-3 mt-2">
+            <div className="space-y-4">
+                <Label className="text-lg font-bold text-gray-900">**4.** Property Amenities</Label>
+              <div className="grid grid-cols-3 gap-5 mt-5">
                 {[
                   "Air Conditioning", "Heating", "Dishwasher", "Washer/Dryer",
                   "Balcony/Patio", "Hardwood Floors", "Carpet", "Fireplace",
                   "Swimming Pool", "Gym/Fitness Center", "Elevator", "Garden"
                 ].map((amenity) => (
-                  <div key={amenity} className="flex items-center space-x-2">
+                  <div key={amenity} className="flex items-center space-x-4">
                     <Checkbox
                       id={amenity}
                       checked={formData.amenities.includes(amenity)}
                       onCheckedChange={(checked) => handleArrayChange("amenities", amenity, checked as boolean)}
                     />
-                    <Label htmlFor={amenity} className="text-sm">{amenity}</Label>
+                    <Label htmlFor={amenity} className="text-base font-bold text-gray-900">{amenity}</Label>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div>
-                <Label htmlFor="parking">**5.** Parking</Label>
+            <div className="space-y-4">
+                <Label htmlFor="parking" className="text-lg font-bold text-gray-900">**5.** Parking</Label>
               <Select value={formData.parking} onValueChange={(value) => handleInputChange("parking", value)}>
-                <SelectTrigger>
+                <SelectTrigger className="text-lg h-14 border-gray-400 focus:border-blue-600 focus:ring-blue-600 font-semibold">
                   <SelectValue placeholder="Select parking option" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">No Parking</SelectItem>
-                  <SelectItem value="street">Street Parking</SelectItem>
-                  <SelectItem value="driveway">Driveway</SelectItem>
-                  <SelectItem value="garage">Garage</SelectItem>
-                  <SelectItem value="covered">Covered Parking</SelectItem>
+                <SelectContent className="font-semibold">
+                  <SelectItem value="none" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">No Parking</SelectItem>
+                  <SelectItem value="street" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">Street Parking</SelectItem>
+                  <SelectItem value="driveway" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">Driveway</SelectItem>
+                  <SelectItem value="garage" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">Garage</SelectItem>
+                  <SelectItem value="covered" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">Covered Parking</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            <div>
-                <Label htmlFor="petPolicy">**6.** Pet Policy</Label>
+            <div className="space-y-4">
+                <Label htmlFor="petPolicy" className="text-lg font-bold text-gray-900">**6.** Pet Policy</Label>
               <Select value={formData.petPolicy} onValueChange={(value) => handleInputChange("petPolicy", value)}>
-                <SelectTrigger>
+                <SelectTrigger className="text-lg h-14 border-gray-400 focus:border-blue-600 focus:ring-blue-600 font-semibold">
                   <SelectValue placeholder="Select pet policy" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="no-pets">No Pets</SelectItem>
-                  <SelectItem value="cats-only">Cats Only</SelectItem>
-                  <SelectItem value="dogs-only">Dogs Only</SelectItem>
-                  <SelectItem value="cats-dogs">Cats & Dogs</SelectItem>
-                  <SelectItem value="small-pets">Small Pets Only</SelectItem>
-                  <SelectItem value="all-pets">All Pets Welcome</SelectItem>
+                <SelectContent className="font-semibold">
+                  <SelectItem value="no-pets" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">No Pets</SelectItem>
+                  <SelectItem value="cats-only" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">Cats Only</SelectItem>
+                  <SelectItem value="dogs-only" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">Dogs Only</SelectItem>
+                  <SelectItem value="cats-dogs" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">Cats & Dogs</SelectItem>
+                  <SelectItem value="small-pets" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">Small Pets Only</SelectItem>
+                  <SelectItem value="all-pets" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">All Pets Welcome</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            <div>
-                <Label>**7.** Utilities Included</Label>
-              <div className="grid grid-cols-2 gap-3 mt-2">
+            <div className="space-y-4">
+                <Label className="text-lg font-bold text-gray-900">**7.** Utilities Included</Label>
+              <div className="grid grid-cols-3 gap-5 mt-5">
                 {["Water", "Electricity", "Gas", "Internet", "Cable TV", "Trash"].map((utility) => (
-                  <div key={utility} className="flex items-center space-x-2">
+                  <div key={utility} className="flex items-center space-x-4">
                     <Checkbox
                       id={utility}
                       checked={formData.utilitiesIncluded.includes(utility)}
                       onCheckedChange={(checked) => handleArrayChange("utilitiesIncluded", utility, checked as boolean)}
                     />
-                    <Label htmlFor={utility} className="text-sm">{utility}</Label>
+                    <Label htmlFor={utility} className="text-base font-bold text-gray-900">{utility}</Label>
                   </div>
                 ))}
               </div>
             </div>
           </div>
 
-            <div>
-              <Label htmlFor="description">**8.** Property Description</Label>
+            <div className="space-y-4">
+              <Label htmlFor="description" className="text-lg font-bold text-gray-900">**8.** Property Description</Label>
               {formData.nearbyAmenities && formData.nearbyAmenities.length > 0 && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
-                  <p className="text-sm text-blue-700 font-medium mb-2">
+                <div className="bg-blue-50 border border-blue-300 rounded-xl p-5 mb-5">
+                  <p className="text-lg text-blue-800 font-bold mb-4">
                     🤖 AI-Enhanced Description Suggestion:
                   </p>
-                  <div className="text-sm text-blue-600 bg-blue-100 p-2 rounded">
+                  <div className="text-base text-blue-700 bg-blue-100 p-4 rounded-lg font-semibold">
                     This property is conveniently located near {formData.nearbyAmenities.slice(0, 3).join(', ')}
                     {formData.nearbyAmenities.length > 3 && ` and ${formData.nearbyAmenities.length - 3} other nearby facilities`}, 
                     making it ideal for residents who value accessibility to essential services.
@@ -924,7 +1280,7 @@ export default function AddPropertyPage() {
                         description: prev.description + (prev.description ? ' ' : '') + autoDescription
                       }));
                     }}
-                    className="text-xs text-blue-600 hover:text-blue-800 mt-1 underline cursor-pointer"
+                    className="text-base text-blue-700 hover:text-blue-900 mt-3 underline cursor-pointer font-bold"
                   >
                     + Insert into description
                   </button>
@@ -935,73 +1291,76 @@ export default function AddPropertyPage() {
                 placeholder="Describe your property, highlighting key features and what makes it special..."
                 value={formData.description}
                 onChange={(e) => handleInputChange("description", e.target.value)}
-                className="min-h-[120px]"
+                className="min-h-[160px] text-lg border-gray-400 focus:border-blue-600 focus:ring-blue-600 font-semibold"
               />
             </div>
 
             {/* NEW: Rental Information moved from Step 2 to Basic Information */}
-            <div className="border-t pt-6 mt-6">
-              <h3 className="text-lg font-medium mb-4">💵 Rental Information</h3>
+            <div className="border-t pt-10 mt-10">
+              <h3 className="text-2xl font-bold mb-8 text-gray-900">💵 Rental Information</h3>
               
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="monthlyRent">**9.** Monthly Rent ($)</Label>
+              <div className="grid grid-cols-2 gap-8">
+                <div className="space-y-4">
+                  <Label htmlFor="monthlyRent" className="text-lg font-bold text-gray-900">**9.** Monthly Rent ($)</Label>
                   <Input
                     id="monthlyRent"
                     placeholder="2500"
                     type="number"
                     value={formData.monthlyRent}
                     onChange={(e) => handleInputChange("monthlyRent", e.target.value)}
+                    className="text-lg h-14 border-gray-400 focus:border-blue-600 focus:ring-blue-600 font-semibold"
                   />
                 </div>
-                <div>
-                  <Label htmlFor="securityDeposit">**10.** Security Deposit ($)</Label>
+                <div className="space-y-4">
+                  <Label htmlFor="securityDeposit" className="text-lg font-bold text-gray-900">**10.** Security Deposit ($)</Label>
                   <Input
                     id="securityDeposit"
                     placeholder="2500"
                     type="number"
                     value={formData.securityDeposit}
                     onChange={(e) => handleInputChange("securityDeposit", e.target.value)}
+                    className="text-lg h-14 border-gray-400 focus:border-blue-600 focus:ring-blue-600 font-semibold"
                   />
                 </div>
               </div>
 
-              <div>
-                <Label htmlFor="leaseTerms">**11.** Lease Terms</Label>
+              <div className="space-y-4 mt-8">
+                <Label htmlFor="leaseTerms" className="text-lg font-bold text-gray-900">**11.** Lease Terms</Label>
                 <Select value={formData.leaseTerms} onValueChange={(value) => handleInputChange("leaseTerms", value)}>
-                  <SelectTrigger>
+                  <SelectTrigger className="text-lg h-14 border-gray-400 focus:border-blue-600 focus:ring-blue-600 font-semibold">
                     <SelectValue placeholder="Select lease terms" />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="month-to-month">Month-to-Month</SelectItem>
-                    <SelectItem value="6-months">6 Months</SelectItem>
-                    <SelectItem value="1-year">1 Year</SelectItem>
-                    <SelectItem value="2-years">2 Years</SelectItem>
-                    <SelectItem value="flexible">Flexible</SelectItem>
+                  <SelectContent className="font-semibold">
+                    <SelectItem value="month-to-month" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">Month-to-Month</SelectItem>
+                    <SelectItem value="6-months" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">6 Months</SelectItem>
+                    <SelectItem value="1-year" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">1 Year</SelectItem>
+                    <SelectItem value="2-years" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">2 Years</SelectItem>
+                    <SelectItem value="flexible" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">Flexible</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="availableDate">**12.** Available Date</Label>
+              <div className="grid grid-cols-2 gap-8 mt-8">
+                <div className="space-y-4">
+                  <Label htmlFor="availableDate" className="text-lg font-bold text-gray-900">**12.** Available Date</Label>
                   <Input
                     id="availableDate"
                     type="date"
                     value={formData.availableDate}
                     onChange={(e) => handleInputChange("availableDate", e.target.value)}
+                    className="text-lg h-14 border-gray-400 focus:border-blue-600 focus:ring-blue-600 font-semibold"
                   />
                 </div>
-                <div>
-                  <Label htmlFor="furnished">**13.** Furnishing</Label>
+                <div className="space-y-4">
+                  <Label htmlFor="furnished" className="text-lg font-bold text-gray-900">**13.** Furnishing</Label>
                   <Select value={formData.furnished} onValueChange={(value) => handleInputChange("furnished", value)}>
-                    <SelectTrigger>
+                    <SelectTrigger className="text-lg h-14 border-gray-400 focus:border-blue-600 focus:ring-blue-600 font-semibold">
                       <SelectValue placeholder="Select" />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="furnished">Fully Furnished</SelectItem>
-                      <SelectItem value="semi-furnished">Semi-Furnished</SelectItem>
-                      <SelectItem value="unfurnished">Unfurnished</SelectItem>
+                    <SelectContent className="font-semibold">
+                      <SelectItem value="furnished" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">Fully Furnished</SelectItem>
+                      <SelectItem value="semi-furnished" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">Semi-Furnished</SelectItem>
+                      <SelectItem value="unfurnished" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">Unfurnished</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -1009,34 +1368,34 @@ export default function AddPropertyPage() {
             </div>
 
             {/* NEW: Consolidated Additional Info fields from Step 2 with dynamic role-based text */}
-            <div className="border-t pt-6 mt-6">
-              <h3 className="text-lg font-medium mb-4">📝 Additional Information</h3>
+            <div className="border-t pt-10 mt-10">
+              <h3 className="text-2xl font-bold mb-8 text-gray-900">📝 Additional Information</h3>
               
-              <div>
-                <Label htmlFor="roommatePreference">{dynamicText.label}</Label>
+              <div className="space-y-4">
+                <Label htmlFor="roommatePreference" className="text-lg font-bold text-gray-900">{dynamicText.label}</Label>
               <Select value={formData.roommatePreference} onValueChange={(value) => handleInputChange("roommatePreference", value)}>
-                <SelectTrigger>
+                <SelectTrigger className="text-lg h-14 border-gray-400 focus:border-blue-600 focus:ring-blue-600 font-semibold">
                     <SelectValue placeholder={dynamicText.placeholder} />
                 </SelectTrigger>
-                <SelectContent>
-                    <SelectItem value="any">{dynamicText.noPreferenceText}</SelectItem>
-                  <SelectItem value="students">Students Only</SelectItem>
-                    <SelectItem value="professionals">Working Professionals Only</SelectItem>
-                    <SelectItem value="same-gender">Same Gender Preference</SelectItem>
-                    <SelectItem value="non-smokers">Non-Smokers Only</SelectItem>
-                    <SelectItem value="quiet">Quiet Lifestyle Required</SelectItem>
+                <SelectContent className="font-semibold">
+                    <SelectItem value="any" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">{dynamicText.noPreferenceText}</SelectItem>
+                  <SelectItem value="students" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">Students Only</SelectItem>
+                    <SelectItem value="professionals" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">Working Professionals Only</SelectItem>
+                    <SelectItem value="same-gender" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">Same Gender Preference</SelectItem>
+                    <SelectItem value="non-smokers" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">Non-Smokers Only</SelectItem>
+                    <SelectItem value="quiet" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">Quiet Lifestyle Required</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            <div>
-                <Label htmlFor="specialInstructions">**15.** Special Instructions or Requirements</Label>
+            <div className="space-y-4 mt-8">
+                <Label htmlFor="specialInstructions" className="text-lg font-bold text-gray-900">**15.** Special Instructions or Requirements</Label>
               <Textarea
                 id="specialInstructions"
                 placeholder="Any special requirements, rules, or instructions for potential tenants..."
                 value={formData.specialInstructions}
                 onChange={(e) => handleInputChange("specialInstructions", e.target.value)}
-                className="min-h-[100px]"
+                className="min-h-[140px] text-lg border-gray-400 focus:border-blue-600 focus:ring-blue-600 font-semibold"
               />
             </div>
             </div>
@@ -1064,6 +1423,7 @@ export default function AddPropertyPage() {
                           center={{ lat: formData.latitude, lng: formData.longitude }}
                           selectedAddress={formData.propertyAddress || `${formData.address}, ${formData.city}, ${formData.state} ${formData.zipCode}`}
                           className="w-full h-48 rounded-md border"
+                          facilityMarker={selectedFacility}
                         />
                       </div>
                     )}
@@ -1149,91 +1509,92 @@ export default function AddPropertyPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto py-6 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+      <div className="w-full py-8 px-6">
         {/* Header */}
-        <div className="flex items-center gap-4 mb-6">
-          <Button variant="outline" size="sm" onClick={() => navigate("/dashboard/landlord/properties")}>
+        <div className="flex items-center gap-6 mb-8">
+          <Button variant="outline" size="sm" onClick={() => navigate("/dashboard/landlord/properties")} className="shadow-sm hover:shadow-md transition-shadow">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Properties
           </Button>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Add New Property</h1>
-            <p className="text-muted-foreground">{editId ? 'Edit your property listing' : 'Fill out the details to list your property'}</p>
+            <h1 className="text-5xl font-bold tracking-tight text-gray-900 mb-2">Add New Property</h1>
+            <p className="text-xl text-gray-700 font-semibold">{editId ? 'Edit your property listing' : 'Fill out the details to list your property'}</p>
           </div>
         </div>
 
         {/* Progress Bar */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium">Step {currentStep} of {steps.length}</span>
-            <span className="text-sm text-muted-foreground">{Math.round(progress)}% Complete</span>
+        <div className="mb-10">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-lg font-bold text-gray-900">Step {currentStep} of {steps.length}</span>
+            <span className="text-lg text-gray-700 font-semibold">{Math.round(progress)}% Complete</span>
           </div>
-          <Progress value={progress} className="h-2" />
+          <Progress value={progress} className="h-4 bg-gray-300" />
         </div>
 
         {/* Steps Navigation */}
-        <div className="flex justify-between mb-8 overflow-x-auto">
+        <div className="flex justify-between mb-10 overflow-x-auto">
           {steps.map((step) => {
             const Icon = step.icon;
             return (
               <div
                 key={step.id}
                 className={`flex flex-col items-center min-w-0 flex-1 ${
-                  step.id <= currentStep ? "text-primary" : "text-muted-foreground"
+                  step.id <= currentStep ? "text-blue-700" : "text-gray-500"
                 }`}
               >
                 <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${
+                  className={`w-14 h-14 rounded-full flex items-center justify-center mb-3 shadow-lg transition-all duration-200 ${
                     step.id <= currentStep
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted text-muted-foreground"
+                      ? "bg-blue-600 text-white shadow-xl"
+                      : "bg-gray-300 text-gray-500"
                   }`}
                 >
-                  <Icon className="h-5 w-5" />
+                  <Icon className="h-7 w-7" />
                 </div>
-                <span className="text-xs text-center font-medium">{step.title}</span>
+                <span className="text-base text-center font-bold">{step.title}</span>
               </div>
             );
           })}
         </div>
 
         {/* Form Content */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              {React.createElement(steps[currentStep - 1].icon, { className: "h-5 w-5" })}
+        <Card className="mb-8 shadow-xl border-0 bg-white/90 backdrop-blur-sm">
+          <CardHeader className="pb-8">
+            <CardTitle className="flex items-center gap-4 text-3xl font-bold text-gray-900">
+              {React.createElement(steps[currentStep - 1].icon, { className: "h-8 w-8 text-blue-700" })}
               {steps[currentStep - 1].title}
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-xl text-gray-800 font-semibold mt-3">
               {currentStep === 1 && (editId ? "Update your property's basic information" : "Let's start with all the basic information about your property")}
             {currentStep === 2 && (editId ? "Review changes and update your listing" : "Review your property listing before submitting")}
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-0">
             {renderStepContent()}
           </CardContent>
         </Card>
 
         {/* Navigation Buttons */}
-        <div className="flex justify-between">
+        <div className="flex justify-between mt-10">
           <Button
             variant="outline"
             onClick={prevStep}
             disabled={currentStep === 1}
+            className="px-10 py-4 text-lg font-bold shadow-lg hover:shadow-xl transition-all duration-200 border-2"
           >
-            <ArrowLeft className="h-4 w-4 mr-2" />
+            <ArrowLeft className="h-6 w-6 mr-3" />
             Previous
           </Button>
 
           {currentStep < steps.length ? (
-            <Button onClick={nextStep}>
+            <Button onClick={nextStep} className="px-10 py-4 text-lg font-bold bg-blue-700 hover:bg-blue-800 text-white shadow-lg hover:shadow-xl transition-all duration-200">
               Next
-              <ArrowRight className="h-4 w-4 ml-2" />
+              <ArrowRight className="h-6 w-6 ml-3" />
             </Button>
           ) : (
-            <Button onClick={handleSubmit} className="bg-primary">
-              <CheckCircle className="h-4 w-4 mr-2" />
+            <Button onClick={handleSubmit} className="px-10 py-4 text-lg font-bold bg-green-700 hover:bg-green-800 text-white shadow-lg hover:shadow-xl transition-all duration-200">
+              <CheckCircle className="h-6 w-6 mr-3" />
               {editId ? 'Save Changes' : 'Submit Property Listing'}
             </Button>
           )}

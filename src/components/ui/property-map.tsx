@@ -7,12 +7,18 @@ interface PropertyMapProps {
   center?: MapCoordinates;
   selectedAddress?: string;
   className?: string;
+  facilityMarker?: {
+    name: string;
+    coordinates: { lat: number; lng: number };
+    distance: number;
+  };
 }
 
 export const PropertyMap: React.FC<PropertyMapProps> = ({
   center,
   selectedAddress,
   className = "w-full h-64 rounded-lg",
+  facilityMarker
 }) => {
   const toFixedIfFloat = (value: number, decimals: number): string => {
     if(typeof value !== 'number') return value.toString();
@@ -25,12 +31,21 @@ export const PropertyMap: React.FC<PropertyMapProps> = ({
     const latRange = 0.005; // Reduced for closer view
     const lngRange = 0.008;
     
-    const bboxWest = center.lng - lngRange;
-    const bboxSouth = center.lat - latRange;  
-    const bboxEast = center.lng + lngRange;
-    const bboxNorth = center.lat + latRange;
+    // If we have a facility marker, adjust the bounding box to include both locations
+    let bboxWest = center.lng - lngRange;
+    let bboxSouth = center.lat - latRange;  
+    let bboxEast = center.lng + lngRange;
+    let bboxNorth = center.lat + latRange;
+
+    if (facilityMarker) {
+      // Expand bounding box to include facility marker
+      bboxWest = Math.min(bboxWest, facilityMarker.coordinates.lng - lngRange);
+      bboxSouth = Math.min(bboxSouth, facilityMarker.coordinates.lat - latRange);
+      bboxEast = Math.max(bboxEast, facilityMarker.coordinates.lng + lngRange);
+      bboxNorth = Math.max(bboxNorth, facilityMarker.coordinates.lat + latRange);
+    }
     
-    const mapURL = `https://www.openstreetmap.org/export/embed.html?bbox=${bboxWest},${bboxSouth},${bboxEast},${bboxNorth}&layer=mapnik&marker=${center.lat},${center.lng}`;
+    const mapURL = `https://www.openstreetmap.org/export/embed.html?bbox=${bboxWest},${bboxSouth},${bboxEast},${bboxNorth}&layer=mapnik&marker=${center.lat},${center.lng}${facilityMarker ? `&marker=${facilityMarker.coordinates.lat},${facilityMarker.coordinates.lng}` : ''}`;
 
     return (
       <div className={cn(className, "overflow-hidden border-2 border-blue-200 rounded-xl shadow-lg bg-blue-50")}>
@@ -49,6 +64,15 @@ export const PropertyMap: React.FC<PropertyMapProps> = ({
               <div className="flex items-center gap-1 text-blue-700">
                 <MapPin className="h-4 w-4" />
                 <span className="font-medium">{selectedAddress}</span>
+              </div>
+            </div>
+          )}
+          {facilityMarker && (
+            <div className="absolute top-2 right-2 bg-green-100/90 backdrop-blur-sm rounded-md px-3 py-2 text-sm shadow-md border border-green-300">
+              <div className="flex items-center gap-1 text-green-700">
+                <MapPin className="h-4 w-4" />
+                <span className="font-medium">{facilityMarker.name}</span>
+                <span className="text-xs text-green-600">({facilityMarker.distance}m)</span>
               </div>
             </div>
           )}

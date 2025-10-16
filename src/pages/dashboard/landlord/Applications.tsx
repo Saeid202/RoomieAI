@@ -8,6 +8,7 @@ import { ApplicationsList } from "@/components/landlord/ApplicationsList";
 import { ApplicationDetailModal } from "@/components/landlord/ApplicationDetailModal";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { MessagingService } from "@/services/messagingService";
 
 export default function ApplicationsPage() {
   const navigate = useNavigate();
@@ -40,18 +41,81 @@ export default function ApplicationsPage() {
   const handleMessageApplicant = async (application: any) => {
     try {
       console.log('Creating conversation for application:', application.id);
-      const convId = await messagingService.getOrCreateApplicationConversation(application.id);
-      console.log('Conversation created/found:', convId);
-      navigate(`/dashboard/messenger/${convId}`);
+      // TODO: Implement proper messaging integration
+      toast.info('Messaging feature coming soon');
+      // const convId = await MessagingService.getOrCreateConversation(propertyId, landlordId, tenantId);
+      // navigate(`/dashboard/messenger/${convId}`);
     } catch (e) {
       console.error('Failed to open conversation', e);
       toast.error(`Could not open conversation: ${e instanceof Error ? e.message : 'Unknown error'}`);
     }
   };
 
+  const handleViewContract = async (application: any) => {
+    try {
+      console.log('Viewing contract for application:', application.id);
+      
+      // Check if contract exists
+      if (!application.contract_status) {
+        toast.error('No contract found for this application');
+        return;
+      }
+
+      // If landlord hasn't signed yet, navigate to contract signing page
+      if (application.contract_status.applicant_signed && !application.contract_status.landlord_signed) {
+        // Navigate to contract signing page with application ID
+        navigate(`/dashboard/contracts/sign/${application.id}`);
+        toast.info('Opening contract for signature...');
+      } else {
+        // Navigate to contract viewing page
+        navigate(`/dashboard/contracts/view/${application.id}`);
+        toast.info('Opening contract for viewing...');
+      }
+    } catch (error) {
+      console.error('Failed to open contract:', error);
+      toast.error(`Could not open contract: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  };
+
   const handleUpdateStatus = async (applicationId: string, status: string, notes?: string) => {
     try {
       await updateApplicationStatus(applicationId, status as any);
+      
+      // If application is approved, create a rental contract
+      if (status === 'approved') {
+        const application = applications.find(app => app.id === applicationId);
+        if (application) {
+          // Import contract creation utility
+          const { createContractFromApplication } = await import('@/utils/contractUtils');
+          
+          try {
+            // Get property details if not already included
+            let property = application.property;
+            if (!property && application.property_id) {
+              const { fetchPropertyById } = await import('@/services/propertyService');
+              property = await fetchPropertyById(application.property_id);
+            }
+            
+            if (property) {
+              const contractResult = await createContractFromApplication(application, property);
+              
+              if (contractResult.success) {
+                toast.success(`Application approved and contract created! Contract ID: ${contractResult.contractId}`);
+              } else {
+                console.warn('Failed to create contract:', contractResult.message);
+                toast.success(`Application approved successfully, but contract creation failed: ${contractResult.message}`);
+              }
+            } else {
+              toast.success('Application approved successfully, but property details were not found for contract creation');
+            }
+          } catch (contractError) {
+            console.error('Error creating contract:', contractError);
+            toast.success('Application approved successfully, but there was an issue creating the contract');
+          }
+        }
+      } else {
+        toast.success(`Application ${status} successfully`);
+      }
       
       // Update local state
       setApplications(prev => 
@@ -62,7 +126,6 @@ export default function ApplicationsPage() {
         )
       );
 
-      toast.success(`Application ${status} successfully`);
     } catch (error) {
       console.error('Failed to update application status:', error);
       toast.error('Failed to update application status');
@@ -169,6 +232,8 @@ export default function ApplicationsPage() {
         loading={loading}
         onViewDetails={handleViewDetails}
         onUpdateStatus={handleUpdateStatus}
+        onMessageApplicant={handleMessageApplicant}
+        onViewContract={handleViewContract}
       />
 
       {/* Application Detail Modal */}

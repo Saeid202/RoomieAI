@@ -4,29 +4,59 @@ export interface DetailedAmenitiesInfo {
     name: string;
     distance: number; // in meters
     line: string;
+    coordinates: { lat: number; lng: number };
   }>;
   buses: Array<{
     name: string;
     distance: number;
     routeNumber: string;
+    coordinates: { lat: number; lng: number };
   }>;
   banks: Array<{
     name: string;
     distance: number;
     branchType?: string;
+    coordinates: { lat: number; lng: number };
   }>;
   plazas: Array<{
     name: string;
     distance: number;
+    coordinates: { lat: number; lng: number };
   }>;
   shoppingMalls: Array<{
     name: string;
     distance: number;
+    coordinates: { lat: number; lng: number };
   }>;
   gyms: Array<{
     name: string;
     distance: number;
     facilityType: string;
+    coordinates: { lat: number; lng: number };
+  }>;
+  hospitals: Array<{
+    name: string;
+    distance: number;
+    type: string;
+    coordinates: { lat: number; lng: number };
+  }>;
+  schools: Array<{
+    name: string;
+    distance: number;
+    level: string;
+    coordinates: { lat: number; lng: number };
+  }>;
+  restaurants: Array<{
+    name: string;
+    distance: number;
+    cuisine?: string;
+    coordinates: { lat: number; lng: number };
+  }>;
+  parks: Array<{
+    name: string;
+    distance: number;
+    type: string;
+    coordinates: { lat: number; lng: number };
   }>;
   condoAmenities: Array<{
     name: string;

@@ -1,6 +1,6 @@
 
 import { Link } from "react-router-dom";
-import { Building, Home, Settings, Users, MessageCircle } from "lucide-react";
+import { Building, Home, Settings, Users, MessageCircle, Scale, Hammer, Sparkles, ShoppingCart, DollarSign, Wallet, Zap, AlertTriangle } from "lucide-react";
 import { SidebarSimpleMenuItem } from "./SidebarSimpleMenuItem";
 
 interface LandlordSidebarProps {
@@ -32,10 +32,45 @@ export function LandlordSidebar({ isActive }: LandlordSidebarProps) {
       />
       
       <SidebarSimpleMenuItem 
+        icon={<DollarSign size={18} />} 
+        label="Rent Collection"
+        to="/dashboard/rent-collection" 
+        isActive={isActive('/dashboard/rent-collection')}
+      />
+      
+      <SidebarSimpleMenuItem 
         icon={<MessageCircle size={18} />} 
         label="Messages"
         to="/dashboard/chats" 
         isActive={isActive('/dashboard/chats')}
+      />
+      
+      <SidebarSimpleMenuItem 
+        icon={<Scale size={18} />} 
+        label="Legal AI"
+        to="/dashboard/legal-ai" 
+        isActive={isActive('/dashboard/legal-ai')}
+      />
+      
+      <SidebarSimpleMenuItem 
+        icon={<Hammer size={18} />} 
+        label="Renovators"
+        to="/dashboard/renovators" 
+        isActive={isActive('/dashboard/renovators')}
+      />
+      
+      <SidebarSimpleMenuItem 
+        icon={<Sparkles size={18} />} 
+        label="Cleaners"
+        to="/dashboard/cleaners" 
+        isActive={isActive('/dashboard/cleaners')}
+      />
+      
+      <SidebarSimpleMenuItem 
+        icon={<ShoppingCart size={18} />} 
+        label="Shop for Your Home"
+        to="/dashboard/shop" 
+        isActive={isActive('/dashboard/shop')}
       />
       
       <SidebarSimpleMenuItem 

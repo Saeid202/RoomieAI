@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { 
   Home, Users, Building, Search, 
   Settings, Calendar, Clock, List, MapPin, Group, 
-  Briefcase, Flag, Scale, Sliders, Bot
+  Briefcase, Flag, Scale, Sliders, Bot, CreditCard
 } from "lucide-react";
 import { SidebarSimpleMenuItem } from "./SidebarSimpleMenuItem";
 
@@ -40,6 +40,13 @@ export function SeekerSidebar({ isActive }: SeekerSidebarProps) {
         label="My Applications"
         to="/dashboard/applications" 
         isActive={isActive('/dashboard/applications')}
+      />
+      
+      <SidebarSimpleMenuItem 
+        icon={<CreditCard size={18} />} 
+        label="Payments"
+        to="/dashboard/payments" 
+        isActive={isActive('/dashboard/payments')}
       />
       
       <SidebarSimpleMenuItem 

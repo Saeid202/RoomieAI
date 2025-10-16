@@ -328,6 +328,47 @@ export default function PropertyDetailsPage() {
                 </div>
               </div>
 
+              {/* Property Type, Address, and Nearby Facilities in one row */}
+              <div className="mt-4 flex flex-wrap items-center gap-4 text-sm">
+                {/* Property Type */}
+                <div className="flex items-center gap-2">
+                  <span className="text-muted-foreground">Type:</span>
+                  <span className="font-semibold bg-blue-100 text-blue-800 px-2 py-1 rounded-md">
+                    {property.property_type || 'Not specified'}
+                  </span>
+                </div>
+                
+                {/* Full Address */}
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-muted-foreground">
+                    {property.address}, {property.city}, {property.state} {property.zip_code}
+                  </span>
+                </div>
+                
+                {/* Nearby Facilities */}
+                {property.nearby_amenities && property.nearby_amenities.length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-muted-foreground">Nearby:</span>
+                    <div className="flex flex-wrap gap-1">
+                      {property.nearby_amenities.slice(0, 3).map((amenity, index) => (
+                        <span 
+                          key={index}
+                          className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-medium"
+                        >
+                          {amenity}
+                        </span>
+                      ))}
+                      {property.nearby_amenities.length > 3 && (
+                        <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs font-medium">
+                          +{property.nearby_amenities.length - 3}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <Separator className="my-6" />
 
               {/* Image Gallery */}
@@ -372,6 +413,7 @@ export default function PropertyDetailsPage() {
                   <Textarea className="mt-2" value={descDraft} onChange={(e) => setDescDraft(e.target.value)} />
                 )}
               </article>
+
 
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-6 text-sm">
                 <Card className="p-4">

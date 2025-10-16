@@ -36,7 +36,7 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
 
   // Clear search if query is too short or address is already selected
   useEffect(() => {
-    if (query.length < 3) {
+    if (query.length < 2) { // Reduced from 3 to 2 characters for faster response
       if (suggestions.length > 0) {
         setSuggestions([]);
       }
@@ -79,7 +79,7 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
       } finally {
         setIsLoading(false);
       }
-    }, 300); // Wait 300ms before searching
+    }, 150); // Reduced from 300ms to 150ms for faster response
 
     // Debounce reset
     return () => {
@@ -188,15 +188,16 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
       </Label>
       <div className="relative w-full">
         <div className="relative">
-          <div className="absolute left-3 top-3 pointer-events-none">
-            <MapPin className="h-4 w-4 text-gray-400" />
+          <div className="absolute left-3 top-4 pointer-events-none">
+            <MapPin className="h-6 w-6 text-gray-400" />
           </div>
           <Input
             ref={inputRef}
             className={cn(
-              "pl-10",
+              "pl-10 text-xl font-bold", // Increased from text-lg to text-xl and font-semibold to font-bold
               "pr-14", // Space for clear button
-              "placeholder:text-gray-400"
+              "placeholder:text-gray-400",
+              "h-14" // Increased height from h-12 to h-14 for better proportion
             )}
             placeholder={placeholder}
             value={query}
@@ -208,32 +209,32 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
           {selected && query && (
             <button
               type="button"
-              className="absolute right-10 top-3"
+              className="absolute right-10 top-4"
               onClick={clearInput}
               aria-label="Clear"
             >
-              <IconX className="h-4 w-4 text-gray-400 hover:text-gray-600" />
+              <IconX className="h-6 w-6 text-gray-400 hover:text-gray-600" />
             </button>
           )}
           {!isLoading && suggestions.length > 0 && isOpen && (
             <button
               type="button" 
-              className="absolute right-3 top-3"
+              className="absolute right-3 top-4"
               onClick={() => setIsOpen(!isOpen)}
             >
-              <ArrowDown className="h-4 w-4 text-gray-400" />
+              <ArrowDown className="h-6 w-6 text-gray-400" />
             </button>
           )}
         </div>
 
         {isOpen && suggestions.length > 0 && (
-          <div ref={listRef} className="absolute z-[9999] w-full mt-2 max-h-60 overflow-y-auto">
+          <div ref={listRef} className="absolute z-[9999] w-full mt-2 max-h-80 overflow-y-auto">
             <ul className="bg-white border border-gray-200 rounded-lg shadow-xl">
               {suggestions.map((suggestion, index) => (
                 <li key={suggestion.id}>
                   <div
                     className={cn(
-                      "flex items-start px-4 py-3 cursor-pointer transition-colors",
+                      "flex items-start px-4 py-4 cursor-pointer transition-colors", // Increased padding from py-3 to py-4
                       "hover:bg-blue-50 hover:border-blue-200 active:bg-blue-100",
                       "border border-transparent rounded-md select-none"
                     )}
@@ -257,16 +258,16 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
                     aria-label={`Select address: ${suggestion.text}`}
                   >
                     <div className="flex items-start w-full">
-                      <MapPin className="h-4 w-4 text-blue-500 mt-0.5 mr-3 flex-shrink-0" />
+                      <MapPin className="h-5 w-5 text-blue-500 mt-0.5 mr-3 flex-shrink-0" /> {/* Increased icon size from h-4 w-4 to h-5 w-5 */}
                       <div className="w-full">
-                        <p className="text-sm font-medium text-gray-900">{suggestion.text}</p>
+                        <p className="text-base font-bold text-gray-900">{suggestion.text}</p> {/* Increased from text-sm to text-base and font-medium to font-bold */}
                         {suggestion.place_name !== suggestion.text && suggestion.place_name.length > suggestion.text.length && (
-                          <p className="text-xs text-gray-500 mt-1 truncate">
+                          <p className="text-sm text-gray-600 mt-1 truncate font-medium"> {/* Increased from text-xs to text-sm and added font-medium */}
                             {suggestion.place_name.replace(suggestion.text, '').replace(/^[,\s]+|[,\s]+$/g, '').slice(0, 70)}
                             {suggestion.place_name.length > 70 && '...'}
                           </p>
                         )}
-                        <div className="flex items-center text-xs text-blue-600 mt-1">
+                        <div className="flex items-center text-sm text-blue-600 mt-1 font-medium"> {/* Increased from text-xs to text-sm and added font-medium */}
                           <span className="inline-flex items-center"><span className="mr-1">📍</span>Canadian Verified</span>
                         </div>
                       </div>

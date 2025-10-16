@@ -1,4 +1,3 @@
-
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/providers/ThemeProvider";
@@ -22,11 +21,22 @@ import { ErrorBoundary } from "@/components/utility/ErrorBoundary";
 import PropertyDetailsPage from "@/pages/dashboard/PropertyDetails";
 import RentalApplicationPage from "@/pages/dashboard/RentalApplication";
 import LegalAssistantPage from "@/pages/dashboard/LegalAssistant";
+import LegalAIPage from "@/pages/dashboard/LegalAI";
+import RenovatorsPage from "@/pages/dashboard/Renovators";
+import CleanersPage from "@/pages/dashboard/Cleaners";
+import ShopPage from "@/pages/dashboard/Shop";
+import PaymentsPage from "@/pages/dashboard/Payments";
+import RentCollectionPage from "@/pages/dashboard/RentCollection";
+import DigitalWalletPage from "@/pages/dashboard/DigitalWallet";
+import AutoPayPage from "@/pages/dashboard/AutoPay";
+import LateFeeManagementPage from "@/pages/dashboard/LateFeeManagement";
 import ListRoomPage from "@/pages/dashboard/ListRoom";
 import RentOpportunitiesPage from "@/pages/dashboard/RentOpportunities";
 import ChatsPage from "@/pages/dashboard/Chats";
 import RentSavingsPage from "@/pages/dashboard/RentSavings";
 import TailorAIPage from "@/pages/dashboard/TailorAI";
+import LeaseContractPage from "@/pages/dashboard/LeaseContract";
+// import ContractDetailsPage from "@/pages/dashboard/ContractDetails";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AdminHomePage from "@/pages/dashboard/admin/AdminHome";
 import PagesPage from "@/pages/dashboard/admin/Pages";
@@ -34,6 +44,8 @@ import UsersPage from "@/pages/dashboard/admin/Users";
 import SettingsPage from "@/pages/dashboard/Settings";
 import MatchesPage from "@/pages/dashboard/Matches";
 import ApplicationsSeekerPage from "@/pages/dashboard/ApplicationsSeeker";
+import MyApplicationsPage from "@/pages/dashboard/MyApplications";
+import ApplicationOverviewPage from "@/pages/dashboard/ApplicationOverview";
 
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect } from "react";
@@ -70,8 +82,9 @@ function AppRoutes() {
           <Route path="rental-options" element={<ErrorBoundary componentName="RentalOptionsPage"><RentalOptionsPage /></ErrorBoundary>} />
           <Route path="rental-options/:id" element={<ErrorBoundary componentName="PropertyDetailsPage"><PropertyDetailsPage /></ErrorBoundary>} />
           <Route path="rental-application/:id" element={<ErrorBoundary componentName="RentalApplicationPage"><RentalApplicationPage /></ErrorBoundary>} />
+          <Route path="application-overview/:applicationId" element={<ApplicationOverviewPage />} />
           <Route path="plan-ahead-matching" element={<PlanAheadMatchingPage />} />
-          <Route path="applications" element={<ApplicationsSeekerPage />} />
+          <Route path="applications" element={<MyApplicationsPage />} />
           <Route path="opposite-schedule" element={<OppositeSchedulePage />} />
           <Route path="work-exchange" element={<WorkExchangePage />} />
           <Route path="lgbtq-matching" element={<LGBTQMatchingPage />} />
@@ -81,10 +94,20 @@ function AppRoutes() {
           <Route path="landlord/add-property" element={<AddPropertyPage />} />
           <Route path="rent-opportunities" element={<RentOpportunitiesPage />} />
           <Route path="find-property" element={<FindPropertyPage />} />
+          <Route path="contracts" element={<LeaseContractPage />} />
           <Route path="chats" element={<ChatsPage />} />
           <Route path="tailor-ai" element={<TailorAIPage />} />
           <Route path="rent-savings" element={<RentSavingsPage />} />
           <Route path="legal-assistant" element={<LegalAssistantPage />} />
+          <Route path="legal-ai" element={<LegalAIPage />} />
+          <Route path="renovators" element={<RenovatorsPage />} />
+          <Route path="cleaners" element={<CleanersPage />} />
+          <Route path="shop" element={<ShopPage />} />
+          <Route path="payments" element={<PaymentsPage />} />
+          <Route path="rent-collection" element={<RentCollectionPage />} />
+          <Route path="digital-wallet" element={<DigitalWalletPage />} />
+          <Route path="autopay" element={<AutoPayPage />} />
+          <Route path="late-fees" element={<LateFeeManagementPage />} />
           <Route path="list-room" element={<ListRoomPage />} />
           <Route path="profile" element={<Navigate to="/dashboard/roommate-recommendations" replace />} />
           <Route path="profile/*" element={<Navigate to="/dashboard/roommate-recommendations" replace />} />
@@ -114,8 +137,9 @@ function AppRoutes() {
         <Route path="rental-options" element={<ErrorBoundary componentName="RentalOptionsPage"><RentalOptionsPage /></ErrorBoundary>} />
         <Route path="rental-options/:id" element={<ErrorBoundary componentName="PropertyDetailsPage"><PropertyDetailsPage /></ErrorBoundary>} />
         <Route path="rental-application/:id" element={<ErrorBoundary componentName="RentalApplicationPage"><RentalApplicationPage /></ErrorBoundary>} />
+        <Route path="application-overview/:applicationId" element={<ApplicationOverviewPage />} />
         <Route path="plan-ahead-matching" element={<PlanAheadMatchingPage />} />
-        <Route path="applications" element={<ApplicationsSeekerPage />} />
+        <Route path="applications" element={<MyApplicationsPage />} />
         <Route path="opposite-schedule" element={<OppositeSchedulePage />} />
         <Route path="work-exchange" element={<WorkExchangePage />} />
         <Route path="lgbtq-matching" element={<LGBTQMatchingPage />} />
@@ -129,6 +153,15 @@ function AppRoutes() {
         <Route path="tailor-ai" element={<TailorAIPage />} />
         <Route path="rent-savings" element={<RentSavingsPage />} />
         <Route path="legal-assistant" element={<LegalAssistantPage />} />
+        <Route path="legal-ai" element={<LegalAIPage />} />
+        <Route path="renovators" element={<RenovatorsPage />} />
+        <Route path="cleaners" element={<CleanersPage />} />
+        <Route path="shop" element={<ShopPage />} />
+        <Route path="payments" element={<PaymentsPage />} />
+        <Route path="rent-collection" element={<RentCollectionPage />} />
+        <Route path="digital-wallet" element={<DigitalWalletPage />} />
+        <Route path="autopay" element={<AutoPayPage />} />
+        <Route path="late-fees" element={<LateFeeManagementPage />} />
         <Route path="list-room" element={<ListRoomPage />} />
         <Route path="profile" element={<Navigate to="/dashboard/roommate-recommendations" replace />} />
         <Route path="profile/*" element={<Navigate to="/dashboard/roommate-recommendations" replace />} />

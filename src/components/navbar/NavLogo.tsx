@@ -5,8 +5,8 @@ export const NavLogo = () => {
   return (
     <div className="flex items-center space-x-2">
       <svg
-        width="34"
-        height="34"
+        width="36"
+        height="36"
         viewBox="0 0 24 24"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
@@ -52,7 +52,7 @@ export const NavLogo = () => {
           strokeLinejoin="round"
         />
       </svg>
-      <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-roomie-purple to-roomie-accent">
+      <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-roomie-purple to-roomie-accent">
         RoomieMatch
       </h1>
     </div>

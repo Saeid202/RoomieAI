@@ -13,8 +13,8 @@ export const NavLinks = ({ isMobile = false, onClickMobile }: NavLinksProps) => 
     }
   };
   
-  const linkClasses = "text-gray-700 hover:text-roomie-purple font-medium";
-  const mobileClasses = isMobile ? "py-2" : "";
+  const linkClasses = "text-gray-800 hover:text-roomie-purple font-semibold text-base";
+  const mobileClasses = isMobile ? "py-3 text-lg" : "";
   
   return (
     <>

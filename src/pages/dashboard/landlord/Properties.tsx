@@ -125,8 +125,15 @@ export default function PropertiesPage() {
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-2 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-2"><MapPin className="h-4 w-4" /><span>{p.city}, {p.state}</span></div>
+                        <div className="flex items-center gap-2"><MapPin className="h-4 w-4" /><span>{p.address ? `${p.address}, ` : ''}{p.city}, {p.state}</span></div>
                         <div className="flex items-center gap-2"><DollarSign className="h-4 w-4" /><span>{p.monthly_rent}/mo</span></div>
+                        <div className="flex items-center gap-2">
+                          <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-md text-xs font-medium">
+                            {p.bedrooms !== undefined && p.bedrooms !== null ? 
+                              (p.bedrooms === 0 ? 'Studio' : `${p.bedrooms} Bed`) : 
+                              'Property'}
+                          </span>
+                        </div>
                       </div>
                       <div className="mt-4 grid grid-cols-3 gap-2">
                         <Button

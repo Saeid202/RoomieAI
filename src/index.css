@@ -73,6 +73,33 @@
   }
   body {
     @apply bg-background text-foreground antialiased;
+    font-weight: 500; /* Default medium weight for better readability */
+  }
+  
+  /* Global font improvements */
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 700; /* Bold headings */
+    color: rgb(17 24 39); /* Dark gray for better contrast */
+  }
+  
+  p, span, div {
+    font-weight: 500; /* Medium weight for body text */
+  }
+  
+  /* Form elements */
+  input, select, textarea {
+    font-weight: 600; /* Semi-bold for form inputs */
+  }
+  
+  /* Buttons */
+  button {
+    font-weight: 600; /* Semi-bold for buttons */
+  }
+  
+  /* Labels */
+  label {
+    font-weight: 600; /* Semi-bold for labels */
+    color: rgb(17 24 39); /* Dark gray for better contrast */
   }
 }
 
@@ -110,6 +137,44 @@
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+  }
+  
+  /* Bold text utilities */
+  .text-bold {
+    font-weight: 700;
+    color: rgb(17 24 39);
+  }
+  
+  .text-semibold {
+    font-weight: 600;
+    color: rgb(17 24 39);
+  }
+  
+  .text-medium {
+    font-weight: 500;
+    color: rgb(31 41 55);
+  }
+  
+  /* Enhanced form styling */
+  .form-input {
+    font-weight: 600;
+    border-color: rgb(156 163 175);
+  }
+  
+  .form-input:focus {
+    border-color: rgb(37 99 235);
+    box-shadow: 0 0 0 1px rgb(37 99 235);
+  }
+  
+  .form-label {
+    font-weight: 600;
+    color: rgb(17 24 39);
+    font-size: 1rem;
+  }
+  
+  .form-button {
+    font-weight: 600;
+    font-size: 1rem;
   }
 }
 

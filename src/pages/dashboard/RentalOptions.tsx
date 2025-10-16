@@ -83,6 +83,27 @@ export default function RentalOptionsPage() {
     return typeMap[type] || type;
   };
 
+  const getBedroomTypeDisplay = (property: Property) => {
+    // If bedrooms is available, use that
+    if (property.bedrooms !== undefined && property.bedrooms !== null) {
+      if (property.bedrooms === 0) return "Studio";
+      if (property.bedrooms === 1) return "1 Bed";
+      if (property.bedrooms === 2) return "2 Bed";
+      if (property.bedrooms === 3) return "3 Bed";
+      if (property.bedrooms >= 4) return `${property.bedrooms} Bed`;
+    }
+    
+    // Fallback to property type parsing
+    const type = property.property_type?.toLowerCase() || '';
+    if (type.includes('studio')) return "Studio";
+    if (type.includes('one-bed') || type.includes('single-one-bed')) return "1 Bed";
+    if (type.includes('two-bed')) return "2 Bed";
+    if (type.includes('three-bed')) return "3 Bed";
+    
+    // Default fallback
+    return property.bedrooms ? `${property.bedrooms} Bed` : "Apartment";
+  };
+
   // Safely format available dates to avoid runtime errors
   const formatAvailableDate = (dateStr?: string | null) => {
     if (!dateStr) return null;
@@ -209,26 +230,56 @@ export default function RentalOptionsPage() {
                 <h3 className="font-semibold text-lg mb-2 line-clamp-1">
                   {property.listing_title}
                 </h3>
-                <p className="text-muted-foreground text-sm mb-3 line-clamp-2">
-                  {property.description}
-                </p>
 
+                {/* Property Type and Nearby Facilities in one compact row */}
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-md text-xs font-medium">
+                      {getBedroomTypeDisplay(property)}
+                    </span>
+                    <div className="flex gap-3 text-xs text-muted-foreground">
+                      <span>{property.bedrooms ?? 0} bd</span>
+                      <span>{property.bathrooms ?? 0} ba</span>
+                      {property.square_footage ? (
+                        <span>{property.square_footage} sq ft</span>
+                      ) : null}
+                    </div>
+                  </div>
+                  
+                  {/* Nearby Facilities - compact */}
+                  {property.nearby_amenities && property.nearby_amenities.length > 0 && (
+                    <div className="flex items-center gap-1">
+                      <span className="text-xs text-muted-foreground">Nearby:</span>
+                      <div className="flex gap-1">
+                        {property.nearby_amenities.slice(0, 2).map((amenity, index) => (
+                          <span 
+                            key={index}
+                            className="bg-green-100 text-green-700 px-1 py-0.5 rounded text-xs font-medium"
+                          >
+                            {amenity.split('(')[0].trim()}
+                          </span>
+                        ))}
+                        {property.nearby_amenities.length > 2 && (
+                          <span className="bg-gray-100 text-gray-600 px-1 py-0.5 rounded text-xs font-medium">
+                            +{property.nearby_amenities.length - 2}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Location */}
                 <div className="flex items-center gap-1 mb-3 text-sm text-muted-foreground">
-                  <MapPin className="h-4 w-4" />
+                  <MapPin className="h-4 w-4 flex-shrink-0" />
                   <span className="line-clamp-1">
-                    {property.city}, {property.state}
+                    {property.address ? `${property.address}, ` : ''}{property.city}, {property.state}
+                    {property.zip_code ? ` ${property.zip_code}` : ''}
                   </span>
                 </div>
 
-                <div className="flex gap-3 mb-3 text-sm text-muted-foreground">
-                  <span>{property.bedrooms ?? 0} bd</span>
-                  <span>{property.bathrooms ?? 0} ba</span>
-                  {property.square_footage ? (
-                    <span>{property.square_footage} sq ft</span>
-                  ) : null}
-                </div>
-
-                <div className="flex items-center justify-between">
+                {/* Price */}
+                <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-1 font-semibold text-lg text-primary">
                     <DollarSign className="h-5 w-5" />
                     <span>{property.monthly_rent}</span>
@@ -246,6 +297,12 @@ export default function RentalOptionsPage() {
                     </div>
                   )}
                 </div>
+
+                {/* Description moved to the end */}
+                <p className="text-muted-foreground text-sm mb-4 line-clamp-2 pt-2 border-t border-gray-100">
+                  {property.description}
+                </p>
+
 
                 <div className="flex gap-2 mt-4">
                   <Button className="flex-1" variant="outline" asChild>
