@@ -32,13 +32,6 @@ export function LandlordSidebar({ isActive }: LandlordSidebarProps) {
       />
       
       <SidebarSimpleMenuItem 
-        icon={<DollarSign size={18} />} 
-        label="Rent Collection"
-        to="/dashboard/rent-collection" 
-        isActive={isActive('/dashboard/rent-collection')}
-      />
-      
-      <SidebarSimpleMenuItem 
         icon={<MessageCircle size={18} />} 
         label="Messages"
         to="/dashboard/chats" 

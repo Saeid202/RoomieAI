@@ -43,13 +43,6 @@ export function SeekerSidebar({ isActive }: SeekerSidebarProps) {
       />
       
       <SidebarSimpleMenuItem 
-        icon={<CreditCard size={18} />} 
-        label="Payments"
-        to="/dashboard/payments" 
-        isActive={isActive('/dashboard/payments')}
-      />
-      
-      <SidebarSimpleMenuItem 
         icon={<Calendar size={18} />} 
         label="Plan Ahead Matching"
         to="/dashboard/plan-ahead-matching" 

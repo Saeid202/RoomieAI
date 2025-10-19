@@ -25,8 +25,6 @@ import LegalAIPage from "@/pages/dashboard/LegalAI";
 import RenovatorsPage from "@/pages/dashboard/Renovators";
 import CleanersPage from "@/pages/dashboard/Cleaners";
 import ShopPage from "@/pages/dashboard/Shop";
-import PaymentsPage from "@/pages/dashboard/Payments";
-import RentCollectionPage from "@/pages/dashboard/RentCollection";
 import DigitalWalletPage from "@/pages/dashboard/DigitalWallet";
 import AutoPayPage from "@/pages/dashboard/AutoPay";
 import LateFeeManagementPage from "@/pages/dashboard/LateFeeManagement";
@@ -103,8 +101,6 @@ function AppRoutes() {
           <Route path="renovators" element={<RenovatorsPage />} />
           <Route path="cleaners" element={<CleanersPage />} />
           <Route path="shop" element={<ShopPage />} />
-          <Route path="payments" element={<PaymentsPage />} />
-          <Route path="rent-collection" element={<RentCollectionPage />} />
           <Route path="digital-wallet" element={<DigitalWalletPage />} />
           <Route path="autopay" element={<AutoPayPage />} />
           <Route path="late-fees" element={<LateFeeManagementPage />} />
@@ -157,8 +153,6 @@ function AppRoutes() {
         <Route path="renovators" element={<RenovatorsPage />} />
         <Route path="cleaners" element={<CleanersPage />} />
         <Route path="shop" element={<ShopPage />} />
-        <Route path="payments" element={<PaymentsPage />} />
-        <Route path="rent-collection" element={<RentCollectionPage />} />
         <Route path="digital-wallet" element={<DigitalWalletPage />} />
         <Route path="autopay" element={<AutoPayPage />} />
         <Route path="late-fees" element={<LateFeeManagementPage />} />
