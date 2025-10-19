@@ -58,6 +58,12 @@ import {
   uploadRentalDocument,
   getApplicationDocuments,
 } from "@/services/rentalDocumentService";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface RentalApplicationData {
   // Personal Information
@@ -439,8 +445,8 @@ export default function RentalApplicationPage() {
       const contract = await generateOntarioLeaseContract({
         application_id: createdApplicationId,
         ontario_form_data: data,
-        lease_start_date: data.leaseStartDate.toISOString().split("T")[0],
-        lease_end_date: data.leaseEndDate.toISOString().split("T")[0],
+        lease_start_date: data.tenancyStartDate.toISOString().split("T")[0],
+        lease_end_date: data.tenancyEndDate ? data.tenancyEndDate.toISOString().split("T")[0] : '',
       });
 
       setOntarioFormData(data);
@@ -1370,312 +1376,69 @@ export default function RentalApplicationPage() {
       case 3:
         return (
           <div className="space-y-6">
-            <div className="text-center border-b-2 border-black pb-4 mb-6">
-              <h1 className="text-2xl font-bold mb-2">
-                Residential Tenancy Agreement (Standard Form of Lease)
-              </h1>
-              <p className="text-lg font-semibold">
-                2229E (2020/12) © Queen's Printer for Ontario, 2020
-              </p>
-              <p className="text-sm text-gray-600 mt-1">
-                Disponible en français
-              </p>
+            <div className="text-center">
+              <h2 className="text-xl font-semibold">Sign Lease Contract</h2>
             </div>
 
-            {/* Ontario Form */}
-            <div className="space-y-6">
-              {!previewContract ? (
-                <>
-                  <OntarioLeaseForm2229E
-                    initialData={{
-                      // Section 1: Parties to the Agreement
-                      landlordLegalName: property?.user_id || "Property Owner",
-                      tenantLastName:
-                        applicationData.fullName?.split(" ").slice(-1)[0] || "",
-                      tenantFirstName:
-                        applicationData.fullName
-                          ?.split(" ")
-                          .slice(0, -1)
-                          .join(" ") || "",
-
-                      // Section 2: Rental Unit
-                      unitNumber: "",
-                      streetNumber: property?.address?.split(" ")[0] || "",
-                      streetName:
-                        property?.address?.split(" ").slice(1).join(" ") || "",
-                      cityTown: property?.city || "",
-                      province: "Ontario",
-                      postalCode: property?.zip_code || "",
-                      parkingSpaces: undefined,
-                      parkingDescription: "",
-                      isCondominium: false,
-
-                      // Section 3: Contact Information
-                      landlordNoticeUnit: "",
-                      landlordNoticeStreetNumber:
-                        property?.address?.split(" ")[0] || "",
-                      landlordNoticeStreetName:
-                        property?.address?.split(" ").slice(1).join(" ") || "",
-                      landlordNoticePOBox: "",
-                      landlordNoticeCityTown: property?.city || "",
-                      landlordNoticeProvince: "Ontario",
-                      landlordNoticePostalCode: property?.zip_code || "",
-                      emailConsent: false,
-                      landlordEmail: "",
-                      tenantEmail: applicationData.email,
-                      emergencyContactProvided: false,
-                      emergencyPhone: "",
-                      emergencyEmail: "",
-
-                      // Section 4: Term of Tenancy Agreement
-                      tenancyStartDate: new Date(
-                        applicationData.moveInDate || new Date()
-                      ),
-                      tenancyType: "fixed",
-                      tenancyEndDate: new Date(
-                        new Date(
-                          applicationData.moveInDate || new Date()
-                        ).setMonth(
-                          new Date(
-                            applicationData.moveInDate || new Date()
-                          ).getMonth() +
-                            parseInt(applicationData.leaseDuration || "12")
-                        )
-                      ),
-                      otherTenancyType: "",
-
-                      // Section 5: Rent
-                      rentPaymentDay: "first",
-                      rentPaymentPeriod: "monthly",
-                      otherRentPaymentPeriod: "",
-                      baseRent: property?.monthly_rent || 0,
-                      parkingRent: 0,
-                      otherServicesRent: 0,
-                      otherServicesDescription: "",
-                      totalRent: property?.monthly_rent || 0,
-                      rentPayableTo: "Landlord",
-                      rentPaymentMethods: "e-transfer",
-                      partialRentAmount: 0,
-                      partialRentDate: undefined,
-                      partialRentStartDate: undefined,
-                      partialRentEndDate: undefined,
-                      nsfCharge: 20,
-
-                      // Section 6: Services and Utilities
-                      gasIncluded: false,
-                      airConditioningIncluded: false,
-                      additionalStorageIncluded: false,
-                      onSiteLaundry: "not_included",
-                      guestParking: "not_included",
-                      otherServices1: "",
-                      otherServices1Included: false,
-                      otherServices2: "",
-                      otherServices2Included: false,
-                      otherServices3: "",
-                      otherServices3Included: false,
-                      servicesDetails: "",
-                      electricityResponsibility: "tenant",
-                      heatResponsibility: "landlord",
-                      waterResponsibility: "landlord",
-                      utilitiesDetails: "",
-
-                      // Section 7: Rent Discounts
-                      rentDiscount: false,
-                      rentDiscountDetails: "",
-
-                      // Section 8: Rent Deposit
-                      rentDepositRequired: true,
-                      rentDepositAmount:
-                        property?.security_deposit ||
-                        property?.monthly_rent ||
-                        0,
-
-                      // Section 9: Key Deposit
-                      keyDepositRequired: true,
-                      keyDepositAmount: 100,
-                      keyDepositDescription: "Key and access card deposit",
-
-                      // Section 10: Smoking
-                      smokingRules:
-                        applicationData.smokingStatus === "non-smoker"
-                          ? "No smoking allowed"
-                          : "",
-
-                      // Section 11: Tenant's Insurance
-                      tenantInsuranceRequired: false,
-
-                      // Section 15: Additional Terms
-                      additionalTerms: false,
-                      additionalTermsDetails: "",
-
-                      // Legal
-                      electronicSignatureConsent: false,
-                      termsAcceptance: false,
-                    }}
-                    onSubmit={handleOntarioFormSubmit}
-                    onCancel={() => setCurrentStep(2)}
-                  />
-                </>
-              ) : (
-                <div className="space-y-6">
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                    <div className="flex items-center space-x-2">
-                      <CheckCircle className="h-5 w-5 text-green-600" />
-                      <p className="text-green-800 font-medium">
-                        Ontario Lease Agreement Generated Successfully!
-                      </p>
-                    </div>
-                    <p className="text-green-700 text-sm mt-1">
-                      Your lease contract has been created. Please review and
-                      sign below.
+            <Card>
+              <CardHeader>
+                <div className="flex justify-between items-center">
+                  <CardTitle>
+                    Residential Tenancy Agreement (Standard Form of Lease)
+                  </CardTitle>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button variant="outline" size="icon">
+                          <FileText className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-sm">
+                        <p className="font-bold mb-2">Note:</p>
+                        <p className="text-xs">
+                          This tenancy agreement is required for tenancies entered into on March 1, 2021 or later. It does not apply to care homes, sites in mobile home parks and land lease communities, most social housing, certain other special tenancies or co-operative housing (see Part A of General Information).
+                          <br /><br />
+                          Residential tenancies in Ontario are governed by the Residential Tenancies Act, 2006. This agreement cannot take away a right or responsibility under the Act.
+                          <br /><br />
+                          Under the Ontario Human Rights Code, everyone has the right to equal treatment in housing without discrimination or harassment.
+                          <br /><br />
+                          All sections of this agreement are mandatory and cannot be changed.
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+                <CardDescription>
+                  2229E (2020/12) © Queen's Printer for Ontario, 2020
+                  <br />
+                  Disponible en français
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {/* Conditional rendering based on whether the form has been filled */}
+                {!previewContract ? (
+                  <div className="text-center py-8 px-4 border-2 border-dashed rounded-lg">
+                    <FileText className="mx-auto h-12 w-12 text-gray-400" />
+                    <h3 className="mt-2 text-lg font-medium text-gray-900">
+                      Complete Lease Agreement
+                    </h3>
+                    <p className="mt-1 text-sm text-gray-500">
+                      Fill out all sections of the Ontario lease agreement to
+                      generate the final contract.
                     </p>
                   </div>
-
-                  {/* Contract Preview */}
-                  <div className="border rounded-lg overflow-hidden">
-                    <OntarioLeaseDisplay
-                      contract={previewContract as OntarioLeaseContract}
-                      onSign={handleSignContract}
-                      onDownload={handleDownloadContract}
-                      isSigned={applicationData.contractSigned}
-                    />
-                  </div>
-
-                  {/* PDF Generation Buttons */}
-                  <div className="flex flex-col items-center space-y-3">
-                    <Button
-                      onClick={async () => {
-                        if (!previewContract?.id) {
-                          toast.error("No contract found to generate PDF");
-                          return;
-                        }
-
-                        try {
-                          console.log(
-                            "DEBUG: 'Generate PDF Contract' button clicked. Current previewContract:",
-                            previewContract
-                          );
-                          console.log(
-                            "Contract type check:",
-                            "form_version" in previewContract
-                          );
-                          console.log(
-                            "Form version:",
-                            (previewContract as any).form_version
-                          );
-
-                          // Always try to use the contract data first (since we're generating Ontario contracts)
-                          console.log(
-                            "Attempting to use contract data for PDF generation"
-                          );
-                          try {
-                            await downloadOntarioLeasePdf(
-                              previewContract.id,
-                              `ontario-lease-contract-${previewContract.id}.pdf`,
-                              previewContract as OntarioLeaseContract
-                            );
-                          } catch (error) {
-                            console.log(
-                              "Failed with contract data, trying database lookup:",
-                              error
-                            );
-                            await downloadOntarioLeasePdf(
-                              previewContract.id,
-                              `ontario-lease-contract-${previewContract.id}.pdf`
-                            );
-                          }
-                          toast.success(
-                            "PDF contract downloaded successfully!"
-                          );
-                        } catch (error) {
-                          console.error("Error generating PDF:", error);
-                          toast.error("Failed to generate PDF contract");
-                        }
-                      }}
-                      className="bg-blue-600 hover:bg-blue-700"
-                    >
-                      <FileText className="h-4 w-4 mr-2" />
-                      Generate PDF Contract
-                    </Button>
-
-                    <Button
-                      onClick={async () => {
-                        try {
-                          const { testPdfGeneration } = await import(
-                            "@/services/ontarioLeaseService"
-                          );
-                          await testPdfGeneration();
-                          toast.success("Test PDF generated successfully!");
-                        } catch (error) {
-                          console.error("Test PDF failed:", error);
-                          toast.error(
-                            "Test PDF generation failed - check console for details"
-                          );
-                        }
-                      }}
-                      variant="outline"
-                      className="text-sm"
-                    >
-                      Test PDF Generation
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Digital Signature - Only show if contract is generated */}
-            {previewContract && (
-              <div className="space-y-4">
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="contract-signature"
-                    checked={applicationData.contractSigned}
-                    onCheckedChange={(checked) => {
-                      setApplicationData((prev) => ({
-                        ...prev,
-                        contractSigned: checked as boolean,
-                        signatureData: checked
-                          ? `${
-                              user?.email || "user"
-                            } - ${new Date().toISOString()}`
-                          : "",
-                      }));
-                    }}
-                  />
-                  <Label
-                    htmlFor="contract-signature"
-                    className="text-sm font-medium"
-                  >
-                    I have read and agree to the lease terms and conditions
-                  </Label>
-                </div>
-
-                {applicationData.contractSigned && (
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                    <div className="flex items-center space-x-2">
-                      <CheckCircle className="h-5 w-5 text-green-600" />
-                      <p className="text-green-800 text-sm font-medium">
-                        Contract signed digitally by {user?.email || "user"} on{" "}
-                        {new Date().toLocaleDateString()}
-                      </p>
-                    </div>
-                  </div>
+                ) : (
+                  <OntarioLeaseDisplay contract={previewContract} />
                 )}
-              </div>
-            )}
+              </CardContent>
+            </Card>
 
-            {/* Legal Notice */}
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-              <h3 className="font-semibold text-yellow-800 mb-2">
-                Legal Notice
-              </h3>
-              <p className="text-yellow-700 text-sm">
-                By providing your digital signature, you acknowledge that you
-                have read, understood, and agree to be legally bound by all
-                terms and conditions in this lease agreement. Your electronic
-                signature has the same legal effect as a handwritten signature.
-              </p>
-            </div>
+            {/* Form to fill out the lease */}
+            <OntarioLeaseForm2229E
+              property={property}
+              applicant={applicationData}
+              onSubmit={handleOntarioFormSubmit}
+            />
           </div>
         );
 

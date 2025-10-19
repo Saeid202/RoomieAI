@@ -22,6 +22,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { MessageButton } from "@/components/MessageButton";
+import { MapModal } from "@/components/map/MapModal";
 
 export default function RentalOptionsPage() {
   const navigate = useNavigate();
@@ -35,6 +36,8 @@ export default function RentalOptionsPage() {
     bedrooms: "",
     property_type: "",
   });
+  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
+  const [isMapModalOpen, setMapModalOpen] = useState(false);
 
   useEffect(() => {
     loadProperties();
@@ -64,6 +67,11 @@ export default function RentalOptionsPage() {
 
   const handleFilterChange = (key: string, value: string) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handleViewOnMap = (property: Property) => {
+    setSelectedProperty(property);
+    setMapModalOpen(true);
   };
 
   const applyFilters = () => {
@@ -209,7 +217,7 @@ export default function RentalOptionsPage() {
           {properties.map((property) => (
             <Card
               key={property.id}
-              className="hover:shadow-lg transition-shadow"
+              className="overflow-hidden transition-all duration-300 ease-in-out hover:shadow-2xl hover:border-primary border-2 border-transparent"
             >
               <div
                 className="relative"
@@ -231,94 +239,89 @@ export default function RentalOptionsPage() {
                   {property.listing_title}
                 </h3>
 
-                {/* Property Type and Nearby Facilities in one compact row */}
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-md text-xs font-medium">
-                      {getBedroomTypeDisplay(property)}
-                    </span>
-                    <div className="flex gap-3 text-xs text-muted-foreground">
-                      <span>{property.bedrooms ?? 0} bd</span>
-                      <span>{property.bathrooms ?? 0} ba</span>
-                      {property.square_footage ? (
-                        <span>{property.square_footage} sq ft</span>
-                      ) : null}
+                {/* Property Details Section */}
+                <div className="border rounded-lg p-3 mt-2 space-y-3 text-sm">
+                  {/* Price and Availability */}
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Price</p>
+                      <div className="flex items-baseline font-bold text-primary">
+                        <span className="text-lg">${property.monthly_rent}</span>
+                        <span className="text-xs font-medium text-muted-foreground">/month</span>
+                      </div>
+                    </div>
+                    {formatAvailableDate(property.available_date) && (
+                      <div className="text-right">
+                        <p className="text-xs text-muted-foreground">Available</p>
+                        <p className="font-bold">
+                          {formatAvailableDate(property.available_date)}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Type */}
+                  <div>
+                    <p className="text-xs text-muted-foreground">Type</p>
+                    <p className="font-bold">{getBedroomTypeDisplay(property)} in a {getPropertyTypeDisplay(property.property_type)}</p>
+                  </div>
+
+                  {/* Location */}
+                  <div onClick={() => handleViewOnMap(property)} className="cursor-pointer hover:text-primary transition-colors">
+                    <p className="text-xs text-muted-foreground">Location</p>
+                    <div className="flex items-start gap-2 font-bold">
+                      <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0 text-muted-foreground" />
+                      <span className="line-clamp-2">
+                        {property.address ? `${property.address}, ` : ''}{property.city}, {property.state}
+                      </span>
                     </div>
                   </div>
-                  
-                  {/* Nearby Facilities - compact */}
+
+                  {/* Nearby Amenities */}
                   {property.nearby_amenities && property.nearby_amenities.length > 0 && (
-                    <div className="flex items-center gap-1">
-                      <span className="text-xs text-muted-foreground">Nearby:</span>
-                      <div className="flex gap-1">
-                        {property.nearby_amenities.slice(0, 2).map((amenity, index) => (
-                          <span 
-                            key={index}
-                            className="bg-green-100 text-green-700 px-1 py-0.5 rounded text-xs font-medium"
-                          >
-                            {amenity.split('(')[0].trim()}
-                          </span>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Nearby</p>
+                      <div className="flex flex-wrap gap-2 mt-1">
+                        {property.nearby_amenities.slice(0, 3).map((amenity, index) => (
+                          <Badge key={index} variant="outline" className="font-normal text-xs">
+                            {amenity}
+                          </Badge>
                         ))}
-                        {property.nearby_amenities.length > 2 && (
-                          <span className="bg-gray-100 text-gray-600 px-1 py-0.5 rounded text-xs font-medium">
-                            +{property.nearby_amenities.length - 2}
-                          </span>
+                        {property.nearby_amenities.length > 3 && (
+                          <Badge variant="outline" className="font-normal text-xs">
+                            +{property.nearby_amenities.length - 3} more
+                          </Badge>
                         )}
                       </div>
                     </div>
                   )}
                 </div>
 
-                {/* Location */}
-                <div className="flex items-center gap-1 mb-3 text-sm text-muted-foreground">
-                  <MapPin className="h-4 w-4 flex-shrink-0" />
-                  <span className="line-clamp-1">
-                    {property.address ? `${property.address}, ` : ''}{property.city}, {property.state}
-                    {property.zip_code ? ` ${property.zip_code}` : ''}
-                  </span>
-                </div>
-
-                {/* Price */}
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-1 font-semibold text-lg text-primary">
-                    <DollarSign className="h-5 w-5" />
-                    <span>{property.monthly_rent}</span>
-                    <span className="text-sm font-normal text-muted-foreground">
-                      /month
-                    </span>
-                  </div>
-
-                  {formatAvailableDate(property.available_date) && (
-                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                      <Calendar className="h-4 w-4" />
-                      <span>
-                        {formatAvailableDate(property.available_date)}
-                      </span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Description moved to the end */}
-                <p className="text-muted-foreground text-sm mb-4 line-clamp-2 pt-2 border-t border-gray-100">
-                  {property.description}
-                </p>
-
-
-                <div className="flex gap-2 mt-4">
-                  <Button className="flex-1" variant="outline" asChild>
-                    <Link to={`/dashboard/rental-options/${property.id}`}>
-                      View Details
-                    </Link>
+                {/* Action Buttons */}
+                <div className="grid grid-cols-2 gap-2 mt-4">
+                  <Button
+                    onClick={() => navigate(`/dashboard/rental-options/${property.id}`)}
+                    variant="outline"
+                  >
+                    View Details
                   </Button>
                   <MessageButton
-                    propertyId={property.id}
                     landlordId={property.user_id}
-                    className="flex-1"
+                    propertyId={property.id}
                   />
-                  <Button className="flex-1" variant="default" asChild>
-                    <Link to={`/dashboard/rental-application/${property.id}`}>
-                      Rent
-                    </Link>
+                </div>
+                <div className="grid grid-cols-1 gap-2 mt-2">
+                   <Button
+                    onClick={() => {
+                      if (user) {
+                        navigate(`/dashboard/rental-application/${property.id}`);
+                      } else {
+                        toast.error("Please log in to apply for a rental.");
+                      }
+                    }}
+                    className="w-full"
+                  >
+                    Apply Now
                   </Button>
                 </div>
               </CardContent>
@@ -326,6 +329,11 @@ export default function RentalOptionsPage() {
           ))}
         </div>
       )}
+      <MapModal 
+        property={selectedProperty} 
+        isOpen={isMapModalOpen} 
+        onClose={() => setMapModalOpen(false)} 
+      />
     </div>
   );
 }

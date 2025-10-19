@@ -30,47 +30,36 @@ export function PropertyCard({ property, onViewDetails }: PropertyCardProps) {
         <CardDescription>{property.propertyDetails?.address || property.location}</CardDescription>
       </CardHeader>
       
-      <CardContent className="space-y-4">
-        <div className="flex flex-wrap gap-2">
-          <div className="bg-muted px-2 py-1 rounded-md text-xs flex items-center gap-1">
-            <Building size={12} />
-            <span>{property.propertyDetails?.propertyType || "Apartment"}</span>
-          </div>
-          <div className="bg-muted px-2 py-1 rounded-md text-xs flex items-center gap-1">
-            <Bed size={12} />
-            <span>{property.propertyDetails?.bedrooms || "1"} BR</span>
-          </div>
-          <div className="bg-muted px-2 py-1 rounded-md text-xs">
-            {property.workSchedule}
-          </div>
-        </div>
-        
-        <div className="flex flex-col gap-y-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-sm">
-              <span>Monthly rent:</span>
-            </div>
-            <span className="text-sm font-medium">${Math.floor(property.budget[0] / 2)} - ${Math.floor(property.budget[1] / 2)} /person</span>
-          </div>
-          
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-sm">
-              <span>Move-in:</span>
-            </div>
-            <span className="text-sm font-medium">{property.movingDate}</span>
-          </div>
-        </div>
-        
-        <div>
-          <h4 className="text-sm font-medium mb-2">About {property.name}:</h4>
-          <p className="text-sm text-muted-foreground">
-            {property.age}-year-old {property.gender}, works as a {property.occupation}.
-            {property.smoking ? " Smoker." : " Non-smoker."} 
-            {property.pets ? " Has pets." : " No pets."}
-          </p>
-        </div>
-      </CardContent>
-      
+            <CardContent className="p-4 bg-gray-50">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-gray-500">Monthly Rent</p>
+                  <p className="font-bold text-lg text-gray-800">${Math.floor(property.budget[0] / 2)} - ${Math.floor(property.budget[1] / 2)}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Available</p>
+                  <p className="font-bold text-lg text-gray-800">{property.movingDate}</p>
+                </div>
+              </div>
+              <div className="mt-4">
+                <p className="text-sm text-gray-500">Property Type</p>
+                <p className="font-semibold text-md text-gray-800">{property.propertyDetails?.propertyType || "Apartment"}</p>
+              </div>
+              <div className="mt-2">
+                <p className="text-sm text-gray-500">Address</p>
+                <p className="font-semibold text-md text-gray-800">{property.propertyDetails?.address || property.location}</p>
+              </div>
+              <div className="mt-4 flex items-center justify-start space-x-4">
+                <div className="flex items-center space-x-2">
+                  <Bed size={16} className="text-gray-600" />
+                  <span className="text-sm text-gray-700">{property.propertyDetails?.bedrooms || "1"} BR</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Building size={16} className="text-gray-600" />
+                  <span className="text-sm text-gray-700">{property.propertyDetails?.propertyType || "Apartment"}</span>
+                </div>
+              </div>
+            </CardContent>      
       <CardFooter className="flex gap-2">
         <Button 
           variant="outline" 

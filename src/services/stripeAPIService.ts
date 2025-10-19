@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { STRIPE_CONFIG, STRIPE_WEBHOOK_EVENTS, PAYMENT_STATUS_MAP } from '@/config/stripe';
 
 // Initialize Stripe with secret key
-const stripe = new Stripe(import.meta.env.VITE_STRIPE_SECRET_KEY || 'sk_test_51SIhcgRkKDAtZpXYliQmReNVa17kR1z1K4AKgN4XXlnRoxHY87NMDAgy8P9mK0QOsTDtA2csE4opbF9bVLIBGStT00oTffEk7F', {
+const stripe = new Stripe(import.meta.env.VITE_STRIPE_SECRET_KEY || '', {
   apiVersion: '2023-10-16',
 });
 
