@@ -6,9 +6,9 @@ export interface Property {
   id: string;
   user_id: string;
   
-  // Basic Information
-  property_type: string;
+  // Basic Information (matching database schema)
   listing_title: string;
+  property_type: string;
   description: string;
   
   // Location Details
@@ -25,8 +25,8 @@ export interface Property {
   // Rental Information  
   monthly_rent: number;
   security_deposit?: number;
-  lease_duration?: string;
-  available_date?: string;
+  lease_terms?: string; // Changed from lease_duration to lease_terms
+  available_date?: string; // This matches the frontend expectation
   furnished?: boolean;
   
   // Property Features
@@ -50,6 +50,8 @@ export interface Property {
   // Metadata
   created_at: string;
   updated_at: string;
+  status?: string;
+  views_count?: number;
 }
 
 export type PropertyType = "Apartment" | "House" | "Condo" | "Townhouse" | "Commercial" | "rent" | "sale";
@@ -109,7 +111,7 @@ export async function uploadPropertyImage(file: File, userId: string): Promise<s
     // Generate unique filename
     const fileExt = file.name.split('.').pop();
     const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-    const filePath = `${userId}/${fileName}`;
+    const filePath = `${userId}/property-${Date.now()}/${fileName}`;
 
     // Upload to Supabase Storage
     const { data, error } = await supabase.storage
@@ -170,24 +172,59 @@ export async function deletePropertyImage(imageUrl: string): Promise<void> {
 export async function createProperty(propertyData: any): Promise<Property | null> {
   console.log("🏠 Creating property:", propertyData);
 
-  // Convert furnished string to boolean for database
+  // First, get the current user
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  
+  if (authError) {
+    console.error("❌ Authentication error:", authError);
+    throw new Error(`Authentication failed: ${authError.message}`);
+  }
+  
+  if (!user) {
+    console.error("❌ No authenticated user found");
+    throw new Error("You must be logged in to create a property");
+  }
+
+  console.log("✅ Authenticated user found:", user.id);
+
+  // Map frontend field names to database field names
   const payload: any = {
-    ...propertyData,
+    user_id: user.id, // Ensure user_id is always set
+    listing_title: propertyData.listingTitle || propertyData.listing_title,
+    property_type: propertyData.propertyType || propertyData.property_type,
+    description: propertyData.description,
+    address: propertyData.address || propertyData.propertyAddress,
+    city: propertyData.city,
+    state: propertyData.state,
+    zip_code: propertyData.zipCode || propertyData.zip_code,
+    neighborhood: propertyData.neighborhood,
+    latitude: propertyData.latitude,
+    longitude: propertyData.longitude,
+    public_transport_access: propertyData.publicTransportAccess || propertyData.public_transport_access,
+    nearby_amenities: propertyData.nearbyAmenities || propertyData.nearby_amenities,
+    monthly_rent: parseFloat(propertyData.monthlyRent || propertyData.monthly_rent || '0'),
+    security_deposit: parseFloat(propertyData.securityDeposit || propertyData.security_deposit || '0'),
+    lease_terms: propertyData.leaseTerms || propertyData.lease_terms,
+    available_date: propertyData.availableDate || propertyData.available_date,
+    furnished: propertyData.furnished,
+    bedrooms: parseInt(propertyData.bedrooms || '0'),
+    bathrooms: parseFloat(propertyData.bathrooms || '0'),
+    square_footage: parseInt(propertyData.squareFootage || propertyData.square_footage || '0'),
+    amenities: propertyData.amenities || [],
+    parking: propertyData.parking,
+    pet_policy: propertyData.petPolicy || propertyData.pet_policy,
+    utilities_included: propertyData.utilitiesIncluded || propertyData.utilities_included || [],
+    special_instructions: propertyData.specialInstructions || propertyData.special_instructions,
+    roommate_preference: propertyData.roommatePreference || propertyData.roommate_preference,
+    images: propertyData.images || []
   };
 
-  // Fix furnished field - convert string to boolean
+  // Convert furnished string to boolean for database
   if (payload.furnished !== null && payload.furnished !== undefined) {
     if (typeof payload.furnished === 'string') {
       payload.furnished = payload.furnished === 'furnished' || payload.furnished === 'true';
     }
   }
-
-  // Backward compatibility: current DB uses lease_terms; app uses lease_duration.
-  // Until migrations are applied, send lease_terms and drop lease_duration.
-  if (payload.lease_duration && !payload.lease_terms) {
-    payload.lease_terms = payload.lease_duration;
-  }
-  delete payload.lease_duration;
   
   console.log("📦 Final payload for database:", payload);
   
@@ -292,13 +329,60 @@ export async function fetchPropertyById(id: string) {
   }
 }
 
-export async function updateProperty(id: string, updates: (Partial<Property> & { furnished?: boolean | string })) {
+export async function updateProperty(id: string, updates: any) {
   console.log("Updating property:", id, updates);
 
-  // Convert furnished string to boolean for database
-  const payload: any = {
-    ...updates,
-  };
+  // Map frontend field names to database field names
+  const payload: any = {};
+  
+  // Map all possible field names from frontend to database
+  if (updates.listingTitle || updates.listing_title) payload.listing_title = updates.listingTitle || updates.listing_title;
+  if (updates.propertyType || updates.property_type) payload.property_type = updates.propertyType || updates.property_type;
+  if (updates.description !== undefined) payload.description = updates.description;
+  if (updates.address || updates.propertyAddress) payload.address = updates.address || updates.propertyAddress;
+  if (updates.city !== undefined) payload.city = updates.city;
+  if (updates.state !== undefined) payload.state = updates.state;
+  if (updates.zipCode || updates.zip_code) payload.zip_code = updates.zipCode || updates.zip_code;
+  if (updates.neighborhood !== undefined) payload.neighborhood = updates.neighborhood;
+  if (updates.latitude !== undefined) payload.latitude = updates.latitude;
+  if (updates.longitude !== undefined) payload.longitude = updates.longitude;
+  if (updates.publicTransportAccess || updates.public_transport_access) {
+    payload.public_transport_access = updates.publicTransportAccess || updates.public_transport_access;
+  }
+  if (updates.nearbyAmenities || updates.nearby_amenities) {
+    payload.nearby_amenities = updates.nearbyAmenities || updates.nearby_amenities;
+  }
+  if (updates.monthlyRent || updates.monthly_rent) {
+    payload.monthly_rent = parseFloat(updates.monthlyRent || updates.monthly_rent || '0');
+  }
+  if (updates.securityDeposit || updates.security_deposit) {
+    payload.security_deposit = parseFloat(updates.securityDeposit || updates.security_deposit || '0');
+  }
+  if (updates.leaseTerms || updates.lease_terms) {
+    payload.lease_terms = updates.leaseTerms || updates.lease_terms;
+  }
+  if (updates.availableDate || updates.available_date) {
+    payload.available_date = updates.availableDate || updates.available_date;
+  }
+  if (updates.furnished !== undefined) payload.furnished = updates.furnished;
+  if (updates.bedrooms !== undefined) payload.bedrooms = parseInt(updates.bedrooms?.toString() || '0');
+  if (updates.bathrooms !== undefined) payload.bathrooms = parseFloat(updates.bathrooms?.toString() || '0');
+  if (updates.squareFootage || updates.square_footage) {
+    payload.square_footage = parseInt(updates.squareFootage?.toString() || updates.square_footage?.toString() || '0');
+  }
+  if (updates.amenities !== undefined) payload.amenities = updates.amenities;
+  if (updates.parking !== undefined) payload.parking = updates.parking;
+  if (updates.petPolicy || updates.pet_policy) payload.pet_policy = updates.petPolicy || updates.pet_policy;
+  if (updates.utilitiesIncluded || updates.utilities_included) {
+    payload.utilities_included = updates.utilitiesIncluded || updates.utilities_included;
+  }
+  if (updates.specialInstructions || updates.special_instructions) {
+    payload.special_instructions = updates.specialInstructions || updates.special_instructions;
+  }
+  if (updates.roommatePreference || updates.roommate_preference) {
+    payload.roommate_preference = updates.roommatePreference || updates.roommate_preference;
+  }
+  if (updates.images !== undefined) payload.images = updates.images;
 
   // Fix furnished field - convert string to boolean
   if (payload.furnished !== null && payload.furnished !== undefined) {
@@ -306,12 +390,6 @@ export async function updateProperty(id: string, updates: (Partial<Property> & {
       payload.furnished = payload.furnished === 'furnished' || payload.furnished === 'true';
     }
   }
-
-  // Backward compatibility: current DB uses lease_terms; app uses lease_duration.
-  if (payload.lease_duration && !payload.lease_terms) {
-    payload.lease_terms = payload.lease_duration;
-  }
-  delete payload.lease_duration;
   
   try {
     const { data, error } = await sb

@@ -20,6 +20,7 @@ import { amenitiesService } from "@/services/amenitiesService";
 import { detailedAmenitiesService } from "@/services/detailedAmenitiesService";
 import { PropertyIntelligence } from "@/types/detailedAmenities";
 import { useRole, UserRole } from "@/contexts/RoleContext";
+import { ImageUpload } from "@/components/ui/image-upload";
 
 // Helper function to generate smart default amenities based on Canadian location
 function generateDefaultLocationAmenities(addressDetails: any, coordinates: { lat: number; lng: number }): string[] {
@@ -117,7 +118,7 @@ interface PropertyFormData {
   // Additional Info
   specialInstructions: string;
   roommatePreference: string;
-  images: File[];
+  images: string[]; // Changed from File[] to string[] for URLs
 }
 
 const initialFormData: PropertyFormData = {
@@ -159,6 +160,7 @@ export default function AddPropertyPage() {
   const [detailedDetection, setDetailedDetection] = useState<PropertyIntelligence | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [selectedFacility, setSelectedFacility] = useState<{name: string, coordinates: {lat: number, lng: number}, distance: number} | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string>('');
   const DRAFT_KEY = "add_property_draft_v1";
   const [editId, setEditId] = useState<string | null>(null);
   const [existingImageUrls, setExistingImageUrls] = useState<string[]>([]);
@@ -245,6 +247,17 @@ export default function AddPropertyPage() {
       }
     }
   };
+
+  // Get current user on mount
+  useEffect(() => {
+    const getCurrentUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setCurrentUserId(user.id);
+      }
+    };
+    getCurrentUser();
+  }, []);
 
   // Restore draft on mount
   useEffect(() => {
@@ -468,165 +481,6 @@ export default function AddPropertyPage() {
     }
   };
 
-  const handleImageUpload = async (files: FileList | null) => {
-    console.log("handleImageUpload called with:", files);
-    if (files) {
-      const newImages = Array.from(files).filter(file => 
-        file.type.startsWith('image/') && file.size <= 10 * 1024 * 1024 // 10MB limit
-      );
-      console.log("Filtered images:", newImages);
-      
-      // Check photo for location and auto-detect amenities (non-blocking)
-      if (newImages.length > 0) {
-        const firstImage = newImages[0];
-        
-        // Always add images first, then try amenities detection in background
-        setFormData(prev => ({
-          ...prev,
-          images: [...prev.images, ...newImages].slice(0, 10) // Max 10 images
-        }));
-        
-        // Try amenities detection in background (don't block image upload)
-        setTimeout(async () => {
-          try {
-            console.log("🔍 Attempting amenities detection from photo...");
-            toast.info("📸 Analyzing photo location and detecting nearby amenities...");
-            
-            // Extract location from first image (representative location)
-            const locationData = await amenitiesService.extractLocationFromPhoto(firstImage);
-            if (locationData?.coordinates) {
-              // Try real-time amenities detection from photo location
-              try {
-                const detailedResult = await detailedAmenitiesService.getDetailedPropertyIntelligence(
-                  locationData.coordinates,
-                  "Photo Location",
-                  formData.propertyType || ""
-                );
-                
-                if (detailedResult && detailedResult.detectedAmenities) {
-                  // Convert detailed amenities to simple string array for display
-                  const realAmenities: string[] = [];
-                  
-                  // Add specific facility names with distances
-                  detailedResult.detectedAmenities.metro.forEach(metro => {
-                    realAmenities.push(`${metro.name} (${Math.round(metro.distance)}m)`);
-                  });
-                  
-                  detailedResult.detectedAmenities.buses.forEach(bus => {
-                    realAmenities.push(`${bus.name} (${Math.round(bus.distance)}m)`);
-                  });
-                  
-                  detailedResult.detectedAmenities.banks.forEach(bank => {
-                    realAmenities.push(`${bank.name} (${Math.round(bank.distance)}m)`);
-                  });
-                  
-                  detailedResult.detectedAmenities.shoppingMalls.forEach(mall => {
-                    realAmenities.push(`${mall.name} (${Math.round(mall.distance)}m)`);
-                  });
-                  
-                  detailedResult.detectedAmenities.plazas.forEach(plaza => {
-                    realAmenities.push(`${plaza.name} (${Math.round(plaza.distance)}m)`);
-                  });
-                  
-                  detailedResult.detectedAmenities.gyms.forEach(gym => {
-                    realAmenities.push(`${gym.name} (${Math.round(gym.distance)}m)`);
-                  });
-                  
-                  // Add new facility types
-                  detailedResult.detectedAmenities.hospitals.forEach(hospital => {
-                    realAmenities.push(`${hospital.name} (${Math.round(hospital.distance)}m)`);
-                  });
-                  
-                  detailedResult.detectedAmenities.schools.forEach(school => {
-                    realAmenities.push(`${school.name} (${Math.round(school.distance)}m)`);
-                  });
-                  
-                  detailedResult.detectedAmenities.restaurants.forEach(restaurant => {
-                    realAmenities.push(`${restaurant.name} (${Math.round(restaurant.distance)}m)`);
-                  });
-                  
-                  detailedResult.detectedAmenities.parks.forEach(park => {
-                    realAmenities.push(`${park.name} (${Math.round(park.distance)}m)`);
-                  });
-                  
-                  if (realAmenities.length > 0) {
-                    toast.success(`✅ Auto-detected ${realAmenities.length} real facilities from photo!`);
-                    
-                    setFormData(prev => ({
-                      ...prev,
-                      nearbyAmenities: [...(prev.nearbyAmenities || []), ...realAmenities].slice(0, 8), // Limit to most relevant
-                      // If no coordinates yet set, use photo location as fallback
-                      latitude: prev.latitude || locationData.coordinates?.lat,
-                      longitude: prev.longitude || locationData.coordinates?.lng,
-                    }));
-                    
-                    setDetailedDetection(detailedResult);
-                  } else {
-                    toast.info("📍 No facilities detected from photo location");
-                  }
-                } else {
-                  // Fallback to basic amenities detection
-                  const autoAmenities = await amenitiesService.autoDetectAmenities(locationData);
-                  
-                  if (autoAmenities.length > 0) {
-                    toast.success(`✅ Auto-detected ${autoAmenities.length} nearby amenities from photo!`);
-                    
-                    setFormData(prev => ({
-                      ...prev,
-                      nearbyAmenities: [...(prev.nearbyAmenities || []), ...autoAmenities].slice(0, 8), // Limit to most relevant
-                      // If no coordinates yet set, use photo location as fallback
-                      latitude: prev.latitude || locationData.coordinates?.lat,
-                      longitude: prev.longitude || locationData.coordinates?.lng,
-                    }));
-                  } else {
-                    toast.info("📍 No additional amenities detected from photo location");
-                  }
-                }
-              } catch (detailedError) {
-                console.warn('Detailed amenities detection from photo failed:', detailedError);
-                // Fallback to basic amenities detection
-                const autoAmenities = await amenitiesService.autoDetectAmenities(locationData);
-                
-                if (autoAmenities.length > 0) {
-                  toast.success(`✅ Auto-detected ${autoAmenities.length} nearby amenities from photo!`);
-                  
-                  setFormData(prev => ({
-                    ...prev,
-                    nearbyAmenities: [...(prev.nearbyAmenities || []), ...autoAmenities].slice(0, 8), // Limit to most relevant
-                    // If no coordinates yet set, use photo location as fallback
-                    latitude: prev.latitude || locationData.coordinates?.lat,
-                    longitude: prev.longitude || locationData.coordinates?.lng,
-                  }));
-                } else {
-                  toast.info("📍 No additional amenities detected from photo location");
-                }
-              }
-            } else {
-              toast.warning("⚠️ Could not extract location from photo for amenities detection");
-            }
-          } catch (error) {
-            console.warn('⚠️ Amenities auto-detection failed (non-blocking):', error);
-            toast.warning("⚠️ Could not detect amenities from photo - please enter address manually");
-          }
-        }, 100);
-        
-        return; // Exit early since we've already added the images
-      }
-      
-      setFormData(prev => ({
-        ...prev,
-        images: [...prev.images, ...newImages].slice(0, 10) // Max 10 images
-      }));
-    }
-  };
-
-  const removeImage = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      images: prev.images.filter((_, i) => i !== index)
-    }));
-  };
-
   const prevStep = () => {
     if (currentStep > 1) {
       setCurrentStep(prev => prev - 1);
@@ -673,25 +527,8 @@ export default function AddPropertyPage() {
       
       setErrors({});
 
-      // Upload images to storage (create mode only; editing keeps existing URLs as-is)
-      const imageUrls: string[] = [];
-      
-      if (formData.images.length > 0) {
-        toast.info("Uploading images...");
-        
-        for (const image of formData.images) {
-          try {
-            const imageUrl = await uploadPropertyImage(image, user.id);
-            imageUrls.push(imageUrl);
-          } catch (error) {
-            console.error('Failed to upload image:', error);
-            toast.error(`Failed to upload ${image.name}. Please try again.`);
-            return;
-          }
-        }
-        
-        toast.success("Images uploaded successfully!");
-      }
+      // Images are already uploaded and stored in formData.images as URLs
+      const imageUrls = formData.images; // These are already URLs from the ImageUpload component
       
       // Prepare property data for database
       const propertyData = {
@@ -710,8 +547,7 @@ export default function AddPropertyPage() {
         nearby_amenities: formData.nearbyAmenities || [],
         monthly_rent: parseFloat(String(formData.monthlyRent).replace(/[^0-9.]/g, '')),
         security_deposit: formData.securityDeposit ? parseFloat(formData.securityDeposit) : null,
-        // For current DB (legacy), send lease_terms; service will map if needed
-        lease_duration: formData.leaseTerms || null,
+        lease_terms: formData.leaseTerms || null, // Fixed: use lease_terms instead of lease_duration
         available_date: formData.availableDate || null,
         furnished: formData.furnished || null as any,
         amenities: formData.amenities || [],
@@ -832,59 +668,31 @@ export default function AddPropertyPage() {
                     📸 Upload photos of your {formData.propertyType ? formData.propertyType.replace(/-/g, ' ') : 'property'} 
                     {formData.propertyType ? ' - this helps verify the property type selected above' : ''}
                   </p>
-                  <Button 
-                    variant="outline" 
-                    size="lg"
-                    onClick={() => document.getElementById('photo-upload-early')?.click()}
-                    className="bg-blue-600 hover:bg-blue-700 text-white border-0 shadow-md hover:shadow-lg transition-all duration-200"
-                  >
-                    <Camera className="h-5 w-5 mr-2" />
-                    Upload Property Photos
-                  </Button>
-                  <input
-                    id="photo-upload-early"
-                    type="file"
-                    multiple
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => handleImageUpload(e.target.files)}
-                  />
+                  <div className="mt-4">
+                    {currentUserId && (
+                      <ImageUpload
+                        propertyId="temp"
+                        userId={currentUserId}
+                        images={formData.images}
+                        onImagesChange={(newImages) => {
+                          setFormData(prev => ({ ...prev, images: newImages }));
+                        }}
+                        maxImages={10}
+                      />
+                    )}
+                  </div>
                   
                   {formData.images.length > 0 && (
                     <div className="mt-6">
                       <p className="text-base text-blue-700 mb-4 font-bold">
                         ✓ Uploaded {formData.images.length} photo(s)
                       </p>
-                      <div className="flex gap-4 flex-wrap justify-center mt-4">
-                        {formData.images.slice(0, 6).map((image, index) => (
-                          <div key={index} className="relative group">
-                            <img
-                              src={URL.createObjectURL(image)}
-                              alt={`Property photo ${index + 1}`}
-                              className="w-24 h-20 object-cover rounded-lg shadow-lg border-2 border-white"
-                            />
-                            <Button
-                              variant="destructive"
-                              size="sm"
-                              className="absolute -top-3 -right-3 h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
-                              onClick={() => removeImage(index)}
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
-            </div>
-                        ))}
-                        {formData.images.length > 6 && (
-                          <div className="w-24 h-20 bg-blue-100 rounded-lg flex items-center justify-center text-base text-blue-700 font-bold border-2 border-white shadow-lg">
-                            +{formData.images.length - 6}
-          </div>
-                        )}
-            </div>
                       <p className="text-base text-blue-700 mt-3 font-bold">
                         💡 You'll review your listing in the next step before submitting.
                       </p>
-              </div>
+                    </div>
                   )}
-              </div>
+                </div>
               </div>
             </div>
 

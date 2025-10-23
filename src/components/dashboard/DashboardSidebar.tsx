@@ -24,8 +24,7 @@ import { Menu, X } from "lucide-react";
 export function DashboardSidebar() {
   const location = useLocation();
   const { role } = useRole();
-  const { open, toggleSidebar } = useSidebar();
-  const isMobile = useIsMobile();
+  const { open, toggleSidebar, isMobile } = useSidebar();
 
   const isActive = (path: string) => {
     return location.pathname === path;
@@ -36,16 +35,20 @@ export function DashboardSidebar() {
   console.log("DashboardSidebar - Is mobile:", isMobile);
   console.log("DashboardSidebar - Sidebar open:", open);
 
+  // Don't render on mobile, let the mobile navigation handle it
+  if (isMobile) {
+    return null;
+  }
+
   return (
-    <>
-        <Sidebar className={`h-screen fixed top-0 left-0 ${isMobile ? (open ? 'flex' : 'hidden') : 'hidden md:flex'}`}>
-          <SidebarHeader className="flex items-center justify-center p-4">
-            <h2 className="text-2xl font-bold">
-              {role === 'landlord' ? 'Landlord Portal' :
-               role === 'admin' ? 'Admin Portal' :
-               'Roommate Finder'}
-            </h2>
-          </SidebarHeader>
+    <Sidebar collapsible="icon">
+      <SidebarHeader className="flex items-center justify-center p-4">
+        <h2 className="text-2xl font-bold">
+          {role === 'landlord' ? 'Landlord Portal' :
+           role === 'admin' ? 'Admin Portal' :
+           'Roommate Finder'}
+        </h2>
+      </SidebarHeader>
         
         <SidebarSeparator />
         <SidebarContent>
@@ -70,6 +73,5 @@ export function DashboardSidebar() {
           </Button>
         </SidebarFooter>
       </Sidebar>
-    </>
   );
 }

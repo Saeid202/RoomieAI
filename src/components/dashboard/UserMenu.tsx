@@ -81,7 +81,7 @@ export function UserMenu() {
             <Button
               variant="ghost"
               size="icon"
-              className="md:hidden font-semibold"
+              className="font-semibold"
               onClick={toggleSidebar}
             >
               <Menu className="h-5 w-5" />
