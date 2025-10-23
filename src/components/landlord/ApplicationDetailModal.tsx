@@ -161,8 +161,26 @@ export function ApplicationDetailModal({
                       variant="ghost"
                       size="sm"
                       onClick={() => window.open(doc.storage_url, '_blank')}
+                      title="View document"
                     >
                       <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        const link = document.createElement('a');
+                        link.href = doc.storage_url;
+                        link.download = doc.original_filename;
+                        link.target = '_blank';
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        toast.success(`Downloading ${doc.original_filename}`);
+                      }}
+                      title="Download document"
+                    >
+                      <Download className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
@@ -334,12 +352,43 @@ export function ApplicationDetailModal({
                 <p className="text-sm text-muted-foreground mt-2">Loading documents...</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <DocumentSection title="Reference Letters" type="reference" icon={FileText} />
-                <DocumentSection title="Employment Documents" type="employment" icon={Briefcase} />
-                <DocumentSection title="Credit Reports" type="credit" icon={DollarSign} />
-                <DocumentSection title="Additional Documents" type="additional" icon={FileText} />
-              </div>
+              <>
+                {/* Download All Button */}
+                {documents.length > 0 && (
+                  <div className="flex justify-between items-center mb-4">
+                    <div className="text-sm text-muted-foreground">
+                      {documents.length} document{documents.length !== 1 ? 's' : ''} uploaded
+                    </div>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        documents.forEach((doc, index) => {
+                          setTimeout(() => {
+                            const link = document.createElement('a');
+                            link.href = doc.storage_url;
+                            link.download = doc.original_filename;
+                            link.target = '_blank';
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                          }, index * 500); // Stagger downloads
+                        });
+                        toast.success(`Downloading ${documents.length} documents...`);
+                      }}
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Download All Documents
+                    </Button>
+                  </div>
+                )}
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <DocumentSection title="Reference Letters" type="reference" icon={FileText} />
+                  <DocumentSection title="Employment Documents" type="employment" icon={Briefcase} />
+                  <DocumentSection title="Credit Reports" type="credit" icon={DollarSign} />
+                  <DocumentSection title="Additional Documents" type="additional" icon={FileText} />
+                </div>
+              </>
             )}
           </TabsContent>
 

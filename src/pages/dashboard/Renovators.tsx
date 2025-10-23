@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -26,6 +26,7 @@ import {
   Zap
 } from "lucide-react";
 import { toast } from "sonner";
+import { RenovationPartnerService, RenovationPartner } from "@/services/renovationPartnerService";
 
 interface Renovator {
   id: string;
@@ -180,9 +181,11 @@ const specialtyIcons: Record<string, React.ReactNode> = {
 };
 
 export default function RenovatorsPage() {
+  const [renovators, setRenovators] = useState<RenovationPartner[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedSpecialty, setSelectedSpecialty] = useState("");
-  const [selectedRenovator, setSelectedRenovator] = useState<Renovator | null>(null);
+  const [selectedRenovator, setSelectedRenovator] = useState<RenovationPartner | null>(null);
   const [contactForm, setContactForm] = useState({
     name: "",
     email: "",
@@ -193,9 +196,26 @@ export default function RenovatorsPage() {
     timeline: ""
   });
 
-  const specialties = Array.from(new Set(mockRenovators.flatMap(r => r.specialties)));
+  useEffect(() => {
+    loadRenovators();
+  }, []);
 
-  const filteredRenovators = mockRenovators.filter(renovator => {
+  const loadRenovators = async () => {
+    try {
+      setLoading(true);
+      const data = await RenovationPartnerService.getActivePartners();
+      setRenovators(data);
+    } catch (error) {
+      console.error('Failed to load renovators:', error);
+      toast.error('Failed to load renovation partners');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const specialties = Array.from(new Set(renovators.flatMap(r => r.specialties)));
+
+  const filteredRenovators = renovators.filter(renovator => {
     const matchesSearch = renovator.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          renovator.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          renovator.specialties.some(s => s.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -285,8 +305,22 @@ export default function RenovatorsPage() {
       </div>
 
       {/* Renovators Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredRenovators.map((renovator) => (
+      {loading ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading renovation partners...</p>
+          </div>
+        </div>
+      ) : filteredRenovators.length === 0 ? (
+        <div className="text-center py-12">
+          <Hammer className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <h3 className="text-lg font-semibold mb-2">No renovation partners found</h3>
+          <p className="text-muted-foreground">Try adjusting your search or filter criteria.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredRenovators.map((renovator) => (
           <Card key={renovator.id} className="overflow-hidden hover:shadow-lg transition-shadow">
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
@@ -313,7 +347,7 @@ export default function RenovatorsPage() {
               <div className="flex items-center gap-2">
                 <div className="flex">{renderStars(renovator.rating)}</div>
                 <span className="text-sm font-medium">{renovator.rating}</span>
-                <span className="text-sm text-muted-foreground">({renovator.reviewCount} reviews)</span>
+                <span className="text-sm text-muted-foreground">({renovator.review_count} reviews)</span>
               </div>
 
               {/* Specialties */}
@@ -354,11 +388,11 @@ export default function RenovatorsPage() {
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div className="flex items-center gap-2">
                   <Users className="h-4 w-4 text-gray-500" />
-                  <span>{renovator.completedProjects} projects</span>
+                  <span>{renovator.completed_projects} projects</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Award className="h-4 w-4 text-gray-500" />
-                  <span>{renovator.yearsExperience} years exp.</span>
+                  <span>{renovator.years_experience} years exp.</span>
                 </div>
               </div>
 
@@ -391,7 +425,8 @@ export default function RenovatorsPage() {
             </CardContent>
           </Card>
         ))}
-      </div>
+        </div>
+      )}
 
       {/* Contact Dialog */}
       <Dialog open={!!selectedRenovator} onOpenChange={() => setSelectedRenovator(null)}>

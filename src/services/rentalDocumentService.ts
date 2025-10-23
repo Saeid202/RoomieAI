@@ -357,3 +357,38 @@ export async function areRequiredDocumentsUploaded(applicationId: string): Promi
     };
   }
 }
+
+/**
+ * Download all documents for an application as a ZIP file
+ * Note: This is a client-side implementation that downloads files individually
+ * For a production app, you'd want a server-side ZIP creation endpoint
+ */
+export async function downloadAllDocuments(applicationId: string): Promise<void> {
+  console.log("Downloading all documents for application:", applicationId);
+  
+  try {
+    const documents = await getApplicationDocuments(applicationId);
+    
+    if (documents.length === 0) {
+      throw new Error("No documents found for this application");
+    }
+    
+    // Download each document with a small delay to avoid browser blocking
+    documents.forEach((doc, index) => {
+      setTimeout(() => {
+        const link = document.createElement('a');
+        link.href = doc.storage_url;
+        link.download = doc.original_filename;
+        link.target = '_blank';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }, index * 500); // 500ms delay between downloads
+    });
+    
+    console.log(`Initiated download of ${documents.length} documents`);
+  } catch (error) {
+    console.error("Error downloading all documents:", error);
+    throw error;
+  }
+}

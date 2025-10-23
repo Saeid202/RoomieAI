@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { RentalApplication } from '@/services/rentalApplicationService';
+import { getApplicationDocuments, RentalDocument } from '@/services/rentalDocumentService';
 import { toast } from 'sonner';
 
 interface ApplicationsListProps {
@@ -49,6 +50,8 @@ export function ApplicationsList({
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [propertyFilter, setPropertyFilter] = useState('all');
+  const [applicationDocuments, setApplicationDocuments] = useState<Record<string, RentalDocument[]>>({});
+  const [loadingDocuments, setLoadingDocuments] = useState<Record<string, boolean>>({});
 
   // Filter applications based on search and filters
   const filteredApplications = applications.filter(app => {
@@ -97,17 +100,61 @@ export function ApplicationsList({
     return date.toLocaleDateString();
   };
 
-  // Mock function to handle document downloads
-  const handleDownloadDocument = (application: any, documentType: string) => {
-    // In a real app, this would fetch and download the actual document
-    toast.info(`Downloading ${documentType} for ${application.full_name}...`);
-    console.log(`Downloading ${documentType} for application ${application.id}`);
+  // Load documents for an application
+  const loadApplicationDocuments = async (applicationId: string) => {
+    if (applicationDocuments[applicationId] || loadingDocuments[applicationId]) {
+      return; // Already loaded or loading
+    }
+
+    try {
+      setLoadingDocuments(prev => ({ ...prev, [applicationId]: true }));
+      const documents = await getApplicationDocuments(applicationId);
+      setApplicationDocuments(prev => ({ ...prev, [applicationId]: documents }));
+    } catch (error) {
+      console.error('Failed to load documents for application:', applicationId, error);
+      toast.error('Failed to load documents');
+    } finally {
+      setLoadingDocuments(prev => ({ ...prev, [applicationId]: false }));
+    }
   };
 
-  // Mock function to get document count for an application
+  // Load documents for all applications when component mounts
+  useEffect(() => {
+    if (applications.length > 0) {
+      applications.forEach(app => {
+        loadApplicationDocuments(app.id);
+      });
+    }
+  }, [applications]);
+
+  // Handle document downloads
+  const handleDownloadDocument = (document: RentalDocument) => {
+    try {
+      // Create a temporary link to download the file
+      const link = document.createElement('a');
+      link.href = document.storage_url;
+      link.download = document.original_filename;
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      toast.success(`Downloading ${document.original_filename}`);
+    } catch (error) {
+      console.error('Download failed:', error);
+      toast.error('Download failed');
+    }
+  };
+
+  // Get document count for an application
   const getDocumentCount = (application: any) => {
-    // In a real app, this would come from the application data
-    return Math.floor(Math.random() * 5) + 1; // Mock: 1-5 documents
+    const documents = applicationDocuments[application.id] || [];
+    return documents.length;
+  };
+
+  // Get documents by type for an application
+  const getDocumentsByType = (application: any, type: string) => {
+    const documents = applicationDocuments[application.id] || [];
+    return documents.filter(doc => doc.document_type === type);
   };
 
   // Function to check if contract button should be shown
@@ -352,44 +399,65 @@ export function ApplicationsList({
                       <FileText className="h-4 w-4" />
                       Documents ({getDocumentCount(application)})
                     </h4>
-                    <div className="grid grid-cols-2 gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDownloadDocument(application, 'Income Verification')}
-                        className="text-xs"
-                      >
-                        <Download className="h-3 w-3 mr-1" />
-                        Income
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDownloadDocument(application, 'Employment Letter')}
-                        className="text-xs"
-                      >
-                        <Download className="h-3 w-3 mr-1" />
-                        Employment
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDownloadDocument(application, 'Reference Letters')}
-                        className="text-xs"
-                      >
-                        <Download className="h-3 w-3 mr-1" />
-                        References
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDownloadDocument(application, 'Credit Report')}
-                        className="text-xs"
-                      >
-                        <Download className="h-3 w-3 mr-1" />
-                        Credit
-                      </Button>
-                    </div>
+                    {loadingDocuments[application.id] ? (
+                      <div className="text-sm text-muted-foreground">Loading documents...</div>
+                    ) : (
+                      <div className="grid grid-cols-2 gap-2">
+                        {getDocumentsByType(application, 'employment').map((doc) => (
+                          <Button
+                            key={doc.id}
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDownloadDocument(doc)}
+                            className="text-xs"
+                          >
+                            <Download className="h-3 w-3 mr-1" />
+                            Employment
+                          </Button>
+                        ))}
+                        {getDocumentsByType(application, 'reference').map((doc) => (
+                          <Button
+                            key={doc.id}
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDownloadDocument(doc)}
+                            className="text-xs"
+                          >
+                            <Download className="h-3 w-3 mr-1" />
+                            References
+                          </Button>
+                        ))}
+                        {getDocumentsByType(application, 'credit').map((doc) => (
+                          <Button
+                            key={doc.id}
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDownloadDocument(doc)}
+                            className="text-xs"
+                          >
+                            <Download className="h-3 w-3 mr-1" />
+                            Credit
+                          </Button>
+                        ))}
+                        {getDocumentsByType(application, 'additional').map((doc) => (
+                          <Button
+                            key={doc.id}
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDownloadDocument(doc)}
+                            className="text-xs"
+                          >
+                            <Download className="h-3 w-3 mr-1" />
+                            Additional
+                          </Button>
+                        ))}
+                        {getDocumentCount(application) === 0 && (
+                          <div className="col-span-2 text-sm text-muted-foreground text-center py-2">
+                            No documents uploaded
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
 

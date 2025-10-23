@@ -39,6 +39,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import AdminHomePage from "@/pages/dashboard/admin/AdminHome";
 import PagesPage from "@/pages/dashboard/admin/Pages";
 import UsersPage from "@/pages/dashboard/admin/Users";
+import RenovationPartnersPage from "@/pages/dashboard/admin/RenovationPartners";
 import SettingsPage from "@/pages/dashboard/Settings";
 import MatchesPage from "@/pages/dashboard/Matches";
 import ApplicationsSeekerPage from "@/pages/dashboard/ApplicationsSeeker";
@@ -111,6 +112,7 @@ function AppRoutes() {
           <Route path="admin" element={<AdminHomePage />} />
           <Route path="admin/pages" element={<PagesPage />} />
           <Route path="admin/users" element={<UsersPage />} />
+          <Route path="admin/renovation-partners" element={<RenovationPartnersPage />} />
           <Route path="admin/settings" element={<SettingsPage />} />
         </Route>
       </Routes>
@@ -163,6 +165,7 @@ function AppRoutes() {
         <Route path="admin" element={<AdminHomePage />} />
         <Route path="admin/pages" element={<PagesPage />} />
         <Route path="admin/users" element={<UsersPage />} />
+        <Route path="admin/renovation-partners" element={<RenovationPartnersPage />} />
         <Route path="admin/settings" element={<SettingsPage />} />
       </Route>
     </Routes>

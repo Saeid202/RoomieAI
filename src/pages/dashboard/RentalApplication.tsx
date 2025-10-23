@@ -58,6 +58,7 @@ import {
   uploadRentalDocument,
   getApplicationDocuments,
 } from "@/services/rentalDocumentService";
+import { fetchUserProfileForApplication } from "@/services/userProfileService";
 import {
   Tooltip,
   TooltipContent,
@@ -160,6 +161,8 @@ export default function RentalApplicationPage() {
   const [existingDocuments, setExistingDocuments] = useState<any[]>([]);
   const [ontarioFormData, setOntarioFormData] =
     useState<OntarioLeaseFormData | null>(null);
+  const [loadingProfile, setLoadingProfile] = useState(false);
+  const [profileAutoFilled, setProfileAutoFilled] = useState(false);
 
   useEffect(() => {
     const loadProperty = async () => {
@@ -181,14 +184,46 @@ export default function RentalApplicationPage() {
   }, [id, navigate]);
 
   useEffect(() => {
-    // Pre-fill user information if available
-    if (user) {
-      setApplicationData((prev) => ({
-        ...prev,
-        email: user.email || "",
-        fullName: user.user_metadata?.full_name || "",
-      }));
-    }
+    // Enhanced user profile loading with comprehensive fallback
+    const loadUserProfile = async () => {
+      if (!user) return;
+      
+      setLoadingProfile(true);
+      try {
+        console.log("Loading user profile for auto-fill...");
+        const profileData = await fetchUserProfileForApplication(user.id);
+        
+        setApplicationData(prev => ({
+          ...prev,
+          fullName: profileData.fullName,
+          email: profileData.email,
+          phone: profileData.phone || prev.phone,
+          occupation: profileData.occupation || prev.occupation,
+        }));
+        
+        setProfileAutoFilled(true);
+        console.log("Profile auto-filled successfully:", profileData);
+        
+        if (profileData.fullName || profileData.email) {
+          toast.success("Profile information auto-filled", {
+            description: "Your information has been pre-filled from your profile"
+          });
+        }
+      } catch (error) {
+        console.error('Failed to load profile:', error);
+        // Fallback to basic data
+        setApplicationData(prev => ({
+          ...prev,
+          email: user.email || '',
+          fullName: user.user_metadata?.full_name || '',
+        }));
+        console.log("Using fallback profile data");
+      } finally {
+        setLoadingProfile(false);
+      }
+    };
+    
+    loadUserProfile();
   }, [user]);
 
   useEffect(() => {
@@ -669,7 +704,21 @@ export default function RentalApplicationPage() {
               {/* Personal Information */}
               <div className="grid grid-cols-2 md:grid-cols-2 gap-4 mb-6">
                 <div>
-                  <Label htmlFor="fullName">Full Name *</Label>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Label htmlFor="fullName">Full Name *</Label>
+                    {profileAutoFilled && applicationData.fullName && (
+                      <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full flex items-center gap-1">
+                        <CheckCircle className="w-3 h-3" />
+                        Auto-filled
+                      </span>
+                    )}
+                    {loadingProfile && (
+                      <span className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded-full flex items-center gap-1">
+                        <div className="w-3 h-3 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                        Loading...
+                      </span>
+                    )}
+                  </div>
                   <Input
                     id="fullName"
                     value={applicationData.fullName}
@@ -677,33 +726,60 @@ export default function RentalApplicationPage() {
                       handleInputChange("fullName", e.target.value)
                     }
                     placeholder="Enter your full name"
+                    className={profileAutoFilled && applicationData.fullName ? "bg-green-50 border-green-200" : ""}
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="email">Email Address *</Label>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Label htmlFor="email">Email Address *</Label>
+                    {profileAutoFilled && applicationData.email && (
+                      <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full flex items-center gap-1">
+                        <CheckCircle className="w-3 h-3" />
+                        Auto-filled
+                      </span>
+                    )}
+                  </div>
                   <Input
                     id="email"
                     type="email"
                     value={applicationData.email}
                     onChange={(e) => handleInputChange("email", e.target.value)}
                     placeholder="Enter your email"
+                    className={profileAutoFilled && applicationData.email ? "bg-green-50 border-green-200" : ""}
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="phone">Phone Number *</Label>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Label htmlFor="phone">Phone Number *</Label>
+                    {profileAutoFilled && applicationData.phone && (
+                      <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full flex items-center gap-1">
+                        <CheckCircle className="w-3 h-3" />
+                        Auto-filled
+                      </span>
+                    )}
+                  </div>
                   <Input
                     id="phone"
                     type="tel"
                     value={applicationData.phone}
                     onChange={(e) => handleInputChange("phone", e.target.value)}
                     placeholder="Enter your phone number"
+                    className={profileAutoFilled && applicationData.phone ? "bg-green-50 border-green-200" : ""}
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="occupation">Occupation *</Label>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Label htmlFor="occupation">Occupation *</Label>
+                    {profileAutoFilled && applicationData.occupation && (
+                      <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full flex items-center gap-1">
+                        <CheckCircle className="w-3 h-3" />
+                        Auto-filled
+                      </span>
+                    )}
+                  </div>
                   <Input
                     id="occupation"
                     value={applicationData.occupation}
@@ -711,6 +787,7 @@ export default function RentalApplicationPage() {
                       handleInputChange("occupation", e.target.value)
                     }
                     placeholder="Enter your occupation"
+                    className={profileAutoFilled && applicationData.occupation ? "bg-green-50 border-green-200" : ""}
                   />
                 </div>
 

@@ -3,6 +3,7 @@ import {
   LayoutDashboard, 
   Users, 
   FileText, 
+  Hammer,
   Settings
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -42,6 +43,20 @@ export default function AdminHomePage() {
             <CardContent>
               <p className="text-sm text-muted-foreground">
                 Manage user accounts, roles, and permissions
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
+
+        <Link to="/dashboard/admin/renovation-partners" className="block">
+          <Card className="h-full transition-all hover:border-primary/50 hover:shadow-md">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-lg font-medium">Renovation Partners</CardTitle>
+              <Hammer className="h-5 w-5 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                Manage renovation partners and service providers
               </p>
             </CardContent>
           </Card>

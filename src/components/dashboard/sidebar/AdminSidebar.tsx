@@ -3,6 +3,7 @@ import {
   LayoutDashboard, 
   Users, 
   FileText, 
+  Hammer,
   Cog
 } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -35,6 +36,12 @@ export function AdminSidebar({ isActive }: AdminSidebarProps) {
             icon={<Users size={20} />}
             label="User Management"
             isActive={isActive('/dashboard/admin/users')}
+          />
+          <SidebarSimpleMenuItem 
+            to="/dashboard/admin/renovation-partners"
+            icon={<Hammer size={20} />}
+            label="Renovation Partners"
+            isActive={isActive('/dashboard/admin/renovation-partners')}
           />
           <SidebarSimpleMenuItem 
             to="/dashboard/admin/settings"

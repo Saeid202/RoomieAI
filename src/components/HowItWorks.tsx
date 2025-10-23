@@ -35,11 +35,16 @@ const HowItWorks = () => {
   ];
 
   return (
-    <section id="how-it-works" className="py-20 bg-roomie-light">
+    <section id="how-it-works" className="py-20 gradient-hero">
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">How RoomieMatch Works</h2>
-          <p className="text-lg text-gray-700 max-w-2xl mx-auto">
+          <div className="animate-fade-in">
+            <span className="inline-block px-4 py-2 bg-primary/10 text-primary border border-primary/20 rounded-full text-sm font-medium mb-4">
+              🚀 How It Works
+            </span>
+          </div>
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 animate-slide-up">How RoomieMatch Works</h2>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto animate-slide-up" style={{animationDelay: '0.2s'}}>
             Finding the perfect roommate is just a few simple steps away.
           </p>
         </div>
@@ -48,23 +53,24 @@ const HowItWorks = () => {
           {steps.map((step, index) => (
             <div 
               key={index} 
-              className={`feature-card card-hover relative ${step.action ? 'cursor-pointer' : ''}`}
+              className={`card p-6 relative animate-fade-in ${step.action ? 'cursor-pointer' : ''}`}
+              style={{animationDelay: `${index * 0.1}s`}}
               onClick={step.action}
             >
-              <div className="absolute -top-4 -left-4 w-8 h-8 rounded-full bg-roomie-purple text-white flex items-center justify-center font-bold">
+              <div className="absolute -top-4 -left-4 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold shadow-glow">
                 {index + 1}
               </div>
               <div className="mb-4">{step.icon}</div>
               <h3 className="text-xl font-semibold mb-2">{step.title}</h3>
-              <p className="text-gray-700">{step.description}</p>
+              <p className="text-muted-foreground">{step.description}</p>
             </div>
           ))}
         </div>
 
-        <div className="mt-16 text-center">
-          <div className="inline-block bg-white rounded-full px-6 py-3 shadow-md border border-roomie-lavender/30">
-            <p className="text-gray-700">
-              <span className="font-medium text-roomie-purple">92% of users</span> find a compatible roommate within 2 weeks!
+        <div className="mt-16 text-center animate-slide-up" style={{animationDelay: '0.6s'}}>
+          <div className="inline-block bg-background/90 backdrop-blur-sm rounded-full px-6 py-3 shadow-lg border border-primary/20">
+            <p className="text-foreground">
+              <span className="font-medium text-primary">92% of users</span> find a compatible roommate within 2 weeks!
             </p>
           </div>
         </div>
