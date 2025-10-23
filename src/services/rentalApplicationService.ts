@@ -27,9 +27,16 @@ export interface RentalApplication {
   emergency_contact_phone?: string;
   emergency_contact_relation?: string;
   
+  // Documents
+  reference_documents?: any[];
+  employment_documents?: any[];
+  credit_documents?: any[];
+  additional_documents?: any[];
+  
   // Additional Information
   additional_info?: string;
   agree_to_terms?: boolean;
+  signature_data?: string;
   
   // Process Status
   contract_signed?: boolean;
@@ -57,8 +64,13 @@ export interface RentalApplicationInput {
   emergency_contact_name?: string;
   emergency_contact_phone?: string;
   emergency_contact_relation?: string;
+  reference_documents?: any[];
+  employment_documents?: any[];
+  credit_documents?: any[];
+  additional_documents?: any[];
   additional_info?: string;
   agree_to_terms?: boolean;
+  signature_data?: string;
   contract_signed?: boolean;
   payment_completed?: boolean;
 }

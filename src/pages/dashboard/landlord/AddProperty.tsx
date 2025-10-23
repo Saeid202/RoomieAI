@@ -148,14 +148,13 @@ const initialFormData: PropertyFormData = {
 };
 
 const steps = [
-  { id: 1, title: "Basic Information", icon: Home },
-  { id: 2, title: "Preview & Submit", icon: Camera }
+  { id: 1, title: "Property Listing", icon: Home }
 ];
 
 export default function AddPropertyPage() {
   const navigate = useNavigate();
   const { role } = useRole();
-  const [currentStep, setCurrentStep] = useState(1);
+  const [currentStep] = useState(1);
   const [formData, setFormData] = useState<PropertyFormData>(initialFormData);
   const [detailedDetection, setDetailedDetection] = useState<PropertyIntelligence | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -165,7 +164,24 @@ export default function AddPropertyPage() {
   const [editId, setEditId] = useState<string | null>(null);
   const [existingImageUrls, setExistingImageUrls] = useState<string[]>([]);
 
-  const progress = (currentStep / steps.length) * 100;
+  // No progress calculation needed for single page form
+
+  // Function to reset form to initial state
+  const resetForm = () => {
+    setFormData(initialFormData);
+    setDetailedDetection(null);
+    setErrors({});
+    setSelectedFacility(null);
+    setEditId(null);
+    setExistingImageUrls([]);
+    // Clear draft from localStorage
+    try {
+      localStorage.removeItem(DRAFT_KEY);
+      console.log('🧹 Form reset and draft cleared');
+    } catch (error) {
+      console.error('Error clearing draft:', error);
+    }
+  };
 
   // Handle facility click to show on map
   const handleFacilityClick = (facilityName: string) => {
@@ -259,17 +275,44 @@ export default function AddPropertyPage() {
     getCurrentUser();
   }, []);
 
-  // Restore draft on mount
+  // Restore draft on mount - but only if not creating a new property
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(DRAFT_KEY);
-      if (raw) {
-        const draft = JSON.parse(raw);
-        setFormData((prev) => ({ ...prev, ...draft }));
-        toast.info("Draft restored");
+    const params = new URLSearchParams(window.location.search);
+    const prefillId = params.get('prefill');
+    const isNewProperty = !prefillId;
+    
+    if (isNewProperty) {
+      // For new properties, clear any existing draft and start fresh
+      try {
+        localStorage.removeItem(DRAFT_KEY);
+        setFormData(initialFormData);
+        console.log('🆕 Starting fresh form for new property');
+      } catch (error) {
+        console.error('Error clearing draft:', error);
       }
-    } catch {}
+    } else {
+      // For editing existing properties, restore draft if available
+      try {
+        const raw = localStorage.getItem(DRAFT_KEY);
+        if (raw) {
+          const draft = JSON.parse(raw);
+          setFormData((prev) => ({ ...prev, ...draft }));
+          toast.info("Draft restored");
+        }
+      } catch {}
+    }
   }, []);
+
+  // Detect when creating a new property (no prefill parameter) and reset form
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const prefillId = params.get('prefill');
+    
+    if (!prefillId && editId === null) {
+      // This is a new property creation, ensure form is clean
+      resetForm();
+    }
+  }, [window.location.search]);
 
   // Detect edit mode (?prefill=:id) and load existing property
   useEffect(() => {
@@ -475,17 +518,7 @@ export default function AddPropertyPage() {
     }));
   };
 
-  const nextStep = () => {
-    if (currentStep < steps.length) {
-      setCurrentStep(prev => prev + 1);
-    }
-  };
-
-  const prevStep = () => {
-    if (currentStep > 1) {
-      setCurrentStep(prev => prev - 1);
-    }
-  };
+  // No step navigation needed for single page form
 
   const handleSubmit = async () => {
     console.log("🚀 Starting property submission...");
@@ -1207,105 +1240,22 @@ export default function AddPropertyPage() {
               />
             </div>
             </div>
-          </div>
-        );
 
-      case 2:
-        return (
-          <div className="space-y-6">
-            <div className="border-t pt-6">
-              <h3 className="text-lg font-medium mb-3">**1.** Listing Preview</h3>
-              <div className="bg-white border rounded-lg p-4 shadow-sm">
-                {/* Address and map */}
-                {(formData.propertyAddress || formData.address) && (
-                  <div className="mb-4">
-                    <div className="flex items-center text-gray-800">
-                      <MapPin className="h-4 w-4 mr-2 text-blue-600" />
-                      <span className="font-semibold">
-                        {formData.propertyAddress || `${formData.address}${formData.city ? `, ${formData.city}` : ''}${formData.state ? `, ${formData.state}` : ''}${formData.zipCode ? ` ${formData.zipCode}` : ''}`}
-                      </span>
-                    </div>
-                    {formData.latitude && formData.longitude && (
-                      <div className="mt-3">
-                        <PropertyMap
-                          center={{ lat: formData.latitude, lng: formData.longitude }}
-                          selectedAddress={formData.propertyAddress || `${formData.address}, ${formData.city}, ${formData.state} ${formData.zipCode}`}
-                          className="w-full h-48 rounded-md border"
-                          facilityMarker={selectedFacility}
-                        />
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Key facts */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
-                  <div className="bg-blue-50 border border-blue-100 rounded-md p-3">
-                    <p className="text-xs text-blue-700">Property Type</p>
-                    <p className="text-sm font-semibold text-blue-900">
-                      {formData.propertyType ? formData.propertyType.replace(/-/g, ' ') : 'Not specified'}
-                    </p>
-                  </div>
-                  <div className="bg-green-50 border border-green-100 rounded-md p-3">
-                    <p className="text-xs text-green-700">Monthly Rent</p>
-                    <p className="text-sm font-semibold text-green-900">
-                      {formData.monthlyRent ? `$${formData.monthlyRent}` : 'Not specified'}
-                    </p>
-                  </div>
-                  <div className="bg-amber-50 border border-amber-100 rounded-md p-3">
-                    <p className="text-xs text-amber-700">Lease</p>
-                    <p className="text-sm font-semibold text-amber-900">
-                      {formData.leaseTerms ? formData.leaseTerms.replace(/-/g, ' ') : 'Not specified'}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Amenities badges */}
-                {formData.nearbyAmenities && formData.nearbyAmenities.length > 0 && (
-                  <div className="mb-4">
-                    <p className="text-sm text-gray-800 font-medium mb-2">Nearby Facilities</p>
-                    <div className="flex flex-wrap gap-2">
-                      {formData.nearbyAmenities.slice(0, 10).map((amenity, idx) => (
-                        <span key={idx} className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">
-                          {amenity}
-                        </span>
-                      ))}
-                      {formData.nearbyAmenities.length > 10 && (
-                        <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">
-                          +{formData.nearbyAmenities.length - 10} more
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Description */}
-                {formData.description && (
-                  <div className="mb-4">
-                    <p className="text-sm text-gray-800 font-medium mb-1">Description</p>
-                    <p className="text-sm text-gray-700 leading-relaxed">{formData.description}</p>
-                  </div>
-                )}
-
-                {/* Preferences and notes */}
-                {(formData.roommatePreference || formData.specialInstructions) && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {formData.roommatePreference && (
-                      <div className="bg-purple-50 border border-purple-100 rounded-md p-3">
-                        <p className="text-xs text-purple-700">{dynamicText.label.replace('**14.** ', '')}</p>
-                        <p className="text-sm font-semibold text-purple-900">
-                          {formData.roommatePreference.replace('-', ' ').replace('any', role === 'landlord' ? 'No Preference - All Applications Welcome' : 'No Preference - Open to Everyone')}
-                        </p>
-                      </div>
-                    )}
-                    {formData.specialInstructions && (
-                      <div className="bg-gray-50 border border-gray-200 rounded-md p-3">
-                        <p className="text-xs text-gray-700">Special Instructions</p>
-                        <p className="text-sm text-gray-800">{formData.specialInstructions}</p>
-                      </div>
-                    )}
-                  </div>
-                )}
+            {/* Submit Button Section */}
+            <div className="border-t pt-10 mt-10">
+              <div className="bg-green-50 border border-green-200 rounded-xl p-8 text-center">
+                <CheckCircle className="h-16 w-16 text-green-600 mx-auto mb-4" />
+                <h3 className="text-2xl font-bold text-green-800 mb-4">Ready to Submit Your Property Listing?</h3>
+                <p className="text-lg text-green-700 mb-6">
+                  Review all your information above and click submit to publish your property listing.
+                </p>
+                <Button 
+                  onClick={handleSubmit} 
+                  className="px-12 py-4 text-xl font-bold bg-green-700 hover:bg-green-800 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+                >
+                  <CheckCircle className="h-6 w-6 mr-3" />
+                  {editId ? 'Save Changes' : 'Submit Property Listing'}
+                </Button>
               </div>
             </div>
           </div>
@@ -1331,82 +1281,40 @@ export default function AddPropertyPage() {
           </div>
         </div>
 
-        {/* Progress Bar */}
-        <div className="mb-10">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-lg font-bold text-gray-900">Step {currentStep} of {steps.length}</span>
-            <span className="text-lg text-gray-700 font-semibold">{Math.round(progress)}% Complete</span>
-          </div>
-          <Progress value={progress} className="h-4 bg-gray-300" />
-        </div>
-
-        {/* Steps Navigation */}
-        <div className="flex justify-between mb-10 overflow-x-auto">
-          {steps.map((step) => {
-            const Icon = step.icon;
-            return (
-              <div
-                key={step.id}
-                className={`flex flex-col items-center min-w-0 flex-1 ${
-                  step.id <= currentStep ? "text-blue-700" : "text-gray-500"
-                }`}
-              >
-                <div
-                  className={`w-14 h-14 rounded-full flex items-center justify-center mb-3 shadow-lg transition-all duration-200 ${
-                    step.id <= currentStep
-                      ? "bg-blue-600 text-white shadow-xl"
-                      : "bg-gray-300 text-gray-500"
-                  }`}
-                >
-                  <Icon className="h-7 w-7" />
-                </div>
-                <span className="text-base text-center font-bold">{step.title}</span>
-              </div>
-            );
-          })}
-        </div>
+        {/* Single Page Form - No Progress Bar or Step Navigation Needed */}
 
         {/* Form Content */}
         <Card className="mb-8 shadow-xl border-0 bg-white/90 backdrop-blur-sm">
           <CardHeader className="pb-8">
-            <CardTitle className="flex items-center gap-4 text-3xl font-bold text-gray-900">
-              {React.createElement(steps[currentStep - 1].icon, { className: "h-8 w-8 text-blue-700" })}
-              {steps[currentStep - 1].title}
-            </CardTitle>
-            <CardDescription className="text-xl text-gray-800 font-semibold mt-3">
-              {currentStep === 1 && (editId ? "Update your property's basic information" : "Let's start with all the basic information about your property")}
-            {currentStep === 2 && (editId ? "Review changes and update your listing" : "Review your property listing before submitting")}
-            </CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-4 text-3xl font-bold text-gray-900">
+                  {React.createElement(steps[currentStep - 1].icon, { className: "h-8 w-8 text-blue-700" })}
+                  {steps[currentStep - 1].title}
+                </CardTitle>
+                <CardDescription className="text-xl text-gray-800 font-semibold mt-3">
+                  {editId ? "Update your property's information and submit changes" : "Fill out all the details below to create your property listing"}
+                </CardDescription>
+              </div>
+              {!editId && (
+                <Button
+                  variant="outline"
+                  onClick={resetForm}
+                  className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 border-gray-300 hover:border-gray-400"
+                  title="Start fresh with a clean form"
+                >
+                  <X className="h-4 w-4 mr-2" />
+                  Start Fresh
+                </Button>
+              )}
+            </div>
           </CardHeader>
           <CardContent className="pt-0">
             {renderStepContent()}
           </CardContent>
         </Card>
 
-        {/* Navigation Buttons */}
-        <div className="flex justify-between mt-10">
-          <Button
-            variant="outline"
-            onClick={prevStep}
-            disabled={currentStep === 1}
-            className="px-10 py-4 text-lg font-bold shadow-lg hover:shadow-xl transition-all duration-200 border-2"
-          >
-            <ArrowLeft className="h-6 w-6 mr-3" />
-            Previous
-          </Button>
-
-          {currentStep < steps.length ? (
-            <Button onClick={nextStep} className="px-10 py-4 text-lg font-bold bg-blue-700 hover:bg-blue-800 text-white shadow-lg hover:shadow-xl transition-all duration-200">
-              Next
-              <ArrowRight className="h-6 w-6 ml-3" />
-            </Button>
-          ) : (
-            <Button onClick={handleSubmit} className="px-10 py-4 text-lg font-bold bg-green-700 hover:bg-green-800 text-white shadow-lg hover:shadow-xl transition-all duration-200">
-              <CheckCircle className="h-6 w-6 mr-3" />
-              {editId ? 'Save Changes' : 'Submit Property Listing'}
-            </Button>
-          )}
-        </div>
+        {/* No navigation buttons needed since everything is on one page */}
       </div>
     </div>
   );

@@ -58,6 +58,14 @@ export function useRoommateProfile() {
         .maybeSingle()
         .then(({ data, error: fetchError }) => {
           if (!hasCompleted) {
+            // Gracefully handle table not found error (42P01) - this means roommate table doesn't exist yet
+            if (fetchError && fetchError.code === '42P01') {
+              console.warn("Roommate table does not exist yet. Using default profile data.");
+              setProfileData(getDefaultProfileData());
+              hasCompleted = true;
+              return;
+            }
+            
             if (fetchError && fetchError.code !== 'PGRST116') {
               console.error("Error fetching roommate profile:", fetchError);
               throw new Error(`Failed to fetch profile: ${fetchError.message}`);

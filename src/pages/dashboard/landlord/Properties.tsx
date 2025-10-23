@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Building, MapPin, DollarSign, Pencil, Eye, Trash2 } from "lucide-react";
+import { Plus, Building, MapPin, DollarSign, Pencil, Eye, Trash2, Image as ImageIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { getPropertiesByOwnerId, Property, deleteProperty } from "@/services/propertyService";
 import { toast } from "sonner";
@@ -22,6 +22,7 @@ export default function PropertiesPage() {
           return;
         }
         const list = await getPropertiesByOwnerId(user.id);
+        console.log("🔍 Properties loaded:", list);
         if (mounted) setProperties(list);
       } catch (e) {
         console.error("Failed to load landlord properties", e);
@@ -110,14 +111,41 @@ export default function PropertiesPage() {
                 {properties.map((p) => (
                   <Card key={p.id} className="border overflow-hidden">
                     {/* Image preview */}
-                    <div className="relative">
-                      <img
-                        src={(p.images && p.images[0]) ? p.images[0] : "/placeholder.svg"}
-                        alt={`${p.listing_title} photo`}
-                        className="h-40 w-full object-cover"
-                        onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/placeholder.svg"; }}
-                        loading="lazy"
-                      />
+                    <div className="relative h-40 bg-gray-100 flex items-center justify-center">
+                      {(() => {
+                        // Handle different image data formats
+                        let imageUrl = null;
+                        
+                        if (p.images && Array.isArray(p.images) && p.images.length > 0) {
+                          imageUrl = p.images[0];
+                        } else if (p.images && typeof p.images === 'string') {
+                          imageUrl = p.images;
+                        } else if (p.images && typeof p.images === 'object' && p.images.url) {
+                          imageUrl = p.images.url;
+                        }
+                        
+                        if (imageUrl && imageUrl !== "/placeholder.svg") {
+                          return (
+                            <img
+                              src={imageUrl}
+                              alt={`${p.listing_title} photo`}
+                              className="h-40 w-full object-cover"
+                              onError={(e) => { 
+                                console.log(`❌ Image failed to load for ${p.listing_title}:`, imageUrl);
+                                (e.currentTarget as HTMLImageElement).src = "/placeholder.svg"; 
+                              }}
+                              loading="lazy"
+                            />
+                          );
+                        } else {
+                          return (
+                            <div className="flex flex-col items-center justify-center text-gray-400">
+                              <ImageIcon className="h-12 w-12 mb-2" />
+                              <span className="text-sm">No image</span>
+                            </div>
+                          );
+                        }
+                      })()}
                     </div>
                     <CardHeader>
                       <CardTitle className="text-base line-clamp-1">{p.listing_title}</CardTitle>
