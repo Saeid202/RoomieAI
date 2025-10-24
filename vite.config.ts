@@ -7,23 +7,21 @@ import { componentTagger } from "lovable-tagger";
 export default defineConfig(({ mode }) => ({
   server: {
     host: '0.0.0.0',
-    port: 8080,
+    port: 3000,
     strictPort: true,
     hmr: {
       host: 'localhost',
-      clientPort: 8080,
+      clientPort: 3000,
       protocol: 'ws',
       overlay: false,
     },
     watch: {
-      usePolling: true,
-      // Ignore certain file patterns
+      usePolling: false,
       ignored: ['**/node_modules/**', '**/.git/**', '**/dist/**'],
-      // Reduce auto-reload frequency
-      interval: 1000,
     },
     fs: {
-      strict: true,
+      strict: false,
+      allow: ['..']
     },
   },
   plugins: [

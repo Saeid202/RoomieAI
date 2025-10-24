@@ -145,6 +145,10 @@ export interface OntarioLeaseFormData {
   tenant4Name?: string;
   tenant4Signature?: string;
   tenant4Date?: string;
+  
+  // Agreement checkboxes
+  landlordAgreement?: boolean;
+  tenantAgreement?: boolean;
 }
 
 export interface OntarioLeaseContract {

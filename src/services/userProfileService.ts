@@ -18,22 +18,26 @@ export async function fetchUserProfileForApplication(
   console.log("Fetching user profile for application, userId:", userId);
 
   try {
-    // Priority 1: Check profiles table (primary source)
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('full_name, email, phone, date_of_birth, occupation')
-      .eq('id', userId)
-      .single();
+    // Priority 1: Check profiles table (primary source) - with error handling
+    try {
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('full_name, email, phone, date_of_birth, occupation')
+        .eq('id', userId)
+        .single();
 
-    if (!profileError && profile) {
-      console.log("Found profile data:", profile);
-      return {
-        fullName: profile.full_name || '',
-        email: profile.email || '',
-        phone: profile.phone || undefined,
-        dateOfBirth: profile.date_of_birth || undefined,
-        occupation: profile.occupation || undefined,
-      };
+      if (!profileError && profile) {
+        console.log("Found profile data:", profile);
+        return {
+          fullName: profile.full_name || '',
+          email: profile.email || '',
+          phone: profile.phone || undefined,
+          dateOfBirth: profile.date_of_birth || undefined,
+          occupation: profile.occupation || undefined,
+        };
+      }
+    } catch (profileTableError) {
+      console.log("Profiles table not accessible, using auth user data:", profileTableError);
     }
 
     console.log("No profile found, using auth user data");

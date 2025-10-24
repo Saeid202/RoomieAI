@@ -9,7 +9,7 @@ import { MobileMenu } from "./navbar/MobileMenu";
 import { Button } from "./ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
-import { ContractNotifications } from "./notifications/ContractNotifications";
+import { NotificationBell } from "./notifications/NotificationBell";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -41,7 +41,7 @@ const Navbar = () => {
         <div className="hidden md:flex items-center space-x-4">
           {user ? (
             <div className="flex items-center space-x-2">
-              <ContractNotifications />
+              <NotificationBell />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" className="flex items-center gap-2 font-semibold">

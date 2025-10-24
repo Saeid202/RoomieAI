@@ -40,10 +40,12 @@ import AdminHomePage from "@/pages/dashboard/admin/AdminHome";
 import PagesPage from "@/pages/dashboard/admin/Pages";
 import UsersPage from "@/pages/dashboard/admin/Users";
 import RenovationPartnersPage from "@/pages/dashboard/admin/RenovationPartners";
+import AdminCleanersPage from "@/pages/dashboard/admin/Cleaners";
 import SettingsPage from "@/pages/dashboard/Settings";
 import MatchesPage from "@/pages/dashboard/Matches";
-import ApplicationsSeekerPage from "@/pages/dashboard/ApplicationsSeeker";
+// ApplicationsSeeker removed - functionality moved to MyApplications
 import MyApplicationsPage from "@/pages/dashboard/MyApplications";
+import TestPage from "@/pages/dashboard/TestPage";
 import ApplicationOverviewPage from "@/pages/dashboard/ApplicationOverview";
 
 import { useAuth } from "@/hooks/useAuth";
@@ -83,7 +85,7 @@ function AppRoutes() {
           <Route path="rental-application/:id" element={<ErrorBoundary componentName="RentalApplicationPage"><RentalApplicationPage /></ErrorBoundary>} />
           <Route path="application-overview/:applicationId" element={<ApplicationOverviewPage />} />
           <Route path="plan-ahead-matching" element={<PlanAheadMatchingPage />} />
-          <Route path="applications" element={<MyApplicationsPage />} />
+          <Route path="applications" element={<ErrorBoundary componentName="MyApplicationsPage"><MyApplicationsPage /></ErrorBoundary>} />
           <Route path="opposite-schedule" element={<OppositeSchedulePage />} />
           <Route path="work-exchange" element={<WorkExchangePage />} />
           <Route path="lgbtq-matching" element={<LGBTQMatchingPage />} />
@@ -113,6 +115,7 @@ function AppRoutes() {
           <Route path="admin/pages" element={<PagesPage />} />
           <Route path="admin/users" element={<UsersPage />} />
           <Route path="admin/renovation-partners" element={<RenovationPartnersPage />} />
+          <Route path="admin/cleaners" element={<AdminCleanersPage />} />
           <Route path="admin/settings" element={<SettingsPage />} />
         </Route>
       </Routes>
@@ -137,7 +140,7 @@ function AppRoutes() {
         <Route path="rental-application/:id" element={<ErrorBoundary componentName="RentalApplicationPage"><RentalApplicationPage /></ErrorBoundary>} />
         <Route path="application-overview/:applicationId" element={<ApplicationOverviewPage />} />
         <Route path="plan-ahead-matching" element={<PlanAheadMatchingPage />} />
-        <Route path="applications" element={<MyApplicationsPage />} />
+        <Route path="applications" element={<ErrorBoundary componentName="MyApplicationsPage"><MyApplicationsPage /></ErrorBoundary>} />
         <Route path="opposite-schedule" element={<OppositeSchedulePage />} />
         <Route path="work-exchange" element={<WorkExchangePage />} />
         <Route path="lgbtq-matching" element={<LGBTQMatchingPage />} />

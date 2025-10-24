@@ -3,42 +3,28 @@ import { supabase } from '@/integrations/supabase/client';
 export interface ImageUploadResult {
   success: boolean;
   url?: string;
+  path?: string;
   error?: string;
 }
 
 export class ImageUploadService {
-  private static readonly BUCKET_NAME = 'property-images';
-  private static readonly MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
-
-  static async uploadPropertyImage(
-    file: File,
-    propertyId: string,
-    userId: string
+  /**
+   * Upload an image file to Supabase storage
+   */
+  static async uploadImage(
+    file: File, 
+    bucketName: string = 'cleaner-images',
+    folder: string = 'cleaners'
   ): Promise<ImageUploadResult> {
     try {
-      // Validate file
-      if (!this.isValidImageFile(file)) {
-        return {
-          success: false,
-          error: 'Invalid file type. Please upload JPEG, PNG, WebP, or GIF images.'
-        };
-      }
-
-      if (file.size > this.MAX_FILE_SIZE) {
-        return {
-          success: false,
-          error: 'File size too large. Please upload images smaller than 10MB.'
-        };
-      }
-
-      // Create file path: userId/propertyId/filename
+      // Generate unique filename
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-      const filePath = `${userId}/${propertyId}/${fileName}`;
+      const filePath = `${folder}/${fileName}`;
 
-      // Upload file to Supabase Storage
+      // Upload file to storage
       const { data, error } = await supabase.storage
-        .from(this.BUCKET_NAME)
+        .from(bucketName)
         .upload(filePath, file, {
           cacheControl: '3600',
           upsert: false
@@ -48,41 +34,180 @@ export class ImageUploadService {
         console.error('Upload error:', error);
         return {
           success: false,
-          error: `Upload failed: ${error.message}`
+          error: error.message
         };
       }
 
       // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from(this.BUCKET_NAME)
+      const { data: urlData } = supabase.storage
+        .from(bucketName)
         .getPublicUrl(filePath);
 
       return {
         success: true,
-        url: publicUrl
+        url: urlData.publicUrl,
+        path: filePath
       };
-
     } catch (error) {
-      console.error('Image upload service error:', error);
+      console.error('Image upload error:', error);
       return {
         success: false,
-        error: 'An unexpected error occurred during upload.'
+        error: error instanceof Error ? error.message : 'Upload failed'
       };
     }
   }
 
+  /**
+   * Delete an image from Supabase storage
+   */
+  static async deleteImage(
+    filePath: string,
+    bucketName: string = 'cleaner-images'
+  ): Promise<{ success: boolean; error?: string }> {
+    try {
+      const { error } = await supabase.storage
+        .from(bucketName)
+        .remove([filePath]);
+
+      if (error) {
+        console.error('Delete error:', error);
+        return {
+          success: false,
+          error: error.message
+        };
+      }
+
+      return { success: true };
+    } catch (error) {
+      console.error('Image delete error:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Delete failed'
+      };
+    }
+  }
+
+  /**
+   * Validate image file
+   */
+  static validateImage(file: File): { valid: boolean; error?: string } {
+    // Check file type
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    if (!allowedTypes.includes(file.type)) {
+      return {
+        valid: false,
+        error: 'Please upload a valid image file (JPEG, PNG, WebP, or GIF)'
+      };
+    }
+
+    // Check file size (5MB limit)
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      return {
+        valid: false,
+        error: 'Image size must be less than 5MB'
+      };
+    }
+
+    return { valid: true };
+  }
+
+  /**
+   * Get image URL from storage path
+   */
+  static getImageUrl(filePath: string, bucketName: string = 'cleaner-images'): string {
+    const { data } = supabase.storage
+      .from(bucketName)
+      .getPublicUrl(filePath);
+    
+    return data.publicUrl;
+  }
+
+  /**
+   * Upload multiple property images
+   */
   static async uploadMultiplePropertyImages(
     files: File[],
     propertyId: string,
     userId: string
   ): Promise<ImageUploadResult[]> {
-    const uploadPromises = files.map(file =>
+    const uploadPromises = files.map(file => 
       this.uploadPropertyImage(file, propertyId, userId)
     );
-
+    
     return Promise.all(uploadPromises);
   }
 
+  /**
+   * Upload a single property image
+   */
+  static async uploadPropertyImage(
+    file: File,
+    propertyId: string,
+    userId: string
+  ): Promise<ImageUploadResult> {
+    try {
+      // Validate the image first
+      const validation = this.validateImage(file);
+      if (!validation.valid) {
+        return {
+          success: false,
+          error: validation.error
+        };
+      }
+
+      // Generate unique filename
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const filePath = `${userId}/property-${propertyId}/${fileName}`;
+
+      console.log('📤 Uploading property image:', {
+        fileName,
+        filePath,
+        fileSize: file.size,
+        fileType: file.type
+      });
+
+      // Upload file to property-images bucket
+      const { data, error } = await supabase.storage
+        .from('property-images')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (error) {
+        console.error('Property image upload error:', error);
+        return {
+          success: false,
+          error: error.message
+        };
+      }
+
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from('property-images')
+        .getPublicUrl(filePath);
+
+      console.log('✅ Property image uploaded successfully:', urlData.publicUrl);
+
+      return {
+        success: true,
+        url: urlData.publicUrl,
+        path: filePath
+      };
+    } catch (error) {
+      console.error('Property image upload error:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Upload failed'
+      };
+    }
+  }
+
+  /**
+   * Delete a property image
+   */
   static async deletePropertyImage(
     imageUrl: string,
     userId: string
@@ -90,41 +215,25 @@ export class ImageUploadService {
     try {
       // Extract file path from URL
       const urlParts = imageUrl.split('/');
-      const bucketIndex = urlParts.findIndex(part => part === this.BUCKET_NAME);
-      
-      if (bucketIndex === -1) {
-        console.error('Invalid image URL format');
-        return false;
-      }
+      const fileName = urlParts[urlParts.length - 1];
+      const filePath = `${userId}/property-temp/${fileName}`;
 
-      const filePath = urlParts.slice(bucketIndex + 1).join('/');
+      console.log('🗑️ Deleting property image:', filePath);
 
       const { error } = await supabase.storage
-        .from(this.BUCKET_NAME)
+        .from('property-images')
         .remove([filePath]);
 
       if (error) {
-        console.error('Delete error:', error);
+        console.error('Property image delete error:', error);
         return false;
       }
 
+      console.log('✅ Property image deleted successfully');
       return true;
     } catch (error) {
-      console.error('Error deleting image:', error);
+      console.error('Property image delete error:', error);
       return false;
     }
-  }
-
-  private static isValidImageFile(file: File): boolean {
-    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
-    return validTypes.includes(file.type);
-  }
-
-  static getImageUrl(imagePath: string): string {
-    const { data: { publicUrl } } = supabase.storage
-      .from(this.BUCKET_NAME)
-      .getPublicUrl(imagePath);
-    
-    return publicUrl;
   }
 }

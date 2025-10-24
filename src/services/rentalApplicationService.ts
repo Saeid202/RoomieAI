@@ -290,12 +290,20 @@ export async function getUserApplications(): Promise<any[]> {
   console.log("Fetching user applications");
   
   try {
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      throw new Error("User not authenticated");
+    }
+
     const { data, error } = await sb
       .from('rental_applications')
       .select(`
         *,
         property:properties(listing_title, address, city, state, monthly_rent, property_type, user_id)
       `)
+      .eq('applicant_id', user.id)  // Filter by current user's applications
+      .neq('status', 'withdrawn')   // Exclude withdrawn applications
       .order('created_at', { ascending: false });
 
     if (error) {

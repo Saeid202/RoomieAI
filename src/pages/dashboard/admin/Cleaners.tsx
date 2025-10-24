@@ -15,7 +15,7 @@ import {
   Eye, 
   Search, 
   Filter,
-  Hammer,
+  Sparkles,
   Star,
   Phone,
   Mail,
@@ -27,23 +27,25 @@ import {
   Users,
   DollarSign
 } from "lucide-react";
-import { RenovationPartnerService, RenovationPartner, RenovationPartnerInput } from "@/services/renovationPartnerService";
-import { toast } from "sonner";
 
-export default function RenovationPartnersPage() {
-  const [partners, setPartners] = useState<RenovationPartner[]>([]);
+import { toast } from "sonner";
+import { CleanerService, Cleaner, CleanerInput } from "@/services/cleanerService";
+import { ImageUploadService } from "@/services/imageUploadService";
+
+export default function CleanersPage() {
+  const [cleaners, setCleaners] = useState<Cleaner[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all");
   const [verificationFilter, setVerificationFilter] = useState<"all" | "verified" | "unverified">("all");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingPartner, setEditingPartner] = useState<RenovationPartner | null>(null);
-  const [formData, setFormData] = useState<RenovationPartnerInput>({
+  const [editingCleaner, setEditingCleaner] = useState<Cleaner | null>(null);
+  const [formData, setFormData] = useState<CleanerInput>({
     name: "",
     company: "",
     rating: 0,
     review_count: 0,
-    specialties: [],
+    services: [],
     location: "",
     phone: "",
     email: "",
@@ -53,7 +55,7 @@ export default function RenovationPartnersPage() {
     image_url: "",
     verified: false,
     response_time: "",
-    completed_projects: 0,
+    completed_jobs: 0,
     years_experience: 0,
     certifications: [],
     portfolio: [],
@@ -65,20 +67,23 @@ export default function RenovationPartnersPage() {
     verified: 0,
     averageRating: 0
   });
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>("");
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   useEffect(() => {
-    loadPartners();
+    loadCleaners();
     loadStats();
   }, []);
 
-  const loadPartners = async () => {
+  const loadCleaners = async () => {
     try {
       setLoading(true);
-      const data = await RenovationPartnerService.getAllPartners();
-      setPartners(data);
+      const data = await CleanerService.getAllCleaners();
+      setCleaners(data);
     } catch (error) {
-      console.error('Failed to load partners:', error);
-      toast.error('Failed to load renovation partners');
+      console.error('Failed to load cleaners:', error);
+      toast.error('Failed to load cleaners');
     } finally {
       setLoading(false);
     }
@@ -86,38 +91,37 @@ export default function RenovationPartnersPage() {
 
   const loadStats = async () => {
     try {
-      const data = await RenovationPartnerService.getPartnerStats();
+      const data = await CleanerService.getCleanerStats();
       setStats(data);
     } catch (error) {
       console.error('Failed to load stats:', error);
     }
   };
 
-  const filteredPartners = partners.filter(partner => {
-    const matchesSearch = !searchTerm || 
-      partner.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      partner.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      partner.specialties.some(s => s.toLowerCase().includes(searchTerm.toLowerCase()));
+  const filteredCleaners = cleaners.filter(cleaner => {
+    const matchesSearch = cleaner.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      cleaner.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      cleaner.services.some(s => s.toLowerCase().includes(searchTerm.toLowerCase()));
     
     const matchesStatus = statusFilter === "all" || 
-      (statusFilter === "active" && partner.is_active) ||
-      (statusFilter === "inactive" && !partner.is_active);
+      (statusFilter === "active" && cleaner.is_active) ||
+      (statusFilter === "inactive" && !cleaner.is_active);
     
     const matchesVerification = verificationFilter === "all" ||
-      (verificationFilter === "verified" && partner.verified) ||
-      (verificationFilter === "unverified" && !partner.verified);
+      (verificationFilter === "verified" && cleaner.verified) ||
+      (verificationFilter === "unverified" && !cleaner.verified);
     
     return matchesSearch && matchesStatus && matchesVerification;
   });
 
-  const handleAddPartner = () => {
-    setEditingPartner(null);
+  const handleAddCleaner = () => {
+    setEditingCleaner(null);
     setFormData({
       name: "",
       company: "",
       rating: 0,
       review_count: 0,
-      specialties: [],
+      services: [],
       location: "",
       phone: "",
       email: "",
@@ -127,106 +131,131 @@ export default function RenovationPartnersPage() {
       image_url: "",
       verified: false,
       response_time: "",
-      completed_projects: 0,
+      completed_jobs: 0,
       years_experience: 0,
       certifications: [],
       portfolio: [],
       is_active: true
     });
+    setImageFile(null);
+    setImagePreview("");
     setIsDialogOpen(true);
   };
 
-  const handleEditPartner = (partner: RenovationPartner) => {
-    setEditingPartner(partner);
+  const handleEditCleaner = (cleaner: Cleaner) => {
+    setEditingCleaner(cleaner);
     setFormData({
-      name: partner.name,
-      company: partner.company,
-      rating: partner.rating,
-      review_count: partner.review_count,
-      specialties: partner.specialties,
-      location: partner.location,
-      phone: partner.phone || "",
-      email: partner.email || "",
-      availability: partner.availability || "",
-      hourly_rate: partner.hourly_rate || "",
-      description: partner.description || "",
-      image_url: partner.image_url || "",
-      verified: partner.verified,
-      response_time: partner.response_time || "",
-      completed_projects: partner.completed_projects,
-      years_experience: partner.years_experience,
-      certifications: partner.certifications,
-      portfolio: partner.portfolio,
-      is_active: partner.is_active
+      name: cleaner.name,
+      company: cleaner.company,
+      rating: cleaner.rating,
+      review_count: cleaner.review_count,
+      services: cleaner.services,
+      location: cleaner.location,
+      phone: cleaner.phone || "",
+      email: cleaner.email || "",
+      availability: cleaner.availability || "",
+      hourly_rate: cleaner.hourly_rate || "",
+      description: cleaner.description || "",
+      image_url: cleaner.image_url || "",
+      verified: cleaner.verified,
+      response_time: cleaner.response_time || "",
+      completed_jobs: cleaner.completed_jobs,
+      years_experience: cleaner.years_experience,
+      certifications: cleaner.certifications,
+      portfolio: cleaner.portfolio,
+      is_active: cleaner.is_active
     });
+    setImageFile(null);
+    setImagePreview("");
     setIsDialogOpen(true);
   };
 
-  const handleSavePartner = async () => {
+  const handleSaveCleaner = async () => {
     try {
       if (!formData.name.trim() || !formData.company.trim()) {
         toast.error("Name and company are required");
         return;
       }
 
-      if (editingPartner) {
-        await RenovationPartnerService.updatePartner(editingPartner.id, formData);
-        toast.success("Partner updated successfully");
-      } else {
-        await RenovationPartnerService.createPartner(formData);
-        toast.success("Partner created successfully");
+      let finalFormData = { ...formData };
+
+      // Handle image upload if there's a new image
+      if (imageFile) {
+        setUploadingImage(true);
+        const uploadResult = await ImageUploadService.uploadImage(imageFile);
+        
+        if (!uploadResult.success) {
+          toast.error(uploadResult.error || 'Failed to upload image');
+          setUploadingImage(false);
+          return;
+        }
+
+        finalFormData.image_url = uploadResult.url || "";
+        setUploadingImage(false);
       }
 
+      if (editingCleaner) {
+        await CleanerService.updateCleaner(editingCleaner.id, finalFormData);
+        toast.success("Cleaner updated successfully");
+      } else {
+        await CleanerService.createCleaner(finalFormData);
+        toast.success("Cleaner created successfully");
+      }
+
+      // Reset form
+      setImageFile(null);
+      setImagePreview("");
       setIsDialogOpen(false);
-      loadPartners();
+      loadCleaners();
       loadStats();
     } catch (error) {
-      console.error('Failed to save partner:', error);
-      toast.error('Failed to save partner');
+      console.error('Failed to save cleaner:', error);
+      toast.error('Failed to save cleaner');
+      setUploadingImage(false);
     }
   };
 
-  const handleDeletePartner = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this partner?')) return;
+  const handleDeleteCleaner = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this cleaner?')) return;
 
     try {
-      await RenovationPartnerService.deletePartner(id);
-      toast.success("Partner deleted successfully");
-      loadPartners();
+      await CleanerService.deleteCleaner(id);
+      toast.success("Cleaner deleted successfully");
+      loadCleaners();
       loadStats();
     } catch (error) {
-      console.error('Failed to delete partner:', error);
-      toast.error('Failed to delete partner');
+      console.error('Failed to delete cleaner:', error);
+      toast.error('Failed to delete cleaner');
     }
   };
 
   const handleToggleStatus = async (id: string, isActive: boolean) => {
     try {
-      await RenovationPartnerService.togglePartnerStatus(id, isActive);
-      toast.success(`Partner ${isActive ? 'activated' : 'deactivated'} successfully`);
-      loadPartners();
+      await CleanerService.toggleCleanerStatus(id, isActive);
+      toast.success(`Cleaner ${isActive ? 'activated' : 'deactivated'} successfully`);
+      loadCleaners();
       loadStats();
     } catch (error) {
-      console.error('Failed to toggle partner status:', error);
-      toast.error('Failed to update partner status');
+      console.error('Failed to toggle cleaner status:', error);
+      toast.error('Failed to update cleaner status');
     }
   };
 
   const handleToggleVerification = async (id: string, verified: boolean) => {
     try {
-      await RenovationPartnerService.togglePartnerVerification(id, verified);
-      toast.success(`Partner ${verified ? 'verified' : 'unverified'} successfully`);
-      loadPartners();
+      await CleanerService.toggleCleanerVerification(id, verified);
+      toast.success(`Cleaner ${verified ? 'verified' : 'unverified'} successfully`);
+      loadCleaners();
       loadStats();
     } catch (error) {
-      console.error('Failed to toggle partner verification:', error);
-      toast.error('Failed to update partner verification');
+      console.error('Failed to toggle cleaner verification:', error);
+      toast.error('Failed to update cleaner verification');
     }
   };
 
-  const handleSpecialtyChange = (value: string) => {
-    const specialties = value.split(',').map(s => s.trim()).filter(s => s);
-    setFormData(prev => ({ ...prev, specialties }));
+  const handleServiceChange = (value: string) => {
+    const services = value.split(',').map(s => s.trim()).filter(s => s);
+    setFormData(prev => ({ ...prev, services }));
   };
 
   const handleCertificationChange = (value: string) => {
@@ -239,19 +268,46 @@ export default function RenovationPartnersPage() {
     setFormData(prev => ({ ...prev, portfolio }));
   };
 
+  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Validate image
+      const validation = ImageUploadService.validateImage(file);
+      if (!validation.valid) {
+        toast.error(validation.error || 'Invalid image file');
+        return;
+      }
+
+      setImageFile(file);
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setImageFile(null);
+    setImagePreview("");
+    setFormData(prev => ({ ...prev, image_url: "" }));
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
-            <Hammer className="h-8 w-8 text-orange-600" />
-            Renovation Partners
+            <Sparkles className="h-8 w-8 text-blue-600" />
+            Cleaners
           </h1>
-          <p className="text-muted-foreground mt-1">Manage renovation partners and service providers</p>
+          <p className="text-muted-foreground mt-1">Manage cleaning service providers</p>
         </div>
-        <Button onClick={handleAddPartner} className="flex items-center gap-2">
+        <Button onClick={handleAddCleaner} className="flex items-center gap-2">
           <Plus size={18} />
-          Add New Partner
+          Add New Cleaner
         </Button>
       </div>
 
@@ -259,18 +315,18 @@ export default function RenovationPartnersPage() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Partners</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Cleaners</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.total}</div>
-            <p className="text-xs text-muted-foreground">All renovation partners</p>
+            <p className="text-xs text-muted-foreground">All cleaning service providers</p>
           </CardContent>
         </Card>
         
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Partners</CardTitle>
+            <CardTitle className="text-sm font-medium">Active Cleaners</CardTitle>
             <CheckCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -286,7 +342,7 @@ export default function RenovationPartnersPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-600">{stats.verified}</div>
-            <p className="text-xs text-muted-foreground">Verified partners</p>
+            <p className="text-xs text-muted-foreground">Verified cleaners</p>
           </CardContent>
         </Card>
         
@@ -302,129 +358,159 @@ export default function RenovationPartnersPage() {
         </Card>
       </div>
 
-      {/* Search and Filters */}
+      {/* Filters */}
       <Card>
         <CardHeader>
-          <CardTitle>Search & Filter</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Filter className="h-5 w-5" />
+            Filters
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
+          <div className="flex flex-wrap gap-4">
+            <div className="flex-1 min-w-[200px]">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                 <Input
-                  placeholder="Search partners, companies, or specialties..."
+                  placeholder="Search cleaners..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
                 />
               </div>
             </div>
-            <div className="flex gap-2">
-              <Select value={statusFilter} onValueChange={(value: any) => setStatusFilter(value)}>
-                <SelectTrigger className="w-32">
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={verificationFilter} onValueChange={(value: any) => setVerificationFilter(value)}>
-                <SelectTrigger className="w-32">
-                  <SelectValue placeholder="Verification" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All</SelectItem>
-                  <SelectItem value="verified">Verified</SelectItem>
-                  <SelectItem value="unverified">Unverified</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            
+            <Select value={statusFilter} onValueChange={(value: "all" | "active" | "inactive") => setStatusFilter(value)}>
+              <SelectTrigger className="w-[150px]">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
+              </SelectContent>
+            </Select>
+            
+            <Select value={verificationFilter} onValueChange={(value: "all" | "verified" | "unverified") => setVerificationFilter(value)}>
+              <SelectTrigger className="w-[150px]">
+                <SelectValue placeholder="Verification" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Verification</SelectItem>
+                <SelectItem value="verified">Verified</SelectItem>
+                <SelectItem value="unverified">Unverified</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </CardContent>
       </Card>
 
-      {/* Partners Table */}
+      {/* Cleaners Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Renovation Partners ({filteredPartners.length})</CardTitle>
-          <CardDescription>Manage all renovation partners in the system</CardDescription>
+          <CardTitle>Cleaners ({filteredCleaners.length})</CardTitle>
+          <CardDescription>
+            Manage your cleaning service providers
+          </CardDescription>
         </CardHeader>
         <CardContent>
           {loading ? (
             <div className="flex items-center justify-center py-8">
-              <div className="text-muted-foreground">Loading partners...</div>
+              <div className="text-muted-foreground">Loading cleaners...</div>
+            </div>
+          ) : filteredCleaners.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-8">
+              <Sparkles className="h-12 w-12 text-muted-foreground mb-4" />
+              <div className="text-muted-foreground text-center">
+                <p className="text-lg font-medium">No cleaners found</p>
+                <p className="text-sm">Get started by adding your first cleaner</p>
+              </div>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Partner</TableHead>
+                    <TableHead>Name</TableHead>
                     <TableHead>Company</TableHead>
                     <TableHead>Rating</TableHead>
-                    <TableHead>Specialties</TableHead>
+                    <TableHead>Services</TableHead>
                     <TableHead>Location</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredPartners.map((partner) => (
-                    <TableRow key={partner.id}>
+                  {filteredCleaners.map((cleaner) => (
+                    <TableRow key={cleaner.id}>
                       <TableCell>
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
-                            <Hammer className="h-5 w-5 text-orange-600" />
-                          </div>
+                          {cleaner.image_url && (
+                            <img 
+                              src={cleaner.image_url} 
+                              alt={cleaner.name}
+                              className="w-10 h-10 rounded-full object-cover"
+                            />
+                          )}
                           <div>
-                            <div className="font-medium">{partner.name}</div>
-                            <div className="text-sm text-muted-foreground flex items-center gap-1">
-                              <MapPin className="h-3 w-3" />
-                              {partner.location}
-                            </div>
+                            <div className="font-medium">{cleaner.name}</div>
+                            {cleaner.phone && (
+                              <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                <Phone className="h-3 w-3" />
+                                {cleaner.phone}
+                              </div>
+                            )}
+                            {cleaner.email && (
+                              <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                <Mail className="h-3 w-3" />
+                                {cleaner.email}
+                              </div>
+                            )}
                           </div>
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="font-medium">{partner.company}</div>
-                        {partner.email && (
-                          <div className="text-sm text-muted-foreground flex items-center gap-1">
-                            <Mail className="h-3 w-3" />
-                            {partner.email}
+                        <div className="font-medium">{cleaner.company}</div>
+                        {cleaner.hourly_rate && (
+                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                            <DollarSign className="h-3 w-3" />
+                            {cleaner.hourly_rate}
                           </div>
                         )}
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1">
                           <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                          <span className="font-medium">{partner.rating.toFixed(1)}</span>
-                          <span className="text-sm text-muted-foreground">({partner.review_count})</span>
+                          <span className="font-medium">{cleaner.rating.toFixed(1)}</span>
+                          <span className="text-sm text-muted-foreground">({cleaner.review_count})</span>
                         </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-wrap gap-1">
-                          {partner.specialties.slice(0, 2).map((specialty, index) => (
+                          {cleaner.services.slice(0, 2).map((service, index) => (
                             <Badge key={index} variant="secondary" className="text-xs">
-                              {specialty}
+                              {service}
                             </Badge>
                           ))}
-                          {partner.specialties.length > 2 && (
+                          {cleaner.services.length > 2 && (
                             <Badge variant="outline" className="text-xs">
-                              +{partner.specialties.length - 2} more
+                              +{cleaner.services.length - 2} more
                             </Badge>
                           )}
                         </div>
                       </TableCell>
-                      <TableCell>{partner.location}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1">
+                          <MapPin className="h-4 w-4 text-muted-foreground" />
+                          {cleaner.location}
+                        </div>
+                      </TableCell>
                       <TableCell>
                         <div className="flex flex-col gap-1">
-                          <Badge variant={partner.is_active ? "default" : "secondary"}>
-                            {partner.is_active ? "Active" : "Inactive"}
+                          <Badge variant={cleaner.is_active ? "default" : "secondary"}>
+                            {cleaner.is_active ? "Active" : "Inactive"}
                           </Badge>
-                          {partner.verified && (
+                          {cleaner.verified && (
                             <Badge variant="outline" className="text-xs">
                               <Award className="h-3 w-3 mr-1" />
                               Verified
@@ -437,28 +523,28 @@ export default function RenovationPartnersPage() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => handleEditPartner(partner)}
+                            onClick={() => handleEditCleaner(cleaner)}
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => handleToggleStatus(partner.id, !partner.is_active)}
+                            onClick={() => handleToggleStatus(cleaner.id, !cleaner.is_active)}
                           >
-                            {partner.is_active ? <XCircle className="h-4 w-4" /> : <CheckCircle className="h-4 w-4" />}
+                            {cleaner.is_active ? <XCircle className="h-4 w-4" /> : <CheckCircle className="h-4 w-4" />}
                           </Button>
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => handleToggleVerification(partner.id, !partner.verified)}
+                            onClick={() => handleToggleVerification(cleaner.id, !cleaner.verified)}
                           >
                             <Award className="h-4 w-4" />
                           </Button>
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => handleDeletePartner(partner.id)}
+                            onClick={() => handleDeleteCleaner(cleaner.id)}
                             className="text-red-600 hover:text-red-700"
                           >
                             <Trash2 className="h-4 w-4" />
@@ -474,12 +560,12 @@ export default function RenovationPartnersPage() {
         </CardContent>
       </Card>
 
-      {/* Add/Edit Partner Dialog */}
+      {/* Add/Edit Cleaner Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {editingPartner ? "Edit Partner" : "Add New Partner"}
+              {editingCleaner ? "Edit Cleaner" : "Add New Cleaner"}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
@@ -490,7 +576,7 @@ export default function RenovationPartnersPage() {
                   id="name"
                   value={formData.name}
                   onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                  placeholder="Partner name"
+                  placeholder="Cleaner name"
                 />
               </div>
               <div>
@@ -537,22 +623,60 @@ export default function RenovationPartnersPage() {
             </div>
 
             <div>
-              <Label htmlFor="image_url">Image URL</Label>
-              <Input
-                id="image_url"
-                value={formData.image_url}
-                onChange={(e) => setFormData(prev => ({ ...prev, image_url: e.target.value }))}
-                placeholder="https://example.com/partner-image.jpg"
-              />
+              <Label htmlFor="image_upload">Cleaner Photo</Label>
+              <div className="space-y-4">
+                {/* Image Preview */}
+                {(imagePreview || formData.image_url) && (
+                  <div className="relative w-32 h-32 border rounded-lg overflow-hidden">
+                    <img
+                      src={imagePreview || formData.image_url}
+                      alt="Cleaner preview"
+                      className="w-full h-full object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleRemoveImage}
+                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
+                    >
+                      ×
+                    </button>
+                  </div>
+                )}
+                
+                {/* File Upload Input */}
+                <div className="flex items-center gap-4">
+                  <input
+                    type="file"
+                    id="image_upload"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="hidden"
+                  />
+                  <label
+                    htmlFor="image_upload"
+                    className="flex items-center gap-2 px-4 py-2 border border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-400 transition-colors"
+                  >
+                    <Sparkles className="h-4 w-4" />
+                    {imageFile ? 'Change Image' : 'Upload Image'}
+                  </label>
+                  {uploadingImage && (
+                    <div className="text-sm text-blue-600">Uploading...</div>
+                  )}
+                </div>
+                
+                <p className="text-xs text-muted-foreground">
+                  Upload a photo (JPEG, PNG, WebP, or GIF. Max 5MB)
+                </p>
+              </div>
             </div>
 
             <div>
-              <Label htmlFor="specialties">Specialties (comma-separated)</Label>
+              <Label htmlFor="services">Services (comma-separated)</Label>
               <Input
-                id="specialties"
-                value={formData.specialties.join(', ')}
-                onChange={(e) => handleSpecialtyChange(e.target.value)}
-                placeholder="Kitchen Remodeling, Bathroom Renovation, Flooring"
+                id="services"
+                value={formData.services.join(', ')}
+                onChange={(e) => handleServiceChange(e.target.value)}
+                placeholder="Residential Cleaning, Office Cleaning, Deep Cleaning"
               />
             </div>
 
@@ -588,7 +712,7 @@ export default function RenovationPartnersPage() {
                   id="hourly_rate"
                   value={formData.hourly_rate}
                   onChange={(e) => setFormData(prev => ({ ...prev, hourly_rate: e.target.value }))}
-                  placeholder="$85/hour"
+                  placeholder="$35/hour"
                 />
               </div>
               <div>
@@ -618,7 +742,7 @@ export default function RenovationPartnersPage() {
                 id="description"
                 value={formData.description}
                 onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="Partner description and experience..."
+                placeholder="Cleaner description and experience..."
                 rows={3}
               />
             </div>
@@ -635,13 +759,13 @@ export default function RenovationPartnersPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="completed_projects">Completed Projects</Label>
+                <Label htmlFor="completed_jobs">Completed Jobs</Label>
                 <Input
-                  id="completed_projects"
+                  id="completed_jobs"
                   type="number"
                   min="0"
-                  value={formData.completed_projects}
-                  onChange={(e) => setFormData(prev => ({ ...prev, completed_projects: parseInt(e.target.value) || 0 }))}
+                  value={formData.completed_jobs}
+                  onChange={(e) => setFormData(prev => ({ ...prev, completed_jobs: parseInt(e.target.value) || 0 }))}
                 />
               </div>
             </div>
@@ -652,7 +776,7 @@ export default function RenovationPartnersPage() {
                 id="certifications"
                 value={formData.certifications.join(', ')}
                 onChange={(e) => handleCertificationChange(e.target.value)}
-                placeholder="Licensed Contractor, WSIB Certified, First Aid Certified"
+                placeholder="Green Cleaning Certified, Bonded & Insured, COVID-19 Safety Trained"
               />
             </div>
 
@@ -662,7 +786,7 @@ export default function RenovationPartnersPage() {
                 id="portfolio"
                 value={formData.portfolio.join(', ')}
                 onChange={(e) => handlePortfolioChange(e.target.value)}
-                placeholder="Modern Kitchen Remodel, Luxury Bathroom, Hardwood Flooring"
+                placeholder="Luxury Condo Cleaning, Office Deep Clean, Move-out Service"
               />
             </div>
 
@@ -691,8 +815,8 @@ export default function RenovationPartnersPage() {
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleSavePartner}>
-              {editingPartner ? "Update Partner" : "Add Partner"}
+            <Button onClick={handleSaveCleaner}>
+              {editingCleaner ? "Update Cleaner" : "Add Cleaner"}
             </Button>
           </DialogFooter>
         </DialogContent>

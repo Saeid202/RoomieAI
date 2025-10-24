@@ -20,6 +20,16 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
+import { 
+  EnhancedPageLayout,
+  EnhancedHeader,
+  EnhancedCard,
+  EnhancedButton,
+  EnhancedFormField,
+  EnhancedInput,
+  EnhancedTextarea,
+  EnhancedSelect
+} from "@/components/ui/design-system";
 import {
   ArrowLeft,
   Home,
@@ -476,6 +486,12 @@ export default function RentalApplicationPage() {
         return;
       }
 
+      // Check if tenant has agreed to sign
+      if (!data.tenantAgreement) {
+        toast.error("You must agree to sign the contract to proceed.");
+        return;
+      }
+
       // Generate Ontario lease contract
       const contract = await generateOntarioLeaseContract({
         application_id: createdApplicationId,
@@ -486,7 +502,7 @@ export default function RentalApplicationPage() {
 
       setOntarioFormData(data);
       setPreviewContract(contract);
-      toast.success("Ontario lease contract generated successfully!");
+      toast.success("Ontario lease contract generated and sent to landlord for signature!");
     } catch (error) {
       console.error("Error generating Ontario lease contract:", error);
       toast.error("Failed to generate lease contract. Please try again.");
@@ -495,6 +511,7 @@ export default function RentalApplicationPage() {
 
   const handleSubmit = async () => {
     try {
+      console.log("🚀 handleSubmit called - starting submission process");
       setIsSubmitting(true);
 
       // Debug: Log current application data
@@ -502,6 +519,8 @@ export default function RentalApplicationPage() {
       console.log("Contract signed:", applicationData.contractSigned);
       console.log("User:", user);
       console.log("Property ID:", id);
+      console.log("Current step:", currentStep);
+      console.log("Steps length:", steps.length);
 
       // Validate required fields (only for final submission)
       const missingFields = [];
@@ -1736,23 +1755,23 @@ export default function RentalApplicationPage() {
   }
 
   return (
-    <div className="container min-h-screen bg-background">
-      <div>
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back
-            </Button>
-            <div>
-              <h1 className="text-2xl font-bold">Rental Application</h1>
-              <p className="text-muted-foreground">
-                Step {currentStep} of {steps.length}
-              </p>
-            </div>
-          </div>
-        </div>
+    <EnhancedPageLayout>
+      {/* Enhanced Header */}
+      <EnhancedHeader
+        title="Rental Application"
+        subtitle={`Step ${currentStep} of ${steps.length}`}
+        actionButton={
+          <EnhancedButton
+            variant="outline"
+            size="sm"
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </EnhancedButton>
+        }
+      />
 
         {/* Progress Bar */}
         <div className="mb-8">
@@ -1760,7 +1779,7 @@ export default function RentalApplicationPage() {
         </div>
 
         {/* Step Content */}
-        <Card>
+        <EnhancedCard>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               {steps[currentStep - 1]?.icon &&
@@ -1772,22 +1791,22 @@ export default function RentalApplicationPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>{renderStepContent()}</CardContent>
-        </Card>
+        </EnhancedCard>
 
         {/* Navigation Buttons */}
         <div className="flex justify-between mt-6">
-          <Button
+          <EnhancedButton
             variant="outline"
             onClick={prevStep}
             disabled={currentStep === 1}
           >
             Previous
-          </Button>
+          </EnhancedButton>
 
           {currentStep < steps.length ? (
             <div className="flex flex-col items-end gap-2">
               
-              <Button
+              <EnhancedButton
                 onClick={nextStep}
                 // disabled={currentStep === 3 && !applicationData.contractSigned}
                 className={
@@ -1797,7 +1816,7 @@ export default function RentalApplicationPage() {
                 }
               >
                 Next
-              </Button>
+              </EnhancedButton>
               {currentStep === 3 && !applicationData.contractSigned && (
                 <p className="text-sm text-muted-foreground">
                   Please sign the contract above to continue to payment
@@ -1806,18 +1825,36 @@ export default function RentalApplicationPage() {
             </div>
           ) : (
             <div className="flex flex-col items-end gap-2">
-              <Button
-                onClick={handleSubmit}
+              <EnhancedButton
+                onClick={async () => {
+                  console.log("🔘 Complete Rental Application button clicked");
+                  console.log("Button click registered - calling handleSubmit");
+                  alert("Button clicked! Starting submission process...");
+                  
+                  // Direct test of the submission process
+                  try {
+                    console.log("🚀 Starting direct submission test");
+                    await handleSubmit();
+                    console.log("✅ Submission completed successfully");
+                  } catch (error) {
+                    console.error("❌ Error in button click handler:", error);
+                    alert("Error: " + error.message);
+                    toast.error("Button click failed: " + error.message);
+                  }
+                }}
                 disabled={isSubmitting}
                 className="bg-primary hover:bg-primary/90"
               >
                 <Send className="h-4 w-4 mr-2" />
                 {isSubmitting ? "Submitting..." : "Complete Rental Application"}
-              </Button>
+              </EnhancedButton>
+              {/* Debug info */}
+              <p className="text-xs text-muted-foreground">
+                Debug: Step {currentStep} of {steps.length}
+              </p>
             </div>
           )}
         </div>
-      </div>
-    </div>
+    </EnhancedPageLayout>
   );
 }

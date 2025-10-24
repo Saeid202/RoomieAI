@@ -4,24 +4,38 @@ import {
   Users, 
   FileText, 
   Hammer,
+  Sparkles,
   Settings
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "react-router-dom";
+import { 
+  EnhancedPageLayout,
+  EnhancedHeader,
+  EnhancedCard,
+  StatCard
+} from "@/components/ui/design-system";
 
 export default function AdminHomePage() {
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
-          <p className="text-muted-foreground mt-1">Manage your website content and settings</p>
-        </div>
+    <EnhancedPageLayout>
+      {/* Enhanced Header */}
+      <EnhancedHeader
+        title="Admin Dashboard"
+        subtitle="Manage your website content and settings"
+      />
+
+      {/* Enhanced Statistics */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <StatCard title="Total Users" value={0} icon={Users} gradient="from-blue-500 to-blue-600" />
+        <StatCard title="Active Pages" value={0} icon={FileText} gradient="from-green-500 to-emerald-500" />
+        <StatCard title="Renovation Partners" value={0} icon={Hammer} gradient="from-orange-500 to-red-500" />
+        <StatCard title="AI Features" value={0} icon={Sparkles} gradient="from-purple-500 to-pink-500" />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <Link to="/dashboard/admin/pages" className="block">
-          <Card className="h-full transition-all hover:border-primary/50 hover:shadow-md">
+          <EnhancedCard className="h-full">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-lg font-medium">Page Management</CardTitle>
               <FileText className="h-5 w-5 text-muted-foreground" />
@@ -31,11 +45,11 @@ export default function AdminHomePage() {
                 Create, edit, and manage website pages and content blocks
               </p>
             </CardContent>
-          </Card>
+          </EnhancedCard>
         </Link>
 
         <Link to="/dashboard/admin/users" className="block">
-          <Card className="h-full transition-all hover:border-primary/50 hover:shadow-md">
+          <EnhancedCard className="h-full">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-lg font-medium">User Management</CardTitle>
               <Users className="h-5 w-5 text-muted-foreground" />
@@ -45,11 +59,11 @@ export default function AdminHomePage() {
                 Manage user accounts, roles, and permissions
               </p>
             </CardContent>
-          </Card>
+          </EnhancedCard>
         </Link>
 
         <Link to="/dashboard/admin/renovation-partners" className="block">
-          <Card className="h-full transition-all hover:border-primary/50 hover:shadow-md">
+          <EnhancedCard className="h-full">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-lg font-medium">Renovation Partners</CardTitle>
               <Hammer className="h-5 w-5 text-muted-foreground" />
@@ -59,11 +73,25 @@ export default function AdminHomePage() {
                 Manage renovation partners and service providers
               </p>
             </CardContent>
-          </Card>
+          </EnhancedCard>
+        </Link>
+
+        <Link to="/dashboard/admin/cleaners" className="block">
+          <EnhancedCard className="h-full">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-lg font-medium">Cleaners</CardTitle>
+              <Sparkles className="h-5 w-5 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                Manage cleaning service providers
+              </p>
+            </CardContent>
+          </EnhancedCard>
         </Link>
 
         <Link to="/dashboard/admin/settings" className="block">
-          <Card className="h-full transition-all hover:border-primary/50 hover:shadow-md">
+          <EnhancedCard className="h-full">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-lg font-medium">Settings</CardTitle>
               <Settings className="h-5 w-5 text-muted-foreground" />
@@ -73,12 +101,12 @@ export default function AdminHomePage() {
                 Configure website settings and preferences
               </p>
             </CardContent>
-          </Card>
+          </EnhancedCard>
         </Link>
       </div>
       
       <div className="grid grid-cols-1 gap-6">
-        <Card>
+        <EnhancedCard>
           <CardHeader>
             <CardTitle>Site Overview</CardTitle>
             <CardDescription>
@@ -101,8 +129,8 @@ export default function AdminHomePage() {
               </div>
             </div>
           </CardContent>
-        </Card>
+        </EnhancedCard>
       </div>
-    </div>
+    </EnhancedPageLayout>
   );
 }

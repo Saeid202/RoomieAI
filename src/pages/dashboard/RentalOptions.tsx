@@ -16,13 +16,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { MapPin, Calendar, DollarSign, Search } from "lucide-react";
+import { MapPin, Calendar, DollarSign, Search, Home, Filter } from "lucide-react";
 import { fetchProperties, Property } from "@/services/propertyService";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { MessageButton } from "@/components/MessageButton";
 import { MapModal } from "@/components/map/MapModal";
+import { 
+  EnhancedPageLayout,
+  EnhancedHeader,
+  EnhancedCard,
+  EnhancedButton,
+  EnhancedSearch,
+  EnhancedFilter,
+  EnhancedEmptyState,
+  StatCard
+} from "@/components/ui/design-system";
 
 export default function RentalOptionsPage() {
   const navigate = useNavigate();
@@ -125,18 +135,28 @@ export default function RentalOptionsPage() {
   };
 
   return (
-    <div className="container space-y-6">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Rental Options</h1>
-        </div>
-      </div>
+    <EnhancedPageLayout>
+      {/* Enhanced Header */}
+      <EnhancedHeader
+        title="Rental Options"
+        subtitle="Find your perfect rental property"
+        actionButton={
+          <EnhancedButton
+            variant="outline"
+            onClick={() => navigate("/dashboard")}
+            className="flex items-center gap-2"
+          >
+            <Home className="h-4 w-4" />
+            Dashboard
+          </EnhancedButton>
+        }
+      />
 
-      {/* Filters */}
-      <Card>
-        <CardContent>
+      {/* Enhanced Filters */}
+      <EnhancedCard>
+        <CardContent className="p-8">
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4 relative">
-            <div className="border-2 border-gray-300  rounded-full size-7 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 md:hidden">
+            <div className="border-2 border-gray-300 rounded-full size-7 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 md:hidden">
               <button
                 onClick={applyFilters}
                 className="!size-full min-w-full min-h-full flex items-center justify-center"
@@ -144,45 +164,41 @@ export default function RentalOptionsPage() {
                 <Search className="size-4 text-primary" />
               </button>
             </div>
-            <Input
+            <EnhancedSearch
               placeholder="Location (city)"
               value={filters.location}
-              onChange={(e) => handleFilterChange("location", e.target.value)}
+              onChange={(value) => handleFilterChange("location", value)}
             />
-            <Input
+            <EnhancedSearch
               placeholder="Min Price"
-              type="number"
               value={filters.minPrice}
-              onChange={(e) => handleFilterChange("minPrice", e.target.value)}
+              onChange={(value) => handleFilterChange("minPrice", value)}
             />
-            <Input
+            <EnhancedSearch
               placeholder="Max Price"
-              type="number"
               value={filters.maxPrice}
-              onChange={(e) => handleFilterChange("maxPrice", e.target.value)}
+              onChange={(value) => handleFilterChange("maxPrice", value)}
             />
-            <Select
-              value={filters.bedrooms || undefined}
-              onValueChange={(value) =>
-                handleFilterChange("bedrooms", value === "any" ? "" : value)
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Bedrooms" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="any">Any</SelectItem>
-                <SelectItem value="0">Studio</SelectItem>
-                <SelectItem value="1">1 Bedroom</SelectItem>
-                <SelectItem value="2">2 Bedrooms</SelectItem>
-                <SelectItem value="3">3 Bedrooms</SelectItem>
-                <SelectItem value="4">4+ Bedrooms</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button onClick={applyFilters} className="hidden md:block">Search</Button>
+            <EnhancedFilter
+              value={filters.bedrooms || "any"}
+              onValueChange={(value) => handleFilterChange("bedrooms", value === "any" ? "" : value)}
+              options={[
+                { value: "any", label: "Any" },
+                { value: "0", label: "Studio" },
+                { value: "1", label: "1 Bedroom" },
+                { value: "2", label: "2 Bedrooms" },
+                { value: "3", label: "3 Bedrooms" },
+                { value: "4", label: "4+ Bedrooms" }
+              ]}
+              placeholder="Bedrooms"
+            />
+            <EnhancedButton onClick={applyFilters} className="hidden md:block">
+              <Search className="h-4 w-4 mr-2" />
+              Search
+            </EnhancedButton>
           </div>
         </CardContent>
-      </Card>
+      </EnhancedCard>
 
       {/* Properties Grid */}
       {loading ? (
@@ -203,21 +219,17 @@ export default function RentalOptionsPage() {
           ))}
         </div>
       ) : properties.length === 0 ? (
-        <Card>
-          <CardContent className="text-center py-12">
-            <h3 className="text-lg font-medium">No Properties Found</h3>
-            <p className="text-muted-foreground mt-2">
-              No properties match your current filters. Try adjusting your
-              search criteria.
-            </p>
-          </CardContent>
-        </Card>
+        <EnhancedEmptyState
+          icon={Search}
+          title="No Properties Found"
+          description="No properties match your current filters. Try adjusting your search criteria."
+        />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {properties.map((property) => (
-            <Card
+            <EnhancedCard
               key={property.id}
-              className="overflow-hidden transition-all duration-300 ease-in-out hover:shadow-2xl hover:border-primary border-2 border-transparent"
+              className="overflow-hidden border-2 border-transparent hover:border-primary"
             >
               <div
                 className="relative"
@@ -311,7 +323,7 @@ export default function RentalOptionsPage() {
                   />
                 </div>
                 <div className="grid grid-cols-1 gap-2 mt-2">
-                   <Button
+                   <EnhancedButton
                     onClick={() => {
                       if (user) {
                         navigate(`/dashboard/rental-application/${property.id}`);
@@ -322,10 +334,10 @@ export default function RentalOptionsPage() {
                     className="w-full"
                   >
                     Apply Now
-                  </Button>
+                  </EnhancedButton>
                 </div>
               </CardContent>
-            </Card>
+            </EnhancedCard>
           ))}
         </div>
       )}
@@ -334,6 +346,6 @@ export default function RentalOptionsPage() {
         isOpen={isMapModalOpen} 
         onClose={() => setMapModalOpen(false)} 
       />
-    </div>
+    </EnhancedPageLayout>
   );
 }

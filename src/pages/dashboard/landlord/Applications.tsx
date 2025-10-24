@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Users, FileText, Clock, CheckCircle, XCircle, RefreshCw } from "lucide-react";
+import { Users, FileText, Clock, CheckCircle, XCircle, RefreshCw, FileSignature } from "lucide-react";
 import { getLandlordApplications, updateApplicationStatus } from "@/services/rentalApplicationService";
 import { ApplicationsList } from "@/components/landlord/ApplicationsList";
 import { ApplicationDetailModal } from "@/components/landlord/ApplicationDetailModal";
@@ -148,14 +148,24 @@ export default function ApplicationsPage() {
           <h1 className="text-3xl font-bold tracking-tight">Applications</h1>
           <p className="text-muted-foreground mt-1">Review and manage tenant applications</p>
         </div>
-        <Button 
-          variant="outline" 
-          onClick={loadApplications}
-          disabled={loading}
-        >
-          <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-          Refresh
-        </Button>
+        <div className="flex space-x-2">
+          <Button 
+            onClick={() => navigate('/dashboard/landlord/contracts')}
+            variant="outline"
+            className="flex items-center"
+          >
+            <FileSignature className="h-4 w-4 mr-2" />
+            View Contracts
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={loadApplications}
+            disabled={loading}
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
+        </div>
       </div>
       
       {/* Statistics Cards */}

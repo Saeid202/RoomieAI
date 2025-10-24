@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { OntarioLeaseFormData, OntarioLeaseContract, SignatureData } from "@/types/ontarioLease";
+import { createContractNotification } from "@/services/notificationService";
 
 const sb: any = supabase;
 
@@ -82,6 +83,21 @@ export async function generateOntarioLeaseContract(input: {
     }
 
     console.log("Ontario lease contract created successfully:", data.id);
+    
+    // Create notification for landlord that contract is ready for signature
+    try {
+      await createContractNotification(
+        data.landlord_id,
+        data.tenant_id,
+        data.id,
+        'contract_ready'
+      );
+      console.log("Landlord notification created for contract:", data.id);
+    } catch (notificationError) {
+      console.error("Failed to create landlord notification:", notificationError);
+      // Don't throw error - contract creation succeeded
+    }
+    
     return data as OntarioLeaseContract;
   } catch (error) {
     console.error("Error in generateOntarioLeaseContract:", error);
@@ -124,6 +140,91 @@ export async function signOntarioLeaseAsTenant(
     return data as OntarioLeaseContract;
   } catch (error) {
     console.error("Error in signOntarioLeaseAsTenant:", error);
+    throw error;
+  }
+}
+
+/**
+ * Sign Ontario lease contract as landlord
+ */
+export async function signOntarioLeaseAsLandlord(
+  contractId: string,
+  signatureData: SignatureData
+): Promise<OntarioLeaseContract> {
+  console.log("Signing Ontario lease contract as landlord:", contractId);
+  
+  try {
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      throw new Error("User not authenticated");
+    }
+
+    // Get contract details
+    const { data: contract, error: fetchError } = await sb
+      .from('lease_contracts')
+      .select('*')
+      .eq('id', contractId)
+      .single();
+
+    if (fetchError || !contract) {
+      throw new Error("Contract not found");
+    }
+
+    // Verify landlord owns this property
+    if (contract.landlord_id !== user.id) {
+      throw new Error("You can only sign contracts for your own properties");
+    }
+
+    // Check if contract is in correct status
+    if (contract.status !== 'pending_landlord_signature') {
+      throw new Error("Contract is not in pending landlord signature status");
+    }
+
+    const signature = {
+      signature_data: signatureData.signatureData,
+      signed_at: new Date().toISOString(),
+      ip_address: signatureData.ipAddress,
+      user_agent: signatureData.userAgent
+    };
+
+    // Update contract with landlord signature
+    const { data, error } = await sb
+      .from('lease_contracts')
+      .update({
+        landlord_signature: signature,
+        status: 'fully_signed',
+        terms_acceptance_landlord: true,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', contractId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error signing contract as landlord:", error);
+      throw new Error(`Failed to sign contract: ${error.message}`);
+    }
+
+    console.log("Contract signed by landlord successfully:", data.id);
+
+    // Create notification for tenant that contract is fully executed
+    try {
+      await createContractNotification(
+        data.landlord_id,
+        data.tenant_id,
+        data.id,
+        'contract_signed'
+      );
+      console.log("Tenant notification created for fully signed contract:", data.id);
+    } catch (notificationError) {
+      console.error("Failed to create tenant notification:", notificationError);
+      // Don't throw error - contract signing succeeded
+    }
+
+    return data as OntarioLeaseContract;
+  } catch (error) {
+    console.error("Error in signOntarioLeaseAsLandlord:", error);
     throw error;
   }
 }

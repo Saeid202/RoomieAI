@@ -1,5 +1,4 @@
 import { supabase } from "@/integrations/supabase/client";
-const sb: any = supabase;
 
 export interface RentalDocument {
   id: string;
@@ -41,9 +40,29 @@ export async function uploadRentalDocument(input: DocumentUploadInput): Promise<
     // Get current user
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
+      console.error("❌ User not authenticated");
       throw new Error("User not authenticated");
     }
     console.log("✅ User authenticated:", user.id);
+
+    // Validate application exists
+    console.log("🔍 Validating application exists...");
+    const { data: application, error: appError } = await supabase
+      .from('rental_applications')
+      .select('id, applicant_id')
+      .eq('id', input.application_id)
+      .single();
+    
+    if (appError || !application) {
+      console.error("❌ Application not found:", appError?.message);
+      throw new Error(`Application not found: ${appError?.message || 'Invalid application ID'}`);
+    }
+    
+    if (application.applicant_id !== user.id) {
+      console.error("❌ Application ownership mismatch");
+      throw new Error("You can only upload documents for your own applications");
+    }
+    console.log("✅ Application validated:", application.id);
 
     // Generate unique filename
     const fileExt = input.file.name.split('.').pop();
@@ -62,6 +81,11 @@ export async function uploadRentalDocument(input: DocumentUploadInput): Promise<
 
     if (uploadError) {
       console.error('❌ Storage upload error:', uploadError);
+      console.error('❌ Storage error details:', {
+        message: uploadError.message,
+        statusCode: uploadError.statusCode,
+        error: uploadError.error
+      });
       throw new Error(`Failed to upload document: ${uploadError.message}`);
     }
     console.log("✅ Storage upload successful:", uploadData);
@@ -85,7 +109,7 @@ export async function uploadRentalDocument(input: DocumentUploadInput): Promise<
     };
     console.log("💾 Creating database record:", documentRecord);
 
-    const { data, error } = await sb
+    const { data, error } = await supabase
       .from('rental_documents')
       .insert(documentRecord)
       .select()
@@ -93,6 +117,12 @@ export async function uploadRentalDocument(input: DocumentUploadInput): Promise<
 
     if (error) {
       console.error('❌ Database insert error:', error);
+      console.error('❌ Database error details:', {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint
+      });
       console.log("🧹 Attempting to cleanup uploaded file...");
       try {
         await supabase.storage.from('rental-documents').remove([filePath]);
@@ -104,9 +134,20 @@ export async function uploadRentalDocument(input: DocumentUploadInput): Promise<
     }
 
     console.log('🎉 Document uploaded and recorded successfully:', data.id);
+    console.log('📊 Upload summary:', {
+      documentId: data.id,
+      applicationId: input.application_id,
+      documentType: input.document_type,
+      filename: input.file.name,
+      fileSize: input.file.size,
+      storagePath: filePath,
+      databaseRecord: data
+    });
+    
     return data as RentalDocument;
   } catch (error) {
     console.error('💥 Error in uploadRentalDocument:', error);
+    console.error('💥 Error stack:', error instanceof Error ? error.stack : 'No stack trace');
     throw error;
   }
 }
@@ -119,7 +160,7 @@ export async function getApplicationDocuments(applicationId: string): Promise<Re
   
   try {
     console.log("📡 Making Supabase query...");
-    const { data, error } = await sb
+    const { data, error } = await supabase
       .from('rental_documents')
       .select('*')
       .eq('application_id', applicationId)
@@ -157,7 +198,7 @@ export async function getDocumentsByType(
   console.log("Fetching documents by type:", applicationId, documentType);
   
   try {
-    const { data, error } = await sb
+    const { data, error } = await supabase
       .from('rental_documents')
       .select('*')
       .eq('application_id', applicationId)
@@ -185,7 +226,7 @@ export async function deleteRentalDocument(documentId: string): Promise<void> {
   
   try {
     // Get document info first
-    const { data: document, error: fetchError } = await sb
+    const { data: document, error: fetchError } = await supabase
       .from('rental_documents')
       .select('storage_url')
       .eq('id', documentId)
@@ -215,7 +256,7 @@ export async function deleteRentalDocument(documentId: string): Promise<void> {
     }
 
     // Delete from database
-    const { error: deleteError } = await sb
+    const { error: deleteError } = await supabase
       .from('rental_documents')
       .delete()
       .eq('id', documentId);
@@ -238,7 +279,7 @@ export async function verifyDocument(documentId: string): Promise<RentalDocument
   console.log("Verifying document:", documentId);
   
   try {
-    const { data, error } = await sb
+    const { data, error } = await supabase
       .from('rental_documents')
       .update({ 
         status: 'verified',
@@ -268,7 +309,7 @@ export async function rejectDocument(documentId: string, reason: string): Promis
   console.log("Rejecting document:", documentId, reason);
   
   try {
-    const { data, error } = await sb
+    const { data, error } = await supabase
       .from('rental_documents')
       .update({ 
         status: 'rejected',

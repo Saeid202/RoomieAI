@@ -1339,78 +1339,98 @@ const OntarioLeaseForm2229E: React.FC<OntarioLeaseForm2229EProps> = ({
                 </p>
                 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  {/* Landlord Signatures */}
+                  {/* Landlord Signature */}
                   <div className="space-y-4">
-                    <h4 className="font-semibold text-green-600">Landlord(s):</h4>
+                    <h4 className="font-semibold text-green-600">Landlord:</h4>
                     
-                    {[1, 2, 3, 4].map((num) => (
-                      <div key={num} className="border border-gray-200 rounded-lg p-4 space-y-3">
-                        <div>
-                          <Label htmlFor={`landlord${num}Name`}>Name:</Label>
-                          <Input
-                            id={`landlord${num}Name`}
-                            value={(formData[`landlord${num}Name` as keyof OntarioLeaseFormData] as string) || ''}
-                            onChange={(e) => handleInputChange(`landlord${num}Name` as keyof OntarioLeaseFormData, e.target.value)}
-                            placeholder="Enter name"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor={`landlord${num}Signature`}>Signature:</Label>
-                          <Input
-                            id={`landlord${num}Signature`}
-                            value={(formData[`landlord${num}Signature` as keyof OntarioLeaseFormData] as string) || ''}
-                            onChange={(e) => handleInputChange(`landlord${num}Signature` as keyof OntarioLeaseFormData, e.target.value)}
-                            placeholder="Enter signature"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor={`landlord${num}Date`}>Date:</Label>
-                          <Input
-                            id={`landlord${num}Date`}
-                            type="date"
-                            value={(formData[`landlord${num}Date` as keyof OntarioLeaseFormData] as string) || ''}
-                            onChange={(e) => handleInputChange(`landlord${num}Date` as keyof OntarioLeaseFormData, e.target.value)}
-                          />
-                        </div>
+                    <div className="border border-gray-200 rounded-lg p-4 space-y-3">
+                      <div>
+                        <Label htmlFor="landlord1Name">Name:</Label>
+                        <Input
+                          id="landlord1Name"
+                          value={(formData.landlord1Name as string) || ''}
+                          onChange={(e) => handleInputChange('landlord1Name', e.target.value)}
+                          placeholder="Enter name"
+                        />
                       </div>
-                    ))}
+                      <div>
+                        <Label htmlFor="landlord1Signature">Signature:</Label>
+                        <Input
+                          id="landlord1Signature"
+                          value={(formData.landlord1Signature as string) || ''}
+                          onChange={(e) => handleInputChange('landlord1Signature', e.target.value)}
+                          placeholder="Enter signature"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="landlord1Date">Date:</Label>
+                        <Input
+                          id="landlord1Date"
+                          type="date"
+                          value={(formData.landlord1Date as string) || ''}
+                          onChange={(e) => handleInputChange('landlord1Date', e.target.value)}
+                        />
+                      </div>
+                      <div className="flex items-center space-x-2 pt-2 border-t border-gray-200">
+                        <input
+                          type="checkbox"
+                          id="landlordAgreement"
+                          checked={(formData.landlordAgreement as boolean) || false}
+                          onChange={(e) => handleInputChange('landlordAgreement', e.target.checked)}
+                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        />
+                        <Label htmlFor="landlordAgreement" className="text-sm font-medium text-gray-700">
+                          I agree to sign this lease contract
+                        </Label>
+                      </div>
+                    </div>
                   </div>
                   
-                  {/* Tenant Signatures */}
+                  {/* Tenant Signature */}
                   <div className="space-y-4">
-                    <h4 className="font-semibold text-green-600">Tenant(s):</h4>
+                    <h4 className="font-semibold text-green-600">Tenant:</h4>
                     
-                    {[1, 2, 3, 4].map((num) => (
-                      <div key={num} className="border border-gray-200 rounded-lg p-4 space-y-3">
-                        <div>
-                          <Label htmlFor={`tenant${num}Name`}>Name:</Label>
-                          <Input
-                            id={`tenant${num}Name`}
-                            value={(formData[`tenant${num}Name` as keyof OntarioLeaseFormData] as string) || ''}
-                            onChange={(e) => handleInputChange(`tenant${num}Name` as keyof OntarioLeaseFormData, e.target.value)}
-                            placeholder="Enter name"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor={`tenant${num}Signature`}>Signature:</Label>
-                          <Input
-                            id={`tenant${num}Signature`}
-                            value={(formData[`tenant${num}Signature` as keyof OntarioLeaseFormData] as string) || ''}
-                            onChange={(e) => handleInputChange(`tenant${num}Signature` as keyof OntarioLeaseFormData, e.target.value)}
-                            placeholder="Enter signature"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor={`tenant${num}Date`}>Date:</Label>
-                          <Input
-                            id={`tenant${num}Date`}
-                            type="date"
-                            value={(formData[`tenant${num}Date` as keyof OntarioLeaseFormData] as string) || ''}
-                            onChange={(e) => handleInputChange(`tenant${num}Date` as keyof OntarioLeaseFormData, e.target.value)}
-                          />
-                        </div>
+                    <div className="border border-gray-200 rounded-lg p-4 space-y-3">
+                      <div>
+                        <Label htmlFor="tenant1Name">Name:</Label>
+                        <Input
+                          id="tenant1Name"
+                          value={(formData.tenant1Name as string) || ''}
+                          onChange={(e) => handleInputChange('tenant1Name', e.target.value)}
+                          placeholder="Enter name"
+                        />
                       </div>
-                    ))}
+                      <div>
+                        <Label htmlFor="tenant1Signature">Signature:</Label>
+                        <Input
+                          id="tenant1Signature"
+                          value={(formData.tenant1Signature as string) || ''}
+                          onChange={(e) => handleInputChange('tenant1Signature', e.target.value)}
+                          placeholder="Enter signature"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="tenant1Date">Date:</Label>
+                        <Input
+                          id="tenant1Date"
+                          type="date"
+                          value={(formData.tenant1Date as string) || ''}
+                          onChange={(e) => handleInputChange('tenant1Date', e.target.value)}
+                        />
+                      </div>
+                      <div className="flex items-center space-x-2 pt-2 border-t border-gray-200">
+                        <input
+                          type="checkbox"
+                          id="tenantAgreement"
+                          checked={(formData.tenantAgreement as boolean) || false}
+                          onChange={(e) => handleInputChange('tenantAgreement', e.target.checked)}
+                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        />
+                        <Label htmlFor="tenantAgreement" className="text-sm font-medium text-gray-700">
+                          I agree to sign this lease contract
+                        </Label>
+                      </div>
+                    </div>
                   </div>
                 </div>
                 
