@@ -284,7 +284,7 @@ export default function MatchesPage() {
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <p className="text-destructive mb-4">{error}</p>
-            <Button onClick={() => window.location.reload()}>Try Again</Button>
+            <Button onClick={() => navigate(0)}>Try Again</Button>
           </div>
         </div>
       </div>
@@ -305,9 +305,7 @@ export default function MatchesPage() {
               preferences to start finding compatible roommates
             </p>
             <Button
-              onClick={() =>
-                (window.location.href = "/dashboard/roommate-recommendations")
-              }
+              onClick={() => navigate("/dashboard/roommate-recommendations")}
             >
               Complete Profile
             </Button>
@@ -531,9 +529,7 @@ export default function MatchesPage() {
                 Show All Matches
               </Button>
               <Button
-                onClick={() =>
-                  (window.location.href = "/dashboard/roommate-recommendations")
-                }
+                onClick={() => navigate("/dashboard/roommate-recommendations")}
               >
                 Update Preferences
               </Button>
