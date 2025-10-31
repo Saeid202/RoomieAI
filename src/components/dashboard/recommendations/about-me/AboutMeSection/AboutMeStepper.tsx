@@ -1,5 +1,3 @@
-import { UseFormReturn } from "react-hook-form";
-import { ProfileFormValues } from "@/types/profile";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { StepContent } from "./StepContent";
@@ -10,10 +8,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-
-interface AboutMeStepperProps {
-  form: UseFormReturn<ProfileFormValues>;
-}
 
 const STEPS = [
   {
@@ -54,7 +48,7 @@ const STEPS = [
   },
 ];
 
-export function AboutMeStepper({ form }: AboutMeStepperProps) {
+export function AboutMeStepper() {
   const [currentStep, setCurrentStep] = useState(0);
 
   const nextStep = () => {
@@ -116,7 +110,7 @@ export function AboutMeStepper({ form }: AboutMeStepperProps) {
       </div>
 
       {/* Step Content */}
-      <StepContent step={currentStep} form={form} />
+      <StepContent step={currentStep} />
 
       {/* Navigation Buttons - Hide in review step */}
 
