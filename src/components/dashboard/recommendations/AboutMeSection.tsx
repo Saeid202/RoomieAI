@@ -17,6 +17,42 @@ interface AboutMeSectionProps {
   onSaveProfile?: (formData: ProfileFormValues) => Promise<void>;
 }
 
+const defaultFormValues: Partial<ProfileFormValues> = {
+  fullName: "",
+  age: "",
+  gender: "",
+  email: "",
+  phoneNumber: "",
+  nationality: "",
+  language: "",
+  ethnicity: "",
+  religion: "",
+  occupation: "",
+  preferredLocation: [],
+  budgetRange: [800, 1500],
+  moveInDateStart: new Date(),
+  housingType: "apartment",
+  livingSpace: "privateRoom",
+  smoking: false,
+  livesWithSmokers: false,
+  hasPets: false,
+  workLocation: "remote",
+  workSchedule: "dayShift",
+  hobbies: [],
+  diet: "noPreference",
+  dietOther: "",
+  profileVisibility: [],
+  genderPreference: [],
+  nationalityPreference: "noPreference",
+  languagePreference: "noPreference",
+  ethnicityPreference: "noPreference",
+  religionPreference: "noPreference",
+  occupationPreference: false,
+  workSchedulePreference: "noPreference",
+  roommateHobbies: [],
+  rentOption: "findTogether",
+};
+
 export function AboutMeSection({ 
   profileData,
   isLoading = false,
@@ -24,46 +60,11 @@ export function AboutMeSection({
 }: AboutMeSectionProps) {
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
-  
-  const defaultFormValues: Partial<ProfileFormValues> = {
-    fullName: "",
-    age: "",
-    gender: "",
-    email: "",
-    phoneNumber: "",
-    nationality: "",
-    language: "",
-    ethnicity: "",
-    religion: "",
-    occupation: "",
-    preferredLocation: [],
-    budgetRange: [800, 1500],
-    moveInDateStart: new Date(),
-    housingType: "apartment",
-    livingSpace: "privateRoom",
-    smoking: false,
-    livesWithSmokers: false,
-    hasPets: false,
-    workLocation: "remote",
-    workSchedule: "dayShift",
-    hobbies: [],
-    diet: "noPreference",
-    dietOther: "",
-    profileVisibility: [],
-    genderPreference: [],
-    nationalityPreference: "noPreference",
-    languagePreference: "noPreference",
-    ethnicityPreference: "noPreference",
-    religionPreference: "noPreference",
-    occupationPreference: false,
-    workSchedulePreference: "noPreference",
-    roommateHobbies: [],
-    rentOption: "findTogether",
-  };
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
     defaultValues: { ...defaultFormValues, ...profileData },
+    shouldUnregister: false, // Keep field values when unmounted during step navigation
   });
 
   useEffect(() => {
@@ -112,7 +113,7 @@ export function AboutMeSection({
           <CardContent className="p-4">
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <AboutMeStepper form={form} />
+                <AboutMeStepper />
                 
                 <div className="flex justify-end pt-4 border-t">
                   <Button type="submit" disabled={isSaving} size="lg">
