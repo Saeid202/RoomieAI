@@ -44,14 +44,13 @@ export function PreferencesTab({ form, handleTraitToggle }: PreferencesTabProps)
         <PreferenceWithImportance
           form={form}
           preferenceKey="ageRangePreference"
-          title="Age Range"
+          title="1. Age Range"
         >
           <FormField
             control={form.control}
             name="ageRangePreference"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-base font-bold">**1.** Age Range</FormLabel>
                 <div className="px-4 py-6">
                   <FormControl>
                     <Slider
@@ -77,14 +76,13 @@ export function PreferencesTab({ form, handleTraitToggle }: PreferencesTabProps)
         <PreferenceWithImportance
           form={form}
           preferenceKey="genderPreference"
-          title="Gender Preference"
+          title="2. Gender Preference"
         >
           <FormField
             control={form.control}
             name="genderPreference"
             render={() => (
               <FormItem>
-                <FormLabel className="text-base font-bold">**2.** Gender Preference</FormLabel>
                 <div className="grid md:grid-cols-2 gap-3 mt-3">
                   {["Male", "Female", "Gay", "Lesbian", "Transgender", "Bisexual", "Non-Binary", "No preference"].map((option) => (
                     <FormField
@@ -127,14 +125,13 @@ export function PreferencesTab({ form, handleTraitToggle }: PreferencesTabProps)
         <PreferenceWithImportance
           form={form}
           preferenceKey="nationalityPreference"
-          title="Nationality"
+          title="3. Nationality"
         >
           <FormField
             control={form.control}
             name="nationalityPreference"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-base font-bold">**3.** Nationality</FormLabel>
                 <div className="space-y-3 mt-3">
                   <FormControl>
                     <RadioGroup onValueChange={field.onChange} value={field.value}>
@@ -179,14 +176,13 @@ export function PreferencesTab({ form, handleTraitToggle }: PreferencesTabProps)
         <PreferenceWithImportance
           form={form}
           preferenceKey="languagePreference"
-          title="Language Preference"
+          title="4. Language Preference"
         >
           <FormField
             control={form.control}
             name="languagePreference"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-base font-bold">**4.** Language Preference</FormLabel>
                 <div className="space-y-3 mt-3">
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
@@ -227,14 +223,13 @@ export function PreferencesTab({ form, handleTraitToggle }: PreferencesTabProps)
         <PreferenceWithImportance
           form={form}
           preferenceKey="dietaryPreferences"
-          title="Dietary Preferences"
+          title="5. Dietary Preferences"
         >
           <FormField
             control={form.control}
             name="dietaryPreferences"
             render={({ field }) => (
               <FormItem className="space-y-3">
-                <FormLabel className="text-base font-bold">**5.** Dietary Preferences</FormLabel>
                 <FormControl>
                   <RadioGroup
                     onValueChange={field.onChange}
@@ -289,14 +284,13 @@ export function PreferencesTab({ form, handleTraitToggle }: PreferencesTabProps)
         <PreferenceWithImportance
           form={form}
           preferenceKey="occupationPreference"
-          title="Occupation Preference"
+          title="6. Do you have an occupation preference for your roommate?"
         >
           <FormField
             control={form.control}
             name="occupationPreference"
             render={({ field }) => (
               <FormItem className="space-y-3">
-                <FormLabel className="text-base font-bold">**6.** Do you have an occupation preference for your roommate?</FormLabel>
                 <div className="space-y-3 mt-3">
                   <FormControl>
                     <RadioGroup
@@ -340,14 +334,13 @@ export function PreferencesTab({ form, handleTraitToggle }: PreferencesTabProps)
         <PreferenceWithImportance
           form={form}
           preferenceKey="workSchedulePreference"
-          title="Work Schedule Preference"
+          title="7. Do you have a work schedule preference for your roommate?"
         >
           <FormField
             control={form.control}
             name="workSchedulePreference"
             render={({ field }) => (
               <FormItem className="space-y-3">
-                <FormLabel className="text-base font-bold">**7.** Do you have a work schedule preference for your roommate?</FormLabel>
                 <FormControl>
                   <RadioGroup
                     onValueChange={field.onChange}
@@ -381,14 +374,13 @@ export function PreferencesTab({ form, handleTraitToggle }: PreferencesTabProps)
         <PreferenceWithImportance
           form={form}
           preferenceKey="ethnicityPreference"
-          title="Ethnicity"
+          title="8. Ethnicity"
         >
           <FormField
             control={form.control}
             name="ethnicityPreference"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-base font-bold">**8.** Ethnicity</FormLabel>
                 <div className="space-y-3 mt-3">
                   <FormControl>
                     <RadioGroup onValueChange={field.onChange} value={field.value}>
@@ -433,14 +425,13 @@ export function PreferencesTab({ form, handleTraitToggle }: PreferencesTabProps)
         <PreferenceWithImportance
           form={form}
           preferenceKey="religionPreference"
-          title="Religion"
+          title="9. Religion"
         >
           <FormField
             control={form.control}
             name="religionPreference"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-base font-bold">**9.** Religion</FormLabel>
                 <div className="space-y-3 mt-3">
                   <FormControl>
                     <RadioGroup onValueChange={field.onChange} value={field.value}>
@@ -485,14 +476,13 @@ export function PreferencesTab({ form, handleTraitToggle }: PreferencesTabProps)
         <PreferenceWithImportance
           form={form}
           preferenceKey="petPreference"
-          title="Pet"
+          title="10. Pet"
         >
           <FormField
             control={form.control}
             name="petPreference"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-base font-bold">**10.** Pet</FormLabel>
                 <div className="space-y-3 mt-3">
                   <FormControl>
                     <RadioGroup onValueChange={field.onChange} value={field.value}>
@@ -537,14 +527,13 @@ export function PreferencesTab({ form, handleTraitToggle }: PreferencesTabProps)
         <PreferenceWithImportance
           form={form}
           preferenceKey="smokingPreference"
-          title="Smokers"
+          title="11. Smokers"
         >
           <FormField
             control={form.control}
             name="smokingPreference"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-base font-bold">**11.** Smokers</FormLabel>
                 <div className="space-y-3 mt-3">
                   <FormControl>
                     <RadioGroup onValueChange={field.onChange} value={field.value}>
@@ -572,14 +561,13 @@ export function PreferencesTab({ form, handleTraitToggle }: PreferencesTabProps)
         <PreferenceWithImportance
           form={form}
           preferenceKey="housingPreference"
-          title="Housing"
+          title="12. Housing"
         >
           <FormField
             control={form.control}
             name="housingPreference"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-base font-bold">**12.** Housing</FormLabel>
                 <div className="space-y-3 mt-3">
                   <FormControl>
                     <div className="flex flex-col space-y-2">
