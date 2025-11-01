@@ -83,11 +83,9 @@ function convertMatchResultToDisplay(
     budget: budgetStr,
     moveInDate: match.movingDate || "Flexible",
     traits: match.traits || [],
-    bio: `${
-      match.occupation || "Professional"
-    } looking for a compatible roommate. Interests include ${
-      match.interests?.slice(0, 2).join(" and ") || "various activities"
-    }.`,
+    bio: `${match.occupation || "Professional"
+      } looking for a compatible roommate. Interests include ${match.interests?.slice(0, 2).join(" and ") || "various activities"
+      }.`,
     image: match.name
       .split(" ")
       .map((n) => n[0])
@@ -134,8 +132,6 @@ function calculateMatchStats(matches: MatchDisplay[]): MatchStats {
 export default function MatchesPage() {
   const navigate = useNavigate();
   const [matches, setMatches] = useState<MatchDisplay[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<"compatibility" | "age" | "name">(
     "compatibility"
   );
@@ -145,7 +141,7 @@ export default function MatchesPage() {
   const [expandedSections, setExpandedSections] = useState<string[]>([]);
 
   const { user } = useAuth();
-  const { profileData, loading: profileLoading } = useRoommateProfile();
+  const { profileData, loading: profileLoading, error: profileError } = useRoommateProfile();
 
   const {
     roommates,
@@ -176,70 +172,68 @@ export default function MatchesPage() {
 
   useEffect(() => {
     handleTabChange("about-me");
-  }, [handleTabChange]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const loadMatches = useCallback(async () => {
+    if (!profileData || profileLoading) {
+      return;
+    }
+
+    console.log("Loading matches with profile data:", profileData);
+
+    // Use the enhanced matching algorithm with importance from roommate table
+    const { data: idealRoommateResults, error: matchError } =
+      await idealRoommateMatchingEngine.findMatches({
+        currentUser: profileData,
+        currentUserId: user?.id,
+        maxResults: 20, // Increased to get more results
+        minScore: 30, // Lower minimum score to get more results
+      });
+
+    if (matchError) {
+      console.error("Error loading matches:", matchError);
+      setMatches([]);
+      return;
+    }
+
+    if (!idealRoommateResults || idealRoommateResults.length === 0) {
+      console.log("No matches found");
+      setMatches([]);
+      return;
+    }
+
+    console.log(
+      "Raw ideal roommate matches from algorithm:",
+      idealRoommateResults
+    );
+
+    // Convert to standard MatchResult format
+    const matchResults = idealRoommateResults.map((result) =>
+      idealRoommateMatchingEngine.convertToMatchResult(result)
+    );
+
+    // Convert to display format
+    const displayMatches = matchResults.map(convertMatchResultToDisplay);
+
+    displayMatches.forEach((match, index) => {
+      console.log(`Match ${index + 1}:`, {
+        name: match.name,
+        age: match.age,
+        location: match.location,
+        compatibility: `${match.compatibility}%`,
+        budget: match.budget,
+        traits: match.traits,
+        bio: match.bio,
+      });
+    });
+
+    setMatches(displayMatches);
+  }, [profileData, profileLoading, user?.id]);
 
   useEffect(() => {
-    const loadMatches = async () => {
-      if (!profileData || profileLoading) {
-        return;
-      }
-
-      try {
-        setLoading(true);
-        setError(null);
-
-        console.log("Loading matches with profile data:", profileData);
-
-        // Use the enhanced matching algorithm with importance from roommate table
-        const idealRoommateResults =
-          await idealRoommateMatchingEngine.findMatches({
-            currentUser: profileData,
-            currentUserId: user?.id,
-            maxResults: 20, // Increased to get more results
-            minScore: 30, // Lower minimum score to get more results
-          });
-
-        console.log(
-          "Raw ideal roommate matches from algorithm:",
-          idealRoommateResults
-        );
-
-        // Convert to standard MatchResult format
-        const matchResults = idealRoommateResults.map((result) =>
-          idealRoommateMatchingEngine.convertToMatchResult(result)
-        );
-
-        console.log("Converted match results:", matchResults);
-
-        // Convert to display format
-        const displayMatches = matchResults.map(convertMatchResultToDisplay);
-
-        console.log("Processed display matches:", displayMatches);
-        console.log("Total matches found:", displayMatches.length);
-        displayMatches.forEach((match, index) => {
-          console.log(`Match ${index + 1}:`, {
-            name: match.name,
-            age: match.age,
-            location: match.location,
-            compatibility: `${match.compatibility}%`,
-            budget: match.budget,
-            traits: match.traits,
-            bio: match.bio,
-          });
-        });
-
-        setMatches(displayMatches);
-      } catch (error) {
-        console.error("Error loading matches:", error);
-        setError("Failed to load matches. Please try again.");
-        setMatches([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     loadMatches();
-  }, [profileData, profileLoading, user?.id]);
+  }, [loadMatches]);
 
   // Filter and sort matches
   const filteredAndSortedMatches = matches
@@ -261,16 +255,14 @@ export default function MatchesPage() {
 
   const stats = calculateMatchStats(matches);
 
-  if (loading || profileLoading) {
+  if (profileLoading) {
     return (
       <div className="container mx-auto p-6 space-y-6">
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
             <p className="text-muted-foreground">
-              {profileLoading
-                ? "Loading your profile..."
-                : "Finding compatible matches using your importance preferences..."}
+              Loading your profile and finding compatible matches...
             </p>
           </div>
         </div>
@@ -278,12 +270,14 @@ export default function MatchesPage() {
     );
   }
 
-  if (error) {
+  if (profileError) {
     return (
       <div className="container mx-auto p-6 space-y-6">
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
-            <p className="text-destructive mb-4">{error}</p>
+            <p className="text-destructive mb-4">
+              {profileError.message || "Failed to load your profile. Please try again."}
+            </p>
             <Button onClick={() => navigate(0)}>Try Again</Button>
           </div>
         </div>
@@ -327,13 +321,13 @@ export default function MatchesPage() {
             variant="outline"
             className="text-xs md:text-base gap-1 md:gap-2"
           >
-              <Heart className="size-1 md:size-4 md:mr-2" />
-              Saved Matches
-            
+            <Heart className="size-1 md:size-4 md:mr-2" />
+            Saved Matches
+
           </Button>
         </div>
 
-        
+
 
         {/* Mobile-optimized profile section */}
         <div className="w-full !mt-0">
@@ -359,8 +353,8 @@ export default function MatchesPage() {
             selectedMatch={selectedMatch}
             activeTab={
               activeTab === "about-me" ||
-              activeTab === "ideal-roommate" ||
-              activeTab === "ai-assistant"
+                activeTab === "ideal-roommate" ||
+                activeTab === "ai-assistant"
                 ? "roommates"
                 : activeTab
             }
@@ -430,15 +424,14 @@ export default function MatchesPage() {
               className="overflow-hidden hover:shadow-lg transition-shadow"
             >
               <div
-                className={`h-3 ${
-                  match.compatibility >= 85
-                    ? "bg-green-500"
-                    : match.compatibility >= 70
+                className={`h-3 ${match.compatibility >= 85
+                  ? "bg-green-500"
+                  : match.compatibility >= 70
                     ? "bg-blue-500"
                     : match.compatibility >= 55
-                    ? "bg-yellow-500"
-                    : "bg-orange-500"
-                }`}
+                      ? "bg-yellow-500"
+                      : "bg-orange-500"
+                  }`}
               />
               <CardHeader className="pb-4">
                 <div className="flex items-start justify-between">
