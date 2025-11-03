@@ -90,11 +90,9 @@ export function UserMenu() {
             </DropdownMenu>
         
         <div className="block md:hidden">
-          <Link to="/" className="hover:opacity-80 transition-opacity">
-            <h2 className="text-xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-              RoomieMatch
-            </h2>
-          </Link>
+          <h2 className="text-xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+            RoomieMatch
+          </h2>
         </div>
       </div>
 

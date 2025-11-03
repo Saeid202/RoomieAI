@@ -18,6 +18,12 @@ export function RouteGuard({ children }: RouteGuardProps) {
   const assignedRole = user?.user_metadata?.role;
   
   useEffect(() => {
+    console.log("RouteGuard - Loading:", loading);
+    console.log("RouteGuard - User:", user?.email);
+    console.log("RouteGuard - Role:", role);
+    console.log("RouteGuard - AssignedRole:", assignedRole);
+    console.log("RouteGuard - Current path:", location.pathname);
+    
     if (loading) {
       console.log("RouteGuard - Still loading, skipping checks");
       return;
@@ -71,6 +77,7 @@ export function RouteGuard({ children }: RouteGuardProps) {
     
     // Check if we're on the exact dashboard route and need to redirect
     if (location.pathname === '/dashboard') {
+      console.log("RouteGuard - On exact dashboard path, should redirect");
       if (assignedRole === 'landlord') {
         navigate('/dashboard/landlord', { replace: true });
       } else if (assignedRole === 'developer') {
@@ -85,6 +92,7 @@ export function RouteGuard({ children }: RouteGuardProps) {
       checkRoleAccess();
     }
     
+    console.log("RouteGuard - Checks complete, allowing access");
   }, [location.pathname, navigate, user, loading, role, assignedRole]);
 
   return <>{children}</>;
