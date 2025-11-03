@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Residential Tenancy Agreement (Standard Form of Lease)</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 8.5in;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.4;
+        }
+        .header {
+            text-align: center;
+            border-bottom: 2px solid black;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            font-size: 1.5em;
+            margin: 0;
+            font-weight: bold;
+        }
+        .header .subtitle {
+            font-size: 1.1em;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+        .header .french {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+        }
+        .section { 
+            margin-bottom: 25px; 
+            page-break-inside: avoid;
+        }
+        .section h2 { 
+            font-size: 1.2em; 
+            font-weight: bold;
+            margin-bottom: 10px;
+            border-left: 4px solid #007bff;
+            padding-left: 10px;
+        }
+        .form-group {
+            margin-bottom: 10px;
+        }
+        .form-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+        .form-row label {
+            margin-right: 10px;
+            min-width: 150px;
+        }
+        input[type="text"], input[type="date"], input[type="number"], select { 
+            width: 200px; 
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+        input[type="radio"] {
+            margin: 0 5px 0 0;
+        }
+        textarea {
+            width: 100%;
+            min-height: 80px;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            resize: vertical;
+        }
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .checkbox-group input[type="checkbox"] {
+            margin-right: 8px;
+        }
+        .note {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 0.9em;
+        }
+        .note strong {
+            color: #495057;
+        }
+        .page-break {
+            page-break-before: always;
+        }
+        .page-number {
+            text-align: center;
+            font-size: 0.9em;
+            color: #666;
+            margin: 20px 0;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 10px 0;
+        }
+        table, th, td {
+            border: 1px solid black;
+            padding: 8px;
+        }
+        th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+        .signature-section {
+            margin-top: 30px;
+            border-top: 2px solid black;
+            padding-top: 20px;
+        }
+        .signature-line {
+            border-bottom: 1px solid black;
+            width: 300px;
+            display: inline-block;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="page-number">2229E (2020/12) © Queen's Printer for Ontario, 2020 Disponible en français Page 1 of 14</div>
+        <h1>Residential Tenancy Agreement (Standard Form of Lease)</h1>
+    </div>
+
+    <!-- Introduction -->
+    <div class="note">
+        <strong>Note:</strong> This tenancy agreement (or lease) is required for tenancies entered into on March 1, 2021 or later. It does not apply to care homes, sites in mobile home parks and land lease communities, most social housing, certain other special tenancies or co-operative housing (see Part A of General Information).
+    </div>
+
+    <p>Residential tenancies in Ontario are governed by the Residential Tenancies Act, 2006. This agreement cannot take away a right or responsibility under the Residential Tenancies Act, 2006.</p>
+    
+    <p>Under the Ontario Human Rights Code, everyone has the right to equal treatment in housing without discrimination or harassment.</p>
+    
+    <p><strong>All sections of this agreement are mandatory and cannot be changed.</strong></p>
+
+    <!-- Section 1: Parties to the Agreement -->
+    <div class="section">
+        <h2>1. Parties to the Agreement</h2>
+        <p><strong>Residential Tenancy Agreement between:</strong></p>
+        
+        <div style="display: flex; justify-content: space-between; margin: 20px 0;">
+            <div style="flex: 1; margin-right: 20px;">
+                <h3>Landlord(s)</h3>
+                <div class="form-group">
+                    <label>Landlord's Legal Name:</label>
+                    <input type="text" name="landlord_legal_name" placeholder="Enter legal name">
+                </div>
+                <div class="note">
+                    <strong>Note:</strong> See Part B in General Information
+                </div>
+            </div>
+            
+            <div style="flex: 1;">
+                <h3>Tenant(s)</h3>
+                <div class="form-group">
+                    <div class="form-row">
+                        <label>Last Name:</label>
+                        <input type="text" name="tenant1_last_name" placeholder="Last Name">
+                    </div>
+                    <div class="form-row">
+                        <label>First Name:</label>
+                        <input type="text" name="tenant1_first_name" placeholder="First Name">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <div class="form-row">
+                        <label>Last Name:</label>
+                        <input type="text" name="tenant2_last_name" placeholder="Last Name">
+                    </div>
+                    <div class="form-row">
+                        <label>First Name:</label>
+                        <input type="text" name="tenant2_first_name" placeholder="First Name">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <div class="form-row">
+                        <label>Last Name:</label>
+                        <input type="text" name="tenant3_last_name" placeholder="Last Name">
+                    </div>
+                    <div class="form-row">
+                        <label>First Name:</label>
+                        <input type="text" name="tenant3_first_name" placeholder="First Name">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <div class="form-row">
+                        <label>Last Name:</label>
+                        <input type="text" name="tenant4_last_name" placeholder="Last Name">
+                    </div>
+                    <div class="form-row">
+                        <label>First Name:</label>
+                        <input type="text" name="tenant4_first_name" placeholder="First Name">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 2: Rental Unit -->
+    <div class="section">
+        <h2>2. Rental Unit</h2>
+        <p>The landlord will rent to the tenant the rental unit at:</p>
+        
+        <div class="form-group">
+            <div class="form-row">
+                <label>Unit (e.g., unit 1 or basement unit):</label>
+                <input type="text" name="unit_number" placeholder="Unit number/description">
+            </div>
+            <div class="form-row">
+                <label>Street Number:</label>
+                <input type="text" name="street_number" placeholder="Street number">
+                <label style="margin-left: 20px;">Street Name:</label>
+                <input type="text" name="street_name" placeholder="Street name">
+            </div>
+            <div class="form-row">
+                <label>City/Town:</label>
+                <input type="text" name="city" placeholder="City/Town">
+                <label style="margin-left: 20px;">Province:</label>
+                <input type="text" name="province" value="Ontario" readonly>
+            </div>
+            <div class="form-row">
+                <label>Postal Code:</label>
+                <input type="text" name="postal_code" placeholder="A1A 1A1">
+            </div>
+            <div class="form-row">
+                <label>Number of vehicle parking spaces and description:</label>
+                <textarea name="parking_description" placeholder="e.g., indoor/outdoor, location"></textarea>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <p>The rental unit is a unit in a condominium.</p>
+            <div class="checkbox-group">
+                <input type="radio" name="condo_unit" value="yes" id="condo_yes">
+                <label for="condo_yes">Yes</label>
+            </div>
+            <div class="checkbox-group">
+                <input type="radio" name="condo_unit" value="no" id="condo_no">
+                <label for="condo_no">No</label>
+            </div>
+        </div>
+        
+        <p>If yes, the tenant agrees to comply with the condominium declaration, by-laws and rules, as provided by the landlord.</p>
+    </div>
+
+    <div class="page-break"></div>
+    <div class="page-number">2229E (2020/12) Page 2 of 14</div>
+
+    <!-- Section 3: Contact Information -->
+    <div class="section">
+        <h2>3. Contact Information</h2>
+        
+        <h3>Address for Giving Notices or Documents to the Landlord</h3>
+        <div class="form-group">
+            <div class="form-row">
+                <label>Unit:</label>
+                <input type="text" name="landlord_unit" placeholder="Unit">
+                <label style="margin-left: 20px;">Street Number:</label>
+                <input type="text" name="landlord_street_number" placeholder="Street number">
+            </div>
+            <div class="form-row">
+                <label>Street Name:</label>
+                <input type="text" name="landlord_street_name" placeholder="Street name">
+            </div>
+            <div class="form-row">
+                <label>PO Box:</label>
+                <input type="text" name="landlord_po_box" placeholder="PO Box">
+                <label style="margin-left: 20px;">City/Town:</label>
+                <input type="text" name="landlord_city" placeholder="City/Town">
+            </div>
+            <div class="form-row">
+                <label>Province:</label>
+                <input type="text" name="landlord_province" value="Ontario" readonly>
+            </div>
+            <div class="form-row">
+                <label>Postal Code/ZIP Code:</label>
+                <input type="text" name="landlord_postal_code" placeholder="A1A 1A1">
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <p>Both the landlord and tenant agree to receive notices and documents by email, where allowed by the Landlord and Tenant Board's Rules of Procedure.</p>
+            <div class="checkbox-group">
+                <input type="radio" name="email_notices" value="yes" id="email_yes">
+                <label for="email_yes">Yes</label>
+            </div>
+            <div class="checkbox-group">
+                <input type="radio" name="email_notices" value="no" id="email_no">
+                <label for="email_no">No</label>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <p>If yes, provide email addresses:</p>
+            <div class="form-row">
+                <label>Landlord Email:</label>
+                <input type="text" name="landlord_email" placeholder="landlord@email.com">
+            </div>
+            <div class="form-row">
+                <label>Tenant Email:</label>
+                <input type="text" name="tenant_email" placeholder="tenant@email.com">
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <p>The landlord is providing phone and/or email contact information for emergencies or day-to-day communications:</p>
+            <div class="checkbox-group">
+                <input type="radio" name="emergency_contact" value="yes" id="emergency_yes">
+                <label for="emergency_yes">Yes</label>
+            </div>
+            <div class="checkbox-group">
+                <input type="radio" name="emergency_contact" value="no" id="emergency_no">
+                <label for="emergency_no">No</label>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <p>If yes, provide information:</p>
+            <div class="form-row">
+                <label>Phone:</label>
+                <input type="text" name="emergency_phone" placeholder="(555) 123-4567">
+            </div>
+            <div class="form-row">
+                <label>Email:</label>
+                <input type="text" name="emergency_email" placeholder="emergency@email.com">
+            </div>
+        </div>
+        
+        <div class="note">
+            <strong>Note:</strong> See Part B and E in General Information
+        </div>
+    </div>
+
+    <!-- Section 4: Term of Tenancy Agreement -->
+    <div class="section">
+        <h2>4. Term of Tenancy Agreement</h2>
+        
+        <div class="form-group">
+            <div class="form-row">
+                <label>This tenancy starts on:</label>
+                <input type="date" name="tenancy_start_date">
+            </div>
+        </div>
+        
+        <p>This tenancy agreement is for: (select an option below and fill in details as needed)</p>
+        
+        <div class="checkbox-group">
+            <input type="radio" name="tenancy_type" value="fixed" id="tenancy_fixed">
+            <label for="tenancy_fixed">a fixed length of time ending on:</label>
+            <input type="date" name="tenancy_end_date" style="margin-left: 10px;">
+        </div>
+        
+        <div class="checkbox-group">
+            <input type="radio" name="tenancy_type" value="monthly" id="tenancy_monthly">
+            <label for="tenancy_monthly">a monthly tenancy</label>
+        </div>
+        
+        <div class="checkbox-group">
+            <input type="radio" name="tenancy_type" value="other" id="tenancy_other">
+            <label for="tenancy_other">other (such as daily, weekly, please specify):</label>
+            <input type="text" name="tenancy_other_specify" placeholder="Specify type" style="margin-left: 10px;">
+        </div>
+        
+        <div class="note">
+            <strong>Note:</strong> The tenant does not have to move out at the end of the term. See Parts C and D in General Information.
+        </div>
+    </div>
+
+    <div class="page-break"></div>
+    <div class="page-number">2229E (2020/12) Page 3 of 14</div>
+
+    <!-- Section 5: Rent -->
+    <div class="section">
+        <h2>5. Rent</h2>
+        
+        <p>a) Rent is to be paid on the <input type="text" name="rent_day" placeholder="e.g., first, second, last" style="width: 150px;"> day of each (select one):</p>
+        
+        <div class="checkbox-group">
+            <input type="radio" name="rent_period" value="month" id="rent_month">
+            <label for="rent_month">Month</label>
+        </div>
+        <div class="checkbox-group">
+            <input type="radio" name="rent_period" value="other" id="rent_other">
+            <label for="rent_other">Other (e.g., weekly)</label>
+        </div>
+        
+        <p>b) The tenant will pay the following rent:</p>
+        
+        <table>
+            <tr>
+                <th>Base rent for the rental unit</th>
+                <th>Parking (if applicable)</th>
+                <th>Other services and utilities (specify if applicable)</th>
+                <th>Total Rent (Lawful Rent)</th>
+            </tr>
+            <tr>
+                <td><input type="number" name="base_rent" step="0.01" placeholder="0.00" style="width: 100%;"></td>
+                <td><input type="number" name="parking_rent" step="0.01" placeholder="0.00" style="width: 100%;"></td>
+                <td><input type="number" name="other_rent" step="0.01" placeholder="0.00" style="width: 100%;"></td>
+                <td><input type="number" name="total_rent" step="0.01" placeholder="0.00" style="width: 100%;"></td>
+            </tr>
+        </table>
+        
+        <p>This is the lawful rent for the unit, subject to any rent increases allowed under the Residential Tenancies Act, 2006. For example, the landlord and tenant may agree to a seasonal rent increase for additional services of air conditioning or a block heater plug-in. This amount does not include any rent discounts (see Section 7 and Part G in General Information).</p>
+        
+        <p>c) Rent is payable to: <input type="text" name="rent_payable_to" placeholder="Name/Address" style="width: 300px;"></p>
+        
+        <p>d) Rent will be paid using the following methods: <input type="text" name="payment_methods" placeholder="e.g., cheque, e-transfer" style="width: 300px;"></p>
+        
+        <div class="note">
+            <strong>Note:</strong> The tenant cannot be required to pay rent by post-dated cheques or automatic payments, but can choose to do so.
+        </div>
+        
+        <p>e) If the first rental period (e.g., month) is a partial period, the tenant will pay a partial rent of $ <input type="number" name="partial_rent" step="0.01" placeholder="0.00" style="width: 100px;"> on <input type="date" name="partial_rent_date" style="width: 150px;">. This partial rent covers the rental of the unit from <input type="date" name="partial_start_date" style="width: 150px;"> to <input type="date" name="partial_end_date" style="width: 150px;">.</p>
+        
+        <p>f) If the tenant's cheque is returned because of non-sufficient funds (NSF), the tenant will have to pay the landlord's administration charge of $ <input type="number" name="nsf_charge" step="0.01" placeholder="0.00" style="width: 100px;"> plus any NSF charges made by the landlord's bank.</p>
+        
+        <div class="note">
+            <strong>Note:</strong> The landlord's administration charge for an NSF cheque cannot be more than $20.00
+        </div>
+    </div>
+
+    <!-- Section 6: Services and Utilities -->
+    <div class="section">
+        <h2>6. Services and Utilities</h2>
+        
+        <p>The following services are included in the lawful rent for the rental unit, as specified:</p>
+        
+        <table>
+            <tr>
+                <th>Service</th>
+                <th>Yes</th>
+                <th>No</th>
+            </tr>
+            <tr>
+                <td>Gas</td>
+                <td><input type="radio" name="gas_service" value="yes"></td>
+                <td><input type="radio" name="gas_service" value="no"></td>
+            </tr>
+            <tr>
+                <td>Air conditioning</td>
+                <td><input type="radio" name="ac_service" value="yes"></td>
+                <td><input type="radio" name="ac_service" value="no"></td>
+            </tr>
+            <tr>
+                <td>Additional storage space</td>
+                <td><input type="radio" name="storage_service" value="yes"></td>
+                <td><input type="radio" name="storage_service" value="no"></td>
+            </tr>
+            <tr>
+                <td>On-Site Laundry</td>
+                <td><input type="radio" name="laundry_service" value="no_charge"> No Charge</td>
+                <td><input type="radio" name="laundry_service" value="pay_per_use"> Pay Per use</td>
+            </tr>
+            <tr>
+                <td>Guest Parking</td>
+                <td><input type="radio" name="guest_parking" value="no_charge"> No Charge</td>
+                <td><input type="radio" name="guest_parking" value="pay_per_use"> Pay Per use</td>
+            </tr>
+            <tr>
+                <td>Other</td>
+                <td><input type="radio" name="other_service1" value="yes"></td>
+                <td><input type="radio" name="other_service1" value="no"></td>
+            </tr>
+            <tr>
+                <td>Other</td>
+                <td><input type="radio" name="other_service2" value="yes"></td>
+                <td><input type="radio" name="other_service2" value="no"></td>
+            </tr>
+            <tr>
+                <td>Other</td>
+                <td><input type="radio" name="other_service3" value="yes"></td>
+                <td><input type="radio" name="other_service3" value="no"></td>
+            </tr>
+        </table>
+        
+        <p>Provide details about services or list any additional services if needed (if necessary add additional pages):</p>
+        <textarea name="services_details" placeholder="Enter service details..."></textarea>
+        
+        <p>The following utilities are the responsibility of:</p>
+        
+        <table>
+            <tr>
+                <th>Utility</th>
+                <th>Landlord</th>
+                <th>Tenant</th>
+            </tr>
+            <tr>
+                <td>Electricity</td>
+                <td><input type="radio" name="electricity_responsibility" value="landlord"></td>
+                <td><input type="radio" name="electricity_responsibility" value="tenant"></td>
+            </tr>
+            <tr>
+                <td>Heat</td>
+                <td><input type="radio" name="heat_responsibility" value="landlord"></td>
+                <td><input type="radio" name="heat_responsibility" value="tenant"></td>
+            </tr>
+            <tr>
+                <td>Water</td>
+                <td><input type="radio" name="water_responsibility" value="landlord"></td>
+                <td><input type="radio" name="water_responsibility" value="tenant"></td>
+            </tr>
+        </table>
+        
+        <p>If the tenant is responsible for any utilities, provide details of the arrangement, e.g. tenant sets up account with and pays the utility provider, tenant pays a portion of the utility costs (if necessary add additional pages):</p>
+        <textarea name="utilities_details" placeholder="Enter utilities arrangement details..."></textarea>
+    </div>
+
+    <div class="page-break"></div>
+    <div class="page-number">2229E (2020/12) Page 4 of 14</div>
+
+    <!-- Section 7: Rent Discounts -->
+    <div class="section">
+        <h2>7. Rent Discounts</h2>
+        
+        <p>Select one:</p>
+        
+        <div class="checkbox-group">
+            <input type="radio" name="rent_discount" value="none" id="discount_none">
+            <label for="discount_none">There is no rent discount.</label>
+        </div>
+        
+        <div class="checkbox-group">
+            <input type="radio" name="rent_discount" value="yes" id="discount_yes">
+            <label for="discount_yes">The lawful rent will be discounted as follows:</label>
+        </div>
+        
+        <textarea name="discount_desc" placeholder="Describe the rent discount details..."></textarea>
+        
+        <div class="note">
+            <strong>Note:</strong> See Part G in General Information for what types of discounts are allowed.
+        </div>
+    </div>
+
+    <!-- Section 8: Rent Deposit -->
+    <div class="section">
+        <h2>8. Rent Deposit</h2>
+        
+        <p>Select one:</p>
+        
+        <div class="checkbox-group">
+            <input type="radio" name="rent_deposit" value="none" id="deposit_none">
+            <label for="deposit_none">A rent deposit is not required.</label>
+        </div>
+        
+        <div class="checkbox-group">
+            <input type="radio" name="rent_deposit" value="yes" id="deposit_yes">
+            <label for="deposit_yes">The tenant will pay a rent deposit of $ <input type="number" name="rent_deposit_amount" step="0.01" placeholder="0.00" style="width: 100px;">. This can only be applied to the rent for the last rental period of the tenancy.</label>
+        </div>
+        
+        <div class="note">
+            <strong>Note:</strong> This amount cannot be more than one month's rent or the rent for one rental period (e.g., one week in a weekly tenancy), whichever is less. This cannot be used as a damage deposit. The landlord must pay the tenant interest on the rent deposit every year. See Part H in General Information.
+        </div>
+    </div>
+
+    <!-- Section 9: Key Deposit -->
+    <div class="section">
+        <h2>9. Key Deposit</h2>
+        
+        <p>Select one:</p>
+        
+        <div class="checkbox-group">
+            <input type="radio" name="key_deposit" value="none" id="key_deposit_none">
+            <label for="key_deposit_none">A key deposit is not required.</label>
+        </div>
+        
+        <div class="checkbox-group">
+            <input type="radio" name="key_deposit" value="yes" id="key_deposit_yes">
+            <label for="key_deposit_yes">The tenant will pay a refundable key deposit of $ <input type="number" name="key_deposit_amount" step="0.01" placeholder="0.00" style="width: 100px;"> to cover the cost of replacing the keys, remote entry devices or cards if they are not returned to the landlord at the end of the tenancy.</label>
+        </div>
+        
+        <p>If a refundable key deposit is required, provide description and number of keys, access cards and remote entry devices:</p>
+        <textarea name="key_desc" placeholder="Describe keys, access cards, and remote entry devices..."></textarea>
+        
+        <div class="note">
+            <strong>Note:</strong> The key deposit cannot be more than the expected replacement cost. See Part H in General Information.
+        </div>
+    </div>
+
+    <!-- Section 10: Smoking -->
+    <div class="section">
+        <h2>10. Smoking</h2>
+        
+        <p>Under provincial law, smoking is not allowed in any indoor common areas of the building. The tenant agrees to these additional rules on smoking:</p>
+        
+        <p>Select one:</p>
+        
+        <div class="checkbox-group">
+            <input type="radio" name="smoking_rules" value="none" id="smoking_none">
+            <label for="smoking_none">None</label>
+        </div>
+        
+        <div class="checkbox-group">
+            <input type="radio" name="smoking_rules" value="yes" id="smoking_yes">
+            <label for="smoking_yes">Smoking rules</label>
+        </div>
+        
+        <textarea name="smoking_desc" placeholder="Describe smoking rules..."></textarea>
+        
+        <div class="note">
+            <strong>Note:</strong> In making and enforcing smoking rules, the landlord must follow the Ontario Human Rights Code. See Parts M and S in General Information.
+        </div>
+    </div>
+
+    <div class="page-break"></div>
+    <div class="page-number">2229E (2020/12) Page 5 of 14</div>
+
+    <!-- Section 11: Tenant's Insurance -->
+    <div class="section">
+        <h2>11. Tenant's Insurance</h2>
+        
+        <p>Select one:</p>
+        
+        <div class="checkbox-group">
+            <input type="radio" name="tenant_insurance" value="none" id="insurance_none">
+            <label for="insurance_none">There are no tenant insurance requirements.</label>
+        </div>
+        
+        <div class="checkbox-group">
+            <input type="radio" name="tenant_insurance" value="required" id="insurance_required">
+            <label for="insurance_required">The tenant must have liability insurance at all times. If the landlord asks for proof of coverage, the tenant must provide it. It is up to the tenant to get contents insurance if they want it.</label>
+        </div>
+    </div>
+
+    <!-- Section 12: Changes to the Rental Unit -->
+    <div class="section">
+        <h2>12. Changes to the Rental Unit</h2>
+        
+        <p>The tenant may install decorative items, such as pictures or window coverings. This is subject to any reasonable restrictions set out in the additional terms under Section 15.</p>
+        
+        <p>The tenant cannot make other changes to the rental unit without the landlord's permission.</p>
+    </div>
+
+    <!-- Section 13: Maintenance and Repairs -->
+    <div class="section">
+        <h2>13. Maintenance and Repairs</h2>
+        
+        <p>The landlord must keep the rental unit and property in good repair and comply with all health, safety and maintenance standards.</p>
+        
+        <p>The tenant must repair or pay for any undue damage to the rental unit or property caused by the wilful or negligent conduct of the tenant, the tenant's guest or another person who lives in the rental unit.</p>
+        
+        <p>The tenant is responsible for ordinary cleanliness of the rental unit, except for any cleaning the landlord agreed to do.</p>
+        
+        <div class="note">
+            <strong>Note:</strong> See Part J in General Information.
+        </div>
+    </div>
+
+    <!-- Section 14: Assignment and Subletting -->
+    <div class="section">
+        <h2>14. Assignment and Subletting</h2>
+        
+        <p>The tenant may assign or sublet the rental unit to another person only with the consent of the landlord. The landlord cannot arbitrarily or unreasonably withhold consent to a sublet or potential assignee.</p>
+        
+        <div class="note">
+            <strong>Note:</strong> There are additional rules if the tenant wants to assign or sublet the rental unit. See Part P in General Information.
+        </div>
+    </div>
+
+    <div class="page-break"></div>
+    <div class="page-number">2229E (2020/12) Page 6 of 14</div>
+
+    <!-- Section 15: Additional Terms -->
+    <div class="section">
+        <h2>15. Additional Terms</h2>
+        
+        <p>Landlords and tenants can agree to additional terms. Examples may include terms that:</p>
+        
+        <ul>
+            <li>Require the landlord to make changes to the unit before the tenant moves in, and</li>
+            <li>Provide rules for use of common spaces and/or amenities.</li>
+        </ul>
+        
+        <p>These additional terms should be written in plain language and clearly set out what the landlord or tenant must or must not do to comply with the term. If typed, the additional terms should be in a font size that is at least 10 points.</p>
+        
+        <p>An additional term cannot take away a right or responsibility under the Residential Tenancies Act, 2006.</p>
+        
+        <p>If a term conflicts with the Residential Tenancies Act, 2006 or any other terms set out in this form, the term is void (not valid or legally binding) and it cannot be enforced. Some examples of void and unenforceable terms include those that:</p>
+        
+        <ul>
+            <li>Do not allow pets (however, the landlord can require the tenant to comply with condominium rules, which may prohibit certain pets),</li>
+            <li>Do not allow guests, roommates, any additional occupants,</li>
+            <li>Require the tenant to pay deposits, fees or penalties that are not permitted under the Residential Tenancies Act 2006 (e.g., damage or pet deposits, interest on rent arrears), and</li>
+            <li>Require the tenant to pay for all or part of the repairs that are the responsibility of the landlord.</li>
+        </ul>
+        
+        <p>See General Information for more details.</p>
+        
+        <p>The landlord and tenant may want to get legal advice before agreeing to any additional terms.</p>
+        
+        <p>Select one:</p>
+        
+        <div class="checkbox-group">
+            <input type="radio" name="additional_terms" value="none" id="terms_none">
+            <label for="terms_none">There are no additional terms.</label>
+        </div>
+        
+        <div class="checkbox-group">
+            <input type="radio" name="additional_terms" value="yes" id="terms_yes">
+            <label for="terms_yes">This tenancy agreement includes an attachment with additional terms that the landlord and tenant agreed to.</label>
+        </div>
+    </div>
+
+    <!-- Section 16: Changes to this Agreement -->
+    <div class="section">
+        <h2>16. Changes to this Agreement</h2>
+        
+        <p>After this agreement is signed, it can be changed only if the landlord and tenant agree to the changes in writing.</p>
+        
+        <div class="note">
+            <strong>Note:</strong> The Residential Tenancies Act, 2006 allows some rent increases and requires some rent reductions without agreement between the landlord and tenant. See Part I in General Information.
+        </div>
+    </div>
+
+    <!-- Signatures Section -->
+    <div class="signature-section">
+        <h2>17. Signatures</h2>
+        
+        <p>By signing this agreement, the landlord and tenant agree to comply with the terms and conditions set out in this agreement and acknowledge that they have read and understood their rights and responsibilities under the Residential Tenancies Act, 2006.</p>
+        
+        <div style="display: flex; justify-content: space-between; margin: 30px 0;">
+            <div style="flex: 1; margin-right: 50px;">
+                <h3>Landlord Signature</h3>
+                <div class="signature-line"></div>
+                <p>Signature</p>
+                <div style="margin-top: 20px;">
+                    <label>Date:</label>
+                    <input type="date" name="landlord_signature_date" style="margin-left: 10px;">
+                </div>
+                <div style="margin-top: 10px;">
+                    <label>Print Name:</label>
+                    <input type="text" name="landlord_print_name" placeholder="Print name" style="margin-left: 10px;">
+                </div>
+            </div>
+            
+            <div style="flex: 1;">
+                <h3>Tenant Signature</h3>
+                <div class="signature-line"></div>
+                <p>Signature</p>
+                <div style="margin-top: 20px;">
+                    <label>Date:</label>
+                    <input type="date" name="tenant_signature_date" style="margin-left: 10px;">
+                </div>
+                <div style="margin-top: 10px;">
+                    <label>Print Name:</label>
+                    <input type="text" name="tenant_print_name" placeholder="Print name" style="margin-left: 10px;">
+                </div>
+            </div>
+        </div>
+        
+        <div style="margin-top: 40px;">
+            <p><strong>Witness (if required by law):</strong></p>
+            <div class="signature-line"></div>
+            <p>Signature</p>
+            <div style="margin-top: 20px;">
+                <label>Date:</label>
+                <input type="date" name="witness_signature_date" style="margin-left: 10px;">
+            </div>
+            <div style="margin-top: 10px;">
+                <label>Print Name:</label>
+                <input type="text" name="witness_print_name" placeholder="Print name" style="margin-left: 10px;">
+            </div>
+        </div>
+    </div>
+
+    <div class="page-number" style="margin-top: 50px;">
+        <strong>2229E (2020/12) © Queen's Printer for Ontario, 2020</strong><br>
+        This form is available in French at: ontario.ca/forms
+    </div>
+
+</body>
+</html>

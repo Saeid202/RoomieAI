@@ -23,7 +23,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { MessageButton } from "@/components/MessageButton";
 import { MapModal } from "@/components/map/MapModal";
-import {
+import { 
   EnhancedPageLayout,
   EnhancedHeader,
   EnhancedCard,
@@ -110,14 +110,14 @@ export default function RentalOptionsPage() {
       if (property.bedrooms === 3) return "3 Bed";
       if (property.bedrooms >= 4) return `${property.bedrooms} Bed`;
     }
-
+    
     // Fallback to property type parsing
     const type = property.property_type?.toLowerCase() || '';
     if (type.includes('studio')) return "Studio";
     if (type.includes('one-bed') || type.includes('single-one-bed')) return "1 Bed";
     if (type.includes('two-bed')) return "2 Bed";
     if (type.includes('three-bed')) return "3 Bed";
-
+    
     // Default fallback
     return property.bedrooms ? `${property.bedrooms} Bed` : "Apartment";
   };
@@ -192,7 +192,7 @@ export default function RentalOptionsPage() {
               ]}
               placeholder="Bedrooms"
             />
-            <EnhancedButton onClick={applyFilters} className="hidden md:flex items-center gap-2 justify-center self-center">
+            <EnhancedButton onClick={applyFilters} className="hidden md:block">
               <Search className="h-4 w-4 mr-2" />
               Search
             </EnhancedButton>
@@ -323,7 +323,7 @@ export default function RentalOptionsPage() {
                   />
                 </div>
                 <div className="grid grid-cols-1 gap-2 mt-2">
-                  <EnhancedButton
+                   <EnhancedButton
                     onClick={() => {
                       if (user) {
                         navigate(`/dashboard/rental-application/${property.id}`);
@@ -341,10 +341,10 @@ export default function RentalOptionsPage() {
           ))}
         </div>
       )}
-      <MapModal
-        property={selectedProperty}
-        isOpen={isMapModalOpen}
-        onClose={() => setMapModalOpen(false)}
+      <MapModal 
+        property={selectedProperty} 
+        isOpen={isMapModalOpen} 
+        onClose={() => setMapModalOpen(false)} 
       />
     </EnhancedPageLayout>
   );

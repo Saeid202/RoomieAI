@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { profileSchema } from "@/types/profile";
 import { Form } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { AboutMeStepper } from "./about-me/AboutMeSection/AboutMeStepper";
 
@@ -17,53 +17,53 @@ interface AboutMeSectionProps {
   onSaveProfile?: (formData: ProfileFormValues) => Promise<void>;
 }
 
-const defaultFormValues: Partial<ProfileFormValues> = {
-  fullName: "",
-  age: "",
-  gender: "",
-  email: "",
-  phoneNumber: "",
-  nationality: "",
-  language: "",
-  ethnicity: "",
-  religion: "",
-  occupation: "",
-  preferredLocation: [],
-  budgetRange: [800, 1500],
-  moveInDateStart: new Date(),
-  housingType: "apartment",
-  livingSpace: "privateRoom",
-  smoking: false,
-  livesWithSmokers: false,
-  hasPets: false,
-  workLocation: "remote",
-  workSchedule: "dayShift",
-  hobbies: [],
-  diet: "noPreference",
-  dietOther: "",
-  profileVisibility: [],
-  genderPreference: [],
-  nationalityPreference: "noPreference",
-  languagePreference: "noPreference",
-  ethnicityPreference: "noPreference",
-  religionPreference: "noPreference",
-  occupationPreference: false,
-  workSchedulePreference: "noPreference",
-  roommateHobbies: [],
-  rentOption: "findTogether",
-};
-
-export function AboutMeSection({
+export function AboutMeSection({ 
   profileData,
   isLoading = false,
   onSaveProfile
 }: AboutMeSectionProps) {
+  const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
+  
+  const defaultFormValues: Partial<ProfileFormValues> = {
+    fullName: "",
+    age: "",
+    gender: "",
+    email: "",
+    phoneNumber: "",
+    nationality: "",
+    language: "",
+    ethnicity: "",
+    religion: "",
+    occupation: "",
+    preferredLocation: [],
+    budgetRange: [800, 1500],
+    moveInDateStart: new Date(),
+    housingType: "apartment",
+    livingSpace: "privateRoom",
+    smoking: false,
+    livesWithSmokers: false,
+    hasPets: false,
+    workLocation: "remote",
+    workSchedule: "dayShift",
+    hobbies: [],
+    diet: "noPreference",
+    dietOther: "",
+    profileVisibility: [],
+    genderPreference: [],
+    nationalityPreference: "noPreference",
+    languagePreference: "noPreference",
+    ethnicityPreference: "noPreference",
+    religionPreference: "noPreference",
+    occupationPreference: false,
+    workSchedulePreference: "noPreference",
+    roommateHobbies: [],
+    rentOption: "findTogether",
+  };
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
     defaultValues: { ...defaultFormValues, ...profileData },
-    shouldUnregister: false, // Keep field values when unmounted during step navigation
   });
 
   useEffect(() => {
@@ -76,37 +76,27 @@ export function AboutMeSection({
   }, [profileData, form]);
 
   const onSubmit = async (data: ProfileFormValues) => {
-    if (!onSaveProfile) {
-      console.error("onSaveProfile function is not provided");
-      return;
-    }
     try {
-      await onSaveProfile(data)
-      toast({
-        title: "Profile saved",
-        description: "Your profile has been saved successfully",
-      });
+      setIsSaving(true);
+      console.log("About Me form data to save:", data);
+      
+      if (onSaveProfile) {
+        await onSaveProfile(data);
+        toast({
+          title: "Profile saved",
+          description: "Your profile has been saved successfully",
+        });
+      }
     } catch (error) {
-      // FIXME: error object is undefined. since it is not passed from the hook
+      console.error("Error saving profile:", error);
       toast({
         title: "Error saving profile",
         description: "There was a problem saving your profile. Please try again.",
         variant: "destructive",
-      })
+      });
+    } finally {
+      setIsSaving(false);
     }
-  }
-
-  const onInvalid = () => {
-    const errors = form.formState.errors;
-    const errorMessages = Object.entries(errors)
-      .map(([field, error]) => `${field}: ${error?.message}`)
-      .join(", ");
-
-    toast({
-      title: "Validation Error",
-      description: errorMessages || "Please fix the errors in the form before saving.",
-      variant: "destructive",
-    });
   };
 
   return (
@@ -121,16 +111,12 @@ export function AboutMeSection({
         <Card>
           <CardContent className="p-4">
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit, onInvalid)} className="space-y-6">
-                <AboutMeStepper />
-
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <AboutMeStepper form={form} />
+                
                 <div className="flex justify-end pt-4 border-t">
-                  <Button
-                    type="submit"
-                    disabled={form.formState.isSubmitting}
-                    size="lg"
-                  >
-                    {form.formState.isSubmitting ? "Saving..." : "Save Profile"}
+                  <Button type="submit" disabled={isSaving} size="lg">
+                    {isSaving ? "Saving..." : "Save Profile"}
                   </Button>
                 </div>
               </form>

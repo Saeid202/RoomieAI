@@ -45,10 +45,8 @@ import SettingsPage from "@/pages/dashboard/Settings";
 import MatchesPage from "@/pages/dashboard/Matches";
 // ApplicationsSeeker removed - functionality moved to MyApplications
 import MyApplicationsPage from "@/pages/dashboard/MyApplications";
+import TestPage from "@/pages/dashboard/TestPage";
 import ApplicationOverviewPage from "@/pages/dashboard/ApplicationOverview";
-import AboutUsPage from "@/pages/AboutUs";
-import ContactUsPage from "@/pages/ContactUs";
-import FAQPage from "@/pages/FAQ";
 
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect } from "react";
@@ -73,9 +71,6 @@ function AppRoutes() {
     return (
       <Routes>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        <Route path="/about-us" element={<AboutUsPage />} />
-        <Route path="/contact-us" element={<ContactUsPage />} />
-        <Route path="/faq" element={<FAQPage />} />
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/auth/callback" element={<Callback />} />
         <Route path="/dashboard" element={
@@ -131,9 +126,6 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />
-      <Route path="/about-us" element={<AboutUsPage />} />
-      <Route path="/contact-us" element={<ContactUsPage />} />
-      <Route path="/faq" element={<FAQPage />} />
       <Route path="/auth" element={<AuthPage />} />
       <Route path="/auth/callback" element={<Callback />} />
       <Route path="/dashboard" element={

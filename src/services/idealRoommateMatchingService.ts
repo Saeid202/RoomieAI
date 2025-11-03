@@ -889,10 +889,7 @@ class IdealRoommateMatchingEngine {
   }
 
   // Main matching method
-  async findMatches(criteria: IdealRoommateMatchCriteria): Promise<{
-    data: IdealRoommateMatchResult[] | null;
-    error: Error | null;
-  }> {
+  async findMatches(criteria: IdealRoommateMatchCriteria): Promise<IdealRoommateMatchResult[]> {
     const { 
       currentUser, 
       currentUserId,
@@ -922,13 +919,9 @@ class IdealRoommateMatchingEngine {
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) {
+      if (error || !candidates) {
         console.error('Error fetching candidates:', error);
-        return { data: null, error: new Error('Failed to fetch candidates from database') };
-      }
-
-      if (!candidates) {
-        return { data: [], error: null };
+        return [];
       }
 
       const results: IdealRoommateMatchResult[] = [];
@@ -1007,18 +1000,13 @@ class IdealRoommateMatchingEngine {
       }
 
       // Sort by match score and limit results
-      const sortedResults = results
+      return results
         .sort((a, b) => b.matchScore - a.matchScore)
         .slice(0, maxResults);
 
-      return { data: sortedResults, error: null };
-
     } catch (error) {
       console.error('Error in findMatches:', error);
-      return { 
-        data: null, 
-        error: error instanceof Error ? error : new Error('Unknown error occurred while finding matches')
-      };
+      return [];
     }
   }
 
