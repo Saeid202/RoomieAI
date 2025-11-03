@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { ProfileFormValues } from "@/types/profile";
 import { mapFormDataToDbSchema } from "./mapFormDataToDbSchema";
+import { mapDbDataToFormSchema } from "./mapDbDataToFormSchema";
 
 /**
  * Fetch roommate profile data for the current user
@@ -21,8 +22,12 @@ export async function fetchRoommateProfile(userId: string) {
 
   if (error && error.code !== "PGRST116") {
     console.error("Error fetching roommate profile:", error);
-  } else {
-    console.log("Fetched roommate profile data:", data);
+  } else if (data) {
+    // Use the mapping function to extract preferences from JSONB
+    const profileData = mapDbDataToFormSchema(data);
+    console.log("Mapped profile data:", profileData);
+    
+    return { data: profileData, error };
   }
 
   return { data, error };

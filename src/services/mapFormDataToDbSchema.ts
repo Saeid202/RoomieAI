@@ -1,6 +1,57 @@
 import { ProfileFormValues } from "../utils/matchingAlgorithm";
 
-export function mapFormDataToDbSchema(formData: ProfileFormValues, userId: string) {
+export function mapFormDataToDbSchema(
+  formData: ProfileFormValues,
+  userId: string
+) {
+  // Collect all ideal roommate preferences into a JSONB object
+  const idealRoommatePreferences = {
+    ageRangePreference: formData.ageRangePreference || [18, 65],
+    genderPreference: formData.genderPreference || [],
+    nationalityPreference: formData.nationalityPreference || null,
+    nationalityCustom: formData.nationalityCustom || null,
+    languagePreference: formData.languagePreference || null,
+    languageSpecific: formData.languageSpecific || null,
+    dietaryPreferences: formData.dietaryPreferences || null,
+    dietaryOther: formData.dietaryOther || null,
+    occupationPreference: formData.occupationPreference || false,
+    occupationSpecific: formData.occupationSpecific || null,
+    workSchedulePreference: formData.workSchedulePreference || null,
+    ethnicityPreference: formData.ethnicityPreference || null,
+    ethnicityOther: formData.ethnicityOther || null,
+    religionPreference: formData.religionPreference || null,
+    religionOther: formData.religionOther || null,
+    petPreference: formData.petPreference || null,
+    petSpecification: formData.petSpecification || null,
+    smokingPreference: formData.smokingPreference || null,
+    housingPreference: formData.housingPreference || [],
+    // Include importance levels
+    age_range_preference_importance:
+      formData.age_range_preference_importance || "notImportant",
+    gender_preference_importance:
+      formData.gender_preference_importance || "notImportant",
+    nationality_preference_importance:
+      formData.nationality_preference_importance || "notImportant",
+    language_preference_importance:
+      formData.language_preference_importance || "notImportant",
+    dietary_preferences_importance:
+      formData.dietary_preferences_importance || "notImportant",
+    occupation_preference_importance:
+      formData.occupation_preference_importance || "notImportant",
+    work_schedule_preference_importance:
+      formData.work_schedule_preference_importance || "notImportant",
+    ethnicity_preference_importance:
+      formData.ethnicity_preference_importance || "notImportant",
+    religion_preference_importance:
+      formData.religion_preference_importance || "notImportant",
+    pet_preference_importance:
+      formData.pet_preference_importance || "notImportant",
+    smoking_preference_importance:
+      formData.smoking_preference_importance || "notImportant",
+    housing_preference_importance:
+      formData.housing_preference_importance || "notImportant",
+  };
+
   const dbData = {
     user_id: userId,
     full_name: formData.fullName,
@@ -63,61 +114,8 @@ export function mapFormDataToDbSchema(formData: ProfileFormValues, userId: strin
       ? formData.roommateHobbies
       : [],
 
-    // 🎯 FIXED: Ideal Roommate preference fields with proper validation
-    // age_range_preference:
-    //   Array.isArray(formData.ageRangePreference) &&
-    //   formData.ageRangePreference.length === 2
-    //     ? formData.ageRangePreference
-    //     : [18, 65], // Default fallback
-
-    // Fix: gender_preference should be TEXT[] array
-    // gender_preference:
-    //   Array.isArray(formData.genderPreference) &&
-    //   formData.genderPreference.length > 0
-    //     ? formData.genderPreference
-    //     : null,
-
-    // nationality_preference: formData.nationalityPreference || null,
-    // nationality_custom:
-    //   formData.nationalityCustom || formData.nationality || null,
-    // language_preference: formData.languagePreference || null,
-    // language_specific: formData.languageSpecific || formData.language || null,
-    // dietary_preferences: formData.dietaryPreferences || null,
-    // dietary_other: formData.dietaryOther || null,
-    // occupation_preference: formData.occupationPreference || false,
-    // occupation_specific:
-    //   formData.occupationSpecific || formData.occupation || null,
-    // work_schedule_preference: formData.workSchedulePreference || null,
-    // ethnicity_preference: formData.ethnicityPreference || null,
-    // ethnicity_other: formData.ethnicityOther || formData.ethnicity || null,
-    // religion_preference: formData.religionPreference || null,
-    // religion_other: formData.religionOther || formData.religion || null,
-    // pet_specification: formData.petSpecification || null,
-    // smoking_preference: formData.smokingPreference || null,
-
-    // Add importance fields for ideal roommate preferences
-    // age_range_preference_importance:
-    //   formData.age_range_preference_importance || "notImportant",
-    // gender_preference_importance:
-    //   formData.gender_preference_importance || "notImportant",
-    // nationality_preference_importance:
-    //   formData.nationality_preference_importance || "notImportant",
-    // language_preference_importance:
-    //   formData.language_preference_importance || "notImportant",
-    // dietary_preferences_importance:
-    //   formData.dietary_preferences_importance || "notImportant",
-    // occupation_preference_importance:
-    //   formData.occupation_preference_importance || "notImportant",
-    // work_schedule_preference_importance:
-    //   formData.work_schedule_preference_importance || "notImportant",
-    // ethnicity_preference_importance:
-    //   formData.ethnicity_preference_importance || "notImportant",
-    // religion_preference_importance:
-    //   formData.religion_preference_importance || "notImportant",
-    // pet_preference_importance:
-    //   formData.pet_preference_importance || "notImportant",
-    // smoking_preference_importance:
-    //   formData.smoking_preference_importance || "notImportant",
+    // Store all ideal roommate preferences as JSONB
+    ideal_roommate_preferences: idealRoommatePreferences,
 
     updated_at: new Date().toISOString(),
   };

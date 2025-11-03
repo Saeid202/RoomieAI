@@ -80,11 +80,11 @@ export function IdealRoommateSection({
   // Update form when profileData changes
   useEffect(() => {
     if (profileData) {
-      console.log("IdealRoommateSection - Updating form with profile data");
       // Reset the form with the merged values of defaultFormValues and profileData
       form.reset({ ...defaultFormValues, ...profileData });
     }
-  }, [profileData, form]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profileData]);
 
   const onSubmit = async (data: ProfileFormValues): Promise<void> => {
     try {
