@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { ProfileFormValues } from "@/types/profile";
 import { supabase } from "@/integrations/supabase/client";
+import { mapDbDataToFormSchema } from "@/services/mapDbDataToFormSchema";
 
 export function useRoommateProfile() {
   const { user } = useAuth();
@@ -73,70 +74,9 @@ export function useRoommateProfile() {
             
             if (data) {
               console.log("Fetched roommate profile:", data);
-              // Map database fields to form format with proper type assertions
-              const profileData: Partial<ProfileFormValues> = {
-                fullName: data.full_name || "",
-                age: data.age ? String(data.age) : "",
-                gender: data.gender || "",
-                email: data.email || user.email || "",
-                phoneNumber: data.phone_number || "",
-                linkedinProfile: data.linkedin_profile || "",
-                // Fix: preferred_location is already a string[] array in database
-                preferredLocation: Array.isArray(data.preferred_location) ? data.preferred_location : [],
-                budgetRange: typeof data.budget_range === 'string' ? [900, 1500] : data.budget_range || [900, 1500],
-                moveInDateStart: data.move_in_date_start ? new Date(data.move_in_date_start) : new Date(),
-                housingType: (data.housing_type as "apartment" | "house") || "apartment",
-                livingSpace: (data.living_space as "privateRoom" | "sharedRoom" | "entirePlace") || "privateRoom",
-                smoking: data.smoking || false,
-                livesWithSmokers: data.lives_with_smokers || false,
-                hasPets: data.has_pets || false,
-                petType: data.pet_preference || "",
-                workLocation: (data.work_location as "remote" | "office" | "hybrid") || "remote",
-                workSchedule: (data.work_schedule as "dayShift" | "afternoonShift" | "overnightShift") || "dayShift",
-                hobbies: Array.isArray(data.hobbies) ? data.hobbies : [],
-                diet: (data.diet as "vegetarian" | "halal" | "kosher" | "noPreference" | "other") || "noPreference",
-                dietOther: data.dietary_other || "",
-                nationality: data.nationality_custom || "",
-                language: data.language_specific || "",
-                ethnicity: data.ethnicity_other || "",
-                religion: data.religion_other || "",
-                occupation: data.occupation_specific || "",
-                profileVisibility: Array.isArray(data.profile_visibility) ? data.profile_visibility : [],
-                // Map ideal roommate preference fields from database
-                ageRangePreference: Array.isArray(data.age_range_preference) ? data.age_range_preference : [18, 65],
-                genderPreference: Array.isArray(data.gender_preference) ? data.gender_preference : [],
-                nationalityPreference: (data.nationality_preference as "sameCountry" | "noPreference" | "custom") || "noPreference",
-                languagePreference: (data.language_preference as "sameLanguage" | "noPreference" | "specific") || "noPreference",
-                ethnicityPreference: (data.ethnicity_preference as "same" | "noPreference" | "others") || "noPreference",
-                religionPreference: (data.religion_preference as "same" | "noPreference" | "others") || "noPreference",
-                occupationPreference: data.occupation_preference || false,
-                occupationSpecific: data.occupation_specific || "",
-                workSchedulePreference: (data.work_schedule_preference as "opposite" | "dayShift" | "afternoonShift" | "overnightShift" | "noPreference") || "noPreference",
-                dietaryPreferences: (data.dietary_preferences as "vegetarian" | "halal" | "kosher" | "others" | "noPreference") || "noPreference",
-                petPreference: (data.pet_preference as "noPets" | "catOk" | "smallPetsOk") || "noPets",
-                smokingPreference: (data.smoking_preference as "noSmoking" | "noVaping" | "socialOk") || "noSmoking",
-                // Additional specific/custom fields
-                nationalityCustom: data.nationality_custom || "",
-                languageSpecific: data.language_specific || "",
-                dietaryOther: data.dietary_other || "",
-                ethnicityOther: data.ethnicity_other || "",
-                religionOther: data.religion_other || "",
-                petSpecification: data.pet_specification || "",
-                roommateHobbies: Array.isArray(data.important_roommate_traits) ? data.important_roommate_traits : [],
-                rentOption: "findTogether",
-                // Add importance fields mapping from database to form
-                age_range_preference_importance: (data.age_range_preference_importance || "notImportant") as "notImportant" | "important" | "must",
-                gender_preference_importance: (data.gender_preference_importance || "notImportant") as "notImportant" | "important" | "must",
-                nationality_preference_importance: (data.nationality_preference_importance || "notImportant") as "notImportant" | "important" | "must",
-                language_preference_importance: (data.language_preference_importance || "notImportant") as "notImportant" | "important" | "must",
-                dietary_preferences_importance: (data.dietary_preferences_importance || "notImportant") as "notImportant" | "important" | "must",
-                occupation_preference_importance: (data.occupation_preference_importance || "notImportant") as "notImportant" | "important" | "must",
-                work_schedule_preference_importance: (data.work_schedule_preference_importance || "notImportant") as "notImportant" | "important" | "must",
-                ethnicity_preference_importance: (data.ethnicity_preference_importance || "notImportant") as "notImportant" | "important" | "must",
-                religion_preference_importance: (data.religion_preference_importance || "notImportant") as "notImportant" | "important" | "must",
-                pet_preference_importance: (data.pet_preference_importance || "notImportant") as "notImportant" | "important" | "must",
-                smoking_preference_importance: (data.smoking_preference_importance || "notImportant") as "notImportant" | "important" | "must",
-              };
+              
+              // Use mapping function to convert database data to form format
+              const profileData = mapDbDataToFormSchema(data, user.email || "");
               
               setProfileData(profileData);
               console.log("Set profile data from database:", profileData);

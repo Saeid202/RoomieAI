@@ -1,5 +1,6 @@
 import { Facebook, Twitter, Instagram, Linkedin } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Link } from "react-router-dom";
 
 interface FooterProps {
   className?: string;
@@ -11,7 +12,7 @@ const Footer = ({ className }: FooterProps) => {
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 mb-12">
           <div className="lg:col-span-2">
-            <div className="flex items-center space-x-2 mb-6">
+            <Link to="/" className="flex items-center space-x-2 mb-6 hover:opacity-80 transition-opacity w-fit">
               <svg
                 width="34"
                 height="34"
@@ -63,7 +64,7 @@ const Footer = ({ className }: FooterProps) => {
               <h1 className="text-xl font-bold text-roomie-purple">
                 RoomieMatch
               </h1>
-            </div>
+            </Link>
             <p className="text-gray-400 mb-6 max-w-md">
               RoomieMatch helps you find the ideal roommate based on your lifestyle, budget, and location preferences.
             </p>
