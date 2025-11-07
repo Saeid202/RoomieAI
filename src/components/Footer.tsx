@@ -1,5 +1,6 @@
 import { Facebook, Twitter, Instagram, Linkedin } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Link } from "react-router-dom";
 
 interface FooterProps {
   className?: string;
@@ -86,7 +87,7 @@ const Footer = ({ className }: FooterProps) => {
           <div>
             <h3 className="font-semibold text-lg mb-4">Company</h3>
             <ul className="space-y-3">
-              <li><a href="#" className="text-gray-400 hover:text-roomie-purple transition-colors">About Us</a></li>
+              <li><Link to="/about-us" className="text-gray-400 hover:text-roomie-purple transition-colors">About Us</Link></li>
               <li><a href="#" className="text-gray-400 hover:text-roomie-purple transition-colors">Careers</a></li>
               <li><a href="#" className="text-gray-400 hover:text-roomie-purple transition-colors">Blog</a></li>
               <li><a href="#" className="text-gray-400 hover:text-roomie-purple transition-colors">Press</a></li>
@@ -97,9 +98,9 @@ const Footer = ({ className }: FooterProps) => {
             <h3 className="font-semibold text-lg mb-4">Support</h3>
             <ul className="space-y-3">
               <li><a href="#" className="text-gray-400 hover:text-roomie-purple transition-colors">Help Center</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-roomie-purple transition-colors">Safety Center</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-roomie-purple transition-colors">Community Guidelines</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-roomie-purple transition-colors">Contact Us</a></li>
+              <li><Link to="/safety-center" className="text-gray-400 hover:text-roomie-purple transition-colors">Safety Center</Link></li>
+              <li><Link to="/community-guidelines" className="text-gray-400 hover:text-roomie-purple transition-colors">Community Guidelines</Link></li>
+              <li><Link to="/contact-us" className="text-gray-400 hover:text-roomie-purple transition-colors">Contact Us</Link></li>
             </ul>
           </div>
           
@@ -107,7 +108,7 @@ const Footer = ({ className }: FooterProps) => {
             <h3 className="font-semibold text-lg mb-4">Legal</h3>
             <ul className="space-y-3">
               <li><a href="#" className="text-gray-400 hover:text-roomie-purple transition-colors">Terms of Service</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-roomie-purple transition-colors">Privacy Policy</a></li>
+              <li><Link to="/privacy-policy" className="text-gray-400 hover:text-roomie-purple transition-colors">Privacy Policy</Link></li>
               <li><a href="#" className="text-gray-400 hover:text-roomie-purple transition-colors">Cookie Policy</a></li>
               <li><a href="#" className="text-gray-400 hover:text-roomie-purple transition-colors">Trust & Safety</a></li>
             </ul>
