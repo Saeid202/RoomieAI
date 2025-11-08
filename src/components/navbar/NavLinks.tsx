@@ -25,20 +25,20 @@ export const NavLinks = ({ isMobile = false, onClickMobile }: NavLinksProps) => 
       >
         About Us
       </Link>
-      <a 
-        href="/#how-it-works" 
+      <Link 
+        to="/#how-it-works" 
         className={`${linkClasses} ${mobileClasses}`}
         onClick={handleClick}
       >
         How It Works
-      </a>
-      <a 
-        href="/#features" 
+      </Link>
+      <Link 
+        to="/#features" 
         className={`${linkClasses} ${mobileClasses}`}
         onClick={handleClick}
       >
         Features
-      </a>
+      </Link>
       <Link 
         to="/faq" 
         className={`${linkClasses} ${mobileClasses}`}

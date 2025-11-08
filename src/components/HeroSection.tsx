@@ -1,12 +1,18 @@
 
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 
 const HeroSection = () => {
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   const handleFindMatchClick = () => {
-    navigate("/"); // This will be replaced with signup dialog opening
+    if (user) {
+      navigate("/dashboard");
+      return;
+    }
+    // This will be replaced with signup dialog opening
     const signupButton = document.querySelector('[data-signup-button="true"]') as HTMLButtonElement;
     if (signupButton) signupButton.click();
   };

@@ -20,6 +20,7 @@ import { DeveloperSidebar } from "./sidebar/DeveloperSidebar";
 import { AdminSidebar } from "./sidebar/AdminSidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Menu, X } from "lucide-react";
+import { Home } from "lucide-react";
 
 export function DashboardSidebar() {
   const location = useLocation();
@@ -43,11 +44,31 @@ export function DashboardSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="flex items-center justify-center p-4">
-        <h2 className="text-2xl font-bold">
-          {role === 'landlord' ? 'Landlord Portal' :
-           role === 'admin' ? 'Admin Portal' :
-           'Roommate Finder'}
-        </h2>
+        {open ? (
+          <h2 className="text-2xl font-bold">
+            {role === "landlord"
+              ? "Landlord Portal"
+              : role === "admin"
+              ? "Admin Portal"
+              : "Roommate Finder"}
+          </h2>
+        ) : (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="28"
+            height="28"
+            viewBox="0 0 24 24"
+            className="text-roomie-purple"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M3 9l9-7 9 7" />
+            <path d="M9 22V12h6v10" />
+          </svg>
+        )}
       </SidebarHeader>
         
         <SidebarSeparator />
@@ -68,9 +89,17 @@ export function DashboardSidebar() {
           </SidebarGroup>
         </SidebarContent>
         <SidebarFooter className="p-4">
-          <Button variant="secondary" className="w-full" asChild>
-            <Link to="/">Back to Home</Link>
-          </Button>
+          {open ? (
+            <Button variant="secondary" className="w-full" asChild>
+              <Link to="/">Back to Home</Link>
+            </Button>
+          ) : (
+            <Link to="/" className="flex items-center justify-center">
+              <div className="w-9 h-9 rounded-full bg-roomie-purple/20 flex items-center justify-center">
+                <Home className="text-roomie-purple" size={22} />
+              </div>
+            </Link>
+          )}
         </SidebarFooter>
       </Sidebar>
   );

@@ -76,7 +76,13 @@ function AppRoutes() {
   if (user) {
     return (
       <Routes>
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/" element={<HomePage />} />
+        <Route path="/about-us" element={<AboutUs />} />
+        <Route path="/faq" element={<FAQPage />} />
+        <Route path="/safety-center" element={<SafetyCenter />} />
+        <Route path="/community-guidelines" element={<CommunityGuidelines />} />
+        <Route path="/contact-us" element={<ContactUsPage />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/auth/callback" element={<Callback />} />
         <Route path="/dashboard" element={

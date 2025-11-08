@@ -5,6 +5,13 @@ import {
   SidebarMenuItem,
   SidebarMenuButton
 } from "@/components/ui/sidebar";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger
+} from "@/components/ui/tooltip";
+
+import { useSidebar } from "@/components/ui/sidebar";
 
 interface SidebarSimpleMenuItemProps {
   icon: ReactNode;
@@ -19,14 +26,25 @@ export function SidebarSimpleMenuItem({
   to,
   isActive
 }: SidebarSimpleMenuItemProps) {
+  const { open } = useSidebar();
   return (
     <SidebarMenuItem>
-      <SidebarMenuButton asChild isActive={isActive} className="font-semibold">
-        <Link to={to}>
-          {icon}
-          <span className="font-semibold">{label}</span>
-        </Link>
-      </SidebarMenuButton>
+      <Tooltip delayDuration={150}>
+        <TooltipTrigger asChild>
+          <SidebarMenuButton asChild isActive={isActive} className="font-semibold">
+            <Link to={to} className="flex items-center gap-3">
+              {icon}
+              {open && <span className="font-semibold">{label}</span>}
+            </Link>
+          </SidebarMenuButton>
+        </TooltipTrigger>
+
+        {!open && (
+          <TooltipContent side="right" align="center">
+            {label}
+          </TooltipContent>
+        )}
+      </Tooltip>
     </SidebarMenuItem>
   );
 }

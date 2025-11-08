@@ -26,6 +26,8 @@ export default function HomePage() {
           element.scrollIntoView({ behavior: "smooth" });
         }, 0);
       }
+    }else {
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   }, [location]);
 

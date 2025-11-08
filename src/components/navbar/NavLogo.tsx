@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 export const NavLogo = () => {
   return (
-    <div className="flex items-center space-x-2">
+    <Link to="/" className="flex items-center space-x-2">
       <svg
         width="36"
         height="36"
@@ -55,6 +55,6 @@ export const NavLogo = () => {
       <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-roomie-purple to-roomie-accent">
         RoomieMatch
       </h1>
-    </div>
+    </Link>
   );
 };
