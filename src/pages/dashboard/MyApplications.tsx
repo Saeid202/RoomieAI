@@ -35,6 +35,9 @@ import {
   AlertCircle,
   Trash2
 } from "lucide-react";
+import { EnhancedHeader } from "@/components/ui/design-system";
+import { EnhancedPageLayout } from "@/components/ui/design-system";
+import { EnhancedButton } from "@/components/ui/design-system";
 
 export default function MyApplicationsPage() {
   const navigate = useNavigate();
@@ -178,37 +181,32 @@ export default function MyApplicationsPage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20">
       <div className="space-y-8 p-6">
         {/* Enhanced Header */}
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 p-8 text-white shadow-2xl">
-          <div className="absolute inset-0 bg-black/10"></div>
-          <div className="relative z-10">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-4xl font-bold tracking-tight mb-2">My Applications</h1>
-                <p className="text-blue-100 text-lg">Track your rental applications and continue the process</p>
-              </div>
-              <Button 
-                onClick={load} 
-                variant="secondary" 
-                size="lg"
-                className="bg-white/20 backdrop-blur-sm border-white/30 text-white hover:bg-white/30 transition-all duration-300"
-              >
-                <RefreshCw className="h-5 w-5 mr-2" />
-                Refresh
-              </Button>
-            </div>
-          </div>
-          {/* Decorative elements */}
-          <div className="absolute -top-4 -right-4 w-24 h-24 bg-white/10 rounded-full"></div>
-          <div className="absolute -bottom-2 -left-2 w-16 h-16 bg-white/5 rounded-full"></div>
-        </div>
+        <EnhancedHeader
+          title="My Applications"
+          subtitle="Track your rental applications and continue the process"
+          actionButton={
+            <EnhancedButton
+              variant="secondary"
+              size="lg"
+              onClick={load}
+            >
+              <RefreshCw className="h-5 w-5 mr-2" />
+              Refresh
+            </EnhancedButton>
+          }
+        />
 
         {/* Enhanced Statistics */}
         <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-          <StatCard title="Total" value={stats.total} icon={FileText} gradient="from-blue-500 to-blue-600" />
-          <StatCard title="Pending" value={stats.pending} icon={Clock} gradient="from-yellow-500 to-orange-500" />
-          <StatCard title="Under Review" value={stats.underReview} icon={Eye} gradient="from-indigo-500 to-purple-500" />
-          <StatCard title="Approved" value={stats.approved} icon={CheckCircle} gradient="from-green-500 to-emerald-500" />
-          <StatCard title="Rejected" value={stats.rejected} icon={XCircle} gradient="from-red-500 to-pink-500" />
+          <StatCard title="Total" value={stats.total} icon={FileText} gradient="from-slate-300 to-slate-400" />
+
+          <StatCard title="Pending" value={stats.pending} icon={Clock} gradient="from-amber-300 to-amber-400" />
+
+          <StatCard title="Under Review" value={stats.underReview} icon={Eye} gradient="from-indigo-400 to-indigo-500" />
+
+          <StatCard title="Approved" value={stats.approved} icon={CheckCircle} gradient="from-emerald-400 to-emerald-500" />
+
+          <StatCard title="Rejected" value={stats.rejected} icon={XCircle} gradient="from-rose-400 to-rose-500" />
         </div>
 
         {/* Enhanced Search and Filter */}

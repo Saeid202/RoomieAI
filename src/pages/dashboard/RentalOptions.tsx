@@ -153,49 +153,73 @@ export default function RentalOptionsPage() {
       />
 
       {/* Enhanced Filters */}
-      <EnhancedCard>
-        <CardContent className="p-8">
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 relative">
-            <div className="border-2 border-gray-300 rounded-full size-7 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 md:hidden">
-              <button
-                onClick={applyFilters}
-                className="!size-full min-w-full min-h-full flex items-center justify-center"
-              >
-                <Search className="size-4 text-primary" />
-              </button>
-            </div>
+      <EnhancedCard className="rounded-2xl shadow-sm border border-gray-200 bg-white">
+        <CardContent className="p-6 md:p-8">
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">
+
+            {/* Location */}
             <EnhancedSearch
               placeholder="Location (city)"
               value={filters.location}
               onChange={(value) => handleFilterChange("location", value)}
+              className="h-12 rounded-xl"
             />
+
+            {/* Min Price */}
             <EnhancedSearch
               placeholder="Min Price"
               value={filters.minPrice}
               onChange={(value) => handleFilterChange("minPrice", value)}
+              className="h-12 rounded-xl"
             />
+
+            {/* Max Price */}
             <EnhancedSearch
               placeholder="Max Price"
               value={filters.maxPrice}
               onChange={(value) => handleFilterChange("maxPrice", value)}
+              className="h-12 rounded-xl"
             />
+
+            {/* Bedrooms */}
             <EnhancedFilter
               value={filters.bedrooms || "any"}
-              onValueChange={(value) => handleFilterChange("bedrooms", value === "any" ? "" : value)}
+              onValueChange={(value) =>
+                handleFilterChange("bedrooms", value === "any" ? "" : value)
+              }
               options={[
                 { value: "any", label: "Any" },
                 { value: "0", label: "Studio" },
                 { value: "1", label: "1 Bedroom" },
                 { value: "2", label: "2 Bedrooms" },
                 { value: "3", label: "3 Bedrooms" },
-                { value: "4", label: "4+ Bedrooms" }
+                { value: "4", label: "4+ Bedrooms" },
               ]}
               placeholder="Bedrooms"
             />
-            <EnhancedButton onClick={applyFilters} className="hidden md:block">
+
+            {/* Desktop Search Button */}
+            <EnhancedButton
+              onClick={applyFilters}
+              className="hidden md:flex h-12 rounded-xl items-center justify-center 
+                        font-semibold text-white 
+                        bg-gradient-to-r from-primary via-purple-500 to-purple-600 
+                        shadow-sm hover:opacity-90 transition"
+            >
               <Search className="h-4 w-4 mr-2" />
               Search
             </EnhancedButton>
+
+            {/* Mobile search button (floating center dot) */}
+            <button
+              onClick={applyFilters}
+              className="md:hidden flex items-center justify-center 
+                        h-12 rounded-full border border-gray-300"
+            >
+              <Search className="h-5 w-5 text-primary" />
+            </button>
+
           </div>
         </CardContent>
       </EnhancedCard>

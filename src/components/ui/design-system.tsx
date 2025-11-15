@@ -24,20 +24,25 @@ export function EnhancedHeader({
   className?: string; 
 }) {
   return (
-    <div className={`relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 p-8 text-white shadow-2xl ${className}`}>
-      <div className="absolute inset-0 bg-black/10"></div>
-      <div className="relative z-10">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-4xl font-bold tracking-tight mb-2">{title}</h1>
-            <p className="text-blue-100 text-lg">{subtitle}</p>
-          </div>
-          {actionButton}
+    <div
+      className={`relative overflow-hidden rounded-2xl 
+                  bg-gradient-to-r from-primary via-purple-500 to-purple-600
+                  p-8 text-white shadow-xl ${className}`}
+    >
+      {/* Overlay for depth */}
+      <div className="absolute inset-0 bg-white/5"></div>
+
+      <div className="relative z-10 flex items-center justify-between">
+        <div>
+          <h1 className="text-4xl font-bold tracking-tight mb-2">{title}</h1>
+          <p className="text-white/90 text-lg">{subtitle}</p>
         </div>
+        {actionButton}
       </div>
-      {/* Decorative elements */}
-      <div className="absolute -top-4 -right-4 w-24 h-24 bg-white/10 rounded-full"></div>
-      <div className="absolute -bottom-2 -left-2 w-16 h-16 bg-white/5 rounded-full"></div>
+
+      {/* Decorative floating circles */}
+      <div className="absolute -top-6 -right-6 w-28 h-28 bg-white/10 rounded-full"></div>
+      <div className="absolute -bottom-4 -left-4 w-20 h-20 bg-white/5 rounded-full"></div>
     </div>
   );
 }
