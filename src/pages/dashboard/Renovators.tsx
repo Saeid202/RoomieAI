@@ -23,7 +23,10 @@ import {
   Wrench,
   Paintbrush,
   Home,
-  Zap
+  Zap,
+  Eye,
+  Copy,
+  Check
 } from "lucide-react";
 import { toast } from "sonner";
 import { RenovationPartnerService, RenovationPartner } from "@/services/renovationPartnerService";
@@ -186,6 +189,11 @@ export default function RenovatorsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedSpecialty, setSelectedSpecialty] = useState("");
   const [selectedRenovator, setSelectedRenovator] = useState<RenovationPartner | null>(null);
+  const [viewingRenovator, setViewingRenovator] = useState<RenovationPartner | null>(null);
+  const [callDialogOpen, setCallDialogOpen] = useState(false);
+  const [phoneToCall, setPhoneToCall] = useState<string>("");
+  const [phoneOwner, setPhoneOwner] = useState<string>("");
+  const [copied, setCopied] = useState(false);
   const [contactForm, setContactForm] = useState({
     name: "",
     email: "",
@@ -223,7 +231,7 @@ export default function RenovatorsPage() {
     return matchesSearch && matchesSpecialty;
   });
 
-  const handleContactRenovator = (renovator: Renovator) => {
+  const handleContactRenovator = (renovator: RenovationPartner) => {
     setSelectedRenovator(renovator);
     setContactForm({
       name: "",
@@ -243,13 +251,38 @@ export default function RenovatorsPage() {
     }
 
     // Simulate sending message
-    toast.success(`Message sent to ${selectedRenovator?.name}! They will respond within ${selectedRenovator?.responseTime.toLowerCase()}.`);
+    const responseTime = selectedRenovator?.response_time || "a few hours";
+    toast.success(`Message sent to ${selectedRenovator?.name}! They will respond within ${responseTime.toLowerCase()}.`);
     setSelectedRenovator(null);
   };
 
-  const handleCallRenovator = (phone: string) => {
-    toast.info(`Calling ${phone}...`);
-    // In a real app, this would initiate a phone call
+  const handleCallRenovator = (phone: string, ownerName?: string) => {
+    if (!phone) {
+      toast.error("Phone number not available");
+      return;
+    }
+    setPhoneToCall(phone);
+    setPhoneOwner(ownerName || "");
+    setCallDialogOpen(true);
+    setCopied(false);
+  };
+
+  const handleCopyPhone = async () => {
+    if (!phoneToCall) return;
+    try {
+      await navigator.clipboard.writeText(phoneToCall);
+      setCopied(true);
+      toast.success("Phone number copied to clipboard!");
+      setTimeout(() => setCopied(false), 2000);
+    } catch (error) {
+      toast.error("Failed to copy phone number");
+    }
+  };
+
+  const handleDialPhone = (phone: string) => {
+    // Remove any non-digit characters except + for international numbers
+    const cleanPhone = phone.replace(/[^\d+]/g, '');
+    window.location.href = `tel:${cleanPhone}`;
   };
 
   const renderStars = (rating: number) => {
@@ -319,15 +352,23 @@ export default function RenovatorsPage() {
           <p className="text-muted-foreground">Try adjusting your search or filter criteria.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {filteredRenovators.map((renovator) => (
           <Card key={renovator.id} className="overflow-hidden hover:shadow-lg transition-shadow">
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
-                    <Hammer className="h-6 w-6 text-gray-600" />
-                  </div>
+                  {renovator.image_url ? (
+                    <img
+                      src={renovator.image_url}
+                      alt={`${renovator.name}`}
+                      className="w-12 h-12 rounded-full object-cover border-2 border-gray-200 flex-shrink-0"
+                    />
+                  ) : (
+                    <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0">
+                      <Hammer className="h-6 w-6 text-gray-600" />
+                    </div>
+                  )}
                   <div>
                     <CardTitle className="text-lg">{renovator.name}</CardTitle>
                     <p className="text-sm text-muted-foreground">{renovator.company}</p>
@@ -380,7 +421,7 @@ export default function RenovatorsPage() {
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <DollarSign className="h-4 w-4 text-gray-500" />
-                  <span>{renovator.hourlyRate}</span>
+                  <span>{renovator.hourly_rate || "Contact for pricing"}</span>
                 </div>
               </div>
 
@@ -406,20 +447,26 @@ export default function RenovatorsPage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => handleCallRenovator(renovator.phone)}
+                  onClick={() => setViewingRenovator(renovator)}
                   className="flex-1"
                 >
-                  <Phone className="h-4 w-4 mr-1" />
-                  Call
+                  <Eye className="h-4 w-4 mr-1" />
+                  View
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleCallRenovator(renovator.phone || "", renovator.name)}
+                  disabled={!renovator.phone}
+                >
+                  <Phone className="h-4 w-4" />
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => handleContactRenovator(renovator)}
-                  className="flex-1"
                 >
-                  <MessageSquare className="h-4 w-4 mr-1" />
-                  Message
+                  <MessageSquare className="h-4 w-4" />
                 </Button>
               </div>
             </CardContent>
@@ -432,10 +479,39 @@ export default function RenovatorsPage() {
       <Dialog open={!!selectedRenovator} onOpenChange={() => setSelectedRenovator(null)}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <MessageSquare className="h-5 w-5" />
-              Contact {selectedRenovator?.name}
-            </DialogTitle>
+            <div className="flex items-center gap-4 mb-4">
+              {selectedRenovator?.image_url ? (
+                <img
+                  src={selectedRenovator.image_url}
+                  alt={selectedRenovator.name}
+                  className="w-16 h-16 rounded-full object-cover border-2 border-gray-200 flex-shrink-0"
+                />
+              ) : (
+                <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0">
+                  <Hammer className="h-8 w-8 text-gray-600" />
+                </div>
+              )}
+              <div className="flex-1">
+                <DialogTitle className="flex items-center gap-2">
+                  <MessageSquare className="h-5 w-5" />
+                  Contact {selectedRenovator?.name}
+                </DialogTitle>
+                <p className="text-sm text-muted-foreground mt-1">{selectedRenovator?.company}</p>
+                {selectedRenovator && (
+                  <div className="flex items-center gap-2 mt-2">
+                    <div className="flex">{renderStars(selectedRenovator.rating)}</div>
+                    <span className="text-sm font-medium">{selectedRenovator.rating}</span>
+                    <span className="text-sm text-muted-foreground">({selectedRenovator.review_count} reviews)</span>
+                    {selectedRenovator.verified && (
+                      <Badge variant="secondary" className="bg-green-100 text-green-800 ml-2">
+                        <CheckCircle className="h-3 w-3 mr-1" />
+                        Verified
+                      </Badge>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
           </DialogHeader>
           
           <div className="space-y-4">
@@ -542,6 +618,286 @@ export default function RenovatorsPage() {
                 Send Message
               </Button>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* View Details Dialog */}
+      <Dialog open={!!viewingRenovator} onOpenChange={() => setViewingRenovator(null)}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <div className="flex items-start gap-4 mb-4">
+              {viewingRenovator?.image_url ? (
+                <img
+                  src={viewingRenovator.image_url}
+                  alt={viewingRenovator.name}
+                  className="w-24 h-24 rounded-full object-cover border-2 border-gray-200 flex-shrink-0"
+                />
+              ) : (
+                <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0">
+                  <Hammer className="h-12 w-12 text-gray-600" />
+                </div>
+              )}
+              <div className="flex-1">
+                <DialogTitle className="text-2xl flex items-center gap-2">
+                  {viewingRenovator?.name}
+                  {viewingRenovator?.verified && (
+                    <Badge variant="secondary" className="bg-green-100 text-green-800">
+                      <CheckCircle className="h-4 w-4 mr-1" />
+                      Verified
+                    </Badge>
+                  )}
+                </DialogTitle>
+                <p className="text-lg text-muted-foreground mt-1">{viewingRenovator?.company}</p>
+                {viewingRenovator && (
+                  <div className="flex items-center gap-2 mt-2">
+                    <div className="flex">{renderStars(viewingRenovator.rating)}</div>
+                    <span className="font-medium">{viewingRenovator.rating}</span>
+                    <span className="text-sm text-muted-foreground">({viewingRenovator.review_count} reviews)</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </DialogHeader>
+          
+          {viewingRenovator && (
+            <div className="space-y-6">
+              {/* Contact Information */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-3">
+                  <h3 className="font-semibold text-lg border-b pb-2">Contact Information</h3>
+                  {viewingRenovator.location && (
+                    <div className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4 text-gray-500" />
+                      <span>{viewingRenovator.location}</span>
+                    </div>
+                  )}
+                  {viewingRenovator.phone && (
+                    <div className="flex items-center gap-2">
+                      <Phone className="h-4 w-4 text-gray-500" />
+                      <span>{viewingRenovator.phone}</span>
+                    </div>
+                  )}
+                  {viewingRenovator.email && (
+                    <div className="flex items-center gap-2">
+                      <Mail className="h-4 w-4 text-gray-500" />
+                      <span>{viewingRenovator.email}</span>
+                    </div>
+                  )}
+                  {viewingRenovator.website_url && (
+                    <div className="flex items-center gap-2">
+                      <Home className="h-4 w-4 text-gray-500" />
+                      <a 
+                        href={viewingRenovator.website_url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:underline"
+                      >
+                        {viewingRenovator.website_url}
+                      </a>
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-3">
+                  <h3 className="font-semibold text-lg border-b pb-2">Availability & Pricing</h3>
+                  {viewingRenovator.availability && (
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-gray-500" />
+                      <span>{viewingRenovator.availability}</span>
+                    </div>
+                  )}
+                  {viewingRenovator.hourly_rate && (
+                    <div className="flex items-center gap-2">
+                      <DollarSign className="h-4 w-4 text-gray-500" />
+                      <span>{viewingRenovator.hourly_rate}</span>
+                    </div>
+                  )}
+                  {viewingRenovator.response_time && (
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-gray-500" />
+                      <span>Response time: {viewingRenovator.response_time}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Description */}
+              {viewingRenovator.description && (
+                <div>
+                  <h3 className="font-semibold text-lg border-b pb-2 mb-3">About</h3>
+                  <p className="text-muted-foreground">{viewingRenovator.description}</p>
+                </div>
+              )}
+
+              {/* Specialties */}
+              {viewingRenovator.specialties && viewingRenovator.specialties.length > 0 && (
+                <div>
+                  <h3 className="font-semibold text-lg border-b pb-2 mb-3">Specialties</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {viewingRenovator.specialties.map((specialty) => (
+                      <Badge key={specialty} variant="outline" className="text-sm">
+                        {specialtyIcons[specialty]}
+                        <span className="ml-1">{specialty}</span>
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Experience & Stats */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+                  <Award className="h-5 w-5 text-orange-600" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Experience</p>
+                    <p className="font-semibold">{viewingRenovator.years_experience} years</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+                  <Users className="h-5 w-5 text-orange-600" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Projects Completed</p>
+                    <p className="font-semibold">{viewingRenovator.completed_projects}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+                  <Star className="h-5 w-5 text-orange-600" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Rating</p>
+                    <p className="font-semibold">{viewingRenovator.rating.toFixed(1)} / 5.0</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Certifications */}
+              {viewingRenovator.certifications && viewingRenovator.certifications.length > 0 && (
+                <div>
+                  <h3 className="font-semibold text-lg border-b pb-2 mb-3">Certifications</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {viewingRenovator.certifications.map((cert, index) => (
+                      <Badge key={index} variant="secondary" className="text-sm">
+                        <Award className="h-3 w-3 mr-1" />
+                        {cert}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Portfolio */}
+              {viewingRenovator.portfolio && viewingRenovator.portfolio.length > 0 && (
+                <div>
+                  <h3 className="font-semibold text-lg border-b pb-2 mb-3">Portfolio</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    {viewingRenovator.portfolio.map((item, index) => (
+                      <div key={index} className="p-2 bg-gray-50 rounded border">
+                        <p className="text-sm">{item}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex gap-2 pt-4 border-t">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setViewingRenovator(null);
+                    handleContactRenovator(viewingRenovator);
+                  }}
+                  className="flex-1"
+                >
+                  <MessageSquare className="h-4 w-4 mr-2" />
+                  Send Message
+                </Button>
+                {viewingRenovator.phone && (
+                  <Button
+                    variant="outline"
+                    onClick={() => handleCallRenovator(viewingRenovator.phone || "", viewingRenovator.name)}
+                    className="flex-1"
+                  >
+                    <Phone className="h-4 w-4 mr-2" />
+                    Call Now
+                  </Button>
+                )}
+                {viewingRenovator.website_url && (
+                  <Button
+                    variant="outline"
+                    onClick={() => window.open(viewingRenovator.website_url, '_blank')}
+                    className="flex-1"
+                  >
+                    <Home className="h-4 w-4 mr-2" />
+                    Visit Website
+                  </Button>
+                )}
+                <Button
+                  variant="default"
+                  onClick={() => setViewingRenovator(null)}
+                >
+                  Close
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Call Phone Dialog */}
+      <Dialog open={callDialogOpen} onOpenChange={setCallDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Phone className="h-5 w-5 text-orange-600" />
+              {phoneOwner ? `Call ${phoneOwner}` : "Phone Number"}
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="text-center">
+              <div className="text-3xl font-bold text-orange-600 mb-2">
+                {phoneToCall}
+              </div>
+              {phoneOwner && (
+                <p className="text-sm text-muted-foreground">
+                  {phoneOwner}
+                </p>
+              )}
+            </div>
+
+            <div className="flex gap-2">
+              <Button
+                onClick={() => handleDialPhone(phoneToCall)}
+                className="flex-1"
+                size="lg"
+              >
+                <Phone className="h-4 w-4 mr-2" />
+                Call Now
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleCopyPhone}
+                className="flex-1"
+                size="lg"
+              >
+                {copied ? (
+                  <>
+                    <Check className="h-4 w-4 mr-2" />
+                    Copied!
+                  </>
+                ) : (
+                  <>
+                    <Copy className="h-4 w-4 mr-2" />
+                    Copy
+                  </>
+                )}
+              </Button>
+            </div>
+
+            <p className="text-xs text-center text-muted-foreground">
+              Click "Call Now" to dial the number, or "Copy" to copy it to your clipboard
+            </p>
           </div>
         </DialogContent>
       </Dialog>
