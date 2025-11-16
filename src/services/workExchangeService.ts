@@ -78,10 +78,15 @@ class WorkExchangeService {
         userEmail = user.email || '';
       }
 
-      const offerData = {
+      // Generate a title from the work requested and space type
+      const generatedTitle = `${data.workRequested} - ${data.spaceType.replace('-', ' ')} in ${data.city}`;
+
+      const offerData: any = {
         user_id: user.id,
+        created_by: user.id, // Required by database - set to user_id
         user_name: userName,
         user_email: userEmail,
+        title: generatedTitle, // Required by database
         space_type: data.spaceType,
         work_requested: data.workRequested,
         duration: data.duration,
@@ -89,10 +94,10 @@ class WorkExchangeService {
         address: data.address,
         city: data.city,
         state: data.state,
-        zip_code: data.zipCode,
-        amenities_provided: data.amenitiesProvided,
-        additional_notes: data.additionalNotes,
-        images: data.images,
+        zip_code: data.zipCode || null,
+        amenities_provided: data.amenitiesProvided || [],
+        additional_notes: data.additionalNotes?.trim() || null,
+        images: data.images || [],
         contact_preference: data.contactPreference,
         status: 'active'
       };
