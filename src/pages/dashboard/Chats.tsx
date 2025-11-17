@@ -4,8 +4,7 @@ import { ChatWindow } from "@/components/ChatWindow";
 import { ConversationWithMessages } from "@/types/messaging";
 import { useAuth } from "@/hooks/useAuth";
 import { useSearchParams } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import ShowAllMessages from "@/components/dashboard/ShowAllMessages";
+import { MessagingService } from "@/services/messagingService";
 
 export default function ChatsPage() {
   const { user } = useAuth();
@@ -15,27 +14,47 @@ export default function ChatsPage() {
   const [conversations, setConversations] = useState<
     ConversationWithMessages[]
   >([]);
+  const [loading, setLoading] = useState(true);
 
   // Load conversations and auto-select if conversation ID is in URL
   useEffect(() => {
     const loadConversations = async () => {
       try {
-        const { MessagingService } = await import(
-          "@/services/messagingService"
-        );
+        setLoading(true);
         const data = await MessagingService.getConversations();
         setConversations(data);
 
         // Auto-select conversation from URL
         const conversationId = searchParams.get("conversation");
         if (conversationId) {
-          const conversation = data.find((c) => c.id === conversationId);
+          let conversation = data.find((c) => c.id === conversationId);
+
+          // If conversation not found in list, try to load it directly
+          if (!conversation) {
+            try {
+              conversation = await MessagingService.getConversationById(
+                conversationId
+              );
+              if (conversation) {
+                // Add to conversations list if not already there
+                setConversations((prev) => {
+                  const exists = prev.find((c) => c.id === conversationId);
+                  return exists ? prev : [...prev, conversation!];
+                });
+              }
+            } catch (error) {
+              console.error("Failed to load conversation:", error);
+            }
+          }
+
           if (conversation) {
             setSelectedConversation(conversation);
           }
         }
       } catch (error) {
         console.error("Failed to load conversations:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -60,65 +79,37 @@ export default function ChatsPage() {
   }
 
   return (
-    <div className="container mx-auto py-6 px-4">
-      <h1 className="text-2xl font-bold mb-6">Messages</h1>
-
-      {/* Debug Info */}
-      <div className="bg-gray-100 p-4 rounded mb-4 text-sm">
-        <p>
-          <strong>Debug Info:</strong>
+    <div className="container mx-auto py-6 px-4 max-w-7xl">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold">Messages</h1>
+        <p className="text-muted-foreground mt-1">
+          Connect with landlords and tenants
         </p>
-        <p>Conversations loaded: {conversations.length}</p>
-        <p>Selected conversation: {selectedConversation?.id || "None"}</p>
-        <p>
-          URL conversation param: {searchParams.get("conversation") || "None"}
-        </p>
-        <p>User: {user?.email || "Not logged in"}</p>
-        <button
-          className="bg-blue-500 text-white px-2 py-1 rounded mt-2"
-          onClick={async () => {
-            try {
-              console.log("Testing database connection...");
-              const { data, error } = await supabase
-                .from("conversations" as any)
-                .select("count")
-                .limit(1);
-
-              if (error) {
-                console.error("Database test failed:", error);
-                alert("Database test failed: " + error.message);
-              } else {
-                console.log("Database test successful:", data);
-                alert("Database test successful!");
-              }
-            } catch (err) {
-              console.error("Database test error:", err);
-              alert("Database test error: " + err.message);
-            }
-          }}
-        >
-          Test Database Connection
-        </button>
       </div>
 
-      <div className="flex gap-6 h-[calc(100vh-8rem)]">
-        <div className="w-80 flex-shrink-0">
-          <ConversationList
-            selectedConversationId={selectedConversation?.id}
-            onSelectConversation={handleSelectConversation}
-          />
+      {loading ? (
+        <div className="flex items-center justify-center h-[calc(100vh-12rem)]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading...</p>
+          </div>
         </div>
-        <div className="flex-1">
-          <ChatWindow
-            conversation={selectedConversation}
-            onBack={() => setSelectedConversation(null)}
-          />
+      ) : (
+        <div className="flex gap-6 h-[calc(100vh-12rem)] overflow-hidden">
+          <div className="w-80 flex-shrink-0">
+            <ConversationList
+              selectedConversationId={selectedConversation?.id}
+              onSelectConversation={handleSelectConversation}
+            />
+          </div>
+          <div className="flex-1 min-w-0 overflow-hidden">
+            <ChatWindow
+              conversation={selectedConversation}
+              onBack={() => setSelectedConversation(null)}
+            />
+          </div>
         </div>
-      </div>
-
-      <div className="mt-20">
-        <ShowAllMessages />
-      </div>
+      )}
     </div>
   );
 }
