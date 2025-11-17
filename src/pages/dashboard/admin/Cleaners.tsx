@@ -70,6 +70,7 @@ export default function CleanersPage() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>("");
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [viewingCleaner, setViewingCleaner] = useState<Cleaner | null>(null);
 
   useEffect(() => {
     loadCleaners();
@@ -293,6 +294,19 @@ export default function CleanersPage() {
     setImageFile(null);
     setImagePreview("");
     setFormData(prev => ({ ...prev, image_url: "" }));
+  };
+
+  const renderStars = (rating: number) => {
+    return Array.from({ length: 5 }, (_, i) => (
+      <Star
+        key={i}
+        className={`h-4 w-4 ${
+          i < Math.floor(rating)
+            ? 'text-yellow-400 fill-current'
+            : 'text-gray-300'
+        }`}
+      />
+    ));
   };
 
   return (
@@ -523,7 +537,16 @@ export default function CleanersPage() {
                           <Button
                             variant="ghost"
                             size="sm"
+                            onClick={() => setViewingCleaner(cleaner)}
+                            title="View Cleaner"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
                             onClick={() => handleEditCleaner(cleaner)}
+                            title="Edit Cleaner"
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
@@ -819,6 +842,214 @@ export default function CleanersPage() {
               {editingCleaner ? "Update Cleaner" : "Add Cleaner"}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* View Cleaner Dialog */}
+      <Dialog open={!!viewingCleaner} onOpenChange={() => setViewingCleaner(null)}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <div className="flex items-start gap-4 mb-4">
+              {viewingCleaner?.image_url ? (
+                <img
+                  src={viewingCleaner.image_url}
+                  alt={viewingCleaner.name}
+                  className="w-24 h-24 rounded-full object-cover border-2 border-gray-200 flex-shrink-0"
+                />
+              ) : (
+                <div className="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <Sparkles className="h-12 w-12 text-blue-600" />
+                </div>
+              )}
+              <div className="flex-1">
+                <DialogTitle className="text-2xl flex items-center gap-2">
+                  {viewingCleaner?.name}
+                  {viewingCleaner?.verified && (
+                    <Badge variant="secondary" className="bg-green-100 text-green-800">
+                      <CheckCircle className="h-4 w-4 mr-1" />
+                      Verified
+                    </Badge>
+                  )}
+                </DialogTitle>
+                <p className="text-lg text-muted-foreground mt-1">{viewingCleaner?.company}</p>
+                {viewingCleaner && (
+                  <div className="flex items-center gap-2 mt-2">
+                    <div className="flex">{renderStars(viewingCleaner.rating)}</div>
+                    <span className="font-medium">{viewingCleaner.rating.toFixed(1)}</span>
+                    <span className="text-sm text-muted-foreground">({viewingCleaner.review_count} reviews)</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </DialogHeader>
+          
+          {viewingCleaner && (
+            <div className="space-y-6">
+              {/* Contact Information */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-3">
+                  <h3 className="font-semibold text-lg border-b pb-2">Contact Information</h3>
+                  {viewingCleaner.location && (
+                    <div className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4 text-gray-500" />
+                      <span>{viewingCleaner.location}</span>
+                    </div>
+                  )}
+                  {viewingCleaner.phone && (
+                    <div className="flex items-center gap-2">
+                      <Phone className="h-4 w-4 text-gray-500" />
+                      <span>{viewingCleaner.phone}</span>
+                    </div>
+                  )}
+                  {viewingCleaner.email && (
+                    <div className="flex items-center gap-2">
+                      <Mail className="h-4 w-4 text-gray-500" />
+                      <span>{viewingCleaner.email}</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-3">
+                  <h3 className="font-semibold text-lg border-b pb-2">Availability & Pricing</h3>
+                  {viewingCleaner.availability && (
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-gray-500" />
+                      <span>{viewingCleaner.availability}</span>
+                    </div>
+                  )}
+                  {viewingCleaner.hourly_rate && (
+                    <div className="flex items-center gap-2">
+                      <DollarSign className="h-4 w-4 text-gray-500" />
+                      <span>{viewingCleaner.hourly_rate}</span>
+                    </div>
+                  )}
+                  {viewingCleaner.response_time && (
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-gray-500" />
+                      <span>Response time: {viewingCleaner.response_time}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Description */}
+              {viewingCleaner.description && (
+                <div>
+                  <h3 className="font-semibold text-lg border-b pb-2 mb-3">About</h3>
+                  <p className="text-muted-foreground">{viewingCleaner.description}</p>
+                </div>
+              )}
+
+              {/* Services */}
+              {viewingCleaner.services && viewingCleaner.services.length > 0 && (
+                <div>
+                  <h3 className="font-semibold text-lg border-b pb-2 mb-3">Services</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {viewingCleaner.services.map((service) => (
+                      <Badge key={service} variant="outline" className="text-sm">
+                        <Sparkles className="h-3 w-3 mr-1" />
+                        {service}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Experience & Stats */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+                  <Award className="h-5 w-5 text-blue-600" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Experience</p>
+                    <p className="font-semibold">{viewingCleaner.years_experience} years</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+                  <Users className="h-5 w-5 text-blue-600" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Jobs Completed</p>
+                    <p className="font-semibold">{viewingCleaner.completed_jobs}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+                  <Star className="h-5 w-5 text-blue-600" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Rating</p>
+                    <p className="font-semibold">{viewingCleaner.rating.toFixed(1)} / 5.0</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Certifications */}
+              {viewingCleaner.certifications && viewingCleaner.certifications.length > 0 && (
+                <div>
+                  <h3 className="font-semibold text-lg border-b pb-2 mb-3">Certifications</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {viewingCleaner.certifications.map((cert, index) => (
+                      <Badge key={index} variant="secondary" className="text-sm">
+                        <Award className="h-3 w-3 mr-1" />
+                        {cert}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Portfolio */}
+              {viewingCleaner.portfolio && viewingCleaner.portfolio.length > 0 && (
+                <div>
+                  <h3 className="font-semibold text-lg border-b pb-2 mb-3">Portfolio</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    {viewingCleaner.portfolio.map((item, index) => (
+                      <div key={index} className="p-2 bg-gray-50 rounded border">
+                        <p className="text-sm">{item}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Status Information */}
+              <div className="flex items-center gap-4 pt-4 border-t">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium">Status:</span>
+                  <Badge variant={viewingCleaner.is_active ? "default" : "secondary"}>
+                    {viewingCleaner.is_active ? "Active" : "Inactive"}
+                  </Badge>
+                </div>
+                {viewingCleaner.verified && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium">Verification:</span>
+                    <Badge variant="secondary" className="bg-green-100 text-green-800">
+                      <CheckCircle className="h-3 w-3 mr-1" />
+                      Verified
+                    </Badge>
+                  </div>
+                )}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-2 pt-4 border-t">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setViewingCleaner(null);
+                    handleEditCleaner(viewingCleaner);
+                  }}
+                  className="flex-1"
+                >
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit Cleaner
+                </Button>
+                <Button
+                  variant="default"
+                  onClick={() => setViewingCleaner(null)}
+                >
+                  Close
+                </Button>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>

@@ -14,6 +14,7 @@ export interface RenovationPartner {
   hourly_rate?: string;
   description?: string;
   image_url?: string;
+  website_url?: string;
   verified: boolean;
   response_time?: string;
   completed_projects: number;
@@ -39,6 +40,7 @@ export interface RenovationPartnerInput {
   hourly_rate?: string;
   description?: string;
   image_url?: string;
+  website_url?: string;
   verified?: boolean;
   response_time?: string;
   completed_projects?: number;
