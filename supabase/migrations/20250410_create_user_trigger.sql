@@ -1,12 +1,13 @@
 
 -- Create a trigger function to automatically create profile records for new users
+-- NOTE: This uses user_profiles table (not profiles)
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER
 LANGUAGE plpgsql
 SECURITY DEFINER SET search_path = public
 AS $$
 BEGIN
-  INSERT INTO public.profiles (id, full_name, email, created_at, updated_at)
+  INSERT INTO public.user_profiles (id, full_name, email, created_at, updated_at)
   VALUES (
     new.id,
     new.raw_user_meta_data->>'full_name',

@@ -21,6 +21,48 @@ export default function Callback() {
       if (session) {
         console.log("Auth callback - session exists:", session.user.email);
         
+        // Ensure profile exists for the user
+        try {
+          const { data: existingProfile } = await supabase
+            .from('user_profiles')
+            .select('id, full_name')
+            .eq('id', session.user.id)
+            .single();
+          
+          if (!existingProfile) {
+            // Create profile if it doesn't exist
+            const fullName = session.user.user_metadata?.full_name || 
+                           session.user.user_metadata?.name ||
+                           session.user.user_metadata?.display_name ||
+                           null;
+            
+            const { error: profileError } = await supabase
+              .from('user_profiles')
+              .insert({
+                id: session.user.id,
+                full_name: fullName,
+                email: session.user.email || null,
+              });
+            
+            if (profileError) {
+              console.warn("Could not create profile in callback:", profileError);
+            } else {
+              console.log("Profile created successfully in callback");
+            }
+          } else if (!existingProfile.full_name && session.user.user_metadata?.full_name) {
+            // Update profile if full_name is missing
+            await supabase
+              .from('user_profiles')
+              .update({
+                full_name: session.user.user_metadata.full_name,
+                email: session.user.email || existingProfile.email,
+              })
+              .eq('id', session.user.id);
+          }
+        } catch (profileErr) {
+          console.warn("Error checking/creating profile in callback:", profileErr);
+        }
+        
         // Get user metadata which should contain role
         const userRole = session.user?.user_metadata?.role;
         console.log("Auth callback - role from metadata:", userRole);

@@ -70,7 +70,7 @@ export class MessagingService {
             try {
               const { data: landlordProfile, error: landlordError } =
                 await supabase
-                  .from("profiles" as any)
+                  .from("user_profiles" as any)
                   .select("full_name, email")
                   .eq("id", conv.landlord_id)
                   .maybeSingle();
@@ -128,7 +128,7 @@ export class MessagingService {
             let tenantName = "Tenant";
             try {
               const { data: tenantProfile, error: tenantError } = await supabase
-                .from("profiles" as any)
+                .from("user_profiles" as any)
                 .select("full_name, email")
                 .eq("id", conv.tenant_id)
                 .maybeSingle();
@@ -278,7 +278,7 @@ export class MessagingService {
       try {
         // First try profiles table
         const { data: landlordProfile, error: landlordError } = await supabase
-          .from("profiles" as any)
+          .from("user_profiles" as any)
           .select("full_name, email")
           .eq("id", conversation.landlord_id)
           .maybeSingle();
@@ -322,7 +322,7 @@ export class MessagingService {
       try {
         // First try profiles table
         const { data: tenantProfile, error: tenantError } = await supabase
-          .from("profiles" as any)
+          .from("user_profiles" as any)
           .select("full_name, email")
           .eq("id", conversation.tenant_id)
           .maybeSingle();
