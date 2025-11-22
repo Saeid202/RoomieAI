@@ -201,7 +201,7 @@ export function ChatWindow({
                     <div
                       key={message.id}
                       className={`flex gap-3 max-w-[80%] ${
-                        isOwn ? "mr-auto" : "ml-auto flex-row-reverse"
+                        isOwn ? "ml-auto flex-row-reverse" : "mr-auto"
                       }`}
                     >
                       <div

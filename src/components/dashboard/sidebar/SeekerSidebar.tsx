@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { 
   Home, Users, Building, Search, 
   Settings, Calendar, Clock, List, MapPin, Group, 
-  Briefcase, Flag, Scale, Sliders, Bot, CreditCard
+  Briefcase, Flag, Scale, Sliders, Bot, CreditCard, MessageCircle
 } from "lucide-react";
 import { SidebarSimpleMenuItem } from "./SidebarSimpleMenuItem";
 
@@ -43,6 +43,13 @@ export function SeekerSidebar({ isActive }: SeekerSidebarProps) {
       />
       
       <SidebarSimpleMenuItem 
+        icon={<MessageCircle size={18} />} 
+        label="Messages"
+        to="/dashboard/chats"
+        isActive={isActive('/dashboard/chats')}
+      />
+
+      <SidebarSimpleMenuItem 
         icon={<Calendar size={18} />} 
         label="Plan Ahead Matching"
         to="/dashboard/plan-ahead-matching" 
@@ -81,8 +88,8 @@ export function SeekerSidebar({ isActive }: SeekerSidebarProps) {
       <SidebarSimpleMenuItem 
         icon={<Scale size={18} />} 
         label="AI Legal Assistant"
-        to="/dashboard/chats" 
-        isActive={isActive('/dashboard/chats')}
+        to="/dashboard/legal-ai" 
+        isActive={isActive('/dashboard/legal-ai')}
       />
       
 
