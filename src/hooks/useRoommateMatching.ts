@@ -67,12 +67,14 @@ export function useRoommateMatching() {
     try {
       console.log("useRoommateMatching - saveProfile called");
       await handleSaveProfile(formData);
+      // Refresh local cache so UI reflects latest data immediately
+      await loadProfileData();
       return Promise.resolve();
     } catch (error) {
       console.error("Error in saveProfile:", error);
       return Promise.reject(error);
     }
-  }, [handleSaveProfile]);
+  }, [handleSaveProfile, loadProfileData]);
 
   return {
     loading: loading || isSaving || isFindingMatches,

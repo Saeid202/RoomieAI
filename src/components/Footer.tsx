@@ -110,7 +110,7 @@ const Footer = ({ className }: FooterProps) => {
               <li><a href="#" className="text-gray-400 hover:text-roomie-purple transition-colors">Terms of Service</a></li>
               <li><Link to="/privacy-policy" className="text-gray-400 hover:text-roomie-purple transition-colors">Privacy Policy</Link></li>
               <li><a href="#" className="text-gray-400 hover:text-roomie-purple transition-colors">Cookie Policy</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-roomie-purple transition-colors">Trust & Safety</a></li>
+              <li><Link to="/admin/login" className="text-gray-400 hover:text-roomie-purple transition-colors text-xs">Admin Login</Link></li>
             </ul>
           </div>
         </div>

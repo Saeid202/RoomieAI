@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Building, User, Shield, ChevronDown } from "lucide-react";
 import { useRole, UserRole } from "@/contexts/RoleContext";
@@ -11,12 +11,30 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import { getAvailableRoles } from "@/services/adminService";
 
 export function RoleSwitcher() {
   const { role, setRole } = useRole();
-  const { updateMetadata } = useAuth();
+  const { updateMetadata, user } = useAuth();
   const navigate = useNavigate();
   const [isRoleSwitching, setIsRoleSwitching] = useState(false);
+  const [availableRoles, setAvailableRoles] = useState<UserRole[]>(['seeker', 'landlord']);
+
+  // Load available roles on mount
+  useEffect(() => {
+    async function loadAvailableRoles() {
+      if (!user) return;
+      
+      try {
+        const roles = await getAvailableRoles(user.id) as UserRole[];
+        setAvailableRoles(roles);
+      } catch (error) {
+        console.error('Error loading available roles:', error);
+      }
+    }
+    
+    loadAvailableRoles();
+  }, [user]);
 
   const handleRoleChange = async (newRole: UserRole) => {
     if (newRole === role) return;
@@ -73,8 +91,8 @@ export function RoleSwitcher() {
     }
   };
 
-  // Get available roles (exclude current role)
-  const availableRoles: UserRole[] = ['seeker', 'landlord', 'admin'].filter(r => r !== role);
+  // Filter available roles to exclude current role
+  const switchableRoles = availableRoles.filter(r => r !== role);
 
   return (
     <DropdownMenu>
@@ -90,7 +108,7 @@ export function RoleSwitcher() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-48" align="end">
-        {availableRoles.map((availableRole) => (
+        {switchableRoles.map((availableRole) => (
           <DropdownMenuItem 
             key={availableRole}
             onClick={() => handleRoleChange(availableRole)}

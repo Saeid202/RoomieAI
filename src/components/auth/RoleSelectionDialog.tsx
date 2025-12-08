@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useRole, UserRole } from "@/contexts/RoleContext";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
+import { checkIsAdmin } from "@/services/adminService";
 
 interface RoleSelectionDialogProps {
   isOpen: boolean;
@@ -27,7 +28,20 @@ export function RoleSelectionDialog({
   const { setRole } = useRole();
   const [loading, setLoading] = useState(false);
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const navigate = useNavigate();
+  
+  // Check if user is admin
+  useEffect(() => {
+    async function checkAdmin() {
+      if (!user) return;
+      
+      const adminStatus = await checkIsAdmin(user.id);
+      setIsAdmin(adminStatus);
+    }
+    
+    checkAdmin();
+  }, [user]);
   
   // Reset selected role when dialog opens
   useEffect(() => {
@@ -148,16 +162,19 @@ export function RoleSelectionDialog({
               isCurrent={currentRole === 'landlord'}
             />
             
-            <RoleCard
-              role="admin"
-              icon={<Shield size={24} />}
-              title="Administrator"
-              description={getRoleDescription('admin')}
-              isSelected={selectedRole === 'admin'}
-              onClick={() => handleRoleSelect('admin')}
-              isLoading={loading && selectedRole === 'admin'}
-              isCurrent={currentRole === 'admin'}
-            />
+            {/* Only show admin option if user is verified admin */}
+            {isAdmin && (
+              <RoleCard
+                role="admin"
+                icon={<Shield size={24} />}
+                title="Administrator"
+                description={getRoleDescription('admin')}
+                isSelected={selectedRole === 'admin'}
+                onClick={() => handleRoleSelect('admin')}
+                isLoading={loading && selectedRole === 'admin'}
+                isCurrent={currentRole === 'admin'}
+              />
+            )}
           </div>
         </div>
         

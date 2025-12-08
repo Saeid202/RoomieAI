@@ -17,6 +17,7 @@ CREATE TABLE public.roommate (
   email TEXT,
   phone_number TEXT,
   linkedin_profile TEXT,
+  profile_visibility TEXT[] DEFAULT ARRAY[]::TEXT[],
   
   -- Actual demographic information (user's own information)
   nationality TEXT,
@@ -141,6 +142,7 @@ CREATE TRIGGER update_roommate_updated_at
 COMMENT ON TABLE public.roommate IS 'Roommate profiles with comprehensive matching preferences';
 COMMENT ON COLUMN public.roommate.preferred_location IS 'Array of preferred locations for finding roommates';
 COMMENT ON COLUMN public.roommate.budget_range IS 'Budget range as [min, max] array in dollars';
+COMMENT ON COLUMN public.roommate.profile_visibility IS 'Array of visibility groups allowed to view the profile';
 COMMENT ON COLUMN public.roommate.move_in_date_start IS 'Earliest move-in date';
 COMMENT ON COLUMN public.roommate.move_in_date_end IS 'Latest move-in date';
 COMMENT ON COLUMN public.roommate.nationality IS 'User actual nationality';

@@ -47,6 +47,7 @@ import {
   hasUserAppliedForProperty,
   updateApplicationStatus,
   getApplicationById,
+  updateRentalApplicationDetails,
 } from "@/services/rentalApplicationService";
 import { LeaseContractTemplate } from "@/components/lease/LeaseContractTemplate";
 import { LeaseContract } from "@/services/leaseContractService";
@@ -173,6 +174,7 @@ export default function RentalApplicationPage() {
     useState<OntarioLeaseFormData | null>(null);
   const [loadingProfile, setLoadingProfile] = useState(false);
   const [profileAutoFilled, setProfileAutoFilled] = useState(false);
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
 
   useEffect(() => {
     const loadProperty = async () => {
@@ -412,6 +414,49 @@ export default function RentalApplicationPage() {
     value: string | boolean
   ) => {
     setApplicationData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleSaveDraft = async () => {
+    if (!createdApplicationId) {
+      toast.error("No existing application to save.");
+      return;
+    }
+
+    try {
+      setIsSavingDraft(true);
+
+      const parsedIncome = parseFloat(applicationData.monthlyIncome);
+
+      const updates = {
+        full_name: applicationData.fullName || null,
+        email: applicationData.email || null,
+        phone: applicationData.phone || null,
+        occupation: applicationData.occupation || null,
+        employer: applicationData.employer || null,
+        monthly_income: Number.isFinite(parsedIncome) ? parsedIncome : null,
+        move_in_date: applicationData.moveInDate || null,
+        lease_duration: applicationData.leaseDuration || null,
+        pet_ownership: applicationData.petOwnership,
+        smoking_status: applicationData.smokingStatus || null,
+        emergency_contact_name: applicationData.emergencyContactName || null,
+        emergency_contact_phone: applicationData.emergencyContactPhone || null,
+        emergency_contact_relation:
+          applicationData.emergencyContactRelation || null,
+        additional_info: applicationData.additionalInfo || null,
+        contract_signed: applicationData.contractSigned,
+        payment_completed: applicationData.paymentCompleted,
+      };
+
+      await updateRentalApplicationDetails(createdApplicationId, updates);
+      toast.success("Application changes saved.");
+    } catch (error) {
+      console.error("Failed to save application:", error);
+      const message =
+        error instanceof Error ? error.message : "Unknown error";
+      toast.error(`Failed to save application: ${message}`);
+    } finally {
+      setIsSavingDraft(false);
+    }
   };
 
   const handleFileUpload = (
@@ -1201,6 +1246,17 @@ export default function RentalApplicationPage() {
                     )}
 
                     <div className="flex flex-col gap-4">
+                      {createdApplicationId && (
+                        <Button
+                          variant="secondary"
+                          className="w-full py-3 text-sm font-medium"
+                          onClick={handleSaveDraft}
+                          disabled={isSavingDraft || isSubmitting}
+                        >
+                          {isSavingDraft ? "Saving Changes..." : "Save Changes"}
+                        </Button>
+                      )}
+
                       {!documentsSubmittedForReview && (
                         <>
                           {(!applicationData.fullName ||
@@ -1418,6 +1474,27 @@ export default function RentalApplicationPage() {
                                 if (failedCount > 0) {
                                   toast.error(
                                     `${failedCount} documents failed to upload. Check console for details.`
+                                  );
+                                }
+
+                                // Refresh existing documents list so newly uploaded files appear immediately
+                                try {
+                                  const updatedDocs = await getApplicationDocuments(
+                                    appId
+                                  );
+                                  setExistingDocuments(updatedDocs);
+                                  // Clear file inputs after successful upload
+                                  setApplicationData((prev) => ({
+                                    ...prev,
+                                    referenceLetters: [],
+                                    employmentLetter: [],
+                                    creditScoreLetter: [],
+                                    additionalDocuments: [],
+                                  }));
+                                } catch (refreshError) {
+                                  console.error(
+                                    "Failed to refresh uploaded documents:",
+                                    refreshError
                                   );
                                 }
 

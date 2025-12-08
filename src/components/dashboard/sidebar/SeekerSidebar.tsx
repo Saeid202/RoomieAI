@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { 
   Home, Users, Building, Search, 
   Settings, Calendar, Clock, List, MapPin, Group, 
-  Briefcase, Flag, Scale, Sliders, Bot, CreditCard
+  Briefcase, Flag, Scale, Sliders, Bot, CreditCard, MessageSquare
 } from "lucide-react";
 import { SidebarSimpleMenuItem } from "./SidebarSimpleMenuItem";
 
@@ -71,21 +71,27 @@ export function SeekerSidebar({ isActive }: SeekerSidebarProps) {
         isActive={isActive('/dashboard/lgbtq-matching')}
       />
       
-      <SidebarSimpleMenuItem 
+      {/* Temporarily hidden - Tailor AI tab */}
+      {/* <SidebarSimpleMenuItem 
         icon={<Bot size={18} />} 
         label="Tailor AI"
         to="/dashboard/tailor-ai" 
         isActive={isActive('/dashboard/tailor-ai')}
+      /> */}
+      
+      <SidebarSimpleMenuItem 
+        icon={<MessageSquare size={18} />} 
+        label="Messenger"
+        to="/dashboard/chats" 
+        isActive={isActive('/dashboard/chats')}
       />
       
       <SidebarSimpleMenuItem 
         icon={<Scale size={18} />} 
         label="AI Legal Assistant"
-        to="/dashboard/chats" 
-        isActive={isActive('/dashboard/chats')}
+        to="/dashboard/tenancy-legal-ai" 
+        isActive={isActive('/dashboard/tenancy-legal-ai')}
       />
-      
-
       
       <SidebarSimpleMenuItem 
         icon={<Settings size={18} />} 

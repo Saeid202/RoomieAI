@@ -28,6 +28,7 @@ import PropertyDetailsPage from "@/pages/dashboard/PropertyDetails";
 import RentalApplicationPage from "@/pages/dashboard/RentalApplication";
 import LegalAssistantPage from "@/pages/dashboard/LegalAssistant";
 import LegalAIPage from "@/pages/dashboard/LegalAI";
+import TenancyLegalAIPage from "@/pages/dashboard/TenancyLegalAI";
 import RenovatorsPage from "@/pages/dashboard/Renovators";
 import CleanersPage from "@/pages/dashboard/Cleaners";
 import ShopPage from "@/pages/dashboard/Shop";
@@ -42,6 +43,8 @@ import TailorAIPage from "@/pages/dashboard/TailorAI";
 import LeaseContractPage from "@/pages/dashboard/LeaseContract";
 // import ContractDetailsPage from "@/pages/dashboard/ContractDetails";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { AdminRoute } from "@/components/AdminRoute";
+import AdminLoginPage from "@/pages/admin/AdminLogin";
 import AdminHomePage from "@/pages/dashboard/admin/AdminHome";
 import PagesPage from "@/pages/dashboard/admin/Pages";
 import UsersPage from "@/pages/dashboard/admin/Users";
@@ -83,6 +86,7 @@ function AppRoutes() {
         <Route path="/community-guidelines" element={<CommunityGuidelines />} />
         <Route path="/contact-us" element={<ContactUsPage />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/admin/login" element={<AdminLoginPage />} />
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/auth/callback" element={<Callback />} />
         <Route path="/dashboard" element={
@@ -113,6 +117,7 @@ function AppRoutes() {
           <Route path="rent-savings" element={<RentSavingsPage />} />
           <Route path="legal-assistant" element={<LegalAssistantPage />} />
           <Route path="legal-ai" element={<LegalAIPage />} />
+          <Route path="tenancy-legal-ai" element={<TenancyLegalAIPage />} />
           <Route path="renovators" element={<RenovatorsPage />} />
           <Route path="cleaners" element={<CleanersPage />} />
           <Route path="shop" element={<ShopPage />} />
@@ -123,12 +128,14 @@ function AppRoutes() {
           <Route path="profile" element={<Navigate to="/dashboard/roommate-recommendations" replace />} />
           <Route path="profile/*" element={<Navigate to="/dashboard/roommate-recommendations" replace />} />
           <Route path="settings" element={<SettingsPage />} />
-          <Route path="admin" element={<AdminHomePage />} />
-          <Route path="admin/pages" element={<PagesPage />} />
-          <Route path="admin/users" element={<UsersPage />} />
-          <Route path="admin/renovation-partners" element={<RenovationPartnersPage />} />
-          <Route path="admin/cleaners" element={<AdminCleanersPage />} />
-          <Route path="admin/settings" element={<SettingsPage />} />
+          
+          {/* Admin routes - protected with AdminRoute */}
+          <Route path="admin" element={<AdminRoute><AdminHomePage /></AdminRoute>} />
+          <Route path="admin/pages" element={<AdminRoute><PagesPage /></AdminRoute>} />
+          <Route path="admin/users" element={<AdminRoute><UsersPage /></AdminRoute>} />
+          <Route path="admin/renovation-partners" element={<AdminRoute><RenovationPartnersPage /></AdminRoute>} />
+          <Route path="admin/cleaners" element={<AdminRoute><AdminCleanersPage /></AdminRoute>} />
+          <Route path="admin/settings" element={<AdminRoute><SettingsPage /></AdminRoute>} />
         </Route>
       </Routes>
     );
@@ -144,6 +151,7 @@ function AppRoutes() {
       <Route path="/community-guidelines" element={<CommunityGuidelines />} />
       <Route path="/contact-us" element={<ContactUsPage />} />
       <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+      <Route path="/admin/login" element={<AdminLoginPage />} />
       <Route path="/auth" element={<AuthPage />} />
       <Route path="/auth/callback" element={<Callback />} />
       <Route path="/dashboard" element={
@@ -173,6 +181,7 @@ function AppRoutes() {
         <Route path="rent-savings" element={<RentSavingsPage />} />
         <Route path="legal-assistant" element={<LegalAssistantPage />} />
         <Route path="legal-ai" element={<LegalAIPage />} />
+        <Route path="tenancy-legal-ai" element={<TenancyLegalAIPage />} />
         <Route path="renovators" element={<RenovatorsPage />} />
         <Route path="cleaners" element={<CleanersPage />} />
         <Route path="shop" element={<ShopPage />} />
@@ -183,11 +192,14 @@ function AppRoutes() {
         <Route path="profile" element={<Navigate to="/dashboard/roommate-recommendations" replace />} />
         <Route path="profile/*" element={<Navigate to="/dashboard/roommate-recommendations" replace />} />
         <Route path="settings" element={<SettingsPage />} />
-        <Route path="admin" element={<AdminHomePage />} />
-        <Route path="admin/pages" element={<PagesPage />} />
-        <Route path="admin/users" element={<UsersPage />} />
-        <Route path="admin/renovation-partners" element={<RenovationPartnersPage />} />
-        <Route path="admin/settings" element={<SettingsPage />} />
+        
+        {/* Admin routes - protected with AdminRoute */}
+        <Route path="admin" element={<AdminRoute><AdminHomePage /></AdminRoute>} />
+        <Route path="admin/pages" element={<AdminRoute><PagesPage /></AdminRoute>} />
+        <Route path="admin/users" element={<AdminRoute><UsersPage /></AdminRoute>} />
+        <Route path="admin/renovation-partners" element={<AdminRoute><RenovationPartnersPage /></AdminRoute>} />
+        <Route path="admin/cleaners" element={<AdminRoute><AdminCleanersPage /></AdminRoute>} />
+        <Route path="admin/settings" element={<AdminRoute><SettingsPage /></AdminRoute>} />
       </Route>
     </Routes>
   );

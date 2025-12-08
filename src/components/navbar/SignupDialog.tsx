@@ -30,31 +30,16 @@ export const SignupDialog = ({ isOpen, setIsOpen }: SignupDialogProps) => {
   const handleSignupSubmit = async (values: SignupFormValues) => {
     setIsLoading(true);
     try {
-      // Store metadata in localStorage before signup
-      const metadata = {
-        full_name: values.fullName,
-        role: values.role,
-      };
-      
-      // Store role directly for immediate access
-      localStorage.setItem('userRole', values.role);
-      console.log("Stored user role in localStorage:", values.role);
-      
-      // For social auth without prior signup
-      localStorage.setItem('pendingRole', values.role);
-      console.log("Stored pending role in localStorage:", values.role);
-      
-      // Set role in context for consistent UI
-      setRole(values.role);
-      
-      // Store signup data for use in callback
-      localStorage.setItem('signupData', JSON.stringify(metadata));
-      
-      // Sign up the user with the provided email and password
+      // Simple signup - just email and password
+      // Role and metadata will be handled after email verification
       const result = await signUp(values.email, values.password);
       
       console.log("Signup successful, user data:", result.user);
       console.log("Selected role:", values.role);
+      
+      // Store role for later (after email verification)
+      localStorage.setItem('pendingRole', values.role);
+      localStorage.setItem('pendingFullName', values.fullName);
       
       setIsOpen(false);
       

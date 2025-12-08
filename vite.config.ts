@@ -3,31 +3,33 @@ import react from "@vitejs/plugin-react";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 
+const DEFAULT_PORT = Number(process.env.VITE_PORT ?? process.env.PORT ?? 5173);
+const DEFAULT_HOST = process.env.VITE_HOST ?? "0.0.0.0";
+const HMR_HOST = DEFAULT_HOST === "0.0.0.0" ? "127.0.0.1" : DEFAULT_HOST;
+
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   server: {
-    host: '0.0.0.0',
-    port: 3000,
-    strictPort: true,
+    host: DEFAULT_HOST,
+    port: DEFAULT_PORT,
+    strictPort: false,
     hmr: {
-      host: 'localhost',
-      clientPort: 3000,
-      protocol: 'ws',
+      host: HMR_HOST,
+      protocol: "ws",
       overlay: false,
     },
     watch: {
       usePolling: false,
-      ignored: ['**/node_modules/**', '**/.git/**', '**/dist/**'],
+      ignored: ["**/node_modules/**", "**/.git/**", "**/dist/**"],
     },
     fs: {
       strict: false,
-      allow: ['..']
+      allow: [".."],
     },
   },
   plugins: [
     react(),
-    mode === 'development' &&
-    componentTagger(),
+    mode === "development" && componentTagger(),
   ].filter(Boolean),
   resolve: {
     alias: {

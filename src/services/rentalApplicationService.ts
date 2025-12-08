@@ -75,6 +75,28 @@ export interface RentalApplicationInput {
   payment_completed?: boolean;
 }
 
+export type RentalApplicationUpdateInput = Partial<{
+  full_name: string | null;
+  email: string | null;
+  phone: string | null;
+  date_of_birth?: string | null;
+  occupation: string | null;
+  employer?: string | null;
+  monthly_income: number | null;
+  move_in_date?: string | null;
+  lease_duration?: string | null;
+  pet_ownership: boolean | null;
+  smoking_status?: string | null;
+  emergency_contact_name?: string | null;
+  emergency_contact_phone?: string | null;
+  emergency_contact_relation?: string | null;
+  additional_info?: string | null;
+  contract_signed?: boolean;
+  payment_completed?: boolean;
+  signature_data?: string | null;
+  agree_to_terms?: boolean;
+}>;
+
 /**
  * Submit a new rental application (without documents)
  */
@@ -97,6 +119,41 @@ export async function submitRentalApplication(input: RentalApplicationInput): Pr
     return data as RentalApplication;
   } catch (error) {
     console.error("Error in submitRentalApplication:", error);
+    throw error;
+  }
+}
+
+/**
+ * Update rental application details
+ */
+export async function updateRentalApplicationDetails(
+  applicationId: string,
+  updates: RentalApplicationUpdateInput
+): Promise<RentalApplication> {
+  console.log("Updating rental application details:", applicationId, updates);
+
+  try {
+    const payload = {
+      ...updates,
+      updated_at: new Date().toISOString(),
+    };
+
+    const { data, error } = await sb
+      .from("rental_applications")
+      .update(payload)
+      .eq("id", applicationId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error updating rental application details:", error);
+      throw new Error(`Failed to update application: ${error.message}`);
+    }
+
+    console.log("Rental application updated successfully:", data);
+    return data as RentalApplication;
+  } catch (error) {
+    console.error("Error in updateRentalApplicationDetails:", error);
     throw error;
   }
 }
