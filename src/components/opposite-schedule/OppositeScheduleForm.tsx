@@ -120,19 +120,20 @@ export default function OppositeScheduleForm({ onProfileSaved }: OppositeSchedul
   return (
     <div className="w-full">
       <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm">
-        <CardHeader className="relative overflow-hidden rounded-t-lg bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 p-8 text-white shadow-2xl">
-          <div className="absolute inset-0 bg-black/10"></div>
+        <CardHeader className="relative overflow-hidden rounded-t-lg bg-gradient-to-r from-purple-100 to-purple-200 p-8 text-purple-900 shadow">
+          <div className="absolute inset-0 bg-white/20"></div>
+          
           <div className="relative z-10 text-center">
-            <CardTitle className="text-3xl font-bold tracking-tight mb-2">
+            <CardTitle className="text-3xl font-bold tracking-tight mb-2 text-purple-900">
               Opposite Schedule Room Sharing
             </CardTitle>
-            <CardDescription className="text-blue-100 text-lg">
+            <CardDescription className="text-purple-600 text-lg">
               Find roommates with opposite work schedules - perfect for shared living spaces
             </CardDescription>
           </div>
-          {/* Decorative elements */}
-          <div className="absolute -top-4 -right-4 w-24 h-24 bg-white/10 rounded-full"></div>
-          <div className="absolute -bottom-2 -left-2 w-16 h-16 bg-white/5 rounded-full"></div>
+
+          <div className="absolute -top-4 -right-4 w-24 h-24 bg-white/30 rounded-full"></div>
+          <div className="absolute -bottom-2 -left-2 w-16 h-16 bg-white/20 rounded-full"></div>
         </CardHeader>
         
         <CardContent className="p-6">

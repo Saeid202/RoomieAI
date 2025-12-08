@@ -25,9 +25,11 @@ import {
   Clock,
   Award,
   Users,
-  DollarSign
+  DollarSign,
+  ExternalLink
 } from "lucide-react";
 import { RenovationPartnerService, RenovationPartner, RenovationPartnerInput } from "@/services/renovationPartnerService";
+import { ImageUploadService } from "@/services/imageUploadService";
 import { toast } from "sonner";
 
 export default function RenovationPartnersPage() {
@@ -51,6 +53,7 @@ export default function RenovationPartnersPage() {
     hourly_rate: "",
     description: "",
     image_url: "",
+    website_url: "",
     verified: false,
     response_time: "",
     completed_projects: 0,
@@ -65,6 +68,9 @@ export default function RenovationPartnersPage() {
     verified: 0,
     averageRating: 0
   });
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>("");
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   useEffect(() => {
     loadPartners();
@@ -112,6 +118,8 @@ export default function RenovationPartnersPage() {
 
   const handleAddPartner = () => {
     setEditingPartner(null);
+    setImageFile(null);
+    setImagePreview("");
     setFormData({
       name: "",
       company: "",
@@ -125,6 +133,7 @@ export default function RenovationPartnersPage() {
       hourly_rate: "",
       description: "",
       image_url: "",
+      website_url: "",
       verified: false,
       response_time: "",
       completed_projects: 0,
@@ -138,6 +147,8 @@ export default function RenovationPartnersPage() {
 
   const handleEditPartner = (partner: RenovationPartner) => {
     setEditingPartner(partner);
+    setImageFile(null);
+    setImagePreview(partner.image_url || "");
     setFormData({
       name: partner.name,
       company: partner.company,
@@ -151,6 +162,7 @@ export default function RenovationPartnersPage() {
       hourly_rate: partner.hourly_rate || "",
       description: partner.description || "",
       image_url: partner.image_url || "",
+      website_url: partner.website_url || "",
       verified: partner.verified,
       response_time: partner.response_time || "",
       completed_projects: partner.completed_projects,
@@ -169,20 +181,45 @@ export default function RenovationPartnersPage() {
         return;
       }
 
+      let finalFormData = { ...formData };
+
+      // Handle image upload if there's a new image
+      if (imageFile) {
+        setUploadingImage(true);
+        const uploadResult = await ImageUploadService.uploadImage(
+          imageFile,
+          'renovation-partner-images',
+          'partners'
+        );
+        
+        if (!uploadResult.success) {
+          toast.error(uploadResult.error || 'Failed to upload image');
+          setUploadingImage(false);
+          return;
+        }
+
+        finalFormData.image_url = uploadResult.url || "";
+        setUploadingImage(false);
+      }
+
       if (editingPartner) {
-        await RenovationPartnerService.updatePartner(editingPartner.id, formData);
+        await RenovationPartnerService.updatePartner(editingPartner.id, finalFormData);
         toast.success("Partner updated successfully");
       } else {
-        await RenovationPartnerService.createPartner(formData);
+        await RenovationPartnerService.createPartner(finalFormData);
         toast.success("Partner created successfully");
       }
 
+      // Reset form
+      setImageFile(null);
+      setImagePreview("");
       setIsDialogOpen(false);
       loadPartners();
       loadStats();
     } catch (error) {
       console.error('Failed to save partner:', error);
       toast.error('Failed to save partner');
+      setUploadingImage(false);
     }
   };
 
@@ -237,6 +274,33 @@ export default function RenovationPartnersPage() {
   const handlePortfolioChange = (value: string) => {
     const portfolio = value.split(',').map(s => s.trim()).filter(s => s);
     setFormData(prev => ({ ...prev, portfolio }));
+  };
+
+  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Validate image
+      const validation = ImageUploadService.validateImage(file);
+      if (!validation.valid) {
+        toast.error(validation.error || 'Invalid image file');
+        return;
+      }
+
+      setImageFile(file);
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setImageFile(null);
+    setImagePreview("");
+    setFormData(prev => ({ ...prev, image_url: "" }));
   };
 
   return (
@@ -437,7 +501,26 @@ export default function RenovationPartnersPage() {
                           <Button
                             variant="ghost"
                             size="sm"
+                            onClick={() => window.open(`/dashboard/renovators`, '_blank')}
+                            title="View Listing"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          {partner.website_url && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => window.open(partner.website_url, '_blank')}
+                              title="View Website"
+                            >
+                              <ExternalLink className="h-4 w-4" />
+                            </Button>
+                          )}
+                          <Button
+                            variant="ghost"
+                            size="sm"
                             onClick={() => handleEditPartner(partner)}
+                            title="Edit Partner"
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
@@ -445,6 +528,7 @@ export default function RenovationPartnersPage() {
                             variant="ghost"
                             size="sm"
                             onClick={() => handleToggleStatus(partner.id, !partner.is_active)}
+                            title={partner.is_active ? "Deactivate" : "Activate"}
                           >
                             {partner.is_active ? <XCircle className="h-4 w-4" /> : <CheckCircle className="h-4 w-4" />}
                           </Button>
@@ -452,6 +536,7 @@ export default function RenovationPartnersPage() {
                             variant="ghost"
                             size="sm"
                             onClick={() => handleToggleVerification(partner.id, !partner.verified)}
+                            title={partner.verified ? "Unverify" : "Verify"}
                           >
                             <Award className="h-4 w-4" />
                           </Button>
@@ -460,6 +545,7 @@ export default function RenovationPartnersPage() {
                             size="sm"
                             onClick={() => handleDeletePartner(partner.id)}
                             className="text-red-600 hover:text-red-700"
+                            title="Delete Partner"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -537,12 +623,60 @@ export default function RenovationPartnersPage() {
             </div>
 
             <div>
-              <Label htmlFor="image_url">Image URL</Label>
+              <Label htmlFor="image_upload">Partner Photo</Label>
+              <div className="space-y-4">
+                {/* Image Preview */}
+                {(imagePreview || formData.image_url) && (
+                  <div className="relative w-32 h-32 border rounded-lg overflow-hidden">
+                    <img
+                      src={imagePreview || formData.image_url}
+                      alt="Partner preview"
+                      className="w-full h-full object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleRemoveImage}
+                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
+                    >
+                      ×
+                    </button>
+                  </div>
+                )}
+                
+                {/* File Upload Input */}
+                <div className="flex items-center gap-4">
+                  <input
+                    type="file"
+                    id="image_upload"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="hidden"
+                  />
+                  <label
+                    htmlFor="image_upload"
+                    className="flex items-center gap-2 px-4 py-2 border border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-400 transition-colors"
+                  >
+                    <Hammer className="h-4 w-4" />
+                    {imageFile ? 'Change Image' : 'Upload Image'}
+                  </label>
+                  {uploadingImage && (
+                    <div className="text-sm text-blue-600">Uploading...</div>
+                  )}
+                </div>
+                
+                <p className="text-xs text-muted-foreground">
+                  Upload a photo (JPEG, PNG, WebP, or GIF. Max 5MB)
+                </p>
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="website_url">Website URL</Label>
               <Input
-                id="image_url"
-                value={formData.image_url}
-                onChange={(e) => setFormData(prev => ({ ...prev, image_url: e.target.value }))}
-                placeholder="https://example.com/partner-image.jpg"
+                id="website_url"
+                value={formData.website_url}
+                onChange={(e) => setFormData(prev => ({ ...prev, website_url: e.target.value }))}
+                placeholder="https://example.com"
               />
             </div>
 

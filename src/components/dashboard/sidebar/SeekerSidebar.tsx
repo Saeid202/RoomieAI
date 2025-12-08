@@ -43,6 +43,13 @@ export function SeekerSidebar({ isActive }: SeekerSidebarProps) {
       />
       
       <SidebarSimpleMenuItem 
+        icon={<MessageCircle size={18} />} 
+        label="Messages"
+        to="/dashboard/chats"
+        isActive={isActive('/dashboard/chats')}
+      />
+
+      <SidebarSimpleMenuItem 
         icon={<Calendar size={18} />} 
         label="Plan Ahead Matching"
         to="/dashboard/plan-ahead-matching" 
@@ -89,8 +96,13 @@ export function SeekerSidebar({ isActive }: SeekerSidebarProps) {
       <SidebarSimpleMenuItem 
         icon={<Scale size={18} />} 
         label="AI Legal Assistant"
+<<<<<<< HEAD
         to="/dashboard/tenancy-legal-ai" 
         isActive={isActive('/dashboard/tenancy-legal-ai')}
+=======
+        to="/dashboard/legal-ai" 
+        isActive={isActive('/dashboard/legal-ai')}
+>>>>>>> 6912a5a022b4f7452d70dff8495fe831a38d8c88
       />
       
       <SidebarSimpleMenuItem 

@@ -574,6 +574,13 @@ export default function RentalApplicationPage() {
       if (!applicationData.phone) missingFields.push("Phone");
       if (!applicationData.occupation) missingFields.push("Occupation");
       if (!applicationData.monthlyIncome) missingFields.push("Monthly Income");
+      
+      // Validate monthly income is a valid number
+      const monthlyIncome = parseFloat(applicationData.monthlyIncome || "0");
+      if (isNaN(monthlyIncome) || monthlyIncome <= 0) {
+        missingFields.push("Valid Monthly Income");
+      }
+      
       // Note: Contract signing is optional for initial submission
       // if (!applicationData.contractSigned)
       //   missingFields.push("Contract Signature");
@@ -582,11 +589,13 @@ export default function RentalApplicationPage() {
 
       if (missingFields.length > 0) {
         toast.error(`Please complete: ${missingFields.join(", ")}`);
+        setIsSubmitting(false);
         return;
       }
 
       if (!id || !user) {
         toast.error("Missing property or user information");
+        setIsSubmitting(false);
         return;
       }
 
@@ -611,10 +620,10 @@ export default function RentalApplicationPage() {
         date_of_birth: applicationData.dateOfBirth || undefined,
         occupation: applicationData.occupation,
         employer: applicationData.employer || undefined,
-        monthly_income: parseFloat(applicationData.monthlyIncome),
+        monthly_income: parseFloat(applicationData.monthlyIncome) || 0,
         move_in_date: applicationData.moveInDate || undefined,
         lease_duration: applicationData.leaseDuration || undefined,
-        pet_ownership: applicationData.petOwnership,
+        pet_ownership: applicationData.petOwnership || false,
         smoking_status: applicationData.smokingStatus || undefined,
         emergency_contact_name: applicationData.emergencyContactName || undefined,
         emergency_contact_phone: applicationData.emergencyContactPhone || undefined,
@@ -635,12 +644,22 @@ export default function RentalApplicationPage() {
 
       toast.success("Rental application and contract submitted successfully!");
       navigate("/dashboard/rental-options");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error submitting application:", error);
       console.error("Error details:", error);
-      toast.error(
-        `Failed to submit application: ${error.message || "Please try again."}`
-      );
+      
+      // Extract error message
+      const errorMessage = error?.message || 
+                          error?.error?.message || 
+                          error?.toString() || 
+                          "An unexpected error occurred. Please try again.";
+      
+      toast.error(`Failed to submit application: ${errorMessage}`);
+      
+      // Log full error for debugging
+      if (error?.error) {
+        console.error("Supabase error details:", error.error);
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -1905,19 +1924,9 @@ export default function RentalApplicationPage() {
               <EnhancedButton
                 onClick={async () => {
                   console.log("🔘 Complete Rental Application button clicked");
-                  console.log("Button click registered - calling handleSubmit");
-                  alert("Button clicked! Starting submission process...");
                   
-                  // Direct test of the submission process
-                  try {
-                    console.log("🚀 Starting direct submission test");
-                    await handleSubmit();
-                    console.log("✅ Submission completed successfully");
-                  } catch (error) {
-                    console.error("❌ Error in button click handler:", error);
-                    alert("Error: " + error.message);
-                    toast.error("Button click failed: " + error.message);
-                  }
+                  // Call handleSubmit which handles all the logic
+                  await handleSubmit();
                 }}
                 disabled={isSubmitting}
                 className="bg-primary hover:bg-primary/90"
