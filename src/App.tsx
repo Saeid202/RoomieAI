@@ -2,6 +2,7 @@ import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/providers/ThemeProvider";
 import { AuthProvider } from "@/providers/AuthProvider";
+import { RoleProvider } from "@/contexts/RoleContext";
 import Dashboard from "@/pages/Dashboard";
 import HomePage from "@/pages/Home";
 import AboutUs from "./pages/AboutUs";
@@ -20,6 +21,7 @@ import LandlordDashboardPage from "@/pages/dashboard/landlord/LandlordDashboard"
 import PropertiesPage from "@/pages/dashboard/landlord/Properties";
 import ApplicationsPage from "@/pages/dashboard/landlord/Applications";
 import AddPropertyPage from "@/pages/dashboard/landlord/AddProperty";
+import ContractReviewPage from "@/pages/dashboard/landlord/ContractReview";
 import FindPropertyPage from "@/pages/dashboard/FindProperty";
 import AuthPage from "@/pages/Auth";
 import Callback from "@/pages/auth/Callback";
@@ -54,7 +56,6 @@ import SettingsPage from "@/pages/dashboard/Settings";
 import MatchesPage from "@/pages/dashboard/Matches";
 // ApplicationsSeeker removed - functionality moved to MyApplications
 import MyApplicationsPage from "@/pages/dashboard/MyApplications";
-import TestPage from "@/pages/dashboard/TestPage";
 import ApplicationOverviewPage from "@/pages/dashboard/ApplicationOverview";
 
 import { useAuth } from "@/hooks/useAuth";
@@ -62,7 +63,7 @@ import { useEffect } from "react";
 
 function AppRoutes() {
   const { user, loading } = useAuth();
-  
+
   // Show loading state while checking authentication
   if (loading) {
     return (
@@ -74,7 +75,7 @@ function AppRoutes() {
       </div>
     );
   }
-  
+
   // If user is authenticated, redirect from root to dashboard
   if (user) {
     return (
@@ -109,9 +110,10 @@ function AppRoutes() {
           <Route path="landlord/properties" element={<PropertiesPage />} />
           <Route path="landlord/applications" element={<ApplicationsPage />} />
           <Route path="landlord/add-property" element={<AddPropertyPage />} />
+          <Route path="landlord/contracts" element={<ContractReviewPage />} />
           <Route path="rent-opportunities" element={<RentOpportunitiesPage />} />
           <Route path="find-property" element={<FindPropertyPage />} />
-          <Route path="contracts" element={<LeaseContractPage />} />
+          <Route path="contracts/:applicationId" element={<LeaseContractPage />} />
           <Route path="chats" element={<ChatsPage />} />
           <Route path="tailor-ai" element={<TailorAIPage />} />
           <Route path="rent-savings" element={<RentSavingsPage />} />
@@ -128,7 +130,7 @@ function AppRoutes() {
           <Route path="profile" element={<Navigate to="/dashboard/roommate-recommendations" replace />} />
           <Route path="profile/*" element={<Navigate to="/dashboard/roommate-recommendations" replace />} />
           <Route path="settings" element={<SettingsPage />} />
-          
+
           {/* Admin routes - protected with AdminRoute */}
           <Route path="admin" element={<AdminRoute><AdminHomePage /></AdminRoute>} />
           <Route path="admin/pages" element={<AdminRoute><PagesPage /></AdminRoute>} />
@@ -140,7 +142,7 @@ function AppRoutes() {
       </Routes>
     );
   }
-  
+
   // If user is not authenticated, show normal routes
   return (
     <Routes>
@@ -192,7 +194,7 @@ function AppRoutes() {
         <Route path="profile" element={<Navigate to="/dashboard/roommate-recommendations" replace />} />
         <Route path="profile/*" element={<Navigate to="/dashboard/roommate-recommendations" replace />} />
         <Route path="settings" element={<SettingsPage />} />
-        
+
         {/* Admin routes - protected with AdminRoute */}
         <Route path="admin" element={<AdminRoute><AdminHomePage /></AdminRoute>} />
         <Route path="admin/pages" element={<AdminRoute><PagesPage /></AdminRoute>} />
@@ -207,18 +209,20 @@ function AppRoutes() {
 
 function App() {
   console.log("App component rendering");
-  
+
   const path = useLocation().pathname;
   useEffect(() => {
     scrollTo(0, 0)
   }, [path]
   )
-  
+
   return (
     <ThemeProvider>
       <AuthProvider>
-        <AppRoutes />
-        <Toaster />
+        <RoleProvider>
+          <AppRoutes />
+          <Toaster />
+        </RoleProvider>
       </AuthProvider>
     </ThemeProvider>
   );

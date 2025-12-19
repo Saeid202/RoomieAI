@@ -23,7 +23,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { MessageButton } from "@/components/MessageButton";
 import { MapModal } from "@/components/map/MapModal";
-import { 
+import {
   EnhancedPageLayout,
   EnhancedHeader,
   EnhancedCard,
@@ -110,14 +110,14 @@ export default function RentalOptionsPage() {
       if (property.bedrooms === 3) return "3 Bed";
       if (property.bedrooms >= 4) return `${property.bedrooms} Bed`;
     }
-    
+
     // Fallback to property type parsing
     const type = property.property_type?.toLowerCase() || '';
     if (type.includes('studio')) return "Studio";
     if (type.includes('one-bed') || type.includes('single-one-bed')) return "1 Bed";
     if (type.includes('two-bed')) return "2 Bed";
     if (type.includes('three-bed')) return "3 Bed";
-    
+
     // Default fallback
     return property.bedrooms ? `${property.bedrooms} Bed` : "Apartment";
   };
@@ -153,7 +153,7 @@ export default function RentalOptionsPage() {
       />
 
       {/* Enhanced Filters */}
-      <EnhancedCard className="rounded-2xl shadow-sm border border-gray-200 bg-white">
+      <EnhancedCard hover={false} className="rounded-2xl shadow-sm border border-gray-200 bg-white">
         <CardContent className="p-6 md:p-8">
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">
@@ -253,7 +253,9 @@ export default function RentalOptionsPage() {
           {properties.map((property) => (
             <EnhancedCard
               key={property.id}
-              className="overflow-hidden border-2 border-transparent hover:border-primary"
+              hover={false}
+              className="overflow-hidden border-2 border-transparent hover:border-primary cursor-pointer hover:shadow-2xl transition-all duration-300"
+              onClick={() => window.open(`/dashboard/rental-options/${property.id}`, '_blank')}
             >
               <div
                 className="relative"
@@ -303,7 +305,13 @@ export default function RentalOptionsPage() {
                   </div>
 
                   {/* Location */}
-                  <div onClick={() => handleViewOnMap(property)} className="cursor-pointer hover:text-primary transition-colors">
+                  <div
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleViewOnMap(property);
+                    }}
+                    className="cursor-pointer hover:text-primary transition-colors"
+                  >
                     <p className="text-xs text-muted-foreground">Location</p>
                     <div className="flex items-start gap-2 font-bold">
                       <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0 text-muted-foreground" />
@@ -336,19 +344,25 @@ export default function RentalOptionsPage() {
                 {/* Action Buttons */}
                 <div className="grid grid-cols-2 gap-2 mt-4">
                   <Button
-                    onClick={() => navigate(`/dashboard/rental-options/${property.id}`)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      window.open(`/dashboard/rental-options/${property.id}`, '_blank');
+                    }}
                     variant="outline"
                   >
                     View Details
                   </Button>
-                  <MessageButton
-                    landlordId={property.user_id}
-                    propertyId={property.id}
-                  />
+                  <div onClick={(e) => e.stopPropagation()}>
+                    <MessageButton
+                      landlordId={property.user_id}
+                      propertyId={property.id}
+                    />
+                  </div>
                 </div>
                 <div className="grid grid-cols-1 gap-2 mt-2">
-                   <EnhancedButton
-                    onClick={() => {
+                  <EnhancedButton
+                    onClick={(e) => {
+                      e.stopPropagation();
                       if (user) {
                         navigate(`/dashboard/rental-application/${property.id}`);
                       } else {
@@ -365,11 +379,13 @@ export default function RentalOptionsPage() {
           ))}
         </div>
       )}
-      <MapModal 
-        property={selectedProperty} 
-        isOpen={isMapModalOpen} 
-        onClose={() => setMapModalOpen(false)} 
-      />
+      {isMapModalOpen && (
+        <MapModal
+          property={selectedProperty}
+          isOpen={isMapModalOpen}
+          onClose={() => setMapModalOpen(false)}
+        />
+      )}
     </EnhancedPageLayout>
   );
 }

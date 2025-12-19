@@ -9,6 +9,7 @@ import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { OppositeScheduleFormData } from '@/types/oppositeSchedule';
+import { saveOppositeScheduleProfile, getOppositeScheduleProfile } from '@/services/oppositeScheduleService';
 
 interface OppositeScheduleFormProps {
   onProfileSaved?: () => void;
@@ -62,6 +63,33 @@ export default function OppositeScheduleForm({ onProfileSaved }: OppositeSchedul
   const { user } = useAuth();
   const { toast } = useToast();
 
+  // Load existing profile on mount
+  useEffect(() => {
+    async function loadProfile() {
+      if (!user) return;
+      
+      try {
+        const profile = await getOppositeScheduleProfile(user.id);
+        if (profile) {
+          setFormData({
+            work_schedule: profile.work_schedule || '',
+            occupation: profile.occupation || '',
+            nationality: profile.nationality || '',
+            property_type: profile.property_type || '',
+            preferred_schedule: profile.preferred_schedule || '',
+            preferred_nationality: profile.preferred_nationality || '',
+            food_restrictions: profile.food_restrictions || '',
+            additional_notes: profile.additional_notes || ''
+          });
+        }
+      } catch (error) {
+        console.error('Error loading profile:', error);
+      }
+    }
+    
+    loadProfile();
+  }, [user]);
+
   const handleInputChange = (field: keyof OppositeScheduleFormData, value: string) => {
     setFormData(prev => ({
       ...prev,
@@ -93,8 +121,7 @@ export default function OppositeScheduleForm({ onProfileSaved }: OppositeSchedul
 
     setIsSubmitting(true);
     try {
-      // TODO: Implement saveOppositeScheduleProfile service
-      console.log('Saving opposite schedule profile:', formData);
+      await saveOppositeScheduleProfile(user.id, formData);
       
       toast({
         title: "Profile saved",

@@ -9,15 +9,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getUserApplications, updateApplicationStatus } from "@/services/rentalApplicationService";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { getUserContracts } from "@/services/ontarioLeaseService";
+import { printOntarioLease } from "@/utils/printLease";
+import { OntarioLeaseContract } from "@/types/ontarioLease";
 import {
   FileText,
-  CheckCircle, 
-  XCircle, 
-  Search, 
+  CheckCircle,
+  XCircle,
+  Search,
   RefreshCw,
-  MapPin, 
-  DollarSign, 
-  Eye, 
+  MapPin,
+  DollarSign,
+  Eye,
   Download,
   Calendar,
   User,
@@ -33,15 +36,15 @@ import {
   Clock,
   CheckCircle2,
   AlertCircle,
-  Trash2
+  Trash2,
+  Filter
 } from "lucide-react";
-import { EnhancedHeader } from "@/components/ui/design-system";
-import { EnhancedPageLayout } from "@/components/ui/design-system";
-import { EnhancedButton } from "@/components/ui/design-system";
+
 
 export default function MyApplicationsPage() {
   const navigate = useNavigate();
   const [applications, setApplications] = useState<any[]>([]);
+  const [contracts, setContracts] = useState<OntarioLeaseContract[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("all");
@@ -55,8 +58,12 @@ export default function MyApplicationsPage() {
   const load = async () => {
     try {
       setLoading(true);
-      const data = await getUserApplications();
-      setApplications(data);
+      const [appsData, contractsData] = await Promise.all([
+        getUserApplications(),
+        getUserContracts()
+      ]);
+      setApplications(appsData);
+      setContracts(contractsData);
     } catch (e) {
       console.error("Load failed", e);
       toast.error("Failed to load applications. Please try again.");
@@ -68,7 +75,7 @@ export default function MyApplicationsPage() {
   const continueFlow = (app: any) => {
     const currentStep = app.current_step || 1;
     const targetStep = Math.min(currentStep + 1, 5);
-    
+
     // Navigate with step and applicationId parameters
     navigate(`/dashboard/rental-application/${app.property_id}?step=${targetStep}&applicationId=${app.id}`);
   };
@@ -82,22 +89,22 @@ export default function MyApplicationsPage() {
       console.log("🔄 Withdrawing application:", appId);
       await updateApplicationStatus(appId, 'withdrawn');
       console.log("✅ Database update successful");
-      
+
       // Remove from list instead of updating status
       setApplications(prev => {
         const filtered = prev.filter(a => a.id !== appId);
         console.log("🗑️ Removed from list. Remaining applications:", filtered.length);
         return filtered;
       });
-      
+
       toast.success("Application withdrawn successfully");
-      
+
       // Force reload to ensure consistency
       setTimeout(() => {
         console.log("🔄 Reloading applications to ensure consistency");
         load();
       }, 1000);
-      
+
     } catch (e) {
       console.error("❌ Withdraw failed:", e);
       toast.error("Failed to withdraw application. Please try again.");
@@ -150,7 +157,7 @@ export default function MyApplicationsPage() {
   };
 
   const filtered = applications.filter((a) => {
-    const matchesSearch = !search || 
+    const matchesSearch = !search ||
       a.property?.listing_title?.toLowerCase().includes(search.toLowerCase()) ||
       a.property?.city?.toLowerCase().includes(search.toLowerCase()) ||
       a.property?.state?.toLowerCase().includes(search.toLowerCase());
@@ -180,97 +187,190 @@ export default function MyApplicationsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20">
       <div className="space-y-8 p-6">
-        {/* Enhanced Header */}
-        <EnhancedHeader
-          title="My Applications"
-          subtitle="Track your rental applications and continue the process"
-          actionButton={
-            <EnhancedButton
-              variant="secondary"
-              size="lg"
-              onClick={load}
-            >
-              <RefreshCw className="h-5 w-5 mr-2" />
-              Refresh
-            </EnhancedButton>
-          }
-        />
-
-        {/* Enhanced Statistics */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-          <StatCard title="Total" value={stats.total} icon={FileText} gradient="from-slate-300 to-slate-400" />
-
-          <StatCard title="Pending" value={stats.pending} icon={Clock} gradient="from-amber-300 to-amber-400" />
-
-          <StatCard title="Under Review" value={stats.underReview} icon={Eye} gradient="from-indigo-400 to-indigo-500" />
-
-          <StatCard title="Approved" value={stats.approved} icon={CheckCircle} gradient="from-emerald-400 to-emerald-500" />
-
-          <StatCard title="Rejected" value={stats.rejected} icon={XCircle} gradient="from-rose-400 to-rose-500" />
+        {/* Compact Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">My Applications</h1>
+            <p className="text-sm text-muted-foreground">Track and manage your rental journey</p>
+          </div>
+          <Button variant="outline" size="sm" onClick={load} className="h-9">
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Refresh
+          </Button>
         </div>
 
-        {/* Enhanced Search and Filter */}
-        <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm">
-          <CardContent className="p-8">
-            <div className="flex flex-col sm:flex-row gap-6">
-              <div className="flex-1">
-                <div className="relative group">
-                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 group-focus-within:text-blue-500 transition-colors" />
-                  <Input
-                    placeholder="Search property, city, state..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    className="pl-12 h-12 text-lg border-2 border-gray-200 focus:border-blue-500 rounded-xl transition-all duration-300 hover:border-gray-300"
-                  />
-                </div>
+        {/* Compact Statistics */}
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
+          <Card className="bg-white border shadow-sm">
+            <CardContent className="p-3 flex items-center justify-between">
+              <div>
+                <p className="text-xs text-muted-foreground font-medium">Total</p>
+                <p className="text-lg font-bold text-gray-900">{stats.total}</p>
               </div>
-              <Select value={status} onValueChange={setStatus}>
-                <SelectTrigger className="w-full sm:w-56 h-12 text-lg border-2 border-gray-200 focus:border-blue-500 rounded-xl transition-all duration-300 hover:border-gray-300">
-                  <SelectValue placeholder="Filter by status" />
-                </SelectTrigger>
-                <SelectContent className="rounded-xl border-2">
-                  <SelectItem value="all" className="text-lg">All Status</SelectItem>
-                  <SelectItem value="pending" className="text-lg">Pending</SelectItem>
-                  <SelectItem value="under_review" className="text-lg">Under Review</SelectItem>
-                  <SelectItem value="approved" className="text-lg">Approved</SelectItem>
-                  <SelectItem value="rejected" className="text-lg">Rejected</SelectItem>
-                  <SelectItem value="withdrawn" className="text-lg">Withdrawn</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
+              <div className="bg-slate-100 p-1.5 rounded text-slate-600">
+                <FileText className="h-4 w-4" />
+              </div>
+            </CardContent>
+          </Card>
 
-        {/* Professional Application List */}
-        <div className="space-y-6">
-          {filtered.length === 0 ? (
-            <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm">
-              <CardContent className="py-16 text-center">
-                <div className="bg-gradient-to-br from-blue-100 to-purple-100 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <FileText className="h-12 w-12 text-blue-600" />
+          <Card className="bg-white border shadow-sm">
+            <CardContent className="p-3 flex items-center justify-between">
+              <div>
+                <p className="text-xs text-muted-foreground font-medium">Pending</p>
+                <p className="text-lg font-bold text-amber-600">{stats.pending}</p>
+              </div>
+              <div className="bg-amber-100 p-1.5 rounded text-amber-600">
+                <Clock className="h-4 w-4" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white border shadow-sm">
+            <CardContent className="p-3 flex items-center justify-between">
+              <div>
+                <p className="text-xs text-muted-foreground font-medium">Reviewing</p>
+                <p className="text-lg font-bold text-indigo-600">{stats.underReview}</p>
+              </div>
+              <div className="bg-indigo-100 p-1.5 rounded text-indigo-600">
+                <Eye className="h-4 w-4" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white border shadow-sm">
+            <CardContent className="p-3 flex items-center justify-between">
+              <div>
+                <p className="text-xs text-muted-foreground font-medium">Approved</p>
+                <p className="text-lg font-bold text-emerald-600">{stats.approved}</p>
+              </div>
+              <div className="bg-emerald-100 p-1.5 rounded text-emerald-600">
+                <CheckCircle className="h-4 w-4" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white border shadow-sm">
+            <CardContent className="p-3 flex items-center justify-between">
+              <div>
+                <p className="text-xs text-muted-foreground font-medium">Rejected</p>
+                <p className="text-lg font-bold text-rose-600">{stats.rejected}</p>
+              </div>
+              <div className="bg-rose-100 p-1.5 rounded text-rose-600">
+                <XCircle className="h-4 w-4" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <Tabs defaultValue="applications" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 mb-8 p-1 bg-white/50 backdrop-blur-sm rounded-xl">
+            <TabsTrigger
+              value="applications"
+              className="rounded-lg text-lg data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-md transition-all duration-300"
+            >
+              Applications
+            </TabsTrigger>
+            <TabsTrigger
+              value="contracts"
+              className="rounded-lg text-lg data-[state=active]:bg-white data-[state=active]:text-green-600 data-[state=active]:shadow-md transition-all duration-300"
+            >
+              My Contracts
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="applications" className="space-y-4 animate-in slide-in-from-left-4 duration-500">
+            {/* Compact Search and Filter */}
+            <Card className="border shadow-sm bg-white mb-4">
+              <CardContent className="p-4">
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <div className="flex-1">
+                    <div className="relative group">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 group-focus-within:text-blue-500 transition-colors" />
+                      <Input
+                        placeholder="Search property, city, state..."
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        className="pl-9 h-9 text-sm border-gray-200 focus:border-blue-500 rounded-md transition-all duration-300 hover:border-gray-300"
+                      />
+                    </div>
+                  </div>
+                  <div className="w-full sm:w-48">
+                    <Select value={status} onValueChange={setStatus}>
+                      <SelectTrigger className="h-9 text-sm border-gray-200 focus:border-blue-500 rounded-md">
+                        <div className="flex items-center gap-2">
+                          <Filter className="h-3.5 w-3.5 text-gray-500" />
+                          <SelectValue placeholder="Status" />
+                        </div>
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Status</SelectItem>
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="under_review">Under Review</SelectItem>
+                        <SelectItem value="approved">Approved</SelectItem>
+                        <SelectItem value="rejected">Rejected</SelectItem>
+                        <SelectItem value="withdrawn">Withdrawn</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-3">No Applications Found</h3>
-                <p className="text-lg text-gray-600 mb-6">Your submitted applications will appear here.</p>
-                <Button 
-                  onClick={() => navigate('/dashboard/rental-options')} 
-                  className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300"
-                >
-                  Browse Properties
-                </Button>
               </CardContent>
             </Card>
-          ) : (
-            filtered.map((application) => (
-              <ProfessionalApplicationCard 
-                key={application.id} 
-                application={application}
-                onViewDetails={openApplicationDetails}
-                onWithdraw={withdraw}
-                onContinue={continueFlow}
-              />
-            ))
-          )}
-        </div>
+
+            {/* Professional Application List */}
+            <div className="space-y-6">
+              {filtered.length === 0 ? (
+                <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm">
+                  <CardContent className="py-16 text-center">
+                    <div className="bg-gradient-to-br from-blue-100 to-purple-100 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6">
+                      <FileText className="h-12 w-12 text-blue-600" />
+                    </div>
+                    <h3 className="text-2xl font-bold text-gray-900 mb-3">No Applications Found</h3>
+                    <p className="text-lg text-gray-600 mb-6">Your submitted applications will appear here.</p>
+                    <Button
+                      onClick={() => navigate('/dashboard/rental-options')}
+                      className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300"
+                    >
+                      Browse Properties
+                    </Button>
+                  </CardContent>
+                </Card>
+              ) : (
+                filtered.map((application) => (
+                  <ProfessionalApplicationCard
+                    key={application.id}
+                    application={application}
+                    onViewDetails={openApplicationDetails}
+                    onWithdraw={withdraw}
+                    onContinue={continueFlow}
+                  />
+                ))
+              )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="contracts" className="space-y-6 animate-in slide-in-from-right-4 duration-500">
+            {contracts.length === 0 ? (
+              <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm">
+                <CardContent className="py-16 text-center">
+                  <div className="bg-gradient-to-br from-green-100 to-emerald-100 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <FileText className="h-12 w-12 text-green-600" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-3">No Contracts Found</h3>
+                  <p className="text-lg text-gray-600 mb-6">Signed lease agreements will appear here.</p>
+                </CardContent>
+              </Card>
+            ) : (
+              contracts.map((contract) => (
+                <ContractCard
+                  key={contract.id}
+                  contract={contract}
+                  onDownload={(c) => printOntarioLease(c)}
+                  onSign={(c) => navigate(`/dashboard/contracts/${c.application_id}`)}
+                />
+              ))
+            )}
+          </TabsContent>
+        </Tabs>
 
         {/* Application Details Modal */}
         {selectedApplication && (
@@ -286,13 +386,13 @@ export default function MyApplicationsPage() {
   );
 }
 
-function ProfessionalApplicationCard({ 
-  application, 
-  onViewDetails, 
-  onWithdraw, 
-  onContinue 
-}: { 
-  application: any; 
+function ProfessionalApplicationCard({
+  application,
+  onViewDetails,
+  onWithdraw,
+  onContinue
+}: {
+  application: any;
   onViewDetails: (app: any) => void;
   onWithdraw: (id: string) => void;
   onContinue: (app: any) => void;
@@ -315,30 +415,30 @@ function ProfessionalApplicationCard({
   };
 
   return (
-    <Card className="group hover:shadow-2xl transition-all duration-500 border-0 bg-white/90 backdrop-blur-sm hover:bg-white hover:scale-[1.02] transform">
-      <CardContent className="p-8">
-        <div className="flex items-start justify-between mb-6">
-          <div className="flex items-start gap-6">
+    <Card className="group hover:shadow-lg transition-all duration-300 border-0 bg-white transform">
+      <CardContent className="p-4">
+        <div className="flex items-start justify-between mb-3">
+          <div className="flex items-start gap-4">
             <div className="relative">
-              <div className="bg-gradient-to-br from-blue-500 to-purple-600 p-4 rounded-2xl shadow-lg">
-                <Building className="h-8 w-8 text-white" />
+              <div className="bg-gradient-to-br from-blue-500 to-purple-600 p-2 rounded-lg shadow-sm">
+                <Building className="h-4 w-4 text-white" />
               </div>
-              <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
+              <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-white"></div>
             </div>
             <div className="flex-1">
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">
+              <h3 className="text-base font-bold text-gray-900 mb-0.5">
                 {application.property?.listing_title || 'Property Application'}
               </h3>
               <div className="flex items-center gap-2 text-base text-gray-600 mb-3">
                 <MapPin className="h-5 w-5 text-blue-500" />
                 <span className="font-medium">{application.property?.city}, {application.property?.state}</span>
               </div>
-              <div className="flex items-center gap-6 text-base">
-                <div className="flex items-center gap-2 bg-green-50 px-3 py-2 rounded-lg">
-                  <DollarSign className="h-5 w-5 text-green-600" />
-                  <span className="font-bold text-green-700 text-lg">
-                    {application.property?.monthly_rent ? 
-                      new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD' }).format(application.property.monthly_rent) 
+              <div className="flex items-center gap-4 text-sm">
+                <div className="flex items-center gap-1.5 bg-green-50 px-2 py-1 rounded">
+                  <DollarSign className="h-3.5 w-3.5 text-green-600" />
+                  <span className="font-bold text-green-700">
+                    {application.property?.monthly_rent ?
+                      new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD' }).format(application.property.monthly_rent)
                       : 'N/A'
                     }
                   </span>
@@ -356,90 +456,90 @@ function ProfessionalApplicationCard({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100 hover:shadow-md transition-all duration-300">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="bg-blue-500 p-2 rounded-lg">
-                <User className="h-5 w-5 text-white" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-md p-2 border border-blue-100">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="bg-blue-500 p-1 rounded">
+                <User className="h-3 w-3 text-white" />
               </div>
-              <span className="text-base font-semibold text-gray-800">Applicant</span>
+              <span className="text-xs font-semibold text-gray-800">Applicant</span>
             </div>
-            <p className="text-lg text-gray-900 font-bold mb-1">{application.full_name}</p>
-            <p className="text-sm text-gray-600">{application.email}</p>
+            <p className="text-xs text-gray-900 font-bold truncate">{application.full_name}</p>
+            <p className="text-[10px] text-gray-600 truncate">{application.email}</p>
           </div>
-          
-          <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border border-green-100 hover:shadow-md transition-all duration-300">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="bg-green-500 p-2 rounded-lg">
-                <Briefcase className="h-5 w-5 text-white" />
+
+          <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-md p-2 border border-green-100">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="bg-green-500 p-1 rounded">
+                <Briefcase className="h-3 w-3 text-white" />
               </div>
-              <span className="text-base font-semibold text-gray-800">Occupation</span>
+              <span className="text-xs font-semibold text-gray-800">Occupation</span>
             </div>
-            <p className="text-lg text-gray-900 font-bold mb-1">{application.occupation}</p>
-            <p className="text-sm text-gray-600">
-              {application.monthly_income ? 
-                new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD' }).format(application.monthly_income) 
+            <p className="text-xs text-gray-900 font-bold truncate">{application.occupation}</p>
+            <p className="text-[10px] text-gray-600">
+              {application.monthly_income ?
+                new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD', maximumFractionDigits: 0 }).format(application.monthly_income)
                 : 'N/A'
-              }/month
+              }/mo
             </p>
           </div>
-          
-          <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-6 border border-purple-100 hover:shadow-md transition-all duration-300">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="bg-purple-500 p-2 rounded-lg">
-                <Calendar className="h-5 w-5 text-white" />
+
+          <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-md p-2 border border-purple-100">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="bg-purple-500 p-1 rounded">
+                <Calendar className="h-3 w-3 text-white" />
               </div>
-              <span className="text-base font-semibold text-gray-800">Move-in Date</span>
+              <span className="text-xs font-semibold text-gray-800">Move-in</span>
             </div>
-            <p className="text-lg text-gray-900 font-bold mb-1">
-              {application.move_in_date ? new Date(application.move_in_date).toLocaleDateString() : 'Not specified'}
+            <p className="text-xs text-gray-900 font-bold">
+              {application.move_in_date ? new Date(application.move_in_date).toLocaleDateString() : 'Not set'}
             </p>
-            <p className="text-sm text-gray-600">
-              {application.lease_duration || 'Lease duration not specified'}
+            <p className="text-[10px] text-gray-600 truncate">
+              {application.lease_duration || '-'}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center justify-between pt-6 border-t border-gray-200">
+        <div className="flex items-center justify-between pt-3 border-t border-gray-100">
           <div className="flex items-center gap-3">
-            <Button 
-              variant="outline" 
-              size="lg"
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => onViewDetails(application)}
-              className="flex items-center gap-3 bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 hover:border-blue-300 transition-all duration-300 rounded-xl px-6 py-3"
+              className="h-8 text-xs flex items-center gap-1.5 bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 rounded px-3"
             >
-              <Eye className="h-5 w-5" />
-              View Details
+              <Eye className="h-3.5 w-3.5" />
+              View
             </Button>
-            <Button 
-              variant="outline" 
-              size="lg"
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => onContinue(application)}
-              className="flex items-center gap-3 bg-green-50 border-green-200 text-green-700 hover:bg-green-100 hover:border-green-300 transition-all duration-300 rounded-xl px-6 py-3"
+              className="h-8 text-xs flex items-center gap-1.5 bg-green-50 border-green-200 text-green-700 hover:bg-green-100 rounded px-3"
             >
-              <Edit className="h-5 w-5" />
-              Edit Application
+              <Edit className="h-3.5 w-3.5" />
+              Edit
             </Button>
-            <Button 
-              variant="outline" 
-              size="lg"
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => onContinue(application)}
-              className="flex items-center gap-3 bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100 hover:border-purple-300 transition-all duration-300 rounded-xl px-6 py-3"
+              className="h-8 text-xs flex items-center gap-1.5 bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100 rounded px-3"
             >
-              <ChevronRight className="h-5 w-5" />
+              <ChevronRight className="h-3.5 w-3.5" />
               Continue
             </Button>
           </div>
-          
+
           <div className="flex items-center gap-3">
             {application.status !== 'withdrawn' && application.status !== 'approved' && application.status !== 'rejected' && (
-              <Button 
-                variant="outline" 
-                size="lg"
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => onWithdraw(application.id)}
-                className="bg-red-50 border-red-200 text-red-700 hover:bg-red-100 hover:border-red-300 transition-all duration-300 rounded-xl px-6 py-3"
+                className="h-8 text-xs bg-red-50 border-red-200 text-red-700 hover:bg-red-100 rounded px-3"
               >
-                <Trash2 className="h-5 w-5 mr-2" />
+                <Trash2 className="h-3.5 w-3.5 mr-1" />
                 Withdraw
               </Button>
             )}
@@ -450,14 +550,14 @@ function ProfessionalApplicationCard({
   );
 }
 
-function ApplicationDetailsModal({ 
-  application, 
-  isOpen, 
-  onClose, 
-  onDownloadDocument 
-}: { 
-  application: any; 
-  isOpen: boolean; 
+function ApplicationDetailsModal({
+  application,
+  isOpen,
+  onClose,
+  onDownloadDocument
+}: {
+  application: any;
+  isOpen: boolean;
   onClose: () => void;
   onDownloadDocument: (url: string, filename: string) => void;
 }) {
@@ -653,7 +753,7 @@ function ApplicationDetailsModal({
                   <div className="flex justify-between">
                     <span className="text-gray-600">Name:</span>
                     <span>{application.emergency_contact_name}</span>
-                </div>
+                  </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Phone:</span>
                     <span>{application.emergency_contact_phone}</span>
@@ -724,8 +824,8 @@ function ApplicationDetailsModal({
                 <div className="flex items-center gap-3">
                   <DollarSign className="h-4 w-4 text-green-600" />
                   <span className="text-lg font-semibold text-green-600">
-                    {application.property?.monthly_rent ? 
-                      formatCurrency(application.property.monthly_rent) 
+                    {application.property?.monthly_rent ?
+                      formatCurrency(application.property.monthly_rent)
                       : 'Rent not specified'
                     }
                   </span>
@@ -755,21 +855,167 @@ function StatusBadge({ status }: { status: string }) {
   return <Badge className={`${v.cls}`}>{v.label}</Badge>;
 }
 
-function StatCard({ title, value, icon: Icon, className = "", gradient = "from-blue-500 to-blue-600" }: { title: string; value: number; icon?: any; className?: string; gradient?: string }) {
+
+
+interface ContractCardProps {
+  contract: OntarioLeaseContract;
+  onDownload: (c: OntarioLeaseContract) => void;
+  onSign: (c: OntarioLeaseContract) => void;
+}
+
+function ContractCard({ contract, onDownload, onSign }: ContractCardProps) {
+  const formatDate = (date: string) => {
+    if (!date) return 'N/A';
+    return new Date(date).toLocaleDateString();
+  };
+  const formatMoney = (amount: number) => new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD' }).format(amount || 0);
+
+  const d = contract.ontario_form_data;
+  const address = d ? `${d.streetNumber} ${d.streetName}` : (contract.property_address || 'Address N/A');
+  const city = d?.cityTown || contract.property_city || '';
+  const state = d?.province || contract.property_state || '';
+  const rent = d?.totalRent || contract.monthly_rent || 0;
+  const start = d?.tenancyStartDate || contract.lease_start_date;
+  const end = d?.tenancyEndDate || contract.lease_end_date; // might be undefined for monthly
+  const landlordName = d?.landlordLegalName || contract.landlord_name || 'Landlord';
+  const landlordEmail = d?.landlordEmail || contract.landlord_email || 'N/A';
+
+  const getStatusBadge = () => {
+    switch (contract.status) {
+      case 'fully_signed':
+        return (
+          <Badge className="bg-green-100 text-green-800 border-green-200">
+            <CheckCircle2 className="h-3 w-3 mr-1" />
+            Signed & Active
+          </Badge>
+        );
+      case 'pending_tenant_signature':
+        return (
+          <Badge className="bg-amber-100 text-amber-800 border-amber-200">
+            <Clock className="h-3 w-3 mr-1" />
+            Action Required: Sign
+          </Badge>
+        );
+      case 'pending_landlord_signature':
+        return (
+          <Badge className="bg-blue-100 text-blue-800 border-blue-200">
+            <Clock className="h-3 w-3 mr-1" />
+            Waiting for Landlord
+          </Badge>
+        );
+      default:
+        return <Badge variant="outline">{contract.status.replace(/_/g, ' ')}</Badge>;
+    }
+  };
+
   return (
-    <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 transform bg-white/90 backdrop-blur-sm">
-      <CardContent className="p-6">
-        <div className="flex items-center justify-between mb-4">
-          <div className={`bg-gradient-to-r ${gradient} p-3 rounded-xl shadow-lg`}>
-            {Icon ? <Icon className="h-6 w-6 text-white" /> : null}
+    <Card className="group hover:shadow-lg transition-all duration-300 border-0 bg-white shadow-sm">
+      <CardContent className="p-4">
+        <div className="flex items-start justify-between mb-3">
+          <div className="flex items-start gap-4">
+            <div className="relative">
+              <div className="bg-gradient-to-br from-green-500 to-emerald-600 p-2 rounded-lg shadow-sm">
+                <FileText className="h-4 w-4 text-white" />
+              </div>
+              <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-white"></div>
+            </div>
+            <div className="flex-1">
+              <h3 className="text-base font-bold text-gray-900 mb-0.5">
+                Lease Agreement - {address}
+              </h3>
+              <div className="flex items-center gap-2 text-xs text-gray-600 mb-2">
+                <MapPin className="h-3.5 w-3.5 text-green-500" />
+                <span className="font-medium">{city}{state ? `, ${state}` : ''}</span>
+              </div>
+              <div className="flex items-center gap-4 text-sm">
+                <div className="flex items-center gap-1.5 bg-green-50 px-2 py-1 rounded">
+                  <DollarSign className="h-3.5 w-3.5 text-green-600" />
+                  <span className="font-bold text-green-700">
+                    {formatMoney(Number(rent))}/mo
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5 text-gray-600 text-xs">
+                  <Calendar className="h-3.5 w-3.5" />
+                  <span className="font-medium">{formatDate(start as string)} {end ? `- ${formatDate(end as string)}` : '(Monthly)'}</span>
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="text-right">
-            <p className="text-sm font-medium text-gray-600 mb-1">{title}</p>
-            <div className={`text-3xl font-bold ${className}`}>{value}</div>
+          <div className="flex items-center gap-3">
+            {getStatusBadge()}
           </div>
         </div>
-        <div className="h-1 bg-gray-200 rounded-full overflow-hidden">
-          <div className={`h-full bg-gradient-to-r ${gradient} rounded-full transition-all duration-1000`} style={{ width: `${Math.min((value / Math.max(value, 1)) * 100, 100)}%` }}></div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-md p-2 border border-blue-100">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="bg-blue-500 p-1 rounded">
+                <User className="h-3 w-3 text-white" />
+              </div>
+              <span className="text-xs font-semibold text-gray-800">Landlord</span>
+            </div>
+            <p className="text-xs text-gray-900 font-bold truncate">{landlordName}</p>
+            <p className="text-[10px] text-gray-600 truncate">{landlordEmail}</p>
+          </div>
+
+          <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-md p-2 border border-purple-100">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="bg-purple-500 p-1 rounded">
+                <Clock className="h-3 w-3 text-white" />
+              </div>
+              <span className="text-xs font-semibold text-gray-800">Duration</span>
+            </div>
+            <p className="text-xs text-gray-900 font-bold">{contract.lease_duration_months} Months</p>
+            <p className="text-[10px] text-gray-600 truncate">
+              {end ? `Expires ${formatDate(end as string)}` : 'Monthly'}
+            </p>
+          </div>
+
+          <div className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-md p-2 border border-orange-100">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="bg-orange-500 p-1 rounded">
+                <FileText className="h-3 w-3 text-white" />
+              </div>
+              <span className="text-xs font-semibold text-gray-800">Contract</span>
+            </div>
+            <p className="text-xs text-gray-900 font-bold">Standard 2229E</p>
+            <p className="text-[10px] text-gray-600 truncate">
+              ID: {contract.id.slice(0, 8)}...
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-end pt-3 border-t border-gray-100 gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onSign(contract)}
+            className="h-8 text-xs flex items-center gap-1.5 bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100 rounded px-3"
+          >
+            <Eye className="h-3.5 w-3.5" />
+            View
+          </Button>
+          {contract.status === 'pending_tenant_signature' && (
+            <Button
+              size="sm"
+              onClick={() => onSign(contract)}
+              className="h-8 text-xs flex items-center gap-1.5 bg-blue-600 text-white hover:bg-blue-700 rounded px-3 shadow-sm"
+            >
+              <Edit className="h-3.5 w-3.5" />
+              Review & Sign
+            </Button>
+          )}
+          {contract.status === 'fully_signed' && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onDownload(contract)}
+              className="h-8 text-xs flex items-center gap-1.5 bg-green-50 border-green-200 text-green-700 hover:bg-green-100 rounded px-3"
+            >
+              <Download className="h-3.5 w-3.5" />
+              PDF
+            </Button>
+          )}
         </div>
       </CardContent>
     </Card>

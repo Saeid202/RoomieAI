@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { fetchPropertyById, Property, updateProperty } from "@/services/propertyService";
 import { useRole } from "@/contexts/RoleContext";
-import { Calendar, DollarSign, MapPin } from "lucide-react";
+import { Calendar, DollarSign, MapPin, Volume2, Play, Square, Box } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -43,13 +43,18 @@ export default function PropertyDetailsPage() {
   const [parkingDraft, setParkingDraft] = useState<string>("");
   const [petPolicyDraft, setPetPolicyDraft] = useState<string>("");
   const [furnishedDraft, setFurnishedDraft] = useState<string>("");
+  const [isPlayingLocalAudio, setIsPlayingLocalAudio] = useState(false);
+
+  console.log("PropertyDetailsPage rendering", { id, loading, property, role, user });
 
   useEffect(() => {
     let mounted = true;
     const load = async () => {
       try {
+        console.log("Loading property data for id:", id);
         if (!id) throw new Error("Missing property id");
         const data = await fetchPropertyById(id);
+        console.log("Property data loaded:", data);
         if (mounted) setProperty(data as Property);
       } catch (e: any) {
         console.error("Failed to load property", e);
@@ -68,7 +73,7 @@ export default function PropertyDetailsPage() {
       setDescDraft(property.description || "");
       setPriceDraft(String(property.monthly_rent ?? ""));
       setSecurityDraft(property.security_deposit != null ? String(property.security_deposit) : "");
-      setLeaseDraft(property.lease_duration || "");
+      setLeaseDraft(property.lease_terms || "");
       setAvailableDraft(property.available_date || "");
 
       setBedroomsDraft(property.bedrooms != null ? String(property.bedrooms) : "");
@@ -80,7 +85,7 @@ export default function PropertyDetailsPage() {
     }
   }, [property]);
 
-  const savePartial = async (updates: Partial<Property>) => {
+  const savePartial = async (updates: any) => {
     if (!property) return;
     try {
       setSaving(true);
@@ -107,7 +112,7 @@ export default function PropertyDetailsPage() {
       }
       if (clean.furnished != null && typeof clean.furnished === 'string') {
         const v = String(clean.furnished).toLowerCase();
-        clean.furnished = ['yes','true','1'].includes(v);
+        clean.furnished = ['yes', 'true', '1'].includes(v);
       }
       const updated = await updateProperty(property.id, clean);
       setProperty(updated as Property);
@@ -242,7 +247,7 @@ export default function PropertyDetailsPage() {
               <Button variant="outline" size="sm" onClick={() => setEditingTitle(true)}>Edit</Button>
             ) : (
               <div className="flex items-center gap-2">
-                <Button size="sm" disabled={saving} onClick={async () => { await savePartial({ listing_title: titleDraft || property.listing_title }); setEditingTitle(false);} }>Save</Button>
+                <Button size="sm" disabled={saving} onClick={async () => { await savePartial({ listing_title: titleDraft || property.listing_title }); setEditingTitle(false); }}>Save</Button>
                 <Button variant="outline" size="sm" onClick={() => { setTitleDraft(property.listing_title || ""); setEditingTitle(false); }}>Cancel</Button>
               </div>
             )
@@ -258,8 +263,8 @@ export default function PropertyDetailsPage() {
           <Card>
             <div className="relative h-64 rounded-t-lg overflow-hidden">
               {property.images && property.images.length > 0 ? (
-                <img 
-                  src={property.images[0]} 
+                <img
+                  src={property.images[0]}
                   alt={`${property.listing_title} photo`}
                   className="w-full h-full object-cover"
                   onError={(e) => {
@@ -275,6 +280,78 @@ export default function PropertyDetailsPage() {
               </div>
             </div>
             <CardContent className="p-6">
+              {/* Sales Voice Agent Player - Top Position */}
+              {(property.description_audio_url || property.description) && (
+                <div className="mb-6">
+                  {property.description_audio_url ? (
+                    <div className="bg-slate-50 border rounded-xl p-3">
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="h-6 w-6 rounded-full bg-purple-100 flex items-center justify-center text-purple-600">
+                          <Volume2 className="h-3 w-3" />
+                        </div>
+                        <div>
+                          <h3 className="text-sm font-semibold text-gray-900">Audio Tour</h3>
+                        </div>
+                      </div>
+                      <audio controls className="w-full h-8">
+                        <source src={property.description_audio_url} type="audio/mpeg" />
+                        Your browser does not support the audio element.
+                      </audio>
+                    </div>
+                  ) : (
+                    <div className="bg-slate-50 border rounded-xl p-3 flex justify-between items-center">
+                      <div className="flex items-center gap-3">
+                        <div className="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600">
+                          <Volume2 className="h-4 w-4" />
+                        </div>
+                        <div>
+                          <h3 className="text-sm font-semibold text-gray-900">Audio Tour</h3>
+                          <p className="text-xs text-gray-500">Touch to listen highlights</p>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        {!isPlayingLocalAudio ? (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="bg-white hover:bg-indigo-50 text-indigo-700 border-indigo-200"
+                            onClick={() => {
+                              const utterance = new SpeechSynthesisUtterance(property.description);
+                              const voices = window.speechSynthesis.getVoices();
+                              const preferredVoice = voices.find(v => v.name.includes('Google US English')) || voices[0];
+                              if (preferredVoice) utterance.voice = preferredVoice;
+
+                              utterance.onend = () => setIsPlayingLocalAudio(false);
+                              window.speechSynthesis.cancel();
+                              window.speechSynthesis.speak(utterance);
+                              setIsPlayingLocalAudio(true);
+                            }}
+                          >
+                            <Play className="mr-2 h-3 w-3 fill-current" />
+                            Play
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="bg-white hover:bg-red-50 text-red-600 border-red-200"
+                            onClick={() => {
+                              window.speechSynthesis.cancel();
+                              setIsPlayingLocalAudio(false);
+                            }}
+                          >
+                            <Square className="mr-2 h-3 w-3 fill-current" />
+                            Stop
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* 3D Model Viewer - Removed for debugging */}
+
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   {!isOwner || !editingPrice ? (
@@ -309,16 +386,16 @@ export default function PropertyDetailsPage() {
                         <Button size="sm" disabled={saving} onClick={async () => {
                           await savePartial({
                             monthly_rent: priceDraft,
-                            security_deposit: securityDraft || null as any,
-                            lease_duration: leaseDraft || null as any,
-                            available_date: availableDraft || null as any,
+                            security_deposit: securityDraft || null,
+                            lease_terms: leaseDraft || null,
+                            available_date: availableDraft || null,
                           });
                           setEditingPrice(false);
                         }}>Save</Button>
                         <Button variant="outline" size="sm" onClick={() => {
                           setPriceDraft(String(property.monthly_rent ?? ""));
                           setSecurityDraft(property.security_deposit != null ? String(property.security_deposit) : "");
-                          setLeaseDraft(property.lease_duration || "");
+                          setLeaseDraft(property.lease_terms || "");
                           setAvailableDraft(property.available_date || "");
                           setEditingPrice(false);
                         }}>Cancel</Button>
@@ -337,7 +414,7 @@ export default function PropertyDetailsPage() {
                     {property.property_type || 'Not specified'}
                   </span>
                 </div>
-                
+
                 {/* Full Address */}
                 <div className="flex items-center gap-2">
                   <MapPin className="h-4 w-4 text-muted-foreground" />
@@ -345,14 +422,14 @@ export default function PropertyDetailsPage() {
                     {property.address}, {property.city}, {property.state} {property.zip_code}
                   </span>
                 </div>
-                
+
                 {/* Nearby Facilities */}
                 {property.nearby_amenities && property.nearby_amenities.length > 0 && (
                   <div className="flex items-center gap-2">
                     <span className="text-muted-foreground">Nearby:</span>
                     <div className="flex flex-wrap gap-1">
                       {property.nearby_amenities.slice(0, 3).map((amenity, index) => (
-                        <span 
+                        <span
                           key={index}
                           className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-medium"
                         >
@@ -378,8 +455,8 @@ export default function PropertyDetailsPage() {
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                     {property.images.slice(1).map((imageUrl, index) => (
                       <div key={index} className="relative group cursor-pointer">
-                        <img 
-                          src={imageUrl} 
+                        <img
+                          src={imageUrl}
                           alt={`${property.listing_title} photo ${index + 2}`}
                           className="w-full h-32 object-cover rounded-lg border"
                           onError={(e) => {
@@ -401,7 +478,7 @@ export default function PropertyDetailsPage() {
                       <Button variant="outline" size="sm" onClick={() => setEditingDesc(true)}>Edit</Button>
                     ) : (
                       <div className="flex items-center gap-2">
-                        <Button size="sm" disabled={saving} onClick={async () => { await savePartial({ description: descDraft }); setEditingDesc(false);} }>Save</Button>
+                        <Button size="sm" disabled={saving} onClick={async () => { await savePartial({ description: descDraft }); setEditingDesc(false); }}>Save</Button>
                         <Button variant="outline" size="sm" onClick={() => { setDescDraft(property.description || ""); setEditingDesc(false); }}>Cancel</Button>
                       </div>
                     )
@@ -413,7 +490,6 @@ export default function PropertyDetailsPage() {
                   <Textarea className="mt-2" value={descDraft} onChange={(e) => setDescDraft(e.target.value)} />
                 )}
               </article>
-
 
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-6 text-sm">
                 <Card className="p-4">

@@ -3,11 +3,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { 
-  FileText, 
-  CheckCircle, 
-  X, 
-  User, 
+import {
+  FileText,
+  CheckCircle,
+  X,
+  User,
   Calendar,
   DollarSign,
   MapPin,
@@ -58,12 +58,12 @@ export function ContractSigningForm({ contract, onSign, onCancel }: ContractSign
 
     try {
       setSigning(true);
-      
+
       // Create signature data (using checkbox agreement as signature)
       const signatureData = {
-        signatureData: `Landlord Agreement: ${new Date().toISOString()}`,
-        ipAddress: '127.0.0.1', // TODO: Get actual IP
-        userAgent: navigator.userAgent
+        signature_data: `Landlord Agreement: ${new Date().toISOString()}`,
+        ip_address: '127.0.0.1', // TODO: Get actual IP
+        user_agent: navigator.userAgent
       };
 
       await signOntarioLeaseAsLandlord(contract.id, signatureData);
@@ -236,14 +236,14 @@ export function ContractSigningForm({ contract, onSign, onCancel }: ContractSign
                   onCheckedChange={(checked) => setAgreementChecked(checked as boolean)}
                   className="h-4 w-4"
                 />
-                <Label 
-                  htmlFor="landlordAgreement" 
+                <Label
+                  htmlFor="landlordAgreement"
                   className="text-sm font-medium cursor-pointer"
                 >
                   I agree to sign this lease contract and accept all terms and conditions
                 </Label>
               </div>
-              
+
               {!agreementChecked && (
                 <div className="flex items-center space-x-2 mt-3 text-amber-600">
                   <AlertCircle className="h-4 w-4" />

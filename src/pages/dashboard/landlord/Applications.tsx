@@ -53,24 +53,12 @@ export default function ApplicationsPage() {
 
   const handleViewContract = async (application: any) => {
     try {
-      console.log('Viewing contract for application:', application.id);
-      
-      // Check if contract exists
-      if (!application.contract_status) {
-        toast.error('No contract found for this application');
-        return;
-      }
+      console.log('Viewing/Creating contract for application:', application.id);
 
-      // If landlord hasn't signed yet, navigate to contract signing page
-      if (application.contract_status.applicant_signed && !application.contract_status.landlord_signed) {
-        // Navigate to contract signing page with application ID
-        navigate(`/dashboard/contracts/sign/${application.id}`);
-        toast.info('Opening contract for signature...');
-      } else {
-        // Navigate to contract viewing page
-        navigate(`/dashboard/contracts/view/${application.id}`);
-        toast.info('Opening contract for viewing...');
-      }
+      // Navigate to contract page which handles creation if needed
+      navigate(`/dashboard/contracts/${application.id}`);
+      // toast.success('Contract opened successfully');
+
     } catch (error) {
       console.error('Failed to open contract:', error);
       toast.error(`Could not open contract: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -80,47 +68,18 @@ export default function ApplicationsPage() {
   const handleUpdateStatus = async (applicationId: string, status: string, notes?: string) => {
     try {
       await updateApplicationStatus(applicationId, status as any);
-      
-      // If application is approved, create a rental contract
+
+      // If application is approved, notify landlord to create contract
       if (status === 'approved') {
-        const application = applications.find(app => app.id === applicationId);
-        if (application) {
-          // Import contract creation utility
-          const { createContractFromApplication } = await import('@/utils/contractUtils');
-          
-          try {
-            // Get property details if not already included
-            let property = application.property;
-            if (!property && application.property_id) {
-              const { fetchPropertyById } = await import('@/services/propertyService');
-              property = await fetchPropertyById(application.property_id);
-            }
-            
-            if (property) {
-              const contractResult = await createContractFromApplication(application, property);
-              
-              if (contractResult.success) {
-                toast.success(`Application approved and contract created! Contract ID: ${contractResult.contractId}`);
-              } else {
-                console.warn('Failed to create contract:', contractResult.message);
-                toast.success(`Application approved successfully, but contract creation failed: ${contractResult.message}`);
-              }
-            } else {
-              toast.success('Application approved successfully, but property details were not found for contract creation');
-            }
-          } catch (contractError) {
-            console.error('Error creating contract:', contractError);
-            toast.success('Application approved successfully, but there was an issue creating the contract');
-          }
-        }
+        toast.success(`Application approved! Please proceed to create the contract.`);
       } else {
         toast.success(`Application ${status} successfully`);
       }
-      
+
       // Update local state
-      setApplications(prev => 
-        prev.map(app => 
-          app.id === applicationId 
+      setApplications(prev =>
+        prev.map(app =>
+          app.id === applicationId
             ? { ...app, status }
             : app
         )
@@ -149,7 +108,7 @@ export default function ApplicationsPage() {
           <p className="text-muted-foreground mt-1">Review and manage tenant applications</p>
         </div>
         <div className="flex space-x-2">
-          <Button 
+          <Button
             onClick={() => navigate('/dashboard/landlord/contracts')}
             variant="outline"
             className="flex items-center"
@@ -157,8 +116,8 @@ export default function ApplicationsPage() {
             <FileSignature className="h-4 w-4 mr-2" />
             View Contracts
           </Button>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             onClick={loadApplications}
             disabled={loading}
           >
@@ -167,7 +126,7 @@ export default function ApplicationsPage() {
           </Button>
         </div>
       </div>
-      
+
       {/* Statistics Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
         <Card>
@@ -182,7 +141,7 @@ export default function ApplicationsPage() {
             </p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Pending</CardTitle>
@@ -208,7 +167,7 @@ export default function ApplicationsPage() {
             </p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Approved</CardTitle>
@@ -221,7 +180,7 @@ export default function ApplicationsPage() {
             </p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Rejected</CardTitle>

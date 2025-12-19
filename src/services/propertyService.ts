@@ -5,12 +5,14 @@ const sb: any = supabase;
 export interface Property {
   id: string;
   user_id: string;
-  
+
   // Basic Information (matching database schema)
   listing_title: string;
   property_type: string;
   description: string;
-  
+  description_audio_url?: string;
+  three_d_model_url?: string;
+
   // Location Details
   address: string;
   city: string;
@@ -21,32 +23,32 @@ export interface Property {
   longitude?: number;
   public_transport_access?: string;
   nearby_amenities?: string[];
-  
+
   // Rental Information  
   monthly_rent: number;
   security_deposit?: number;
   lease_terms?: string; // Changed from lease_duration to lease_terms
   available_date?: string; // This matches the frontend expectation
   furnished?: boolean;
-  
+
   // Property Features
   bedrooms?: number;
   bathrooms?: number;
   square_footage?: number;
   year_built?: number;
   property_condition?: string;
-  
+
   // Amenities & Features
   amenities?: string[];
   parking?: string;
   pet_policy?: string;
   utilities_included?: string[];
-  
+
   // Additional Info
   special_instructions?: string;
   roommate_preference?: string;
   images?: string[];
-  
+
   // Metadata
   created_at: string;
   updated_at: string;
@@ -81,7 +83,7 @@ export type UpdatePropertyInput = Partial<Omit<Property, 'furnished'>> & { furni
 
 export async function getPropertiesByOwnerId(userId: string): Promise<Property[]> {
   console.log("Fetching properties for owner:", userId);
-  
+
   try {
     const { data, error } = await sb
       .from('properties')
@@ -145,13 +147,13 @@ export async function deletePropertyImage(imageUrl: string): Promise<void> {
     const url = new URL(imageUrl);
     const pathParts = url.pathname.split('/');
     const bucketIndex = pathParts.findIndex(part => part === 'property-images');
-    
+
     if (bucketIndex === -1) {
       throw new Error('Invalid image URL');
     }
-    
+
     const filePath = pathParts.slice(bucketIndex + 1).join('/');
-    
+
     // Delete from Supabase Storage
     const { error } = await supabase.storage
       .from('property-images')
@@ -174,12 +176,12 @@ export async function createProperty(propertyData: any): Promise<Property | null
 
   // First, get the current user
   const { data: { user }, error: authError } = await supabase.auth.getUser();
-  
+
   if (authError) {
     console.error("❌ Authentication error:", authError);
     throw new Error(`Authentication failed: ${authError.message}`);
   }
-  
+
   if (!user) {
     console.error("❌ No authenticated user found");
     throw new Error("You must be logged in to create a property");
@@ -225,9 +227,9 @@ export async function createProperty(propertyData: any): Promise<Property | null
       payload.furnished = payload.furnished === 'furnished' || payload.furnished === 'true';
     }
   }
-  
+
   console.log("📦 Final payload for database:", payload);
-  
+
   try {
     console.log("🚀 Inserting into properties table...");
     const { data, error } = await sb
@@ -263,7 +265,7 @@ export async function fetchProperties(filters?: {
   property_type?: string;
 }): Promise<Property[]> {
   console.log("Fetching properties with filters:", filters);
-  
+
   try {
     let query = sb.from('properties').select('*');
 
@@ -308,7 +310,7 @@ export async function fetchProperties(filters?: {
 
 export async function fetchPropertyById(id: string) {
   console.log("Fetching property by ID:", id);
-  
+
   try {
     const { data, error } = await sb
       .from('properties')
@@ -334,11 +336,12 @@ export async function updateProperty(id: string, updates: any) {
 
   // Map frontend field names to database field names
   const payload: any = {};
-  
+
   // Map all possible field names from frontend to database
   if (updates.listingTitle || updates.listing_title) payload.listing_title = updates.listingTitle || updates.listing_title;
   if (updates.propertyType || updates.property_type) payload.property_type = updates.propertyType || updates.property_type;
   if (updates.description !== undefined) payload.description = updates.description;
+  if (updates.descriptionAudioUrl || updates.description_audio_url) payload.description_audio_url = updates.descriptionAudioUrl || updates.description_audio_url;
   if (updates.address || updates.propertyAddress) payload.address = updates.address || updates.propertyAddress;
   if (updates.city !== undefined) payload.city = updates.city;
   if (updates.state !== undefined) payload.state = updates.state;
@@ -390,7 +393,7 @@ export async function updateProperty(id: string, updates: any) {
       payload.furnished = payload.furnished === 'furnished' || payload.furnished === 'true';
     }
   }
-  
+
   try {
     const { data, error } = await sb
       .from('properties')
@@ -414,7 +417,7 @@ export async function updateProperty(id: string, updates: any) {
 
 export async function deleteProperty(id: string) {
   console.log("Deleting property:", id);
-  
+
   try {
     // First, check if there are any rental applications for this property
     const { data: applications, error: checkError } = await supabase
@@ -429,7 +432,7 @@ export async function deleteProperty(id: string) {
 
     if (applications && applications.length > 0) {
       console.log(`Found ${applications.length} rental applications for this property:`, applications);
-      
+
       // Delete all rental applications first
       const { error: deleteAppsError } = await supabase
         .from('rental_applications' as any)

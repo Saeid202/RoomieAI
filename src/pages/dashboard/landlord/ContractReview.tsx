@@ -2,52 +2,28 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  FileText, 
-  Clock, 
-  CheckCircle, 
-  User, 
+import {
+  FileText,
+  Clock,
+  CheckCircle,
+  User,
   Calendar,
   DollarSign,
   MapPin,
-  AlertCircle
+  AlertCircle,
+  Download
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { ContractSigningForm } from '@/components/landlord/ContractSigningForm';
-
-interface Contract {
-  id: string;
-  application_id: string;
-  property_id: string;
-  tenant_id: string;
-  tenant_name: string;
-  tenant_email: string;
-  property_address: string;
-  property_city: string;
-  property_state: string;
-  monthly_rent: number;
-  security_deposit: number;
-  lease_start_date: string;
-  lease_end_date: string;
-  status: string;
-  created_at: string;
-  tenant_signature?: {
-    signature_data: string;
-    signed_at: string;
-    ip_address: string;
-  };
-  landlord_signature?: {
-    signature_data: string;
-    signed_at: string;
-    ip_address: string;
-  };
-}
+import { getLandlordContracts } from '@/services/ontarioLeaseService';
+import { printOntarioLease } from '@/utils/printLease';
+import { OntarioLeaseContract } from '@/types/ontarioLease';
 
 export default function ContractReviewPage() {
-  const [contracts, setContracts] = useState<Contract[]>([]);
+  const [contracts, setContracts] = useState<OntarioLeaseContract[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedContract, setSelectedContract] = useState<Contract | null>(null);
+  const [selectedContract, setSelectedContract] = useState<OntarioLeaseContract | null>(null);
   const [showSigningForm, setShowSigningForm] = useState(false);
   const navigate = useNavigate();
 
@@ -58,12 +34,9 @@ export default function ContractReviewPage() {
   const loadContracts = async () => {
     try {
       setLoading(true);
-      // TODO: Implement getLandlordContracts service
-      // const data = await getLandlordContracts();
-      // setContracts(data);
-      
-      // Mock data for now
-      setContracts([]);
+      const data = await getLandlordContracts();
+      console.log('ContractReview: Loaded contracts:', data);
+      setContracts(data);
     } catch (error) {
       console.error('Failed to load contracts:', error);
       toast.error('Failed to load contracts');
@@ -72,14 +45,13 @@ export default function ContractReviewPage() {
     }
   };
 
-  const handleReviewContract = (contract: Contract) => {
+  const handleReviewContract = (contract: OntarioLeaseContract) => {
     setSelectedContract(contract);
     setShowSigningForm(true);
   };
 
   const handleContractSigned = async (contractId: string) => {
     try {
-      // TODO: Implement contract signing service
       toast.success('Contract signed successfully!');
       setShowSigningForm(false);
       setSelectedContract(null);
@@ -90,16 +62,28 @@ export default function ContractReviewPage() {
     }
   };
 
+  const handleDownloadPdf = async (contract: OntarioLeaseContract) => {
+    try {
+      printOntarioLease(contract);
+      toast.success('Preparing document for print/download...');
+    } catch (error) {
+      console.error('Failed to download PDF:', error);
+      toast.error('Failed to download PDF');
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pending_landlord_signature':
         return <Badge variant="outline" className="text-orange-600 border-orange-200">Awaiting Your Signature</Badge>;
+      case 'pending_tenant_signature':
+        return <Badge variant="outline" className="text-blue-600 border-blue-200">Waiting for Tenant</Badge>;
       case 'fully_signed':
         return <Badge variant="default" className="text-green-600 bg-green-50">Fully Executed</Badge>;
       case 'draft':
         return <Badge variant="secondary">Draft</Badge>;
       default:
-        return <Badge variant="secondary">{status}</Badge>;
+        return <Badge variant="secondary">{status.replace(/_/g, ' ')}</Badge>;
     }
   };
 
@@ -217,10 +201,12 @@ export default function ContractReviewPage() {
                     <FileText className="h-5 w-5 text-blue-600" />
                     <div>
                       <CardTitle className="text-lg">
-                        Lease Contract - {contract.tenant_name}
+                        Lease Contract - {contract.ontario_form_data?.tenantFirstName || contract.tenant_name}
                       </CardTitle>
                       <CardDescription>
-                        Property: {contract.property_address}, {contract.property_city}, {contract.property_state}
+                        Property: {contract.ontario_form_data
+                          ? `${contract.ontario_form_data.streetNumber} ${contract.ontario_form_data.streetName}, ${contract.ontario_form_data.cityTown}`
+                          : `${contract.property_address}, ${contract.property_city}`}
                       </CardDescription>
                     </div>
                   </div>
@@ -229,37 +215,57 @@ export default function ContractReviewPage() {
                   </div>
                 </div>
               </CardHeader>
-              
+
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                   <div className="flex items-center space-x-2">
                     <User className="h-4 w-4 text-muted-foreground" />
                     <div>
-                      <p className="text-sm font-medium">{contract.tenant_name}</p>
-                      <p className="text-xs text-muted-foreground">{contract.tenant_email}</p>
+                      <p className="text-sm font-medium">
+                        {contract.ontario_form_data?.tenantFirstName
+                          ? `${contract.ontario_form_data.tenantFirstName} ${contract.ontario_form_data.tenantLastName}`
+                          : contract.tenant_name || 'Unknown Tenant'}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {contract.ontario_form_data?.tenantEmail || contract.tenant_email}
+                      </p>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center space-x-2">
                     <MapPin className="h-4 w-4 text-muted-foreground" />
                     <div>
-                      <p className="text-sm font-medium">{contract.property_city}</p>
-                      <p className="text-xs text-muted-foreground">{contract.property_state}</p>
+                      <p className="text-sm font-medium">
+                        {contract.ontario_form_data
+                          ? `${contract.ontario_form_data.streetNumber} ${contract.ontario_form_data.streetName}`
+                          : contract.property_address}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {contract.ontario_form_data
+                          ? `${contract.ontario_form_data.cityTown}, ${contract.ontario_form_data.province}`
+                          : `${contract.property_city}, ${contract.property_state}`}
+                      </p>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center space-x-2">
                     <DollarSign className="h-4 w-4 text-muted-foreground" />
                     <div>
-                      <p className="text-sm font-medium">{formatCurrency(contract.monthly_rent)}</p>
+                      <p className="text-sm font-medium">
+                        {formatCurrency(Number(contract.ontario_form_data?.totalRent || contract.monthly_rent))}
+                      </p>
                       <p className="text-xs text-muted-foreground">Monthly rent</p>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center space-x-2">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
                     <div>
-                      <p className="text-sm font-medium">{formatDate(contract.lease_start_date)}</p>
+                      <p className="text-sm font-medium">
+                        {contract.ontario_form_data?.tenancyStartDate
+                          ? formatDate(contract.ontario_form_data.tenancyStartDate as string)
+                          : formatDate(contract.lease_start_date)}
+                      </p>
                       <p className="text-xs text-muted-foreground">Lease start</p>
                     </div>
                   </div>
@@ -285,7 +291,7 @@ export default function ContractReviewPage() {
                   <div className="text-sm text-muted-foreground">
                     Created {formatDate(contract.created_at)}
                   </div>
-                  
+
                   <div className="flex space-x-2">
                     {contract.status === 'pending_landlord_signature' && (
                       <Button
@@ -296,13 +302,23 @@ export default function ContractReviewPage() {
                         Review & Sign
                       </Button>
                     )}
-                    
-                    {contract.status === 'fully_signed' && (
-                      <Button variant="outline" disabled>
-                        <CheckCircle className="h-4 w-4 mr-2" />
-                        Fully Executed
+
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        onClick={() => handleDownloadPdf(contract)}
+                      >
+                        <Download className="h-4 w-4 mr-2" />
+                        Download PDF
                       </Button>
-                    )}
+
+                      {contract.status === 'fully_signed' && (
+                        <Button variant="outline" disabled className="bg-green-50 text-green-700 border-green-200">
+                          <CheckCircle className="h-4 w-4 mr-2" />
+                          Fully Executed
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </div>
               </CardContent>

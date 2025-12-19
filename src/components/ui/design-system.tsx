@@ -12,16 +12,16 @@ import { LucideIcon } from "lucide-react";
 // =====================================================
 
 // Enhanced Header Component
-export function EnhancedHeader({ 
-  title, 
-  subtitle, 
-  actionButton, 
-  className = "" 
-}: { 
-  title: string; 
-  subtitle: string; 
-  actionButton?: React.ReactNode; 
-  className?: string; 
+export function EnhancedHeader({
+  title,
+  subtitle,
+  actionButton,
+  className = ""
+}: {
+  title: string;
+  subtitle: string;
+  actionButton?: React.ReactNode;
+  className?: string;
 }) {
   return (
     <div
@@ -34,8 +34,8 @@ export function EnhancedHeader({
 
       <div className="relative z-10 flex items-center justify-between">
         <div>
-          <h1 className="text-4xl font-bold tracking-tight mb-2">{title}</h1>
-          <p className="text-white/90 text-lg">{subtitle}</p>
+          <h1 className="text-2xl font-bold tracking-tight mb-2">{title}</h1>
+          <p className="text-white/90 text-sm">{subtitle}</p>
         </div>
         {actionButton}
       </div>
@@ -48,23 +48,23 @@ export function EnhancedHeader({
 }
 
 // Enhanced StatCard Component
-export function StatCard({ 
-  title, 
-  value, 
-  icon: Icon, 
-  className = "", 
-  gradient = "from-blue-500 to-blue-600", 
-  subtitle 
-}: { 
-  title: string; 
-  value: number; 
-  icon?: LucideIcon; 
-  className?: string; 
+export function StatCard({
+  title,
+  value,
+  icon: Icon,
+  className = "",
+  gradient = "from-blue-500 to-blue-600",
+  subtitle
+}: {
+  title: string;
+  value: number;
+  icon?: LucideIcon;
+  className?: string;
   gradient?: string;
   subtitle?: string;
 }) {
   return (
-    <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 transform bg-white/90 backdrop-blur-sm">
+    <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform bg-white/90 backdrop-blur-sm">
       <CardContent className="p-6">
         <div className="flex items-center justify-between mb-4">
           <div className={`bg-gradient-to-r ${gradient} p-3 rounded-xl shadow-lg`}>
@@ -85,16 +85,16 @@ export function StatCard({
 }
 
 // Enhanced Search Component
-export function EnhancedSearch({ 
-  placeholder, 
-  value, 
-  onChange, 
-  className = "" 
-}: { 
-  placeholder: string; 
-  value: string; 
-  onChange: (value: string) => void; 
-  className?: string; 
+export function EnhancedSearch({
+  placeholder,
+  value,
+  onChange,
+  className = ""
+}: {
+  placeholder: string;
+  value: string;
+  onChange: (value: string) => void;
+  className?: string;
 }) {
   return (
     <div className={`relative group ${className}`}>
@@ -109,11 +109,11 @@ export function EnhancedSearch({
 }
 
 // Enhanced Filter Component
-export function EnhancedFilter({ 
-  value, 
-  onValueChange, 
-  options, 
-  placeholder = "Filter by..." 
+export function EnhancedFilter({
+  value,
+  onValueChange,
+  options,
+  placeholder = "Filter by..."
 }: {
   value: string;
   onValueChange: (value: string) => void;
@@ -137,29 +137,34 @@ export function EnhancedFilter({
 }
 
 // Enhanced Card Component
-export function EnhancedCard({ 
-  children, 
-  className = "", 
-  hover = true 
-}: { 
-  children: React.ReactNode; 
-  className?: string; 
-  hover?: boolean; 
+export function EnhancedCard({
+  children,
+  className = "",
+  hover = true,
+  ...props
+}: {
+  children: React.ReactNode;
+  className?: string;
+  hover?: boolean;
+  [key: string]: any;
 }) {
   return (
-    <Card className={`border-0 shadow-xl bg-white/80 backdrop-blur-sm ${hover ? 'hover:shadow-2xl transition-all duration-300 hover:scale-105 transform' : ''} ${className}`}>
+    <Card
+      className={`border-0 shadow-xl bg-white/80 backdrop-blur-sm ${hover ? 'hover:shadow-2xl transition-all duration-300 hover:scale-105 transform' : ''} ${className}`}
+      {...props}
+    >
       {children}
     </Card>
   );
 }
 
 // Enhanced Button Component
-export function EnhancedButton({ 
-  children, 
-  variant = "default", 
-  size = "default", 
-  className = "", 
-  ...props 
+export function EnhancedButton({
+  children,
+  variant = "default",
+  size = "default",
+  className = "",
+  ...props
 }: {
   children: React.ReactNode;
   variant?: "default" | "secondary" | "outline" | "ghost" | "link" | "destructive";
@@ -178,7 +183,7 @@ export function EnhancedButton({
   };
 
   return (
-    <Button 
+    <Button
       variant={variant}
       size={size}
       className={`${baseClasses} ${variantClasses[variant]} ${className}`}
@@ -190,11 +195,11 @@ export function EnhancedButton({
 }
 
 // Enhanced Tabs Component
-export function EnhancedTabs({ 
-  value, 
-  onValueChange, 
-  children, 
-  className = "" 
+export function EnhancedTabs({
+  value,
+  onValueChange,
+  children,
+  className = ""
 }: {
   value: string;
   onValueChange: (value: string) => void;
@@ -209,9 +214,9 @@ export function EnhancedTabs({
 }
 
 // Enhanced TabsList Component
-export function EnhancedTabsList({ 
-  children, 
-  className = "" 
+export function EnhancedTabsList({
+  children,
+  className = ""
 }: {
   children: React.ReactNode;
   className?: string;
@@ -226,17 +231,17 @@ export function EnhancedTabsList({
 }
 
 // Enhanced TabsTrigger Component
-export function EnhancedTabsTrigger({ 
-  value, 
-  children, 
-  className = "" 
+export function EnhancedTabsTrigger({
+  value,
+  children,
+  className = ""
 }: {
   value: string;
   children: React.ReactNode;
   className?: string;
 }) {
   return (
-    <TabsTrigger 
+    <TabsTrigger
       value={value}
       className={`rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white transition-all duration-300 ${className}`}
     >
@@ -246,11 +251,11 @@ export function EnhancedTabsTrigger({
 }
 
 // Enhanced Section Header Component
-export function EnhancedSectionHeader({ 
-  icon: Icon, 
-  title, 
-  description, 
-  className = "" 
+export function EnhancedSectionHeader({
+  icon: Icon,
+  title,
+  description,
+  className = ""
 }: {
   icon: LucideIcon;
   title: string;
@@ -271,11 +276,11 @@ export function EnhancedSectionHeader({
 }
 
 // Enhanced Form Field Component
-export function EnhancedFormField({ 
-  label, 
-  children, 
-  required = false, 
-  className = "" 
+export function EnhancedFormField({
+  label,
+  children,
+  required = false,
+  className = ""
 }: {
   label: string;
   children: React.ReactNode;
@@ -293,15 +298,15 @@ export function EnhancedFormField({
 }
 
 // Enhanced Input Component
-export function EnhancedInput({ 
-  className = "", 
-  ...props 
+export function EnhancedInput({
+  className = "",
+  ...props
 }: {
   className?: string;
   [key: string]: any;
 }) {
   return (
-    <Input 
+    <Input
       className={`h-12 text-lg border-2 border-gray-200 focus:border-blue-500 rounded-xl transition-all duration-300 hover:border-gray-300 ${className}`}
       {...props}
     />
@@ -309,15 +314,15 @@ export function EnhancedInput({
 }
 
 // Enhanced Textarea Component
-export function EnhancedTextarea({ 
-  className = "", 
-  ...props 
+export function EnhancedTextarea({
+  className = "",
+  ...props
 }: {
   className?: string;
   [key: string]: any;
 }) {
   return (
-    <textarea 
+    <textarea
       className={`w-full h-24 text-lg border-2 border-gray-200 focus:border-blue-500 rounded-xl transition-all duration-300 hover:border-gray-300 p-3 resize-none ${className}`}
       {...props}
     />
@@ -325,12 +330,12 @@ export function EnhancedTextarea({
 }
 
 // Enhanced Select Component
-export function EnhancedSelect({ 
-  value, 
-  onValueChange, 
-  options, 
-  placeholder = "Select...", 
-  className = "" 
+export function EnhancedSelect({
+  value,
+  onValueChange,
+  options,
+  placeholder = "Select...",
+  className = ""
 }: {
   value: string;
   onValueChange: (value: string) => void;
@@ -355,9 +360,9 @@ export function EnhancedSelect({
 }
 
 // Enhanced Status Badge Component
-export function EnhancedStatusBadge({ 
-  status, 
-  className = "" 
+export function EnhancedStatusBadge({
+  status,
+  className = ""
 }: {
   status: string;
   className?: string;
@@ -374,7 +379,7 @@ export function EnhancedStatusBadge({
   };
 
   const statusInfo = statusMap[status] || statusMap.pending;
-  
+
   return (
     <Badge className={`${statusInfo.cls} ${className}`}>
       {statusInfo.label}
@@ -383,12 +388,12 @@ export function EnhancedStatusBadge({
 }
 
 // Enhanced Empty State Component
-export function EnhancedEmptyState({ 
-  icon: Icon, 
-  title, 
-  description, 
-  action, 
-  className = "" 
+export function EnhancedEmptyState({
+  icon: Icon,
+  title,
+  description,
+  action,
+  className = ""
 }: {
   icon: LucideIcon;
   title: string;
@@ -411,9 +416,9 @@ export function EnhancedEmptyState({
 }
 
 // Enhanced Page Layout Component
-export function EnhancedPageLayout({ 
-  children, 
-  className = "" 
+export function EnhancedPageLayout({
+  children,
+  className = ""
 }: {
   children: React.ReactNode;
   className?: string;

@@ -83,11 +83,9 @@ function convertMatchResultToDisplay(
     budget: budgetStr,
     moveInDate: match.movingDate || "Flexible",
     traits: match.traits || [],
-    bio: `${
-      match.occupation || "Professional"
-    } looking for a compatible roommate. Interests include ${
-      match.interests?.slice(0, 2).join(" and ") || "various activities"
-    }.`,
+    bio: `${match.occupation || "Professional"
+      } looking for a compatible roommate. Interests include ${match.interests?.slice(0, 2).join(" and ") || "various activities"
+      }.`,
     image: match.name
       .split(" ")
       .map((n) => n[0])
@@ -329,13 +327,13 @@ export default function MatchesPage() {
             variant="outline"
             className="text-xs md:text-base gap-1 md:gap-2"
           >
-              <Heart className="size-1 md:size-4 md:mr-2" />
-              Saved Matches
-            
+            <Heart className="size-1 md:size-4 md:mr-2" />
+            Saved Matches
+
           </Button>
         </div>
 
-        
+
 
         {/* Mobile-optimized profile section */}
         <div className="w-full !mt-0">
@@ -361,8 +359,8 @@ export default function MatchesPage() {
             selectedMatch={selectedMatch}
             activeTab={
               activeTab === "about-me" ||
-              activeTab === "ideal-roommate" ||
-              activeTab === "ai-assistant"
+                activeTab === "ideal-roommate" ||
+                activeTab === "ai-assistant"
                 ? "roommates"
                 : activeTab
             }
@@ -432,15 +430,14 @@ export default function MatchesPage() {
               className="overflow-hidden hover:shadow-lg transition-shadow"
             >
               <div
-                className={`h-3 ${
-                  match.compatibility >= 85
+                className={`h-3 ${match.compatibility >= 85
                     ? "bg-green-500"
                     : match.compatibility >= 70
-                    ? "bg-blue-500"
-                    : match.compatibility >= 55
-                    ? "bg-yellow-500"
-                    : "bg-orange-500"
-                }`}
+                      ? "bg-blue-500"
+                      : match.compatibility >= 55
+                        ? "bg-yellow-500"
+                        : "bg-orange-500"
+                  }`}
               />
               <CardHeader className="pb-4">
                 <div className="flex items-start justify-between">
@@ -536,6 +533,17 @@ export default function MatchesPage() {
                 }
               >
                 Update Preferences
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={async () => {
+                  const { seedMockRoommates } = await import("@/utils/seedRoommates");
+                  setLoading(true);
+                  await seedMockRoommates();
+                  window.location.reload();
+                }}
+              >
+                Generate Mock Profiles
               </Button>
             </div>
           </CardContent>

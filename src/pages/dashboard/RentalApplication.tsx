@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
-import { 
+import {
   EnhancedPageLayout,
   EnhancedHeader,
   EnhancedCard,
@@ -55,6 +55,7 @@ import OntarioLeaseForm2229E from "@/components/ontario/OntarioLeaseForm2229E";
 import { OntarioLeaseDisplay } from "@/components/lease/OntarioLeaseDisplay";
 import {
   generateOntarioLeaseContract,
+  signOntarioLeaseAsTenant,
   downloadOntarioLeasePdf,
 } from "@/services/ontarioLeaseService";
 import {
@@ -76,6 +77,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+
+import { supabase } from "@/integrations/supabase/client";
 
 interface RentalApplicationData {
   // Personal Information
@@ -199,12 +202,12 @@ export default function RentalApplicationPage() {
     // Enhanced user profile loading with comprehensive fallback
     const loadUserProfile = async () => {
       if (!user) return;
-      
+
       setLoadingProfile(true);
       try {
         console.log("Loading user profile for auto-fill...");
         const profileData = await fetchUserProfileForApplication(user.id);
-        
+
         setApplicationData(prev => ({
           ...prev,
           fullName: profileData.fullName,
@@ -212,10 +215,10 @@ export default function RentalApplicationPage() {
           phone: profileData.phone || prev.phone,
           occupation: profileData.occupation || prev.occupation,
         }));
-        
+
         setProfileAutoFilled(true);
         console.log("Profile auto-filled successfully:", profileData);
-        
+
         if (profileData.fullName || profileData.email) {
           toast.success("Profile information auto-filled", {
             description: "Your information has been pre-filled from your profile"
@@ -234,7 +237,7 @@ export default function RentalApplicationPage() {
         setLoadingProfile(false);
       }
     };
-    
+
     loadUserProfile();
   }, [user]);
 
@@ -254,11 +257,44 @@ export default function RentalApplicationPage() {
       }
 
       try {
-        const hasApplied = await hasUserAppliedForProperty(id, user.id);
-        setHasAlreadyApplied(hasApplied);
+        // Updated to use a new service method that returns the application or ID
+        // Since hasUserAppliedForProperty returns boolean, we'll try to fetch user applications for this property
+        const { data: applications, error } = await supabase
+          .from('rental_applications')
+          .select('id, status')
+          .eq('property_id', id)
+          .eq('applicant_id', user.id)
+          .neq('status', 'withdrawn') // Ignore withdrawn applications
+          .order('created_at', { ascending: false })
+          .limit(1);
 
-        if (hasApplied) {
-          toast.info("You have already applied for this property.");
+        if (error) {
+          console.error("Error checking existing application:", error);
+          return;
+        }
+
+        if (applications && applications.length > 0) {
+          const app = applications[0];
+          console.log("Found existing application:", app);
+
+          setHasAlreadyApplied(true);
+          setCreatedApplicationId(app.id);
+
+          // If we found an ID but we aren't in "edit mode" (no URL param),
+          // we should load the application data to restore state if the user IS continuing
+          if (!createdApplicationId) { // Only if not already set (though effect runs on mount/id change)
+            loadExistingApplication(app.id);
+          }
+
+          // Optional: If status is 'draft', we might want to allow editing without blocking
+          if (app.status === 'draft') {
+            // Maybe setHasAlreadyApplied(false) to allow the UI to show the form instead of "Already Applied" message?
+            // But for now, we just ensure createdApplicationId is set so they can proceed if they are on Step 3.
+          } else {
+            toast.info("You have already applied for this property.");
+          }
+        } else {
+          setHasAlreadyApplied(false);
         }
       } catch (error) {
         console.error("Error checking existing application:", error);
@@ -281,8 +317,21 @@ export default function RentalApplicationPage() {
     if (appIdParam) {
       setCreatedApplicationId(appIdParam);
       loadExistingApplication(appIdParam);
+    } else {
+      // If no ID in URL, we rely on checkExistingApplication to find it.
+      // But checkExistingApplication runs on [id, user] change.
+      // We need to make sure we don't proceed to step 3 without an ID.
     }
   }, []);
+
+  // Monitor createdApplicationId
+  useEffect(() => {
+    if (createdApplicationId) {
+      console.log("createdApplicationId is set:", createdApplicationId);
+    } else {
+      console.log("createdApplicationId is null");
+    }
+  }, [createdApplicationId]);
 
   const loadExistingApplication = async (applicationId: string) => {
     try {
@@ -523,8 +572,14 @@ export default function RentalApplicationPage() {
   };
 
   const handleOntarioFormSubmit = async (data: OntarioLeaseFormData) => {
+    console.log("handleOntarioFormSubmit called", {
+      createdApplicationId,
+      formData: data
+    });
+
     try {
       if (!createdApplicationId) {
+        console.error("No application found (createdApplicationId is null/undefined)");
         toast.error(
           "No application found. Please complete the application first."
         );
@@ -537,17 +592,39 @@ export default function RentalApplicationPage() {
         return;
       }
 
+      // Parse dates safely
+      const startDateStr = data.startDate ||
+        (data.tenancyStartDate instanceof Date ? data.tenancyStartDate.toISOString().split("T")[0] : null) ||
+        new Date().toISOString().split("T")[0];
+
+      const endDateStr = data.endDate ||
+        (data.tenancyEndDate instanceof Date ? data.tenancyEndDate.toISOString().split("T")[0] : '') ||
+        '';
+
+      console.log("Generating contract with dates:", { startDateStr, endDateStr });
+
       // Generate Ontario lease contract
-      const contract = await generateOntarioLeaseContract({
+      let contract = await generateOntarioLeaseContract({
         application_id: createdApplicationId,
         ontario_form_data: data,
-        lease_start_date: data.tenancyStartDate.toISOString().split("T")[0],
-        lease_end_date: data.tenancyEndDate ? data.tenancyEndDate.toISOString().split("T")[0] : '',
+        lease_start_date: startDateStr,
+        lease_end_date: endDateStr,
+      });
+
+      // Sign the contract immediately as the tenant has already agreed in the form
+      contract = await signOntarioLeaseAsTenant(contract.id, {
+        signature_data: data.tenant1Signature || 'Signed electronically',
+        ip_address: '127.0.0.1', // Verify if we can get real IP or if this is sufficient
+        user_agent: navigator.userAgent
       });
 
       setOntarioFormData(data);
       setPreviewContract(contract);
-      toast.success("Ontario lease contract generated and sent to landlord for signature!");
+
+      // Update application state to reflect signing
+      handleSignContract(data.tenant1Signature || "Digital Signature");
+
+      toast.success("Ontario lease contract signed and sent to landlord for signature!");
     } catch (error) {
       console.error("Error generating Ontario lease contract:", error);
       toast.error("Failed to generate lease contract. Please try again.");
@@ -574,13 +651,13 @@ export default function RentalApplicationPage() {
       if (!applicationData.phone) missingFields.push("Phone");
       if (!applicationData.occupation) missingFields.push("Occupation");
       if (!applicationData.monthlyIncome) missingFields.push("Monthly Income");
-      
+
       // Validate monthly income is a valid number
       const monthlyIncome = parseFloat(applicationData.monthlyIncome || "0");
       if (isNaN(monthlyIncome) || monthlyIncome <= 0) {
         missingFields.push("Valid Monthly Income");
       }
-      
+
       // Note: Contract signing is optional for initial submission
       // if (!applicationData.contractSigned)
       //   missingFields.push("Contract Signature");
@@ -647,15 +724,15 @@ export default function RentalApplicationPage() {
     } catch (error: any) {
       console.error("Error submitting application:", error);
       console.error("Error details:", error);
-      
+
       // Extract error message
-      const errorMessage = error?.message || 
-                          error?.error?.message || 
-                          error?.toString() || 
-                          "An unexpected error occurred. Please try again.";
-      
+      const errorMessage = error?.message ||
+        error?.error?.message ||
+        error?.toString() ||
+        "An unexpected error occurred. Please try again.";
+
       toast.error(`Failed to submit application: ${errorMessage}`);
-      
+
       // Log full error for debugging
       if (error?.error) {
         console.error("Supabase error details:", error.error);
@@ -699,7 +776,7 @@ export default function RentalApplicationPage() {
         return (
           <div className="space-y-6">
             <div>
-              <h2 className="text-2xl font-bold mb-2">
+              <h2 className="text-xl font-bold mb-2">
                 {property.listing_title}
               </h2>
               <p className="text-muted-foreground flex items-center gap-1 mb-4">
@@ -711,7 +788,7 @@ export default function RentalApplicationPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Property Details</CardTitle>
+                  <CardTitle className="text-base">Property Details</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <div className="flex justify-between">
@@ -753,7 +830,7 @@ export default function RentalApplicationPage() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Description</CardTitle>
+                  <CardTitle className="text-base">Description</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground">
@@ -780,7 +857,7 @@ export default function RentalApplicationPage() {
         return (
           <div className="space-y-8">
             <div>
-              <h2 className="text-xl font-semibold mb-4">
+              <h2 className="text-lg font-semibold mb-4">
                 Applicant Information
               </h2>
 
@@ -788,7 +865,7 @@ export default function RentalApplicationPage() {
               <div className="grid grid-cols-2 md:grid-cols-2 gap-4 mb-6">
                 <div>
                   <div className="flex items-center gap-2 mb-2">
-                    <Label htmlFor="fullName">Full Name *</Label>
+                    <Label htmlFor="fullName" className="text-xs">Full Name *</Label>
                     {profileAutoFilled && applicationData.fullName && (
                       <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full flex items-center gap-1">
                         <CheckCircle className="w-3 h-3" />
@@ -809,13 +886,13 @@ export default function RentalApplicationPage() {
                       handleInputChange("fullName", e.target.value)
                     }
                     placeholder="Enter your full name"
-                    className={profileAutoFilled && applicationData.fullName ? "bg-green-50 border-green-200" : ""}
+                    className={`h-8 text-xs ${profileAutoFilled && applicationData.fullName ? "bg-green-50 border-green-200" : ""}`}
                   />
                 </div>
 
                 <div>
                   <div className="flex items-center gap-2 mb-2">
-                    <Label htmlFor="email">Email Address *</Label>
+                    <Label htmlFor="email" className="text-xs">Email Address *</Label>
                     {profileAutoFilled && applicationData.email && (
                       <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full flex items-center gap-1">
                         <CheckCircle className="w-3 h-3" />
@@ -829,13 +906,13 @@ export default function RentalApplicationPage() {
                     value={applicationData.email}
                     onChange={(e) => handleInputChange("email", e.target.value)}
                     placeholder="Enter your email"
-                    className={profileAutoFilled && applicationData.email ? "bg-green-50 border-green-200" : ""}
+                    className={`h-8 text-xs ${profileAutoFilled && applicationData.email ? "bg-green-50 border-green-200" : ""}`}
                   />
                 </div>
 
                 <div>
                   <div className="flex items-center gap-2 mb-2">
-                    <Label htmlFor="phone">Phone Number *</Label>
+                    <Label htmlFor="phone" className="text-xs">Phone Number *</Label>
                     {profileAutoFilled && applicationData.phone && (
                       <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full flex items-center gap-1">
                         <CheckCircle className="w-3 h-3" />
@@ -849,13 +926,13 @@ export default function RentalApplicationPage() {
                     value={applicationData.phone}
                     onChange={(e) => handleInputChange("phone", e.target.value)}
                     placeholder="Enter your phone number"
-                    className={profileAutoFilled && applicationData.phone ? "bg-green-50 border-green-200" : ""}
+                    className={`h-8 text-xs ${profileAutoFilled && applicationData.phone ? "bg-green-50 border-green-200" : ""}`}
                   />
                 </div>
 
                 <div>
                   <div className="flex items-center gap-2 mb-2">
-                    <Label htmlFor="occupation">Occupation *</Label>
+                    <Label htmlFor="occupation" className="text-xs">Occupation *</Label>
                     {profileAutoFilled && applicationData.occupation && (
                       <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full flex items-center gap-1">
                         <CheckCircle className="w-3 h-3" />
@@ -870,12 +947,12 @@ export default function RentalApplicationPage() {
                       handleInputChange("occupation", e.target.value)
                     }
                     placeholder="Enter your occupation"
-                    className={profileAutoFilled && applicationData.occupation ? "bg-green-50 border-green-200" : ""}
+                    className={`h-8 text-xs ${profileAutoFilled && applicationData.occupation ? "bg-green-50 border-green-200" : ""}`}
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="monthlyIncome">Monthly Income *</Label>
+                  <Label htmlFor="monthlyIncome" className="text-xs">Monthly Income *</Label>
                   <Input
                     id="monthlyIncome"
                     type="number"
@@ -884,13 +961,14 @@ export default function RentalApplicationPage() {
                       handleInputChange("monthlyIncome", e.target.value)
                     }
                     placeholder="Enter your monthly income"
+                    className="h-8 text-xs"
                   />
                 </div>
 
                 <div>
                   <Label
                     htmlFor="moveInDate"
-                    className="!line-clamp-1 !leading-6"
+                    className="!line-clamp-1 !leading-6 text-xs"
                   >
                     Preferred Move-in Date
                   </Label>
@@ -901,16 +979,18 @@ export default function RentalApplicationPage() {
                     onChange={(e) =>
                       handleInputChange("moveInDate", e.target.value)
                     }
+                    className="h-8 text-xs"
                   />
                 </div>
               </div>
 
               {/* Emergency Contact */}
               <div className="border-t pt-6 mb-6">
-                <h3 className="text-lg font-medium mb-4">Emergency Contact</h3>
+
+                <h3 className="text-base font-medium mb-4">Emergency Contact</h3>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   <div>
-                    <Label htmlFor="emergencyContactName">Contact Name</Label>
+                    <Label htmlFor="emergencyContactName" className="text-xs">Contact Name</Label>
                     <Input
                       id="emergencyContactName"
                       value={applicationData.emergencyContactName}
@@ -921,11 +1001,12 @@ export default function RentalApplicationPage() {
                         )
                       }
                       placeholder="Enter contact name"
+                      className="h-8 text-xs"
                     />
                   </div>
 
                   <div>
-                    <Label htmlFor="emergencyContactPhone">Contact Phone</Label>
+                    <Label htmlFor="emergencyContactPhone" className="text-xs">Contact Phone</Label>
                     <Input
                       id="emergencyContactPhone"
                       type="tel"
@@ -937,11 +1018,12 @@ export default function RentalApplicationPage() {
                         )
                       }
                       placeholder="Enter contact phone"
+                      className="h-8 text-xs"
                     />
                   </div>
 
                   <div>
-                    <Label htmlFor="emergencyContactRelation">
+                    <Label htmlFor="emergencyContactRelation" className="text-xs">
                       Relationship
                     </Label>
                     <Input
@@ -954,6 +1036,7 @@ export default function RentalApplicationPage() {
                         )
                       }
                       placeholder="e.g., Parent, Friend"
+                      className="h-8 text-xs"
                     />
                   </div>
                 </div>
@@ -962,7 +1045,7 @@ export default function RentalApplicationPage() {
 
             {/* Document Upload Section */}
             <div className="border-t pt-6">
-              <h3 className="text-lg font-medium mb-4">Required Documents</h3>
+              <h3 className="text-base font-medium mb-4">Required Documents</h3>
               <p className="text-sm text-muted-foreground mb-6">
                 Upload the following documents to support your rental
                 application. All files must be under 10MB. Accepted formats:
@@ -1156,7 +1239,7 @@ export default function RentalApplicationPage() {
             {/* Previously Uploaded Documents */}
             {existingDocuments.length > 0 && (
               <div className="border-t pt-6">
-                <h3 className="text-lg font-medium mb-4">
+                <h3 className="text-base font-medium mb-4">
                   Previously Uploaded Documents
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1229,18 +1312,17 @@ export default function RentalApplicationPage() {
             {/* Save & Submit Documents Button */}
             <div className="border-t pt-6">
               <Card
-                className={`border-2 ${
-                  documentsSubmittedForReview
-                    ? "border-green-200"
-                    : "border-blue-200"
-                }`}
+                className={`border-2 ${documentsSubmittedForReview
+                  ? "border-green-200"
+                  : "border-blue-200"
+                  }`}
               >
                 <CardContent className="pt-6">
                   <div className="space-y-4">
                     {!documentsSubmittedForReview ? (
                       <>
                         <div className="text-center">
-                          <h3 className="text-lg font-semibold text-blue-800 mb-2">
+                          <h3 className="text-base font-semibold text-blue-800 mb-2">
                             Submit Documents for Early Review
                           </h3>
                           <p className="text-sm text-muted-foreground mb-4">
@@ -1253,7 +1335,7 @@ export default function RentalApplicationPage() {
                     ) : (
                       <div className="text-center">
                         <CheckCircle className="h-12 w-12 text-green-600 mx-auto mb-3" />
-                        <h3 className="text-lg font-semibold text-green-800 mb-2">
+                        <h3 className="text-base font-semibold text-green-800 mb-2">
                           Documents Submitted for Review!
                         </h3>
                         <p className="text-green-700 mb-4">
@@ -1281,23 +1363,23 @@ export default function RentalApplicationPage() {
                           {(!applicationData.fullName ||
                             !applicationData.email ||
                             !applicationData.phone) && (
-                            <div className="text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded p-3">
-                              <p className="font-medium">
-                                Required fields missing:
-                              </p>
-                              <ul className="list-disc list-inside text-xs mt-1">
-                                {!applicationData.fullName && (
-                                  <li>Full Name</li>
-                                )}
-                                {!applicationData.email && (
-                                  <li>Email Address</li>
-                                )}
-                                {!applicationData.phone && (
-                                  <li>Phone Number</li>
-                                )}
-                              </ul>
-                            </div>
-                          )}
+                              <div className="text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded p-3">
+                                <p className="font-medium">
+                                  Required fields missing:
+                                </p>
+                                <ul className="list-disc list-inside text-xs mt-1">
+                                  {!applicationData.fullName && (
+                                    <li>Full Name</li>
+                                  )}
+                                  {!applicationData.email && (
+                                    <li>Email Address</li>
+                                  )}
+                                  {!applicationData.phone && (
+                                    <li>Phone Number</li>
+                                  )}
+                                </ul>
+                              </div>
+                            )}
 
                           <Button
                             variant="outline"
@@ -1415,29 +1497,29 @@ export default function RentalApplicationPage() {
 
                                 const uploadGroups: Array<{
                                   type:
-                                    | "reference"
-                                    | "employment"
-                                    | "credit"
-                                    | "additional";
+                                  | "reference"
+                                  | "employment"
+                                  | "credit"
+                                  | "additional";
                                   files: File[];
                                 }> = [
-                                  {
-                                    type: "reference",
-                                    files: applicationData.referenceLetters,
-                                  },
-                                  {
-                                    type: "employment",
-                                    files: applicationData.employmentLetter,
-                                  },
-                                  {
-                                    type: "credit",
-                                    files: applicationData.creditScoreLetter,
-                                  },
-                                  {
-                                    type: "additional",
-                                    files: applicationData.additionalDocuments,
-                                  },
-                                ];
+                                    {
+                                      type: "reference",
+                                      files: applicationData.referenceLetters,
+                                    },
+                                    {
+                                      type: "employment",
+                                      files: applicationData.employmentLetter,
+                                    },
+                                    {
+                                      type: "credit",
+                                      files: applicationData.creditScoreLetter,
+                                    },
+                                    {
+                                      type: "additional",
+                                      files: applicationData.additionalDocuments,
+                                    },
+                                  ];
 
                                 let uploadedCount = 0;
                                 let failedCount = 0;
@@ -1474,12 +1556,10 @@ export default function RentalApplicationPage() {
                                         e
                                       );
                                       toast.error(
-                                        `❌ Failed to upload ${type}: ${
-                                          file.name
-                                        } - ${
-                                          e instanceof Error
-                                            ? e.message
-                                            : "Unknown error"
+                                        `❌ Failed to upload ${type}: ${file.name
+                                        } - ${e instanceof Error
+                                          ? e.message
+                                          : "Unknown error"
                                         }`
                                       );
                                       failedCount++;
@@ -1581,7 +1661,7 @@ export default function RentalApplicationPage() {
         return (
           <div className="space-y-6">
             <div className="text-center">
-              <h2 className="text-xl font-semibold">Sign Lease Contract</h2>
+              <h2 className="text-lg font-semibold">Sign Lease Contract</h2>
             </div>
 
             <Card>
@@ -1623,7 +1703,7 @@ export default function RentalApplicationPage() {
                 {!previewContract ? (
                   <div className="text-center py-8 px-4 border-2 border-dashed rounded-lg">
                     <FileText className="mx-auto h-12 w-12 text-gray-400" />
-                    <h3 className="mt-2 text-lg font-medium text-gray-900">
+                    <h3 className="mt-2 text-base font-medium text-gray-900">
                       Complete Lease Agreement
                     </h3>
                     <p className="mt-1 text-sm text-gray-500">
@@ -1631,18 +1711,41 @@ export default function RentalApplicationPage() {
                       generate the final contract.
                     </p>
                   </div>
-                ) : (
-                  <OntarioLeaseDisplay contract={previewContract} />
-                )}
+                ) : 'ontario_form_data' in previewContract ? (
+                  <OntarioLeaseDisplay
+                    contract={previewContract as OntarioLeaseContract}
+                    onSign={() => handleSignContract("Digital Signature")}
+                    onDownload={() => {
+                      const contract = previewContract as OntarioLeaseContract;
+                      downloadOntarioLeasePdf(contract.id, `ontario-lease-${contract.id}.pdf`, contract);
+                    }}
+                  />
+                ) : null}
               </CardContent>
             </Card>
 
             {/* Form to fill out the lease */}
-            <OntarioLeaseForm2229E
-              property={property}
-              applicant={applicationData}
-              onSubmit={handleOntarioFormSubmit}
-            />
+            {/* Form to fill out the lease */}
+            {!previewContract && (
+              <OntarioLeaseForm2229E
+                initialData={{
+                  streetNumber: property?.address?.split(' ')[0] || '',
+                  streetName: property?.address?.split(' ').slice(1).join(' ') || '',
+                  cityTown: property?.city || '',
+                  postalCode: property?.zip_code || '',
+                  tenantFirstName: applicationData.fullName.split(' ')[0] || '',
+                  tenantLastName: applicationData.fullName.split(' ').slice(1).join(' ') || '',
+                  tenantEmail: applicationData.email || '',
+                  baseRent: property?.monthly_rent || 0,
+                  totalRent: property?.monthly_rent || 0,
+                  startDate: applicationData.moveInDate || '',
+                }}
+                onSubmit={handleOntarioFormSubmit}
+                onCancel={() => {
+                  toast.info("Lease agreement creation cancelled");
+                }}
+              />
+            )}
           </div>
         );
 
@@ -1650,7 +1753,7 @@ export default function RentalApplicationPage() {
         return (
           <div className="space-y-6">
             <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold mb-2">Payment (Optional)</h2>
+              <h2 className="text-xl font-bold mb-2">Payment (Optional)</h2>
               <p className="text-muted-foreground">
                 You can make payment now to secure your rental, or complete the
                 application and pay later.
@@ -1774,9 +1877,9 @@ export default function RentalApplicationPage() {
                     $
                     {property
                       ? (
-                          property.monthly_rent +
-                          (property.security_deposit || property.monthly_rent)
-                        ).toLocaleString()
+                        property.monthly_rent +
+                        (property.security_deposit || property.monthly_rent)
+                      ).toLocaleString()
                       : "0"}{" "}
                     paid successfully
                   </p>
@@ -1869,78 +1972,78 @@ export default function RentalApplicationPage() {
         }
       />
 
-        {/* Progress Bar */}
-        <div className="mb-8">
-          <Progress value={progress} className="h-2" />
-        </div>
+      {/* Progress Bar */}
+      <div className="mb-8">
+        <Progress value={progress} className="h-2" />
+      </div>
 
-        {/* Step Content */}
-        <EnhancedCard>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              {steps[currentStep - 1]?.icon &&
-                (() => {
-                  const IconComponent = steps[currentStep - 1].icon;
-                  return <IconComponent className="h-5 w-5" />;
-                })()}
-              {steps[currentStep - 1]?.title}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>{renderStepContent()}</CardContent>
-        </EnhancedCard>
+      {/* Step Content */}
+      <EnhancedCard hover={false}>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            {steps[currentStep - 1]?.icon &&
+              (() => {
+                const IconComponent = steps[currentStep - 1].icon;
+                return <IconComponent className="h-5 w-5" />;
+              })()}
+            {steps[currentStep - 1]?.title}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>{renderStepContent()}</CardContent>
+      </EnhancedCard>
 
-        {/* Navigation Buttons */}
-        <div className="flex justify-between mt-6">
-          <EnhancedButton
-            variant="outline"
-            onClick={prevStep}
-            disabled={currentStep === 1}
-          >
-            Previous
-          </EnhancedButton>
+      {/* Navigation Buttons */}
+      <div className="flex justify-between mt-6">
+        <EnhancedButton
+          variant="outline"
+          onClick={prevStep}
+          disabled={currentStep === 1}
+        >
+          Previous
+        </EnhancedButton>
 
-          {currentStep < steps.length ? (
-            <div className="flex flex-col items-end gap-2">
-              
-              <EnhancedButton
-                onClick={nextStep}
-                // disabled={currentStep === 3 && !applicationData.contractSigned}
-                className={
-                  applicationData.contractSigned || currentStep !== 3
-                    ? "bg-primary hover:bg-primary/90"
-                    : ""
-                }
-              >
-                Next
-              </EnhancedButton>
-              {currentStep === 3 && !applicationData.contractSigned && (
-                <p className="text-sm text-muted-foreground">
-                  Please sign the contract above to continue to payment
-                </p>
-              )}
-            </div>
-          ) : (
-            <div className="flex flex-col items-end gap-2">
-              <EnhancedButton
-                onClick={async () => {
-                  console.log("🔘 Complete Rental Application button clicked");
-                  
-                  // Call handleSubmit which handles all the logic
-                  await handleSubmit();
-                }}
-                disabled={isSubmitting}
-                className="bg-primary hover:bg-primary/90"
-              >
-                <Send className="h-4 w-4 mr-2" />
-                {isSubmitting ? "Submitting..." : "Complete Rental Application"}
-              </EnhancedButton>
-              {/* Debug info */}
-              <p className="text-xs text-muted-foreground">
-                Debug: Step {currentStep} of {steps.length}
+        {currentStep < steps.length ? (
+          <div className="flex flex-col items-end gap-2">
+
+            <EnhancedButton
+              onClick={nextStep}
+              // disabled={currentStep === 3 && !applicationData.contractSigned}
+              className={
+                applicationData.contractSigned || currentStep !== 3
+                  ? "bg-primary hover:bg-primary/90"
+                  : ""
+              }
+            >
+              Next
+            </EnhancedButton>
+            {currentStep === 3 && !applicationData.contractSigned && (
+              <p className="text-sm text-muted-foreground">
+                Please sign the contract above to continue to payment
               </p>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        ) : (
+          <div className="flex flex-col items-end gap-2">
+            <EnhancedButton
+              onClick={async () => {
+                console.log("🔘 Complete Rental Application button clicked");
+
+                // Call handleSubmit which handles all the logic
+                await handleSubmit();
+              }}
+              disabled={isSubmitting}
+              className="bg-primary hover:bg-primary/90"
+            >
+              <Send className="h-4 w-4 mr-2" />
+              {isSubmitting ? "Submitting..." : "Complete Rental Application"}
+            </EnhancedButton>
+            {/* Debug info */}
+            <p className="text-xs text-muted-foreground">
+              Debug: Step {currentStep} of {steps.length}
+            </p>
+          </div>
+        )}
+      </div>
     </EnhancedPageLayout>
   );
 }

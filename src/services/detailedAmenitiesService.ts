@@ -6,7 +6,7 @@ export class DetailedAmenitiesService {
   private BASE_OVERPASS_URL = "https://overpass-api.de/api/interpreter";
   private cache = new Map<string, { ts: number; data: any }>();
   private CACHE_TTL_MS = 2 * 60 * 60 * 1000; // 2 hours for better performance
-  private STORAGE_KEY = 'roomie_amenities_cache';
+  private STORAGE_KEY = 'roomie_amenities_cache_v2';
 
   constructor() {
     this.loadCacheFromStorage();
@@ -62,15 +62,15 @@ export class DetailedAmenitiesService {
       console.log('📍 Coordinates:', coordinates);
       console.log('🏠 Address:', propertyAddress);
       console.log('🏢 Property type:', propertyType);
-      
+
       // Get comprehensive amenities data
       const detailedInfo = await this.getDetailedAmenitiesInfo(coordinates);
-      
+
       console.log('📊 Detailed amenities info:', detailedInfo);
-      
+
       // Check condo amenities if property type is condo/apartment
       const condoAmenities = this.checkCondoAmenities(propertyType);
-      
+
       const result: PropertyIntelligence = {
         propertyType,
         address: propertyAddress,
@@ -182,9 +182,9 @@ export class DetailedAmenitiesService {
 
     try {
       // Cache key per rounded coords and radius with timestamp for cache busting
-      const key = `${Math.round(coordinates.lat*1000)/1000},${Math.round(coordinates.lng*1000)/1000}`;
+      const key = `${Math.round(coordinates.lat * 1000) / 1000},${Math.round(coordinates.lng * 1000) / 1000}`;
       const now = Date.now();
-      
+
       // Force cache refresh every 5 minutes to ensure fresh data
       const cacheBustKey = `${key}_${Math.floor(now / 300000)}`; // 5-minute intervals
       const hit = this.cache.get(key);
@@ -192,9 +192,9 @@ export class DetailedAmenitiesService {
         try {
           const cached = hit.data as DetailedAmenitiesInfo;
           return { ...cached, condoAmenities: cached.condoAmenities || [] };
-        } catch {}
+        } catch { }
       }
-      
+
       // Enhanced query to get more specific amenity types
       const query = this.buildEnhancedDetectQuery(coordinates);
       console.log('🔍 Overpass query:', query);
@@ -227,7 +227,7 @@ export class DetailedAmenitiesService {
       console.log('📊 Raw Overpass data:', data);
       const rawElements: any[] = Array.isArray(data?.elements) ? data.elements : [];
       console.log('🔢 Raw elements count:', rawElements.length);
-      
+
       // Hard cap results to avoid memory spikes in dense areas
       const elements = rawElements.slice(0, 400);
       console.log('✂️ Processed elements count:', elements.length);
@@ -240,7 +240,7 @@ export class DetailedAmenitiesService {
           this.categorizeDetailedAmenity(amenity, result);
         }
       }
-      
+
       console.log('📋 Final categorized result:', result);
 
       // Save to cache
@@ -255,15 +255,15 @@ export class DetailedAmenitiesService {
         retryCount,
         timestamp: new Date().toISOString()
       });
-      
+
       // Retry once for timeout errors
-      if (retryCount === 0 && error instanceof Error && 
-          (error.message.includes('timeout') || error.message.includes('504'))) {
+      if (retryCount === 0 && error instanceof Error &&
+        (error.message.includes('timeout') || error.message.includes('504'))) {
         console.log('Retrying amenities detection after timeout...');
         await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds
         return this.getDetailedAmenitiesInfo(coordinates, 1);
       }
-      
+
       // Return empty result instead of mock data
       // This ensures users see real-time data or nothing, not fake data
       return result;
@@ -338,13 +338,13 @@ out center qt;`;
    * Process detailed amenity from overpass element  
    */
   private processDetailedAmenityElement(element: any, searchCenter: { lat: number; lng: number }) {
-    const coords = element.lat && element.lon ? 
+    const coords = element.lat && element.lon ?
       { lat: parseFloat(element.lat), lng: parseFloat(element.lon) } :
       element.center || { lat: parseFloat(element.center?.lat), lng: parseFloat(element.center?.lon) };
 
     if (!coords || isNaN(coords.lat) || isNaN(coords.lng)) return null;
 
-    const distance = this.calculateDistanceHaversine(searchCenter, coords) * 1000; // meters
+    const distance = this.calculateDistanceHaversine(searchCenter, coords); // meters
     const tags = element.tags || {};
 
     return {
@@ -361,9 +361,10 @@ out center qt;`;
    */
   private categorizeDetailedAmenity(amenity: any, result: DetailedAmenitiesInfo) {
     const { name, type, distance, coordinates } = amenity;
-    
+
     // Transportation detection
-    if (type === 'railway_station' || name.toLowerCase().includes('metro') || name.toLowerCase().includes('subway')) {
+    if ((type === 'railway_station' || name.toLowerCase().includes('metro') || name.toLowerCase().includes('subway')) &&
+      type !== 'fast_food' && type !== 'restaurant') {
       result.metro.push({
         name,
         distance,
@@ -378,7 +379,7 @@ out center qt;`;
         coordinates
       });
     }
-    
+
     // Banking services  
     else if (type === 'bank' || type === 'atm') {
       result.banks.push({
@@ -388,7 +389,7 @@ out center qt;`;
         coordinates
       });
     }
-    
+
     // Shopping facilities
     else if (type === 'shop' || type === 'marketplace') {
       if (name.toLowerCase().includes('mall') || name.toLowerCase().includes('shopping') || type === 'mall') {
@@ -397,7 +398,7 @@ out center qt;`;
         result.plazas.push({ name, distance, coordinates });
       }
     }
-    
+
     // Fitness and recreation
     else if (type === 'fitness_centre' || type === 'fitness' || name.toLowerCase().includes('gym')) {
       result.gyms.push({
@@ -407,7 +408,7 @@ out center qt;`;
         coordinates
       });
     }
-    
+
     // Healthcare facilities
     else if (type === 'hospital') {
       result.hospitals.push({
@@ -431,7 +432,7 @@ out center qt;`;
         coordinates
       });
     }
-    
+
     // Education facilities
     else if (type === 'school') {
       result.schools.push({
@@ -455,7 +456,7 @@ out center qt;`;
         coordinates
       });
     }
-    
+
     // Dining facilities
     else if (type === 'restaurant') {
       result.restaurants.push({
@@ -479,7 +480,7 @@ out center qt;`;
         coordinates
       });
     }
-    
+
     // Recreation facilities
     else if (type === 'park') {
       result.parks.push({
@@ -502,9 +503,9 @@ out center qt;`;
    * Check condo amenities based on property type
    */
   private checkCondoAmenities(propertyType: string): CondoAmenityInfo[] {
-    const isCondoOrApartment = propertyType.toLowerCase().includes('condo') || 
-                               propertyType.toLowerCase().includes('apartment');
-    
+    const isCondoOrApartment = propertyType.toLowerCase().includes('condo') ||
+      propertyType.toLowerCase().includes('apartment');
+
     if (!isCondoOrApartment) return [];
 
     const defaultCondoAmenities: CondoAmenityInfo[] = [
@@ -527,7 +528,7 @@ out center qt;`;
     if (name.toLowerCase().includes('yonge-university')) return 'Line 1';
     if (name.toLowerCase().includes('sheppard')) return 'Line 4';
     if (name.toLowerCase().includes('eglinton')) return 'Line 5';
-    return 'Metro Line';
+    return '';
   }
 
   /**
@@ -564,7 +565,7 @@ out center qt;`;
     if (info.schools.length > 0) score += 10;
     if (info.restaurants.length > 0) score += 10;
     if (info.parks.length > 0) score += 5;
-    
+
     return Math.min(score, 100);
   }
 
@@ -579,10 +580,10 @@ out center qt;`;
     const lat1Rad = toRad(coords1.lat);
     const lat2Rad = toRad(coords2.lat);
 
-    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-              Math.cos(lat1Rad) * Math.cos(lat2Rad) * 
-              Math.sin(dLng/2) * Math.sin(dLng/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1Rad) * Math.cos(lat2Rad) *
+      Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
   }
 }

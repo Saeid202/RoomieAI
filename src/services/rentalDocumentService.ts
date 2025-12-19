@@ -27,6 +27,37 @@ export interface DocumentUploadInput {
 /**
  * Upload a document file and create database record
  */
+/**
+ * Ensure the storage bucket exists
+ */
+export async function ensureBucketExists(): Promise<void> {
+  try {
+    const { data: buckets } = await supabase.storage.listBuckets();
+    const bucketExists = buckets?.some(b => b.name === 'rental-documents');
+
+    if (!bucketExists) {
+      console.log("⚠️ Rental documents bucket missing, attempting to create...");
+      const { data, error } = await supabase.storage.createBucket('rental-documents', {
+        public: true,
+        fileSizeLimit: 10485760, // 10MB
+        allowedMimeTypes: ['image/png', 'image/jpeg', 'application/pdf']
+      });
+
+      if (error) {
+        console.error("❌ Failed to create bucket:", error);
+        // Don't throw here, as we might lack permissions but bucket might simulate existence or we want to try upload anyway
+      } else {
+        console.log("✅ Bucket created successfully");
+      }
+    }
+  } catch (error) {
+    console.error("Error checking/creating bucket:", error);
+  }
+}
+
+/**
+ * Upload a document file and create database record
+ */
 export async function uploadRentalDocument(input: DocumentUploadInput): Promise<RentalDocument> {
   console.log("🔄 Starting document upload:", {
     type: input.document_type,
@@ -35,8 +66,11 @@ export async function uploadRentalDocument(input: DocumentUploadInput): Promise<
     mimeType: input.file.type,
     applicationId: input.application_id
   });
-  
+
   try {
+    // Ensure bucket exists before uploading
+    await ensureBucketExists();
+
     // Get current user
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
@@ -52,12 +86,12 @@ export async function uploadRentalDocument(input: DocumentUploadInput): Promise<
       .select('id, applicant_id')
       .eq('id', input.application_id)
       .single();
-    
+
     if (appError || !application) {
       console.error("❌ Application not found:", appError?.message);
       throw new Error(`Application not found: ${appError?.message || 'Invalid application ID'}`);
     }
-    
+
     if (application.applicant_id !== user.id) {
       console.error("❌ Application ownership mismatch");
       throw new Error("You can only upload documents for your own applications");
@@ -86,7 +120,19 @@ export async function uploadRentalDocument(input: DocumentUploadInput): Promise<
         statusCode: uploadError.statusCode,
         error: uploadError.error
       });
-      throw new Error(`Failed to upload document: ${uploadError.message}`);
+      // Try one more time after ensuring bucket (in case race condition)
+      if (uploadError.message.includes("Bucket not found")) {
+        await ensureBucketExists();
+        const { error: retryError } = await supabase.storage
+          .from('rental-documents')
+          .upload(filePath, input.file, {
+            cacheControl: '3600',
+            upsert: false
+          });
+        if (retryError) throw new Error(`Failed to upload document (retry failed): ${retryError.message}`);
+      } else {
+        throw new Error(`Failed to upload document: ${uploadError.message}`);
+      }
     }
     console.log("✅ Storage upload successful:", uploadData);
 
@@ -143,7 +189,7 @@ export async function uploadRentalDocument(input: DocumentUploadInput): Promise<
       storagePath: filePath,
       databaseRecord: data
     });
-    
+
     return data as RentalDocument;
   } catch (error) {
     console.error('💥 Error in uploadRentalDocument:', error);
@@ -157,7 +203,7 @@ export async function uploadRentalDocument(input: DocumentUploadInput): Promise<
  */
 export async function getApplicationDocuments(applicationId: string): Promise<RentalDocument[]> {
   console.log("🔍 Fetching documents for application:", applicationId);
-  
+
   try {
     console.log("📡 Making Supabase query...");
     const { data, error } = await supabase
@@ -192,11 +238,11 @@ export async function getApplicationDocuments(applicationId: string): Promise<Re
  * Get documents by type for an application
  */
 export async function getDocumentsByType(
-  applicationId: string, 
+  applicationId: string,
   documentType: 'reference' | 'employment' | 'credit' | 'additional'
 ): Promise<RentalDocument[]> {
   console.log("Fetching documents by type:", applicationId, documentType);
-  
+
   try {
     const { data, error } = await supabase
       .from('rental_documents')
@@ -223,7 +269,7 @@ export async function getDocumentsByType(
  */
 export async function deleteRentalDocument(documentId: string): Promise<void> {
   console.log("Deleting rental document:", documentId);
-  
+
   try {
     // Get document info first
     const { data: document, error: fetchError } = await supabase
@@ -240,10 +286,10 @@ export async function deleteRentalDocument(documentId: string): Promise<void> {
     const url = new URL(document.storage_url);
     const pathParts = url.pathname.split('/');
     const bucketIndex = pathParts.findIndex(part => part === 'rental-documents');
-    
+
     if (bucketIndex !== -1) {
       const filePath = pathParts.slice(bucketIndex + 1).join('/');
-      
+
       // Delete from storage
       const { error: storageError } = await supabase.storage
         .from('rental-documents')
@@ -277,11 +323,11 @@ export async function deleteRentalDocument(documentId: string): Promise<void> {
  */
 export async function verifyDocument(documentId: string): Promise<RentalDocument> {
   console.log("Verifying document:", documentId);
-  
+
   try {
     const { data, error } = await supabase
       .from('rental_documents')
-      .update({ 
+      .update({
         status: 'verified',
         verified_at: new Date().toISOString()
       })
@@ -307,11 +353,11 @@ export async function verifyDocument(documentId: string): Promise<RentalDocument
  */
 export async function rejectDocument(documentId: string, reason: string): Promise<RentalDocument> {
   console.log("Rejecting document:", documentId, reason);
-  
+
   try {
     const { data, error } = await supabase
       .from('rental_documents')
-      .update({ 
+      .update({
         status: 'rejected',
         rejection_reason: reason,
         verified_at: new Date().toISOString()
@@ -342,10 +388,10 @@ export async function getDocumentSummary(applicationId: string): Promise<{
   byStatus: Record<string, number>;
 }> {
   console.log("Getting document summary for application:", applicationId);
-  
+
   try {
     const documents = await getApplicationDocuments(applicationId);
-    
+
     const summary = {
       total: documents.length,
       byType: {} as Record<string, number>,
@@ -355,7 +401,7 @@ export async function getDocumentSummary(applicationId: string): Promise<{
     documents.forEach(doc => {
       // Count by type
       summary.byType[doc.document_type] = (summary.byType[doc.document_type] || 0) + 1;
-      
+
       // Count by status
       summary.byStatus[doc.status] = (summary.byStatus[doc.status] || 0) + 1;
     });
@@ -376,14 +422,14 @@ export async function areRequiredDocumentsUploaded(applicationId: string): Promi
   uploaded: string[];
 }> {
   console.log("Checking required documents for application:", applicationId);
-  
+
   const requiredTypes = ['reference', 'employment', 'credit'];
-  
+
   try {
     const documents = await getApplicationDocuments(applicationId);
     const uploadedTypes = [...new Set(documents.map(doc => doc.document_type))];
     const missing = requiredTypes.filter(type => !uploadedTypes.includes(type as any));
-    
+
     return {
       isComplete: missing.length === 0,
       missing,
@@ -406,14 +452,14 @@ export async function areRequiredDocumentsUploaded(applicationId: string): Promi
  */
 export async function downloadAllDocuments(applicationId: string): Promise<void> {
   console.log("Downloading all documents for application:", applicationId);
-  
+
   try {
     const documents = await getApplicationDocuments(applicationId);
-    
+
     if (documents.length === 0) {
       throw new Error("No documents found for this application");
     }
-    
+
     // Download each document with a small delay to avoid browser blocking
     documents.forEach((doc, index) => {
       setTimeout(() => {
@@ -426,7 +472,7 @@ export async function downloadAllDocuments(applicationId: string): Promise<void>
         document.body.removeChild(link);
       }, index * 500); // 500ms delay between downloads
     });
-    
+
     console.log(`Initiated download of ${documents.length} documents`);
   } catch (error) {
     console.error("Error downloading all documents:", error);

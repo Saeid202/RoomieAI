@@ -15,10 +15,10 @@ interface OntarioLeaseDisplayProps {
 export function OntarioLeaseDisplay({ contract, onSign, onDownload, isSigned = false }: OntarioLeaseDisplayProps) {
   const formatDate = (date: string | Date) => {
     const d = new Date(date);
-    return d.toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: '2-digit', 
-      day: '2-digit' 
+    return d.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
     });
   };
 
@@ -58,12 +58,12 @@ export function OntarioLeaseDisplay({ contract, onSign, onDownload, isSigned = f
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="border border-blue-200 rounded-lg p-4">
               <h3 className="font-semibold text-blue-900 mb-2">Landlord(s)</h3>
-              <p className="text-sm"><strong>Landlord's Legal Name:</strong> {contract.landlord_name}</p>
+              <p className="text-sm"><strong>Landlord's Legal Name:</strong> {contract.landlord_name || contract.ontario_form_data?.landlordLegalName || 'Unknown'}</p>
             </div>
             <div className="border border-green-200 rounded-lg p-4">
               <h3 className="font-semibold text-green-900 mb-2">Tenant(s)</h3>
-              <p className="text-sm"><strong>Last Name:</strong> {contract.tenant_name.split(' ').slice(-1)[0]}</p>
-              <p className="text-sm"><strong>First Name:</strong> {contract.tenant_name.split(' ').slice(0, -1).join(' ')}</p>
+              <p className="text-sm"><strong>Last Name:</strong> {contract.ontario_form_data?.tenantLastName || contract.tenant_name?.split(' ').slice(-1)[0] || ''}</p>
+              <p className="text-sm"><strong>First Name:</strong> {contract.ontario_form_data?.tenantFirstName || contract.tenant_name?.split(' ').slice(0, -1).join(' ') || ''}</p>
             </div>
           </div>
         </CardContent>
@@ -81,21 +81,21 @@ export function OntarioLeaseDisplay({ contract, onSign, onDownload, isSigned = f
           <p className="text-sm mb-2">The landlord will rent to the tenant the rental unit at:</p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <p className="text-sm"><strong>Unit:</strong> {contract.unit_number || 'N/A'}</p>
-              <p className="text-sm"><strong>Street Number:</strong> {contract.property_address.split(' ')[0]}</p>
-              <p className="text-sm"><strong>Street Name:</strong> {contract.property_address.split(' ').slice(1).join(' ')}</p>
+              <p className="text-sm"><strong>Unit:</strong> {contract.ontario_form_data?.unitNumber || contract.unit_number || 'N/A'}</p>
+              <p className="text-sm"><strong>Street Number:</strong> {contract.ontario_form_data?.streetNumber || contract.property_address?.split(' ')[0] || ''}</p>
+              <p className="text-sm"><strong>Street Name:</strong> {contract.ontario_form_data?.streetName || contract.property_address?.split(' ').slice(1).join(' ') || ''}</p>
             </div>
             <div>
-              <p className="text-sm"><strong>City/Town:</strong> {contract.property_city}</p>
-              <p className="text-sm"><strong>Province:</strong> {contract.property_state}</p>
-              <p className="text-sm"><strong>Postal Code:</strong> {contract.property_zip}</p>
+              <p className="text-sm"><strong>City/Town:</strong> {contract.ontario_form_data?.cityTown || contract.property_city || ''}</p>
+              <p className="text-sm"><strong>Province:</strong> {contract.ontario_form_data?.province || contract.property_state || ''}</p>
+              <p className="text-sm"><strong>Postal Code:</strong> {contract.ontario_form_data?.postalCode || contract.property_zip || ''}</p>
             </div>
           </div>
-          {contract.parking_spaces && (
-            <p className="text-sm mt-2"><strong>Number of vehicle parking spaces:</strong> {contract.parking_spaces}</p>
+          {contract.ontario_form_data?.parkingSpaces && (
+            <p className="text-sm mt-2"><strong>Number of vehicle parking spaces:</strong> {contract.ontario_form_data.parkingSpaces}</p>
           )}
           <p className="text-sm mt-2">
-            <strong>The rental unit is a unit in a condominium:</strong> {contract.is_condominium ? 'Yes' : 'No'}
+            <strong>The rental unit is a unit in a condominium:</strong> {contract.ontario_form_data?.isCondominium ? 'Yes' : 'No'}
           </p>
         </CardContent>
       </Card>
@@ -123,7 +123,7 @@ export function OntarioLeaseDisplay({ contract, onSign, onDownload, isSigned = f
               <p className="text-sm"><strong>Postal Code:</strong> {contract.landlord_notice_postal_code}</p>
             </div>
           </div>
-          
+
           <p className="text-sm mb-2">
             <strong>Both the landlord and tenant agree to receive notices and documents by email:</strong> {contract.email_consent ? 'Yes' : 'No'}
           </p>
@@ -133,7 +133,7 @@ export function OntarioLeaseDisplay({ contract, onSign, onDownload, isSigned = f
               <p className="text-sm"><strong>Tenant Email:</strong> {contract.tenant_email}</p>
             </div>
           )}
-          
+
           <p className="text-sm mt-4 mb-2">
             <strong>The landlord is providing phone and/or email contact information for emergencies:</strong> {contract.emergency_contact_provided ? 'Yes' : 'No'}
           </p>
@@ -158,14 +158,14 @@ export function OntarioLeaseDisplay({ contract, onSign, onDownload, isSigned = f
           <p className="text-sm mb-4"><strong>This tenancy starts on:</strong> {formatDate(contract.lease_start_date)}</p>
           <p className="text-sm mb-2"><strong>This tenancy agreement is for:</strong></p>
           <div className="ml-4">
-            {contract.tenancy_type === 'fixed' && (
+            {contract.ontario_form_data?.tenancyType === 'fixed' && (
               <p className="text-sm">☑ A fixed length of time ending on: {formatDate(contract.lease_end_date)}</p>
             )}
-            {contract.tenancy_type === 'monthly' && (
+            {contract.ontario_form_data?.tenancyType === 'monthly' && (
               <p className="text-sm">☑ A monthly tenancy</p>
             )}
-            {contract.tenancy_type === 'other' && (
-              <p className="text-sm">☑ Other: {contract.other_tenancy_type}</p>
+            {contract.ontario_form_data?.tenancyType === 'other' && (
+              <p className="text-sm">☑ Other: {contract.ontario_form_data?.otherTenancyType}</p>
             )}
           </div>
         </CardContent>
@@ -181,37 +181,37 @@ export function OntarioLeaseDisplay({ contract, onSign, onDownload, isSigned = f
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <p className="text-sm"><strong>a) Rent is to be paid on the</strong> {contract.rent_payment_day} day of each: {contract.rent_payment_period === 'monthly' ? 'Month' : contract.other_rent_payment_period}</p>
-            
+            <p className="text-sm"><strong>a) Rent is to be paid on the</strong> {contract.ontario_form_data?.rentPaymentDay || contract.rent_payment_day} day of each: {contract.ontario_form_data?.rentPaymentPeriod === 'monthly' ? 'Month' : (contract.ontario_form_data?.otherRentPaymentPeriod || contract.other_rent_payment_period)}</p>
+
             <div>
               <p className="text-sm mb-2"><strong>b) The tenant will pay the following rent:</strong></p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 ml-4">
                 <div>
-                  <p className="text-sm">Base rent for the rental unit: <strong>${contract.base_rent.toFixed(2)}</strong></p>
-                  {contract.parking_rent > 0 && (
-                    <p className="text-sm">Parking (if applicable): <strong>${contract.parking_rent.toFixed(2)}</strong></p>
+                  <p className="text-sm">Base rent for the rental unit: <strong>${(Number(contract.ontario_form_data?.baseRent) || 0).toFixed(2)}</strong></p>
+                  {(Number(contract.ontario_form_data?.parkingRent) || 0) > 0 && (
+                    <p className="text-sm">Parking (if applicable): <strong>${(Number(contract.ontario_form_data?.parkingRent) || 0).toFixed(2)}</strong></p>
                   )}
-                  {contract.other_services_rent > 0 && (
-                    <p className="text-sm">{contract.other_services_description}: <strong>${contract.other_services_rent.toFixed(2)}</strong></p>
+                  {(Number(contract.ontario_form_data?.otherServicesRent) || 0) > 0 && (
+                    <p className="text-sm">{contract.ontario_form_data?.otherServicesDescription || contract.other_services_description}: <strong>${(Number(contract.ontario_form_data?.otherServicesRent) || 0).toFixed(2)}</strong></p>
                   )}
-                  <p className="text-sm font-semibold border-t pt-2">Total Rent (Lawful Rent): <strong>${contract.total_rent.toFixed(2)}</strong></p>
+                  <p className="text-sm font-semibold border-t pt-2">Total Rent (Lawful Rent): <strong>${(Number(contract.ontario_form_data?.totalRent) || 0).toFixed(2)}</strong></p>
                 </div>
               </div>
             </div>
-            
-            <p className="text-sm"><strong>c) Rent is payable to:</strong> {contract.rent_payable_to}</p>
-            <p className="text-sm"><strong>d) Rent will be paid using the following methods:</strong> {contract.rent_payment_methods}</p>
-            
-            {contract.partial_rent_amount > 0 && (
+
+            <p className="text-sm"><strong>c) Rent is payable to:</strong> {contract.ontario_form_data?.rentPayableTo || contract.rent_payable_to}</p>
+            <p className="text-sm"><strong>d) Rent will be paid using the following methods:</strong> {contract.ontario_form_data?.rentPaymentMethods || contract.rent_payment_methods}</p>
+
+            {(Number(contract.ontario_form_data?.partialRentAmount) || 0) > 0 && (
               <div>
                 <p className="text-sm"><strong>e) If the first rental period is a partial period:</strong></p>
-                <p className="text-sm ml-4">The tenant will pay a partial rent of <strong>${contract.partial_rent_amount.toFixed(2)}</strong> on {formatDate(contract.partial_rent_date)}</p>
-                <p className="text-sm ml-4">This partial rent covers the rental of the unit from {formatDate(contract.partial_rent_start_date)} to {formatDate(contract.partial_rent_end_date)}</p>
+                <p className="text-sm ml-4">The tenant will pay a partial rent of <strong>${(Number(contract.ontario_form_data?.partialRentAmount) || 0).toFixed(2)}</strong> on {formatDate(contract.ontario_form_data?.partialRentDate || contract.partial_rent_date)}</p>
+                <p className="text-sm ml-4">This partial rent covers the rental of the unit from {formatDate(contract.ontario_form_data?.partialRentStartDate || contract.partial_rent_start_date)} to {formatDate(contract.ontario_form_data?.partialRentEndDate || contract.partial_rent_end_date)}</p>
               </div>
             )}
-            
+
             <p className="text-sm"><strong>f) If the tenant's cheque is returned because of non-sufficient funds (NSF):</strong></p>
-            <p className="text-sm ml-4">The tenant will have to pay the landlord's administration charge of <strong>${contract.nsf_charge.toFixed(2)}</strong> plus any NSF charges made by the landlord's bank.</p>
+            <p className="text-sm ml-4">The tenant will have to pay the landlord's administration charge of <strong>${(Number(contract.ontario_form_data?.nsfCharge) || 0).toFixed(2)}</strong> plus any NSF charges made by the landlord's bank.</p>
           </div>
         </CardContent>
       </Card>

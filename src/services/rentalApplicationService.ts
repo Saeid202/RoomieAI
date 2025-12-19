@@ -6,7 +6,7 @@ export interface RentalApplication {
   property_id: string;
   applicant_id: string;
   status: 'pending' | 'under_review' | 'approved' | 'rejected' | 'withdrawn';
-  
+
   // Personal Information
   full_name: string;
   email: string;
@@ -15,33 +15,33 @@ export interface RentalApplication {
   occupation: string;
   employer?: string;
   monthly_income: number;
-  
+
   // Rental Preferences
   move_in_date?: string;
   lease_duration?: string;
   pet_ownership: boolean;
   smoking_status?: string;
-  
+
   // Emergency Contact
   emergency_contact_name?: string;
   emergency_contact_phone?: string;
   emergency_contact_relation?: string;
-  
+
   // Documents
   reference_documents?: any[];
   employment_documents?: any[];
   credit_documents?: any[];
   additional_documents?: any[];
-  
+
   // Additional Information
   additional_info?: string;
   agree_to_terms?: boolean;
   signature_data?: string;
-  
+
   // Process Status
   contract_signed?: boolean;
   payment_completed?: boolean;
-  
+
   // Metadata
   created_at: string;
   updated_at: string;
@@ -102,7 +102,7 @@ export type RentalApplicationUpdateInput = Partial<{
  */
 export async function submitRentalApplication(input: RentalApplicationInput): Promise<RentalApplication> {
   console.log("Submitting rental application:", input);
-  
+
   try {
     const { data, error } = await sb
       .from('rental_applications')
@@ -162,11 +162,11 @@ export async function updateRentalApplicationDetails(
  * Update rental application status
  */
 export async function updateApplicationStatus(
-  applicationId: string, 
+  applicationId: string,
   status: 'pending' | 'under_review' | 'approved' | 'rejected' | 'withdrawn'
 ): Promise<RentalApplication> {
   console.log("Updating application status:", applicationId, status);
-  
+
   try {
     const { data, error } = await sb
       .from('rental_applications')
@@ -192,11 +192,11 @@ export async function updateApplicationStatus(
  * Update contract signing status
  */
 export async function updateContractSigningStatus(
-  applicationId: string, 
+  applicationId: string,
   contractSigned: boolean
 ): Promise<RentalApplication> {
   console.log("Updating contract signing status:", applicationId, contractSigned);
-  
+
   try {
     const { data, error } = await sb
       .from('rental_applications')
@@ -222,11 +222,11 @@ export async function updateContractSigningStatus(
  * Update payment completion status
  */
 export async function updatePaymentStatus(
-  applicationId: string, 
+  applicationId: string,
   paymentCompleted: boolean
 ): Promise<RentalApplication> {
   console.log("Updating payment status:", applicationId, paymentCompleted);
-  
+
   try {
     const { data, error } = await sb
       .from('rental_applications')
@@ -253,7 +253,7 @@ export async function updatePaymentStatus(
  */
 export async function getApplicationById(applicationId: string): Promise<RentalApplication | null> {
   console.log("Fetching application by ID:", applicationId);
-  
+
   try {
     const { data, error } = await sb
       .from('rental_applications')
@@ -282,7 +282,7 @@ export async function getApplicationById(applicationId: string): Promise<RentalA
  */
 export async function hasUserAppliedForProperty(propertyId: string, userId: string): Promise<boolean> {
   console.log("Checking if user has applied for property:", propertyId, userId);
-  
+
   try {
     const { data, error } = await sb
       .from('rental_applications')
@@ -308,7 +308,7 @@ export async function hasUserAppliedForProperty(propertyId: string, userId: stri
  */
 export async function getLandlordApplications(): Promise<any[]> {
   console.log("Fetching landlord applications");
-  
+
   try {
     // Get current user
     const { data: { user } } = await supabase.auth.getUser();
@@ -321,7 +321,7 @@ export async function getLandlordApplications(): Promise<any[]> {
       .select(`
         *,
         property:properties!inner(
-          id, listing_title, address, city, state, monthly_rent, user_id
+          id, listing_title, address, city, state, monthly_rent, user_id, images
         )
       `)
       .eq('property.user_id', user.id)  // Filter by landlord's properties
@@ -345,7 +345,7 @@ export async function getLandlordApplications(): Promise<any[]> {
  */
 export async function getUserApplications(): Promise<any[]> {
   console.log("Fetching user applications");
-  
+
   try {
     // Get current user
     const { data: { user } } = await supabase.auth.getUser();
@@ -357,7 +357,7 @@ export async function getUserApplications(): Promise<any[]> {
       .from('rental_applications')
       .select(`
         *,
-        property:properties(listing_title, address, city, state, monthly_rent, property_type, user_id)
+        property:properties(listing_title, address, city, state, monthly_rent, property_type, user_id, images)
       `)
       .eq('applicant_id', user.id)  // Filter by current user's applications
       .neq('status', 'withdrawn')   // Exclude withdrawn applications

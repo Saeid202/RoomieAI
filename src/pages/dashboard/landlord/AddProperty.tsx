@@ -7,7 +7,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, ArrowRight, Home, MapPin, DollarSign, Camera, FileText, CheckCircle, X, Upload } from "lucide-react";
+import { ArrowLeft, ArrowRight, Home, MapPin, DollarSign, Camera, FileText, CheckCircle, X, Upload, Train, ShoppingBag, GraduationCap, Coffee, Loader2, Sparkles, Volume2, Square, Box, Film } from "lucide-react";
+import { ai3DService } from "@/services/ai3DService";
 import { useNavigate } from "react-router-dom";
 import { createProperty, uploadPropertyImage, fetchPropertyById, updateProperty } from "@/services/propertyService";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,6 +22,11 @@ import { detailedAmenitiesService } from "@/services/detailedAmenitiesService";
 import { PropertyIntelligence } from "@/types/detailedAmenities";
 import { useRole, UserRole } from "@/contexts/RoleContext";
 import { ImageUpload } from "@/components/ui/image-upload";
+import { aiDescriptionService } from "@/services/aiDescriptionService";
+import { PropertyVideoPlayer } from "@/components/property/PropertyVideoPlayer";
+import { aiVideoService } from "@/services/aiVideoService";
+
+
 
 // Helper function to generate smart default amenities based on Canadian location
 function generateDefaultLocationAmenities(addressDetails: any, coordinates: { lat: number; lng: number }): string[] {
@@ -29,12 +35,12 @@ function generateDefaultLocationAmenities(addressDetails: any, coordinates: { la
     if (!addressDetails || (typeof addressDetails !== 'object')) {
       return ['Shopping Centers', 'Restaurants', 'Hospitals', 'Schools', 'Parks', 'Gyms'];
     }
-    
-    if (!coordinates || typeof coordinates.lat !== 'number' || typeof coordinates.lng !== 'number' || 
-        isNaN(coordinates.lat) || isNaN(coordinates.lng)) {
+
+    if (!coordinates || typeof coordinates.lat !== 'number' || typeof coordinates.lng !== 'number' ||
+      isNaN(coordinates.lat) || isNaN(coordinates.lng)) {
       return ['Shopping Centers', 'Restaurants', 'Hospitals', 'Schools', 'Parks', 'Gyms'];
     }
-    
+
     const cityAmenities: Record<string, string[]> = {
       'Toronto': ['Public Transit Station', 'Shopping Centers', 'Hospitals', 'Restaurants', 'Parks', 'Schools'],
       'Vancouver': ['SkyTrain Station', 'Hospitals', 'Shopping Centers', 'Parks', 'Dining', 'Schools'],
@@ -60,15 +66,15 @@ function generateDefaultLocationAmenities(addressDetails: any, coordinates: { la
     } catch (cityError) {
       console.warn('Error processing city name:', cityError);
     }
-    
+
     // Safe amenities selection
     const typeAmenities = cityAmenities[cityName] || ['Shopping Centers', 'Restaurants', 'Hospitals', 'Schools', 'Parks', 'Gyms', 'Banks', 'Pharmacies'];
 
     // Safely add Ontario-specific amenities
     try {
       const state = addressDetails.state;
-      if (state && typeof state === 'string' && 
-          (state.toLowerCase().includes('ontario') || state.toLowerCase().includes('on'))) {
+      if (state && typeof state === 'string' &&
+        (state.toLowerCase().includes('ontario') || state.toLowerCase().includes('on'))) {
         if (!typeAmenities.includes('GO Transit Access')) {
           typeAmenities.unshift('GO Transit Access', 'GO Train Station');
         }
@@ -76,7 +82,7 @@ function generateDefaultLocationAmenities(addressDetails: any, coordinates: { la
     } catch (stateError) {
       console.warn('Error processing state:', stateError);
     }
-    
+
     return typeAmenities.slice(0, 6);
   } catch (error) {
     console.error('Error generating default amenities:', error);
@@ -90,7 +96,7 @@ interface PropertyFormData {
   propertyType: string;
   propertyAddress: string; // Renamed from listingTitle to propertyAddress
   description: string;
-  
+
   // Enhanced Location Details with coordinates
   address: string;
   city: string;
@@ -101,24 +107,26 @@ interface PropertyFormData {
   longitude?: number;
   publicTransportAccess?: string;
   nearbyAmenities?: string[];
-  
+
   // Rental Information
   monthlyRent: string;
   securityDeposit: string;
   leaseTerms: string;
   availableDate: string;
   furnished: string;
-  
+
   // Amenities
   amenities: string[];
   parking: string;
   petPolicy: string;
   utilitiesIncluded: string[];
-  
+
   // Additional Info
   specialInstructions: string;
   roommatePreference: string;
   images: string[]; // Changed from File[] to string[] for URLs
+  descriptionAudioUrl?: string;
+  threeDModelUrl?: string;
 }
 
 const initialFormData: PropertyFormData = {
@@ -144,7 +152,9 @@ const initialFormData: PropertyFormData = {
   utilitiesIncluded: [],
   specialInstructions: "",
   roommatePreference: "",
-  images: []
+  images: [],
+  descriptionAudioUrl: "",
+  threeDModelUrl: ""
 };
 
 const steps = [
@@ -158,11 +168,31 @@ export default function AddPropertyPage() {
   const [formData, setFormData] = useState<PropertyFormData>(initialFormData);
   const [detailedDetection, setDetailedDetection] = useState<PropertyIntelligence | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [selectedFacility, setSelectedFacility] = useState<{name: string, coordinates: {lat: number, lng: number}, distance: number} | null>(null);
+  const [selectedFacility, setSelectedFacility] = useState<{ name: string, coordinates: { lat: number, lng: number }, distance: number } | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string>('');
   const DRAFT_KEY = "add_property_draft_v1";
   const [editId, setEditId] = useState<string | null>(null);
   const [existingImageUrls, setExistingImageUrls] = useState<string[]>([]);
+  const [isGeneratingDescription, setIsGeneratingDescription] = useState(false);
+  const [isGeneratingAudio, setIsGeneratingAudio] = useState(false);
+  const [hasLocalAudioPreview, setHasLocalAudioPreview] = useState(false);
+  const [isGenerating3D, setIsGenerating3D] = useState(false);
+  const [isGeneratingVideo, setIsGeneratingVideo] = useState(false);
+  const [isVideoReady, setIsVideoReady] = useState(false);
+  const [selectedMusic, setSelectedMusic] = useState<string | null>(null);
+
+
+  // Load model-viewer script
+  useEffect(() => {
+    // Check if script is already loaded to prevent duplicates
+    if (!document.querySelector('script[src*="model-viewer"]')) {
+      const script = document.createElement('script');
+      script.type = 'module';
+      // Use Google CDN for stability
+      script.src = 'https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js';
+      document.body.appendChild(script);
+    }
+  }, []);
 
   // No progress calculation needed for single page form
 
@@ -174,6 +204,7 @@ export default function AddPropertyPage() {
     setSelectedFacility(null);
     setEditId(null);
     setExistingImageUrls([]);
+    setHasLocalAudioPreview(false);
     // Clear draft from localStorage
     try {
       localStorage.removeItem(DRAFT_KEY);
@@ -189,7 +220,7 @@ export default function AddPropertyPage() {
     alert(`Facility clicked: ${facilityName}`); // Simple test to see if click works
     console.log("📊 Detailed detection available:", !!detailedDetection);
     console.log("📊 Detailed detection data:", detailedDetection);
-    
+
     if (!detailedDetection?.detectedAmenities) {
       console.log("❌ No detailed amenities available");
       toast.warning("Facility details not available");
@@ -225,8 +256,8 @@ export default function AddPropertyPage() {
     console.log("🔍 All facilities found:", allFacilities.length);
     console.log("🔍 Sample facilities:", allFacilities.slice(0, 3));
 
-    const facility = allFacilities.find(f => 
-      f.name.toLowerCase().includes(name.toLowerCase()) || 
+    const facility = allFacilities.find(f =>
+      f.name.toLowerCase().includes(name.toLowerCase()) ||
       name.toLowerCase().includes(f.name.toLowerCase())
     );
 
@@ -249,7 +280,7 @@ export default function AddPropertyPage() {
           lat: formData.latitude + (Math.random() - 0.5) * 0.01,
           lng: formData.longitude + (Math.random() - 0.5) * 0.01
         };
-        
+
         console.log("📍 Using estimated coordinates:", estimatedCoords);
         setSelectedFacility({
           name,
@@ -280,7 +311,7 @@ export default function AddPropertyPage() {
     const params = new URLSearchParams(window.location.search);
     const prefillId = params.get('prefill');
     const isNewProperty = !prefillId;
-    
+
     if (isNewProperty) {
       // For new properties, clear any existing draft and start fresh
       try {
@@ -299,7 +330,7 @@ export default function AddPropertyPage() {
           setFormData((prev) => ({ ...prev, ...draft }));
           toast.info("Draft restored");
         }
-      } catch {}
+      } catch { }
     }
   }, []);
 
@@ -307,7 +338,7 @@ export default function AddPropertyPage() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const prefillId = params.get('prefill');
-    
+
     if (!prefillId && editId === null) {
       // This is a new property creation, ensure form is clean
       resetForm();
@@ -351,7 +382,9 @@ export default function AddPropertyPage() {
           utilitiesIncluded: data.utilities_included || [],
           specialInstructions: data.special_instructions || "",
           roommatePreference: data.roommate_preference || "",
-          images: []
+          images: Array.isArray(data.images) ? data.images : [], // Fix: Load images into form state
+          descriptionAudioUrl: data.description_audio_url || "",
+          threeDModelUrl: data.three_d_model_url || "" // Fix: Load 3D model URL
         }));
         setExistingImageUrls(Array.isArray(data.images) ? data.images : []);
         toast.success("Loaded listing for editing");
@@ -367,7 +400,7 @@ export default function AddPropertyPage() {
     const id = setInterval(() => {
       try {
         localStorage.setItem(DRAFT_KEY, JSON.stringify(formData));
-      } catch {}
+      } catch { }
     }, 8000);
     return () => clearInterval(id);
   }, [formData]);
@@ -376,75 +409,75 @@ export default function AddPropertyPage() {
   useEffect(() => {
     try {
       localStorage.setItem(DRAFT_KEY, JSON.stringify(formData));
-    } catch {}
+    } catch { }
   }, [formData.listingTitle, formData.propertyType, formData.propertyAddress, formData.monthlyRent, formData.address, formData.city, formData.state, formData.zipCode]);
 
   // Auto-detect amenities if we have coordinates but no amenities data
   useEffect(() => {
     const checkForAmenities = async () => {
       if (
-        formData.latitude && 
-        formData.longitude && 
+        formData.latitude &&
+        formData.longitude &&
         (!formData.nearbyAmenities || formData.nearbyAmenities.length === 0) &&
-        formData.city 
+        formData.city
       ) {
         try {
           console.log('🔄 Auto-checking for existing location amenities ...');
           toast.info("🔍 Auto-detecting amenities...");
-          
+
           // Try real-time amenities detection first
           const detailedResult = await detailedAmenitiesService.getDetailedPropertyIntelligence(
             { lat: formData.latitude!, lng: formData.longitude! },
             formData.address || formData.propertyAddress,
             formData.propertyType || ""
           );
-          
+
           if (detailedResult && detailedResult.detectedAmenities) {
             // Convert detailed amenities to simple string array for display
             const realAmenities: string[] = [];
-            
+
             // Add specific facility names with distances
             detailedResult.detectedAmenities.metro.forEach(metro => {
               realAmenities.push(`${metro.name} (${Math.round(metro.distance)}m)`);
             });
-            
+
             detailedResult.detectedAmenities.buses.forEach(bus => {
               realAmenities.push(`${bus.name} (${Math.round(bus.distance)}m)`);
             });
-            
+
             detailedResult.detectedAmenities.banks.forEach(bank => {
               realAmenities.push(`${bank.name} (${Math.round(bank.distance)}m)`);
             });
-            
+
             detailedResult.detectedAmenities.shoppingMalls.forEach(mall => {
               realAmenities.push(`${mall.name} (${Math.round(mall.distance)}m)`);
             });
-            
+
             detailedResult.detectedAmenities.plazas.forEach(plaza => {
               realAmenities.push(`${plaza.name} (${Math.round(plaza.distance)}m)`);
             });
-            
+
             detailedResult.detectedAmenities.gyms.forEach(gym => {
               realAmenities.push(`${gym.name} (${Math.round(gym.distance)}m)`);
             });
-            
+
             // Add new facility types
             detailedResult.detectedAmenities.hospitals.forEach(hospital => {
               realAmenities.push(`${hospital.name} (${Math.round(hospital.distance)}m)`);
             });
-            
+
             detailedResult.detectedAmenities.schools.forEach(school => {
               realAmenities.push(`${school.name} (${Math.round(school.distance)}m)`);
             });
-            
+
             detailedResult.detectedAmenities.restaurants.forEach(restaurant => {
               realAmenities.push(`${restaurant.name} (${Math.round(restaurant.distance)}m)`);
             });
-            
+
             detailedResult.detectedAmenities.parks.forEach(park => {
               realAmenities.push(`${park.name} (${Math.round(park.distance)}m)`);
             });
-            
+
             if (realAmenities.length > 0) {
               setFormData(prev => ({ ...prev, nearbyAmenities: realAmenities.slice(0, 8) }));
               setDetailedDetection(detailedResult);
@@ -472,7 +505,7 @@ export default function AddPropertyPage() {
             setFormData(prev => ({ ...prev, nearbyAmenities: defaultAmenities }));
             toast.warning("⚠️ Using basic amenities - detailed detection unavailable");
           }
-          
+
         } catch (e) {
           console.log('Auto-check failed, using fallback amenities...');
           // Fallback to basic amenities
@@ -512,7 +545,7 @@ export default function AddPropertyPage() {
   const handleArrayChange = (field: keyof PropertyFormData, value: string, checked: boolean) => {
     setFormData(prev => ({
       ...prev,
-      [field]: checked 
+      [field]: checked
         ? [...(prev[field] as string[]), value]
         : (prev[field] as string[]).filter(item => item !== value)
     }));
@@ -520,15 +553,23 @@ export default function AddPropertyPage() {
 
   // No step navigation needed for single page form
 
+  const formatDistance = (meters: number) => {
+    if (meters < 1000) {
+      const mins = Math.ceil(meters / 80);
+      return `${mins} min walk`;
+    }
+    return `${(meters / 1000).toFixed(1)} km`;
+  };
+
   const handleSubmit = async () => {
     console.log("🚀 Starting property submission...");
     console.log("📋 Form data:", formData);
-    
+
     try {
       // Get current user
       const { data: { user } } = await supabase.auth.getUser();
       console.log("👤 Current user:", user);
-      
+
       if (!user) {
         console.error("❌ No user found");
         toast.error("You must be logged in to create a property");
@@ -540,29 +581,29 @@ export default function AddPropertyPage() {
       if (!formData.propertyType) errors.propertyType = 'Property type is required';
       if (!formData.propertyAddress && !formData.address) errors.propertyAddress = 'Property address is required';
       if (!formData.monthlyRent) errors.monthlyRent = 'Monthly rent is required';
-      
+
       console.log("✅ Validation errors:", errors);
-      
+
       // Ensure DB required fields are present; fall back to typed address
       const safeAddress = formData.address || formData.propertyAddress;
       const safeCity = formData.city || "";
       const safeState = formData.state || "";
       const safeZip = formData.zipCode || "";
-      
+
       console.log("📍 Address details:", { safeAddress, safeCity, safeState, safeZip });
-      
+
       if (Object.keys(errors).length > 0) {
         console.error("❌ Validation failed:", errors);
         setErrors(errors);
         toast.error("Please fill in all required fields before submitting");
         return;
       }
-      
+
       setErrors({});
 
       // Images are already uploaded and stored in formData.images as URLs
       const imageUrls = formData.images; // These are already URLs from the ImageUpload component
-      
+
       // Prepare property data for database
       const propertyData = {
         user_id: user.id,
@@ -619,7 +660,7 @@ export default function AddPropertyPage() {
         console.log("✅ Property created successfully!");
         toast.success("Property listed successfully!");
       }
-      try { localStorage.removeItem(DRAFT_KEY); } catch {}
+      try { localStorage.removeItem(DRAFT_KEY); } catch { }
       navigate("/dashboard/landlord/properties");
     } catch (error: any) {
       console.error("❌ Error creating property:", error);
@@ -657,606 +698,760 @@ export default function AddPropertyPage() {
     switch (currentStep) {
       case 1:
         return (
-          <div className="space-y-10">
-            {/* Listing Title - appears before Property Type */}
-            <div className="space-y-4">
-              <Label htmlFor="listingTitle" className="text-lg font-bold text-gray-900">Listing Title</Label>
-              <Input
-                id="listingTitle"
-                placeholder="e.g., Bright 2BR Condo near Metro"
-                value={formData.listingTitle}
-                onChange={(e) => handleInputChange("listingTitle", e.target.value)}
-                className="text-lg h-14 border-gray-400 focus:border-blue-600 focus:ring-blue-600 font-semibold"
-              />
-            </div>
+          <div className="space-y-8">
+            {/* SECTION 1: Property Information */}
+            <section className="space-y-4">
+              <div className="flex items-center gap-2 pb-2 border-b">
+                <div className="h-8 w-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 font-semibold text-sm">1</div>
+                <h3 className="text-lg font-semibold text-gray-800">Property Information</h3>
+              </div>
 
-            <div className="space-y-4">
-              <Label htmlFor="propertyType" className="text-lg font-bold text-gray-900">**1.** Property Type</Label>
-              <Select value={formData.propertyType} onValueChange={(value) => handleInputChange("propertyType", value)}>
-                <SelectTrigger className="text-lg h-14 border-gray-400 focus:border-blue-600 focus:ring-blue-600 font-semibold">
-                  <SelectValue placeholder="Select property type" />
-                </SelectTrigger>
-                <SelectContent className="font-semibold">
-                  <SelectItem value="studio" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">Studio Condominium</SelectItem>
-                  <SelectItem value="one-bed-room-share-cando" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">Shared One-Bedroom Condominium</SelectItem>
-                  <SelectItem value="two-bed-room-share-cando" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">Shared Two-Bedroom Condominium</SelectItem>
-                  <SelectItem value="entire-one-bed-room-cando" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">Entire One-Bedroom Condominium</SelectItem>
-                  <SelectItem value="entire-two-bed-room-cando" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">Entire Two-Bedroom Condominium</SelectItem>
-                  <SelectItem value="room-from-house" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">Private Room in a House</SelectItem>
-                  <SelectItem value="entire-house" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">Entire House</SelectItem>
-                  <SelectItem value="entire-basement" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">Entire Basement Unit</SelectItem>
-                  <SelectItem value="room-from-basement" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">Private Room in a Basement</SelectItem>
-                  <SelectItem value="shared-room" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">Shared Room (two occupants per room)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <AddressAutocomplete
+                      label="Property Address"
+                      placeholder="Search address..."
+                      required
+                      onAddressSelect={async (suggestion) => {
+                        try {
+                          setFormData((prev) => ({
+                            ...prev,
+                            propertyAddress: suggestion.place_name || suggestion.text || suggestion.id,
+                            listingTitle: suggestion.place_name || suggestion.text || suggestion.id // Auto-set listing title
+                          }));
+                          const addressDetails = await locationService.getAddressDetails(suggestion);
+                          if (addressDetails) {
+                            const coordinates = addressDetails.coordinates;
+                            setFormData((prev) => ({
+                              ...prev,
+                              address: addressDetails.address || "",
+                              city: addressDetails.city || "",
+                              state: addressDetails.state || "",
+                              zipCode: addressDetails.zipCode || "",
+                              neighborhood: addressDetails.neighborhood || "",
+                              latitude: coordinates?.lat || undefined,
+                              longitude: coordinates?.lng || undefined,
+                              nearbyAmenities: [],
+                            }));
+                            if (coordinates?.lat) toast.success("Location verified");
+                          }
+                        } catch (e) { console.error(e); }
+                      }}
+                      onInputChange={(value) => {
+                        try {
+                          setFormData((prev) => ({
+                            ...prev,
+                            propertyAddress: value,
+                            listingTitle: value // Sync listing title
+                          }));
+                        } catch {
+                          // ignore input errors
+                        }
+                      }}
+                    />
+                  </div>
 
-            {/* Photo Upload - Right after Property Type, before Address */}
-            <div className="space-y-3">
-              <Label htmlFor="quick-photos" className="text-base font-medium text-gray-700">**1.5.** Property Photos</Label>
-              <div className="bg-blue-50 border-2 border-dashed border-blue-200 rounded-xl p-6">
-                <div className="text-center">
-                  <Camera className="mx-auto h-10 w-10 text-blue-600 mb-3" />
-                  <p className="text-base text-blue-700 mb-4 font-medium">
-                    📸 Upload photos of your {formData.propertyType ? formData.propertyType.replace(/-/g, ' ') : 'property'} 
-                    {formData.propertyType ? ' - this helps verify the property type selected above' : ''}
-                  </p>
-                  <div className="mt-4">
-                    {currentUserId && (
-                      <ImageUpload
-                        propertyId="temp"
-                        userId={currentUserId}
-                        images={formData.images}
-                        onImagesChange={(newImages) => {
-                          setFormData(prev => ({ ...prev, images: newImages }));
-                        }}
-                        maxImages={10}
-                      />
+                  <div className="space-y-2">
+                    <Label htmlFor="propertyType" className="text-sm font-medium">Property Type</Label>
+                    <Select value={formData.propertyType} onValueChange={(value) => handleInputChange("propertyType", value)}>
+                      <SelectTrigger className="h-9 w-full border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="studio">Studio</SelectItem>
+                        <SelectItem value="one-bed-room-share-cando">Shared 1-Bed Condo</SelectItem>
+                        <SelectItem value="two-bed-room-share-cando">Shared 2-Bed Condo</SelectItem>
+                        <SelectItem value="entire-one-bed-room-cando">Entire 1-Bed Condo</SelectItem>
+                        <SelectItem value="entire-two-bed-room-cando">Entire 2-Bed Condo</SelectItem>
+                        <SelectItem value="room-from-house">Private Room (House)</SelectItem>
+                        <SelectItem value="entire-house">Entire House</SelectItem>
+                        <SelectItem value="entire-basement">Entire Basement</SelectItem>
+                        <SelectItem value="room-from-basement">Room in Basement</SelectItem>
+                        <SelectItem value="shared-room">Shared Room</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {/* Detected Amenities Section - Moved under Property Address */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm font-medium">Detected Nearby Facilities</Label>
+                    {detailedDetection && (
+                      <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full border border-green-100 font-medium">
+                        ✓ &nbsp;Real-time Data Verified
+                      </span>
                     )}
                   </div>
-                  
-                  {formData.images.length > 0 && (
-                    <div className="mt-6">
-                      <p className="text-base text-blue-700 mb-4 font-bold">
-                        ✓ Uploaded {formData.images.length} photo(s)
-                      </p>
-                      <p className="text-base text-blue-700 mt-3 font-bold">
-                        💡 You'll review your listing in the next step before submitting.
+
+                  {detailedDetection?.detectedAmenities ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {/* Transportation */}
+                      {(detailedDetection.detectedAmenities.metro.length > 0 || detailedDetection.detectedAmenities.buses.length > 0) && (
+                        <div className="space-y-3 p-4 bg-slate-50 rounded-lg border border-slate-200">
+                          <div className="flex items-center gap-2 text-blue-700 mb-2">
+                            <Train className="h-4 w-4" />
+                            <h4 className="font-semibold text-sm">Transportation</h4>
+                          </div>
+                          <div className="space-y-2">
+                            {detailedDetection.detectedAmenities.metro.slice(0, 2).map((item, i) => (
+                              <div key={`metro-${i}`} className="flex justify-between items-start text-xs border-b border-slate-100 pb-1 last:border-0 last:pb-0">
+                                <span className="font-medium text-slate-700 truncate">
+                                  {item.name} {item.line ? <span className="text-slate-500 font-normal">({item.line})</span> : null}
+                                </span>
+                                <span className="text-slate-500 whitespace-nowrap ml-2">{formatDistance(item.distance)}</span>
+                              </div>
+                            ))}
+                            {detailedDetection.detectedAmenities.buses.slice(0, 3).map((item, i) => (
+                              <div key={`bus-${i}`} className="flex justify-between items-start text-xs border-b border-slate-100 pb-1 last:border-0 last:pb-0">
+                                <span className="text-slate-600 truncate">{item.name} {item.routeNumber !== 'Transit' ? `(${item.routeNumber})` : ''}</span>
+                                <span className="text-slate-500 whitespace-nowrap ml-2">{formatDistance(item.distance)}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Shopping & Banking */}
+                      {(detailedDetection.detectedAmenities.shoppingMalls.length > 0 || detailedDetection.detectedAmenities.plazas.length > 0 || detailedDetection.detectedAmenities.banks.length > 0) && (
+                        <div className="space-y-3 p-4 bg-slate-50 rounded-lg border border-slate-200">
+                          <div className="flex items-center gap-2 text-emerald-700 mb-2">
+                            <ShoppingBag className="h-4 w-4" />
+                            <h4 className="font-semibold text-sm">Shopping & Services</h4>
+                          </div>
+                          <div className="space-y-2">
+                            {[...detailedDetection.detectedAmenities.shoppingMalls, ...detailedDetection.detectedAmenities.plazas].slice(0, 3).map((item, i) => (
+                              <div key={`shop-${i}`} className="flex justify-between items-start text-xs border-b border-slate-100 pb-1 last:border-0 last:pb-0">
+                                <span className="font-medium text-slate-700 truncate">{item.name}</span>
+                                <span className="text-slate-500 whitespace-nowrap ml-2">{formatDistance(item.distance)}</span>
+                              </div>
+                            ))}
+                            {detailedDetection.detectedAmenities.banks.slice(0, 2).map((item, i) => (
+                              <div key={`bank-${i}`} className="flex justify-between items-start text-xs border-b border-slate-100 pb-1 last:border-0 last:pb-0">
+                                <span className="text-slate-600 truncate">{item.name}</span>
+                                <span className="text-slate-500 whitespace-nowrap ml-2">{formatDistance(item.distance)}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Education & Health */}
+                      {(detailedDetection.detectedAmenities.schools.length > 0 || detailedDetection.detectedAmenities.hospitals.length > 0) && (
+                        <div className="space-y-3 p-4 bg-slate-50 rounded-lg border border-slate-200">
+                          <div className="flex items-center gap-2 text-red-700 mb-2">
+                            <GraduationCap className="h-4 w-4" />
+                            <h4 className="font-semibold text-sm">Health & Education</h4>
+                          </div>
+                          <div className="space-y-2">
+                            {detailedDetection.detectedAmenities.hospitals.slice(0, 2).map((item, i) => (
+                              <div key={`health-${i}`} className="flex justify-between items-start text-xs border-b border-slate-100 pb-1 last:border-0 last:pb-0">
+                                <span className="font-medium text-slate-700 truncate">{item.name}</span>
+                                <span className="text-slate-500 whitespace-nowrap ml-2">{formatDistance(item.distance)}</span>
+                              </div>
+                            ))}
+                            {detailedDetection.detectedAmenities.schools.slice(0, 3).map((item, i) => (
+                              <div key={`school-${i}`} className="flex justify-between items-start text-xs border-b border-slate-100 pb-1 last:border-0 last:pb-0">
+                                <span className="text-slate-600 truncate">{item.name}</span>
+                                <span className="text-slate-500 whitespace-nowrap ml-2">{formatDistance(item.distance)}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Lifestyle: Parks, Gyms, Restaurants */}
+                      {(detailedDetection.detectedAmenities.parks.length > 0 || detailedDetection.detectedAmenities.gyms.length > 0 || detailedDetection.detectedAmenities.restaurants.length > 0) && (
+                        <div className="space-y-3 p-4 bg-slate-50 rounded-lg border border-slate-200">
+                          <div className="flex items-center gap-2 text-orange-700 mb-2">
+                            <Coffee className="h-4 w-4" />
+                            <h4 className="font-semibold text-sm">Lifestyle</h4>
+                          </div>
+                          <div className="space-y-2">
+                            {[...detailedDetection.detectedAmenities.parks, ...detailedDetection.detectedAmenities.gyms].slice(0, 3).map((item, i) => (
+                              <div key={`life-${i}`} className="flex justify-between items-start text-xs border-b border-slate-100 pb-1 last:border-0 last:pb-0">
+                                <span className="font-medium text-slate-700 truncate">{item.name}</span>
+                                <span className="text-slate-500 whitespace-nowrap ml-2">{formatDistance(item.distance)}</span>
+                              </div>
+                            ))}
+                            {detailedDetection.detectedAmenities.restaurants.slice(0, 3).map((item, i) => (
+                              <div key={`rest-${i}`} className="flex justify-between items-start text-xs border-b border-slate-100 pb-1 last:border-0 last:pb-0">
+                                <span className="text-slate-600 truncate">{item.name}</span>
+                                <span className="text-slate-500 whitespace-nowrap ml-2">{formatDistance(item.distance)}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-center p-6 border-2 border-dashed border-gray-200 rounded-lg bg-gray-50">
+                      <MapPin className="h-8 w-8 mx-auto text-gray-300 mb-2" />
+                      <p className="text-sm text-gray-500">
+                        Enter a valid property address above to automatically detect nearby transport, shops, and amenities.
                       </p>
                     </div>
                   )}
                 </div>
-              </div>
-            </div>
 
-            {/* NEW: Property Address with Enhanced Error Handling */}
-            <AddressAutocomplete
-              label="**2.** Property Address (Canadian)"
-              placeholder="Type address - e.g. 123 Elm St, Vancouver, BC"
-              required
-              onAddressSelect={async (suggestion) => {
-                console.log("Address selection started");
-                try {
-                  // First, update basic form data to prevent UI crashes
-                  setFormData((prev) => ({
-                    ...prev,
-                    propertyAddress: suggestion.place_name || suggestion.text || suggestion.id,
-                  }));
-
-                  // Then safely try to get address details - if this fails, at least basic info is saved
-                  try {
-                    const addressDetails = await locationService.getAddressDetails(suggestion);
-                    console.log("Address details retrieved successfully");
-                    
-                    if (addressDetails) {
-                      const coordinates = addressDetails.coordinates;
-                      
-                      // Update form with address details
-                      setFormData((prev) => ({
-                        ...prev,
-                        address: addressDetails.address || "",
-                        city: addressDetails.city || "",
-                        state: addressDetails.state || "",
-                        zipCode: addressDetails.zipCode || "",
-                        neighborhood: addressDetails.neighborhood || "",
-                        latitude: coordinates?.lat || undefined,
-                        longitude: coordinates?.lng || undefined,
-                      }));
-
-                      // Only proceed with amenities if coordinates are valid
-                      if (coordinates && typeof coordinates.lat === 'number' && typeof coordinates.lng === 'number' && !isNaN(coordinates.lat) && !isNaN(coordinates.lng)) {
-                        console.log("Valid coordinates, proceeding with amenities");
-                        
-                        // Show loading state immediately
-                        toast.info("🔍 Detecting nearby facilities...");
-                        
-                        // Clear any cached generic amenities first
-                        setFormData((prev) => ({
-                          ...prev,
-                          nearbyAmenities: []
-                        }));
-                        
-                        // Clear cache to ensure fresh data
-                        detailedAmenitiesService.clearCache();
-                        
-                        // Try real-time amenities detection first
-                        try {
-                          console.log("🔍 Starting real-time amenities detection...");
-                          console.log("Coordinates:", coordinates);
-                          console.log("Address:", suggestion.place_name || suggestion.text);
-                          
-                          const detailedResult = await detailedAmenitiesService.getDetailedPropertyIntelligence(
-                            coordinates,
-                            suggestion.place_name || suggestion.text,
-                            formData.propertyType || ""
-                          );
-                          
-                          console.log("📊 Detailed result:", detailedResult);
-                          
-                          if (detailedResult && detailedResult.detectedAmenities) {
-                            console.log("✅ Real-time amenities detected");
-                            console.log("Detected amenities:", detailedResult.detectedAmenities);
-                            
-                            // Convert detailed amenities to simple string array for display
-                            const realAmenities: string[] = [];
-                            
-                            // Add specific facility names with distances
-                            detailedResult.detectedAmenities.metro.forEach(metro => {
-                              realAmenities.push(`${metro.name} (${Math.round(metro.distance)}m)`);
-                            });
-                            
-                            detailedResult.detectedAmenities.buses.forEach(bus => {
-                              realAmenities.push(`${bus.name} (${Math.round(bus.distance)}m)`);
-                            });
-                            
-                            detailedResult.detectedAmenities.banks.forEach(bank => {
-                              realAmenities.push(`${bank.name} (${Math.round(bank.distance)}m)`);
-                            });
-                            
-                            detailedResult.detectedAmenities.shoppingMalls.forEach(mall => {
-                              realAmenities.push(`${mall.name} (${Math.round(mall.distance)}m)`);
-                            });
-                            
-                            detailedResult.detectedAmenities.plazas.forEach(plaza => {
-                              realAmenities.push(`${plaza.name} (${Math.round(plaza.distance)}m)`);
-                            });
-                            
-                            detailedResult.detectedAmenities.gyms.forEach(gym => {
-                              realAmenities.push(`${gym.name} (${Math.round(gym.distance)}m)`);
-                            });
-                            
-                            // Add new facility types
-                            detailedResult.detectedAmenities.hospitals.forEach(hospital => {
-                              realAmenities.push(`${hospital.name} (${Math.round(hospital.distance)}m)`);
-                            });
-                            
-                            detailedResult.detectedAmenities.schools.forEach(school => {
-                              realAmenities.push(`${school.name} (${Math.round(school.distance)}m)`);
-                            });
-                            
-                            detailedResult.detectedAmenities.restaurants.forEach(restaurant => {
-                              realAmenities.push(`${restaurant.name} (${Math.round(restaurant.distance)}m)`);
-                            });
-                            
-                            detailedResult.detectedAmenities.parks.forEach(park => {
-                              realAmenities.push(`${park.name} (${Math.round(park.distance)}m)`);
-                            });
-                            
-                            console.log("🎯 Real amenities array:", realAmenities);
-                            
-                            // Set real-time amenities
-                            setFormData((prev) => ({
-                              ...prev,
-                              nearbyAmenities: realAmenities.slice(0, 8) // Limit to 8 most relevant
-                            }));
-                            
-                            // Store detailed detection for potential future use
-                            setDetailedDetection(detailedResult);
-                            console.log("💾 Stored detailed detection:", detailedResult);
-                            
-                            if (realAmenities.length > 0) {
-                              toast.success(`✅ Found ${realAmenities.length} real facilities nearby!`);
-                            } else {
-                              toast.info("📍 No facilities detected in this area");
-                            }
-                          } else {
-                            console.log("❌ No detailed amenities detected, falling back to generic");
-                            // Fallback to basic amenities if detailed detection fails
-                            const defaultAmenities = generateDefaultLocationAmenities(addressDetails, coordinates);
-                            setFormData((prev) => ({
-                              ...prev,
-                              nearbyAmenities: defaultAmenities
-                            }));
-                            toast.warning("⚠️ Using basic amenities - detailed detection unavailable");
-                          }
-                        } catch (amenitiesError) {
-                          console.error("❌ Real-time amenities detection failed:", amenitiesError);
-                          console.error("Error details:", amenitiesError);
-                          
-                          // Fallback to basic amenities
-                          const defaultAmenities = generateDefaultLocationAmenities(addressDetails, coordinates);
-                          setFormData((prev) => ({
-                            ...prev,
-                            nearbyAmenities: defaultAmenities
-                          }));
-                          toast.warning("⚠️ Using basic amenities - real-time detection failed");
-                        }
-                      } else {
-                        console.log("No valid coordinates for amenities");
-                        toast.info("📍 Address saved - coordinates not available for nearby amenities");
-                      }
-                    } else {
-                      console.log("Address details are null");
-                    }
-                  } catch (addressError) {
-                    console.error("Failed to get address details:", addressError);
-                    toast.info("📍 Address saved - additional details not available");
-                  }
-                  
-                } catch (error) {
-                  console.error("Critical error in address handling:", error);
-                  toast.error("❌ Failed to save address information");
-                }
-              }}
-              onInputChange={(value) => {
-                // Safe input change handling
-                try {
-                  setFormData((prev) => ({
-                    ...prev,
-                    propertyAddress: value,
-                  }));
-                } catch (inputError) {
-                  console.error("Input change failed:", inputError);
-                }
-              }}
-            />
-
-            {/* Show auto-detected amenities right after address selection */}
-            {formData.nearbyAmenities && formData.nearbyAmenities.length > 0 && (
-              <div className="bg-green-50 border border-green-300 rounded-xl p-6">
-                <div className="flex items-center mb-4">
-                  <MapPin className="h-6 w-6 text-green-700 mr-3" />
-                  <Label className="text-green-800 font-bold text-lg">✨ Auto-Detected Nearby Facilities</Label>
-              </div>
-                <div className="flex flex-wrap gap-3 my-4">
-                  {formData.nearbyAmenities.slice(0, 8).map((amenity, index) => (
-                    <span 
-                      key={index}
-                      onClick={() => handleFacilityClick(amenity)}
-                      className="bg-green-100 text-green-900 px-4 py-3 rounded-full text-base font-bold shadow-md cursor-pointer hover:bg-green-200 hover:shadow-lg transition-all duration-200 transform hover:scale-105"
-                      title="Click to view on map"
-                    >
-                      {amenity}
-                    </span>
-                  ))}
-                  {formData.nearbyAmenities.length > 8 && (
-                    <span className="bg-green-200 text-green-800 px-4 py-3 rounded-full text-base font-bold shadow-md">
-                      +{formData.nearbyAmenities.length - 8} more
-                    </span>
+                {/* Photo Upload - Full Width Standard Panel */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Property Photos</Label>
+                  {currentUserId && (
+                    <ImageUpload
+                      propertyId="temp"
+                      userId={currentUserId}
+                      images={formData.images}
+                      onImagesChange={(newImages) => {
+                        setFormData(prev => ({ ...prev, images: newImages }));
+                      }}
+                      maxImages={10}
+                    />
                   )}
-              </div>
-                <p className="text-base text-green-700 font-bold">
-                  💡 Enhanced with metro lines, bus routes, bank names, mall names, and condominium amenities
-                </p>
-            </div>
-            )}
+                </div>
 
-            {/* Show map immediately after address selection in Step 1 */}
-            {formData.latitude && formData.longitude && (
-              <div className="space-y-4">
-                <Label className="text-lg font-bold text-gray-900">📍 Property Location Preview</Label>
-                <PropertyMap
-                  center={{ lat: formData.latitude, lng: formData.longitude }}
-                  selectedAddress={formData.propertyAddress || 
-                    `${formData.address}, ${formData.city}, ${formData.state} ${formData.zipCode}`.trim()}
-                  className="w-full h-80 rounded-xl overflow-hidden border border-blue-300 shadow-xl"
-                  facilityMarker={selectedFacility}
-                />
-                <p className="text-base text-blue-700 mt-3 flex items-center font-bold">
-                  <MapPin className="h-5 w-5 mr-2" />
-                  Address location verified and ready
-                </p>
-                {selectedFacility && (
-                  <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                {/* 3D Generation Section - Only if images exist */}
+                {(formData.images && formData.images.length > 0) && (
+                  <div className="mt-4 p-4 border border-indigo-100 bg-indigo-50/50 rounded-xl">
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center">
-                        <MapPin className="h-5 w-5 text-green-600 mr-2" />
-                        <span className="text-green-800 font-medium">
-                          Showing: {selectedFacility.name} ({selectedFacility.distance}m)
-                        </span>
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600">
+                          <Box className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <h3 className="text-sm font-semibold text-indigo-900">AI 3D Model Generator</h3>
+                          <p className="text-xs text-indigo-600">Create a 3D walkthrough from your photos</p>
+                        </div>
                       </div>
                       <Button
-                        variant="outline"
+                        type="button"
                         size="sm"
-                        onClick={() => setSelectedFacility(null)}
-                        className="text-green-600 border-green-300 hover:bg-green-100"
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                        disabled={isGenerating3D || !!formData.threeDModelUrl}
+                        onClick={async () => {
+                          setIsGenerating3D(true);
+                          try {
+                            const imagesFor3D = existingImageUrls.length > 0 ? existingImageUrls : (formData.images as string[]);
+                            const modelUrl = await ai3DService.generate3DModel(imagesFor3D, editId || 'new');
+                            setFormData(prev => ({ ...prev, threeDModelUrl: modelUrl }));
+                            toast.success("3D Model attached! (Simulated)");
+                          } catch (e) {
+                            toast.error("Failed to generate 3D model");
+                          } finally {
+                            setIsGenerating3D(false);
+                          }
+                        }}
                       >
-                        Clear
+                        {isGenerating3D ? (
+                          <>
+                            <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                            Meshing...
+                          </>
+                        ) : formData.threeDModelUrl ? (
+                          <>
+                            <CheckCircle className="mr-2 h-3 w-3" />
+                            Ready
+                          </>
+                        ) : (
+                          <>
+                            <Box className="mr-2 h-3 w-3" />
+                            Generate 3D
+                          </>
+                        )}
                       </Button>
+                    </div>
+                    {formData.threeDModelUrl && (
+                      <div className="mt-4 border rounded-lg bg-slate-50 overflow-hidden">
+                        <div className="p-2 border-b bg-white flex justify-between items-center">
+                          <span className="text-xs font-semibold text-gray-700">Preview 3D Model</span>
+                          <span className="text-[10px] text-slate-500">Interact to rotate</span>
+                        </div>
+                        <div className="w-full h-64 relative bg-gray-100">
+                          <model-viewer
+                            src={formData.threeDModelUrl}
+                            ios-src=""
+                            alt="A 3D model of the property"
+                            heading="Property 3D Model"
+                            interaction-prompt="auto"
+                            auto-rotate
+                            camera-controls
+                            ar
+                            shadow-intensity="1"
+                            touch-action="pan-y"
+                            style={{ width: '100%', height: '100%', backgroundColor: '#f0f4f8', display: 'block' }}
+                          >
+                          </model-viewer>
+                        </div>
+                        <div className="p-2 bg-yellow-50 text-xs text-center text-yellow-800 font-medium border-t border-yellow-100 flex flex-col gap-1">
+                          <span>✓ Model attached to listing (Simulation)</span>
+                          <span className="text-[10px] text-yellow-600 opacity-80">
+                            * Note: Creating a real 3D mesh from 2D images requires a heavy GPU-based API (e.g., CSM.ai, Luma).
+                            This preview demonstrates the interactive viewer capability with a sample model.
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* AI Video Tour Section */}
+                {(formData.images && formData.images.length > 0) && (
+                  <div className="mt-4 p-4 border border-pink-100 bg-pink-50/50 rounded-xl">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-full bg-pink-100 flex items-center justify-center text-pink-600">
+                          <Film className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <h3 className="text-sm font-semibold text-pink-900">AI Video Tour Generator</h3>
+                          <p className="text-xs text-pink-600">Create a property showcase video with voiceover</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <Select value={selectedMusic || ""} onValueChange={setSelectedMusic}>
+                          <SelectTrigger className="w-[140px] h-9 text-xs bg-white border-pink-200">
+                            <SelectValue placeholder="Add Music 🎵" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3">Uplifting Vibe</SelectItem>
+                            <SelectItem value="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3">Chill Lo-Fi</SelectItem>
+                            <SelectItem value="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3">Cinematic</SelectItem>
+                          </SelectContent>
+                        </Select>
+
+                        <Button
+                          type="button"
+                          size="sm"
+                          className="bg-pink-600 hover:bg-pink-700 text-white"
+                          disabled={isGeneratingVideo || isVideoReady}
+                          onClick={async () => {
+                            setIsGeneratingVideo(true);
+                            try {
+                              const result = await aiVideoService.generateVideo(editId || 'new');
+                              if (result.status === 'ready') {
+                                setIsVideoReady(true);
+                                toast.success("Video tour generated!");
+                              }
+                            } catch (e) {
+                              toast.error("Failed to generate video");
+                            } finally {
+                              setIsGeneratingVideo(false);
+                            }
+                          }}
+                        >
+                          {isGeneratingVideo ? (
+                            <>
+                              <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                              Creating...
+                            </>
+                          ) : isVideoReady ? (
+                            <>
+                              <CheckCircle className="mr-2 h-3 w-3" />
+                              Ready
+                            </>
+                          ) : (
+                            <>
+                              <Film className="mr-2 h-3 w-3" />
+                              Generate Video
+                            </>
+                          )}
+                        </Button>
+                      </div>
+
+                      {isVideoReady && (
+                        <div className="mt-2 border rounded-lg overflow-hidden shadow-sm">
+                          <PropertyVideoPlayer
+                            images={existingImageUrls.length > 0 ? existingImageUrls : (formData.images as string[]) || []}
+                            audioUrl={formData.descriptionAudioUrl || undefined}
+                            musicUrl={selectedMusic || undefined}
+                            address={formData.propertyAddress}
+                            price={formData.monthlyRent}
+                            amenities={[
+                              ...formData.amenities.slice(0, 3)
+                            ]}
+                            autoPlay={true}
+                          />
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
-            </div>
-            )}
 
-            {/* NEW: Move Nearby Amenities to Step 1 */}
-            <div className="space-y-4">
-              <Label className="text-lg font-bold text-gray-900">**3.** Nearby Amenities</Label>
-              {formData.nearbyAmenities && formData.nearbyAmenities.length > 0 && (
-                <div className="bg-blue-50 border border-blue-300 rounded-xl p-5 mb-5">
-                  <p className="text-lg text-blue-800 font-bold mb-4">
-                    ✨ Enhanced Amenities based on location:
-                  </p>
-                  <div className="flex flex-wrap gap-3">
-                    {formData.nearbyAmenities.map((amenity, index) => (
-                      <span 
-                        key={index}
-                        onClick={() => handleFacilityClick(amenity)}
-                        className="bg-blue-100 text-blue-900 px-4 py-3 rounded-lg text-base font-bold shadow-md cursor-pointer hover:bg-blue-200 hover:shadow-lg transition-all duration-200 transform hover:scale-105"
-                        title="Click to view on map"
-                      >
-                        {amenity}
-                      </span>
+                {/* Map Visualization (if available) */}
+                {formData.latitude && (
+                  <div className="h-[200px] rounded-md border overflow-hidden">
+                    <PropertyMap
+                      center={{ lat: formData.latitude, lng: formData.longitude! }}
+                      selectedAddress={formData.propertyAddress}
+                      className="w-full h-full"
+                      facilityMarker={selectedFacility}
+                    />
+                  </div>
+                )}
+
+
+              </div>
+            </section>
+
+            {/* SECTION 3: Features & Amenities */}
+            <section className="space-y-4">
+              <div className="flex items-center gap-2 pb-2 border-b">
+                <div className="h-8 w-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 font-semibold text-sm">3</div>
+                <h3 className="text-lg font-semibold text-gray-800">Features & Amenities</h3>
+              </div>
+
+              <div className="space-y-3">
+                <Label className="text-sm font-medium">Property Amenities</Label>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {[
+                    "Air Conditioning", "Heating", "Dishwasher", "Washer/Dryer",
+                    "Balcony/Patio", "Hardwood Floors", "Carpet", "Fireplace",
+                    "Swimming Pool", "Gym/Fitness Center", "Elevator", "Garden"
+                  ].map((amenity) => (
+                    <div key={amenity} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={amenity}
+                        checked={formData.amenities.includes(amenity)}
+                        onCheckedChange={(checked) => handleArrayChange("amenities", amenity, checked as boolean)}
+                        className="h-4 w-4 rounded bg-white"
+                      />
+                      <Label htmlFor={amenity} className="text-xs font-normal cursor-pointer">{amenity}</Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
+                <div className="space-y-2">
+                  <Label htmlFor="parking" className="text-sm font-medium">Parking</Label>
+                  <Select value={formData.parking} onValueChange={(value) => handleInputChange("parking", value)}>
+                    <SelectTrigger className="h-9 border-gray-300 shadow-sm focus:border-blue-500">
+                      <SelectValue placeholder="Select parking" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">No Parking</SelectItem>
+                      <SelectItem value="street">Street Parking</SelectItem>
+                      <SelectItem value="driveway">Driveway</SelectItem>
+                      <SelectItem value="garage">Garage</SelectItem>
+                      <SelectItem value="covered">Covered Parking</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="petPolicy" className="text-sm font-medium">Pet Policy</Label>
+                  <Select value={formData.petPolicy} onValueChange={(value) => handleInputChange("petPolicy", value)}>
+                    <SelectTrigger className="h-9 border-gray-300 shadow-sm focus:border-blue-500">
+                      <SelectValue placeholder="Select policy" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="no-pets">No Pets</SelectItem>
+                      <SelectItem value="cats-only">Cats Only</SelectItem>
+                      <SelectItem value="dogs-only">Dogs Only</SelectItem>
+                      <SelectItem value="cats-dogs">Cats & Dogs</SelectItem>
+                      <SelectItem value="small-pets">Small Pets Only</SelectItem>
+                      <SelectItem value="all-pets">All Pets Welcome</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium block mb-2">Utilities Included</Label>
+                  <div className="flex flex-wrap gap-x-4 gap-y-2">
+                    {["Water", "Electricity", "Gas", "Internet"].map((utility) => (
+                      <div key={utility} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={utility}
+                          checked={formData.utilitiesIncluded.includes(utility)}
+                          onCheckedChange={(checked) => handleArrayChange("utilitiesIncluded", utility, checked as boolean)}
+                          className="h-4 w-4 bg-white"
+                        />
+                        <Label htmlFor={utility} className="text-xs font-normal">{utility}</Label>
+                      </div>
                     ))}
                   </div>
-            </div>
-              )}
-              <div className="grid grid-cols-3 gap-5 mt-5">
-                {[
-                  "Shopping Centers", "Restaurants", "Schools", "Hospitals",
-                  "Parks", "Gyms", "Banks", "Pharmacies"
-                ].map((amenity) => (
-                  <div key={amenity} className="flex items-center space-x-4">
-                    <Checkbox
-                      id={`nearby-${amenity}`}
-                      checked={formData.nearbyAmenities?.includes(amenity) || false}
-                      onCheckedChange={(checked) => handleArrayChange("nearbyAmenities", amenity, checked as boolean)}
-                    />
-                    <Label htmlFor={`nearby-${amenity}`} className="text-base font-bold text-gray-900">
-                      {amenity}
-                      {formData.nearbyAmenities?.includes(amenity) && (
-                        <span className="text-blue-700 text-sm ml-2 font-bold">(auto-detected)</span>
-                      )}
-                    </Label>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* NEW: Property Amenities & Features section - moved from Step 2 */}
-            <div className="border-t pt-10 mt-10">
-              <h3 className="text-2xl font-bold mb-8 text-gray-900">🏠 Property Amenities & Features</h3>
-
-            <div className="space-y-4">
-                <Label className="text-lg font-bold text-gray-900">**4.** Property Amenities</Label>
-              <div className="grid grid-cols-3 gap-5 mt-5">
-                {[
-                  "Air Conditioning", "Heating", "Dishwasher", "Washer/Dryer",
-                  "Balcony/Patio", "Hardwood Floors", "Carpet", "Fireplace",
-                  "Swimming Pool", "Gym/Fitness Center", "Elevator", "Garden"
-                ].map((amenity) => (
-                  <div key={amenity} className="flex items-center space-x-4">
-                    <Checkbox
-                      id={amenity}
-                      checked={formData.amenities.includes(amenity)}
-                      onCheckedChange={(checked) => handleArrayChange("amenities", amenity, checked as boolean)}
-                    />
-                    <Label htmlFor={amenity} className="text-base font-bold text-gray-900">{amenity}</Label>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="space-y-4">
-                <Label htmlFor="parking" className="text-lg font-bold text-gray-900">**5.** Parking</Label>
-              <Select value={formData.parking} onValueChange={(value) => handleInputChange("parking", value)}>
-                <SelectTrigger className="text-lg h-14 border-gray-400 focus:border-blue-600 focus:ring-blue-600 font-semibold">
-                  <SelectValue placeholder="Select parking option" />
-                </SelectTrigger>
-                <SelectContent className="font-semibold">
-                  <SelectItem value="none" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">No Parking</SelectItem>
-                  <SelectItem value="street" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">Street Parking</SelectItem>
-                  <SelectItem value="driveway" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">Driveway</SelectItem>
-                  <SelectItem value="garage" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">Garage</SelectItem>
-                  <SelectItem value="covered" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">Covered Parking</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-4">
-                <Label htmlFor="petPolicy" className="text-lg font-bold text-gray-900">**6.** Pet Policy</Label>
-              <Select value={formData.petPolicy} onValueChange={(value) => handleInputChange("petPolicy", value)}>
-                <SelectTrigger className="text-lg h-14 border-gray-400 focus:border-blue-600 focus:ring-blue-600 font-semibold">
-                  <SelectValue placeholder="Select pet policy" />
-                </SelectTrigger>
-                <SelectContent className="font-semibold">
-                  <SelectItem value="no-pets" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">No Pets</SelectItem>
-                  <SelectItem value="cats-only" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">Cats Only</SelectItem>
-                  <SelectItem value="dogs-only" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">Dogs Only</SelectItem>
-                  <SelectItem value="cats-dogs" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">Cats & Dogs</SelectItem>
-                  <SelectItem value="small-pets" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">Small Pets Only</SelectItem>
-                  <SelectItem value="all-pets" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">All Pets Welcome</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-4">
-                <Label className="text-lg font-bold text-gray-900">**7.** Utilities Included</Label>
-              <div className="grid grid-cols-3 gap-5 mt-5">
-                {["Water", "Electricity", "Gas", "Internet", "Cable TV", "Trash"].map((utility) => (
-                  <div key={utility} className="flex items-center space-x-4">
-                    <Checkbox
-                      id={utility}
-                      checked={formData.utilitiesIncluded.includes(utility)}
-                      onCheckedChange={(checked) => handleArrayChange("utilitiesIncluded", utility, checked as boolean)}
-                    />
-                    <Label htmlFor={utility} className="text-base font-bold text-gray-900">{utility}</Label>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-            <div className="space-y-4">
-              <Label htmlFor="description" className="text-lg font-bold text-gray-900">**8.** Property Description</Label>
-              {formData.nearbyAmenities && formData.nearbyAmenities.length > 0 && (
-                <div className="bg-blue-50 border border-blue-300 rounded-xl p-5 mb-5">
-                  <p className="text-lg text-blue-800 font-bold mb-4">
-                    🤖 AI-Enhanced Description Suggestion:
-                  </p>
-                  <div className="text-base text-blue-700 bg-blue-100 p-4 rounded-lg font-semibold">
-                    This property is conveniently located near {formData.nearbyAmenities.slice(0, 3).join(', ')}
-                    {formData.nearbyAmenities.length > 3 && ` and ${formData.nearbyAmenities.length - 3} other nearby facilities`}, 
-                    making it ideal for residents who value accessibility to essential services.
-                  </div>
-                  <button 
-                    type="button"
-                    onClick={() => {
-                      const autoDescription = `This property is conveniently located near ${formData.nearbyAmenities.slice(0, 3).join(', ')}` +
-                        `${formData.nearbyAmenities.length > 3 ? ` and ${formData.nearbyAmenities.length - 3} other nearby facilities` : ''}` +
-                        `, making it ideal for residents who value accessibility to essential services. ` +
-                        `The location offers great connectivity to public transport, dining, and shopping options.`;
-                      setFormData(prev => ({
-                        ...prev,
-                        description: prev.description + (prev.description ? ' ' : '') + autoDescription
-                      }));
-                    }}
-                    className="text-base text-blue-700 hover:text-blue-900 mt-3 underline cursor-pointer font-bold"
-                  >
-                    + Insert into description
-                  </button>
                 </div>
-              )}
-              <Textarea
-                id="description"
-                placeholder="Describe your property, highlighting key features and what makes it special..."
-                value={formData.description}
-                onChange={(e) => handleInputChange("description", e.target.value)}
-                className="min-h-[160px] text-lg border-gray-400 focus:border-blue-600 focus:ring-blue-600 font-semibold"
-              />
-            </div>
+              </div>
+            </section>
 
-            {/* NEW: Rental Information moved from Step 2 to Basic Information */}
-            <div className="border-t pt-10 mt-10">
-              <h3 className="text-2xl font-bold mb-8 text-gray-900">💵 Rental Information</h3>
-              
-              <div className="grid grid-cols-2 gap-8">
-                <div className="space-y-4">
-                  <Label htmlFor="monthlyRent" className="text-lg font-bold text-gray-900">**9.** Monthly Rent ($)</Label>
+            {/* SECTION 4: Rental Information */}
+            <section className="space-y-4">
+              <div className="flex items-center gap-2 pb-2 border-b">
+                <div className="h-8 w-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 font-semibold text-sm">4</div>
+                <h3 className="text-lg font-semibold text-gray-800">Rental Information</h3>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="monthlyRent" className="text-sm font-medium">Monthly Rent ($)</Label>
                   <Input
                     id="monthlyRent"
-                    placeholder="2500"
+                    placeholder="0.00"
                     type="number"
                     value={formData.monthlyRent}
                     onChange={(e) => handleInputChange("monthlyRent", e.target.value)}
-                    className="text-lg h-14 border-gray-400 focus:border-blue-600 focus:ring-blue-600 font-semibold"
+                    className="h-9 border-gray-300 shadow-sm focus:border-blue-500"
                   />
+                  {/* {errors.monthlyRent && <p className="text-xs text-red-500">{errors.monthlyRent}</p>} */}
                 </div>
-                <div className="space-y-4">
-                  <Label htmlFor="securityDeposit" className="text-lg font-bold text-gray-900">**10.** Security Deposit ($)</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="securityDeposit" className="text-sm font-medium">Security Deposit ($)</Label>
                   <Input
                     id="securityDeposit"
-                    placeholder="2500"
+                    placeholder="0.00"
                     type="number"
                     value={formData.securityDeposit}
                     onChange={(e) => handleInputChange("securityDeposit", e.target.value)}
-                    className="text-lg h-14 border-gray-400 focus:border-blue-600 focus:ring-blue-600 font-semibold"
+                    className="h-9 border-gray-300 shadow-sm focus:border-blue-500"
                   />
                 </div>
               </div>
 
-              <div className="space-y-4 mt-8">
-                <Label htmlFor="leaseTerms" className="text-lg font-bold text-gray-900">**11.** Lease Terms</Label>
-                <Select value={formData.leaseTerms} onValueChange={(value) => handleInputChange("leaseTerms", value)}>
-                  <SelectTrigger className="text-lg h-14 border-gray-400 focus:border-blue-600 focus:ring-blue-600 font-semibold">
-                    <SelectValue placeholder="Select lease terms" />
-                  </SelectTrigger>
-                  <SelectContent className="font-semibold">
-                    <SelectItem value="month-to-month" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">Month-to-Month</SelectItem>
-                    <SelectItem value="6-months" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">6 Months</SelectItem>
-                    <SelectItem value="1-year" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">1 Year</SelectItem>
-                    <SelectItem value="2-years" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">2 Years</SelectItem>
-                    <SelectItem value="flexible" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">Flexible</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="leaseTerms" className="text-sm font-medium">Lease Terms</Label>
+                  <Select value={formData.leaseTerms} onValueChange={(value) => handleInputChange("leaseTerms", value)}>
+                    <SelectTrigger className="h-9 border-gray-300 shadow-sm focus:border-blue-500">
+                      <SelectValue placeholder="Select terms" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="month-to-month">Month-to-Month</SelectItem>
+                      <SelectItem value="6-months">6 Months</SelectItem>
+                      <SelectItem value="1-year">1 Year</SelectItem>
+                      <SelectItem value="2-years">2 Years</SelectItem>
+                      <SelectItem value="flexible">Flexible</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-              <div className="grid grid-cols-2 gap-8 mt-8">
-                <div className="space-y-4">
-                  <Label htmlFor="availableDate" className="text-lg font-bold text-gray-900">**12.** Available Date</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="availableDate" className="text-sm font-medium">Available Date</Label>
                   <Input
                     id="availableDate"
                     type="date"
                     value={formData.availableDate}
                     onChange={(e) => handleInputChange("availableDate", e.target.value)}
-                    className="text-lg h-14 border-gray-400 focus:border-blue-600 focus:ring-blue-600 font-semibold"
+                    className="h-9 border-gray-300 shadow-sm focus:border-blue-500"
                   />
                 </div>
-                <div className="space-y-4">
-                  <Label htmlFor="furnished" className="text-lg font-bold text-gray-900">**13.** Furnishing</Label>
+
+                <div className="space-y-2">
+                  <Label htmlFor="furnished" className="text-sm font-medium">Furnishing</Label>
                   <Select value={formData.furnished} onValueChange={(value) => handleInputChange("furnished", value)}>
-                    <SelectTrigger className="text-lg h-14 border-gray-400 focus:border-blue-600 focus:ring-blue-600 font-semibold">
+                    <SelectTrigger className="h-9 border-gray-300 shadow-sm focus:border-blue-500">
                       <SelectValue placeholder="Select" />
                     </SelectTrigger>
-                    <SelectContent className="font-semibold">
-                      <SelectItem value="furnished" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">Fully Furnished</SelectItem>
-                      <SelectItem value="semi-furnished" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">Semi-Furnished</SelectItem>
-                      <SelectItem value="unfurnished" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">Unfurnished</SelectItem>
+                    <SelectContent>
+                      <SelectItem value="furnished">Fully Furnished</SelectItem>
+                      <SelectItem value="semi-furnished">Semi-Furnished</SelectItem>
+                      <SelectItem value="unfurnished">Unfurnished</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
-            </div>
 
-            {/* NEW: Consolidated Additional Info fields from Step 2 with dynamic role-based text */}
-            <div className="border-t pt-10 mt-10">
-              <h3 className="text-2xl font-bold mb-8 text-gray-900">📝 Additional Information</h3>
-              
-              <div className="space-y-4">
-                <Label htmlFor="roommatePreference" className="text-lg font-bold text-gray-900">{dynamicText.label}</Label>
-              <Select value={formData.roommatePreference} onValueChange={(value) => handleInputChange("roommatePreference", value)}>
-                <SelectTrigger className="text-lg h-14 border-gray-400 focus:border-blue-600 focus:ring-blue-600 font-semibold">
-                    <SelectValue placeholder={dynamicText.placeholder} />
-                </SelectTrigger>
-                <SelectContent className="font-semibold">
-                    <SelectItem value="any" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">{dynamicText.noPreferenceText}</SelectItem>
-                  <SelectItem value="students" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">Students Only</SelectItem>
-                    <SelectItem value="professionals" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">Working Professionals Only</SelectItem>
-                    <SelectItem value="same-gender" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">Same Gender Preference</SelectItem>
-                    <SelectItem value="non-smokers" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">Non-Smokers Only</SelectItem>
-                    <SelectItem value="quiet" className="text-base font-bold text-gray-900 hover:bg-blue-50 hover:text-blue-900">Quiet Lifestyle Required</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+              {/* Description inside Rental Info or Separate? Separate is better */}
+              <div className="space-y-2 pt-2">
+                <div className="flex justify-between items-center">
+                  <Label htmlFor="description" className="text-sm font-medium">Property Description</Label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-8 text-xs border-blue-200 text-blue-700 hover:bg-blue-50 hover:text-blue-800"
+                    onClick={async () => {
+                      setIsGeneratingDescription(true);
+                      try {
+                        const description = await aiDescriptionService.generateDescription({
+                          address: formData.propertyAddress,
+                          propertyType: formData.propertyType,
+                          monthlyRent: formData.monthlyRent,
+                          bedrooms: '0',
+                          bathrooms: '0',
+                          amenities: formData.amenities,
+                          nearbyAmenities: formData.nearbyAmenities || [],
+                          detailedDetection: detailedDetection?.detectedAmenities,
+                          images: formData.images || []
+                        });
 
-            <div className="space-y-4 mt-8">
-                <Label htmlFor="specialInstructions" className="text-lg font-bold text-gray-900">**15.** Special Instructions or Requirements</Label>
-              <Textarea
-                id="specialInstructions"
-                placeholder="Any special requirements, rules, or instructions for potential tenants..."
-                value={formData.specialInstructions}
-                onChange={(e) => handleInputChange("specialInstructions", e.target.value)}
-                className="min-h-[140px] text-lg border-gray-400 focus:border-blue-600 focus:ring-blue-600 font-semibold"
-              />
-            </div>
-            </div>
+                        setFormData(prev => ({
+                          ...prev,
+                          description: description
+                        }));
+                        toast.success("✨ Description generated by AI!");
+                      } catch (error) {
+                        toast.error("Failed to generate description");
+                      } finally {
+                        setIsGeneratingDescription(false);
+                      }
+                    }}
+                    disabled={isGeneratingDescription || !formData.propertyAddress}
+                  >
+                    {isGeneratingDescription ? (
+                      <>
+                        <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                        Generating...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="mr-2 h-3 w-3" />
+                        Generate with AI
+                      </>
+                    )}
+                  </Button>
+                </div>
 
-            {/* Submit Button Section */}
-            <div className="border-t pt-10 mt-10">
-              <div className="bg-green-50 border border-green-200 rounded-xl p-8 text-center">
-                <CheckCircle className="h-16 w-16 text-green-600 mx-auto mb-4" />
-                <h3 className="text-2xl font-bold text-green-800 mb-4">Ready to Submit Your Property Listing?</h3>
-                <p className="text-lg text-green-700 mb-6">
-                  Review all your information above and click submit to publish your property listing.
-                </p>
-                <Button 
-                  onClick={handleSubmit} 
-                  className="px-12 py-4 text-xl font-bold bg-green-700 hover:bg-green-800 text-white shadow-lg hover:shadow-xl transition-all duration-200"
-                >
-                  <CheckCircle className="h-6 w-6 mr-3" />
-                  {editId ? 'Save Changes' : 'Submit Property Listing'}
-                </Button>
+                <Textarea
+                  id="description"
+                  placeholder="Describe your property details... (Click 'Generate with AI' to get a head start!)"
+                  value={formData.description}
+                  onChange={(e) => handleInputChange("description", e.target.value)}
+                  className="min-h-[150px] text-sm border-gray-300 shadow-sm focus:border-blue-500"
+                />
+
+                {/* Audio Description Section */}
+                <div className="flex flex-col gap-3 pt-2">
+                  <div className="flex justify-between items-center bg-slate-50 p-3 rounded-lg border border-slate-200">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-600">
+                        <Volume2 className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-slate-900">Sales Voice Agent</p>
+                        <p className="text-xs text-slate-500">Generate an AI-narrated tour of this listing</p>
+                      </div>
+                    </div>
+
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      className="text-xs bg-purple-100 text-purple-700 hover:bg-purple-200 border border-purple-200"
+                      disabled={isGeneratingAudio || !formData.description}
+                      onClick={async () => {
+                        setIsGeneratingAudio(true);
+                        try {
+                          const audioUrl = await aiDescriptionService.generateAudioDescription(
+                            formData.description,
+                            editId || currentUserId || 'temp-id'
+                          );
+
+                          if (audioUrl === 'local-tts-preview') {
+                            setHasLocalAudioPreview(true);
+                            toast.info("🔊 Playing preview with local voice. Deploy backend for premium AI voice.");
+                          } else {
+                            setFormData(prev => ({
+                              ...prev,
+                              descriptionAudioUrl: audioUrl
+                            }));
+                            setHasLocalAudioPreview(false);
+                            toast.success("🎙️ Voice description generated!");
+                          }
+                        } catch (error) {
+                          toast.error("Failed to generate voice description");
+                        } finally {
+                          setIsGeneratingAudio(false);
+                        }
+                      }}
+                    >
+
+                      {isGeneratingAudio ? (
+                        <>
+                          <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                          Generating Voice...
+                        </>
+                      ) : hasLocalAudioPreview ? (
+                        <>
+                          <Volume2 className="mr-2 h-3 w-3" />
+                          Replay Preview
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="mr-2 h-3 w-3" />
+                          Generate Voice
+                        </>
+                      )}
+                    </Button>
+
+                    {hasLocalAudioPreview && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="text-xs border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 ml-2"
+                        onClick={() => {
+                          window.speechSynthesis.cancel();
+                          toast.info("Stopped audio preview");
+                        }}
+                      >
+                        <Square className="mr-2 h-3 w-3 fill-current" />
+                        Stop
+                      </Button>
+                    )}
+                  </div>
+
+                  {formData.descriptionAudioUrl && (
+                    <div className="bg-white border rounded-lg p-3">
+                      <p className="text-xs font-medium text-gray-500 mb-2">My Property Voice Tour:</p>
+                      <audio controls className="w-full h-8">
+                        <source src={formData.descriptionAudioUrl} type="audio/mpeg" />
+                        Your browser does not support the audio element.
+                      </audio>
+                    </div>
+                  )}
+                </div>
               </div>
+            </section>
+
+            {/* SECTION 5: Additional Details */}
+            <section className="space-y-4">
+              <div className="flex items-center gap-2 pb-2 border-b">
+                <div className="h-8 w-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 font-semibold text-sm">5</div>
+                <h3 className="text-lg font-semibold text-gray-800">Additional Details</h3>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="roommatePreference" className="text-sm font-medium">{dynamicText.label.replace(/\*\*\d+\.\*\*\s*/, '')}</Label>
+                  <Select value={formData.roommatePreference} onValueChange={(value) => handleInputChange("roommatePreference", value)}>
+                    <SelectTrigger className="h-9 border-gray-300 shadow-sm focus:border-blue-500">
+                      <SelectValue placeholder={dynamicText.placeholder} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="any">{dynamicText.noPreferenceText}</SelectItem>
+                      <SelectItem value="students">Students Only</SelectItem>
+                      <SelectItem value="professionals">Working Professionals Only</SelectItem>
+                      <SelectItem value="same-gender">Same Gender Preference</SelectItem>
+                      <SelectItem value="non-smokers">Non-Smokers Only</SelectItem>
+                      <SelectItem value="quiet">Quiet Lifestyle Required</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="specialInstructions" className="text-sm font-medium">Special Instructions</Label>
+                <Textarea
+                  id="specialInstructions"
+                  placeholder="Any additional notes..."
+                  value={formData.specialInstructions}
+                  onChange={(e) => handleInputChange("specialInstructions", e.target.value)}
+                  className="min-h-[80px] text-sm border-gray-300 shadow-sm focus:border-blue-500"
+                />
+              </div>
+            </section>
+
+            {/* Submit Action */}
+            <div className="pt-6 mt-6 border-t flex justify-end">
+              <Button
+                onClick={handleSubmit}
+                className="px-8 font-semibold bg-blue-600 hover:bg-blue-700 text-white"
+                size="default"
+              >
+                {editId ? 'Save Changes' : 'Create Listing'}
+              </Button>
             </div>
           </div>
         );
@@ -1267,54 +1462,47 @@ export default function AddPropertyPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-      <div className="w-full py-8 px-6">
+    <div className="min-h-screen bg-slate-50/50">
+      <div className="max-w-6xl mx-auto py-6 px-4">
         {/* Header */}
-        <div className="flex items-center gap-6 mb-8">
-          <Button variant="outline" size="sm" onClick={() => navigate("/dashboard/landlord/properties")} className="shadow-sm hover:shadow-md transition-shadow">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Properties
-          </Button>
-          <div>
-            <h1 className="text-5xl font-bold tracking-tight text-gray-900 mb-2">Add New Property</h1>
-            <p className="text-xl text-gray-700 font-semibold">{editId ? 'Edit your property listing' : 'Fill out the details to list your property'}</p>
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="sm" onClick={() => navigate("/dashboard/landlord/properties")} className="h-8 w-8 p-0">
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <div>
+              <h1 className="text-2xl font-semibold tracking-tight text-gray-900">Add New Property</h1>
+              <p className="text-sm text-muted-foreground">{editId ? 'Edit your property listing' : 'Fill out the details to list your property'}</p>
+            </div>
           </div>
+          {!editId && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={resetForm}
+              className="text-xs"
+            >
+              <X className="h-3.5 w-3.5 mr-2" />
+              Reset Form
+            </Button>
+          )}
         </div>
 
-        {/* Single Page Form - No Progress Bar or Step Navigation Needed */}
-
         {/* Form Content */}
-        <Card className="mb-8 shadow-xl border-0 bg-white/90 backdrop-blur-sm">
-          <CardHeader className="pb-8">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="flex items-center gap-4 text-3xl font-bold text-gray-900">
-                  {React.createElement(steps[currentStep - 1].icon, { className: "h-8 w-8 text-blue-700" })}
-                  {steps[currentStep - 1].title}
-                </CardTitle>
-                <CardDescription className="text-xl text-gray-800 font-semibold mt-3">
-                  {editId ? "Update your property's information and submit changes" : "Fill out all the details below to create your property listing"}
-                </CardDescription>
-              </div>
-              {!editId && (
-                <Button
-                  variant="outline"
-                  onClick={resetForm}
-                  className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 border-gray-300 hover:border-gray-400"
-                  title="Start fresh with a clean form"
-                >
-                  <X className="h-4 w-4 mr-2" />
-                  Start Fresh
-                </Button>
-              )}
-            </div>
+        <Card className="shadow-sm border">
+          <CardHeader className="pb-4 border-b">
+            <CardTitle className="flex items-center gap-2 text-xl font-semibold">
+              <Home className="h-5 w-5 text-primary" />
+              Property Details
+            </CardTitle>
+            <CardDescription className="text-sm">
+              Enter the comprehensive details of your rental property below.
+            </CardDescription>
           </CardHeader>
-          <CardContent className="pt-0">
+          <CardContent className="pt-6">
             {renderStepContent()}
           </CardContent>
         </Card>
-
-        {/* No navigation buttons needed since everything is on one page */}
       </div>
     </div>
   );
