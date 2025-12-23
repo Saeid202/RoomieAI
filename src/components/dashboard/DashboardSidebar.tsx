@@ -18,6 +18,7 @@ import { SeekerSidebar } from "./sidebar/SeekerSidebar";
 import { LandlordSidebar } from "./sidebar/LandlordSidebar";
 import { DeveloperSidebar } from "./sidebar/DeveloperSidebar";
 import { AdminSidebar } from "./sidebar/AdminSidebar";
+import { RenovatorSidebar } from "./sidebar/RenovatorSidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Menu, X } from "lucide-react";
 import { Home } from "lucide-react";
@@ -49,8 +50,8 @@ export function DashboardSidebar() {
             {role === "landlord"
               ? "Landlord Portal"
               : role === "admin"
-              ? "Admin Portal"
-              : "Roommate Finder"}
+                ? "Admin Portal"
+                : "Roommate Finder"}
           </h2>
         ) : (
           <svg
@@ -70,37 +71,39 @@ export function DashboardSidebar() {
           </svg>
         )}
       </SidebarHeader>
-        
-        <SidebarSeparator />
-        <SidebarContent>
-          <SidebarGroup>
-            <SidebarGroupLabel>Main</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {role === 'admin' ? (
-                  <AdminSidebar isActive={isActive} />
-                ) : role === 'landlord' ? (
-                  <LandlordSidebar isActive={isActive} />
-                ) : (
-                  <SeekerSidebar isActive={isActive} />
-                )}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        </SidebarContent>
-        <SidebarFooter className="p-4">
-          {open ? (
-            <Button variant="secondary" className="w-full" asChild>
-              <Link to="/">Back to Home</Link>
-            </Button>
-          ) : (
-            <Link to="/" className="flex items-center justify-center">
-              <div className="w-9 h-9 rounded-full bg-roomie-purple/20 flex items-center justify-center">
-                <Home className="text-roomie-purple" size={22} />
-              </div>
-            </Link>
-          )}
-        </SidebarFooter>
-      </Sidebar>
+
+      <SidebarSeparator />
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupLabel>Main</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {role === 'admin' ? (
+                <AdminSidebar isActive={isActive} />
+              ) : role === 'landlord' ? (
+                <LandlordSidebar isActive={isActive} />
+              ) : role === 'renovator' ? (
+                <RenovatorSidebar isActive={isActive} />
+              ) : (
+                <SeekerSidebar isActive={isActive} />
+              )}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+      <SidebarFooter className="p-4">
+        {open ? (
+          <Button variant="secondary" className="w-full" asChild>
+            <Link to="/">Back to Home</Link>
+          </Button>
+        ) : (
+          <Link to="/" className="flex items-center justify-center">
+            <div className="w-9 h-9 rounded-full bg-roomie-purple/20 flex items-center justify-center">
+              <Home className="text-roomie-purple" size={22} />
+            </div>
+          </Link>
+        )}
+      </SidebarFooter>
+    </Sidebar>
   );
 }

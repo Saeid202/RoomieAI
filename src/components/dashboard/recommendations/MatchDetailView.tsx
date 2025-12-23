@@ -7,12 +7,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { CompatibilityBreakdown } from "../CompatibilityBreakdown";
 import { ImportanceWeightVisualization } from "./ImportanceWeightVisualization";
-import { 
-  Star, 
-  Heart, 
-  MessageCircle, 
-  Sparkles, 
-  Target, 
+import {
+  Star,
+  Heart,
+  MessageCircle,
+  Sparkles,
+  Target,
   TrendingUp,
   User,
   Home,
@@ -56,7 +56,7 @@ const formatDetailedScores = (breakdown: any) => {
       .map(([key, value]) => ({ key, value: Number(value) }))
       .sort((a, b) => b.value - a.value);
   }
-  
+
   // Fallback to standard breakdown
   return Object.entries(breakdown)
     .filter(([key]) => key !== 'enhanced' && key !== 'detailedScores')
@@ -87,9 +87,9 @@ const getCategoryDetails = (key: string) => {
     interests: { name: "Interests", icon: <Heart className="h-4 w-4" />, description: "Shared interests and hobbies" },
     cleanliness: { name: "Cleanliness", icon: <Sparkles className="h-4 w-4" />, description: "Cleaning habits compatibility" }
   };
-  
-  return details[key as keyof typeof details] || { 
-    name: key.charAt(0).toUpperCase() + key.slice(1), 
+
+  return details[key as keyof typeof details] || {
+    name: key.charAt(0).toUpperCase() + key.slice(1),
     icon: <Activity className="h-4 w-4" />,
     description: "Compatibility score"
   };
@@ -109,7 +109,7 @@ export function MatchDetailView({ match, onClose }: MatchDetailViewProps) {
             <div className="space-y-2">
               <CardTitle className="text-2xl flex items-center gap-2">
                 {match.name}, {match.age}
-                {match.compatibilityScore >= 85 && (
+                {(match.compatibilityScore || match.compatibility || 0) >= 85 && (
                   <Star className="h-5 w-5 text-yellow-500 fill-current" />
                 )}
               </CardTitle>
@@ -117,9 +117,9 @@ export function MatchDetailView({ match, onClose }: MatchDetailViewProps) {
                 {match.occupation} • {match.location}
               </CardDescription>
               <div className="flex items-center gap-2">
-                {getScoreIcon(match.compatibilityScore)}
-                <span className={`px-3 py-1 rounded-full text-sm font-semibold ${getScoreColor(match.compatibilityScore)}`}>
-                  {match.compatibilityScore}% Compatibility Match
+                {getScoreIcon(match.compatibilityScore || match.compatibility || 0)}
+                <span className={`px-3 py-1 rounded-full text-sm font-semibold ${getScoreColor(match.compatibilityScore || match.compatibility || 0)}`}>
+                  {match.compatibilityScore || match.compatibility || 0}% Compatibility Match
                 </span>
               </div>
             </div>
@@ -202,7 +202,9 @@ export function MatchDetailView({ match, onClose }: MatchDetailViewProps) {
                         <span className="text-muted-foreground">Budget:</span>
                       </div>
                       <span className="font-medium">
-                        ${match.budget[0].toLocaleString()} - ${match.budget[1].toLocaleString()}
+                        {Array.isArray(match.budget)
+                          ? `$${match.budget[0].toLocaleString()} - $${match.budget[1].toLocaleString()}`
+                          : match.budget}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
@@ -220,9 +222,9 @@ export function MatchDetailView({ match, onClose }: MatchDetailViewProps) {
                     <CardTitle className="text-lg">Compatibility Overview</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <CompatibilityBreakdown 
-                      breakdown={match.compatibilityBreakdown} 
-                      overallScore={match.compatibilityScore}
+                    <CompatibilityBreakdown
+                      breakdown={match.compatibilityBreakdown}
+                      overallScore={match.compatibilityScore || match.compatibility || 0}
                     />
                   </CardContent>
                 </Card>
@@ -232,9 +234,9 @@ export function MatchDetailView({ match, onClose }: MatchDetailViewProps) {
             <TabsContent value="compatibility" className="space-y-6">
               {/* Importance Weight Visualization */}
               <ImportanceWeightVisualization match={match} />
-              
+
               <Separator />
-              
+
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg">Detailed Compatibility Analysis</CardTitle>

@@ -57,6 +57,7 @@
     "express": "^5.2.1",
     "framer-motion": "^12.6.3",
     "html2canvas": "^1.4.1",
+    "html2pdf.js": "^0.12.1",
     "input-otp": "^1.2.4",
     "jspdf": "^3.0.3",
     "lucide-react": "^0.462.0",

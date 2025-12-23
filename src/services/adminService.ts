@@ -54,7 +54,7 @@ export async function checkIsAdmin(userId: string): Promise<boolean> {
 export async function verifyAdminAccess(): Promise<boolean> {
   try {
     const { data: { user } } = await supabase.auth.getUser();
-    
+
     if (!user) {
       return false;
     }
@@ -81,12 +81,12 @@ export function clearAdminCache(userId?: string) {
  * Get list of available roles for a user
  */
 export async function getAvailableRoles(userId: string): Promise<string[]> {
-  const baseRoles = ['seeker', 'landlord'];
-  
+  const baseRoles = ['seeker', 'landlord', 'renovator'];
+
   const isAdmin = await checkIsAdmin(userId);
   if (isAdmin) {
     return [...baseRoles, 'admin'];
   }
-  
+
   return baseRoles;
 }

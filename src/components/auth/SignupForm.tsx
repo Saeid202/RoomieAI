@@ -21,7 +21,7 @@ const formSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Please enter a valid email"),
   password: z.string().min(6, "Password must be at least 6 characters"),
-  role: z.enum(["seeker", "landlord"], {
+  role: z.enum(["seeker", "landlord", "renovator"], {
     required_error: "Please select a role",
   }),
 });
@@ -35,7 +35,7 @@ interface SignupFormProps {
 
 export const SignupForm = ({ onSubmit, isLoading }: SignupFormProps) => {
   const [showPassword, setShowPassword] = useState(false);
-  
+
   const form = useForm<SignupFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -62,7 +62,7 @@ export const SignupForm = ({ onSubmit, isLoading }: SignupFormProps) => {
             </FormItem>
           )}
         />
-        
+
         <FormField
           control={form.control}
           name="email"
@@ -76,7 +76,7 @@ export const SignupForm = ({ onSubmit, isLoading }: SignupFormProps) => {
             </FormItem>
           )}
         />
-        
+
         <FormField
           control={form.control}
           name="password"
@@ -85,11 +85,11 @@ export const SignupForm = ({ onSubmit, isLoading }: SignupFormProps) => {
               <FormLabel className="font-medium">Password</FormLabel>
               <FormControl>
                 <div className="relative">
-                  <Input 
-                    type={showPassword ? "text" : "password"} 
-                    placeholder="••••••••" 
-                    {...field} 
-                    className="h-11 pr-10" 
+                  <Input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    {...field}
+                    className="h-11 pr-10"
                   />
                   <Button
                     type="button"
@@ -140,6 +140,14 @@ export const SignupForm = ({ onSubmit, isLoading }: SignupFormProps) => {
                       Landlord - Manage rental properties
                     </FormLabel>
                   </FormItem>
+                  <FormItem className="flex items-center space-x-3 space-y-0">
+                    <FormControl>
+                      <RadioGroupItem value="renovator" />
+                    </FormControl>
+                    <FormLabel className="font-normal cursor-pointer">
+                      Renovator - Find jobs & receive requests
+                    </FormLabel>
+                  </FormItem>
                 </RadioGroup>
               </FormControl>
               <FormMessage />
@@ -147,9 +155,9 @@ export const SignupForm = ({ onSubmit, isLoading }: SignupFormProps) => {
           )}
         />
 
-        <Button 
-          type="submit" 
-          className="w-full h-11 bg-roomie-purple hover:bg-roomie-dark text-white font-medium" 
+        <Button
+          type="submit"
+          className="w-full h-11 bg-roomie-purple hover:bg-roomie-dark text-white font-medium"
           disabled={isLoading}
         >
           {isLoading ? "Creating account..." : "Sign Up"}

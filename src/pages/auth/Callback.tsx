@@ -11,7 +11,7 @@ export default function Callback() {
 
   // Helper function to validate if a role is one of the expected values
   function isValidRole(role: any): boolean {
-    const validRoles: UserRole[] = ['seeker', 'landlord'];
+    const validRoles: UserRole[] = ['seeker', 'landlord', 'renovator'];
     return validRoles.includes(role as UserRole);
   }
 
@@ -20,7 +20,7 @@ export default function Callback() {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session) {
         console.log("Auth callback - session exists:", session.user.email);
-        
+
         // Ensure profile exists for the user
         try {
           const { data: existingProfile } = await supabase
@@ -28,14 +28,14 @@ export default function Callback() {
             .select('id, full_name')
             .eq('id', session.user.id)
             .single();
-          
+
           if (!existingProfile) {
             // Create profile if it doesn't exist
-            const fullName = session.user.user_metadata?.full_name || 
-                           session.user.user_metadata?.name ||
-                           session.user.user_metadata?.display_name ||
-                           null;
-            
+            const fullName = session.user.user_metadata?.full_name ||
+              session.user.user_metadata?.name ||
+              session.user.user_metadata?.display_name ||
+              null;
+
             const { error: profileError } = await supabase
               .from('user_profiles')
               .insert({
@@ -43,7 +43,7 @@ export default function Callback() {
                 full_name: fullName,
                 email: session.user.email || null,
               });
-            
+
             if (profileError) {
               console.warn("Could not create profile in callback:", profileError);
             } else {
@@ -62,17 +62,17 @@ export default function Callback() {
         } catch (profileErr) {
           console.warn("Error checking/creating profile in callback:", profileErr);
         }
-        
+
         // Get user metadata which should contain role
         const userRole = session.user?.user_metadata?.role;
         console.log("Auth callback - role from metadata:", userRole);
-        
+
         // Get any pending role from localStorage (for social sign-in flows)
         const pendingRole = localStorage.getItem('pendingRole');
         console.log("Auth callback - pending role from localStorage:", pendingRole);
-        
+
         let effectiveRole: UserRole;
-        
+
         // Determine which role to use, prioritize metadata over localStorage
         if (userRole && isValidRole(userRole)) {
           console.log("Auth callback - using role from metadata:", userRole);
@@ -84,13 +84,13 @@ export default function Callback() {
           effectiveRole = pendingRole as UserRole;
           setRole(effectiveRole);
           localStorage.setItem('userRole', effectiveRole);
-          
+
           // Update user metadata with the role from localStorage
           try {
             const { data, error } = await supabase.auth.updateUser({
               data: { role: effectiveRole }
             });
-            
+
             if (error) {
               console.error("Error updating user metadata:", error);
               toast({
@@ -110,7 +110,7 @@ export default function Callback() {
           effectiveRole = 'seeker';
           setRole(effectiveRole);
           localStorage.setItem('userRole', effectiveRole);
-          
+
           // Update user metadata with default role
           try {
             await supabase.auth.updateUser({
@@ -120,13 +120,13 @@ export default function Callback() {
             console.error("Exception setting default role:", err);
           }
         }
-        
+
         // Clear pending role
         localStorage.removeItem('pendingRole');
-        
+
         // Redirect based on role
         console.log("Auth callback - redirecting based on role:", effectiveRole);
-        
+
         if (effectiveRole === 'landlord') {
           navigate('/dashboard/landlord');
         } else {

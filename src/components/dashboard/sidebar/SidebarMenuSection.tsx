@@ -7,7 +7,8 @@ import {
   SidebarMenuButton,
   SidebarMenuSub,
   SidebarMenuSubItem,
-  SidebarMenuSubButton
+  SidebarMenuSubButton,
+  useSidebar
 } from "@/components/ui/sidebar";
 
 interface MenuSubItem {
@@ -21,6 +22,7 @@ interface SidebarMenuSectionProps {
   subItems: MenuSubItem[];
   isActive: (path: string) => boolean;
   defaultExpanded?: boolean;
+  showLabels?: boolean;
 }
 
 export function SidebarMenuSection({
@@ -28,9 +30,11 @@ export function SidebarMenuSection({
   icon: Icon,
   subItems,
   isActive,
-  defaultExpanded = true
+  defaultExpanded = true,
+  showLabels
 }: SidebarMenuSectionProps) {
   const [expanded, setExpanded] = useState(defaultExpanded);
+  const { open } = useSidebar();
 
   return (
     <SidebarMenuItem>
@@ -40,12 +44,14 @@ export function SidebarMenuSection({
       >
         <div className="flex items-center gap-2">
           <Icon size={20} />
-          <span>{title}</span>
+          {(open || showLabels) && <span>{title}</span>}
         </div>
-        <ChevronDown
-          size={16}
-          className={`transition-transform ${expanded ? "rotate-180" : ""}`}
-        />
+        {(open || showLabels) && (
+          <ChevronDown
+            size={16}
+            className={`transition-transform ${expanded ? "rotate-180" : ""}`}
+          />
+        )}
       </SidebarMenuButton>
 
       {expanded && (

@@ -12,7 +12,8 @@ interface AuthContextType {
   ) => Promise<{ user: User | null; session: Session | null }>;
   signUp: (
     email: string,
-    password: string
+    password: string,
+    metadata?: Record<string, any>
   ) => Promise<{ user: User | null; session: Session | null }>;
   signOut: () => Promise<void>;
   signInWithGoogle: () => Promise<void>;
@@ -61,15 +62,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return data;
   };
 
-  const signUp = async (email: string, password: string) => {
+  const signUp = async (
+    email: string,
+    password: string,
+    metadata: Record<string, any> = {}
+  ) => {
     // Extract metadata from localStorage if available
     const signupData = localStorage.getItem("signupData");
-    let metadata: Record<string, any> = {};
+    let combinedMetadata: Record<string, any> = { ...metadata };
 
     if (signupData) {
       try {
-        metadata = JSON.parse(signupData);
-        console.log("Using signup metadata from localStorage:", metadata);
+        const localData = JSON.parse(signupData);
+        combinedMetadata = { ...combinedMetadata, ...localData };
+        console.log("Using combined metadata:", combinedMetadata);
       } catch (e) {
         console.error("Error parsing signup data from localStorage:", e);
       }
@@ -79,7 +85,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       email,
       password,
       options: {
-        data: metadata,
+        data: combinedMetadata,
         emailRedirectTo: `${window.location.origin}/auth/callback`,
       },
     });
@@ -95,10 +101,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         metadata: data.user.user_metadata,
         rawMetadata: data.user.user_metadata
       });
-      
+
       // Wait a bit for trigger to execute
       await new Promise(resolve => setTimeout(resolve, 500));
-      
+
       try {
         // Check if profile exists, if not create it
         const { data: existingProfile, error: checkError } = await supabase

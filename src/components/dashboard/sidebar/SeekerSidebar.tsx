@@ -1,109 +1,123 @@
 
 import { Link } from "react-router-dom";
-import { 
-  Home, Users, Building, Search, 
-  Settings, Calendar, Clock, List, MapPin, Group, 
+import {
+  Home, Users, Building, Search,
+  Settings, Calendar, Clock, List, MapPin, Group,
   Briefcase, Flag, Scale, Sliders, Bot, CreditCard, MessageSquare
 } from "lucide-react";
 import { SidebarSimpleMenuItem } from "./SidebarSimpleMenuItem";
 
 interface SeekerSidebarProps {
   isActive: (path: string) => boolean;
+  showLabels?: boolean;
 }
 
-export function SeekerSidebar({ isActive }: SeekerSidebarProps) {
+export function SeekerSidebar({ isActive, showLabels }: SeekerSidebarProps) {
   return (
     <>
-      <SidebarSimpleMenuItem 
-        icon={<Home size={18} />} 
+      <SidebarSimpleMenuItem
+        showLabel={showLabels}
+        icon={<Home size={18} />}
         label="Dashboard"
-        to="/dashboard" 
+        to="/dashboard"
         isActive={isActive('/dashboard')}
       />
-      
-      <SidebarSimpleMenuItem 
-        icon={<Users size={18} />} 
+
+      <SidebarSimpleMenuItem
+        showLabel={showLabels}
+        icon={<Users size={18} />}
         label="Matches"
-        to="/dashboard/matches" 
+        to="/dashboard/matches"
         isActive={isActive('/dashboard/matches')}
       />
-      
-      <SidebarSimpleMenuItem 
-        icon={<Building size={18} />} 
+
+      <SidebarSimpleMenuItem
+        showLabel={showLabels}
+        icon={<Building size={18} />}
         label="Rental Options"
-        to="/dashboard/rental-options" 
+        to="/dashboard/rental-options"
         isActive={isActive('/dashboard/rental-options')}
       />
-      
-      <SidebarSimpleMenuItem 
-        icon={<List size={18} />} 
+
+      <SidebarSimpleMenuItem
+        showLabel={showLabels}
+        icon={<List size={18} />}
         label="My Applications"
-        to="/dashboard/applications" 
+        to="/dashboard/applications"
         isActive={isActive('/dashboard/applications')}
       />
-      
-      <SidebarSimpleMenuItem 
-        icon={<MessageSquare size={18} />} 
+
+      <SidebarSimpleMenuItem
+        showLabel={showLabels}
+        icon={<MessageSquare size={18} />}
         label="Messages"
         to="/dashboard/chats"
         isActive={isActive('/dashboard/chats')}
       />
 
-      <SidebarSimpleMenuItem 
-        icon={<Calendar size={18} />} 
+      <SidebarSimpleMenuItem
+        showLabel={showLabels}
+        icon={<Calendar size={18} />}
         label="Plan Ahead Matching"
-        to="/dashboard/plan-ahead-matching" 
+        to="/dashboard/plan-ahead-matching"
         isActive={isActive('/dashboard/plan-ahead-matching')}
       />
-      
-      <SidebarSimpleMenuItem 
-        icon={<Clock size={18} />} 
+
+      <SidebarSimpleMenuItem
+        showLabel={showLabels}
+        icon={<Clock size={18} />}
         label="Opposite Schedule"
-        to="/dashboard/opposite-schedule" 
+        to="/dashboard/opposite-schedule"
         isActive={isActive('/dashboard/opposite-schedule')}
       />
-      
-      
-      <SidebarSimpleMenuItem 
-        icon={<Briefcase size={18} />} 
+
+
+      <SidebarSimpleMenuItem
+        showLabel={showLabels}
+        icon={<Briefcase size={18} />}
         label="Work Exchange"
-        to="/dashboard/work-exchange" 
+        to="/dashboard/work-exchange"
         isActive={isActive('/dashboard/work-exchange')}
       />
-      
-      <SidebarSimpleMenuItem 
-        icon={<Flag size={18} />} 
+
+      <SidebarSimpleMenuItem
+        showLabel={showLabels}
+        icon={<Flag size={18} />}
         label="LGBTQ+ Matching"
-        to="/dashboard/lgbtq-matching" 
+        to="/dashboard/lgbtq-matching"
         isActive={isActive('/dashboard/lgbtq-matching')}
       />
-      
+
       {/* Temporarily hidden - Tailor AI tab */}
       {/* <SidebarSimpleMenuItem 
+        showLabel={showLabels}
         icon={<Bot size={18} />} 
         label="Tailor AI"
         to="/dashboard/tailor-ai" 
         isActive={isActive('/dashboard/tailor-ai')}
       /> */}
-      
-      <SidebarSimpleMenuItem 
-        icon={<MessageSquare size={18} />} 
+
+      <SidebarSimpleMenuItem
+        showLabel={showLabels}
+        icon={<MessageSquare size={18} />}
         label="Messenger"
-        to="/dashboard/chats" 
+        to="/dashboard/chats"
         isActive={isActive('/dashboard/chats')}
       />
-      
-      <SidebarSimpleMenuItem 
-        icon={<Scale size={18} />} 
+
+      <SidebarSimpleMenuItem
+        showLabel={showLabels}
+        icon={<Scale size={18} />}
         label="AI Legal Assistant"
-        to="/dashboard/tenancy-legal-ai" 
+        to="/dashboard/tenancy-legal-ai"
         isActive={isActive('/dashboard/tenancy-legal-ai')}
       />
-      
-      <SidebarSimpleMenuItem 
-        icon={<Settings size={18} />} 
+
+      <SidebarSimpleMenuItem
+        showLabel={showLabels}
+        icon={<Settings size={18} />}
         label="Settings"
-        to="/dashboard/settings" 
+        to="/dashboard/settings"
         isActive={isActive('/dashboard/settings')}
       />
     </>

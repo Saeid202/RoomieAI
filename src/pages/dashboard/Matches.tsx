@@ -36,6 +36,7 @@ import { useRoommateMatching } from "@/hooks/useRoommateMatching";
 import { TabsSection } from "@/components/dashboard/recommendations/components/TabsSection";
 import { ResultsSection } from "@/components/dashboard/recommendations/ResultsSection";
 import { useNavigate } from "react-router-dom";
+import { MatchDetailView } from "@/components/dashboard/recommendations/MatchDetailView";
 
 interface MatchDisplay {
   userId?: string;
@@ -317,237 +318,256 @@ export default function MatchesPage() {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      {/* Header with Stats */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-lg md:text-3xl font-bold">Your Roommate Matches</h1>
-          </div>
-          <Button
-            variant="outline"
-            className="text-xs md:text-base gap-1 md:gap-2"
-          >
-            <Heart className="size-1 md:size-4 md:mr-2" />
-            Saved Matches
+      {selectedMatch ? (
+        <MatchDetailView match={selectedMatch} onClose={handleCloseDetails} />
+      ) : (
+        <>
+          {/* Header with Stats */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-lg md:text-3xl font-bold">Your Roommate Matches</h1>
+              </div>
+              <Button
+                variant="outline"
+                className="text-xs md:text-base gap-1 md:gap-2"
+              >
+                <Heart className="size-1 md:size-4 md:mr-2" />
+                Saved Matches
 
-          </Button>
-        </div>
+              </Button>
+            </div>
 
 
 
-        {/* Mobile-optimized profile section */}
-        <div className="w-full !mt-0">
-          <div className="bg-background/95 backdrop-blur-sm">
-            <div className="px-4 py-2 md:!p-6">
-              <TabsSection
-                activeTab={activeTab}
-                expandedSections={expandedSections}
-                setExpandedSections={setExpandedSections}
-                handleTabChange={handleTabChange}
-                profileData={profileData}
-                onSaveProfile={handleSaveProfile}
+            {/* Mobile-optimized profile section */}
+            <div className="w-full !mt-0">
+              <div className="bg-background/95 backdrop-blur-sm">
+                <div className="px-4 py-2 md:!p-6">
+                  <TabsSection
+                    activeTab={activeTab}
+                    expandedSections={expandedSections}
+                    setExpandedSections={setExpandedSections}
+                    handleTabChange={handleTabChange}
+                    profileData={profileData}
+                    onSaveProfile={handleSaveProfile}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Mobile-optimized results section */}
+            <div className="w-full">
+              <ResultsSection
+                roommates={roommates}
+                properties={properties}
+                selectedMatch={selectedMatch}
+                activeTab={
+                  activeTab === "about-me" ||
+                    activeTab === "ideal-roommate" ||
+                    activeTab === "ai-assistant"
+                    ? "roommates"
+                    : activeTab
+                }
+                setActiveTab={setActiveTab}
+                onViewDetails={handleViewDetails}
+                onCloseDetails={handleCloseDetails}
               />
             </div>
-          </div>
-        </div>
 
-        {/* Mobile-optimized results section */}
-        <div className="w-full">
-          <ResultsSection
-            roommates={roommates}
-            properties={properties}
-            selectedMatch={selectedMatch}
-            activeTab={
-              activeTab === "about-me" ||
-                activeTab === "ideal-roommate" ||
-                activeTab === "ai-assistant"
-                ? "roommates"
-                : activeTab
-            }
-            setActiveTab={setActiveTab}
-            onViewDetails={handleViewDetails}
-            onCloseDetails={handleCloseDetails}
-          />
-        </div>
+            {/* Filters and Sorting */}
+            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+              <div className="flex items-center gap-2">
+                <Filter className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-medium">Filter:</span>
+                <Select
+                  value={filterBy}
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  onValueChange={(value: any) => setFilterBy(value)}
+                >
+                  <SelectTrigger className="w-40">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Matches ({stats.total})</SelectItem>
+                    <SelectItem value="excellent">
+                      Excellent ({stats.excellent})
+                    </SelectItem>
+                    <SelectItem value="great">Great ({stats.great})</SelectItem>
+                    <SelectItem value="good">Good ({stats.good})</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-        {/* Filters and Sorting */}
-        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-          <div className="flex items-center gap-2">
-            <Filter className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-medium">Filter:</span>
-            <Select
-              value={filterBy}
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              onValueChange={(value: any) => setFilterBy(value)}
-            >
-              <SelectTrigger className="w-40">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Matches ({stats.total})</SelectItem>
-                <SelectItem value="excellent">
-                  Excellent ({stats.excellent})
-                </SelectItem>
-                <SelectItem value="great">Great ({stats.great})</SelectItem>
-                <SelectItem value="good">Good ({stats.good})</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+              <div className="flex items-center gap-2">
+                <SortDesc className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-medium">Sort by:</span>
+                <Select
+                  value={sortBy}
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  onValueChange={(value: any) => setSortBy(value)}
+                >
+                  <SelectTrigger className="w-40">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="compatibility">Compatibility</SelectItem>
+                    <SelectItem value="age">Age</SelectItem>
+                    <SelectItem value="name">Name</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-          <div className="flex items-center gap-2">
-            <SortDesc className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-medium">Sort by:</span>
-            <Select
-              value={sortBy}
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              onValueChange={(value: any) => setSortBy(value)}
-            >
-              <SelectTrigger className="w-40">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="compatibility">Compatibility</SelectItem>
-                <SelectItem value="age">Age</SelectItem>
-                <SelectItem value="name">Name</SelectItem>
-              </SelectContent>
-            </Select>
+              <div className="text-sm text-muted-foreground">
+                Showing {filteredAndSortedMatches.length} of {stats.total} matches
+              </div>
+            </div>
           </div>
 
-          <div className="text-sm text-muted-foreground">
-            Showing {filteredAndSortedMatches.length} of {stats.total} matches
-          </div>
-        </div>
-      </div>
+          <Separator />
 
-      <Separator />
-
-      {/* Matches Grid */}
-      {filteredAndSortedMatches.length > 0 ? (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {filteredAndSortedMatches.map((match) => (
-            <Card
-              key={match.id}
-              className="overflow-hidden hover:shadow-lg transition-shadow"
-            >
-              <div
-                className={`h-3 ${match.compatibility >= 85
-                    ? "bg-green-500"
-                    : match.compatibility >= 70
-                      ? "bg-blue-500"
-                      : match.compatibility >= 55
-                        ? "bg-yellow-500"
-                        : "bg-orange-500"
-                  }`}
-              />
-              <CardHeader className="pb-4">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center space-x-3">
-                    <Avatar className="h-12 w-12">
-                      <AvatarFallback className="bg-primary text-primary-foreground">
-                        {match.image}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        {match.name}
-                        {match.compatibility >= 85 && (
-                          <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                        )}
-                      </CardTitle>
-                      <p className="text-sm text-muted-foreground">
-                        Age {match.age}
-                      </p>
+          {/* Matches Grid */}
+          {filteredAndSortedMatches.length > 0 ? (
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {filteredAndSortedMatches.map((match) => (
+                <Card
+                  key={match.id}
+                  className="overflow-hidden hover:shadow-lg transition-shadow"
+                >
+                  <div
+                    className={`h-3 ${match.compatibility >= 85
+                      ? "bg-green-500"
+                      : match.compatibility >= 70
+                        ? "bg-blue-500"
+                        : match.compatibility >= 55
+                          ? "bg-yellow-500"
+                          : "bg-orange-500"
+                      }`}
+                  />
+                  <CardHeader className="pb-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center space-x-3">
+                        <Avatar className="h-12 w-12">
+                          <AvatarFallback className="bg-primary text-primary-foreground">
+                            {match.image}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <CardTitle className="text-lg flex items-center gap-2">
+                            {match.name}
+                            {match.compatibility >= 85 && (
+                              <Star className="h-4 w-4 text-yellow-500 fill-current" />
+                            )}
+                          </CardTitle>
+                          <p className="text-sm text-muted-foreground">
+                            Age {match.age}
+                          </p>
+                        </div>
+                      </div>
+                      <Badge variant="secondary" className="font-semibold">
+                        {match.compatibility}% match
+                      </Badge>
                     </div>
-                  </div>
-                  <Badge variant="secondary" className="font-semibold">
-                    {match.compatibility}% match
-                  </Badge>
-                </div>
 
-                {/* Match reasons preview */}
-                {match.matchReasons && match.matchReasons.length > 0 && (
-                  <div className="mt-3">
-                    <p className="text-xs text-muted-foreground mb-1">
-                      Top reasons:
-                    </p>
-                    <p className="text-sm text-green-700 dark:text-green-400 line-clamp-2">
-                      {match.matchReasons[0]}
-                    </p>
-                  </div>
-                )}
-              </CardHeader>
+                    {/* Match reasons preview */}
+                    {match.matchReasons && match.matchReasons.length > 0 && (
+                      <div className="mt-3">
+                        <p className="text-xs text-muted-foreground mb-1">
+                          Top reasons:
+                        </p>
+                        <p className="text-sm text-green-700 dark:text-green-400 line-clamp-2">
+                          {match.matchReasons[0]}
+                        </p>
+                      </div>
+                    )}
+                  </CardHeader>
 
-              <CardContent className="space-y-4">
-                <p className="text-sm text-muted-foreground line-clamp-2">
-                  {match.bio}
+                  <CardContent className="space-y-4">
+                    <p className="text-sm text-muted-foreground line-clamp-2">
+                      {match.bio}
+                    </p>
+
+                    <div className="space-y-2">
+                      <div className="flex items-center text-sm">
+                        <MapPin className="w-4 h-4 mr-2 text-muted-foreground" />
+                        {match.location}
+                      </div>
+                      <div className="flex items-center text-sm">
+                        <Calendar className="w-4 h-4 mr-2 text-muted-foreground" />
+                        Move-in: {match.moveInDate}
+                      </div>
+                      <div className="flex items-center text-sm">
+                        <Users className="w-4 h-4 mr-2 text-muted-foreground" />
+                        {match.housingType} • {match.budget}
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        className="flex-1"
+                        size="sm"
+                        onClick={() => handleViewDetails({
+                          ...match,
+                          compatibilityScore: match.compatibility,
+                          movingDate: match.moveInDate || "Flexible",
+                          gender: "Any",
+                          smoking: false,
+                          pets: false,
+                          guests: "Rarely"
+                        })}
+                      >
+                        View Details
+                      </Button>
+                      <Button className="flex-1" size="sm" onClick={() => {
+                        // TODO: Implement contact functionality
+                        console.log('Contact functionality not yet implemented');
+                      }}>
+                        <MessageSquare className="w-3 h-3 mr-1" />
+                        Contact
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <Card className="text-center py-12">
+              <CardContent>
+                <Target className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                <h3 className="text-lg font-semibold mb-2">No matches found</h3>
+                <p className="text-muted-foreground mb-4">
+                  {filterBy === "all"
+                    ? "Try adjusting your ideal roommate preferences or importance settings to find more matches."
+                    : "Try selecting a different filter level to see more matches."}
                 </p>
-
-                <div className="space-y-2">
-                  <div className="flex items-center text-sm">
-                    <MapPin className="w-4 h-4 mr-2 text-muted-foreground" />
-                    {match.location}
-                  </div>
-                  <div className="flex items-center text-sm">
-                    <Calendar className="w-4 h-4 mr-2 text-muted-foreground" />
-                    Move-in: {match.moveInDate}
-                  </div>
-                  <div className="flex items-center text-sm">
-                    <Users className="w-4 h-4 mr-2 text-muted-foreground" />
-                    {match.housingType} • {match.budget}
-                  </div>
-                </div>
-
-                <div className="flex gap-2">
-                  <Button variant="outline" className="flex-1" size="sm">
-                    View Details
+                <div className="flex gap-2 justify-center">
+                  <Button variant="outline" onClick={() => setFilterBy("all")}>
+                    Show All Matches
                   </Button>
-                  <Button className="flex-1" size="sm" onClick={() => {
-                    // TODO: Implement contact functionality
-                    console.log('Contact functionality not yet implemented');
-                  }}>
-                    <MessageSquare className="w-3 h-3 mr-1" />
-                    Contact
+                  <Button
+                    onClick={() =>
+                      (window.location.href = "/dashboard/roommate-recommendations")
+                    }
+                  >
+                    Update Preferences
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    onClick={async () => {
+                      const { seedMockRoommates } = await import("@/utils/seedRoommates");
+                      setLoading(true);
+                      await seedMockRoommates();
+                      window.location.reload();
+                    }}
+                  >
+                    Generate Mock Profiles
                   </Button>
                 </div>
               </CardContent>
             </Card>
-          ))}
-        </div>
-      ) : (
-        <Card className="text-center py-12">
-          <CardContent>
-            <Target className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No matches found</h3>
-            <p className="text-muted-foreground mb-4">
-              {filterBy === "all"
-                ? "Try adjusting your ideal roommate preferences or importance settings to find more matches."
-                : "Try selecting a different filter level to see more matches."}
-            </p>
-            <div className="flex gap-2 justify-center">
-              <Button variant="outline" onClick={() => setFilterBy("all")}>
-                Show All Matches
-              </Button>
-              <Button
-                onClick={() =>
-                  (window.location.href = "/dashboard/roommate-recommendations")
-                }
-              >
-                Update Preferences
-              </Button>
-              <Button
-                variant="secondary"
-                onClick={async () => {
-                  const { seedMockRoommates } = await import("@/utils/seedRoommates");
-                  setLoading(true);
-                  await seedMockRoommates();
-                  window.location.reload();
-                }}
-              >
-                Generate Mock Profiles
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+          )}
+        </>
       )}
     </div>
   );

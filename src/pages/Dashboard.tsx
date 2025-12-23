@@ -14,23 +14,23 @@ export default function Dashboard() {
   const { user, loading } = useAuth();
   const location = useLocation();
   const [showRoleDialog, setShowRoleDialog] = useState(false);
-  
+
   const assignedRole = user?.user_metadata?.role;
-  
+
   useEffect(() => {
     console.log("Dashboard mounted - current path:", location.pathname);
     console.log("Dashboard mounted - role:", role);
     console.log("Dashboard mounted - user:", user?.email);
     console.log("Dashboard mounted - loading:", loading);
     console.log("Dashboard mounted - assigned role:", assignedRole);
-    
+
     // If user is logged in but has no role assigned, show the role selection dialog
     if (!loading && user && !assignedRole && location.pathname === '/dashboard') {
       console.log("No role assigned, showing role selection dialog");
       setShowRoleDialog(true);
     }
   }, [location.pathname, role, user, loading, assignedRole]);
-  
+
   // Only redirect if we're exactly at /dashboard and not at a sub-route
   if (!loading && location.pathname === '/dashboard' && !showRoleDialog) {
     // Make sure we have routes for all these destinations
@@ -40,12 +40,14 @@ export default function Dashboard() {
       return <Navigate to="/dashboard/developer" replace />;
     } else if (assignedRole === 'admin') {
       return <Navigate to="/dashboard/admin" replace />;
+    } else if (assignedRole === 'renovator') {
+      return <Navigate to="/renovator" replace />;
     }
   }
 
   // If we're at the root dashboard page and not redirecting elsewhere, show the Roomie AI introduction
   const showDashboardContent = location.pathname === '/dashboard' && !showRoleDialog;
-  
+
   return (
     <>
       <RoleInitializer>
@@ -61,9 +63,9 @@ export default function Dashboard() {
           </DashboardLayout>
         </RouteGuard>
       </RoleInitializer>
-      
-      <RoleSelectionDialog 
-        isOpen={showRoleDialog} 
+
+      <RoleSelectionDialog
+        isOpen={showRoleDialog}
         onClose={() => setShowRoleDialog(false)}
         showCloseButton={false}
       />

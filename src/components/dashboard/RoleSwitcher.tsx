@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Building, User, Shield, ChevronDown } from "lucide-react";
+import { Building, User, Shield, ChevronDown, Hammer } from "lucide-react";
 import { useRole, UserRole } from "@/contexts/RoleContext";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/hooks/use-toast";
@@ -24,7 +24,7 @@ export function RoleSwitcher() {
   useEffect(() => {
     async function loadAvailableRoles() {
       if (!user) return;
-      
+
       try {
         const roles = await getAvailableRoles(user.id) as UserRole[];
         setAvailableRoles(roles);
@@ -32,18 +32,18 @@ export function RoleSwitcher() {
         console.error('Error loading available roles:', error);
       }
     }
-    
+
     loadAvailableRoles();
   }, [user]);
 
   const handleRoleChange = async (newRole: UserRole) => {
     if (newRole === role) return;
-    
+
     setIsRoleSwitching(true);
     try {
       await updateMetadata({ role: newRole });
       setRole(newRole);
-      
+
       // Navigate to appropriate dashboard
       switch (newRole) {
         case 'seeker':
@@ -55,8 +55,14 @@ export function RoleSwitcher() {
         case 'admin':
           navigate('/dashboard/admin');
           break;
+        case 'renovator':
+          navigate('/renovator/dashboard');
+          break;
+        case 'developer':
+          navigate('/renovator/dashboard'); // For testing/developer access
+          break;
       }
-      
+
       toast({
         title: "Role updated",
         description: `You are now using RoomieMatch as a ${getRoleDisplay(newRole)}`,
@@ -78,6 +84,8 @@ export function RoleSwitcher() {
       case 'seeker': return 'Seeker';
       case 'landlord': return 'Landlord';
       case 'admin': return 'Administrator';
+      case 'renovator': return 'Renovator';
+      case 'developer': return 'Developer';
       default: return 'User';
     }
   };
@@ -87,6 +95,8 @@ export function RoleSwitcher() {
       case 'seeker': return <User className="h-4 w-4" />;
       case 'landlord': return <Building className="h-4 w-4" />;
       case 'admin': return <Shield className="h-4 w-4" />;
+      case 'renovator': return <Hammer className="h-4 w-4" />;
+      case 'developer': return <User className="h-4 w-4" />;
       default: return <User className="h-4 w-4" />;
     }
   };
@@ -97,8 +107,8 @@ export function RoleSwitcher() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           className="flex items-center gap-2 font-semibold"
           disabled={isRoleSwitching}
         >
@@ -109,7 +119,7 @@ export function RoleSwitcher() {
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-48" align="end">
         {switchableRoles.map((availableRole) => (
-          <DropdownMenuItem 
+          <DropdownMenuItem
             key={availableRole}
             onClick={() => handleRoleChange(availableRole)}
             className="cursor-pointer"

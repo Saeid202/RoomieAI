@@ -18,13 +18,15 @@ interface SidebarSimpleMenuItemProps {
   label: string;
   to: string;
   isActive: boolean;
+  showLabel?: boolean;
 }
 
 export function SidebarSimpleMenuItem({
   icon,
   label,
   to,
-  isActive
+  isActive,
+  showLabel
 }: SidebarSimpleMenuItemProps) {
   const { open } = useSidebar();
   return (
@@ -34,7 +36,7 @@ export function SidebarSimpleMenuItem({
           <SidebarMenuButton asChild isActive={isActive} className="font-semibold">
             <Link to={to} className="flex items-center gap-3">
               {icon}
-              {open && <span className="font-semibold">{label}</span>}
+              {(open || showLabel) && <span className="font-semibold">{label}</span>}
             </Link>
           </SidebarMenuButton>
         </TooltipTrigger>

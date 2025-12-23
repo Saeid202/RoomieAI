@@ -12,36 +12,47 @@ export default function AuthPage() {
   const { signIn, signUp, user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
-  
+
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole] = useState<'tenant' | 'renovator'>('tenant');
   const [loading, setLoading] = useState(false);
-  
+
   // If already logged in, redirect to dashboard
   if (user) {
-    navigate('/dashboard/roommate-recommendations');
+    if (user.user_metadata?.role === 'renovator') {
+      navigate('/renovator/dashboard');
+    } else {
+      navigate('/dashboard/roommate-recommendations');
+    }
     return null;
   }
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    
+
     try {
       if (isSignUp) {
-        await signUp(email, password);
+        await signUp(email, password, { role });
         toast({
           title: "Account created",
           description: "Please check your email to verify your account",
         });
       } else {
-        await signIn(email, password);
+        const { user } = await signIn(email, password);
         toast({
           title: "Logged in successfully",
           description: "Welcome back!",
         });
-        navigate('/dashboard/roommate-recommendations');
+
+        // Intelligent Redirect based on Role
+        if (user?.user_metadata?.role === 'renovator') {
+          navigate('/renovator/dashboard');
+        } else {
+          navigate('/dashboard/roommate-recommendations');
+        }
       }
     } catch (error: any) {
       console.error('Authentication error:', error);
@@ -61,16 +72,36 @@ export default function AuthPage() {
         <CardHeader>
           <CardTitle>{isSignUp ? "Create an Account" : "Sign In"}</CardTitle>
           <CardDescription>
-            {isSignUp 
-              ? "Create an account to find your ideal roommate" 
-              : "Sign in to access your roommate profile"}
+            {isSignUp
+              ? "Join Roomie to manage your property or find work."
+              : "Sign in to access your dashboard"}
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleAuth}>
           <CardContent className="space-y-4">
+
+            {isSignUp && (
+              <div className="grid grid-cols-2 gap-2 mb-4">
+                <div
+                  className={`cursor-pointer border rounded-lg p-3 text-center transition-all ${role === 'tenant' ? 'bg-primary/10 border-primary ring-2 ring-primary/20' : 'hover:bg-gray-50'}`}
+                  onClick={() => setRole('tenant')}
+                >
+                  <div className="font-semibold text-sm">Tenant / Landlord</div>
+                  <div className="text-xs text-muted-foreground mt-1">Find roommates & rentals</div>
+                </div>
+                <div
+                  className={`cursor-pointer border rounded-lg p-3 text-center transition-all ${role === 'renovator' ? 'bg-primary/10 border-primary ring-2 ring-primary/20' : 'hover:bg-gray-50'}`}
+                  onClick={() => setRole('renovator')}
+                >
+                  <div className="font-semibold text-sm">Renovator / Pro</div>
+                  <div className="text-xs text-muted-foreground mt-1">Find jobs & requests</div>
+                </div>
+              </div>
+            )}
+
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
-              <Input 
+              <Input
                 id="email"
                 type="email"
                 placeholder="your@email.com"
@@ -81,7 +112,7 @@ export default function AuthPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input 
+              <Input
                 id="password"
                 type="password"
                 value={password}
