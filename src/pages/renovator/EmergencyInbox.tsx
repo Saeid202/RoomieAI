@@ -75,6 +75,8 @@ export default function EmergencyInbox() {
         if (!id) return;
 
         try {
+            // Removed .gt('expires_at') to ensure visibility of all pending invites, even if slightly expired
+            // This aligns with JobManager and Dashboard behavior
             const { data, error } = await supabase
                 .from('emergency_job_invites' as any)
                 .select(`
@@ -85,7 +87,6 @@ export default function EmergencyInbox() {
           `)
                 .eq('renovator_id', id)
                 .eq('status', 'PENDING')
-                .gt('expires_at', new Date().toISOString())
                 .order('created_at', { ascending: false });
 
             if (error) throw error;
@@ -185,7 +186,7 @@ export default function EmergencyInbox() {
                                         </Badge>
                                         <div className="flex items-center gap-1 text-red-600 font-bold font-mono text-sm">
                                             <Clock className="h-4 w-4" />
-                                            {minutesLeft > 0 ? `${minutesLeft}m left` : 'Expiring...'}
+                                            {minutesLeft > 0 ? `${minutesLeft}m left` : 'Expired'}
                                         </div>
                                     </div>
                                     <CardTitle className="text-lg pt-2">{job.category || "General Repair"}</CardTitle>

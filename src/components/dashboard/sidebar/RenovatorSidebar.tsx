@@ -1,4 +1,4 @@
-
+ 
 import { Home, Zap, Hammer, MessageSquare, User, Clock, MapPin, Settings } from "lucide-react";
 import { SidebarSimpleMenuItem } from "./SidebarSimpleMenuItem";
 

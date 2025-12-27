@@ -104,7 +104,8 @@ export async function getPropertiesByOwnerId(userId: string): Promise<Property[]
     return (data as any as Property[]) || [];
   } catch (error) {
     console.error("Error in getPropertiesByOwnerId:", error);
-    return [];
+    // Rethrow to let the UI know something failed (e.g. RLS policy)
+    throw error;
   }
 }
 

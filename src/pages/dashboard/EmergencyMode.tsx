@@ -15,7 +15,7 @@ import { formatDistanceToNow } from "date-fns";
 
 export default function EmergencyMode() {
     const { toast } = useToast();
-    const [activeTab, setActiveTab] = useState("create");
+    const [activeTab, setActiveTab] = useState("active");
     const [properties, setProperties] = useState<any[]>([]);
     const [jobs, setJobs] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
@@ -37,8 +37,6 @@ export default function EmergencyMode() {
     const [debugError, setDebugError] = useState<string | null>(null);
 
     const FIXED_SQL_SCRIPT = `
--- RECURSION KILLER V3 (Two-Way Breaker)
--- This script uses Admin-Level functions to check permissions, preventing loops.
 
 -- 1. Function: Can Landlord Manage Invite? (Checks Job Table as Admin)
 CREATE OR REPLACE FUNCTION public.fn_is_landlord_of_invite(invite_job_id UUID)
@@ -115,6 +113,27 @@ ALTER TABLE public.renovation_partners ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Public view renovation partners" ON public.renovation_partners;
 CREATE POLICY "Public view renovation partners" ON public.renovation_partners
 FOR SELECT USING (true);
+
+-- 6. Renovator Availability (CRITICAL FOR DISPATCH)
+CREATE TABLE IF NOT EXISTS public.renovator_availability (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    renovator_id UUID REFERENCES public.renovation_partners(id) ON DELETE CASCADE NOT NULL,
+    is_online BOOLEAN DEFAULT false,
+    emergency_available BOOLEAN DEFAULT false,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+ALTER TABLE public.renovator_availability ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Renovators manage own availability" ON public.renovator_availability;
+CREATE POLICY "Renovators manage own availability"
+    ON public.renovator_availability
+    USING (renovator_id IN (SELECT id FROM public.renovation_partners WHERE user_id = auth.uid()))
+    WITH CHECK (renovator_id IN (SELECT id FROM public.renovation_partners WHERE user_id = auth.uid()));
+
+DROP POLICY IF EXISTS "Public view availability" ON public.renovator_availability;
+CREATE POLICY "Public view availability"
+    ON public.renovator_availability FOR SELECT
+    USING (true);
 `;
 
     useEffect(() => {
@@ -272,14 +291,40 @@ FOR SELECT USING (true);
             return;
         }
 
-        if (!availablePros || availablePros.length === 0) {
-            toast({ variant: "destructive", title: "No Pros Online", description: "No renovators are currently marked as 'Online' for emergencies. Try again later or contact support." });
+        // 1. Try to find ONLINE pros first
+        let targets = availablePros ? availablePros.map((p: any) => p.renovator_id) : [];
+
+        // 2. FALLBACK: If no online pros, just invite ALL registered partners (Review/Dev Mode behavior)
+        if (targets.length === 0) {
+            console.warn("No online pros found. Attempting fallback to ALL partners.");
+            const { data: allPartners, error: partnersError } = await supabase
+                .from('renovation_partners' as any)
+                .select('id');
+
+            if (!partnersError && allPartners && allPartners.length > 0) {
+                targets = allPartners.map(p => p.id);
+                toast({
+                    title: "Broadcasting to All",
+                    description: "No 'Online' pros found. Sending to ALL registered partners instead."
+                });
+            }
+        }
+
+        if (targets.length === 0) {
+            console.warn("Dispatch failed: No pros found. This might be because no one is online OR Row Level Security (RLS) policies are blocking access to the 'renovator_availability' table.");
+            toast({
+                variant: "destructive",
+                title: "Dispatch Failed",
+                description: "No renovators found at all. Please ensure at least one Renovator account exists."
+            });
+            setShowSqlFix(true);
             return;
         }
 
-        const invites = availablePros.map((pro: any) => ({
+        // 3. Create Invites
+        const invites = targets.map((renovatorId: string) => ({
             job_id: job.id,
-            renovator_id: pro.renovator_id, // Note: using renovator_id from availability table
+            renovator_id: renovatorId,
             expires_at: new Date(Date.now() + 60 * 60 * 1000).toISOString(), // 1 hour expiry
             status: 'PENDING'
         }));
@@ -345,8 +390,8 @@ FOR SELECT USING (true);
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList className="grid w-full grid-cols-2 lg:w-[400px]">
-                    <TabsTrigger value="create" className="text-sm">{editingId ? "Edit Request" : "New Request"}</TabsTrigger>
                     <TabsTrigger value="active" className="text-sm">Active Requests</TabsTrigger>
+                    <TabsTrigger value="create" className="text-sm">{editingId ? "Edit Request" : "New Request"}</TabsTrigger>
                 </TabsList>
 
                 {/* CREATE TAB */}
@@ -558,6 +603,38 @@ FOR SELECT USING (true);
                                             <Button size="icon"><MessageSquare className="h-4 w-4" /></Button>
                                         </div>
                                     </div>
+                                </div>
+                            )}
+
+                            {selectedJob.status === 'DRAFT' && (
+                                <div className="border-t pt-6">
+                                    <div className="bg-amber-50 border border-amber-200 p-4 rounded-lg mb-4">
+                                        <div className="flex items-center gap-2 text-amber-800 font-medium mb-1">
+                                            <AlertTriangle className="h-4 w-4" />
+                                            Not Dispatched Yet
+                                        </div>
+                                        <div className="text-xs text-amber-700">
+                                            No pros were notified. This usually happens if no renovators are online.
+                                        </div>
+                                    </div>
+                                    <Button
+                                        className="w-full bg-red-600 hover:bg-red-700 text-white shadow-md mb-2"
+                                        onClick={async () => {
+                                            if (loading) return;
+                                            // Optimistic loading state handled by local wrapper or just reliance on toast
+                                            try {
+                                                await dispatchJob(selectedJob);
+                                                // If dispatchJob succeeds (doesn't throw or return early with error toast), we can close or refresh
+                                                // dispatchJob handles its own toasts and DB updates.
+                                                // We just need to close the sheet if successful to see the updated list status
+                                                setIsDetailsOpen(false);
+                                            } catch (e) {
+                                                console.error(e);
+                                            }
+                                        }}
+                                    >
+                                        Broadacast to Pros Now
+                                    </Button>
                                 </div>
                             )}
 

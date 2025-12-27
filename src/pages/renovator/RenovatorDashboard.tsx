@@ -9,6 +9,7 @@ export default function RenovatorDashboard() {
         activeJobs: 0,
         completed: 0
     });
+    const [recentInvites, setRecentInvites] = useState<any[]>([]);
 
     const [status, setStatus] = useState("Offline");
 
@@ -38,12 +39,21 @@ export default function RenovatorDashboard() {
 
         if (avail) setStatus(avail.is_online ? "Online" : "Offline");
 
-        // Fetch Invites Count
-        const { count: invitesCount } = await supabase
+        // Fetch Invites Count & Data
+        const { data: invitesData, count: invitesCount } = await supabase
             .from('emergency_job_invites' as any)
-            .select('*', { count: 'exact', head: true })
+            .select(`
+                *,
+                job:emergency_jobs (
+                    category, urgency, unit_address, description
+                )
+            `, { count: 'exact' })
             .eq('renovator_id', renovator.id)
-            .eq('status', 'PENDING');
+            .eq('status', 'PENDING')
+            .order('created_at', { ascending: false })
+            .limit(3);
+
+        if (invitesData) setRecentInvites(invitesData);
 
         // Fetch Active Jobs Count
         const { count: jobsCount } = await supabase
@@ -126,14 +136,39 @@ export default function RenovatorDashboard() {
 
             {/* Recent Activity / Active Jobs List placeholder */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card className="col-span-1">
-                    <CardHeader>
-                        <CardTitle>Recent Emergency Invites</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-center py-8 text-muted-foreground">
-                            {stats.invites > 0 ? `${stats.invites} pending invites awaiting response.` : 'No recent invites.'}
+                <Card className="col-span-1 border-red-100 shadow-sm">
+                    <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between">
+                            <CardTitle className="text-lg">Recent Emergency Invites</CardTitle>
+                            <a href="/renovator/emergency" className="text-xs text-blue-600 hover:underline">View All</a>
                         </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        {recentInvites.length > 0 ? (
+                            recentInvites.map((invite) => (
+                                <div key={invite.id} className="flex items-start justify-between border-b pb-3 last:border-0 last:pb-0">
+                                    <div>
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <span className={`text-xs font-bold px-2 py-0.5 rounded ${invite.job?.urgency === 'Immediate' ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'}`}>
+                                                {invite.job?.urgency}
+                                            </span>
+                                            <span className="text-sm font-medium text-slate-800">{invite.job?.category}</span>
+                                        </div>
+                                        <p className="text-xs text-slate-500 line-clamp-1">{invite.job?.description}</p>
+                                        <div className="mt-1 text-xs text-slate-400">{invite.job?.unit_address}</div>
+                                    </div>
+                                    <a href="/renovator/emergency" className="text-xs bg-slate-900 text-white px-3 py-1.5 rounded hover:bg-slate-700">
+                                        View
+                                    </a>
+                                </div>
+                            ))
+                        ) : (
+                            <div className="text-center py-8 text-muted-foreground bg-slate-50 rounded-lg border border-dashed">
+                                <Zap className="h-8 w-8 mx-auto text-slate-300 mb-2" />
+                                <p className="text-sm">No pending invites.</p>
+                                <p className="text-xs text-slate-400 mt-1">Ensure you are marked as "Online"</p>
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
 

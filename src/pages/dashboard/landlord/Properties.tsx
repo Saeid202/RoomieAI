@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Building, MapPin, DollarSign, Pencil, Eye, Trash2, Image as ImageIcon } from "lucide-react";
+import { Plus, Building, MapPin, DollarSign, Pencil, Eye, Trash2, Image as ImageIcon, AlertTriangle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { getPropertiesByOwnerId, Property, deleteProperty } from "@/services/propertyService";
 import { toast } from "sonner";
@@ -11,21 +11,72 @@ export default function PropertiesPage() {
   const navigate = useNavigate();
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [showFixDialog, setShowFixDialog] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [orphanedProps, setOrphanedProps] = useState<any[]>([]);
+
+  const FIX_RLS_SCRIPT = `
+-- FIX PROPERTIES RLS POLICIES
+ALTER TABLE public.properties ENABLE ROW LEVEL SECURITY;
+
+-- 1. Allow everyone to view properties (Public Listing)
+DROP POLICY IF EXISTS "Public properties are viewable by everyone" ON public.properties;
+CREATE POLICY "Public properties are viewable by everyone" 
+ON public.properties FOR SELECT USING (true);
+
+-- 2. Allow landlords to create properties
+DROP POLICY IF EXISTS "Users can insert their own properties" ON public.properties;
+CREATE POLICY "Users can insert their own properties" 
+ON public.properties FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+-- 3. Allow landlords to update their own properties
+DROP POLICY IF EXISTS "Users can update their own properties" ON public.properties;
+CREATE POLICY "Users can update their own properties" 
+ON public.properties FOR UPDATE USING (auth.uid() = user_id);
+
+-- 4. Allow landlords to delete their own properties
+DROP POLICY IF EXISTS "Users can delete their own properties" ON public.properties;
+CREATE POLICY "Users can delete their own properties" 
+ON public.properties FOR DELETE USING (auth.uid() = user_id);
+`;
 
   useEffect(() => {
     let mounted = true;
     const load = async () => {
       try {
+        setError(null);
+        setOrphanedProps([]); // Reset
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
           setProperties([]);
           return;
         }
+        setCurrentUserId(user.id);
         const list = await getPropertiesByOwnerId(user.id);
         console.log("🔍 Properties loaded:", list);
         if (mounted) setProperties(list);
-      } catch (e) {
+
+        // DIAGNOSTIC CHECK: If we found no properties, check if ANY exist in the DB at all
+        // (This helps detect if the user has created properties under a DIFFERENT account/ID)
+        if (list.length === 0) {
+          const { data: allProps, error: allPropsError } = await supabase
+            .from('properties' as any)
+            .select('id, listing_title, user_id')
+            .limit(3);
+
+          if (!allPropsError && allProps && allProps.length > 0) {
+            console.warn("Found orphaned properties:", allProps);
+            if (mounted) setOrphanedProps(allProps);
+          }
+        }
+
+      } catch (e: any) {
         console.error("Failed to load landlord properties", e);
+        if (mounted) {
+          setError(e.message || "Failed to load properties");
+          setShowFixDialog(true);
+        }
       } finally {
         if (mounted) setLoading(false);
       }
@@ -33,7 +84,7 @@ export default function PropertiesPage() {
     load();
     return () => { mounted = false; };
   }, []);
-  
+
   const handleDelete = async (id: string) => {
     try {
       const confirmed = window.confirm("Delete this listing? This cannot be undone.");
@@ -46,7 +97,7 @@ export default function PropertiesPage() {
       toast.error(e?.message || "Failed to delete listing");
     }
   };
-  
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between mb-6">
@@ -59,6 +110,82 @@ export default function PropertiesPage() {
           Add Property
         </Button>
       </div>
+
+      {orphanedProps.length > 0 && (
+        <Card className="border-orange-200 bg-orange-50 mb-6">
+          <CardHeader>
+            <CardTitle className="text-orange-800 flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5" />
+              Ownership Mismatch Detected
+            </CardTitle>
+            <CardDescription className="text-orange-700">
+              We found properties in the database, but they belong to a different User ID. This happens if you re-created your account.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="text-sm text-slate-700 mb-2">
+              <strong>Found these properties owned by someone else:</strong>
+              <ul className="list-disc ml-5 mt-1">
+                {orphanedProps.map(p => (
+                  <li key={p.id}>
+                    {p.listing_title} <span className="text-xs text-slate-500">(Owner: {p.user_id?.substring(0, 8)}...)</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <p className="text-sm mt-4 font-semibold text-slate-800">To claim these properties, run this SQL:</p>
+            <div className="bg-slate-900 text-slate-50 p-4 rounded-md overflow-x-auto text-xs font-mono relative mt-2">
+              <pre>{`UPDATE public.properties SET user_id = '${currentUserId}' WHERE user_id != '${currentUserId}';`}</pre>
+              <Button
+                size="sm"
+                className="absolute top-2 right-2 bg-white text-black hover:bg-slate-200"
+                onClick={() => {
+                  const script = `UPDATE public.properties SET user_id = '${currentUserId}' WHERE user_id != '${currentUserId}';`;
+                  navigator.clipboard.writeText(script);
+                  toast.success("SQL Copied!");
+                }}
+              >
+                Copy SQL
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {showFixDialog && (
+        <Card className="border-red-200 bg-red-50 mb-6">
+          <CardHeader>
+            <CardTitle className="text-red-800 flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5" />
+              Database Setup Required
+            </CardTitle>
+            <CardDescription className="text-red-700">
+              We found some issues accessing your properties. This is usually due to missing security policies.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="bg-slate-900 text-slate-50 p-4 rounded-md overflow-x-auto text-xs font-mono relative">
+              <pre>{FIX_RLS_SCRIPT}</pre>
+              <Button
+                size="sm"
+                className="absolute top-2 right-2 bg-white text-black hover:bg-slate-200"
+                onClick={() => {
+                  navigator.clipboard.writeText(FIX_RLS_SCRIPT);
+                  toast.success("SQL Script Copied!");
+                }}
+              >
+                Copy SQL
+              </Button>
+            </div>
+            <p className="text-sm mt-4 text-slate-700">
+              Please copy the script above and run it in your <strong>Supabase SQL Editor</strong> to fix the permissions.
+            </p>
+          </CardContent>
+          <CardFooter>
+            <Button variant="outline" onClick={() => setShowFixDialog(false)}>Dismiss</Button>
+          </CardFooter>
+        </Card>
+      )}
 
       {loading ? (
         <Card>
@@ -73,7 +200,7 @@ export default function PropertiesPage() {
             </div>
           </CardContent>
         </Card>
-      ) : properties.length === 0 ? (
+      ) : properties.length === 0 && !error ? (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -93,6 +220,17 @@ export default function PropertiesPage() {
                 <Plus className="mr-2 h-4 w-4" />
                 Add Your First Property
               </Button>
+
+              {/* DEBUG INFO FOR USER */}
+              <div className="mt-8 p-4 bg-slate-50 border border-slate-200 rounded-md max-w-md mx-auto text-left">
+                <p className="text-xs font-bold text-slate-500 uppercase mb-2">Debug Information</p>
+                <p className="text-xs text-slate-700 mb-1">
+                  <strong>Your User ID:</strong> <span className="font-mono bg-white px-1 border rounded">{currentUserId || "Loading..."}</span>
+                </p>
+                <p className="text-xs text-slate-500 italic">
+                  If you see properties in Supabase but not here, check that the <code>user_id</code> column in the <code>properties</code> table matches the ID above.
+                </p>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -115,7 +253,7 @@ export default function PropertiesPage() {
                       {(() => {
                         // Handle different image data formats
                         let imageUrl = null;
-                        
+
                         if (p.images && Array.isArray(p.images) && p.images.length > 0) {
                           imageUrl = p.images[0];
                         } else if (p.images && typeof p.images === 'string') {
@@ -123,16 +261,16 @@ export default function PropertiesPage() {
                         } else if (p.images && typeof p.images === 'object' && p.images.url) {
                           imageUrl = p.images.url;
                         }
-                        
+
                         if (imageUrl && imageUrl !== "/placeholder.svg") {
                           return (
                             <img
                               src={imageUrl}
                               alt={`${p.listing_title} photo`}
                               className="h-40 w-full object-cover"
-                              onError={(e) => { 
+                              onError={(e) => {
                                 console.log(`❌ Image failed to load for ${p.listing_title}:`, imageUrl);
-                                (e.currentTarget as HTMLImageElement).src = "/placeholder.svg"; 
+                                (e.currentTarget as HTMLImageElement).src = "/placeholder.svg";
                               }}
                               loading="lazy"
                             />
@@ -157,8 +295,8 @@ export default function PropertiesPage() {
                         <div className="flex items-center gap-2"><DollarSign className="h-4 w-4" /><span>{p.monthly_rent}/mo</span></div>
                         <div className="flex items-center gap-2">
                           <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-md text-xs font-medium">
-                            {p.bedrooms !== undefined && p.bedrooms !== null ? 
-                              (p.bedrooms === 0 ? 'Studio' : `${p.bedrooms} Bed`) : 
+                            {p.bedrooms !== undefined && p.bedrooms !== null ?
+                              (p.bedrooms === 0 ? 'Studio' : `${p.bedrooms} Bed`) :
                               'Property'}
                           </span>
                         </div>

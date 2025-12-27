@@ -77,9 +77,16 @@ export default function JobManager() {
                 .order('created_at', { ascending: false });
 
             if (jobsError) throw jobsError;
-            if (jobs) setActiveJobs(jobs);
+
+            let currentActiveJobs = [];
+            if (jobs) {
+                setActiveJobs(jobs);
+                currentActiveJobs = jobs;
+            }
 
             // 2. Fetch Pending Invites (New Requests)
+            // Removed .gt('expires_at') to ensure consistency with Dashboard. 
+            // We can show expired status in UI.
             const { data: invites, error: inviteError } = await supabase
                 .from('emergency_job_invites' as any)
                 .select(`
@@ -90,11 +97,19 @@ export default function JobManager() {
                 `)
                 .eq('renovator_id', renovator.id)
                 .eq('status', 'PENDING')
-                .gt('expires_at', new Date().toISOString())
                 .order('created_at', { ascending: false });
 
             if (inviteError) throw inviteError;
-            if (invites) setPendingInvites(invites);
+
+            if (invites) {
+                setPendingInvites(invites);
+
+                // Smart Tab Switching:
+                // If we have no active jobs, but we DO have pending requests, show requests tab.
+                if (currentActiveJobs.length === 0 && invites.length > 0) {
+                    setActiveTab("requests");
+                }
+            }
 
         } catch (error: any) {
             console.error("Error fetching jobs:", error);
