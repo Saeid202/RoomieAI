@@ -1,4 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
+import { MessagingService } from "@/services/messagingService";
+import { useToast } from "@/components/ui/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -143,6 +145,8 @@ export default function MatchesPage() {
     "all" | "excellent" | "great" | "good"
   >("all");
   const [expandedSections, setExpandedSections] = useState<string[]>([]);
+  const [startingChatId, setStartingChatId] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const { user } = useAuth();
   const { profileData, loading: profileLoading } = useRoommateProfile();
@@ -158,6 +162,41 @@ export default function MatchesPage() {
     findMatches,
     handleSaveProfile,
   } = useRoommateMatching();
+
+  const handleContact = async (matchUserId: string | undefined) => {
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "You must be logged in to send messages.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!matchUserId) {
+      toast({
+        title: "Error",
+        description: "Cannot message this user (User ID missing).",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setStartingChatId(matchUserId);
+      const conversationId = await MessagingService.startDirectChat(user.id, matchUserId);
+      navigate(`/dashboard/chats?conversation=${conversationId}`);
+    } catch (error) {
+      console.error("Failed to start chat:", error);
+      toast({
+        title: "Error",
+        description: "Failed to start conversation. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setStartingChatId(null);
+    }
+  };
 
   const handleTabChange = useCallback(
     (value: string) => {
@@ -529,15 +568,21 @@ export default function MatchesPage() {
                           smoking: false,
                           pets: false,
                           guests: "Rarely"
-                        })}
+                        } as any)}
                       >
                         View Details
                       </Button>
-                      <Button className="flex-1" size="sm" onClick={() => {
-                        // TODO: Implement contact functionality
-                        console.log('Contact functionality not yet implemented');
-                      }}>
-                        <MessageSquare className="w-3 h-3 mr-1" />
+                      <Button
+                        className="flex-1"
+                        size="sm"
+                        onClick={() => handleContact(match.userId)}
+                        disabled={startingChatId === match.userId}
+                      >
+                        {startingChatId === match.userId ? (
+                          <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                        ) : (
+                          <MessageSquare className="w-3 h-3 mr-1" />
+                        )}
                         Contact
                       </Button>
                     </div>

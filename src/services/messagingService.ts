@@ -494,4 +494,47 @@ export class MessagingService {
       )
       .subscribe();
   }
+
+  // Start a direct chat (roommate matching) - checks both directions
+  static async startDirectChat(
+    currentUserId: string,
+    otherUserId: string
+  ): Promise<string> {
+    // 1. Check current user as landlord, other user as tenant
+    const { data: conv1 } = await supabase
+      .from("conversations" as any)
+      .select("id")
+      .eq("landlord_id", currentUserId)
+      .eq("tenant_id", otherUserId)
+      .is("property_id", null)
+      .maybeSingle();
+
+    if (conv1) return (conv1 as any).id;
+
+    // 2. Check other user as landlord, current user as tenant
+    const { data: conv2 } = await supabase
+      .from("conversations" as any)
+      .select("id")
+      .eq("landlord_id", otherUserId)
+      .eq("tenant_id", currentUserId)
+      .is("property_id", null)
+      .maybeSingle();
+
+    if (conv2) return (conv2 as any).id;
+
+    // 3. Create new (current user as landlord, other user as tenant)
+    // Note: In a roommate context, "landlord" just means "initiator" or "user 1"
+    const { data: newConv, error } = await supabase
+      .from("conversations" as any)
+      .insert({
+        landlord_id: currentUserId,
+        tenant_id: otherUserId,
+        property_id: null
+      })
+      .select("id")
+      .single();
+
+    if (error) throw error;
+    return (newConv as any).id;
+  }
 }

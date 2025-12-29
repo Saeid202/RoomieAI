@@ -7,6 +7,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { CompatibilityBreakdown } from "../CompatibilityBreakdown";
 import { ImportanceWeightVisualization } from "./ImportanceWeightVisualization";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/components/ui/use-toast";
+import { MessagingService } from "@/services/messagingService";
 import {
   Star,
   Heart,
@@ -26,7 +31,8 @@ import {
   PawPrint,
   Utensils,
   Moon,
-  Activity
+  Activity,
+  Loader2
 } from "lucide-react";
 
 interface MatchDetailViewProps {
@@ -100,6 +106,47 @@ export function MatchDetailView({ match, onClose }: MatchDetailViewProps) {
   const detailedScores = formatDetailedScores(match.compatibilityBreakdown || {});
   const topScores = detailedScores.slice(0, 8);
   const allScores = detailedScores.slice(8);
+
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [isStartingChat, setIsStartingChat] = useState(false);
+
+  const handleSendMessage = async () => {
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "You must be logged in to send messages.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!match.userId) {
+      toast({
+        title: "Error",
+        description: "Cannot message this user (User ID missing).",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setIsStartingChat(true);
+      const conversationId = await MessagingService.startDirectChat(user.id, match.userId);
+      navigate(`/dashboard/chats?conversation=${conversationId}`);
+      onClose();
+    } catch (error) {
+      console.error("Failed to start chat:", error);
+      toast({
+        title: "Error",
+        description: "Failed to start conversation. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsStartingChat(false);
+    }
+  };
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -379,9 +426,13 @@ export function MatchDetailView({ match, onClose }: MatchDetailViewProps) {
 
         <CardFooter className="bg-muted/50 p-6">
           <div className="flex gap-3 w-full">
-            <Button className="flex-1" size="lg">
-              <MessageCircle className="h-4 w-4 mr-2" />
-              Send Message
+            <Button className="flex-1" size="lg" onClick={handleSendMessage} disabled={isStartingChat}>
+              {isStartingChat ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <MessageCircle className="h-4 w-4 mr-2" />
+              )}
+              {isStartingChat ? "Starting Chat..." : "Send Message"}
             </Button>
             <Button variant="outline" size="lg">
               <Heart className="h-4 w-4 mr-2" />
