@@ -13,6 +13,12 @@ export interface Property {
   description_audio_url?: string;
   three_d_model_url?: string;
 
+  // Video / Audio Settings
+  video_script?: string;
+  background_music_url?: string;
+  video_enabled?: boolean;
+  audio_enabled?: boolean;
+
   // Location Details
   address: string;
   city: string;
@@ -195,7 +201,13 @@ export async function createProperty(propertyData: any): Promise<Property | null
     user_id: user.id, // Ensure user_id is always set
     listing_title: propertyData.listingTitle || propertyData.listing_title,
     property_type: propertyData.propertyType || propertyData.property_type,
+
     description: propertyData.description,
+    description_audio_url: propertyData.descriptionAudioUrl || propertyData.description_audio_url,
+    video_script: propertyData.videoScript || propertyData.video_script,
+    background_music_url: propertyData.backgroundMusicUrl || propertyData.background_music_url,
+    video_enabled: propertyData.videoEnabled !== undefined ? propertyData.videoEnabled : true,
+    audio_enabled: propertyData.audioEnabled !== undefined ? propertyData.audioEnabled : true,
     address: propertyData.address || propertyData.propertyAddress,
     city: propertyData.city,
     state: propertyData.state,
@@ -343,6 +355,13 @@ export async function updateProperty(id: string, updates: any) {
   if (updates.propertyType || updates.property_type) payload.property_type = updates.propertyType || updates.property_type;
   if (updates.description !== undefined) payload.description = updates.description;
   if (updates.descriptionAudioUrl || updates.description_audio_url) payload.description_audio_url = updates.descriptionAudioUrl || updates.description_audio_url;
+
+  // Video/Audio updates
+  if (updates.videoScript || updates.video_script) payload.video_script = updates.videoScript || updates.video_script;
+  if (updates.backgroundMusicUrl || updates.background_music_url) payload.background_music_url = updates.backgroundMusicUrl || updates.background_music_url;
+  if (updates.videoEnabled !== undefined) payload.video_enabled = updates.videoEnabled;
+  if (updates.audioEnabled !== undefined) payload.audio_enabled = updates.audioEnabled;
+
   if (updates.address || updates.propertyAddress) payload.address = updates.address || updates.propertyAddress;
   if (updates.city !== undefined) payload.city = updates.city;
   if (updates.state !== undefined) payload.state = updates.state;

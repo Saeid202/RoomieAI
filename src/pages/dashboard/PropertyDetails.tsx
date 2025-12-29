@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { fetchPropertyById, Property, updateProperty } from "@/services/propertyService";
 import { useRole } from "@/contexts/RoleContext";
-import { Calendar, DollarSign, MapPin, Volume2, Play, Square, Box } from "lucide-react";
+import { Calendar, DollarSign, MapPin, Volume2, Play, Square, Box, ChevronLeft, ChevronRight } from "lucide-react";
+import { PropertyVideoPlayer } from "@/components/property/PropertyVideoPlayer";
 import { useAuth } from "@/hooks/useAuth";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -44,6 +45,7 @@ export default function PropertyDetailsPage() {
   const [petPolicyDraft, setPetPolicyDraft] = useState<string>("");
   const [furnishedDraft, setFurnishedDraft] = useState<string>("");
   const [isPlayingLocalAudio, setIsPlayingLocalAudio] = useState(false);
+  const [activeSlideIndex, setActiveSlideIndex] = useState(0);
 
   console.log("PropertyDetailsPage rendering", { id, loading, property, role, user });
 
@@ -261,23 +263,92 @@ export default function PropertyDetailsPage() {
       <main className="grid gap-6 lg:grid-cols-3">
         <section className="lg:col-span-2">
           <Card>
-            <div className="relative h-64 rounded-t-lg overflow-hidden">
-              {property.images && property.images.length > 0 ? (
-                <img
-                  src={property.images[0]}
-                  alt={`${property.listing_title} photo`}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    // Fallback to placeholder if image fails to load
-                    const target = e.target as HTMLImageElement;
-                    target.style.display = 'none';
-                    target.nextElementSibling?.classList.remove('hidden');
-                  }}
-                />
-              ) : null}
-              <div className={`absolute inset-0 bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center ${property.images && property.images.length > 0 ? 'hidden' : ''}`}>
-                <span className="text-7xl" aria-hidden>🏠</span>
-              </div>
+            <div className="relative w-full aspect-video bg-black rounded-t-lg overflow-hidden group">
+              {(() => {
+                const showVideo = property.video_enabled !== false && property.images && property.images.length > 0;
+                const totalSlides = (showVideo ? 1 : 0) + (property.images?.length || 0);
+
+                const SlideContent = () => {
+                  // Video Slide
+                  if (showVideo && activeSlideIndex === 0) {
+                    return (
+                      <PropertyVideoPlayer
+                        images={property.images || []}
+                        audioUrl={property.audio_enabled !== false ? property.description_audio_url : undefined}
+                        script={property.audio_enabled !== false ? property.video_script : undefined}
+                        musicUrl={property.audio_enabled !== false ? property.background_music_url : undefined}
+                        address={property.address}
+                        price={String(property.monthly_rent)}
+                        amenities={property.amenities || []}
+                        autoPlay={false}
+                      />
+                    );
+                  }
+
+                  // Image Slide
+                  const imageIndex = showVideo ? activeSlideIndex - 1 : activeSlideIndex;
+                  const imageUrl = property.images?.[imageIndex];
+
+                  if (imageUrl) {
+                    return (
+                      <img
+                        src={imageUrl}
+                        alt={`${property.listing_title} - view ${imageIndex + 1}`}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = '/placeholder.svg';
+                        }}
+                      />
+                    );
+                  }
+
+                  return (
+                    <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                      <span className="text-4xl text-gray-300">🏠</span>
+                    </div>
+                  );
+                };
+
+                return (
+                  <>
+                    <SlideContent />
+
+                    {/* Navigation Controls */}
+                    {totalSlides > 1 && (
+                      <>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 z-10"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveSlideIndex((prev) => (prev - 1 + totalSlides) % totalSlides);
+                          }}
+                        >
+                          <ChevronLeft className="h-6 w-6" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 z-10"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveSlideIndex((prev) => (prev + 1) % totalSlides);
+                          }}
+                        >
+                          <ChevronRight className="h-6 w-6" />
+                        </Button>
+
+                        {/* Slide Counter */}
+                        <div className="absolute top-4 right-4 bg-black/50 text-white text-xs px-2 py-1 rounded-md backdrop-blur-sm z-10">
+                          {activeSlideIndex + 1} / {totalSlides}
+                        </div>
+                      </>
+                    )}
+                  </>
+                );
+              })()}
             </div>
             <CardContent className="p-6">
               {/* Sales Voice Agent Player - Top Position */}
@@ -352,266 +423,275 @@ export default function PropertyDetailsPage() {
 
               {/* 3D Model Viewer - Removed for debugging */}
 
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  {!isOwner || !editingPrice ? (
-                    <div className="flex items-center gap-1 font-semibold text-2xl text-primary">
-                      <DollarSign className="h-6 w-6" />
-                      <span>{property.monthly_rent}</span>
-                      <span className="text-sm font-normal text-muted-foreground">/month</span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <Input value={priceDraft} onChange={(e) => setPriceDraft(e.target.value)} placeholder="Monthly rent" className="w-32" />
-                      <Input value={securityDraft} onChange={(e) => setSecurityDraft(e.target.value)} placeholder="Security" className="w-28" />
-                      <Input value={leaseDraft} onChange={(e) => setLeaseDraft(e.target.value)} placeholder="Lease duration" className="w-36" />
-                    </div>
-                  )}
-                </div>
-                <div className="flex items-center gap-2">
-                  {!isOwner || !editingPrice ? (
-                    availableDate && (
-                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                        <Calendar className="h-4 w-4" /> Available {availableDate}
-                      </div>
-                    )
-                  ) : (
-                    <Input type="date" value={availableDraft} onChange={(e) => setAvailableDraft(e.target.value)} className="w-44" />
-                  )}
-                  {isOwner && (
-                    !editingPrice ? (
-                      <Button variant="outline" size="sm" onClick={() => setEditingPrice(true)}>Edit</Button>
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        <Button size="sm" disabled={saving} onClick={async () => {
-                          await savePartial({
-                            monthly_rent: priceDraft,
-                            security_deposit: securityDraft || null,
-                            lease_terms: leaseDraft || null,
-                            available_date: availableDraft || null,
-                          });
-                          setEditingPrice(false);
-                        }}>Save</Button>
-                        <Button variant="outline" size="sm" onClick={() => {
-                          setPriceDraft(String(property.monthly_rent ?? ""));
-                          setSecurityDraft(property.security_deposit != null ? String(property.security_deposit) : "");
-                          setLeaseDraft(property.lease_terms || "");
-                          setAvailableDraft(property.available_date || "");
-                          setEditingPrice(false);
-                        }}>Cancel</Button>
-                      </div>
-                    )
-                  )}
-                </div>
-              </div>
 
-              {/* Property Type, Address, and Nearby Facilities in one row */}
-              <div className="mt-4 flex flex-wrap items-center gap-4 text-sm">
-                {/* Property Type */}
-                <div className="flex items-center gap-2">
-                  <span className="text-muted-foreground">Type:</span>
-                  <span className="font-semibold bg-blue-100 text-blue-800 px-2 py-1 rounded-md">
-                    {property.property_type || 'Not specified'}
-                  </span>
-                </div>
-
-                {/* Full Address */}
-                <div className="flex items-center gap-2">
-                  <MapPin className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-muted-foreground">
-                    {property.address}, {property.city}, {property.state} {property.zip_code}
-                  </span>
-                </div>
-
-                {/* Nearby Facilities */}
-                {property.nearby_amenities && property.nearby_amenities.length > 0 && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-muted-foreground">Nearby:</span>
-                    <div className="flex flex-wrap gap-1">
-                      {property.nearby_amenities.slice(0, 3).map((amenity, index) => (
-                        <span
-                          key={index}
-                          className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-medium"
-                        >
-                          {amenity}
-                        </span>
-                      ))}
-                      {property.nearby_amenities.length > 3 && (
-                        <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs font-medium">
-                          +{property.nearby_amenities.length - 3}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <Separator className="my-6" />
 
               {/* Image Gallery */}
-              {property.images && property.images.length > 1 && (
-                <div className="mb-6">
-                  <h2 className="text-xl font-semibold mb-4">More Photos</h2>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {property.images.slice(1).map((imageUrl, index) => (
-                      <div key={index} className="relative group cursor-pointer">
-                        <img
-                          src={imageUrl}
-                          alt={`${property.listing_title} photo ${index + 2}`}
-                          className="w-full h-32 object-cover rounded-lg border"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.style.display = 'none';
-                          }}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
 
-              <article className="prose max-w-none">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-semibold">Description</h2>
-                  {isOwner && (
-                    !editingDesc ? (
-                      <Button variant="outline" size="sm" onClick={() => setEditingDesc(true)}>Edit</Button>
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        <Button size="sm" disabled={saving} onClick={async () => { await savePartial({ description: descDraft }); setEditingDesc(false); }}>Save</Button>
-                        <Button variant="outline" size="sm" onClick={() => { setDescDraft(property.description || ""); setEditingDesc(false); }}>Cancel</Button>
-                      </div>
-                    )
-                  )}
-                </div>
-                {!isOwner || !editingDesc ? (
-                  <p className="mt-2 text-muted-foreground whitespace-pre-line">{property.description}</p>
-                ) : (
-                  <Textarea className="mt-2" value={descDraft} onChange={(e) => setDescDraft(e.target.value)} />
-                )}
-              </article>
 
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-6 text-sm">
-                <Card className="p-4">
-                  <div className="text-muted-foreground">Bedrooms</div>
-                  {!isOwner || !editingFacts ? (
-                    <div className="font-medium">{property.bedrooms ?? '—'}</div>
-                  ) : (
-                    <Input value={bedroomsDraft} onChange={(e) => setBedroomsDraft(e.target.value)} placeholder="e.g., 2" />
-                  )}
-                </Card>
-                <Card className="p-4">
-                  <div className="text-muted-foreground">Bathrooms</div>
-                  {!isOwner || !editingFacts ? (
-                    <div className="font-medium">{property.bathrooms ?? '—'}</div>
-                  ) : (
-                    <Input value={bathroomsDraft} onChange={(e) => setBathroomsDraft(e.target.value)} placeholder="e.g., 1" />
-                  )}
-                </Card>
-                <Card className="p-4">
-                  <div className="text-muted-foreground">Square Footage</div>
-                  {!isOwner || !editingFacts ? (
-                    <div className="font-medium">{property.square_footage ?? '—'}</div>
-                  ) : (
-                    <Input value={sqftDraft} onChange={(e) => setSqftDraft(e.target.value)} placeholder="e.g., 850" />
-                  )}
-                </Card>
-                <Card className="p-4">
-                  <div className="text-muted-foreground">Parking</div>
-                  {!isOwner || !editingFacts ? (
-                    <div className="font-medium">{property.parking || '—'}</div>
-                  ) : (
-                    <Input value={parkingDraft} onChange={(e) => setParkingDraft(e.target.value)} placeholder="e.g., driveway" />
-                  )}
-                </Card>
-                <Card className="p-4">
-                  <div className="text-muted-foreground">Pet Policy</div>
-                  {!isOwner || !editingFacts ? (
-                    <div className="font-medium">{property.pet_policy || '—'}</div>
-                  ) : (
-                    <Input value={petPolicyDraft} onChange={(e) => setPetPolicyDraft(e.target.value)} placeholder="e.g., cats-dogs" />
-                  )}
-                </Card>
-                <Card className="p-4">
-                  <div className="text-muted-foreground">Furnished</div>
-                  {!isOwner || !editingFacts ? (
-                    <div className="font-medium">{property.furnished ? 'Yes' : 'No'}</div>
-                  ) : (
-                    <Input value={furnishedDraft} onChange={(e) => setFurnishedDraft(e.target.value)} placeholder="Yes/No" />
-                  )}
-                </Card>
-              </div>
 
-              {isOwner && (
-                <div className="mt-3 flex justify-end gap-2">
-                  {!editingFacts ? (
-                    <Button variant="outline" size="sm" onClick={() => setEditingFacts(true)}>Edit Key Facts</Button>
-                  ) : (
-                    <>
-                      <Button size="sm" disabled={saving} onClick={async () => {
-                        await savePartial({
-                          bedrooms: bedroomsDraft,
-                          bathrooms: bathroomsDraft,
-                          square_footage: sqftDraft,
-                          parking: parkingDraft || null as any,
-                          pet_policy: petPolicyDraft || null as any,
-                          furnished: furnishedDraft,
-                        });
-                        setEditingFacts(false);
-                      }}>Save</Button>
-                      <Button variant="outline" size="sm" onClick={() => {
-                        setBedroomsDraft(property.bedrooms != null ? String(property.bedrooms) : "");
-                        setBathroomsDraft(property.bathrooms != null ? String(property.bathrooms) : "");
-                        setSqftDraft(property.square_footage != null ? String(property.square_footage) : "");
-                        setParkingDraft(property.parking || "");
-                        setPetPolicyDraft(property.pet_policy || "");
-                        setFurnishedDraft(property.furnished ? 'Yes' : 'No');
-                        setEditingFacts(false);
-                      }}>Cancel</Button>
-                    </>
-                  )}
-                </div>
-              )}
 
-              {Array.isArray(property.utilities_included) && property.utilities_included.length > 0 && (
-                <div className="mt-6">
-                  <h3 className="font-semibold">Utilities Included</h3>
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {property.utilities_included.map((u) => (
-                      <Badge key={u} variant="secondary">{u}</Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
 
-              {Array.isArray(property.amenities) && property.amenities.length > 0 && (
-                <div className="mt-6">
-                  <h3 className="font-semibold">Amenities</h3>
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {property.amenities.map((a) => (
-                      <Badge key={a} variant="outline">{a}</Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
+
+
             </CardContent>
           </Card>
         </section>
 
         <aside className="space-y-4">
           <Card>
-            <CardHeader>
-              <CardTitle>Location</CardTitle>
-              <CardDescription>{property.address}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-sm text-muted-foreground">
-                <div>{property.city}, {property.state} {property.zip_code}</div>
-                {property.neighborhood && <div>Neighborhood: {property.neighborhood}</div>}
-                {property.public_transport_access && (
-                  <div className="mt-2">Transit: {property.public_transport_access}</div>
+            <CardContent className="p-6 space-y-6">
+              {/* Price and Availability Block */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    {!isOwner || !editingPrice ? (
+                      <div className="flex items-center gap-1 font-semibold text-2xl text-primary">
+                        <DollarSign className="h-6 w-6" />
+                        <span>{property.monthly_rent}</span>
+                        <span className="text-sm font-normal text-muted-foreground">/month</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <Input value={priceDraft} onChange={(e) => setPriceDraft(e.target.value)} placeholder="Monthly rent" className="w-24" />
+                        <Input value={securityDraft} onChange={(e) => setSecurityDraft(e.target.value)} placeholder="Security" className="w-24" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {!isOwner || !editingPrice ? (
+                      availableDate && (
+                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                          <Calendar className="h-4 w-4" /> Available {availableDate}
+                        </div>
+                      )
+                    ) : (
+                      <Input type="date" value={availableDraft} onChange={(e) => setAvailableDraft(e.target.value)} className="w-32" />
+                    )}
+                    {isOwner && (
+                      !editingPrice ? (
+                        <Button variant="outline" size="sm" onClick={() => setEditingPrice(true)}>Edit</Button>
+                      ) : (
+                        <div className="flex items-center gap-1">
+                          <Button size="sm" className="h-8 px-2" disabled={saving} onClick={async () => {
+                            await savePartial({
+                              monthly_rent: priceDraft,
+                              security_deposit: securityDraft || null,
+                              lease_terms: leaseDraft || null,
+                              available_date: availableDraft || null,
+                            });
+                            setEditingPrice(false);
+                          }}>Save</Button>
+                          <Button variant="outline" className="h-8 px-2" size="sm" onClick={() => {
+                            setPriceDraft(String(property.monthly_rent ?? ""));
+                            setSecurityDraft(property.security_deposit != null ? String(property.security_deposit) : "");
+                            setLeaseDraft(property.lease_terms || "");
+                            setAvailableDraft(property.available_date || "");
+                            setEditingPrice(false);
+                          }}>Cancel</Button>
+                        </div>
+                      )
+                    )}
+                  </div>
+                </div>
+
+                {/* Type/Address/Nearby Block */}
+                <div className="space-y-3 pt-2">
+                  <div className="flex items-center gap-2 text-sm">
+                    <span className="text-muted-foreground font-medium">Type:</span>
+                    <span className="font-semibold bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-xs uppercase tracking-wide">
+                      {property.property_type || 'Not specified'}
+                    </span>
+                  </div>
+
+                  <div className="flex items-start gap-2 text-sm">
+                    <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+                    <span className="text-gray-700 font-medium">
+                      {property.address}, {property.city}, {property.state} {property.zip_code}
+                    </span>
+                  </div>
+
+                  {property.nearby_amenities && property.nearby_amenities.length > 0 && (
+                    <div className="space-y-1">
+                      <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Nearby:</span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {property.nearby_amenities.slice(0, 4).map((amenity, index) => (
+                          <span
+                            key={index}
+                            className="bg-green-50 text-green-700 border border-green-100 px-2 py-0.5 rounded text-[10px] font-medium"
+                          >
+                            {amenity}
+                          </span>
+                        ))}
+                        {property.nearby_amenities.length > 4 && (
+                          <span className="bg-gray-50 text-gray-500 border border-gray-100 px-2 py-0.5 rounded text-[10px]">
+                            +{property.nearby_amenities.length - 4}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Description Block */}
+              <article className="prose prose-sm max-w-none">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-semibold text-base">About this place</h3>
+                  {isOwner && (
+                    !editingDesc ? (
+                      <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => setEditingDesc(true)}>Edit</Button>
+                    ) : (
+                      <div className="flex items-center gap-1">
+                        <Button size="sm" className="h-6 text-xs" disabled={saving} onClick={async () => { await savePartial({ description: descDraft }); setEditingDesc(false); }}>Save</Button>
+                        <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => { setDescDraft(property.description || ""); setEditingDesc(false); }}>Cancel</Button>
+                      </div>
+                    )
+                  )}
+                </div>
+                {!isOwner || !editingDesc ? (
+                  <p className="text-muted-foreground whitespace-pre-line text-sm leading-relaxed">{property.description}</p>
+                ) : (
+                  <Textarea className="w-full text-sm" value={descDraft} onChange={(e) => setDescDraft(e.target.value)} />
+                )}
+              </article>
+
+              <Separator />
+
+              {/* Key Facts Block */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold text-base">Key Details</h3>
+                  {isOwner && !editingFacts && (
+                    <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => setEditingFacts(true)}>Edit</Button>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  {/* Bedrooms */}
+                  <div className="bg-slate-50 p-2 rounded border border-slate-100">
+                    <div className="text-muted-foreground text-xs">Bedrooms</div>
+                    {!isOwner || !editingFacts ? (
+                      <div className="font-medium">{property.bedrooms ?? '—'}</div>
+                    ) : (
+                      <Input value={bedroomsDraft} onChange={(e) => setBedroomsDraft(e.target.value)} className="h-7 text-xs" />
+                    )}
+                  </div>
+                  {/* Bathrooms */}
+                  <div className="bg-slate-50 p-2 rounded border border-slate-100">
+                    <div className="text-muted-foreground text-xs">Bathrooms</div>
+                    {!isOwner || !editingFacts ? (
+                      <div className="font-medium">{property.bathrooms ?? '—'}</div>
+                    ) : (
+                      <Input value={bathroomsDraft} onChange={(e) => setBathroomsDraft(e.target.value)} className="h-7 text-xs" />
+                    )}
+                  </div>
+                  {/* Sqft */}
+                  <div className="bg-slate-50 p-2 rounded border border-slate-100">
+                    <div className="text-muted-foreground text-xs">Sqft</div>
+                    {!isOwner || !editingFacts ? (
+                      <div className="font-medium">{property.square_footage ?? '—'}</div>
+                    ) : (
+                      <Input value={sqftDraft} onChange={(e) => setSqftDraft(e.target.value)} className="h-7 text-xs" />
+                    )}
+                  </div>
+                  {/* Parking */}
+                  <div className="bg-slate-50 p-2 rounded border border-slate-100">
+                    <div className="text-muted-foreground text-xs">Parking</div>
+                    {!isOwner || !editingFacts ? (
+                      <div className="font-medium truncate" title={property.parking}>{property.parking || '—'}</div>
+                    ) : (
+                      <Input value={parkingDraft} onChange={(e) => setParkingDraft(e.target.value)} className="h-7 text-xs" />
+                    )}
+                  </div>
+                  {/* Pet Policy */}
+                  <div className="bg-slate-50 p-2 rounded border border-slate-100">
+                    <div className="text-muted-foreground text-xs">Pet Policy</div>
+                    {!isOwner || !editingFacts ? (
+                      <div className="font-medium truncate" title={property.pet_policy}>{property.pet_policy || '—'}</div>
+                    ) : (
+                      <Input value={petPolicyDraft} onChange={(e) => setPetPolicyDraft(e.target.value)} className="h-7 text-xs" />
+                    )}
+                  </div>
+                  {/* Furnished */}
+                  <div className="bg-slate-50 p-2 rounded border border-slate-100">
+                    <div className="text-muted-foreground text-xs">Furnished</div>
+                    {!isOwner || !editingFacts ? (
+                      <div className="font-medium">{property.furnished ? 'Yes' : 'No'}</div>
+                    ) : (
+                      <Input value={furnishedDraft} onChange={(e) => setFurnishedDraft(e.target.value)} className="h-7 text-xs" />
+                    )}
+                  </div>
+                </div>
+
+                {isOwner && editingFacts && (
+                  <div className="flex justify-end gap-2 mt-2">
+                    <Button size="sm" className="h-7 text-xs" disabled={saving} onClick={async () => {
+                      await savePartial({
+                        bedrooms: bedroomsDraft,
+                        bathrooms: bathroomsDraft,
+                        square_footage: sqftDraft,
+                        parking: parkingDraft || null as any,
+                        pet_policy: petPolicyDraft || null as any,
+                        furnished: furnishedDraft,
+                      });
+                      setEditingFacts(false);
+                    }}>Save</Button>
+                    <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => {
+                      setBedroomsDraft(property.bedrooms != null ? String(property.bedrooms) : "");
+                      setBathroomsDraft(property.bathrooms != null ? String(property.bathrooms) : "");
+                      setSqftDraft(property.square_footage != null ? String(property.square_footage) : "");
+                      setParkingDraft(property.parking || "");
+                      setPetPolicyDraft(property.pet_policy || "");
+                      setFurnishedDraft(property.furnished ? 'Yes' : 'No');
+                      setEditingFacts(false);
+                    }}>Cancel</Button>
+                  </div>
                 )}
               </div>
+
+              <Separator />
+
+              {/* Utilities & Amenities */}
+              <div className="space-y-4">
+                {Array.isArray(property.utilities_included) && property.utilities_included.length > 0 && (
+                  <div className="space-y-2">
+                    <h3 className="font-semibold text-sm">Utilities Included</h3>
+                    <div className="flex flex-wrap gap-1.5">
+                      {property.utilities_included.map((u) => (
+                        <Badge key={u} variant="secondary" className="font-normal text-xs">{u}</Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {Array.isArray(property.amenities) && property.amenities.length > 0 && (
+                  <div className="space-y-2">
+                    <h3 className="font-semibold text-sm">Amenities</h3>
+                    <div className="flex flex-wrap gap-1.5">
+                      {property.amenities.map((a) => (
+                        <Badge key={a} variant="outline" className="font-normal text-xs bg-white">{a}</Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <Separator />
+
+              {/* Location Details */}
+              <div className="space-y-2">
+                <h3 className="font-semibold text-sm">Location Details</h3>
+                <div className="text-xs text-muted-foreground space-y-1">
+                  {property.neighborhood && <div><span className="font-medium">Neighborhood:</span> {property.neighborhood}</div>}
+                  {property.public_transport_access && (
+                    <div><span className="font-medium">Transit:</span> {property.public_transport_access}</div>
+                  )}
+                </div>
+              </div>
+
+
             </CardContent>
           </Card>
 

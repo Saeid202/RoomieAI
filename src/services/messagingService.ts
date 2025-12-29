@@ -419,18 +419,24 @@ export class MessagingService {
 
   // Create or get existing conversation
   static async getOrCreateConversation(
-    propertyId: string,
+    propertyId: string | null,
     landlordId: string,
     tenantId: string
   ): Promise<string> {
     // Check if conversation already exists
-    const { data: existingConversation, error: fetchError } = await supabase
+    let query = supabase
       .from("conversations" as any)
       .select("id")
-      .eq("property_id", propertyId)
       .eq("landlord_id", landlordId)
-      .eq("tenant_id", tenantId)
-      .single();
+      .eq("tenant_id", tenantId);
+
+    if (propertyId) {
+      query = query.eq("property_id", propertyId);
+    } else {
+      query = query.is("property_id", null);
+    }
+
+    const { data: existingConversation, error: fetchError } = await query.single();
 
     if (existingConversation && !fetchError) {
       return (existingConversation as any).id;

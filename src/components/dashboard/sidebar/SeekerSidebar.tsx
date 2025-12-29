@@ -1,9 +1,9 @@
 
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import {
   Home, Users, Building, Search,
   Settings, Calendar, Clock, List, MapPin, Group,
-  Briefcase, Flag, Scale, Sliders, Bot, CreditCard, MessageSquare
+  Briefcase, Flag, Scale, Sliders, Bot, CreditCard, MessageSquare, Hammer, GraduationCap
 } from "lucide-react";
 import { SidebarSimpleMenuItem } from "./SidebarSimpleMenuItem";
 
@@ -13,6 +13,7 @@ interface SeekerSidebarProps {
 }
 
 export function SeekerSidebar({ isActive, showLabels }: SeekerSidebarProps) {
+  const location = useLocation();
   return (
     <>
       <SidebarSimpleMenuItem
@@ -28,8 +29,32 @@ export function SeekerSidebar({ isActive, showLabels }: SeekerSidebarProps) {
         icon={<Users size={18} />}
         label="Matches"
         to="/dashboard/matches"
-        isActive={isActive('/dashboard/matches')}
+        isActive={isActive('/dashboard/matches') && !location.search.includes('tab=about-me') && !location.search.includes('tab=ideal-roommate')}
       />
+      {/* Sub-items for Matches ordered: About Me, Ideal Roommate, View Matches */}
+      <div className="ml-6 space-y-1">
+        <SidebarSimpleMenuItem
+          showLabel={showLabels}
+          icon={<div className="w-1 h-1 rounded-full bg-current" />}
+          label="About Me"
+          to="/dashboard/matches?tab=about-me"
+          isActive={location.search.includes('tab=about-me')}
+        />
+        <SidebarSimpleMenuItem
+          showLabel={showLabels}
+          icon={<div className="w-1 h-1 rounded-full bg-current" />}
+          label="Ideal Roommate"
+          to="/dashboard/matches?tab=ideal-roommate"
+          isActive={location.search.includes('tab=ideal-roommate')}
+        />
+        <SidebarSimpleMenuItem
+          showLabel={showLabels}
+          icon={<div className="w-1 h-1 rounded-full bg-current" />}
+          label="View Matches"
+          to="/dashboard/matches?tab=matches"
+          isActive={location.search.includes('tab=matches') || (isActive('/dashboard/matches') && !location.search)}
+        />
+      </div>
 
       <SidebarSimpleMenuItem
         showLabel={showLabels}
@@ -50,7 +75,7 @@ export function SeekerSidebar({ isActive, showLabels }: SeekerSidebarProps) {
       <SidebarSimpleMenuItem
         showLabel={showLabels}
         icon={<MessageSquare size={18} />}
-        label="Messages"
+        label="Messenger"
         to="/dashboard/chats"
         isActive={isActive('/dashboard/chats')}
       />
@@ -80,13 +105,7 @@ export function SeekerSidebar({ isActive, showLabels }: SeekerSidebarProps) {
         isActive={isActive('/dashboard/work-exchange')}
       />
 
-      <SidebarSimpleMenuItem
-        showLabel={showLabels}
-        icon={<Flag size={18} />}
-        label="LGBTQ+ Matching"
-        to="/dashboard/lgbtq-matching"
-        isActive={isActive('/dashboard/lgbtq-matching')}
-      />
+
 
       {/* Temporarily hidden - Tailor AI tab */}
       {/* <SidebarSimpleMenuItem 
@@ -99,11 +118,13 @@ export function SeekerSidebar({ isActive, showLabels }: SeekerSidebarProps) {
 
       <SidebarSimpleMenuItem
         showLabel={showLabels}
-        icon={<MessageSquare size={18} />}
-        label="Messenger"
-        to="/dashboard/chats"
-        isActive={isActive('/dashboard/chats')}
+        icon={<Hammer size={18} />}
+        label="Renovators"
+        to="/dashboard/renovators"
+        isActive={isActive('/dashboard/renovators')}
       />
+
+
 
       <SidebarSimpleMenuItem
         showLabel={showLabels}
@@ -111,6 +132,14 @@ export function SeekerSidebar({ isActive, showLabels }: SeekerSidebarProps) {
         label="AI Legal Assistant"
         to="/dashboard/tenancy-legal-ai"
         isActive={isActive('/dashboard/tenancy-legal-ai')}
+      />
+
+      <SidebarSimpleMenuItem
+        showLabel={showLabels}
+        icon={<GraduationCap size={18} />}
+        label="Education Centre"
+        to="/dashboard/education-centre"
+        isActive={isActive('/dashboard/education-centre')}
       />
 
       <SidebarSimpleMenuItem

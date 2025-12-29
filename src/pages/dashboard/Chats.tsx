@@ -79,37 +79,45 @@ export default function ChatsPage() {
   }
 
   return (
-    <div className="container mx-auto py-6 px-4 max-w-7xl">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold">Messages</h1>
-        <p className="text-muted-foreground mt-1">
-          Connect with landlords and tenants
-        </p>
+    <div className="flex flex-col h-[calc(100vh-4rem)] p-4 md:p-6 bg-muted/20">
+      <div className="mb-4 flex items-center justify-between px-2">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Messages</h1>
+          <p className="text-sm text-muted-foreground">Manage your conversations</p>
+        </div>
       </div>
 
-      {loading ? (
-        <div className="flex items-center justify-center h-[calc(100vh-12rem)]">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Loading...</p>
-          </div>
-        </div>
-      ) : (
-        <div className="flex gap-6 h-[calc(100vh-12rem)] overflow-hidden">
-          <div className="w-80 flex-shrink-0">
+      <div className="flex-1 bg-background rounded-[2rem] border shadow-xl overflow-hidden flex max-w-7xl mx-auto w-full">
+        {/* Sidebar List - Hidden on mobile if conversation selected */}
+        <div
+          className={`w-full md:w-80 lg:w-96 flex-shrink-0 border-r bg-muted/10 ${selectedConversation ? "hidden md:flex" : "flex"
+            }`}
+        >
+          {loading ? (
+            <div className="flex items-center justify-center w-full h-full">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          ) : (
             <ConversationList
               selectedConversationId={selectedConversation?.id}
               onSelectConversation={handleSelectConversation}
+              className="h-full bg-transparent"
             />
-          </div>
-          <div className="flex-1 min-w-0 overflow-hidden">
-            <ChatWindow
-              conversation={selectedConversation}
-              onBack={() => setSelectedConversation(null)}
-            />
-          </div>
+          )}
         </div>
-      )}
+
+        {/* Chat Window - Hidden on mobile if no conversation selected */}
+        <div
+          className={`flex-1 min-w-0 bg-background relative ${!selectedConversation ? "hidden md:flex" : "flex"
+            }`}
+        >
+          <ChatWindow
+            conversation={selectedConversation}
+            onBack={() => setSelectedConversation(null)}
+            className="h-full"
+          />
+        </div>
+      </div>
     </div>
   );
 }

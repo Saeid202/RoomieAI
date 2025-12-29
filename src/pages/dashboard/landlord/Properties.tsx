@@ -135,14 +135,35 @@ ON public.properties FOR DELETE USING (auth.uid() = user_id);
             </div>
             <p className="text-sm mt-4 font-semibold text-slate-800">To claim these properties, run this SQL:</p>
             <div className="bg-slate-900 text-slate-50 p-4 rounded-md overflow-x-auto text-xs font-mono relative mt-2">
-              <pre>{`UPDATE public.properties SET user_id = '${currentUserId}' WHERE user_id != '${currentUserId}';`}</pre>
+              <pre className="select-text whitespace-pre-wrap break-all">{`-- Run this in Supabase SQL Editor
+UPDATE public.properties 
+SET user_id = '${currentUserId}' 
+WHERE user_id = '${orphanedProps[0]?.user_id}';`}</pre>
               <Button
                 size="sm"
                 className="absolute top-2 right-2 bg-white text-black hover:bg-slate-200"
-                onClick={() => {
-                  const script = `UPDATE public.properties SET user_id = '${currentUserId}' WHERE user_id != '${currentUserId}';`;
-                  navigator.clipboard.writeText(script);
-                  toast.success("SQL Copied!");
+                onClick={async () => {
+                  const oldId = orphanedProps[0]?.user_id;
+                  const script = `UPDATE public.properties SET user_id = '${currentUserId}' WHERE user_id = '${oldId}';`;
+
+                  try {
+                    await navigator.clipboard.writeText(script);
+                    toast.success("SQL Copied to clipboard!");
+                  } catch (err) {
+                    // Fallback for non-secure contexts
+                    const textArea = document.createElement("textarea");
+                    textArea.value = script;
+                    document.body.appendChild(textArea);
+                    textArea.focus();
+                    textArea.select();
+                    try {
+                      document.execCommand('copy');
+                      toast.success("SQL Copied to clipboard!");
+                    } catch (err) {
+                      toast.error("Could not auto-copy. Please manually select and copy the text.");
+                    }
+                    document.body.removeChild(textArea);
+                  }
                 }}
               >
                 Copy SQL
@@ -258,8 +279,8 @@ ON public.properties FOR DELETE USING (auth.uid() = user_id);
                           imageUrl = p.images[0];
                         } else if (p.images && typeof p.images === 'string') {
                           imageUrl = p.images;
-                        } else if (p.images && typeof p.images === 'object' && p.images.url) {
-                          imageUrl = p.images.url;
+                        } else if (p.images && typeof p.images === 'object' && (p.images as any).url) {
+                          imageUrl = (p.images as any).url;
                         }
 
                         if (imageUrl && imageUrl !== "/placeholder.svg") {

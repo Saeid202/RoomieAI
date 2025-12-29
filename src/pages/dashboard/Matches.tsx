@@ -35,7 +35,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useRoommateMatching } from "@/hooks/useRoommateMatching";
 import { TabsSection } from "@/components/dashboard/recommendations/components/TabsSection";
 import { ResultsSection } from "@/components/dashboard/recommendations/ResultsSection";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { MatchDetailView } from "@/components/dashboard/recommendations/MatchDetailView";
 
 interface MatchDisplay {
@@ -131,6 +131,7 @@ function calculateMatchStats(matches: MatchDisplay[]): MatchStats {
 }
 
 export default function MatchesPage() {
+  const location = useLocation();
   const navigate = useNavigate();
   const [matches, setMatches] = useState<MatchDisplay[]>([]);
   const [loading, setLoading] = useState(true);
@@ -160,7 +161,23 @@ export default function MatchesPage() {
 
   const handleTabChange = useCallback(
     (value: string) => {
+      // Only navigate if the URL doesn't match the new value to avoid loops or redundant history
+      const searchParams = new URLSearchParams(location.search);
+      const currentTab = searchParams.get("tab") || "matches";
+
+      if (value !== currentTab) {
+        if (value === "matches") {
+          navigate("/dashboard/matches");
+        } else {
+          navigate(`/dashboard/matches?tab=${value}`);
+        }
+      }
+
       setActiveTab(value);
+      if (value === "matches") {
+        setExpandedSections([]);
+        return;
+      }
       if (!expandedSections.includes("about-me") && value === "about-me") {
         setExpandedSections((prev) => [...prev, "about-me"]);
       } else if (
@@ -170,12 +187,18 @@ export default function MatchesPage() {
         setExpandedSections((prev) => [...prev, "ideal-roommate"]);
       }
     },
-    [expandedSections, setActiveTab]
+    [expandedSections, setActiveTab, navigate, location.search]
   );
 
   useEffect(() => {
-    handleTabChange("about-me");
-  }, [handleTabChange]);
+    const searchParams = new URLSearchParams(location.search);
+    const tab = searchParams.get("tab");
+    if (tab && (tab === "about-me" || tab === "ideal-roommate" || tab === "matches")) {
+      handleTabChange(tab);
+    } else {
+      handleTabChange("matches");
+    }
+  }, [handleTabChange, location.search]);
 
   useEffect(() => {
     const loadMatches = async () => {
@@ -351,28 +374,19 @@ export default function MatchesPage() {
                     handleTabChange={handleTabChange}
                     profileData={profileData}
                     onSaveProfile={handleSaveProfile}
-                  />
+                  >
+                    <ResultsSection
+                      roommates={roommates}
+                      properties={properties}
+                      selectedMatch={selectedMatch}
+                      activeTab="roommates"
+                      setActiveTab={setActiveTab}
+                      onViewDetails={handleViewDetails}
+                      onCloseDetails={handleCloseDetails}
+                    />
+                  </TabsSection>
                 </div>
               </div>
-            </div>
-
-            {/* Mobile-optimized results section */}
-            <div className="w-full">
-              <ResultsSection
-                roommates={roommates}
-                properties={properties}
-                selectedMatch={selectedMatch}
-                activeTab={
-                  activeTab === "about-me" ||
-                    activeTab === "ideal-roommate" ||
-                    activeTab === "ai-assistant"
-                    ? "roommates"
-                    : activeTab
-                }
-                setActiveTab={setActiveTab}
-                onViewDetails={handleViewDetails}
-                onCloseDetails={handleCloseDetails}
-              />
             </div>
 
             {/* Filters and Sorting */}

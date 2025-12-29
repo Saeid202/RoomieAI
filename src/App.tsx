@@ -73,6 +73,7 @@ import RenovatorProfile from "@/pages/renovator/RenovatorProfile";
 import Availability from "@/pages/renovator/Availability";
 import ServiceArea from "@/pages/renovator/ServiceArea";
 import RenovatorSettings from "@/pages/renovator/RenovatorSettings";
+import EducationCentrePage from "@/pages/dashboard/EducationCentre";
 
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect } from "react";
@@ -145,6 +146,7 @@ function AppRoutes() {
           <Route path="forms/n13" element={<ErrorBoundary componentName="N13FormPage"><N13FormPage /></ErrorBoundary>} />
           <Route path="forms/a2" element={<ErrorBoundary componentName="A2FormPage"><A2FormPage /></ErrorBoundary>} />
           <Route path="tenancy-legal-ai" element={<TenancyLegalAIPage />} />
+          <Route path="education-centre" element={<EducationCentrePage />} />
           <Route path="renovators" element={<RenovatorsPage />} />
           <Route path="emergency" element={<EmergencyMode />} />
           <Route path="cleaners" element={<CleanersPage />} />
@@ -229,6 +231,7 @@ function AppRoutes() {
         <Route path="legal-ai" element={<LegalAIPage />} />
         <Route path="property-compliance-ai" element={<ErrorBoundary componentName="PropertyCompliancePage"><PropertyCompliancePage /></ErrorBoundary>} />
         <Route path="tenancy-legal-ai" element={<TenancyLegalAIPage />} />
+        <Route path="education-centre" element={<EducationCentrePage />} />
         <Route path="renovators" element={<RenovatorsPage />} />
         <Route path="cleaners" element={<CleanersPage />} />
         <Route path="shop" element={<ShopPage />} />

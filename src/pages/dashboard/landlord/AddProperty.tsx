@@ -9,6 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, ArrowRight, Home, MapPin, DollarSign, Camera, FileText, CheckCircle, X, Upload, Train, ShoppingBag, GraduationCap, Coffee, Loader2, Sparkles, Volume2, Square, Box, Film } from "lucide-react";
 import { ai3DService } from "@/services/ai3DService";
+
 import { useNavigate } from "react-router-dom";
 import { createProperty, uploadPropertyImage, fetchPropertyById, updateProperty } from "@/services/propertyService";
 import { supabase } from "@/integrations/supabase/client";
@@ -180,6 +181,9 @@ export default function AddPropertyPage() {
   const [isGeneratingVideo, setIsGeneratingVideo] = useState(false);
   const [isVideoReady, setIsVideoReady] = useState(false);
   const [selectedMusic, setSelectedMusic] = useState<string | null>(null);
+  const [videoScript, setVideoScript] = useState<string>("");
+  const [includeVideo, setIncludeVideo] = useState(true);
+  const [includeAudio, setIncludeAudio] = useState(true);
 
 
   // Load model-viewer script
@@ -610,6 +614,11 @@ export default function AddPropertyPage() {
         property_type: formData.propertyType,
         listing_title: formData.listingTitle || formData.propertyAddress,
         description: formData.description || null,
+        description_audio_url: formData.descriptionAudioUrl || null,
+        video_script: videoScript || null,
+        background_music_url: selectedMusic || null,
+        video_enabled: includeVideo,
+        audio_enabled: includeAudio,
         address: safeAddress,
         city: safeCity,
         state: safeState,
@@ -997,22 +1006,79 @@ export default function AddPropertyPage() {
 
                 {/* AI Video Tour Section */}
                 {(formData.images && formData.images.length > 0) && (
-                  <div className="mt-4 p-4 border border-pink-100 bg-pink-50/50 rounded-xl">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-full bg-pink-100 flex items-center justify-center text-pink-600">
+                  <div className="mt-4 p-4 border border-pink-100 bg-pink-50/50 rounded-xl transition-all duration-500">
+                    <div className="flex flex-col xl:flex-row items-center justify-between gap-6">
+
+                      {/* Left: Title & Info */}
+                      <div className="flex items-center gap-3 shrink-0 xl:w-1/4 self-start xl:self-center">
+                        <div className="h-10 w-10 rounded-full bg-pink-100 flex items-center justify-center text-pink-600 shrink-0">
                           <Film className="h-5 w-5" />
                         </div>
                         <div>
-                          <h3 className="text-sm font-semibold text-pink-900">AI Video Tour Generator</h3>
-                          <p className="text-xs text-pink-600">Create a property showcase video with voiceover</p>
+                          <h3 className="text-sm font-semibold text-pink-900">AI Video Tour</h3>
+                          <p className="text-[10px] text-pink-600">Showcase with voiceover</p>
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2">
+                      {/* Center: Video Preview Area */}
+                      {/* Center: Video Preview Area */}
+                      <div className={`flex-grow w-full max-w-lg mx-auto bg-white/50 rounded-lg border border-pink-100 flex items-center justify-center overflow-hidden shadow-sm relative ${isVideoReady ? '' : 'h-48'}`}>
+                        {isVideoReady ? (
+                          <div className="w-full">
+                            <PropertyVideoPlayer
+                              images={existingImageUrls.length > 0 ? existingImageUrls : (formData.images as string[]) || []}
+                              audioUrl={formData.descriptionAudioUrl || undefined}
+                              script={includeAudio ? videoScript : undefined} // Controlled by checkbox
+                              musicUrl={selectedMusic || undefined}
+                              address={formData.propertyAddress}
+                              price={formData.monthlyRent}
+                              amenities={[]}
+                              autoPlay={false}
+                            />
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center text-pink-300 gap-2">
+                            <Film className="h-10 w-10 opacity-30" />
+                            <span className="text-[10px] font-medium uppercase tracking-wider opacity-60">Preview Area</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Right: Controls */}
+                      <div className="flex flex-col gap-3 shrink-0 xl:w-1/4 items-end w-full pl-4 border-l border-pink-100/50">
+
+                        {/* Tour Settings */}
+                        <div className="flex flex-col gap-2 w-full xl:w-[160px] mb-1 p-2 bg-pink-50/50 rounded-lg border border-pink-100/50">
+                          <span className="text-[10px] font-bold text-pink-900 uppercase tracking-wide mb-1">Tour Configuration</span>
+
+                          <div className="flex items-center space-x-2">
+                            <Checkbox
+                              id="show-video"
+                              checked={includeVideo}
+                              onCheckedChange={(c) => setIncludeVideo(!!c)}
+                              className="h-3 w-3 border-pink-300 data-[state=checked]:bg-pink-600 data-[state=checked]:border-pink-600"
+                            />
+                            <label htmlFor="show-video" className="text-[10px] font-medium text-pink-700 cursor-pointer select-none">
+                              Visual Tour
+                            </label>
+                          </div>
+
+                          <div className="flex items-center space-x-2">
+                            <Checkbox
+                              id="enable-voice"
+                              checked={includeAudio}
+                              onCheckedChange={(c) => setIncludeAudio(!!c)}
+                              className="h-3 w-3 border-pink-300 data-[state=checked]:bg-pink-600 data-[state=checked]:border-pink-600"
+                            />
+                            <label htmlFor="enable-voice" className="text-[10px] font-medium text-pink-700 cursor-pointer select-none">
+                              Sales Voice Agent
+                            </label>
+                          </div>
+                        </div>
+
                         <Select value={selectedMusic || ""} onValueChange={setSelectedMusic}>
-                          <SelectTrigger className="w-[140px] h-9 text-xs bg-white border-pink-200">
-                            <SelectValue placeholder="Add Music 🎵" />
+                          <SelectTrigger className="w-full xl:w-[160px] h-8 text-[10px] bg-white border-pink-200 shadow-sm focus:ring-pink-200">
+                            <SelectValue placeholder="Select Vibe 🎵" />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3">Uplifting Vibe</SelectItem>
@@ -1024,18 +1090,38 @@ export default function AddPropertyPage() {
                         <Button
                           type="button"
                           size="sm"
-                          className="bg-pink-600 hover:bg-pink-700 text-white"
-                          disabled={isGeneratingVideo || isVideoReady}
+                          className={`w-full xl:w-[160px] h-9 text-xs shadow-pink-200 shadow-md ${isVideoReady
+                            ? "bg-white text-pink-600 border border-pink-200 hover:bg-pink-50"
+                            : "bg-pink-600 hover:bg-pink-700 text-white"
+                            }`}
+                          disabled={isGeneratingVideo}
                           onClick={async () => {
+                            if (isVideoReady) {
+                              setIsVideoReady(false);
+                            }
                             setIsGeneratingVideo(true);
                             try {
+                              // Generate conversational script locally
+                              const script = aiDescriptionService.generatePodcastScript({
+                                address: formData.propertyAddress,
+                                propertyType: formData.propertyType || "Property",
+                                monthlyRent: formData.monthlyRent,
+                                bedrooms: "1",
+                                bathrooms: "1",
+                                amenities: formData.amenities,
+                                nearbyAmenities: formData.nearbyAmenities || [],
+                                images: existingImageUrls,
+                                detailedDetection: detailedDetection?.detectedAmenities || undefined
+                              });
+                              setVideoScript(script);
+
                               const result = await aiVideoService.generateVideo(editId || 'new');
                               if (result.status === 'ready') {
                                 setIsVideoReady(true);
-                                toast.success("Video tour generated!");
+                                toast.success("Video generated!");
                               }
                             } catch (e) {
-                              toast.error("Failed to generate video");
+                              toast.error("Generation failed");
                             } finally {
                               setIsGeneratingVideo(false);
                             }
@@ -1049,7 +1135,7 @@ export default function AddPropertyPage() {
                           ) : isVideoReady ? (
                             <>
                               <CheckCircle className="mr-2 h-3 w-3" />
-                              Ready
+                              Regenerate Video
                             </>
                           ) : (
                             <>
@@ -1058,23 +1144,14 @@ export default function AddPropertyPage() {
                             </>
                           )}
                         </Button>
+
+                        {isVideoReady && (
+                          <p className="text-[10px] text-pink-400 text-right w-full pr-1">
+                            Video ready for listing
+                          </p>
+                        )}
                       </div>
 
-                      {isVideoReady && (
-                        <div className="mt-2 border rounded-lg overflow-hidden shadow-sm">
-                          <PropertyVideoPlayer
-                            images={existingImageUrls.length > 0 ? existingImageUrls : (formData.images as string[]) || []}
-                            audioUrl={formData.descriptionAudioUrl || undefined}
-                            musicUrl={selectedMusic || undefined}
-                            address={formData.propertyAddress}
-                            price={formData.monthlyRent}
-                            amenities={[
-                              ...formData.amenities.slice(0, 3)
-                            ]}
-                            autoPlay={true}
-                          />
-                        </div>
-                      )}
                     </div>
                   </div>
                 )}

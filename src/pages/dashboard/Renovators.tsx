@@ -30,6 +30,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { RenovationPartnerService, RenovationPartner } from "@/services/renovationPartnerService";
+import { MessagingService } from "@/services/messagingService";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Renovator {
   id: string;
@@ -203,15 +205,50 @@ export default function RenovatorsPage() {
     email: "",
     phone: "",
     projectType: "",
+    propertyId: "",
     description: "",
     budget: "",
     timeline: ""
   });
+  const [userProperties, setUserProperties] = useState<{ id: string; listing_title: string; address: string }[]>([]);
+
   const [activeTab, setActiveTab] = useState("browse");
 
   useEffect(() => {
     loadRenovators();
+    loadUserProperties();
   }, []);
+
+  const loadUserProperties = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data } = await supabase
+        .from('properties' as any)
+        .select('id, listing_title, address')
+        .eq('landlord_id', user.id);
+
+      if (data) {
+        setUserProperties(data as any);
+      }
+
+      // Pre-fill user details
+      const { data: profile } = await supabase
+        .from('user_profiles' as any)
+        .select('full_name, email')
+        .eq('id', user.id)
+        .single();
+
+      if (profile) {
+        setContactForm(prev => ({
+          ...prev,
+          name: (profile as any).full_name || "",
+          email: (profile as any).email || "" // User email fallback handling is good practice but keeping simple for now
+        }));
+      } else if (user.email) {
+        setContactForm(prev => ({ ...prev, email: user.email || "" }));
+      }
+    }
+  };
 
   const loadRenovators = async () => {
     try {
@@ -243,22 +280,70 @@ export default function RenovatorsPage() {
       email: "",
       phone: "",
       projectType: "",
+      propertyId: "",
       description: "",
       budget: "",
       timeline: ""
     });
   };
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (!contactForm.name || !contactForm.email || !contactForm.description) {
       toast.error("Please fill in all required fields");
       return;
     }
 
-    // Simulate sending message
-    const responseTime = selectedRenovator?.response_time || "a few hours";
-    toast.success(`Message sent to ${selectedRenovator?.name}! They will respond within ${responseTime.toLowerCase()}.`);
-    setSelectedRenovator(null);
+    if (!selectedRenovator) return;
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (!user) {
+        toast.error("You must be logged in to send a message");
+        return;
+      }
+
+      if (!selectedRenovator.user_id) {
+        // Fallback for partners without linked accounts
+        toast.error("This partner is not set up for in-app messaging. Please contact them by phone.");
+        return;
+      }
+
+      const conversationId = await MessagingService.getOrCreateConversation(
+        contactForm.propertyId || null, // Use selected property or null
+        selectedRenovator.user_id, // Renovator acts as "Landlord" (Provider)
+        user.id // Seeker acts as "Tenant" (Consumer)
+      );
+
+      // Create a formatted message with all the details
+      const selectedProperty = userProperties.find(p => p.id === contactForm.propertyId);
+      const propertyInfo = selectedProperty
+        ? `Property: ${selectedProperty.listing_title || selectedProperty.address}\n`
+        : '';
+
+      const messageContent = `New Project Inquiry:
+      
+${propertyInfo}Project Type: ${contactForm.projectType || 'Not specified'}
+Budget: ${contactForm.budget || 'Not specified'}
+Timeline: ${contactForm.timeline || 'Not specified'}
+
+Description:
+${contactForm.description}
+
+Contact Details:
+Name: ${contactForm.name}
+Phone: ${contactForm.phone || 'Not provided'}
+Email: ${contactForm.email}`;
+
+      await MessagingService.sendMessage(conversationId, messageContent);
+
+      const responseTime = selectedRenovator?.response_time || "a few hours";
+      toast.success(`Message sent to ${selectedRenovator?.name}! They will respond within ${responseTime.toLowerCase()}.`);
+      setSelectedRenovator(null);
+    } catch (error) {
+      console.error('Error sending message:', error);
+      toast.error("Failed to send message. Please try again.");
+    }
   };
 
   const handleCallRenovator = (phone: string, ownerName?: string) => {
@@ -551,6 +636,24 @@ export default function RenovatorsPage() {
                       onChange={(e) => setContactForm(prev => ({ ...prev, email: e.target.value }))}
                       placeholder="Enter your email"
                     />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="col-span-2">
+                    <label className="text-sm font-medium">Select Property (Optional)</label>
+                    <select
+                      value={contactForm.propertyId}
+                      onChange={(e) => setContactForm(prev => ({ ...prev, propertyId: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">General Inquiry (No specific property)</option>
+                      {userProperties.map(property => (
+                        <option key={property.id} value={property.id}>
+                          {property.listing_title || property.address}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </div>
 

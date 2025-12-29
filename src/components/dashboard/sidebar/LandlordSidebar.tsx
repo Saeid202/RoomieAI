@@ -1,6 +1,6 @@
 
 import { Link } from "react-router-dom";
-import { Building, Home, Settings, Users, MessageCircle, Scale, Hammer, Sparkles, ShoppingCart, DollarSign, Wallet, Zap, AlertTriangle } from "lucide-react";
+import { Building, Home, Settings, Users, MessageCircle, Scale, Hammer, Sparkles, ShoppingCart, DollarSign, Wallet, Zap, AlertTriangle, GraduationCap } from "lucide-react";
 import { SidebarSimpleMenuItem } from "./SidebarSimpleMenuItem";
 import { SidebarMenuSection } from "./SidebarMenuSection";
 
@@ -54,6 +54,14 @@ export function LandlordSidebar({ isActive, showLabels }: LandlordSidebarProps) 
           { label: "🏗️ Compliance AI", path: "/dashboard/property-compliance-ai" },
           { label: "🚪 Eviction Assistant", path: "/dashboard/eviction-assistant" }
         ]}
+      />
+
+      <SidebarSimpleMenuItem
+        showLabel={showLabels}
+        icon={<GraduationCap size={18} />}
+        label="Education Centre"
+        to="/dashboard/education-centre"
+        isActive={isActive('/dashboard/education-centre')}
       />
 
       <SidebarSimpleMenuItem

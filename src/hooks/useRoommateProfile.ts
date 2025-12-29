@@ -20,9 +20,9 @@ export function useRoommateProfile() {
       console.log("Already loading profile data, skipping duplicate request");
       return Promise.resolve();
     }
-    
+
     setLoadCounter(prev => prev + 1);
-    
+
     if (!user) {
       console.log("No user found, using default profile data");
       setLoading(false);
@@ -30,12 +30,12 @@ export function useRoommateProfile() {
       setHasAttemptedLoad(true);
       return Promise.resolve();
     }
-    
+
     try {
       setLoading(true);
       setError(null);
       console.log("Loading profile data for user:", user.id);
-      
+
       // Set a timeout to prevent UI from being blocked for too long
       let hasCompleted = false;
       const timeoutPromise = new Promise<void>((resolve) => {
@@ -49,7 +49,7 @@ export function useRoommateProfile() {
           }
         }, 2000);
       });
-      
+
       // Fetch profile data from roommate table
       const fetchPromise = supabase
         .from('roommate')
@@ -65,12 +65,12 @@ export function useRoommateProfile() {
               hasCompleted = true;
               return;
             }
-            
+
             if (fetchError && fetchError.code !== 'PGRST116') {
               console.error("Error fetching roommate profile:", fetchError);
               throw new Error(`Failed to fetch profile: ${fetchError.message}`);
             }
-            
+
             if (data) {
               console.log("Fetched roommate profile:", data);
               // Map database fields to form format with proper type assertions
@@ -95,14 +95,18 @@ export function useRoommateProfile() {
                 workSchedule: (data.work_schedule as "dayShift" | "afternoonShift" | "overnightShift") || "dayShift",
                 hobbies: Array.isArray(data.hobbies) ? data.hobbies : [],
                 diet: (data.diet as "vegetarian" | "halal" | "kosher" | "noPreference" | "other") || "noPreference",
-                dietOther: data.dietary_other || "",
-                nationality: data.nationality_custom || "",
-                language: data.language_specific || "",
-                ethnicity: data.ethnicity_other || "",
-                religion: data.religion_other || "",
-                occupation: data.occupation_specific || "",
+                dietOther: data.diet_other || "", // Fixed mapping
+
+                // About Me - Demographics (Corrected mapping)
+                nationality: data.nationality || "",
+                language: data.language || "",
+                ethnicity: data.ethnicity || "",
+                religion: data.religion || "",
+                occupation: data.occupation || "",
+
                 profileVisibility: Array.isArray(data.profile_visibility) ? data.profile_visibility : [],
-                // Map ideal roommate preference fields from database
+
+                // Ideal Roommate Preferences
                 ageRangePreference: Array.isArray(data.age_range_preference) ? data.age_range_preference : [18, 65],
                 genderPreference: Array.isArray(data.gender_preference) ? data.gender_preference : [],
                 nationalityPreference: (data.nationality_preference as "sameCountry" | "noPreference" | "custom") || "noPreference",
@@ -113,9 +117,12 @@ export function useRoommateProfile() {
                 occupationSpecific: data.occupation_specific || "",
                 workSchedulePreference: (data.work_schedule_preference as "opposite" | "dayShift" | "afternoonShift" | "overnightShift" | "noPreference") || "noPreference",
                 dietaryPreferences: (data.dietary_preferences as "vegetarian" | "halal" | "kosher" | "others" | "noPreference") || "noPreference",
-                petPreference: (data.pet_preference as "noPets" | "catOk" | "smallPetsOk") || "noPets",
+
+                // Fix: Map from pet_preference_enum for Ideal Roommate
+                petPreference: (data.pet_preference_enum as "noPets" | "catOk" | "smallPetsOk") || "noPets",
                 smokingPreference: (data.smoking_preference as "noSmoking" | "noVaping" | "socialOk") || "noSmoking",
-                // Additional specific/custom fields
+
+                // Additional specific/custom fields (Ideal Roommate)
                 nationalityCustom: data.nationality_custom || "",
                 languageSpecific: data.language_specific || "",
                 dietaryOther: data.dietary_other || "",
@@ -124,6 +131,10 @@ export function useRoommateProfile() {
                 petSpecification: data.pet_specification || "",
                 roommateHobbies: Array.isArray(data.important_roommate_traits) ? data.important_roommate_traits : [],
                 rentOption: "findTogether",
+
+                // Housing Preference (Ideal) - New mapped field
+                housingPreference: Array.isArray(data.housing_preference) ? (data.housing_preference as any) : [],
+
                 // Add importance fields mapping from database to form
                 age_range_preference_importance: (data.age_range_preference_importance || "notImportant") as "notImportant" | "important" | "must",
                 gender_preference_importance: (data.gender_preference_importance || "notImportant") as "notImportant" | "important" | "must",
@@ -136,8 +147,9 @@ export function useRoommateProfile() {
                 religion_preference_importance: (data.religion_preference_importance || "notImportant") as "notImportant" | "important" | "must",
                 pet_preference_importance: (data.pet_preference_importance || "notImportant") as "notImportant" | "important" | "must",
                 smoking_preference_importance: (data.smoking_preference_importance || "notImportant") as "notImportant" | "important" | "must",
+                housing_preference_importance: (data.housing_preference_importance || "notImportant") as "notImportant" | "important" | "must",
               };
-              
+
               setProfileData(profileData);
               console.log("Set profile data from database:", profileData);
             } else {
@@ -148,15 +160,15 @@ export function useRoommateProfile() {
             hasCompleted = true;
           }
         });
-      
+
       // Race between timeout and fetch
       await Promise.race([fetchPromise, timeoutPromise]);
-      
+
       return Promise.resolve();
     } catch (error) {
       console.error("Error loading profile data:", error);
       setError(error instanceof Error ? error : new Error("Unknown error loading profile"));
-      
+
       // Set default data even on error to prevent UI from breaking
       setProfileData(getDefaultProfileData());
       return Promise.reject(error);
@@ -171,7 +183,7 @@ export function useRoommateProfile() {
     if (!hasAttemptedLoad) {
       // Set default data immediately to ensure UI can render
       setProfileData(getDefaultProfileData());
-      
+
       if (user) {
         console.log("User detected, loading profile data");
         loadProfileData().catch(err => {

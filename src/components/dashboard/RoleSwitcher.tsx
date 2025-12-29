@@ -13,7 +13,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { getAvailableRoles } from "@/services/adminService";
 
-export function RoleSwitcher() {
+interface RoleSwitcherProps {
+  variant?: 'default' | 'full-width';
+}
+
+export function RoleSwitcher({ variant = 'default' }: RoleSwitcherProps) {
   const { role, setRole } = useRole();
   const { updateMetadata, user } = useAuth();
   const navigate = useNavigate();
@@ -109,11 +113,13 @@ export function RoleSwitcher() {
       <DropdownMenuTrigger asChild>
         <Button
           variant="outline"
-          className="flex items-center gap-2 font-semibold"
+          className={`flex items-center gap-2 font-semibold ${variant === 'full-width' ? 'w-full justify-between' : ''}`}
           disabled={isRoleSwitching}
         >
-          {getRoleIcon(role)}
-          {getRoleDisplay(role)}
+          <div className="flex items-center gap-2">
+            {getRoleIcon(role)}
+            {getRoleDisplay(role)}
+          </div>
           <ChevronDown className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>

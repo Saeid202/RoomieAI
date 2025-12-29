@@ -108,6 +108,47 @@ export class AiDescriptionService {
     }
 
     /**
+     * Generates a conversational "Podcast Style" script for the sales agent.
+     * This is used when real AI audio generation is not available.
+     */
+    generatePodcastScript(input: PropertyDescriptionInput): string {
+        const { address, propertyType, monthlyRent, bedrooms, bathrooms, amenities, detailedDetection } = input;
+
+        // Extract street name for a more natural flow
+        const streetName = address.split(',')[0];
+        const bedText = bedrooms === '0' ? 'studio' : `${bedrooms}-bedroom`;
+        const bathText = bathrooms === '1' ? 'one bath' : `${bathrooms} baths`;
+
+        let script = `Hey there! Welcome to what could be your next dream home. Today we're checking out a fantastic ${propertyType} right at ${streetName}. `;
+
+        script += `If you're looking for value, this is it. It's a gorgeous ${bedText} unit with ${bathText}, going for just ${monthlyRent} a month. `;
+
+        if (amenities.length > 0) {
+            const topAmenities = amenities.slice(0, 3).join(', ');
+            script += `Life here is super convenient. You've got access to great amenities like ${topAmenities}, which really elevates the lifestyle. `;
+        }
+
+        // Neighborhood / Facilities
+        if (detailedDetection) {
+            const transit = [...detailedDetection.metro, ...detailedDetection.buses].map(t => t.name).slice(0, 2);
+            const shops = [...detailedDetection.shoppingMalls, ...detailedDetection.plazas].map(s => s.name).slice(0, 2);
+
+            if (transit.length > 0) {
+                script += `Commuting? No problem. The ${transit.join(' and ')} are super close. `;
+            }
+            if (shops.length > 0) {
+                script += `Plus, weekend errands are a breeze with ${shops.join(' and ')} right around the corner. `;
+            }
+        } else if (input.nearbyAmenities && input.nearbyAmenities.length > 0) {
+            script += `The neighborhood is vibrant, with ${input.nearbyAmenities.slice(0, 3).join(', ')} just moments away. `;
+        }
+
+        script += `Honestly, places like this don't stay on the market long. It's properly managed, fully equipped, and ready for you to move in. Come check it out before it's gone!`;
+
+        return script;
+    }
+
+    /**
      * Fallback local generator if AI service is unavailable.
      * Uses template-based generation with the rich data available.
      */

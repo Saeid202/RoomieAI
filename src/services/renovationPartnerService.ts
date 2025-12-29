@@ -2,6 +2,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 export interface RenovationPartner {
   id: string;
+  user_id?: string;
   name: string;
   company: string;
   rating: number;
@@ -321,8 +322,8 @@ export class RenovationPartnerService {
         total: data.length,
         active: data.filter(p => p.is_active).length,
         verified: data.filter(p => p.verified).length,
-        averageRating: data.length > 0 
-          ? data.reduce((sum, p) => sum + (p.rating || 0), 0) / data.length 
+        averageRating: data.length > 0
+          ? data.reduce((sum, p) => sum + (p.rating || 0), 0) / data.length
           : 0
       };
 
