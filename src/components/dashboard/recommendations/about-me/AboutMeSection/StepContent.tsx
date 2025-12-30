@@ -26,18 +26,18 @@ const HOBBIES_LIST = ["Reading", "Gaming", "Cooking", "Hiking", "Movies", "Music
 // Helper function to format display values
 const formatDisplayValue = (value: any, fieldName: string) => {
   if (!value && value !== false && value !== 0) return "Not specified";
-  
+
   if (typeof value === "boolean") return value ? "Yes" : "No";
-  
+
   if (Array.isArray(value)) {
     if (value.length === 0) return "None";
     return value.join(", ");
   }
-  
+
   if (fieldName === "gender") {
     const genderMap: { [key: string]: string } = {
       "male": "Male",
-      "female": "Female", 
+      "female": "Female",
       "lesbian": "Lesbian",
       "gay": "Gay",
       "bisexual": "Bisexual",
@@ -47,36 +47,36 @@ const formatDisplayValue = (value: any, fieldName: string) => {
     };
     return genderMap[value] || value;
   }
-  
+
   if (fieldName === "workLocation") {
     const workLocationMap: { [key: string]: string } = {
       "remote": "Work from home",
-      "office": "Go to office", 
+      "office": "Go to office",
       "hybrid": "Hybrid (both)"
     };
     return workLocationMap[value] || value;
   }
-  
+
   if (fieldName === "workSchedule") {
     const workScheduleMap: { [key: string]: string } = {
       "dayShift": "Day shift",
-      "afternoonShift": "Afternoon shift", 
+      "afternoonShift": "Afternoon shift",
       "overnightShift": "Overnight shift"
     };
     return workScheduleMap[value] || value;
   }
-  
+
   if (fieldName === "diet") {
     const dietMap: { [key: string]: string } = {
       "vegetarian": "Vegetarian",
-      "halal": "Halal only", 
+      "halal": "Halal only",
       "kosher": "Kosher only",
       "noPreference": "No restrictions",
       "other": "Other"
     };
     return dietMap[value] || value;
   }
-  
+
   if (fieldName === "housingType") {
     const housingMap: { [key: string]: string } = {
       "apartment": "Apartment",
@@ -84,20 +84,20 @@ const formatDisplayValue = (value: any, fieldName: string) => {
     };
     return housingMap[value] || value;
   }
-  
+
   if (fieldName === "livingSpace") {
     const livingSpaceMap: { [key: string]: string } = {
       "privateRoom": "Private Room",
-      "sharedRoom": "Shared Room", 
+      "sharedRoom": "Shared Room",
       "entirePlace": "Entire Place"
     };
     return livingSpaceMap[value] || value;
   }
-  
+
   if (typeof value === "string") {
     return value.charAt(0).toUpperCase() + value.slice(1);
   }
-  
+
   return value.toString();
 };
 
@@ -157,7 +157,7 @@ export function StepContent({ step, form }: StepContentProps) {
               </FormItem>
             )}
           />
-          
+
           <FormField
             control={form.control}
             name="age"
@@ -171,7 +171,7 @@ export function StepContent({ step, form }: StepContentProps) {
               </FormItem>
             )}
           />
-          
+
           <FormField
             control={form.control}
             name="gender"
@@ -218,7 +218,7 @@ export function StepContent({ step, form }: StepContentProps) {
               </FormItem>
             )}
           />
-          
+
           <FormField
             control={form.control}
             name="phoneNumber"
@@ -232,7 +232,7 @@ export function StepContent({ step, form }: StepContentProps) {
               </FormItem>
             )}
           />
-          
+
           <FormField
             control={form.control}
             name="profileVisibility"
@@ -252,6 +252,20 @@ export function StepContent({ step, form }: StepContentProps) {
                     </FormItem>
                   ))}
                 </div>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="linkedinProfile"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>LinkedIn Profile (Optional)</FormLabel>
+                <FormControl>
+                  <Input placeholder="Enter your LinkedIn URL" {...field} />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
@@ -286,7 +300,7 @@ export function StepContent({ step, form }: StepContentProps) {
               </FormItem>
             )}
           />
-          
+
           <FormField
             control={form.control}
             name="language"
@@ -311,7 +325,7 @@ export function StepContent({ step, form }: StepContentProps) {
               </FormItem>
             )}
           />
-          
+
           <FormField
             control={form.control}
             name="ethnicity"
@@ -355,7 +369,7 @@ export function StepContent({ step, form }: StepContentProps) {
               </FormItem>
             )}
           />
-          
+
           <FormField
             control={form.control}
             name="workLocation"
@@ -388,7 +402,7 @@ export function StepContent({ step, form }: StepContentProps) {
               </FormItem>
             )}
           />
-          
+
           <FormField
             control={form.control}
             name="workSchedule"
@@ -471,7 +485,7 @@ export function StepContent({ step, form }: StepContentProps) {
               </FormItem>
             )}
           />
-          
+
           {dietValue === "other" && (
             <FormField
               control={form.control}
@@ -487,7 +501,7 @@ export function StepContent({ step, form }: StepContentProps) {
               )}
             />
           )}
-          
+
           <FormField
             control={form.control}
             name="religion"
@@ -532,8 +546,8 @@ export function StepContent({ step, form }: StepContentProps) {
                       onChange={(e) => setNewLocation(e.target.value)}
                       onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addLocation())}
                     />
-                    <Button 
-                      type="button" 
+                    <Button
+                      type="button"
                       onClick={addLocation}
                       disabled={preferredLocations.length >= 15 || !newLocation.trim()}
                     >
@@ -561,7 +575,7 @@ export function StepContent({ step, form }: StepContentProps) {
               </FormItem>
             )}
           />
-          
+
           <FormField
             control={form.control}
             name="housingType"
@@ -583,7 +597,7 @@ export function StepContent({ step, form }: StepContentProps) {
               </FormItem>
             )}
           />
-          
+
           <FormField
             control={form.control}
             name="livingSpace"
@@ -626,7 +640,7 @@ export function StepContent({ step, form }: StepContentProps) {
               </FormItem>
             )}
           />
-          
+
           <FormField
             control={form.control}
             name="livesWithSmokers"
@@ -641,7 +655,7 @@ export function StepContent({ step, form }: StepContentProps) {
               </FormItem>
             )}
           />
-          
+
           <FormField
             control={form.control}
             name="hasPets"
@@ -696,7 +710,7 @@ export function StepContent({ step, form }: StepContentProps) {
               </FormItem>
             )}
           />
-          
+
           <FormField
             control={form.control}
             name="hobbies"
@@ -771,6 +785,10 @@ export function StepContent({ step, form }: StepContentProps) {
                   <div>
                     <label className="text-sm font-medium text-muted-foreground">Phone</label>
                     <p className="font-medium">{formatDisplayValue(formData.phoneNumber, "phoneNumber")}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">LinkedIn</label>
+                    <p className="font-medium">{formatDisplayValue(formData.linkedinProfile, "linkedinProfile")}</p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-muted-foreground">Nationality</label>
@@ -921,7 +939,7 @@ export function StepContent({ step, form }: StepContentProps) {
               <div>
                 <h4 className="font-semibold text-blue-800 mb-1">Ready to Save?</h4>
                 <p className="text-blue-700 text-sm">
-                  Your profile looks great! Click the "Save Profile" button below to complete your registration. 
+                  Your profile looks great! Click the "Save Profile" button below to complete your registration.
                   You can always edit this information later from your profile settings.
                 </p>
               </div>

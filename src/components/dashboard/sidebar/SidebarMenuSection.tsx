@@ -14,11 +14,12 @@ import {
 interface MenuSubItem {
   label: string;
   path: string;
+  icon?: React.ReactNode;
 }
 
 interface SidebarMenuSectionProps {
   title: string;
-  icon: LucideIcon;
+  icon: any; // Allow customized icons including emojis
   subItems: MenuSubItem[];
   isActive: (path: string) => boolean;
   defaultExpanded?: boolean;
@@ -30,7 +31,7 @@ export function SidebarMenuSection({
   icon: Icon,
   subItems,
   isActive,
-  defaultExpanded = true,
+  defaultExpanded = false,
   showLabels
 }: SidebarMenuSectionProps) {
   const [expanded, setExpanded] = useState(defaultExpanded);
@@ -43,7 +44,7 @@ export function SidebarMenuSection({
         className="justify-between"
       >
         <div className="flex items-center gap-2">
-          <Icon size={20} />
+          {typeof Icon === 'function' || typeof Icon === 'object' ? <Icon size={20} /> : Icon}
           {(open || showLabels) && <span>{title}</span>}
         </div>
         {(open || showLabels) && (
@@ -59,7 +60,8 @@ export function SidebarMenuSection({
           {subItems.map((item) => (
             <SidebarMenuSubItem key={item.path}>
               <SidebarMenuSubButton asChild isActive={isActive(item.path)}>
-                <Link to={item.path}>
+                <Link to={item.path} className="flex items-center gap-2">
+                  {item.icon && <span className="opacity-70">{item.icon}</span>}
                   <span>{item.label}</span>
                 </Link>
               </SidebarMenuSubButton>

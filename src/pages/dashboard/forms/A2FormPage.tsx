@@ -28,17 +28,104 @@ export default function A2FormPage() {
     const navigate = useNavigate();
     const { toast } = useToast();
     const [isLoading, setIsLoading] = useState(false);
+    const [id, setId] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState("part1");
+
+    // Load draft if ID is in URL
+    useState(() => {
+        const params = new URLSearchParams(window.location.search);
+        const draftId = params.get('id');
+        if (draftId) {
+            setId(draftId);
+            loadDraft(draftId);
+        }
+    });
+
+    async function loadDraft(draftId: string) {
+        setIsLoading(true);
+        try {
+            const { data, error } = await (supabase
+                .from('a2_forms' as any)
+                .select('*')
+                .eq('id', draftId)
+                .single() as any);
+
+            if (error) throw error;
+            if (data) {
+                // Map columns back to formData
+                setFormData({
+                    applicantType: data.applicant_type,
+                    applicantFirst: data.applicant_first_name,
+                    applicantLast: data.applicant_last_name,
+                    applicantCompany: data.applicant_company,
+                    applicantAddress: data.applicant_address,
+                    applicantUnit: data.applicant_unit,
+                    applicantCity: data.applicant_city,
+                    applicantProvince: data.applicant_province,
+                    applicantPostal: data.applicant_postal,
+                    applicantPhoneDay: data.applicant_phone_day,
+                    applicantPhoneEve: data.applicant_phone_eve,
+                    applicantEmail: data.applicant_email,
+                    rentalAddress: data.rental_address,
+                    fileNumber1: data.related_files?.[0] || "",
+                    fileNumber2: data.related_files?.[1] || "",
+                    t_reason1_refused: data.t_reason1_refused,
+                    t_r1_type: data.t_r1_type,
+                    t_r1_explanation: data.t_r1_explanation,
+                    t_r1_remedy_authorize: data.t_r1_remedy_authorize,
+                    t_r1_remedy_person: data.t_r1_remedy_person,
+                    t_r1_remedy_end: data.t_r1_remedy_end,
+                    t_r1_end_date: data.t_r1_end_date,
+                    t_r1_remedy_abatement: data.t_r1_remedy_abatement,
+                    t_r1_abatement_amount: String(data.t_r1_abatement_amount || ""),
+                    t_r1_abatement_explanation: data.t_r1_abatement_explanation,
+                    t_reason2_subtenant_stayed: data.t_reason2_subtenant_stayed,
+                    t_r2_move_out_date: data.t_r2_move_out_date,
+                    t_r2_remedy_evict: data.t_r2_remedy_evict,
+                    t_r2_remedy_comp: data.t_r2_remedy_comp,
+                    t_r2_rent_paid: String(data.t_r2_rent_paid || ""),
+                    t_r2_rent_period: data.t_r2_rent_period,
+                    l_reason1_unauthorized: data.l_reason1_unauthorized,
+                    l_r1_aware_date: data.l_r1_aware_date,
+                    l_r1_remedy_evict: data.l_r1_remedy_evict,
+                    l_r1_remedy_comp: data.l_r1_remedy_comp,
+                    l_r1_prev_rent: String(data.l_r1_prev_rent || ""),
+                    l_r1_prev_rent_freq: data.l_r1_prev_rent_freq,
+                    nsfCharges: data.nsf_charges || [],
+                    l_reason2_subtenant_stayed: data.l_reason2_subtenant_stayed,
+                    l_r2_move_out_date: data.l_r2_move_out_date,
+                    l_reason3_refusal_reasonable: data.l_reason3_refusal_reasonable,
+                    l_r3_explanation: data.l_r3_explanation,
+                    signerType: data.signer_type,
+                    sigFirst: data.signature_first_name,
+                    sigLast: data.signature_last_name,
+                    sigDate: data.signature_date,
+                    repLsuc: data.representative_info?.lsuc || "",
+                    repCompany: data.representative_info?.company || "",
+                    repAddress: data.representative_info?.address || "",
+                    repCity: data.representative_info?.city || "",
+                    repProvince: data.representative_info?.province || "ON",
+                    repPostal: data.representative_info?.postal || "",
+                    repFax: data.representative_info?.fax || "",
+                    repEmail: data.representative_info?.email || ""
+                });
+            }
+        } catch (error: any) {
+            toast({ variant: "destructive", title: "Error loading draft", description: error.message });
+        } finally {
+            setIsLoading(false);
+        }
+    }
 
     const handleDownload = () => {
         const element = document.getElementById('a2-form-content');
         const opt = {
             margin: 10,
             filename: 'A2-Application-Sublet-Assignment.pdf',
-            image: { type: 'jpeg', quality: 0.98 },
+            image: { type: 'jpeg' as const, quality: 0.98 },
             html2canvas: { scale: 2 },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        } as any;
+            jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const }
+        };
         html2pdf().set(opt).from(element).save();
     };
 
@@ -142,7 +229,8 @@ export default function A2FormPage() {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) return;
 
-            const { error } = await supabase.from('a2_forms' as any).insert({
+            const upsertData = {
+                id: id || undefined,
                 user_id: user.id,
                 applicant_type: formData.applicantType,
                 applicant_first_name: formData.applicantFirst,
@@ -205,11 +293,23 @@ export default function A2FormPage() {
                     fax: formData.repFax,
                     email: formData.repEmail
                 },
-                status: 'draft'
-            });
+                status: 'draft',
+                updated_at: new Date().toISOString()
+            };
+
+            const { data, error } = await (supabase
+                .from('a2_forms' as any)
+                .upsert(upsertData)
+                .select()
+                .single() as any);
 
             if (error) throw error;
-            toast({ title: "Saved", description: "Form saved successfully to drafts." });
+            if (data) {
+                setId(data.id);
+                const newUrl = `${window.location.pathname}?id=${data.id}`;
+                window.history.replaceState({ path: newUrl }, '', newUrl);
+                toast({ title: "Draft Saved", description: "Form saved successfully to drafts." });
+            }
         } catch (error: any) {
             console.error(error);
             toast({ variant: "destructive", title: "Error", description: error.message || "Failed to save form." });

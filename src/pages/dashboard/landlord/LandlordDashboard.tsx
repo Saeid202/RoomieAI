@@ -7,10 +7,11 @@ import { useAuth } from "@/hooks/useAuth";
 export default function LandlordDashboardPage() {
   const { user } = useAuth();
   const [stats, setStats] = useState({
-    totalProperties: 0,
+    totalRentals: 0,
+    totalSales: 0,
     activeApplications: 0,
     monthlyRevenue: 0,
-    occupancyRate: 0
+    portfolioValue: 0
   });
   const [isLoading, setIsLoading] = useState(true);
 
@@ -19,16 +20,24 @@ export default function LandlordDashboardPage() {
       if (!user) return;
 
       try {
-        // Fetch total properties
+        // Fetch total rental properties
         const { data: properties, error: propertiesError } = await supabase
           .from('properties')
-          .select('id, rent_amount', { count: 'exact' })
-          .eq('landlord_id', user.id);
+          .select('id, monthly_rent', { count: 'exact' })
+          .eq('user_id', user.id);
 
         if (propertiesError) throw propertiesError;
 
+        // Fetch total sales listings
+        const { data: sales, error: salesError } = await (supabase as any)
+          .from('sales_listings')
+          .select('id, sales_price', { count: 'exact' })
+          .eq('user_id', user.id);
+
+        if (salesError && salesError.code !== '42P01') throw salesError;
+
         // Fetch active applications
-        const { count: applicationsCount, error: applicationsError } = await supabase
+        const { count: applicationsCount, error: applicationsError } = await (supabase as any)
           .from('rental_applications')
           .select('*', { count: 'exact', head: true })
           .eq('property_id', properties?.map(p => p.id) || [])
@@ -36,17 +45,16 @@ export default function LandlordDashboardPage() {
 
         if (applicationsError) throw applicationsError;
 
-        // Calculate monthly revenue and occupancy
-        const totalRevenue = properties?.reduce((sum, p) => sum + (p.rent_amount || 0), 0) || 0;
-        const occupiedProperties = properties?.filter(p => p.rent_amount > 0).length || 0;
-        const totalProperties = properties?.length || 0;
-        const occupancyRate = totalProperties > 0 ? (occupiedProperties / totalProperties) * 100 : 0;
+        // Calculations
+        const totalRevenue = properties?.reduce((sum, p) => sum + (p.monthly_rent || 0), 0) || 0;
+        const totalPortfolioValue = (sales as any[])?.reduce((sum, s) => sum + (s.sales_price || 0), 0) || 0;
 
         setStats({
-          totalProperties: totalProperties,
+          totalRentals: properties?.length || 0,
+          totalSales: sales?.length || 0,
           activeApplications: applicationsCount || 0,
           monthlyRevenue: totalRevenue,
-          occupancyRate: Math.round(occupancyRate)
+          portfolioValue: totalPortfolioValue
         });
       } catch (error) {
         console.error('Error fetching dashboard stats:', error);
@@ -66,21 +74,21 @@ export default function LandlordDashboardPage() {
           <p className="text-muted-foreground mt-1">Manage your properties and track performance</p>
         </div>
       </div>
-      
+
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Properties</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Rentals</CardTitle>
             <Building className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{isLoading ? '...' : stats.totalProperties}</div>
+            <div className="text-2xl font-bold">{isLoading ? '...' : stats.totalRentals}</div>
             <p className="text-xs text-muted-foreground">
-              {stats.totalProperties === 0 ? 'No properties listed yet' : 'Active properties'}
+              {stats.totalRentals === 0 ? 'No rentals listed' : 'Active rental units'}
             </p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Active Applications</CardTitle>
@@ -89,33 +97,33 @@ export default function LandlordDashboardPage() {
           <CardContent>
             <div className="text-2xl font-bold">{isLoading ? '...' : stats.activeApplications}</div>
             <p className="text-xs text-muted-foreground">
-              {stats.activeApplications === 0 ? 'No applications received' : 'Pending applications'}
+              {stats.activeApplications === 0 ? 'No applications' : 'Pending review'}
             </p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Monthly Revenue</CardTitle>
+            <CardTitle className="text-sm font-medium">Monthly Rent Roll</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{isLoading ? '...' : `$${stats.monthlyRevenue.toLocaleString()}`}</div>
             <p className="text-xs text-muted-foreground">
-              {stats.monthlyRevenue === 0 ? 'No revenue yet' : 'Estimated monthly'}
+              {stats.monthlyRevenue === 0 ? '$0.00' : 'Total monthly rent'}
             </p>
           </CardContent>
         </Card>
-        
-        <Card>
+
+        <Card className="border-indigo-100 bg-indigo-50/30">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Occupancy Rate</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-indigo-900">Sales Portfolio</CardTitle>
+            <TrendingUp className="h-4 w-4 text-indigo-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{isLoading ? '...' : `${stats.occupancyRate}%`}</div>
-            <p className="text-xs text-muted-foreground">
-              {stats.occupancyRate === 0 ? 'No occupied units' : 'Current occupancy'}
+            <div className="text-2xl font-bold text-indigo-700">{isLoading ? '...' : `$${(stats.portfolioValue / 1000000).toFixed(2)}M`}</div>
+            <p className="text-xs text-indigo-600/80">
+              {stats.totalSales} active sales listings
             </p>
           </CardContent>
         </Card>

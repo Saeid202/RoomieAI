@@ -39,6 +39,11 @@ import N8FormPage from "@/pages/dashboard/forms/N8FormPage";
 import N12FormPage from "@/pages/dashboard/forms/N12FormPage";
 import N13FormPage from "@/pages/dashboard/forms/N13FormPage";
 import A2FormPage from "@/pages/dashboard/forms/A2FormPage";
+import T2FormPage from "@/pages/dashboard/forms/T2FormPage";
+import T6FormPage from "@/pages/dashboard/forms/T6FormPage";
+import T1FormPage from "@/pages/dashboard/forms/T1FormPage";
+import T3FormPage from "@/pages/dashboard/forms/T3FormPage";
+import T5FormPage from "@/pages/dashboard/forms/T5FormPage";
 import RenovatorsPage from "@/pages/dashboard/Renovators";
 import CleanersPage from "@/pages/dashboard/Cleaners";
 import ShopPage from "@/pages/dashboard/Shop";
@@ -74,6 +79,8 @@ import Availability from "@/pages/renovator/Availability";
 import ServiceArea from "@/pages/renovator/ServiceArea";
 import RenovatorSettings from "@/pages/renovator/RenovatorSettings";
 import EducationCentrePage from "@/pages/dashboard/EducationCentre";
+import BuyingOpportunitiesPage from "@/pages/dashboard/BuyingOpportunities";
+
 
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect } from "react";
@@ -123,6 +130,7 @@ function AppRoutes() {
           <Route path="applications" element={<ErrorBoundary componentName="MyApplicationsPage"><MyApplicationsPage /></ErrorBoundary>} />
           <Route path="opposite-schedule" element={<OppositeSchedulePage />} />
           <Route path="work-exchange" element={<WorkExchangePage />} />
+          <Route path="buying-opportunities" element={<BuyingOpportunitiesPage />} />
           <Route path="lgbtq-matching" element={<LGBTQMatchingPage />} />
           <Route path="landlord" element={<LandlordDashboardPage />} />
           <Route path="landlord/properties" element={<PropertiesPage />} />
@@ -145,6 +153,11 @@ function AppRoutes() {
           <Route path="forms/n12" element={<ErrorBoundary componentName="N12FormPage"><N12FormPage /></ErrorBoundary>} />
           <Route path="forms/n13" element={<ErrorBoundary componentName="N13FormPage"><N13FormPage /></ErrorBoundary>} />
           <Route path="forms/a2" element={<ErrorBoundary componentName="A2FormPage"><A2FormPage /></ErrorBoundary>} />
+          <Route path="forms/t2" element={<ErrorBoundary componentName="T2FormPage"><T2FormPage /></ErrorBoundary>} />
+          <Route path="forms/t6" element={<ErrorBoundary componentName="T6FormPage"><T6FormPage /></ErrorBoundary>} />
+          <Route path="forms/t1" element={<ErrorBoundary componentName="T1FormPage"><T1FormPage /></ErrorBoundary>} />
+          <Route path="forms/t3" element={<ErrorBoundary componentName="T3FormPage"><T3FormPage /></ErrorBoundary>} />
+          <Route path="forms/t5" element={<ErrorBoundary componentName="T5FormPage"><T5FormPage /></ErrorBoundary>} />
           <Route path="tenancy-legal-ai" element={<TenancyLegalAIPage />} />
           <Route path="education-centre" element={<EducationCentrePage />} />
           <Route path="renovators" element={<RenovatorsPage />} />
@@ -217,6 +230,7 @@ function AppRoutes() {
         <Route path="applications" element={<ErrorBoundary componentName="MyApplicationsPage"><MyApplicationsPage /></ErrorBoundary>} />
         <Route path="opposite-schedule" element={<OppositeSchedulePage />} />
         <Route path="work-exchange" element={<WorkExchangePage />} />
+        <Route path="buying-opportunities" element={<BuyingOpportunitiesPage />} />
         <Route path="lgbtq-matching" element={<LGBTQMatchingPage />} />
         <Route path="landlord" element={<LandlordDashboardPage />} />
         <Route path="landlord/properties" element={<PropertiesPage />} />

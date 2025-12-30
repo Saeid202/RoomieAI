@@ -50,16 +50,25 @@ export class MessagingService {
 
               if (!propertyError && property) {
                 propertyTitle =
-                  property.listing_title ||
-                  property.address ||
+                  (property as any).listing_title ||
+                  (property as any).address ||
                   "Unknown Property";
-              } else {
-                console.warn(
-                  "Could not fetch property:",
-                  propertyError,
-                  "Property ID:",
-                  conv.property_id
-                );
+              } else if (conv.sales_listing_id) {
+                // Try fetching from sales_listings
+                const { data: salesListing } = await supabase
+                  .from("sales_listings" as any)
+                  .select("listing_title, address")
+                  .eq("id", conv.sales_listing_id)
+                  .maybeSingle();
+
+                if (salesListing) {
+                  propertyTitle = (salesListing as any).listing_title || (salesListing as any).address || "Sales Listing";
+                }
+              }
+
+              // If it's a co-buy group, append a prefix
+              if ((conv as any).co_ownership_group_id) {
+                propertyTitle = `🏠 Group Co-buy: ${propertyTitle}`;
               }
             } catch (err) {
               console.error("Error fetching property:", err);
@@ -77,8 +86,8 @@ export class MessagingService {
 
               if (!landlordError && landlordProfile) {
                 landlordName =
-                  landlordProfile.full_name ||
-                  landlordProfile.email?.split("@")[0] ||
+                  (landlordProfile as any).full_name ||
+                  (landlordProfile as any).email?.split("@")[0] ||
                   "Landlord";
                 console.log(
                   "Landlord name fetched:",
@@ -236,10 +245,22 @@ export class MessagingService {
 
       // Check if user is part of this conversation
       if (
-        conversation.landlord_id !== user.id &&
-        conversation.tenant_id !== user.id
+        (conversation as any).landlord_id !== user.id &&
+        (conversation as any).tenant_id !== user.id
       ) {
-        return null;
+        // Also check if they are a member of the group if it's a group chat
+        if (!(conversation as any).co_ownership_group_id) {
+          return null;
+        }
+
+        const { data: member } = await supabase
+          .from("co_ownership_group_members" as any)
+          .select("user_id")
+          .eq("group_id", (conversation as any).co_ownership_group_id)
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+        if (!member) return null;
       }
 
       // Get messages
@@ -255,19 +276,26 @@ export class MessagingService {
         const { data: property, error: propertyError } = await supabase
           .from("properties" as any)
           .select("listing_title, address")
-          .eq("id", conversation.property_id)
+          .eq("id", (conversation as any).property_id)
           .maybeSingle();
 
         if (!propertyError && property) {
           propertyTitle =
-            property.listing_title || property.address || "Unknown Property";
-        } else {
-          console.warn(
-            "Could not fetch property:",
-            propertyError,
-            "Property ID:",
-            conversation.property_id
-          );
+            (property as any).listing_title || (property as any).address || "Unknown Property";
+        } else if ((conversation as any).sales_listing_id) {
+          const { data: salesListing } = await supabase
+            .from("sales_listings" as any)
+            .select("listing_title, address")
+            .eq("id", (conversation as any).sales_listing_id)
+            .maybeSingle();
+
+          if (salesListing) {
+            propertyTitle = (salesListing as any).listing_title || (salesListing as any).address || "Sales Listing";
+          }
+        }
+
+        if ((conversation as any).co_ownership_group_id) {
+          propertyTitle = `🏠 Group Co-buy: ${propertyTitle}`;
         }
       } catch (err) {
         console.error("Error fetching property:", err);
@@ -280,20 +308,20 @@ export class MessagingService {
         const { data: landlordProfile, error: landlordError } = await supabase
           .from("user_profiles" as any)
           .select("full_name, email")
-          .eq("id", conversation.landlord_id)
+          .eq("id", (conversation as any).landlord_id)
           .maybeSingle();
 
         if (!landlordError && landlordProfile) {
           landlordName =
-            landlordProfile.full_name ||
-            landlordProfile.email?.split("@")[0] ||
+            (landlordProfile as any).full_name ||
+            (landlordProfile as any).email?.split("@")[0] ||
             "Landlord";
         } else {
           // If profile not found, try RPC function to get from auth.users
           try {
             const { data: userName, error: rpcError } = await supabase.rpc(
               "get_user_name" as any,
-              { user_id: conversation.landlord_id }
+              { user_id: (conversation as any).landlord_id }
             );
 
             if (!rpcError && userName && typeof userName === "string") {
@@ -302,7 +330,7 @@ export class MessagingService {
               // Last resort: try to get email from RPC
               const { data: userEmail } = await supabase.rpc(
                 "get_user_email" as any,
-                { user_id: conversation.landlord_id }
+                { user_id: (conversation as any).landlord_id }
               );
 
               if (userEmail && typeof userEmail === "string") {
@@ -324,20 +352,20 @@ export class MessagingService {
         const { data: tenantProfile, error: tenantError } = await supabase
           .from("user_profiles" as any)
           .select("full_name, email")
-          .eq("id", conversation.tenant_id)
+          .eq("id", (conversation as any).tenant_id)
           .maybeSingle();
 
         if (!tenantError && tenantProfile) {
           tenantName =
-            tenantProfile.full_name ||
-            tenantProfile.email?.split("@")[0] ||
+            (tenantProfile as any).full_name ||
+            (tenantProfile as any).email?.split("@")[0] ||
             "Tenant";
         } else {
           // If profile not found, try RPC function to get from auth.users
           try {
             const { data: userName, error: rpcError } = await supabase.rpc(
               "get_user_name" as any,
-              { user_id: conversation.tenant_id }
+              { user_id: (conversation as any).tenant_id }
             );
 
             if (!rpcError && userName && typeof userName === "string") {
@@ -346,7 +374,7 @@ export class MessagingService {
               // Last resort: try to get email from RPC
               const { data: userEmail } = await supabase.rpc(
                 "get_user_email" as any,
-                { user_id: conversation.tenant_id }
+                { user_id: (conversation as any).tenant_id }
               );
 
               if (userEmail && typeof userEmail === "string") {
@@ -421,7 +449,8 @@ export class MessagingService {
   static async getOrCreateConversation(
     propertyId: string | null,
     landlordId: string,
-    tenantId: string
+    tenantId: string,
+    salesListingId?: string | null
   ): Promise<string> {
     // Check if conversation already exists
     let query = supabase
@@ -432,8 +461,10 @@ export class MessagingService {
 
     if (propertyId) {
       query = query.eq("property_id", propertyId);
+    } else if (salesListingId) {
+      query = query.eq("sales_listing_id", salesListingId);
     } else {
-      query = query.is("property_id", null);
+      query = query.is("property_id", null).is("sales_listing_id", null);
     }
 
     const { data: existingConversation, error: fetchError } = await query.single();
@@ -447,6 +478,7 @@ export class MessagingService {
       .from("conversations" as any)
       .insert({
         property_id: propertyId,
+        sales_listing_id: salesListingId || null,
         landlord_id: landlordId,
         tenant_id: tenantId,
       })
@@ -455,6 +487,82 @@ export class MessagingService {
 
     if (createError) throw createError;
     return (newConversation as any).id;
+  }
+
+  static async joinCoOwnershipGroup(
+    salesListingId: string,
+    userId: string,
+    landlordId: string
+  ): Promise<string> {
+    try {
+      console.log('Joining co-ownership group for listing:', salesListingId);
+
+      // 1. Get or create co-ownership group
+      let { data: group, error: groupError } = await supabase
+        .from("co_ownership_groups" as any)
+        .select("id")
+        .eq("sales_listing_id", salesListingId)
+        .maybeSingle();
+
+      if (groupError) throw groupError;
+
+      if (!group) {
+        console.log('Creating new co-ownership group...');
+        const { data: newGroup, error: createGroupError } = await supabase
+          .from("co_ownership_groups" as any)
+          .insert({ sales_listing_id: salesListingId })
+          .select("id")
+          .single();
+        if (createGroupError) throw createGroupError;
+        group = newGroup;
+      }
+
+      // 2. Join the group
+      console.log('Adding user to group members...');
+      const { error: joinError } = await supabase
+        .from("co_ownership_group_members" as any)
+        .upsert({
+          group_id: (group as any).id,
+          user_id: userId
+        });
+
+      if (joinError) {
+        console.error('Error joining group:', joinError);
+        // Continue anyway if it's just a duplicate Join
+      }
+
+      // 3. Find/Create group conversation
+      console.log('Fetching/creating group conversation...');
+      const { data: existingConv } = await supabase
+        .from("conversations" as any)
+        .select("id")
+        .eq("co_ownership_group_id", (group as any).id)
+        .maybeSingle();
+
+      if (existingConv) {
+        console.log('Found existing group conversation:', existingConv.id);
+        return existingConv.id;
+      }
+
+      console.log('Creating initial group conversation record...');
+      const { data: newConv, error: convError } = await supabase
+        .from("conversations" as any)
+        .insert({
+          co_ownership_group_id: (group as any).id,
+          sales_listing_id: salesListingId,
+          landlord_id: landlordId,
+          tenant_id: userId // First joiner establishes the initial row context
+        })
+        .select("id")
+        .single();
+
+      if (convError) throw convError;
+      console.log('Created new group conversation:', newConv.id);
+      return newConv.id;
+    } catch (error) {
+      console.error('Failed to join co-ownership group:', error);
+      throw error;
+    }
   }
 
   // Subscribe to real-time message updates

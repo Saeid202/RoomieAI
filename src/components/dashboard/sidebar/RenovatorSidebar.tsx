@@ -1,5 +1,5 @@
- 
-import { Home, Zap, Hammer, MessageSquare, User, Clock, MapPin, Settings } from "lucide-react";
+
+import { Home, Zap, Hammer, MessageSquare, User, Clock, MapPin, Settings, Users, Building } from "lucide-react";
 import { SidebarSimpleMenuItem } from "./SidebarSimpleMenuItem";
 
 interface RenovatorSidebarProps {
@@ -12,7 +12,7 @@ export function RenovatorSidebar({ isActive, showLabels }: RenovatorSidebarProps
         <>
             <SidebarSimpleMenuItem
                 showLabel={showLabels}
-                icon={<Home size={18} />}
+                icon={<span className="text-lg">🏠</span>}
                 label="Dashboard"
                 to="/renovator/dashboard"
                 isActive={isActive('/renovator/dashboard')}
@@ -20,31 +20,7 @@ export function RenovatorSidebar({ isActive, showLabels }: RenovatorSidebarProps
 
             <SidebarSimpleMenuItem
                 showLabel={showLabels}
-                icon={<Zap size={18} className="text-red-500" />}
-                label="Emergency Inbox"
-                to="/renovator/emergency"
-                isActive={isActive('/renovator/emergency')}
-            />
-
-            <SidebarSimpleMenuItem
-                showLabel={showLabels}
-                icon={<Hammer size={18} />}
-                label="Jobs"
-                to="/renovator/jobs"
-                isActive={isActive('/renovator/jobs')}
-            />
-
-            <SidebarSimpleMenuItem
-                showLabel={showLabels}
-                icon={<MessageSquare size={18} />}
-                label="Messages"
-                to="/renovator/messages"
-                isActive={isActive('/renovator/messages')}
-            />
-
-            <SidebarSimpleMenuItem
-                showLabel={showLabels}
-                icon={<User size={18} />}
+                icon={<span className="text-lg">👤</span>}
                 label="Profile"
                 to="/renovator/profile"
                 isActive={isActive('/renovator/profile')}
@@ -52,7 +28,23 @@ export function RenovatorSidebar({ isActive, showLabels }: RenovatorSidebarProps
 
             <SidebarSimpleMenuItem
                 showLabel={showLabels}
-                icon={<Clock size={18} />}
+                icon={<span className="text-lg">🚨</span>}
+                label="Emergency Inbox"
+                to="/renovator/emergency"
+                isActive={isActive('/renovator/emergency')}
+            />
+
+            <SidebarSimpleMenuItem
+                showLabel={showLabels}
+                icon={<span className="text-lg">🛠️</span>}
+                label="Jobs"
+                to="/renovator/jobs"
+                isActive={isActive('/renovator/jobs')}
+            />
+
+            <SidebarSimpleMenuItem
+                showLabel={showLabels}
+                icon={<span className="text-lg">📅</span>}
                 label="Availability"
                 to="/renovator/availability"
                 isActive={isActive('/renovator/availability')}
@@ -60,7 +52,7 @@ export function RenovatorSidebar({ isActive, showLabels }: RenovatorSidebarProps
 
             <SidebarSimpleMenuItem
                 showLabel={showLabels}
-                icon={<MapPin size={18} />}
+                icon={<span className="text-lg">📍</span>}
                 label="Service Area"
                 to="/renovator/service-area"
                 isActive={isActive('/renovator/service-area')}
@@ -68,7 +60,15 @@ export function RenovatorSidebar({ isActive, showLabels }: RenovatorSidebarProps
 
             <SidebarSimpleMenuItem
                 showLabel={showLabels}
-                icon={<Settings size={18} />}
+                icon={<span className="text-lg">💬</span>}
+                label="Messages"
+                to="/renovator/messages"
+                isActive={isActive('/renovator/messages')}
+            />
+
+            <SidebarSimpleMenuItem
+                showLabel={showLabels}
+                icon={<span className="text-lg">⚙️</span>}
                 label="Settings"
                 to="/renovator/settings"
                 isActive={isActive('/renovator/settings')}

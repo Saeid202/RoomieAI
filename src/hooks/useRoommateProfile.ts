@@ -205,6 +205,7 @@ export function useRoommateProfile() {
       gender: "",
       email: user?.email || "",
       phoneNumber: "",
+      linkedinProfile: "",
       budgetRange: [900, 1500],
       preferredLocation: [],
       moveInDateStart: new Date(),

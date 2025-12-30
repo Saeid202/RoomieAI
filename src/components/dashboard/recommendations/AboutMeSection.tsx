@@ -17,20 +17,21 @@ interface AboutMeSectionProps {
   onSaveProfile?: (formData: ProfileFormValues) => Promise<void>;
 }
 
-export function AboutMeSection({ 
+export function AboutMeSection({
   profileData,
   isLoading = false,
   onSaveProfile
 }: AboutMeSectionProps) {
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
-  
+
   const defaultFormValues: Partial<ProfileFormValues> = {
     fullName: "",
     age: "",
     gender: "",
     email: "",
     phoneNumber: "",
+    linkedinProfile: "",
     nationality: "",
     language: "",
     ethnicity: "",
@@ -79,7 +80,7 @@ export function AboutMeSection({
     try {
       setIsSaving(true);
       console.log("About Me form data to save:", data);
-      
+
       if (onSaveProfile) {
         await onSaveProfile(data);
         toast({
@@ -113,7 +114,7 @@ export function AboutMeSection({
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 <AboutMeStepper form={form} />
-                
+
                 <div className="flex justify-end pt-4 border-t">
                   <Button type="submit" disabled={isSaving} size="lg">
                     {isSaving ? "Saving..." : "Save Profile"}

@@ -11,7 +11,7 @@ import { ArrowLeft, ArrowRight, Home, MapPin, DollarSign, Camera, FileText, Chec
 import { ai3DService } from "@/services/ai3DService";
 
 import { useNavigate } from "react-router-dom";
-import { createProperty, uploadPropertyImage, fetchPropertyById, updateProperty } from "@/services/propertyService";
+import { createProperty, uploadPropertyImage, fetchPropertyById, updateProperty, createSalesListing, updateSalesListing, fetchSalesListingById } from "@/services/propertyService";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import AddressAutocomplete from "@/components/ui/address-autocomplete";
@@ -97,6 +97,7 @@ interface PropertyFormData {
   propertyType: string;
   propertyAddress: string; // Renamed from listingTitle to propertyAddress
   description: string;
+  listingCategory: string; // 'rental' or 'sale'
 
   // Enhanced Location Details with coordinates
   address: string;
@@ -108,6 +109,9 @@ interface PropertyFormData {
   longitude?: number;
   publicTransportAccess?: string;
   nearbyAmenities?: string[];
+
+  // Sales Information
+  salesPrice: string;
 
   // Rental Information
   monthlyRent: string;
@@ -128,6 +132,7 @@ interface PropertyFormData {
   images: string[]; // Changed from File[] to string[] for URLs
   descriptionAudioUrl?: string;
   threeDModelUrl?: string;
+  isCoOwnership?: boolean;
 }
 
 const initialFormData: PropertyFormData = {
@@ -135,6 +140,7 @@ const initialFormData: PropertyFormData = {
   propertyType: "",
   propertyAddress: "",
   description: "",
+  listingCategory: "rental",
   address: "",
   city: "",
   state: "",
@@ -155,7 +161,9 @@ const initialFormData: PropertyFormData = {
   roommatePreference: "",
   images: [],
   descriptionAudioUrl: "",
-  threeDModelUrl: ""
+  threeDModelUrl: "",
+  salesPrice: "",
+  isCoOwnership: false
 };
 
 const steps = [
@@ -346,6 +354,10 @@ export default function AddPropertyPage() {
     if (!prefillId && editId === null) {
       // This is a new property creation, ensure form is clean
       resetForm();
+      const category = params.get('category');
+      if (category === 'sale') {
+        setFormData(prev => ({ ...prev, listingCategory: 'sale' }));
+      }
     }
   }, [window.location.search]);
 
@@ -357,7 +369,13 @@ export default function AddPropertyPage() {
     (async () => {
       try {
         setEditId(prefillId);
-        const data: any = await fetchPropertyById(prefillId);
+        const category = params.get('category');
+        let data: any;
+        if (category === 'sale') {
+          data = await fetchSalesListingById(prefillId);
+        } else {
+          data = await fetchPropertyById(prefillId);
+        }
         if (!data) return;
         // Prefill form
         setFormData(prev => ({
@@ -388,7 +406,9 @@ export default function AddPropertyPage() {
           roommatePreference: data.roommate_preference || "",
           images: Array.isArray(data.images) ? data.images : [], // Fix: Load images into form state
           descriptionAudioUrl: data.description_audio_url || "",
-          threeDModelUrl: data.three_d_model_url || "" // Fix: Load 3D model URL
+          threeDModelUrl: data.three_d_model_url || "",
+          listingCategory: data.listing_category || (params.get('category') === 'sale' ? "sale" : "rental"),
+          salesPrice: data.sales_price?.toString() || ""
         }));
         setExistingImageUrls(Array.isArray(data.images) ? data.images : []);
         toast.success("Loaded listing for editing");
@@ -528,15 +548,32 @@ export default function AddPropertyPage() {
     checkForAmenities();
   }, [formData.latitude, formData.longitude, formData.city]);
 
-  const handleInputChange = (field: keyof PropertyFormData, value: string) => {
+  const handleInputChange = (field: keyof PropertyFormData, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     // Inline validation
     if (field === 'monthlyRent') {
-      const clean = value.replace(/[^0-9.]/g, '');
-      if (!clean) {
-        setErrors((e) => ({ ...e, monthlyRent: 'Monthly rent is required' }));
+      if (formData.listingCategory === 'rental') {
+        const clean = value.replace(/[^0-9.]/g, '');
+        if (!clean) {
+          setErrors((e) => ({ ...e, monthlyRent: 'Monthly rent is required' }));
+        } else {
+          setErrors((e) => { const { monthlyRent, ...rest } = e; return rest as any; });
+        }
       } else {
+        // If not rental, clear any previous monthlyRent error
         setErrors((e) => { const { monthlyRent, ...rest } = e; return rest as any; });
+      }
+    }
+    if (field === 'salesPrice') {
+      if (formData.listingCategory === 'sale') {
+        const clean = value.replace(/[^0-9.]/g, '');
+        if (!clean) {
+          setErrors((e) => ({ ...e, salesPrice: 'Sales price is required' }));
+        } else {
+          setErrors((e) => { const { salesPrice, ...rest } = e; return rest as any; });
+        }
+      } else {
+        setErrors((e) => { const { salesPrice, ...rest } = e; return rest as any; });
       }
     }
     if (field === 'zipCode') {
@@ -584,7 +621,8 @@ export default function AddPropertyPage() {
       const errors: Record<string, string> = {};
       if (!formData.propertyType) errors.propertyType = 'Property type is required';
       if (!formData.propertyAddress && !formData.address) errors.propertyAddress = 'Property address is required';
-      if (!formData.monthlyRent) errors.monthlyRent = 'Monthly rent is required';
+      if (formData.listingCategory === 'rental' && !formData.monthlyRent) errors.monthlyRent = 'Monthly rent is required';
+      if (formData.listingCategory === 'sale' && !formData.salesPrice) errors.salesPrice = 'Sales price is required';
 
       console.log("✅ Validation errors:", errors);
 
@@ -628,7 +666,7 @@ export default function AddPropertyPage() {
         longitude: formData.longitude || null,
         public_transport_access: formData.publicTransportAccess || null,
         nearby_amenities: formData.nearbyAmenities || [],
-        monthly_rent: parseFloat(String(formData.monthlyRent).replace(/[^0-9.]/g, '')),
+        monthly_rent: formData.monthlyRent ? parseFloat(String(formData.monthlyRent).replace(/[^0-9.]/g, '')) : null,
         security_deposit: formData.securityDeposit ? parseFloat(formData.securityDeposit) : null,
         lease_terms: formData.leaseTerms || null, // Fixed: use lease_terms instead of lease_duration
         available_date: formData.availableDate || null,
@@ -647,19 +685,32 @@ export default function AddPropertyPage() {
       if (editId) {
         console.log("🔄 Updating existing property...");
         // If no new images uploaded, avoid clobbering existing images
-        const updates: any = { ...propertyData };
+        const updates: any = { ...propertyData, isCoOwnership: formData.isCoOwnership };
         if (imageUrls.length > 0) {
           updates.images = [...existingImageUrls, ...imageUrls];
         } else {
           delete updates.images;
         }
         console.log("📝 Update payload:", updates);
-        await updateProperty(editId, updates);
+        if (formData.listingCategory === 'sale') {
+          await updateSalesListing(editId, updates);
+        } else {
+          await updateProperty(editId, updates);
+        }
         console.log("✅ Property updated successfully!");
         toast.success("Property updated successfully!");
       } else {
         console.log("🆕 Creating new property...");
-        const result = await createProperty(propertyData);
+        let result;
+        if (formData.listingCategory === 'sale') {
+          result = await createSalesListing({
+            ...propertyData,
+            salesPrice: formData.salesPrice,
+            isCoOwnership: formData.isCoOwnership
+          });
+        } else {
+          result = await createProperty(propertyData);
+        }
         console.log("📤 Create result:", result);
         if (!result) {
           console.error("❌ Failed to create property - no result returned");
@@ -716,6 +767,33 @@ export default function AddPropertyPage() {
               </div>
 
               <div className="space-y-6">
+                <div className="flex items-center gap-6">
+                  <div className="space-y-2 max-w-xs flex-1">
+                    <Label htmlFor="listingCategory" className="text-sm font-medium">Listing Category</Label>
+                    <Select value={formData.listingCategory} onValueChange={(value) => handleInputChange("listingCategory", value)}>
+                      <SelectTrigger className="h-9 w-full border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="rental">Rentals</SelectItem>
+                        <SelectItem value="sale">Sales</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {formData.listingCategory === "sale" && (
+                    <div className="flex items-center space-x-2 self-end pb-2">
+                      <Checkbox
+                        id="isCoOwnership"
+                        checked={formData.isCoOwnership}
+                        onCheckedChange={(checked) => handleInputChange("isCoOwnership", checked)}
+                      />
+                      <Label htmlFor="isCoOwnership" className="text-sm font-medium cursor-pointer">
+                        Open to co-ownership
+                      </Label>
+                    </div>
+                  )}
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <AddressAutocomplete
@@ -1253,81 +1331,125 @@ export default function AddPropertyPage() {
               </div>
             </section>
 
-            {/* SECTION 4: Rental Information */}
+            {/* SECTION 4: Rental/Sales Information */}
             <section className="space-y-4">
               <div className="flex items-center gap-2 pb-2 border-b">
                 <div className="h-8 w-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 font-semibold text-sm">4</div>
-                <h3 className="text-lg font-semibold text-gray-800">Rental Information</h3>
+                <h3 className="text-lg font-semibold text-gray-800">
+                  {formData.listingCategory === 'sale' ? 'Sales Information' : 'Rental Information'}
+                </h3>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="monthlyRent" className="text-sm font-medium">Monthly Rent ($)</Label>
-                  <Input
-                    id="monthlyRent"
-                    placeholder="0.00"
-                    type="number"
-                    value={formData.monthlyRent}
-                    onChange={(e) => handleInputChange("monthlyRent", e.target.value)}
-                    className="h-9 border-gray-300 shadow-sm focus:border-blue-500"
-                  />
-                  {/* {errors.monthlyRent && <p className="text-xs text-red-500">{errors.monthlyRent}</p>} */}
+              {formData.listingCategory === 'sale' ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="salesPrice" className="text-sm font-medium">Sales Price ($)</Label>
+                    <Input
+                      id="salesPrice"
+                      placeholder="0.00"
+                      type="number"
+                      value={formData.salesPrice}
+                      onChange={(e) => handleInputChange("salesPrice", e.target.value)}
+                      className="h-9 border-gray-300 shadow-sm focus:border-blue-500"
+                    />
+                    {errors.salesPrice && <p className="text-xs text-red-500 font-medium">{errors.salesPrice}</p>}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="availableDate" className="text-sm font-medium">Available Date</Label>
+                    <Input
+                      id="availableDate"
+                      type="date"
+                      value={formData.availableDate}
+                      onChange={(e) => handleInputChange("availableDate", e.target.value)}
+                      className="h-9 border-gray-300 shadow-sm focus:border-blue-500"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="furnished" className="text-sm font-medium">Furnishing</Label>
+                    <Select value={formData.furnished} onValueChange={(value) => handleInputChange("furnished", value)}>
+                      <SelectTrigger className="h-9 border-gray-300 shadow-sm focus:border-blue-500">
+                        <SelectValue placeholder="Select" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="furnished">Fully Furnished</SelectItem>
+                        <SelectItem value="semi-furnished">Semi-Furnished</SelectItem>
+                        <SelectItem value="unfurnished">Unfurnished</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="securityDeposit" className="text-sm font-medium">Security Deposit ($)</Label>
-                  <Input
-                    id="securityDeposit"
-                    placeholder="0.00"
-                    type="number"
-                    value={formData.securityDeposit}
-                    onChange={(e) => handleInputChange("securityDeposit", e.target.value)}
-                    className="h-9 border-gray-300 shadow-sm focus:border-blue-500"
-                  />
-                </div>
-              </div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="monthlyRent" className="text-sm font-medium">Monthly Rent ($)</Label>
+                      <Input
+                        id="monthlyRent"
+                        placeholder="0.00"
+                        type="number"
+                        value={formData.monthlyRent}
+                        onChange={(e) => handleInputChange("monthlyRent", e.target.value)}
+                        className="h-9 border-gray-300 shadow-sm focus:border-blue-500"
+                      />
+                      {errors.monthlyRent && <p className="text-xs text-red-500 font-medium">{errors.monthlyRent}</p>}
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="securityDeposit" className="text-sm font-medium">Security Deposit ($)</Label>
+                      <Input
+                        id="securityDeposit"
+                        placeholder="0.00"
+                        type="number"
+                        value={formData.securityDeposit}
+                        onChange={(e) => handleInputChange("securityDeposit", e.target.value)}
+                        className="h-9 border-gray-300 shadow-sm focus:border-blue-500"
+                      />
+                    </div>
+                  </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="leaseTerms" className="text-sm font-medium">Lease Terms</Label>
-                  <Select value={formData.leaseTerms} onValueChange={(value) => handleInputChange("leaseTerms", value)}>
-                    <SelectTrigger className="h-9 border-gray-300 shadow-sm focus:border-blue-500">
-                      <SelectValue placeholder="Select terms" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="month-to-month">Month-to-Month</SelectItem>
-                      <SelectItem value="6-months">6 Months</SelectItem>
-                      <SelectItem value="1-year">1 Year</SelectItem>
-                      <SelectItem value="2-years">2 Years</SelectItem>
-                      <SelectItem value="flexible">Flexible</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="leaseTerms" className="text-sm font-medium">Lease Terms</Label>
+                      <Select value={formData.leaseTerms} onValueChange={(value) => handleInputChange("leaseTerms", value)}>
+                        <SelectTrigger className="h-9 border-gray-300 shadow-sm focus:border-blue-500">
+                          <SelectValue placeholder="Select terms" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="month-to-month">Month-to-Month</SelectItem>
+                          <SelectItem value="6-months">6 Months</SelectItem>
+                          <SelectItem value="1-year">1 Year</SelectItem>
+                          <SelectItem value="2-years">2 Years</SelectItem>
+                          <SelectItem value="flexible">Flexible</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="availableDate" className="text-sm font-medium">Available Date</Label>
-                  <Input
-                    id="availableDate"
-                    type="date"
-                    value={formData.availableDate}
-                    onChange={(e) => handleInputChange("availableDate", e.target.value)}
-                    className="h-9 border-gray-300 shadow-sm focus:border-blue-500"
-                  />
-                </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="availableDate" className="text-sm font-medium">Available Date</Label>
+                      <Input
+                        id="availableDate"
+                        type="date"
+                        value={formData.availableDate}
+                        onChange={(e) => handleInputChange("availableDate", e.target.value)}
+                        className="h-9 border-gray-300 shadow-sm focus:border-blue-500"
+                      />
+                    </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="furnished" className="text-sm font-medium">Furnishing</Label>
-                  <Select value={formData.furnished} onValueChange={(value) => handleInputChange("furnished", value)}>
-                    <SelectTrigger className="h-9 border-gray-300 shadow-sm focus:border-blue-500">
-                      <SelectValue placeholder="Select" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="furnished">Fully Furnished</SelectItem>
-                      <SelectItem value="semi-furnished">Semi-Furnished</SelectItem>
-                      <SelectItem value="unfurnished">Unfurnished</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="furnished" className="text-sm font-medium">Furnishing</Label>
+                      <Select value={formData.furnished} onValueChange={(value) => handleInputChange("furnished", value)}>
+                        <SelectTrigger className="h-9 border-gray-300 shadow-sm focus:border-blue-500">
+                          <SelectValue placeholder="Select" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="furnished">Fully Furnished</SelectItem>
+                          <SelectItem value="semi-furnished">Semi-Furnished</SelectItem>
+                          <SelectItem value="unfurnished">Unfurnished</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </>
+              )}
 
               {/* Description inside Rental Info or Separate? Separate is better */}
               <div className="space-y-2 pt-2">

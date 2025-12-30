@@ -22,7 +22,7 @@ const STEPS = [
   },
   {
     title: "Contact & Privacy",
-    fields: ["email", "phoneNumber", "profileVisibility"],
+    fields: ["email", "phoneNumber", "profileVisibility", "linkedinProfile"],
   },
   {
     title: "Background & Identity",
@@ -97,13 +97,12 @@ export function AboutMeStepper({ form }: AboutMeStepperProps) {
                 <TooltipTrigger asChild>
                   <button
                     onClick={() => goToStep(index)}
-                    className={`w-3 h-3 rounded-full transition-all duration-200 ${
-                      index === currentStep
+                    className={`w-3 h-3 rounded-full transition-all duration-200 ${index === currentStep
                         ? "bg-primary scale-110"
                         : index < currentStep
-                        ? "bg-primary/50 hover:bg-primary/70 cursor-pointer"
-                        : "bg-gray-300 hover:bg-gray-400 cursor-pointer"
-                    }`}
+                          ? "bg-primary/50 hover:bg-primary/70 cursor-pointer"
+                          : "bg-gray-300 hover:bg-gray-400 cursor-pointer"
+                      }`}
                   />
                 </TooltipTrigger>
                 <TooltipContent>

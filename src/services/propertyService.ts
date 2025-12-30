@@ -12,6 +12,7 @@ export interface Property {
   description: string;
   description_audio_url?: string;
   three_d_model_url?: string;
+  listing_category?: string; // 'rental' or 'sale'
 
   // Video / Audio Settings
   video_script?: string;
@@ -62,6 +63,11 @@ export interface Property {
   views_count?: number;
 }
 
+export interface SalesListing extends Omit<Property, 'monthly_rent' | 'security_deposit' | 'lease_terms'> {
+  sales_price: number;
+  is_co_ownership?: boolean;
+}
+
 export type PropertyType = "Apartment" | "House" | "Condo" | "Townhouse" | "Commercial" | "rent" | "sale";
 
 export const COMMON_AMENITIES = [
@@ -110,8 +116,70 @@ export async function getPropertiesByOwnerId(userId: string): Promise<Property[]
     return (data as any as Property[]) || [];
   } catch (error) {
     console.error("Error in getPropertiesByOwnerId:", error);
-    // Rethrow to let the UI know something failed (e.g. RLS policy)
     throw error;
+  }
+}
+
+export async function getSalesListingsByOwnerId(userId: string): Promise<SalesListing[]> {
+  console.log("Fetching sales listings for owner:", userId);
+
+  try {
+    const { data, error } = await sb
+      .from('sales_listings')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error("Error fetching sales listings by owner:", error);
+      if (error.code === '42P01') {
+        console.log("Sales listings table doesn't exist yet, returning empty array");
+        return [];
+      }
+      throw new Error(`Failed to fetch sales listings: ${error.message}`);
+    }
+
+    console.log("Sales listings fetched successfully:", data);
+    return (data as any as SalesListing[]) || [];
+  } catch (error) {
+    console.error("Error in getSalesListingsByOwnerId:", error);
+    throw error;
+  }
+}
+
+/**
+ * Claims properties that belong to a different user ID (e.g. after account re-creation)
+ */
+export async function claimProperties(newUserId: string, oldUserId: string): Promise<boolean> {
+  console.log(`🚀 Claiming properties: ${oldUserId} -> ${newUserId}`);
+
+  try {
+    // 1. Update Rental Properties
+    const { error: propError } = await sb
+      .from('properties')
+      .update({ user_id: newUserId })
+      .eq('user_id', oldUserId);
+
+    if (propError) {
+      console.error("Error claiming rental properties:", propError);
+      throw propError;
+    }
+
+    // 2. Update Sales Listings
+    const { error: salesError } = await sb
+      .from('sales_listings')
+      .update({ user_id: newUserId })
+      .eq('user_id', oldUserId);
+
+    if (salesError && salesError.code !== '42P01') {
+      console.error("Error claiming sales listings:", salesError);
+      throw salesError;
+    }
+
+    return true;
+  } catch (error) {
+    console.error("Failed to claim properties:", error);
+    return false;
   }
 }
 
@@ -201,6 +269,7 @@ export async function createProperty(propertyData: any): Promise<Property | null
     user_id: user.id, // Ensure user_id is always set
     listing_title: propertyData.listingTitle || propertyData.listing_title,
     property_type: propertyData.propertyType || propertyData.property_type,
+    listing_category: propertyData.listingCategory || propertyData.listing_category || 'rental',
 
     description: propertyData.description,
     description_audio_url: propertyData.descriptionAudioUrl || propertyData.description_audio_url,
@@ -266,6 +335,74 @@ export async function createProperty(propertyData: any): Promise<Property | null
     return data as any as Property;
   } catch (error) {
     console.error("❌ Error in createProperty:", error);
+    throw error;
+  }
+}
+
+export async function createSalesListing(salesData: any): Promise<SalesListing | null> {
+  console.log("🏠 Creating sales listing:", salesData);
+
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    throw new Error("You must be logged in to create a sales listing");
+  }
+
+  const payload: any = {
+    user_id: user.id,
+    listing_title: salesData.listingTitle || salesData.listing_title,
+    property_type: salesData.propertyType || salesData.property_type,
+    description: salesData.description,
+    description_audio_url: salesData.descriptionAudioUrl || salesData.description_audio_url,
+    video_script: salesData.videoScript || salesData.video_script,
+    background_music_url: salesData.backgroundMusicUrl || salesData.background_music_url,
+    video_enabled: salesData.videoEnabled !== undefined ? salesData.videoEnabled : true,
+    audio_enabled: salesData.audioEnabled !== undefined ? salesData.audioEnabled : true,
+    address: salesData.address || salesData.propertyAddress,
+    city: salesData.city,
+    state: salesData.state,
+    zip_code: salesData.zipCode || salesData.zip_code,
+    neighborhood: salesData.neighborhood,
+    latitude: salesData.latitude,
+    longitude: salesData.longitude,
+    public_transport_access: salesData.publicTransportAccess || salesData.public_transport_access,
+    nearby_amenities: salesData.nearbyAmenities || salesData.nearby_amenities,
+    sales_price: parseFloat(salesData.salesPrice || salesData.sales_price || '0'),
+    is_co_ownership: salesData.isCoOwnership || salesData.is_co_ownership || false,
+    available_date: salesData.availableDate || salesData.available_date,
+    furnished: salesData.furnished,
+    bedrooms: parseInt(salesData.bedrooms || '0'),
+    bathrooms: parseFloat(salesData.bathrooms || '0'),
+    square_footage: parseInt(salesData.squareFootage || salesData.square_footage || '0'),
+    amenities: salesData.amenities || [],
+    parking: salesData.parking,
+    pet_policy: salesData.petPolicy || salesData.pet_policy,
+    utilities_included: salesData.utilitiesIncluded || salesData.utilities_included || [],
+    special_instructions: salesData.specialInstructions || salesData.special_instructions,
+    roommate_preference: salesData.roommatePreference || salesData.roommate_preference,
+    images: salesData.images || []
+  };
+
+  if (payload.furnished !== null && payload.furnished !== undefined) {
+    if (typeof payload.furnished === 'string') {
+      payload.furnished = payload.furnished === 'furnished' || payload.furnished === 'true';
+    }
+  }
+
+  try {
+    const { data, error } = await sb
+      .from('sales_listings')
+      .insert(payload)
+      .select()
+      .single();
+
+    if (error) {
+      throw new Error(`Failed to create sales listing: ${error.message}`);
+    }
+
+    return data as any as SalesListing;
+  } catch (error) {
+    console.error("❌ Error in createSalesListing:", error);
     throw error;
   }
 }
@@ -344,6 +481,25 @@ export async function fetchPropertyById(id: string) {
   }
 }
 
+export async function fetchSalesListingById(id: string) {
+  try {
+    const { data, error } = await sb
+      .from('sales_listings')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) {
+      throw new Error(`Failed to fetch sales listing: ${error.message}`);
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error in fetchSalesListingById:", error);
+    throw error;
+  }
+}
+
 export async function updateProperty(id: string, updates: any) {
   console.log("Updating property:", id, updates);
 
@@ -353,6 +509,7 @@ export async function updateProperty(id: string, updates: any) {
   // Map all possible field names from frontend to database
   if (updates.listingTitle || updates.listing_title) payload.listing_title = updates.listingTitle || updates.listing_title;
   if (updates.propertyType || updates.property_type) payload.property_type = updates.propertyType || updates.property_type;
+  if (updates.listingCategory || updates.listing_category) payload.listing_category = updates.listingCategory || updates.listing_category;
   if (updates.description !== undefined) payload.description = updates.description;
   if (updates.descriptionAudioUrl || updates.description_audio_url) payload.description_audio_url = updates.descriptionAudioUrl || updates.description_audio_url;
 
@@ -435,6 +592,72 @@ export async function updateProperty(id: string, updates: any) {
   }
 }
 
+export async function updateSalesListing(id: string, updates: any) {
+  const payload: any = {};
+
+  if (updates.listingTitle || updates.listing_title) payload.listing_title = updates.listingTitle || updates.listing_title;
+  if (updates.propertyType || updates.property_type) payload.property_type = updates.propertyType || updates.property_type;
+  if (updates.description !== undefined) payload.description = updates.description;
+  if (updates.descriptionAudioUrl || updates.description_audio_url) payload.description_audio_url = updates.descriptionAudioUrl || updates.description_audio_url;
+  if (updates.videoScript || updates.video_script) payload.video_script = updates.videoScript || updates.video_script;
+  if (updates.backgroundMusicUrl || updates.background_music_url) payload.background_music_url = updates.backgroundMusicUrl || updates.background_music_url;
+  if (updates.videoEnabled !== undefined) payload.video_enabled = updates.videoEnabled;
+  if (updates.audioEnabled !== undefined) payload.audio_enabled = updates.audioEnabled;
+  if (updates.address || updates.propertyAddress) payload.address = updates.address || updates.propertyAddress;
+  if (updates.city !== undefined) payload.city = updates.city;
+  if (updates.state !== undefined) payload.state = updates.state;
+  if (updates.zipCode || updates.zip_code) payload.zip_code = updates.zipCode || updates.zip_code;
+  if (updates.neighborhood !== undefined) payload.neighborhood = updates.neighborhood;
+  if (updates.latitude !== undefined) payload.latitude = updates.latitude;
+  if (updates.longitude !== undefined) payload.longitude = updates.longitude;
+  if (updates.publicTransportAccess || updates.public_transport_access) payload.public_transport_access = updates.publicTransportAccess || updates.public_transport_access;
+  if (updates.nearbyAmenities || updates.nearby_amenities) payload.nearby_amenities = updates.nearbyAmenities || updates.nearby_amenities;
+
+  if (updates.salesPrice || updates.sales_price) {
+    payload.sales_price = parseFloat(updates.salesPrice || updates.sales_price || '0');
+  }
+  if (updates.isCoOwnership !== undefined || updates.is_co_ownership !== undefined) {
+    payload.is_co_ownership = updates.isCoOwnership !== undefined ? updates.isCoOwnership : updates.is_co_ownership;
+  }
+
+  if (updates.availableDate || updates.available_date) payload.available_date = updates.availableDate || updates.available_date;
+  if (updates.furnished !== undefined) payload.furnished = updates.furnished;
+  if (updates.bedrooms !== undefined) payload.bedrooms = parseInt(updates.bedrooms?.toString() || '0');
+  if (updates.bathrooms !== undefined) payload.bathrooms = parseFloat(updates.bathrooms?.toString() || '0');
+  if (updates.squareFootage || updates.square_footage) payload.square_footage = parseInt(updates.squareFootage?.toString() || updates.square_footage?.toString() || '0');
+  if (updates.amenities !== undefined) payload.amenities = updates.amenities;
+  if (updates.parking !== undefined) payload.parking = updates.parking;
+  if (updates.petPolicy || updates.pet_policy) payload.pet_policy = updates.petPolicy || updates.pet_policy;
+  if (updates.utilitiesIncluded || updates.utilities_included) payload.utilities_included = updates.utilitiesIncluded || updates.utilities_included;
+  if (updates.specialInstructions || updates.special_instructions) payload.special_instructions = updates.specialInstructions || updates.special_instructions;
+  if (updates.roommatePreference || updates.roommate_preference) payload.roommate_preference = updates.roommatePreference || updates.roommate_preference;
+  if (updates.images !== undefined) payload.images = updates.images;
+
+  if (payload.furnished !== null && payload.furnished !== undefined) {
+    if (typeof payload.furnished === 'string') {
+      payload.furnished = payload.furnished === 'furnished' || payload.furnished === 'true';
+    }
+  }
+
+  try {
+    const { data, error } = await sb
+      .from('sales_listings')
+      .update(payload)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) {
+      throw new Error(`Failed to update sales listing: ${error.message}`);
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error in updateSalesListing:", error);
+    throw error;
+  }
+}
+
 export async function deleteProperty(id: string) {
   console.log("Deleting property:", id);
 
@@ -482,6 +705,160 @@ export async function deleteProperty(id: string) {
     return { success: true };
   } catch (error) {
     console.error("Error in deleteProperty:", error);
+    throw error;
+  }
+}
+
+export async function deleteSalesListing(id: string) {
+  try {
+    const { error } = await sb
+      .from('sales_listings')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      throw new Error(`Failed to delete sales listing: ${error.message}`);
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error in deleteSalesListing:", error);
+    throw error;
+  }
+}
+
+export async function fetchAllSalesListings(): Promise<SalesListing[]> {
+  try {
+    const { data, error } = await sb
+      .from('sales_listings')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error("Error fetching all sales listings:", error);
+      if (error.code === '42P01') return [];
+      throw new Error(`Failed to fetch sales listings: ${error.message}`);
+    }
+
+    return (data as any as SalesListing[]) || [];
+  } catch (error) {
+    console.error("Error in fetchAllSalesListings:", error);
+    return [];
+  }
+}
+
+export interface InvestorOffer {
+  id: string;
+  listing_id: string;
+  user_id: string;
+  contribution_amount: number;
+  intended_use: string;
+  flexibility: string;
+  occupancy_plan: string;
+  additional_notes?: string;
+  created_at: string;
+  user_email?: string;
+}
+
+export async function fetchInvestorOffers(listingId: string): Promise<InvestorOffer[]> {
+  try {
+    const { data: offers, error } = await sb
+      .from('investor_offers')
+      .select('*')
+      .eq('listing_id', listingId)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      if (error.code === '42P01') return []; // Table doesn't exist
+      throw error;
+    }
+
+    if (!offers || offers.length === 0) return [];
+
+    // Manually fetch profile emails to avoid missing foreign key relationship error
+    const userIds = Array.from(new Set(offers.map(o => o.user_id)));
+    const { data: profiles } = await sb
+      .from('profiles')
+      .select('id, email')
+      .in('id', userIds);
+
+    return (offers as any[]).map(item => ({
+      ...item,
+      user_email: profiles?.find(p => p.id === item.user_id)?.email
+    }));
+  } catch (error) {
+    console.error("Error fetching investor offers:", error);
+    return [];
+  }
+}
+
+export async function submitInvestorOffer(
+  listingId: string,
+  data: {
+    contribution_amount: number;
+    intended_use: string;
+    flexibility: string;
+    occupancy_plan: string;
+    additional_notes?: string;
+  }
+): Promise<InvestorOffer | null> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Authentication required");
+
+  const payload = {
+    listing_id: listingId,
+    user_id: user.id,
+    ...data
+  };
+
+  try {
+    const { data: result, error } = await sb
+      .from('investor_offers')
+      .insert(payload)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return result as InvestorOffer;
+  } catch (error) {
+    console.error("Error submitting investor offer:", error);
+    throw error;
+  }
+}
+
+export async function deleteInvestorOffer(offerId: string): Promise<void> {
+  try {
+    const { error } = await sb
+      .from('investor_offers')
+      .delete()
+      .eq('id', offerId);
+
+    if (error) throw error;
+  } catch (error) {
+    console.error("Error deleting investor offer:", error);
+    throw error;
+  }
+}
+
+export async function updateInvestorOffer(
+  offerId: string,
+  data: Partial<{
+    contribution_amount: number;
+    intended_use: string;
+    flexibility: string;
+    occupancy_plan: string;
+    additional_notes: string;
+  }>
+): Promise<void> {
+  try {
+    const { error } = await sb
+      .from('investor_offers')
+      .update(data)
+      .eq('id', offerId);
+
+    if (error) throw error;
+  } catch (error) {
+    console.error("Error updating investor offer:", error);
     throw error;
   }
 }
