@@ -75,23 +75,51 @@ export default function PropertyDetailsPage() {
         if (!id) throw new Error("Missing property id");
 
         let data;
+        let isSalesListing = false;
+
         if (type === 'sale') {
-          data = await fetchSalesListingById(id);
+          // If explicitly type=sale, fetch from sales_listings first
+          try {
+            data = await fetchSalesListingById(id);
+            isSalesListing = true;
+          } catch {
+            // Fallback to properties table if not found in sales_listings
+            console.log("Not found in sales_listings, trying properties table...");
+            data = await fetchPropertyById(id);
+          }
         } else {
-          data = await fetchPropertyById(id);
+          // Default: try properties first, then fallback to sales_listings
+          try {
+            data = await fetchPropertyById(id);
+          } catch (propError: any) {
+            console.log("Not found in properties, trying sales_listings table...");
+            try {
+              data = await fetchSalesListingById(id);
+              isSalesListing = true;
+            } catch {
+              // Re-throw the original properties error if both fail
+              throw propError;
+            }
+          }
         }
 
-        console.log("Listing data loaded:", data);
+        console.log("Listing data loaded:", data, "isSalesListing:", isSalesListing);
         if (mounted) setProperty(data as any);
 
-        // Load investor signals for all sales listings
-        if (type === 'sale' && id) {
+        // Load investor signals for sales listings
+        if (isSalesListing && id) {
           const offersData = await fetchInvestorOffers(id);
           if (mounted) setOffers(offersData);
         }
       } catch (e: any) {
         console.error("Failed to load property", e);
-        if (mounted) setError(e?.message || "Failed to load property");
+        const errorMessage = e?.message || "Failed to load property";
+        // Provide a more user-friendly error message
+        if (errorMessage.includes("NOT_FOUND") || errorMessage.includes("PGRST116")) {
+          if (mounted) setError("This property listing is no longer available. It may have been removed or the link is invalid.");
+        } else {
+          if (mounted) setError(errorMessage);
+        }
       } finally {
         if (mounted) setLoading(false);
       }
@@ -253,10 +281,23 @@ export default function PropertyDetailsPage() {
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold tracking-tight">Property Details</h1>
         </div>
-        <Card>
-          <CardContent className="p-6">
-            <p className="text-sm text-destructive">{error || 'Property not found'}</p>
-            <Button className="mt-4" variant="outline" onClick={() => navigate(-1)}>Back</Button>
+        <Card className="max-w-md mx-auto">
+          <CardContent className="p-8 text-center">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-destructive/10 flex items-center justify-center">
+              <span className="text-3xl">🏠</span>
+            </div>
+            <h2 className="text-xl font-semibold mb-2">Property Not Available</h2>
+            <p className="text-sm text-muted-foreground mb-6">
+              {error || 'This property listing is no longer available. It may have been removed or the link is invalid.'}
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Button variant="outline" onClick={() => navigate(-1)}>
+                Go Back
+              </Button>
+              <Button onClick={() => navigate('/dashboard/rental-options')}>
+                Browse Properties
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
