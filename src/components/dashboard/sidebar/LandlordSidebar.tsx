@@ -44,7 +44,8 @@ export function LandlordSidebar({ isActive, showLabels }: LandlordSidebarProps) 
         subItems={[
           { label: "⚖️ Legal Chat", path: "/dashboard/legal-ai" },
           { label: "🏗️ Compliance AI", path: "/dashboard/property-compliance-ai" },
-          { label: "🚪 Eviction Assistant", path: "/dashboard/eviction-assistant" }
+          { label: "🚪 Eviction Assistant", path: "/dashboard/eviction-assistant" },
+          { label: "💰 Tax Intelligence", path: "/dashboard/tax-intelligence" }
         ]}
       />
 

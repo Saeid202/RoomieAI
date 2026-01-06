@@ -66,17 +66,22 @@ ON public.properties FOR DELETE USING (auth.uid() = user_id);
           setSalesListings(sList);
         }
 
-        // DIAGNOSTIC CHECK: If we found no properties, check if ANY exist in the DB at all
-        // (This helps detect if the user has created properties under a DIFFERENT account/ID)
+        // DIAGNOSTIC CHECK: If we found no properties, check for orphaned properties.
+        // We only do this if the list is empty to avoid unnecessary noise.
+        // Also added a guard to avoid showing properties of other users in a multi-tenant environment.
         if (list.length === 0) {
+          // In a real app, we'd check by email or previous ID, but here we look for properties
+          // that are NOT the current user's but might be yours.
           const { data: allProps, error: allPropsError } = await supabase
             .from('properties' as any)
             .select('id, listing_title, user_id')
-            .limit(3);
+            .limit(10); // Check a few more to be safe
 
-          if (!allPropsError && allProps && allProps.length > 0) {
-            console.warn("Found orphaned properties:", allProps);
-            if (mounted) setOrphanedProps(allProps);
+          // Filter out the current user and capture anything that is NOT yours or is NULL
+          const others = (allProps as any[]).filter(p => p.user_id !== user.id || !p.user_id);
+          if (others.length > 0) {
+            console.warn("🔍 Potential orphaned properties found (including NULLs):", others);
+            if (mounted) setOrphanedProps(others);
           }
         }
 

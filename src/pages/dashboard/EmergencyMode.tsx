@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,9 +13,12 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { AlertTriangle, Clock, CheckCircle, XCircle, MessageSquare, Phone, MapPin, Camera, Eye, Pencil, Trash2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { EmergencyChat } from "@/components/renovator/EmergencyChat";
 
 export default function EmergencyMode() {
     const { toast } = useToast();
+    const navigate = useNavigate();
+    const { jobId } = useParams();
     const [activeTab, setActiveTab] = useState("active");
     const [properties, setProperties] = useState<any[]>([]);
     const [jobs, setJobs] = useState<any[]>([]);
@@ -134,6 +138,9 @@ DROP POLICY IF EXISTS "Public view availability" ON public.renovator_availabilit
 CREATE POLICY "Public view availability"
     ON public.renovator_availability FOR SELECT
     USING (true);
+
+-- 7. Messaging Link for Emergency Jobs
+ALTER TABLE public.conversations ADD COLUMN IF NOT EXISTS emergency_job_id UUID REFERENCES public.emergency_jobs(id);
 `;
 
     useEffect(() => {
@@ -156,6 +163,17 @@ CREATE POLICY "Public view availability"
             supabase.removeChannel(channel);
         };
     }, []);
+
+    // Auto-open job details if jobId is in URL
+    useEffect(() => {
+        if (jobId && jobs.length > 0) {
+            const job = jobs.find(j => j.id === jobId);
+            if (job) {
+                setSelectedJob(job);
+                setIsDetailsOpen(true);
+            }
+        }
+    }, [jobId, jobs]);
 
     const fetchProperties = async () => {
         const { data, error } = await supabase.from('properties' as any).select('id, listing_title, address');
@@ -275,26 +293,23 @@ CREATE POLICY "Public view availability"
     };
 
     const dispatchJob = async (job: any) => {
+        console.log("Starting broadcast for job:", job.id);
+
         // Find suitable renovators who are ONLINE and accepting EMERGENCIES
-        // User Request: "all the renovators can see the request"
-        // We broadcast to EVERYONE who is marked as available for emergencies.
         const { data: availablePros, error } = await supabase
             .from('renovator_availability' as any)
             .select('renovator_id')
             .eq('is_online', true)
             .eq('emergency_available', true);
-        // Removed limit(10) to ensure full broadcast
 
         if (error) {
             console.error("Error finding pros:", error);
-            toast({ variant: "destructive", title: "Dispatch Error", description: "Could not match pros." });
-            return;
         }
 
         // 1. Try to find ONLINE pros first
         let targets = availablePros ? availablePros.map((p: any) => p.renovator_id) : [];
 
-        // 2. FALLBACK: If no online pros, just invite ALL registered partners (Review/Dev Mode behavior)
+        // 2. FALLBACK: If no online pros, just invite ALL registered partners
         if (targets.length === 0) {
             console.warn("No online pros found. Attempting fallback to ALL partners.");
             const { data: allPartners, error: partnersError } = await supabase
@@ -302,16 +317,16 @@ CREATE POLICY "Public view availability"
                 .select('id');
 
             if (!partnersError && allPartners && allPartners.length > 0) {
-                targets = allPartners.map(p => p.id);
+                targets = (allPartners as any[]).map(p => p.id);
                 toast({
                     title: "Broadcasting to All",
-                    description: "No 'Online' pros found. Sending to ALL registered partners instead."
+                    description: `No 'Online' pros found. Sending to ALL ${targets.length} registered partners instead.`
                 });
             }
         }
 
         if (targets.length === 0) {
-            console.warn("Dispatch failed: No pros found. This might be because no one is online OR Row Level Security (RLS) policies are blocking access to the 'renovator_availability' table.");
+            console.warn("Dispatch failed: No pros found.");
             toast({
                 variant: "destructive",
                 title: "Dispatch Failed",
@@ -325,18 +340,27 @@ CREATE POLICY "Public view availability"
         const invites = targets.map((renovatorId: string) => ({
             job_id: job.id,
             renovator_id: renovatorId,
-            expires_at: new Date(Date.now() + 60 * 60 * 1000).toISOString(), // 1 hour expiry
+            expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 hour expiry for easier testing
             status: 'PENDING'
         }));
 
         const { error: inviteError } = await supabase.from('emergency_job_invites' as any).insert(invites);
-        if (inviteError) throw inviteError;
+        if (inviteError) {
+            console.error("Invite insertion error:", inviteError);
+            toast({ variant: "destructive", title: "Dispatch Error", description: inviteError.message });
+            return;
+        }
 
         // Update Job Status
         await supabase.from('emergency_jobs' as any).update({
             status: 'DISPATCHED',
             dispatched_at: new Date().toISOString()
         }).eq('id', job.id);
+
+        toast({
+            title: "Success",
+            description: `Job dispatched to ${targets.length} professionals.`
+        });
     };
 
     const handleDelete = async (id: string) => {
@@ -556,7 +580,16 @@ CREATE POLICY "Public view availability"
             </Tabs>
 
             {/* DETAILS DRAWER */}
-            <Sheet open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
+            <Sheet
+                open={isDetailsOpen}
+                onOpenChange={(open) => {
+                    setIsDetailsOpen(open);
+                    if (!open) {
+                        setSelectedJob(null);
+                        if (jobId) navigate('/dashboard/emergency');
+                    }
+                }}
+            >
                 <SheetContent className="sm:max-w-md overflow-y-auto">
                     <SheetHeader>
                         <SheetTitle>Request Details</SheetTitle>
@@ -579,29 +612,36 @@ CREATE POLICY "Public view availability"
                                 <p className="text-slate-900 text-sm">{selectedJob.access_notes || "None provided"}</p>
                             </div>
 
-                            {selectedJob.status === 'ASSIGNED' && (
+                            {(selectedJob.status === 'ASSIGNED' || selectedJob.status === 'DISPATCHED' || selectedJob.status === 'IN_PROGRESS') && (
                                 <div className="border-t pt-6">
-                                    <h3 className="text-sm font-medium text-slate-500 uppercase tracking-wider mb-4">Assigned Pro</h3>
-                                    <div className="bg-slate-50 p-4 rounded-lg flex items-center justify-between">
-                                        <div>
-                                            <div className="font-bold">{selectedJob.renovator?.company}</div>
-                                            <div className="text-xs text-slate-500">Verified Partner</div>
+                                    {selectedJob.status === 'ASSIGNED' && (
+                                        <div className="mb-6">
+                                            <h3 className="text-sm font-medium text-slate-500 uppercase tracking-wider mb-4">Assigned Pro</h3>
+                                            <div className="bg-slate-50 p-4 rounded-lg flex items-center justify-between border">
+                                                <div>
+                                                    <div className="font-bold">{selectedJob.renovator?.company}</div>
+                                                    <div className="text-xs text-slate-500">Professional Contractor</div>
+                                                </div>
+                                                <div className="flex gap-2">
+                                                    <Button size="icon" variant="outline" className="h-8 w-8 rounded-full">
+                                                        <Phone className="h-4 w-4" />
+                                                    </Button>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div className="flex gap-2">
-                                            <Button size="icon" variant="outline"><Phone className="h-4 w-4" /></Button>
-                                            <Button size="icon" variant="outline"><MessageSquare className="h-4 w-4" /></Button>
-                                        </div>
-                                    </div>
+                                    )}
 
                                     <div className="mt-6">
-                                        <h3 className="text-sm font-medium text-slate-500 uppercase tracking-wider mb-2">Chat</h3>
-                                        <div className="bg-slate-100 h-40 rounded-lg flex items-center justify-center text-slate-400 text-sm border-2 border-dashed">
-                                            Chat Module Loading...
+                                        <h3 className="text-sm font-medium text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-2">
+                                            <MessageSquare className="h-4 w-4 text-blue-500" />
+                                            Job Communication
+                                        </h3>
+                                        <div className="rounded-xl overflow-hidden shadow-sm">
+                                            <EmergencyChat jobId={selectedJob.id} />
                                         </div>
-                                        <div className="mt-2 flex gap-2">
-                                            <Input placeholder="Type a message..." />
-                                            <Button size="icon"><MessageSquare className="h-4 w-4" /></Button>
-                                        </div>
+                                        <p className="text-[10px] text-slate-400 mt-2 text-center italic">
+                                            Real-time chat with interested renovators.
+                                        </p>
                                     </div>
                                 </div>
                             )}

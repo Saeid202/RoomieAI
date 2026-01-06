@@ -60,6 +60,14 @@ export function RenovatorSidebar({ isActive, showLabels }: RenovatorSidebarProps
 
             <SidebarSimpleMenuItem
                 showLabel={showLabels}
+                icon={<span className="text-lg">💰</span>}
+                label="Tax Intelligence"
+                to="/renovator/tax-intelligence"
+                isActive={isActive('/renovator/tax-intelligence')}
+            />
+
+            <SidebarSimpleMenuItem
+                showLabel={showLabels}
                 icon={<span className="text-lg">💬</span>}
                 label="Messages"
                 to="/renovator/messages"

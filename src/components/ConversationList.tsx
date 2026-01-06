@@ -6,6 +6,7 @@ import { MessageCircle, Search } from "lucide-react";
 import { MessagingService } from "@/services/messagingService";
 import { ConversationWithMessages } from "@/types/messaging";
 import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
 import { formatDistanceToNow } from "date-fns";
 
 interface ConversationListProps {
@@ -80,28 +81,41 @@ export function ConversationList({
   }
 
   return (
-    <div className={`w-full h-full flex flex-col bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 ${className}`}>
-      <div className="p-4 flex-shrink-0 space-y-4">
-        <h2 className="text-2xl font-bold tracking-tight px-1">Chats</h2>
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search Messenger"
-            className="pl-9 bg-muted/50 border-none h-10 rounded-full focus-visible:ring-1 transition-all"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+    <div className={`w-full h-full flex flex-col bg-white/40 dark:bg-slate-900/40 backdrop-blur-3xl border-r border-slate-200/50 dark:border-slate-800/50 relative overflow-hidden ${className}`}>
+      {/* Decorative Orbs */}
+      <div className="absolute top-[-100px] left-[-100px] w-64 h-64 bg-blue-500/5 rounded-full blur-3xl pointer-events-none" />
+
+      <div className="p-8 pb-4 flex-shrink-0 space-y-7 relative z-10">
+        <div className="flex items-center justify-between">
+          <h2 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">Inbox</h2>
+          <Button variant="ghost" size="icon" className="rounded-[18px] bg-slate-100 dark:bg-slate-800 h-11 w-11 shadow-sm transition-transform active:scale-95">
+            <MessageCircle className="h-5 w-5 text-blue-600" />
+          </Button>
+        </div>
+        <div className="relative group">
+          <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl blur opacity-0 group-focus-within:opacity-10 transition duration-500" />
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
+            <Input
+              placeholder="Search conversations..."
+              className="pl-12 bg-white dark:bg-slate-850 border-none h-14 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] focus-visible:ring-2 focus-visible:ring-blue-500/20 transition-all text-sm font-semibold"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
         </div>
       </div>
 
-      <ScrollArea className="flex-1">
+      <ScrollArea className="flex-1 px-4 mt-6 relative z-10">
         {filteredConversations.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-            <MessageCircle className="h-12 w-12 mb-3 text-muted-foreground/30" />
-            <p className="text-sm font-medium">No conversations found</p>
+          <div className="flex flex-col items-center justify-center py-20 text-slate-400 animate-in fade-in zoom-in duration-500">
+            <div className="bg-slate-100/50 dark:bg-slate-800/50 p-6 rounded-[2.5rem] mb-6">
+              <MessageCircle className="h-12 w-12 opacity-10" />
+            </div>
+            <p className="text-sm font-black uppercase tracking-widest opacity-40">Zero Encounters</p>
           </div>
         ) : (
-          <div className="px-3 pb-3 space-y-1">
+          <div className="space-y-3 pb-12">
             {filteredConversations.map((conversation) => {
               const isSelected = selectedConversationId === conversation.id;
               const otherParticipantName = getOtherParticipantName(conversation);
@@ -110,48 +124,60 @@ export function ConversationList({
                 ? formatDistanceToNow(new Date(conversation.last_message_at), { addSuffix: false })
                 : "";
 
+              const isEmergency = !!conversation.emergency_job_id;
+
               return (
                 <div
                   key={conversation.id}
-                  className={`group flex items-center gap-3 p-3 rounded-2xl cursor-pointer transition-all duration-200 ${isSelected
-                      ? "bg-blue-50/80 dark:bg-blue-900/20"
-                      : "hover:bg-muted/60"
+                  className={`group relative flex items-center gap-5 p-4.5 rounded-[24px] cursor-pointer transition-all duration-500 ${isSelected
+                    ? "bg-white dark:bg-slate-800 shadow-[0_20px_50px_rgba(0,0,0,0.08)] scale-[1.02] border border-blue-500/5"
+                    : "hover:bg-white/70 dark:hover:bg-slate-800/50 hover:shadow-xl hover:shadow-slate-200/20 active:scale-98"
                     }`}
                   onClick={() => onSelectConversation(conversation)}
                 >
-                  <div className="relative">
-                    <Avatar className="h-12 w-12 border-2 border-background shadow-sm ring-2 ring-transparent group-hover:ring-muted transition-all">
-                      <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-medium">
+                  <div className="relative shrink-0">
+                    <div className={`absolute -inset-1 rounded-3xl blur-[8px] opacity-0 transition-opacity duration-500 ${isEmergency ? 'bg-rose-500/20 group-hover:opacity-100' : 'bg-blue-500/10 group-hover:opacity-100'}`} />
+                    <Avatar className={`h-16 w-16 relative z-10 border-2 ${isSelected ? 'border-blue-500/10' : 'border-white dark:border-slate-800'} shadow-xl transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3`}>
+                      <AvatarFallback className={`${isEmergency ? "bg-gradient-to-br from-rose-500 via-rose-600 to-orange-500" : "bg-gradient-to-br from-blue-600 via-indigo-600 to-indigo-800"} text-white font-black text-xl shadow-inner`}>
                         {otherParticipantName[0]?.toUpperCase() || "U"}
                       </AvatarFallback>
                     </Avatar>
-                    {/* Mock online status */}
-                    <span className="absolute bottom-0.5 right-0.5 w-3 h-3 bg-green-500 border-2 border-background rounded-full"></span>
+                    <div className={`absolute bottom-0 right-0 w-5 h-5 ${isEmergency ? 'bg-rose-500' : 'bg-emerald-500'} border-4 border-white dark:border-slate-800 rounded-full shadow-lg z-20 transition-transform group-hover:scale-125`} />
                   </div>
 
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-0.5">
-                      <h4 className={`font-semibold text-sm truncate ${isSelected ? "text-blue-700 dark:text-blue-300" : "text-foreground"}`}>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <h4 className={`font-black text-[16px] truncate tracking-tight transition-colors ${isSelected ? "text-slate-900 dark:text-white" : "text-slate-700 dark:text-slate-300 group-hover:text-slate-900"}`}>
                         {otherParticipantName}
                       </h4>
                       {lastMessageTime && (
-                        <span className={`text-[10px] font-medium flex-shrink-0 ${isSelected ? "text-blue-600/70" : "text-muted-foreground/70"}`}>
+                        <span className={`text-[10px] font-black uppercase tracking-[0.2em] transition-all ${isSelected ? "text-blue-600 scale-110" : "text-slate-400 group-hover:text-slate-500"}`}>
                           {lastMessageTime.replace('about ', '')}
                         </span>
                       )}
                     </div>
 
-                    <div className="flex items-center gap-2">
-                      <p className={`text-xs truncate max-w-[180px] leading-relaxed ${isSelected
-                          ? "text-blue-600/80 dark:text-blue-300/80 font-medium"
-                          : "text-muted-foreground group-hover:text-foreground/80 font-normal"
+                    <div className="flex flex-col gap-1">
+                      {conversation.property_title && (
+                        <div className={`text-[10px] font-black uppercase tracking-[0.25em] truncate flex items-center gap-2 ${isEmergency ? 'text-rose-500' : 'text-slate-400 opacity-70 group-hover:opacity-100'}`}>
+                          {isEmergency && <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-[ping_1.5s_infinite]" />}
+                          {conversation.property_title.replace('🚨 Emergency: ', '')}
+                        </div>
+                      )}
+                      <p className={`text-sm truncate max-w-[170px] leading-snug transition-all ${isSelected
+                        ? "text-slate-600 dark:text-slate-400 font-semibold"
+                        : "text-slate-400 font-medium group-hover:text-slate-500"
                         }`}>
                         {lastMessage}
                       </p>
                     </div>
                   </div>
 
-                  {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-sm shadow-blue-500/50" />}
+                  {!isSelected && lastMessage !== "No messages yet" && (
+                    <div className="flex flex-col items-end gap-2">
+                      <div className="w-2.5 h-2.5 rounded-full bg-blue-600 shadow-[0_0_12px_rgba(37,99,235,0.6)] animate-in zoom-in duration-500" />
+                    </div>
+                  )}
                 </div>
               );
             })}

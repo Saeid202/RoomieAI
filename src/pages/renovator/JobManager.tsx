@@ -3,12 +3,12 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Hammer, Clock, MapPin, CheckCircle, XCircle, AlertTriangle, Zap, Eye } from "lucide-react";
+import { Hammer, Clock, MapPin, CheckCircle, XCircle, AlertTriangle, Zap, Eye, MessageSquare } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { formatDistanceToNow, differenceInMinutes } from "date-fns";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import {
     Dialog,
     DialogContent,
@@ -18,10 +18,13 @@ import {
     DialogFooter,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { EmergencyChat } from "@/components/renovator/EmergencyChat";
 
 export default function JobManager() {
     const { toast } = useToast();
     const navigate = useNavigate();
+    const { jobId } = useParams();
+    const location = useLocation();
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState("active");
     const [renovatorId, setRenovatorId] = useState<string | null>(null);
@@ -29,6 +32,7 @@ export default function JobManager() {
     const [pendingInvites, setPendingInvites] = useState<any[]>([]);
     const [error, setError] = useState<string | null>(null);
     const [selectedJob, setSelectedJob] = useState<any | null>(null);
+    const [activeChatJobId, setActiveChatJobId] = useState<string | null>(null);
 
     useEffect(() => {
         fetchData();
@@ -85,8 +89,6 @@ export default function JobManager() {
             }
 
             // 2. Fetch Pending Invites (New Requests)
-            // Removed .gt('expires_at') to ensure consistency with Dashboard. 
-            // We can show expired status in UI.
             const { data: invites, error: inviteError } = await supabase
                 .from('emergency_job_invites' as any)
                 .select(`
@@ -105,7 +107,6 @@ export default function JobManager() {
                 setPendingInvites(invites);
 
                 // Smart Tab Switching:
-                // If we have no active jobs, but we DO have pending requests, show requests tab.
                 if (currentActiveJobs.length === 0 && invites.length > 0) {
                     setActiveTab("requests");
                 }
@@ -118,6 +119,28 @@ export default function JobManager() {
             setLoading(false);
         }
     };
+
+    // Auto-open job details if jobId is in URL
+    useEffect(() => {
+        if (jobId && !loading) {
+            // Check in active jobs
+            const activeJob = activeJobs.find(j => j.id === jobId);
+            if (activeJob) {
+                setSelectedJob({ job: activeJob, invite: null });
+                return;
+            }
+
+            // Check in pending invites
+            const invite = pendingInvites.find(i => i.job_id === jobId);
+            if (invite) {
+                setSelectedJob({ invite, job: invite.job });
+                return;
+            }
+
+            // Fallback: If not found in memory, we might need a separate fetch for just this job
+            // For now, assume it's one of the ones we fetched if the renovator is allowed to see it.
+        }
+    }, [jobId, loading, activeJobs, pendingInvites]);
 
     const handleAccept = async (inviteId: string) => {
         try {
@@ -149,7 +172,10 @@ export default function JobManager() {
         }
     };
 
-    if (loading) return <div>Loading jobs...</div>;
+    if (loading) return <div className="p-10 text-center flex flex-col items-center gap-3">
+        <Hammer className="h-8 w-8 text-blue-600 animate-bounce" />
+        <span className="text-slate-500 font-medium">Loading your jobs...</span>
+    </div>;
 
     return (
         <div className="container mx-auto p-6 space-y-6">
@@ -172,58 +198,69 @@ export default function JobManager() {
             </div>
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid w-full grid-cols-2 lg:w-[400px]">
-                    <TabsTrigger value="active">Active Jobs ({activeJobs.length})</TabsTrigger>
-                    <TabsTrigger value="requests" className="relative">
+                <TabsList className="grid w-full grid-cols-2 lg:w-[400px] mb-8">
+                    <TabsTrigger value="active" className="font-bold">Active Jobs ({activeJobs.length})</TabsTrigger>
+                    <TabsTrigger value="requests" className="relative font-bold">
                         New Requests
                         {pendingInvites.length > 0 && (
-                            <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[10px] text-white">
+                            <span className="ml-2 bg-red-600 text-white text-[10px] px-1.5 py-0.5 rounded-full">
                                 {pendingInvites.length}
                             </span>
                         )}
                     </TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="active" className="mt-6 space-y-4">
+                <TabsContent value="active" className="mt-0 space-y-4">
                     {activeJobs.length === 0 ? (
-                        <Card>
-                            <CardContent className="py-16 text-center text-muted-foreground">
+                        <Card className="border-dashed border-2 py-16">
+                            <CardContent className="text-center text-muted-foreground">
                                 <Hammer className="h-12 w-12 mx-auto mb-4 text-slate-200" />
-                                <h3 className="text-lg font-medium text-slate-900">No Active Jobs</h3>
-                                <p>Accepted jobs will appear here.</p>
+                                <h3 className="text-lg font-medium text-slate-900 mb-1">No Active Jobs</h3>
+                                <p>When you accept a request, it will appear here for management.</p>
                             </CardContent>
                         </Card>
                     ) : (
                         activeJobs.map(job => (
-                            <Card key={job.id} className="border-l-4 border-l-blue-500 shadow-sm hover:shadow-md transition-all">
+                            <Card key={job.id} className="border-l-4 border-l-blue-500 shadow-md hover:shadow-lg transition-all group overflow-hidden">
                                 <CardContent className="p-6">
-                                    <div className="flex justify-between items-start mb-4">
+                                    <div className="flex justify-between items-start mb-6">
                                         <div>
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-200 border-none">
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <Badge className="bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-100 font-bold uppercase text-[10px]">
                                                     {job.status.replace('_', ' ')}
                                                 </Badge>
-                                                <span className="text-xs text-slate-400 font-mono">#{job.id.slice(0, 8)}</span>
+                                                <span className="text-[10px] text-slate-400 font-mono tracking-tighter">ID: {job.id.slice(0, 8)}</span>
                                             </div>
-                                            <h3 className="text-xl font-bold">{job.category}</h3>
+                                            <h3 className="text-2xl font-bold text-slate-900 group-hover:text-blue-600 transition-colors">{job.category}</h3>
                                         </div>
-                                        <Button variant="outline" size="sm" onClick={() => navigate(`/renovator/jobs/${job.id}`)}>
-                                            View Details
-                                        </Button>
+                                        <div className="flex gap-2">
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => setActiveChatJobId(job.id)}
+                                                className="border-blue-200 text-blue-700 hover:bg-blue-50"
+                                            >
+                                                <MessageSquare className="h-4 w-4 mr-2" />
+                                                Messages
+                                            </Button>
+                                            <Button variant="default" size="sm" onClick={() => navigate(`/renovator/jobs/${job.id}`)}>
+                                                View Details
+                                            </Button>
+                                        </div>
                                     </div>
-                                    <div className="grid md:grid-cols-2 gap-4 text-sm text-slate-600">
-                                        <div className="flex items-center gap-2">
+                                    <div className="grid md:grid-cols-2 gap-4 text-sm mb-6">
+                                        <div className="flex items-center gap-2 text-slate-600 bg-slate-50 p-3 rounded-lg border border-slate-100 italic">
                                             <MapPin className="h-4 w-4 text-slate-400" />
                                             {job.unit_address}
                                         </div>
-                                        <div className="flex items-center gap-2">
+                                        <div className="flex items-center gap-2 text-slate-500 font-medium px-3">
                                             <Clock className="h-4 w-4 text-slate-400" />
                                             Posted {formatDistanceToNow(new Date(job.created_at), { addSuffix: true })}
                                         </div>
                                     </div>
-                                    <div className="mt-4 bg-slate-50 p-3 rounded text-sm border">
-                                        <span className="font-semibold text-slate-700">Description: </span>
-                                        {job.description}
+                                    <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 text-sm">
+                                        <span className="font-bold text-slate-800 uppercase text-[10px] tracking-wider block mb-1">Mission Description:</span>
+                                        <p className="text-slate-600 line-clamp-3 leading-relaxed">{job.description}</p>
                                     </div>
                                 </CardContent>
                             </Card>
@@ -231,13 +268,13 @@ export default function JobManager() {
                     )}
                 </TabsContent>
 
-                <TabsContent value="requests" className="mt-6 space-y-4">
+                <TabsContent value="requests" className="mt-0 space-y-4">
                     {pendingInvites.length === 0 ? (
-                        <Card>
-                            <CardContent className="py-16 text-center text-muted-foreground">
+                        <Card className="border-dashed border-2 py-16">
+                            <CardContent className="text-center text-muted-foreground">
                                 <CheckCircle className="h-12 w-12 mx-auto mb-4 text-slate-200" />
-                                <h3 className="text-lg font-medium text-slate-900">All Caught Up</h3>
-                                <p>No new job requests at the moment.</p>
+                                <h3 className="text-lg font-medium text-slate-900 mb-1">Queue Empty</h3>
+                                <p>You have no pending emergency requests at the moment.</p>
                             </CardContent>
                         </Card>
                     ) : (
@@ -245,37 +282,49 @@ export default function JobManager() {
                             const job = invite.job;
                             const minutesLeft = differenceInMinutes(new Date(invite.expires_at), new Date());
                             return (
-                                <Card key={invite.id} className="border-red-100 shadow-md relative overflow-hidden">
-                                    <div className="absolute top-0 left-0 w-1 h-full bg-red-500" />
-                                    <CardHeader className="pb-3">
+                                <Card key={invite.id} className="border-red-100 shadow-xl relative overflow-hidden transition-all hover:translate-y-[-2px]">
+                                    <div className="absolute top-0 left-0 w-1.5 h-full bg-red-600" />
+                                    <CardHeader className="pb-3 px-6 pt-6">
                                         <div className="flex justify-between items-start">
-                                            <Badge variant="outline" className="border-red-200 text-red-700 bg-red-50">
+                                            <Badge variant="destructive" className="uppercase font-bold text-[10px] tracking-widest px-2">
                                                 {job.urgency}
                                             </Badge>
-                                            <div className="flex items-center gap-1 text-red-600 font-bold font-mono text-sm">
+                                            <div className={`flex items-center gap-1.5 font-bold text-sm ${minutesLeft < 15 ? 'text-red-600 animate-pulse' : 'text-slate-500'}`}>
                                                 <Clock className="h-4 w-4" />
-                                                {minutesLeft > 0 ? `${minutesLeft}m left` : 'Expiring...'}
+                                                {minutesLeft > 0 ? `${minutesLeft}m left` : 'Expiring Soon'}
                                             </div>
                                         </div>
-                                        <CardTitle className="text-lg pt-2">{job.category}</CardTitle>
-                                        <CardDescription className="line-clamp-2">{job.description}</CardDescription>
+                                        <CardTitle className="text-xl pt-3 font-bold text-slate-900">{job.category}</CardTitle>
+                                        <CardDescription className="line-clamp-2 text-slate-500 text-sm mt-1">{job.description}</CardDescription>
                                     </CardHeader>
-                                    <CardContent className="text-sm space-y-3">
-                                        <div className="flex items-start gap-2 text-slate-600">
-                                            <MapPin className="h-4 w-4 shrink-0 mt-0.5" />
+                                    <CardContent className="px-6 pb-6">
+                                        <div className="flex items-start gap-2 text-slate-800 bg-slate-50 p-3 rounded-lg border border-slate-100 font-medium italic mb-2">
+                                            <MapPin className="h-4 w-4 shrink-0 mt-0.5 text-slate-400" />
                                             <span>{job.unit_address}</span>
                                         </div>
                                     </CardContent>
-                                    <CardFooter className="grid grid-cols-2 lg:grid-cols-4 gap-3 pt-0">
-                                        <Button variant="ghost" onClick={() => setSelectedJob({ invite, job })} className="lg:col-span-2 w-full border">
-                                            <Eye className="mr-2 h-4 w-4" /> View Details
-                                        </Button>
-                                        <Button variant="outline" onClick={() => handleDecline(invite.id)} className="w-full text-red-600 hover:text-red-700 hover:bg-red-50">
-                                            Decline
-                                        </Button>
-                                        <Button onClick={() => handleAccept(invite.id)} className="w-full bg-red-600 hover:bg-red-700 text-white">
-                                            Accept
-                                        </Button>
+                                    <CardFooter className="bg-slate-50/50 border-t p-4 flex flex-col sm:flex-row gap-3">
+                                        <div className="flex gap-2 w-full sm:flex-1">
+                                            <Button variant="outline" size="sm" onClick={() => navigate(`/renovator/jobs/${job.id}`)} className="flex-1 bg-white font-bold">
+                                                <Eye className="mr-2 h-4 w-4" /> View Details
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => setActiveChatJobId(job.id)}
+                                                className="flex-1 bg-white border-blue-200 text-blue-700 hover:bg-blue-50 font-bold"
+                                            >
+                                                <MessageSquare className="mr-2 h-4 w-4" /> Message
+                                            </Button>
+                                        </div>
+                                        <div className="flex gap-2 w-full sm:flex-1">
+                                            <Button variant="ghost" size="sm" onClick={() => handleDecline(invite.id)} className="flex-1 text-slate-500 hover:text-red-700 hover:bg-red-50 font-bold">
+                                                Decline
+                                            </Button>
+                                            <Button onClick={() => handleAccept(invite.id)} size="sm" className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold shadow-md shadow-red-100">
+                                                Accept
+                                            </Button>
+                                        </div>
                                     </CardFooter>
                                 </Card>
                             );
@@ -285,58 +334,85 @@ export default function JobManager() {
             </Tabs>
 
             {/* DETAILS DIALOG */}
-            <Dialog open={!!selectedJob} onOpenChange={(open) => !open && setSelectedJob(null)}>
+            <Dialog
+                open={!!selectedJob}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setSelectedJob(null);
+                        // Clear jobId from URL if it was there
+                        if (jobId) navigate('/renovator/jobs');
+                    }
+                }}
+            >
                 <DialogContent className="max-w-2xl">
                     <DialogHeader>
-                        <DialogTitle>{selectedJob?.job.category} Request</DialogTitle>
+                        <DialogTitle className="flex items-center gap-2">
+                            <Zap className="h-5 w-5 text-red-600" />
+                            {selectedJob?.job.category} Professional Assessment
+                        </DialogTitle>
                         <DialogDescription>
-                            Review the details before accepting.
+                            Complete technical details for the emergency request.
                         </DialogDescription>
                     </DialogHeader>
 
                     {selectedJob && (
-                        <div className="grid gap-4 py-4">
-                            <div className="flex items-center gap-2">
-                                <Badge variant={selectedJob.job.urgency === 'HIGH' ? "destructive" : "default"}>
-                                    {selectedJob.job.urgency} Urgency
-                                </Badge>
-                                <span className="text-sm text-muted-foreground">
-                                    Expires in {differenceInMinutes(new Date(selectedJob.invite.expires_at), new Date())} minutes
-                                </span>
+                        <div className="grid gap-6 py-4">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <Badge variant={selectedJob.job.urgency === 'Immediate' ? "destructive" : "default"} className="font-bold">
+                                        {selectedJob.job.urgency} Urgency
+                                    </Badge>
+                                    <span className="text-[10px] text-muted-foreground bg-slate-100 px-2 py-1 rounded font-bold flex items-center gap-1">
+                                        <Clock className="h-3 w-3" />
+                                        EXPIRES IN {differenceInMinutes(new Date(selectedJob.invite.expires_at), new Date())} MINUTES
+                                    </span>
+                                </div>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                        setActiveChatJobId(selectedJob.job.id);
+                                        setSelectedJob(null);
+                                    }}
+                                    className="gap-2 border-blue-200 text-blue-700 hover:bg-blue-50 font-bold shadow-sm"
+                                >
+                                    <MessageSquare className="h-4 w-4" /> Talk with Landlord
+                                </Button>
                             </div>
 
-                            <Card className="bg-slate-50 border-none">
-                                <CardContent className="p-4 space-y-2">
+                            <Card className="bg-slate-50 border-none shadow-inner p-1">
+                                <CardContent className="p-4 space-y-3">
                                     <div className="flex gap-2">
-                                        <MapPin className="h-5 w-5 text-slate-500" />
-                                        <span className="font-medium">{selectedJob.job.unit_address}</span>
+                                        <MapPin className="h-5 w-5 text-slate-400" />
+                                        <span className="font-bold text-slate-900">{selectedJob.job.unit_address}</span>
                                     </div>
                                     {selectedJob.job.access_instructions && (
-                                        <div className="text-sm text-slate-600 ml-7">
-                                            <span className="font-semibold">Access:</span> {selectedJob.job.access_instructions}
+                                        <div className="bg-white p-3 rounded-lg border border-slate-200 text-sm">
+                                            <span className="font-bold text-slate-800 block mb-1 uppercase text-[10px] tracking-wider">Access Protocol:</span>
+                                            <span className="text-slate-600 italic">"{selectedJob.job.access_instructions}"</span>
                                         </div>
                                     )}
                                 </CardContent>
                             </Card>
 
                             <div>
-                                <h4 className="font-semibold mb-2">Description</h4>
-                                <p className="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">
+                                <h4 className="font-bold mb-2 text-slate-800 uppercase text-[10px] tracking-wider font-mono">Scope of Issue</h4>
+                                <p className="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed bg-white border p-4 rounded-lg">
                                     {selectedJob.job.description}
                                 </p>
                             </div>
 
                             {selectedJob.job.images && selectedJob.job.images.length > 0 && (
                                 <div>
-                                    <h4 className="font-semibold mb-2">Attached Images</h4>
-                                    <ScrollArea className="h-48 w-full rounded-md border p-2">
+                                    <h4 className="font-bold mb-2 text-slate-800 uppercase text-[10px] tracking-wider font-mono">Visual Evidence</h4>
+                                    <ScrollArea className="h-48 w-full rounded-md border p-2 bg-slate-50">
                                         <div className="flex gap-2">
                                             {selectedJob.job.images.map((url: string, idx: number) => (
                                                 <img
                                                     key={idx}
                                                     src={url}
                                                     alt={`Job image ${idx + 1}`}
-                                                    className="h-40 w-auto object-cover rounded shadow-sm hover:scale-105 transition-transform"
+                                                    className="h-40 w-auto object-cover rounded-md shadow hover:scale-105 transition-transform"
                                                 />
                                             ))}
                                         </div>
@@ -346,14 +422,26 @@ export default function JobManager() {
                         </div>
                     )}
 
-                    <DialogFooter className="gap-2 sm:gap-0">
-                        <Button variant="outline" onClick={() => handleDecline(selectedJob!.invite.id)}>
+                    <DialogFooter className="gap-2 sm:gap-0 border-t pt-4">
+                        <Button variant="ghost" onClick={() => handleDecline(selectedJob!.invite.id)} className="text-slate-400 font-bold">
                             Decline Request
                         </Button>
-                        <Button onClick={() => handleAccept(selectedJob!.invite.id)} className="bg-red-600 hover:bg-red-700">
-                            Accept Job
+                        <Button onClick={() => handleAccept(selectedJob!.invite.id)} className="bg-red-600 hover:bg-red-700 font-bold px-8 shadow-lg shadow-red-100">
+                            Accept and Dispatch
                         </Button>
                     </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* CHAT DIALOG */}
+            <Dialog open={!!activeChatJobId} onOpenChange={(open) => !open && setActiveChatJobId(null)}>
+                <DialogContent className="p-0 border-none max-w-lg bg-transparent shadow-none">
+                    {activeChatJobId && (
+                        <EmergencyChat
+                            jobId={activeChatJobId}
+                            onClose={() => setActiveChatJobId(null)}
+                        />
+                    )}
                 </DialogContent>
             </Dialog>
         </div>

@@ -80,6 +80,7 @@ import ServiceArea from "@/pages/renovator/ServiceArea";
 import RenovatorSettings from "@/pages/renovator/RenovatorSettings";
 import EducationCentrePage from "@/pages/dashboard/EducationCentre";
 import BuyingOpportunitiesPage from "@/pages/dashboard/BuyingOpportunities";
+import TaxIntelligencePage from "@/pages/dashboard/TaxIntelligence";
 
 
 import { useAuth } from "@/hooks/useAuth";
@@ -162,6 +163,8 @@ function AppRoutes() {
           <Route path="education-centre" element={<EducationCentrePage />} />
           <Route path="renovators" element={<RenovatorsPage />} />
           <Route path="emergency" element={<EmergencyMode />} />
+          <Route path="emergency/:jobId" element={<EmergencyMode />} />
+          <Route path="tax-intelligence" element={<ErrorBoundary componentName="TaxIntelligencePage"><TaxIntelligencePage /></ErrorBoundary>} />
           <Route path="cleaners" element={<CleanersPage />} />
           <Route path="shop" element={<ShopPage />} />
           <Route path="digital-wallet" element={<DigitalWalletPage />} />
@@ -191,10 +194,12 @@ function AppRoutes() {
           <Route path="dashboard" element={<ErrorBoundary componentName="RenovatorDashboard"><RenovatorDashboard /></ErrorBoundary>} />
           <Route path="emergency" element={<EmergencyInbox />} />
           <Route path="jobs" element={<JobManager />} />
+          <Route path="jobs/:jobId" element={<JobManager />} />
           <Route path="messages" element={<Messages />} />
           <Route path="profile" element={<RenovatorProfile />} />
           <Route path="availability" element={<Availability />} />
           <Route path="service-area" element={<ServiceArea />} />
+          <Route path="tax-intelligence" element={<ErrorBoundary componentName="TaxIntelligencePage"><TaxIntelligencePage /></ErrorBoundary>} />
           <Route path="settings" element={<RenovatorSettings />} />
         </Route>
       </Routes>
@@ -246,6 +251,7 @@ function AppRoutes() {
         <Route path="property-compliance-ai" element={<ErrorBoundary componentName="PropertyCompliancePage"><PropertyCompliancePage /></ErrorBoundary>} />
         <Route path="tenancy-legal-ai" element={<TenancyLegalAIPage />} />
         <Route path="education-centre" element={<EducationCentrePage />} />
+        <Route path="tax-intelligence" element={<ErrorBoundary componentName="TaxIntelligencePage"><TaxIntelligencePage /></ErrorBoundary>} />
         <Route path="renovators" element={<RenovatorsPage />} />
         <Route path="cleaners" element={<CleanersPage />} />
         <Route path="shop" element={<ShopPage />} />
@@ -280,6 +286,7 @@ function AppRoutes() {
         <Route path="profile" element={<RenovatorProfile />} />
         <Route path="availability" element={<Availability />} />
         <Route path="service-area" element={<ServiceArea />} />
+        <Route path="tax-intelligence" element={<ErrorBoundary componentName="TaxIntelligencePage"><TaxIntelligencePage /></ErrorBoundary>} />
         <Route path="settings" element={<RenovatorSettings />} />
       </Route>
     </Routes>
