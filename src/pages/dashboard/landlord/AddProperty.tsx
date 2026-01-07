@@ -112,6 +112,7 @@ interface PropertyFormData {
 
   // Sales Information
   salesPrice: string;
+  downpaymentTarget: string;
 
   // Rental Information
   monthlyRent: string;
@@ -163,6 +164,7 @@ const initialFormData: PropertyFormData = {
   descriptionAudioUrl: "",
   threeDModelUrl: "",
   salesPrice: "",
+  downpaymentTarget: "",
   isCoOwnership: false
 };
 
@@ -408,7 +410,8 @@ export default function AddPropertyPage() {
           descriptionAudioUrl: data.description_audio_url || "",
           threeDModelUrl: data.three_d_model_url || "",
           listingCategory: data.listing_category || (params.get('category') === 'sale' ? "sale" : "rental"),
-          salesPrice: data.sales_price?.toString() || ""
+          salesPrice: data.sales_price?.toString() || "",
+          downpaymentTarget: data.downpayment_target?.toString() || ""
         }));
         setExistingImageUrls(Array.isArray(data.images) ? data.images : []);
         toast.success("Loaded listing for editing");
@@ -685,7 +688,12 @@ export default function AddPropertyPage() {
       if (editId) {
         console.log("🔄 Updating existing property...");
         // If no new images uploaded, avoid clobbering existing images
-        const updates: any = { ...propertyData, isCoOwnership: formData.isCoOwnership };
+        const updates: any = {
+          ...propertyData,
+          isCoOwnership: formData.isCoOwnership,
+          salesPrice: formData.salesPrice,
+          downpaymentTarget: formData.downpaymentTarget
+        };
         if (imageUrls.length > 0) {
           updates.images = [...existingImageUrls, ...imageUrls];
         } else {
@@ -706,6 +714,7 @@ export default function AddPropertyPage() {
           result = await createSalesListing({
             ...propertyData,
             salesPrice: formData.salesPrice,
+            downpaymentTarget: formData.downpaymentTarget,
             isCoOwnership: formData.isCoOwnership
           });
         } else {
@@ -1365,17 +1374,15 @@ export default function AddPropertyPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="furnished" className="text-sm font-medium">Furnishing</Label>
-                    <Select value={formData.furnished} onValueChange={(value) => handleInputChange("furnished", value)}>
-                      <SelectTrigger className="h-9 border-gray-300 shadow-sm focus:border-blue-500">
-                        <SelectValue placeholder="Select" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="furnished">Fully Furnished</SelectItem>
-                        <SelectItem value="semi-furnished">Semi-Furnished</SelectItem>
-                        <SelectItem value="unfurnished">Unfurnished</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Label htmlFor="downpaymentTarget" className="text-sm font-medium">Downpayment Target ($)</Label>
+                    <Input
+                      id="downpaymentTarget"
+                      placeholder="0.00"
+                      type="number"
+                      value={formData.downpaymentTarget}
+                      onChange={(e) => handleInputChange("downpaymentTarget", e.target.value)}
+                      className="h-9 border-gray-300 shadow-sm focus:border-blue-500"
+                    />
                   </div>
                 </div>
               ) : (

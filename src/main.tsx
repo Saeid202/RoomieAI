@@ -33,9 +33,7 @@ if (!rootElement) throw new Error("Failed to find the root element");
 createRoot(rootElement).render(
   <BrowserRouter>
     <QueryClientProvider client={queryClient}>
-      <RoleProvider>
-        <App />
-      </RoleProvider>
+      <App />
     </QueryClientProvider>
   </BrowserRouter>
 );

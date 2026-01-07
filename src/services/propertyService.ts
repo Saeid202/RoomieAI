@@ -65,6 +65,7 @@ export interface Property {
 
 export interface SalesListing extends Omit<Property, 'monthly_rent' | 'security_deposit' | 'lease_terms'> {
   sales_price: number;
+  downpayment_target?: number;
   is_co_ownership?: boolean;
 }
 
@@ -154,6 +155,19 @@ export async function claimProperties(newUserId: string, oldUserId: string): Pro
   console.log(`🚀 Claiming properties: ${oldUserId} -> ${newUserId}`);
 
   try {
+    // Try using the RPC function first (Security Definer)
+    const { data, error: rpcError } = await sb.rpc('claim_orphaned_properties', {
+      old_owner_id: oldUserId
+    });
+
+    if (!rpcError) {
+      console.log('✅ Successfully claimed properties via RPC:', data);
+      return true;
+    }
+
+    console.warn("RPC claim failed (function might not exist), falling back to direct update:", rpcError);
+
+    // Fallback: Direct Update (works if RLS allows it)
     // 1. Update Rental Properties
     const { error: propError } = await sb
       .from('properties')
@@ -368,6 +382,7 @@ export async function createSalesListing(salesData: any): Promise<SalesListing |
     public_transport_access: salesData.publicTransportAccess || salesData.public_transport_access,
     nearby_amenities: salesData.nearbyAmenities || salesData.nearby_amenities,
     sales_price: parseFloat(salesData.salesPrice || salesData.sales_price || '0'),
+    downpayment_target: parseFloat(salesData.downpaymentTarget || salesData.downpayment_target || '0'),
     is_co_ownership: salesData.isCoOwnership || salesData.is_co_ownership || false,
     available_date: salesData.availableDate || salesData.available_date,
     furnished: salesData.furnished,
@@ -616,6 +631,9 @@ export async function updateSalesListing(id: string, updates: any) {
   if (updates.salesPrice || updates.sales_price) {
     payload.sales_price = parseFloat(updates.salesPrice || updates.sales_price || '0');
   }
+  if (updates.downpaymentTarget || updates.downpayment_target) {
+    payload.downpayment_target = parseFloat(updates.downpaymentTarget || updates.downpayment_target || '0');
+  }
   if (updates.isCoOwnership !== undefined || updates.is_co_ownership !== undefined) {
     payload.is_co_ownership = updates.isCoOwnership !== undefined ? updates.isCoOwnership : updates.is_co_ownership;
   }
@@ -862,3 +880,119 @@ export async function updateInvestorOffer(
     throw error;
   }
 }
+
+export interface CoOwnershipSignal {
+  id: string;
+  user_id: string;
+  capital_available: string;
+  household_type: 'Single' | 'Couple' | 'Family';
+  intended_use: 'Live-in' | 'Investment' | 'Mixed';
+  time_horizon: '1–2 years' | '3–5 years' | 'Flexible';
+  notes?: string;
+  created_at: string;
+  creator_name?: string;
+}
+
+export const fetchCoOwnershipSignals = async (): Promise<CoOwnershipSignal[]> => {
+  const { data, error } = await sb
+    .from('co_ownership_signals')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    if (error.code !== '42P01') console.error('Error fetching signals:', error);
+    return [];
+  }
+
+  const signals = data as CoOwnershipSignal[];
+  if (signals.length === 0) return [];
+
+  try {
+    const userIds = Array.from(new Set(signals.map(s => s.user_id)));
+
+    // Fetch generic profiles
+    const { data: profiles, error: profileError } = await sb
+      .from('profiles')
+      .select('id, first_name, last_name, full_name, email')
+      .in('id', userIds);
+
+    if (profileError) console.error("Error fetching signal profiles:", profileError);
+
+    // Fetch renovator profiles
+    const { data: renovators, error: renovatorError } = await sb
+      .from('renovation_partners' as any)
+      .select('user_id, company, name')
+      .in('user_id', userIds);
+
+    if (renovatorError && renovatorError.code !== '42P01') {
+      console.error("Error fetching renovators:", renovatorError);
+    }
+
+    return signals.map(signal => {
+      let name = "Unknown User";
+
+      // 1. Try Renovator Profile
+      const renovator = renovators?.find((r: any) => r.user_id === signal.user_id);
+      if (renovator) {
+        if (renovator.company && renovator.name) {
+          name = `${renovator.company} (${renovator.name})`;
+        } else {
+          name = renovator.company || renovator.name;
+        }
+      }
+      // 2. Try Standard Profile
+      else {
+        const profile = profiles?.find((p: any) => p.id === signal.user_id);
+        if (profile) {
+          if (profile.first_name || profile.last_name) {
+            name = `${profile.first_name || ''} ${profile.last_name || ''}`.trim();
+          } else if (profile.full_name) {
+            name = profile.full_name;
+          } else if (profile.email) {
+            name = profile.email.split('@')[0];
+          }
+        }
+      }
+
+      return { ...signal, creator_name: name };
+    });
+  } catch (err) {
+    console.error("Error fetching creator profiles for signals:", err);
+    return signals;
+  }
+};
+
+export const createCoOwnershipSignal = async (signal: Omit<CoOwnershipSignal, 'id' | 'created_at' | 'user_id'>) => {
+  const { data: { user } } = await sb.auth.getUser();
+  if (!user) throw new Error("User not authenticated");
+
+  const { data, error } = await sb
+    .from('co_ownership_signals')
+    .insert([{ ...signal, user_id: user.id }])
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error creating signal:', error);
+    throw error;
+  }
+  return data;
+};
+
+export const updateCoOwnershipSignal = async (id: string, updates: Partial<CoOwnershipSignal>) => {
+  const { data: { user } } = await sb.auth.getUser();
+  if (!user) throw new Error("User not authenticated");
+
+  const { data, error } = await sb
+    .from('co_ownership_signals')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error updating signal:', error);
+    throw error;
+  }
+  return data;
+};

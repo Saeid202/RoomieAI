@@ -80,7 +80,10 @@ import ServiceArea from "@/pages/renovator/ServiceArea";
 import RenovatorSettings from "@/pages/renovator/RenovatorSettings";
 import EducationCentrePage from "@/pages/dashboard/EducationCentre";
 import BuyingOpportunitiesPage from "@/pages/dashboard/BuyingOpportunities";
+import CoOwnershipGuidePage from "@/pages/dashboard/CoOwnershipGuide";
 import TaxIntelligencePage from "@/pages/dashboard/TaxIntelligence";
+import SeekerProfilePage from "@/pages/dashboard/SeekerProfile";
+import PublicProfilePage from "@/pages/dashboard/PublicProfile";
 
 
 import { useAuth } from "@/hooks/useAuth";
@@ -132,6 +135,7 @@ function AppRoutes() {
           <Route path="opposite-schedule" element={<OppositeSchedulePage />} />
           <Route path="work-exchange" element={<WorkExchangePage />} />
           <Route path="buying-opportunities" element={<BuyingOpportunitiesPage />} />
+          <Route path="co-ownership-guide" element={<CoOwnershipGuidePage />} />
           <Route path="lgbtq-matching" element={<LGBTQMatchingPage />} />
           <Route path="landlord" element={<LandlordDashboardPage />} />
           <Route path="landlord/properties" element={<PropertiesPage />} />
@@ -171,8 +175,8 @@ function AppRoutes() {
           <Route path="autopay" element={<AutoPayPage />} />
           <Route path="late-fees" element={<LateFeeManagementPage />} />
           <Route path="list-room" element={<ListRoomPage />} />
-          <Route path="profile" element={<Navigate to="/dashboard/roommate-recommendations" replace />} />
-          <Route path="profile/*" element={<Navigate to="/dashboard/roommate-recommendations" replace />} />
+          <Route path="profile" element={<SeekerProfilePage />} />
+          <Route path="user/:userId" element={<PublicProfilePage />} />
           <Route path="settings" element={<SettingsPage />} />
 
           {/* Admin routes - protected with AdminRoute */}

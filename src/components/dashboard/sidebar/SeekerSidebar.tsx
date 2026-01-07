@@ -25,6 +25,14 @@ export function SeekerSidebar({ isActive, showLabels }: SeekerSidebarProps) {
         isActive={isActive('/dashboard')}
       />
 
+      <SidebarSimpleMenuItem
+        showLabel={showLabels}
+        icon={<span className="text-lg">👤</span>}
+        label="Profile"
+        to="/dashboard/profile"
+        isActive={isActive('/dashboard/profile')}
+      />
+
       <SidebarMenuSection
         showLabels={showLabels}
         title="Matches"
@@ -86,12 +94,24 @@ export function SeekerSidebar({ isActive, showLabels }: SeekerSidebarProps) {
         isActive={isActive('/dashboard/applications')}
       />
 
-      <SidebarSimpleMenuItem
-        showLabel={showLabels}
-        icon={<span className="text-lg">🏘️</span>}
-        label="Buying Opportunities"
-        to="/dashboard/buying-opportunities"
-        isActive={isActive('/dashboard/buying-opportunities')}
+      <SidebarMenuSection
+        showLabels={showLabels}
+        title="Buying Opportunities"
+        icon={() => <span className="text-lg">🏘️</span>}
+        isActive={isActive}
+        defaultExpanded={location.pathname.includes('/dashboard/buying-opportunities')}
+        subItems={[
+          {
+            label: "Co-ownership",
+            path: "/dashboard/buying-opportunities?tab=co-ownership",
+            icon: <span className="text-sm">🤝</span>
+          },
+          {
+            label: "Buy Unit",
+            path: "/dashboard/buying-opportunities?tab=sales",
+            icon: <span className="text-sm">🏠</span>
+          }
+        ]}
       />
 
 
