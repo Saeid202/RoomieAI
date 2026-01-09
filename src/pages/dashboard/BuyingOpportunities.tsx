@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Search, MapPin, Loader2, Home, DollarSign, Users, Clock, AlertCircle, CheckCircle, XCircle, ArrowRight, MessageSquare, Edit2, Plus, Info, Scale, Pencil, PlusCircle, Handshake, HelpCircle, Image as ImageIcon, Eye } from "lucide-react";
+import { Search, MapPin, Loader2, Home, DollarSign, Users, Clock, AlertCircle, CheckCircle, XCircle, ArrowRight, MessageSquare, Edit2, Plus, Info, Scale, Pencil, PlusCircle, Handshake, HelpCircle, Image as ImageIcon, Eye, TrendingUp } from "lucide-react";
+import { CoOwnershipForecastModal } from "@/components/dashboard/CoOwnershipForecastModal";
 import { fetchAllSalesListings, SalesListing, CoOwnershipSignal, fetchCoOwnershipSignals, createCoOwnershipSignal, updateCoOwnershipSignal } from "@/services/propertyService";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MessageButton } from "@/components/MessageButton";
@@ -59,6 +60,7 @@ export default function BuyingOpportunitiesPage() {
     const [isCreateSignalOpen, setIsCreateSignalOpen] = useState(false);
     const [currentUserId, setCurrentUserId] = useState<string | null>(null);
     const [editingSignal, setEditingSignal] = useState<CoOwnershipSignal | null>(null);
+    const [isForecastModalOpen, setIsForecastModalOpen] = useState(false);
     const { toast } = useToast();
 
     const form = useForm<z.infer<typeof createSignalSchema>>({
@@ -233,12 +235,20 @@ export default function BuyingOpportunitiesPage() {
                             </div>
                         </div>
                     </div>
-                    <Button
-                        onClick={() => navigate('/dashboard/tenancy-legal-ai')}
-                        className="w-full md:w-auto bg-slate-900 text-white hover:bg-slate-800 shadow-md font-bold whitespace-nowrap"
-                    >
-                        <Scale className="h-4 w-4 mr-2" /> Ask our Legal AI
-                    </Button>
+                    <div className="flex gap-3 w-full md:w-auto">
+                        <Button
+                            onClick={() => setIsForecastModalOpen(true)}
+                            className="bg-white text-indigo-600 border-2 border-indigo-100 hover:bg-indigo-50 hover:border-indigo-200 shadow-sm font-black whitespace-nowrap flex-1 md:flex-none"
+                        >
+                            <TrendingUp className="h-4 w-4 mr-2" /> Forecast Engine
+                        </Button>
+                        <Button
+                            onClick={() => navigate('/dashboard/tenancy-legal-ai')}
+                            className="bg-slate-900 text-white hover:bg-slate-800 shadow-md font-bold whitespace-nowrap flex-1 md:flex-none"
+                        >
+                            <Scale className="h-4 w-4 mr-2" /> Ask our Legal AI
+                        </Button>
+                    </div>
                 </div>
             )}
 
@@ -695,6 +705,11 @@ export default function BuyingOpportunitiesPage() {
                     </Form>
                 </DialogContent>
             </Dialog>
+
+            <CoOwnershipForecastModal
+                isOpen={isForecastModalOpen}
+                onClose={() => setIsForecastModalOpen(false)}
+            />
         </div >
     );
 }
