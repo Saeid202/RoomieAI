@@ -92,13 +92,38 @@ serve(async (req) => {
         }
 
         // =====================================================
-        // 4. Create/Get Stripe Account ID
+        // 4. Create/Get Stripe Account ID & Sync Status
         // =====================================================
         let stripeAccountId = landlordAccount?.stripe_account_id
+        let currentStatus = landlordAccount?.stripe_account_status || 'not_started'
+
+        if (stripeAccountId) {
+            console.log(`Checking existing Stripe Account: ${stripeAccountId}`)
+            try {
+                const account = await stripe.accounts.retrieve(stripeAccountId)
+
+                // If account is fully onboarded, update DB
+                if (account.details_submitted && account.payouts_enabled) {
+                    console.log("Account is fully onboarded and payouts enabled.")
+                    if (currentStatus !== 'completed') {
+                        const { error: updateError } = await supabase
+                            .from("payment_accounts")
+                            .update({
+                                stripe_account_status: 'completed',
+                                updated_at: new Date().toISOString()
+                            })
+                            .eq("id", landlordAccount.id)
+
+                        if (!updateError) currentStatus = 'completed'
+                    }
+                }
+            } catch (retrieveErr) {
+                console.error("Error retrieving Stripe account:", retrieveErr)
+            }
+        }
 
         if (!stripeAccountId) {
             console.log("Creating new Stripe Express account...")
-
             try {
                 // Create Stripe Account
                 const account = await stripe.accounts.create({
@@ -119,51 +144,42 @@ serve(async (req) => {
                 console.log(`Stripe Account Created: ${stripeAccountId}`)
 
                 // Save to Database (Upsert safe)
-                // If payment_accounts row exists, update it. If not, insert it.
-                if (landlordAccount) {
-                    const { error: updateError } = await supabase
-                        .from("payment_accounts")
-                        .update({
-                            stripe_account_id: stripeAccountId,
-                            stripe_account_status: 'onboarding',
-                            updated_at: new Date().toISOString()
-                        })
-                        .eq("id", landlordAccount.id)
+                const { error: insertError } = await supabase
+                    .from("payment_accounts")
+                    .insert({
+                        user_id: user.id,
+                        account_type: "landlord",
+                        stripe_account_id: stripeAccountId,
+                        stripe_account_status: 'onboarding',
+                        balance: 0,
+                        currency: "CAD",
+                        status: "active"
+                    })
 
-                    if (updateError) {
-                        console.error("Failed to update payment_accounts:", updateError)
-                        return jsonResponse({ error: "Failed to save Stripe account ID" }, 200)
-                    }
-                } else {
-                    const { error: insertError } = await supabase
-                        .from("payment_accounts")
-                        .insert({
-                            user_id: user.id,
-                            account_type: "landlord",
-                            stripe_account_id: stripeAccountId,
-                            stripe_account_status: 'onboarding',
-                            balance: 0,
-                            currency: "CAD",
-                            status: "active"
-                        })
-
-                    if (insertError) {
-                        console.error("Failed to insert payment_accounts:", insertError)
-                        return jsonResponse({ error: "Failed to create payment account record" }, 200)
-                    }
+                if (insertError) {
+                    console.error("Failed to insert payment_accounts:", insertError)
+                    return jsonResponse({ error: "Failed to create payment account record" }, 200)
                 }
-
             } catch (stripeErr: any) {
                 console.error("Stripe API Error (Create Account):", stripeErr)
                 return jsonResponse({ error: `Stripe create error: ${stripeErr.message}` }, 200)
             }
-        } else {
-            console.log(`Using existing Stripe Account: ${stripeAccountId}`)
         }
 
         // =====================================================
-        // 5. Create Account Link
+        // 5. Create Account Link (Skip if sync_only)
         // =====================================================
+        const body = await req.json().catch(() => ({}))
+        const isSyncOnly = body.action === 'sync_only'
+
+        if (isSyncOnly) {
+            console.log("Sync only requested, skipping link creation.")
+            return jsonResponse({
+                status: currentStatus,
+                stripeAccountId
+            })
+        }
+
         // Stripe requires HTTPS for live mode, EXCEPT for localhost.
         // We'll use the origin from the request, falling back to production.
         let origin = req.headers.get("origin") || "https://roomieai.ca"
@@ -183,7 +199,11 @@ serve(async (req) => {
             })
 
             console.log("Account Link created successfully.")
-            return jsonResponse({ url: link.url })
+            return jsonResponse({
+                url: link.url,
+                status: currentStatus,
+                stripeAccountId
+            })
 
         } catch (linkErr: any) {
             console.error("Stripe API Error (Account Link):", linkErr)

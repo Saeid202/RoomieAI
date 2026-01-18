@@ -148,6 +148,20 @@ function DigitalWalletContent() {
       if (data) {
         setStripeAccountStatus(data.stripe_account_status || "not_started");
         setStripeAccountId(data.stripe_account_id);
+
+        // If status is not completed, trigger a background sync check
+        if (data.stripe_account_status !== 'completed') {
+          console.log("Triggering background sync for Stripe status...");
+          const { data: syncData, error: syncError } = await supabase.functions.invoke('landlord-onboarding', {
+            body: { action: 'sync_only' }
+          });
+
+          if (syncData?.status === 'completed') {
+            console.log("Background sync found completed status, updating UI.");
+            setStripeAccountStatus('completed');
+            toast.success("Payout setup verified and completed!");
+          }
+        }
       }
     } catch (err) {
       console.error('Error fetching stripe status:', err);
