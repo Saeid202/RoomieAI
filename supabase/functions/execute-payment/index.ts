@@ -137,32 +137,57 @@ serve(async (req) => {
             })
         }
 
-        const stripe = new Stripe(stripe_key, { apiVersion: '2023-10-16' })
-        const paymentIntent = await stripe.paymentIntents.create({
-            amount: amount_cents,
-            currency: 'cad',
-            automatic_payment_methods: { enabled: true },
-            metadata
-        })
-
-        paymentIntent.metadata.recipient_email = metadata.recipient_email;
-
-        paymentRecord.payment_intent_id = paymentIntent.id
-        const { error: insertError } = await supabaseClient
-            .from('rental_payments').insert(paymentRecord)
+        // 1. Create Payment Record BEFORE calling Stripe
+        const { data: insertedRecord, error: insertError } = await supabaseClient
+            .from('rental_payments')
+            .insert(paymentRecord)
+            .select()
+            .single()
 
         if (insertError) {
-            console.error('DB Insert Error Detail:', insertError)
-            return new Response(JSON.stringify({ error: `Database insert failed: ${insertError.message}` }), {
+            console.error('DB Pre-Insert Error:', insertError)
+            return new Response(JSON.stringify({ error: `Database initialization failed: ${insertError.message}` }), {
                 headers: { ...corsHeaders, 'Content-Type': 'application/json' },
                 status: 500,
             })
         }
 
-        return new Response(JSON.stringify({ client_secret: paymentIntent.client_secret }), {
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-            status: 200,
-        })
+        const stripe = new Stripe(stripe_key, { apiVersion: '2023-10-16' })
+
+        try {
+            // 2. Call Stripe
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount: amount_cents,
+                currency: 'cad',
+                automatic_payment_methods: { enabled: true },
+                metadata: { ...metadata, payment_id: insertedRecord.id }
+            })
+
+            // 3. Update Record with external_transaction_id (payment_intent_id)
+            await supabaseClient
+                .from('rental_payments')
+                .update({
+                    payment_intent_id: paymentIntent.id
+                })
+                .eq('id', insertedRecord.id)
+
+            return new Response(JSON.stringify({
+                client_secret: paymentIntent.client_secret,
+                payment_id: insertedRecord.id
+            }), {
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+                status: 200,
+            })
+        } catch (stripeErr: any) {
+            console.error('Stripe PI Creation Error:', stripeErr)
+            // Update record to failed if Stripe call fails
+            await supabaseClient
+                .from('rental_payments')
+                .update({ payment_status: 'failed' })
+                .eq('id', insertedRecord.id)
+
+            throw stripeErr
+        }
 
     } catch (err: any) {
         return new Response(JSON.stringify({ error: `Server Error: ${err.message}` }), {

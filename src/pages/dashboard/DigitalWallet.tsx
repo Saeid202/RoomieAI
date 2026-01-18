@@ -10,6 +10,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
@@ -88,6 +89,14 @@ function DigitalWalletContent() {
   const [stripeAccountId, setStripeAccountId] = useState<string | null>(null);
   const [isRedirectingToStripe, setIsRedirectingToStripe] = useState(false);
 
+  // Wallet balance state
+  const [availableBalance, setAvailableBalance] = useState(0);
+  const [pendingBalance, setPendingBalance] = useState(0);
+  const [totalPaidOut, setTotalPaidOut] = useState(0);
+
+  // Payment note state
+  const [paymentNote, setPaymentNote] = useState("");
+
   // Seeker specific state
   const [seekerPayments, setSeekerPayments] = useState<any[]>([]);
   const [isLoadingSeekerPayments, setIsLoadingSeekerPayments] = useState(false);
@@ -140,7 +149,7 @@ function DigitalWalletContent() {
     try {
       const { data, error } = await supabase
         .from('payment_accounts' as any)
-        .select('stripe_account_status, stripe_account_id')
+        .select('stripe_account_status, stripe_account_id, available_balance, pending_balance, total_paid_out')
         .eq('user_id', user.id)
         .eq('account_type', 'landlord')
         .maybeSingle() as any;
@@ -148,6 +157,9 @@ function DigitalWalletContent() {
       if (data) {
         setStripeAccountStatus(data.stripe_account_status || "not_started");
         setStripeAccountId(data.stripe_account_id);
+        setAvailableBalance(data.available_balance || 0);
+        setPendingBalance(data.pending_balance || 0);
+        setTotalPaidOut(data.total_paid_out || 0);
 
         // If status is not completed, trigger a background sync check
         if (data.stripe_account_status !== 'completed') {
@@ -495,7 +507,7 @@ function DigitalWalletContent() {
                   Available Balance
                 </p>
                 <p className="text-3xl font-bold text-indigo-600">
-                  ${walletMetrics.available.toLocaleString()}
+                  ${availableBalance.toLocaleString()}
                 </p>
                 <p className="text-[10px] text-slate-400">Funds eligible for next payout</p>
               </div>
@@ -507,7 +519,7 @@ function DigitalWalletContent() {
                   Pending Balance
                 </p>
                 <p className="text-3xl font-bold text-slate-700">
-                  ${walletMetrics.pending.toLocaleString()}
+                  ${pendingBalance.toLocaleString()}
                 </p>
                 <p className="text-[10px] text-slate-400">Funds currently processing</p>
               </div>
@@ -519,7 +531,7 @@ function DigitalWalletContent() {
                   Total Paid Out
                 </p>
                 <p className="text-3xl font-bold text-emerald-600">
-                  ${walletMetrics.totalPaidOut.toLocaleString()}
+                  ${totalPaidOut.toLocaleString()}
                 </p>
                 <p className="text-[10px] text-slate-400">Lifetime earnings disbursed</p>
               </div>
@@ -875,67 +887,83 @@ function DigitalWalletContent() {
                     />
                   </div>
 
-                  <Separator />
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label className="text-sm font-semibold text-slate-700">Payment Note (optional)</Label>
+                      <Textarea
+                        placeholder="e.g. Partial rent for this month"
+                        value={paymentNote}
+                        onChange={(e) => setPaymentNote(e.target.value.slice(0, 500))}
+                        className="bg-white"
+                      />
+                      <p className="text-[10px] text-right text-slate-400">{paymentNote.length}/500</p>
+                    </div>
 
-                  <div className="flex flex-col gap-3">
-                    <Button variant="outline" onClick={handleSave} disabled={isLoading || isPaying}>
-                      Save Details
-                    </Button>
-                    <Button size="lg" className="w-full bg-green-600 hover:bg-green-700 font-bold shadow-md"
-                      onClick={async () => {
-                        // Copied Payment Logic
-                        if (!isSaved) { toast.error("Please save details first."); return; }
-                        if (!isComplianceChecked) { toast.error("Please confirm compliance."); return; }
-                        const amount = parseFloat(rentAmount);
-                        if (isNaN(amount) || amount <= 0) { toast.error("Invalid amount"); return; }
+                    <div className="flex flex-col gap-3">
+                      <Button variant="outline" onClick={handleSave} disabled={isLoading || isPaying}>
+                        Save Details
+                      </Button>
+                      <Button size="lg" className="w-full bg-green-600 hover:bg-green-700 font-bold shadow-md"
+                        onClick={async () => {
+                          // Copied Payment Logic
+                          if (!isSaved) { toast.error("Please save details first."); return; }
+                          if (!isComplianceChecked) { toast.error("Please confirm compliance."); return; }
+                          const amount = parseFloat(rentAmount);
+                          if (isNaN(amount) || amount <= 0) { toast.error("Invalid amount"); return; }
 
-                        setIsPaying(true);
-                        const tid = toast.loading("Processing payment...");
+                          setIsPaying(true);
+                          const tid = toast.loading("Processing payment...");
 
-                        try {
-                          const { data, error: functionError } = await (supabase.functions as any).invoke('execute-payment', {
-                            body: { amount, compliance_confirmation: isComplianceChecked }
-                          });
+                          try {
+                            const { data, error: functionError } = await (supabase.functions as any).invoke('execute-payment', {
+                              body: {
+                                amount,
+                                compliance_confirmation: isComplianceChecked,
+                                note: paymentNote
+                              }
+                            });
 
-                          if (functionError) {
-                            let msg = functionError.message;
-                            try { msg = (await functionError.context.json()).error || msg; } catch { }
-                            throw new Error(msg);
+                            if (functionError) {
+                              let msg = functionError.message;
+                              try { msg = (await functionError.context.json()).error || msg; } catch { }
+                              throw new Error(msg);
+                            }
+                            if (data?.error) throw new Error(data.error);
+
+                            if (!data?.client_secret) throw new Error("Missing client secret");
+                            if (!stripe || !elements) throw new Error("Stripe error");
+
+                            const cardElement = elements.getElement(CardElement);
+                            if (!cardElement) throw new Error("Card error");
+
+                            const { error: stripeError, paymentIntent } = await stripe.confirmCardPayment(data.client_secret, {
+                              payment_method: { card: cardElement, billing_details: { name: cardDetails.name } }
+                            });
+
+                            if (stripeError) throw new Error(stripeError.message);
+
+                            if (paymentIntent?.status === 'succeeded') {
+                              toast.success("Payment Sent!", { id: tid });
+                              setPaymentSuccess({ amount, date: new Date().toLocaleString() });
+                              setPaymentNote(""); // Clear note
+                              fetchSeekerPayments(); // Update main table
+                            }
+                          } catch (err: any) {
+                            console.error("Pay Error", err);
+                            toast.error(err.message || "Failed", { id: tid });
+                          } finally {
+                            setIsPaying(false);
                           }
-                          if (data?.error) throw new Error(data.error);
-
-                          if (!data?.client_secret) throw new Error("Missing client secret");
-                          if (!stripe || !elements) throw new Error("Stripe error");
-
-                          const cardElement = elements.getElement(CardElement);
-                          if (!cardElement) throw new Error("Card error");
-
-                          const { error: stripeError, paymentIntent } = await stripe.confirmCardPayment(data.client_secret, {
-                            payment_method: { card: cardElement, billing_details: { name: cardDetails.name } }
-                          });
-
-                          if (stripeError) throw new Error(stripeError.message);
-
-                          if (paymentIntent?.status === 'succeeded') {
-                            toast.success("Payment Sent!", { id: tid });
-                            setPaymentSuccess({ amount, date: new Date().toLocaleString() });
-                            fetchSeekerPayments(); // Update main table
-                          }
-                        } catch (err: any) {
-                          console.error("Pay Error", err);
-                          toast.error(err.message || "Failed", { id: tid });
-                        } finally {
-                          setIsPaying(false);
-                        }
-                      }}
-                      disabled={isLoading || isPaying}
-                    >
-                      {isPaying ? (
-                        <span className="flex items-center gap-2"><span className="animate-spin h-4 w-4 border-2 border-white rounded-full border-t-transparent"></span>Processing...</span>
-                      ) : (
-                        `Pay $${rentAmount || '0.00'} Now`
-                      )}
-                    </Button>
+                        }}
+                        disabled={isLoading || isPaying}
+                      >
+                        {isPaying ? (
+                          <span className="flex items-center gap-2"><span className="animate-spin h-4 w-4 border-2 border-white rounded-full border-t-transparent"></span>Processing...</span>
+                        ) : (
+                          `Pay $${rentAmount || '0.00'} Now`
+                        )}
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -981,6 +1009,7 @@ function DigitalWalletContent() {
                   <TableRow>
                     <TableHead>Date</TableHead>
                     <TableHead>Recipient</TableHead>
+                    <TableHead>Note</TableHead>
                     <TableHead className="text-right">Amount</TableHead>
                     <TableHead className="text-right">Status</TableHead>
                   </TableRow>
@@ -996,6 +1025,11 @@ function DigitalWalletContent() {
                           <span className="text-sm font-medium">{payment.recipient_email}</span>
                           <span className="text-[10px] text-muted-foreground">Digital Transfer</span>
                         </div>
+                      </TableCell>
+                      <TableCell className="max-w-[150px]">
+                        <span className="text-xs text-muted-foreground line-clamp-1 italic">
+                          {payment.note || '-'}
+                        </span>
                       </TableCell>
                       <TableCell className="text-right font-bold text-indigo-600">
                         ${(payment.amount || 0).toFixed(2)}
