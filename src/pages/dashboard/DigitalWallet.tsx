@@ -96,7 +96,7 @@ function DigitalWalletContent() {
   useEffect(() => {
     const onboardingComplete = searchParams.get('onboarding');
     if (onboardingComplete === 'complete' && role === 'landlord') {
-      toast.success('Stripe onboarding completed successfully! Your payout account is now active.');
+      toast.success('Wallet setup completed successfully! Your payout account is now active.');
       // Update the account status
       setStripeAccountStatus('completed');
       // Remove the query parameter
@@ -196,7 +196,7 @@ function DigitalWalletContent() {
       }
 
       // Redirect to Stripe
-      toast.success('Redirecting to Stripe...', { id: tid });
+      toast.success('Redirecting to secure setup...', { id: tid });
       window.location.href = data.url;
 
     } catch (err: any) {
@@ -250,19 +250,27 @@ function DigitalWalletContent() {
     }
   };
 
-  const totals = React.useMemo(() => {
+  const walletMetrics = React.useMemo(() => {
     const now = new Date();
     const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    const thisMonth = landlordPayments
-      .filter(p => new Date(p.created_at) >= firstDayOfMonth && ['processing', 'paid'].includes(p.payment_status))
+    const thisMonthActivity = landlordPayments
+      .filter(p => new Date(p.created_at) >= firstDayOfMonth && ['processing', 'paid', 'paid_to_landlord'].includes(p.payment_status))
       .reduce((sum, p) => sum + (p.amount || 0), 0);
 
-    const totalReceived = landlordPayments
+    const available = landlordPayments
+      .filter(p => p.payment_status === 'paid')
+      .reduce((sum, p) => sum + (p.amount || 0), 0);
+
+    const pending = landlordPayments
+      .filter(p => p.payment_status === 'processing')
+      .reduce((sum, p) => sum + (p.amount || 0), 0);
+
+    const totalPaidOut = landlordPayments
       .filter(p => p.payment_status === 'paid_to_landlord')
       .reduce((sum, p) => sum + (p.amount || 0), 0);
 
-    return { thisMonth, totalReceived };
+    return { thisMonthActivity, available, pending, totalPaidOut };
   }, [landlordPayments]);
 
   // Fetch existing config
@@ -454,106 +462,111 @@ function DigitalWalletContent() {
           </Button>
         </div>
 
-        {/* Totals Summary */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card className="border-l-4 border-l-blue-600 shadow-sm transition-all hover:shadow-md">
-            <CardHeader className="pb-2">
-              <CardDescription className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-blue-600" />
-                This Month (Activity)
-              </CardDescription>
-              <CardTitle className="text-3xl font-bold">${totals.thisMonth.toLocaleString()}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-xs text-muted-foreground">Includes all non-failed payments initiated this month.</p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-l-4 border-l-green-600 shadow-sm transition-all hover:shadow-md">
-            <CardHeader className="pb-2">
-              <CardDescription className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-green-600" />
-                Total Paid to You
-              </CardDescription>
-              <CardTitle className="text-3xl font-bold">${totals.totalReceived.toLocaleString()}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-xs text-muted-foreground">Cumulative funds cleared and sent to your account.</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Payout Settings Card */}
-        <Card className="border-indigo-100 bg-indigo-50/30 overflow-hidden shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div className="space-y-1">
-              <CardTitle className="text-xl flex items-center gap-2">
-                <Building2 className="h-5 w-5 text-indigo-600" />
-                Payout Settings
-              </CardTitle>
-              <CardDescription>Configure how you receive your rental income.</CardDescription>
+        {/* Landlord Wallet Card */}
+        <Card className="border-indigo-100 bg-white shadow-lg overflow-hidden border-t-4 border-t-indigo-600">
+          <CardHeader className="flex flex-row items-center justify-between border-b bg-slate-50/50 py-4">
+            <div className="flex items-center gap-3">
+              <div className="bg-indigo-100 p-2 rounded-lg">
+                <Wallet className="h-6 w-6 text-indigo-600" />
+              </div>
+              <div>
+                <CardTitle className="text-xl font-bold text-slate-900">Landlord Wallet</CardTitle>
+                <CardDescription>Income tracking and automatic disbursements</CardDescription>
+              </div>
             </div>
             {stripeAccountStatus === 'completed' ? (
-              <Badge className="bg-green-600 hover:bg-green-700 text-white flex gap-1 px-3 py-1">
-                <ShieldCheck className="h-3 w-3" />
-                Payouts Enabled
+              <Badge className="bg-emerald-500 hover:bg-emerald-600 text-white flex gap-1.5 px-3 py-1.5 rounded-full border-none shadow-sm animate-in zoom-in duration-300">
+                <ShieldCheck className="h-3.5 w-3.5" />
+                Wallet Active
               </Badge>
             ) : (
-              <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200 px-3 py-1 flex gap-1">
-                <AlertCircle className="h-3 w-3" />
+              <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 px-3 py-1.5 rounded-full flex gap-1.5">
+                <AlertCircle className="h-3.5 w-3.5" />
                 Setup Required
               </Badge>
             )}
           </CardHeader>
-          <CardContent className="pb-6">
-            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-              <div className="space-y-3 max-w-xl">
-                {stripeAccountStatus === 'completed' ? (
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium flex items-center gap-2">
-                      <CheckCircle2 className="h-4 w-4 text-green-600" />
-                      Your Stripe account is successfully connected.
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Account Identifier: <code className="bg-slate-100 px-1 rounded">{stripeAccountId?.replace(/^acct_/, 'xxxx_')}</code>
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Payouts will be automatically released once funds are cleared by the platform.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium">To receive payouts, you must onboard with our payment partner, Stripe.</p>
-                    <p className="text-xs text-muted-foreground">
-                      We use Stripe Connect (Express) to securely handle bank transfers and identity verification.
-                      No banking information is stored on Roomie AI servers.
-                    </p>
-                  </div>
-                )}
+          <CardContent className="pt-8 pb-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+              {/* Metric 1: Available Balance */}
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-slate-500 flex items-center gap-2">
+                  <DollarSign className="h-4 w-4" />
+                  Available Balance
+                </p>
+                <p className="text-3xl font-bold text-indigo-600">
+                  ${walletMetrics.available.toLocaleString()}
+                </p>
+                <p className="text-[10px] text-slate-400">Funds eligible for next payout</p>
               </div>
 
-              <Button
-                onClick={handleStripeOnboarding}
-                className={`w-full md:w-auto ${stripeAccountStatus === 'completed' ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-blue-600 hover:bg-blue-700'} shadow-md`}
-                disabled={isRedirectingToStripe}
-              >
-                {isRedirectingToStripe ? (
-                  <>
-                    <History className="h-4 w-4 mr-2 animate-spin" />
-                    Redirecting...
-                  </>
-                ) : stripeAccountStatus === 'completed' ? (
-                  <>
-                    <ExternalLink className="h-4 w-4 mr-2" />
-                    Manage Stripe Account
-                  </>
-                ) : (
-                  <>
-                    <CreditCard className="h-4 w-4 mr-2" />
-                    Complete Payout Setup
-                  </>
+              {/* Metric 2: Pending Balance */}
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-slate-500 flex items-center gap-2">
+                  <Clock className="h-4 w-4" />
+                  Pending Balance
+                </p>
+                <p className="text-3xl font-bold text-slate-700">
+                  ${walletMetrics.pending.toLocaleString()}
+                </p>
+                <p className="text-[10px] text-slate-400">Funds currently processing</p>
+              </div>
+
+              {/* Metric 3: Total Paid Out */}
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-slate-500 flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4" />
+                  Total Paid Out
+                </p>
+                <p className="text-3xl font-bold text-emerald-600">
+                  ${walletMetrics.totalPaidOut.toLocaleString()}
+                </p>
+                <p className="text-[10px] text-slate-400">Lifetime earnings disbursed</p>
+              </div>
+
+              {/* Metric 4: Next Payout Date */}
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-slate-500 flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4" />
+                  Next Payout Date
+                </p>
+                <p className="text-xl font-semibold text-slate-700 pt-1.5">
+                  Automatic
+                </p>
+                <p className="text-[10px] text-slate-400">2-3 business days after clearing</p>
+              </div>
+            </div>
+
+            {/* Wallet Explanation Section */}
+            <div className="mt-10 pt-6 border-t border-slate-100">
+              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                <div>
+                  <h4 className="text-sm font-semibold text-slate-800 mb-1">How payouts work</h4>
+                  <p className="text-xs text-slate-500 max-w-2xl leading-relaxed">
+                    Tenant rent is received by Roomie AI, securely processed, and automatically deposited into your connected bank account once cleared. No action is required from you.
+                  </p>
+                </div>
+
+                {stripeAccountStatus !== 'completed' && (
+                  <Button
+                    onClick={handleStripeOnboarding}
+                    className="w-full md:w-auto bg-indigo-600 hover:bg-indigo-700 shadow-md animate-pulse"
+                    disabled={isRedirectingToStripe}
+                  >
+                    {isRedirectingToStripe ? (
+                      <>
+                        <History className="h-4 w-4 mr-2 animate-spin" />
+                        Redirecting...
+                      </>
+                    ) : (
+                      <>
+                        <Building2 className="h-4 w-4 mr-2" />
+                        Connect Bank Account
+                      </>
+                    )}
+                  </Button>
                 )}
-              </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
