@@ -164,14 +164,14 @@ serve(async (req) => {
         // =====================================================
         // 5. Create Account Link
         // =====================================================
-        // Stripe requires HTTPS for live mode. If origin is localhost (HTTP), use production URL
+        // Stripe requires HTTPS for live mode, EXCEPT for localhost.
+        // We'll use the origin from the request, falling back to production.
         let origin = req.headers.get("origin") || "https://roomieai.ca"
 
-        // Force HTTPS for Stripe redirects - localhost won't work with live Stripe keys
-        if (origin.startsWith("http://localhost") || origin.startsWith("http://127.0.0.1")) {
-            console.log("Detected localhost origin, using production URL for Stripe redirect")
-            origin = "https://roomieai.ca"
-        }
+        // Remove trailing slash if present
+        if (origin.endsWith("/")) origin = origin.slice(0, -1)
+
+        console.log(`Using origin for Stripe redirect: ${origin}`)
 
         try {
             console.log(`Creating Account Link with origin: ${origin}`)
