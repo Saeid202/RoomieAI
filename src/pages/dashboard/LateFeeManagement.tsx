@@ -1,17 +1,18 @@
 import { useState, useEffect } from "react";
+import { useRole } from "@/contexts/RoleContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  AlertTriangle, 
-  Clock, 
-  DollarSign, 
-  Calendar, 
-  User, 
-  Building, 
+import {
+  AlertTriangle,
+  Clock,
+  DollarSign,
+  Calendar,
+  User,
+  Building,
   CreditCard,
   CheckCircle,
   XCircle,
@@ -292,12 +293,12 @@ export default function LateFeeManagementPage() {
 
   const handleWaiveLateFee = async (lateFeeId: string) => {
     try {
-      setLateFees(prev => prev.map(fee => 
-        fee.id === lateFeeId 
+      setLateFees(prev => prev.map(fee =>
+        fee.id === lateFeeId
           ? { ...fee, status: 'waived' as const }
           : fee
       ));
-      
+
       toast.success('Late fee waived successfully!');
       setShowWaiveFee(false);
       setWaiveReason("");
@@ -309,20 +310,20 @@ export default function LateFeeManagementPage() {
   const handleCollectLateFee = async (lateFeeId: string) => {
     try {
       // Mock implementation - replace with actual payment processing
-      setLateFees(prev => prev.map(fee => 
-        fee.id === lateFeeId 
-          ? { 
-              ...fee, 
-              status: 'paid' as const,
-              paidDate: new Date().toISOString(),
-              metadata: {
-                ...fee.metadata,
-                transactionId: `tx${Date.now()}`
-              }
+      setLateFees(prev => prev.map(fee =>
+        fee.id === lateFeeId
+          ? {
+            ...fee,
+            status: 'paid' as const,
+            paidDate: new Date().toISOString(),
+            metadata: {
+              ...fee.metadata,
+              transactionId: `tx${Date.now()}`
             }
+          }
           : fee
       ));
-      
+
       toast.success('Late fee collected successfully!');
     } catch (error) {
       toast.error('Failed to collect late fee');
@@ -399,6 +400,40 @@ export default function LateFeeManagementPage() {
       day: 'numeric'
     });
   };
+
+  const { role } = useRole();
+
+  if (role === 'landlord') {
+    return (
+      <div className="container mx-auto py-6 px-4 max-w-7xl animate-in fade-in duration-500">
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold mb-2 flex items-center gap-3">
+            <AlertTriangle className="h-8 w-8 text-red-600" />
+            Late Fee Management
+          </h1>
+          <p className="text-muted-foreground">
+            Monitor and enforce late fee policies for your rental units.
+          </p>
+        </div>
+
+        <Card className="p-12 border-dashed border-2 flex flex-col items-center justify-center text-center space-y-4">
+          <div className="bg-primary/10 p-4 rounded-full">
+            <AlertTriangle className="h-12 w-12 text-primary" />
+          </div>
+          <div className="space-y-2">
+            <h3 className="font-semibold text-2xl">Enforcement Tools Coming Soon</h3>
+            <p className="text-muted-foreground max-w-md mx-auto">
+              We are developing an automated system for you to generate late fee notices, track outstanding penalties, and integrate collection workflows directly into your income stream.
+            </p>
+          </div>
+          <div className="pt-4 flex gap-3">
+            <Button disabled className="opacity-50">Configure Policies</Button>
+            <Button variant="outline" disabled className="opacity-50">View Aging Report</Button>
+          </div>
+        </Card>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -608,12 +643,12 @@ export default function LateFeeManagementPage() {
                       <div>
                         <p className="font-medium">{fee.metadata.propertyName}</p>
                         <p className="text-sm text-muted-foreground">
-                          {fee.metadata.tenantName} • Due: {formatDate(fee.dueDate)} • 
+                          {fee.metadata.tenantName} • Due: {formatDate(fee.dueDate)} •
                           Late: {formatDate(fee.lateDate)} ({fee.daysLate} days)
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          Original: {formatCurrency(fee.originalAmount)} • 
-                          Late Fee: {formatCurrency(fee.lateFeeAmount)} • 
+                          Original: {formatCurrency(fee.originalAmount)} •
+                          Late Fee: {formatCurrency(fee.lateFeeAmount)} •
                           Total: {formatCurrency(fee.totalAmount)}
                         </p>
                       </div>
@@ -687,7 +722,7 @@ export default function LateFeeManagementPage() {
                           <option value="prop3">Luxury Condo</option>
                         </select>
                       </div>
-                      
+
                       <div>
                         <label className="text-sm font-medium">Grace Period (days)</label>
                         <Input
@@ -698,7 +733,7 @@ export default function LateFeeManagementPage() {
                           onChange={(e) => setPolicyForm(prev => ({ ...prev, gracePeriodDays: parseInt(e.target.value) }))}
                         />
                       </div>
-                      
+
                       <div>
                         <label className="text-sm font-medium">Late Fee Rate (%)</label>
                         <Input
@@ -710,7 +745,7 @@ export default function LateFeeManagementPage() {
                           onChange={(e) => setPolicyForm(prev => ({ ...prev, lateFeeRate: parseFloat(e.target.value) }))}
                         />
                       </div>
-                      
+
                       <div>
                         <label className="text-sm font-medium">Max Late Fee Days</label>
                         <Input
@@ -721,7 +756,7 @@ export default function LateFeeManagementPage() {
                           onChange={(e) => setPolicyForm(prev => ({ ...prev, maxLateFeeDays: parseInt(e.target.value) }))}
                         />
                       </div>
-                      
+
                       <div>
                         <label className="text-sm font-medium">Max Late Fee Amount (optional)</label>
                         <Input
@@ -732,7 +767,7 @@ export default function LateFeeManagementPage() {
                           onChange={(e) => setPolicyForm(prev => ({ ...prev, maxLateFeeAmount: e.target.value }))}
                         />
                       </div>
-                      
+
                       <div className="flex gap-2">
                         <Button variant="outline" onClick={() => setShowCreatePolicy(false)} className="flex-1">
                           Cancel
@@ -753,8 +788,8 @@ export default function LateFeeManagementPage() {
                     <div>
                       <p className="font-medium">Property Policy</p>
                       <p className="text-sm text-muted-foreground">
-                        Grace Period: {policy.gracePeriodDays} days • 
-                        Late Fee Rate: {policy.lateFeeRate}% • 
+                        Grace Period: {policy.gracePeriodDays} days •
+                        Late Fee Rate: {policy.lateFeeRate}% •
                         Max Days: {policy.maxLateFeeDays}
                       </p>
                       {policy.maxLateFeeAmount && (
@@ -854,7 +889,7 @@ export default function LateFeeManagementPage() {
                     Late Fee: {formatCurrency(selectedLateFee.lateFeeAmount)}
                   </p>
                 </div>
-                
+
                 <div>
                   <label className="text-sm font-medium">Reason for waiving</label>
                   <Input
@@ -863,13 +898,13 @@ export default function LateFeeManagementPage() {
                     onChange={(e) => setWaiveReason(e.target.value)}
                   />
                 </div>
-                
+
                 <div className="flex gap-2">
                   <Button variant="outline" onClick={() => setShowWaiveFee(false)} className="flex-1">
                     Cancel
                   </Button>
-                  <Button 
-                    onClick={() => handleWaiveLateFee(selectedLateFee.id)} 
+                  <Button
+                    onClick={() => handleWaiveLateFee(selectedLateFee.id)}
                     className="flex-1"
                     disabled={!waiveReason.trim()}
                   >

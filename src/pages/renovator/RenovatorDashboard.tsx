@@ -43,9 +43,26 @@ export default function RenovatorDashboard() {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) return;
 
-            // Get Renovator ID
-            const { data: renovator } = await supabase
-                .from('renovation_partners' as any)
+            // 1. Check User Profile Role
+            const { data: profile } = await (supabase as any)
+                .from('user_profiles')
+                .select('role')
+                .eq('id', user.id)
+                .maybeSingle();
+
+            const userRole = (profile as any)?.role || user.user_metadata?.role;
+            const isAdmin = userRole === 'admin';
+
+            // If not a renovator and not an admin, they shouldn't be here
+            if (userRole !== 'renovator' && !isAdmin) {
+                console.warn("Unauthorized access to renovator dashboard. Redirecting...");
+                window.location.href = userRole === 'landlord' ? '/dashboard/landlord' : '/dashboard/roommate-recommendations';
+                return;
+            }
+
+            // 2. Get Renovator ID record
+            const { data: renovator } = await (supabase as any)
+                .from('renovation_partners')
                 .select('id')
                 .eq('user_id', user.id)
                 .maybeSingle();
@@ -65,7 +82,7 @@ export default function RenovatorDashboard() {
                 .eq('renovator_id', renovator.id)
                 .maybeSingle();
 
-            if (avail) setStatus(avail.is_online ? "Online" : "Offline");
+            if (avail) setStatus((avail as any).is_online ? "Online" : "Offline");
 
             // Fetch Invites Count & Data
             const { data: invitesData, count: invitesCount } = await supabase

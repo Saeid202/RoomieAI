@@ -37,10 +37,11 @@ export default function LandlordDashboardPage() {
         if (salesError && salesError.code !== '42P01') throw salesError;
 
         // Fetch active applications
+        const propertyIds = properties?.map(p => p.id) || [];
         const { count: applicationsCount, error: applicationsError } = await (supabase as any)
           .from('rental_applications')
           .select('*', { count: 'exact', head: true })
-          .eq('property_id', properties?.map(p => p.id) || [])
+          .in('property_id', propertyIds)
           .eq('status', 'pending');
 
         if (applicationsError) throw applicationsError;

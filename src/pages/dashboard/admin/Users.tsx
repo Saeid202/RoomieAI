@@ -54,11 +54,23 @@ export default function UsersPage() {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('user_profiles')
-        .select('*');
+      // Get the current session to get the JWT
+      const { data: { session } } = await supabase.auth.getSession();
 
-      if (error) throw error;
+      // Call the secure backend API
+      const response = await fetch('/api/admin/users', {
+        headers: {
+          'Authorization': `Bearer ${session?.access_token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Error: ${response.status}`);
+      }
+
+      const { users: data } = await response.json();
 
       // Transform data if needed, assuming user_profiles has role
       // If role is missing, default to 'seeker'
@@ -73,7 +85,11 @@ export default function UsersPage() {
       setUsers(mappedUsers);
     } catch (error: any) {
       console.error("Error fetching users:", error);
-      toast({ variant: "destructive", title: "Error", description: "Failed to load users" });
+      toast({
+        variant: "destructive",
+        title: "Fetch Failed",
+        description: error.message || "Failed to load users from the secure API"
+      });
     } finally {
       setLoading(false);
     }
@@ -85,7 +101,7 @@ export default function UsersPage() {
       setUsers(prev => prev.map(u => u.id === userId ? { ...u, role: newRole } : u));
 
       // 2. Update in Database (user_profiles)
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('user_profiles')
         .update({ role: newRole })
         .eq('id', userId);
@@ -126,7 +142,7 @@ export default function UsersPage() {
   const handleSave = async () => {
     if (!editingId) return;
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('user_profiles')
         .update({
           full_name: form.name,
@@ -265,6 +281,7 @@ export default function UsersPage() {
                 <SelectContent>
                   <SelectItem value="seeker">Seeker</SelectItem>
                   <SelectItem value="landlord">Landlord</SelectItem>
+                  <SelectItem value="renovator">Renovator</SelectItem>
                   <SelectItem value="developer">Developer</SelectItem>
                   <SelectItem value="admin">Admin</SelectItem>
                 </SelectContent>

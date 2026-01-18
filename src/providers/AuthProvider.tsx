@@ -130,6 +130,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             .insert({
               id: data.user.id,
               full_name: fullName,
+              role: (metadata as any).role || data.user.user_metadata?.role || 'seeker',
               email: data.user.email || null,
             })
             .select()

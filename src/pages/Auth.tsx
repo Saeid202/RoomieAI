@@ -16,13 +16,15 @@ export default function AuthPage() {
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState<'tenant' | 'renovator'>('tenant');
+  const [role, setRole] = useState<'seeker' | 'renovator'>('seeker');
   const [loading, setLoading] = useState(false);
 
   // If already logged in, redirect to dashboard
   if (user) {
     if (user.user_metadata?.role === 'renovator') {
       navigate('/renovator/dashboard');
+    } else if (user.user_metadata?.role === 'landlord') {
+      navigate('/dashboard/landlord');
     } else {
       navigate('/dashboard/roommate-recommendations');
     }
@@ -50,6 +52,8 @@ export default function AuthPage() {
         // Intelligent Redirect based on Role
         if (user?.user_metadata?.role === 'renovator') {
           navigate('/renovator/dashboard');
+        } else if (user?.user_metadata?.role === 'landlord') {
+          navigate('/dashboard/landlord');
         } else {
           navigate('/dashboard/roommate-recommendations');
         }
@@ -83,8 +87,8 @@ export default function AuthPage() {
             {isSignUp && (
               <div className="grid grid-cols-2 gap-2 mb-4">
                 <div
-                  className={`cursor-pointer border rounded-lg p-3 text-center transition-all ${role === 'tenant' ? 'bg-primary/10 border-primary ring-2 ring-primary/20' : 'hover:bg-gray-50'}`}
-                  onClick={() => setRole('tenant')}
+                  className={`cursor-pointer border rounded-lg p-3 text-center transition-all ${role === 'seeker' ? 'bg-primary/10 border-primary ring-2 ring-primary/20' : 'hover:bg-gray-50'}`}
+                  onClick={() => setRole('seeker')}
                 >
                   <div className="font-semibold text-sm">Tenant / Landlord</div>
                   <div className="text-xs text-muted-foreground mt-1">Find roommates & rentals</div>

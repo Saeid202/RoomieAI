@@ -1,6 +1,6 @@
 // Stripe configuration
 export const STRIPE_CONFIG = {
-  publishableKey: (typeof import.meta !== 'undefined' && import.meta.env?.VITE_STRIPE_PUBLISHABLE_KEY) || "pk_test_default",
+  publishableKey: (typeof import.meta !== 'undefined' && import.meta.env?.VITE_STRIPE_PUBLISHABLE_KEY) || "",
 };
 
 export const STRIPE_ELEMENTS_CONFIG = {

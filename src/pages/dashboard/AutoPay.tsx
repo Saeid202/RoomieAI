@@ -1,19 +1,20 @@
 import { useState, useEffect } from "react";
+import { useRole } from "@/contexts/RoleContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  Calendar, 
-  Clock, 
-  Zap, 
-  Settings, 
-  Play, 
-  Pause, 
-  Edit, 
-  Trash2, 
+import {
+  Calendar,
+  Clock,
+  Zap,
+  Settings,
+  Play,
+  Pause,
+  Edit,
+  Trash2,
   Plus,
   CheckCircle,
   XCircle,
@@ -205,12 +206,12 @@ export default function AutoPayPage() {
 
   const handleToggleSchedule = async (scheduleId: string) => {
     try {
-      setSchedules(prev => prev.map(schedule => 
-        schedule.id === scheduleId 
+      setSchedules(prev => prev.map(schedule =>
+        schedule.id === scheduleId
           ? { ...schedule, isActive: !schedule.isActive }
           : schedule
       ));
-      
+
       const schedule = schedules.find(s => s.id === scheduleId);
       toast.success(`Auto-pay ${schedule?.isActive ? 'paused' : 'activated'} successfully!`);
     } catch (error) {
@@ -230,7 +231,7 @@ export default function AutoPayPage() {
   const calculateNextPaymentDate = (): string => {
     const now = new Date();
     const nextPayment = new Date(now);
-    
+
     switch (formData.scheduleType) {
       case 'weekly':
         nextPayment.setDate(now.getDate() + 7);
@@ -243,7 +244,7 @@ export default function AutoPayPage() {
         nextPayment.setDate(formData.dayOfMonth);
         break;
     }
-    
+
     return nextPayment.toISOString().split('T')[0];
   };
 
@@ -300,6 +301,8 @@ export default function AutoPayPage() {
     });
   };
 
+  const { role } = useRole();
+
   if (loading) {
     return (
       <div className="container mx-auto py-6 px-4">
@@ -311,6 +314,38 @@ export default function AutoPayPage() {
             ))}
           </div>
         </div>
+      </div>
+    );
+  }
+
+  if (role === 'landlord') {
+    return (
+      <div className="container mx-auto py-6 px-4 max-w-7xl animate-in fade-in duration-500">
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold mb-2 flex items-center gap-3">
+            <Zap className="h-8 w-8 text-yellow-600" />
+            Auto-Pay Management
+          </h1>
+          <p className="text-muted-foreground">
+            Manage automatic payment collections from your tenants.
+          </p>
+        </div>
+
+        <Card className="p-12 border-dashed border-2 flex flex-col items-center justify-center text-center space-y-4">
+          <div className="bg-primary/10 p-4 rounded-full">
+            <Clock className="h-12 w-12 text-primary" />
+          </div>
+          <div className="space-y-2">
+            <h3 className="font-semibold text-2xl">Collection Dashboard Coming Soon</h3>
+            <p className="text-muted-foreground max-w-md mx-auto">
+              We are working on a comprehensive suite for you to automate rent collection, set up multi-unit auto-pay schedules, and track payment consistency across all your properties.
+            </p>
+          </div>
+          <div className="pt-4 flex gap-3">
+            <Button disabled className="opacity-50">Set Collection Rules</Button>
+            <Button variant="outline" disabled className="opacity-50">View Forecast</Button>
+          </div>
+        </Card>
       </div>
     );
   }
@@ -430,7 +465,7 @@ export default function AutoPayPage() {
                             <option value="prop2">Suburban House</option>
                           </select>
                         </div>
-                        
+
                         <div>
                           <label className="text-sm font-medium">Amount</label>
                           <Input
@@ -442,7 +477,7 @@ export default function AutoPayPage() {
                             step="0.01"
                           />
                         </div>
-                        
+
                         <div>
                           <label className="text-sm font-medium">Payment Method</label>
                           <select
@@ -455,7 +490,7 @@ export default function AutoPayPage() {
                             <option value="pm2">Mastercard •••• 5555</option>
                           </select>
                         </div>
-                        
+
                         <div>
                           <label className="text-sm font-medium">Schedule Type</label>
                           <select
@@ -468,7 +503,7 @@ export default function AutoPayPage() {
                             <option value="monthly">Monthly</option>
                           </select>
                         </div>
-                        
+
                         {formData.scheduleType === 'monthly' && (
                           <div>
                             <label className="text-sm font-medium">Day of Month</label>
@@ -481,7 +516,7 @@ export default function AutoPayPage() {
                             />
                           </div>
                         )}
-                        
+
                         <div className="flex gap-2">
                           <Button variant="outline" onClick={() => setShowCreateSchedule(false)} className="flex-1">
                             Cancel
@@ -580,11 +615,11 @@ export default function AutoPayPage() {
                       <div>
                         <p className="font-medium">{schedule.metadata.propertyName}</p>
                         <p className="text-sm text-muted-foreground">
-                          {formatCurrency(schedule.amount)} • {schedule.scheduleType} • 
+                          {formatCurrency(schedule.amount)} • {schedule.scheduleType} •
                           Next: {formatDate(schedule.nextPaymentDate)}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          Success rate: {schedule.metadata.successRate}% • 
+                          Success rate: {schedule.metadata.successRate}% •
                           Total payments: {schedule.metadata.totalPayments}
                         </p>
                       </div>

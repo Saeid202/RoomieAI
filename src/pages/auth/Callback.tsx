@@ -41,6 +41,7 @@ export default function Callback() {
               .insert({
                 id: session.user.id,
                 full_name: fullName,
+                role: session.user.user_metadata?.role || 'seeker',
                 email: session.user.email || null,
               });
 

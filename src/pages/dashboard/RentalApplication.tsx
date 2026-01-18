@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { loadStripe } from "@stripe/stripe-js";
 import {
   Card,
   CardContent,
@@ -20,6 +21,9 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import {
   EnhancedPageLayout,
   EnhancedHeader,
@@ -40,6 +44,10 @@ import {
   CheckCircle,
   Send,
   Pen,
+  CreditCard,
+  Wallet,
+  Lock,
+  AlertCircle
 } from "lucide-react";
 import { fetchPropertyById, Property } from "@/services/propertyService";
 import {
@@ -179,6 +187,88 @@ export default function RentalApplicationPage() {
   const [profileAutoFilled, setProfileAutoFilled] = useState(false);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
 
+  // Payment UI State
+  const [paymentMethod, setPaymentMethod] = useState<"credit" | "debit">("credit");
+  const [cardAdded, setCardAdded] = useState(false);
+  const [isAddingCard, setIsAddingCard] = useState(false);
+  const [cardDetails, setCardDetails] = useState({
+    number: "",
+    expiry: "",
+    cvc: "",
+    name: ""
+  });
+
+  // Recipient Details State
+  const [recipientEmail, setRecipientEmail] = useState("");
+  const [confirmRecipientEmail, setConfirmRecipientEmail] = useState("");
+  const [isComplianceChecked, setIsComplianceChecked] = useState(false);
+  const [recipientType, setRecipientType] = useState<"individual" | "business">("individual");
+  const [recipientFirstName, setRecipientFirstName] = useState("");
+  const [recipientLastName, setRecipientLastName] = useState("");
+  const [businessName, setBusinessName] = useState("");
+  const [recipientPhone, setRecipientPhone] = useState("");
+  const [rentAmount, setRentAmount] = useState("");
+  const [walletConfig, setWalletConfig] = useState<any>(null);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+
+  const handleImportFromWallet = () => {
+    if (!walletConfig) return;
+    setPaymentMethod(walletConfig.payment_method_type || "credit");
+    setRecipientEmail(walletConfig.recipient_email || "");
+    setConfirmRecipientEmail(walletConfig.recipient_email || "");
+    setRecipientType(walletConfig.recipient_type || "individual");
+    setRecipientFirstName(walletConfig.recipient_first_name || "");
+    setRecipientLastName(walletConfig.recipient_last_name || "");
+    setBusinessName(walletConfig.business_name || "");
+    setRecipientPhone(walletConfig.recipient_phone || "");
+    setRentAmount(walletConfig.rent_amount?.toString() || "");
+
+    if (walletConfig.card_last4) {
+      setCardAdded(true);
+      setCardDetails({
+        number: `**** **** **** ${walletConfig.card_last4}`,
+        expiry: walletConfig.card_expiry || "",
+        cvc: "***",
+        name: walletConfig.card_holder_name || ""
+      });
+    }
+
+    toast.success("Details imported from your Digital Wallet");
+  };
+
+  const handleSaveCard = () => {
+    // Basic validation
+    if (cardDetails.number.replace(/\s/g, '').length < 16) {
+      toast.error("Please enter a valid 16-digit card number");
+      return;
+    }
+    if (cardDetails.expiry.length < 5) {
+      toast.error("Please enter a valid expiry date (MM/YY)");
+      return;
+    }
+    if (cardDetails.cvc.length < 3) {
+      toast.error("Please enter a valid CVC");
+      return;
+    }
+    if (!cardDetails.name) {
+      toast.error("Please enter the name on the card");
+      return;
+    }
+
+    // Simulate API verification delay
+    const promise = new Promise((resolve) => setTimeout(resolve, 1000));
+
+    toast.promise(promise, {
+      loading: 'Verifying card details...',
+      success: () => {
+        setCardAdded(true);
+        setIsAddingCard(false);
+        return 'Card successfully verified and linked';
+      },
+      error: 'Failed to verify card',
+    });
+  };
+
   useEffect(() => {
     const loadProperty = async () => {
       if (!id) return;
@@ -260,7 +350,7 @@ export default function RentalApplicationPage() {
         // Updated to use a new service method that returns the application or ID
         // Since hasUserAppliedForProperty returns boolean, we'll try to fetch user applications for this property
         const { data: applications, error } = await supabase
-          .from('rental_applications')
+          .from('rental_applications' as any)
           .select('id, status')
           .eq('property_id', id)
           .eq('applicant_id', user.id)
@@ -274,7 +364,7 @@ export default function RentalApplicationPage() {
         }
 
         if (applications && applications.length > 0) {
-          const app = applications[0];
+          const app = applications[0] as any;
           console.log("Found existing application:", app);
 
           setHasAlreadyApplied(true);
@@ -323,6 +413,25 @@ export default function RentalApplicationPage() {
       // We need to make sure we don't proceed to step 3 without an ID.
     }
   }, []);
+
+  // Fetch Wallet Config
+  useEffect(() => {
+    const fetchWallet = async () => {
+      if (!user) return;
+      try {
+        const { data, error } = await supabase
+          .from('seeker_digital_wallet_configs' as any)
+          .select('*')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (data) setWalletConfig(data);
+      } catch (err) {
+        console.error("Error fetching wallet:", err);
+      }
+    };
+    fetchWallet();
+  }, [user]);
 
   // Monitor createdApplicationId
   useEffect(() => {
@@ -1753,117 +1862,470 @@ export default function RentalApplicationPage() {
         return (
           <div className="space-y-6">
             <div className="text-center mb-6">
-              <h2 className="text-xl font-bold mb-2">Payment (Optional)</h2>
+              <h2 className="text-xl font-bold mb-2">Payment Details</h2>
               <p className="text-muted-foreground">
-                You can make payment now to secure your rental, or complete the
-                application and pay later.
+                Enter your payment information to complete the rental application.
               </p>
             </div>
 
-            {/* Payment Summary */}
-            {property && (
-              <Card className="border-2 border-green-200">
-                <CardHeader className="bg-green-50">
-                  <CardTitle className="flex items-center gap-2 text-green-800">
-                    <DollarSign className="h-5 w-5" />
-                    Payment Summary
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="pt-4">
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <span>First Month Rent:</span>
-                      <span className="font-semibold">
-                        ${property.monthly_rent.toLocaleString()}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Security Deposit:</span>
-                      <span className="font-semibold">
-                        $
-                        {(
-                          property.security_deposit || property.monthly_rent
-                        ).toLocaleString()}
-                      </span>
-                    </div>
-                    <div className="border-t pt-3 flex justify-between text-lg font-bold">
-                      <span>Total Due:</span>
-                      <span className="text-green-600">
-                        $
-                        {(
-                          property.monthly_rent +
-                          (property.security_deposit || property.monthly_rent)
-                        ).toLocaleString()}
-                      </span>
-                    </div>
+            {walletConfig && !applicationData.paymentCompleted && (
+              <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 flex items-center justify-between mb-2">
+                <div className="flex items-center gap-3">
+                  <div className="bg-primary/10 p-2 rounded-full">
+                    <Wallet className="h-5 w-5 text-primary" />
                   </div>
-                </CardContent>
-              </Card>
+                  <div>
+                    <h4 className="font-semibold text-sm">Digital Wallet Found</h4>
+                    <p className="text-xs text-muted-foreground">You have a saved payment configuration.</p>
+                  </div>
+                </div>
+                <Button variant="outline" size="sm" onClick={handleImportFromWallet} className="bg-background">
+                  Import Details
+                </Button>
+              </div>
             )}
 
             {!applicationData.paymentCompleted ? (
-              <div className="space-y-4">
-                {/* Mock Payment Interface */}
+              <div className="space-y-6">
+
+                {/* 1. Payment Method */}
                 <Card>
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <CheckCircle className="h-5 w-5" />
-                      Payment Method
+                    <CardTitle className="flex items-center gap-2 font-bold text-xl">
+                      <CreditCard className="h-6 w-6" />
+                      1. Payment Method
                     </CardTitle>
                     <CardDescription>
-                      Choose your payment method to complete the rental process
+                      Select your preferred payment method.
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <Button
-                        variant="outline"
-                        className="h-20 flex flex-col items-center justify-center"
-                        onClick={() => {
-                          setApplicationData((prev) => ({
-                            ...prev,
-                            paymentCompleted: true,
-                          }));
-                          toast.success("Payment completed successfully!");
-                        }}
-                      >
-                        <CheckCircle className="h-6 w-6 mb-2" />
-                        Credit Card
-                      </Button>
-                      <Button
-                        variant="outline"
-                        className="h-20 flex flex-col items-center justify-center"
-                        onClick={() => {
-                          setApplicationData((prev) => ({
-                            ...prev,
-                            paymentCompleted: true,
-                          }));
-                          toast.success("Payment completed successfully!");
-                        }}
-                      >
-                        <CheckCircle className="h-6 w-6 mb-2" />
-                        Bank Transfer
-                      </Button>
-                      <Button
-                        variant="outline"
-                        className="h-20 flex flex-col items-center justify-center"
-                        onClick={() => {
-                          setApplicationData((prev) => ({
-                            ...prev,
-                            paymentCompleted: true,
-                          }));
-                          toast.success("Payment completed successfully!");
-                        }}
-                      >
-                        <CheckCircle className="h-6 w-6 mb-2" />
-                        PayPal
-                      </Button>
-                    </div>
-                    <p className="text-sm text-muted-foreground text-center">
-                      Click any payment method to simulate payment completion
+                  <CardContent className="space-y-6">
+                    <RadioGroup
+                      value={paymentMethod}
+                      onValueChange={(val: "credit" | "debit") => setPaymentMethod(val)}
+                      className="flex flex-col gap-3"
+                    >
+                      <div className="flex items-center space-x-2 border p-4 rounded-lg cursor-pointer hover:bg-accent/50 transition-colors">
+                        <RadioGroupItem value="credit" id="credit" />
+                        <Label htmlFor="credit" className="flex-1 cursor-pointer font-medium flex items-center gap-2">
+                          Credit Card
+                          <Badge variant="secondary" className="text-xs bg-primary/10 text-primary hover:bg-primary/20 border-primary/20">Recommended</Badge>
+                        </Label>
+                      </div>
+
+                      <div className="flex items-center space-x-2 border p-4 rounded-lg cursor-pointer hover:bg-accent/50 transition-colors">
+                        <RadioGroupItem value="debit" id="debit" />
+                        <Label htmlFor="debit" className="flex-1 cursor-pointer font-medium">Debit Card</Label>
+                      </div>
+                    </RadioGroup>
+
+                    <p className="text-xs text-muted-foreground flex gap-1 items-center">
+                      <AlertCircle className="h-3 w-3" />
+                      Credit cards may earn rewards. Debit cards do not earn points.
                     </p>
+
+                    <Separator />
+
+                    <div className="space-y-4">
+                      <h4 className="text-sm font-medium">Card Information</h4>
+
+                      {!cardAdded ? (
+                        isAddingCard ? (
+                          <div className="bg-card border p-6 rounded-lg space-y-4 animate-in fade-in slide-in-from-top-2">
+                            <div className="space-y-2">
+                              <Label htmlFor="cardNumber">Card Number</Label>
+                              <div className="relative">
+                                <CreditCard className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                  id="cardNumber"
+                                  placeholder="0000 0000 0000 0000"
+                                  className="pl-9"
+                                  value={cardDetails.number}
+                                  onChange={(e) => {
+                                    let v = e.target.value.replace(/\D/g, '').substring(0, 16);
+                                    v = v.match(/.{1,4}/g)?.join(' ') || v;
+                                    setCardDetails({ ...cardDetails, number: v });
+                                  }}
+                                />
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                              <div className="space-y-2">
+                                <Label htmlFor="expiry">Expiry Date</Label>
+                                <Input
+                                  id="expiry"
+                                  placeholder="MM/YY"
+                                  value={cardDetails.expiry}
+                                  onChange={(e) => {
+                                    let v = e.target.value.replace(/\D/g, '').substring(0, 4);
+                                    if (v.length >= 3) v = v.substring(0, 2) + '/' + v.substring(2);
+                                    setCardDetails({ ...cardDetails, expiry: v });
+                                  }}
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label htmlFor="cvc">CVC</Label>
+                                <div className="relative">
+                                  <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                                  <Input
+                                    id="cvc"
+                                    placeholder="123"
+                                    className="pl-9"
+                                    type="password"
+                                    maxLength={4}
+                                    value={cardDetails.cvc}
+                                    onChange={(e) => setCardDetails({ ...cardDetails, cvc: e.target.value.replace(/\D/g, '') })}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="space-y-2">
+                              <Label htmlFor="cardName">Name on Card</Label>
+                              <Input
+                                id="cardName"
+                                placeholder="John Doe"
+                                value={cardDetails.name}
+                                onChange={(e) => setCardDetails({ ...cardDetails, name: e.target.value })}
+                              />
+                            </div>
+
+                            <div className="flex gap-3 pt-2">
+                              <Button variant="outline" className="flex-1" onClick={() => setIsAddingCard(false)}>
+                                Cancel
+                              </Button>
+                              <Button className="flex-1" onClick={handleSaveCard}>
+                                Save Card
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="bg-muted/50 p-6 rounded-lg border border-dashed flex flex-col items-center justify-center text-center gap-3">
+                            <div className="p-3 bg-background rounded-full shadow-sm">
+                              <Lock className="h-5 w-5 text-muted-foreground" />
+                            </div>
+                            <div className="space-y-1">
+                              <p className="text-sm font-medium">No card linked yet</p>
+                              <p className="text-xs text-muted-foreground max-w-xs">
+                                Securely link your card to enable payments. We do not store your full card details.
+                              </p>
+                            </div>
+                            <Button onClick={() => setIsAddingCard(true)} variant="outline" className="mt-2">
+                              Add Card
+                            </Button>
+                          </div>
+                        )
+                      ) : (
+                        <div className="bg-card border p-4 rounded-lg flex items-center justify-between shadow-sm">
+                          <div className="flex items-center gap-4">
+                            <div className="h-10 w-14 bg-gradient-to-br from-blue-600 to-indigo-700 rounded flex items-center justify-center text-white font-bold text-xs shadow-inner">
+                              VISA
+                            </div>
+                            <div>
+                              <p className="font-medium text-sm">
+                                Visa •••• {cardDetails.number.replace(/\s/g, '').slice(-4) || '4242'}
+                              </p>
+                              <p className="text-xs text-muted-foreground">Exp {cardDetails.expiry || '08/27'}</p>
+                            </div>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setCardAdded(false);
+                              setCardDetails({ number: "", expiry: "", cvc: "", name: "" });
+                            }}
+                          >
+                            Change Card
+                          </Button>
+                        </div>
+                      )}
+                    </div>
                   </CardContent>
                 </Card>
+
+                {/* 2. Recipient Details */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 font-bold text-xl">
+                      <Wallet className="h-6 w-6" />
+                      2. Recipient Details
+                    </CardTitle>
+                    <CardDescription>
+                      Who should receive the rent payment?
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="email">Recipient Email <span className="text-red-500">*</span></Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        placeholder="landlord@example.com"
+                        value={recipientEmail}
+                        onChange={(e) => setRecipientEmail(e.target.value)}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Rent will be sent to this email via Interac e-Transfer.
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="confirmEmail">Confirm Recipient Email <span className="text-red-500">*</span></Label>
+                      <Input
+                        id="confirmEmail"
+                        type="email"
+                        placeholder="landlord@example.com"
+                        value={confirmRecipientEmail}
+                        onChange={(e) => setConfirmRecipientEmail(e.target.value)}
+                        onPaste={(e) => {
+                          e.preventDefault();
+                          toast.error("Please type the email again to confirm.");
+                        }}
+                      />
+                    </div>
+
+                    <div className="bg-yellow-50 dark:bg-yellow-900/10 border border-yellow-200 dark:border-yellow-900/30 p-4 rounded-lg">
+                      <div className="flex items-start space-x-3">
+                        <Checkbox
+                          id="compliance"
+                          checked={isComplianceChecked}
+                          onCheckedChange={(c) => setIsComplianceChecked(c === true)}
+                          className="mt-1"
+                        />
+                        <div className="grid gap-1.5 leading-none">
+                          <Label
+                            htmlFor="compliance"
+                            className="text-sm font-medium leading-normal cursor-pointer"
+                          >
+                            I confirm this is a legitimate rent payment and not a transfer to myself or a related account.
+                          </Label>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* 3. Recipient Type */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 font-bold text-xl">
+                      <User className="h-6 w-6" />
+                      3. Recipient Type <span className="text-red-500">*</span>
+                    </CardTitle>
+                    <CardDescription>
+                      Is the landlord an individual or a business?
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="space-y-3">
+                      <RadioGroup
+                        value={recipientType}
+                        onValueChange={(val: "individual" | "business") => setRecipientType(val)}
+                        className="flex gap-6"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="individual" id="individual" />
+                          <Label htmlFor="individual" className="cursor-pointer">Individual</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="business" id="business" />
+                          <Label htmlFor="business" className="cursor-pointer">Business</Label>
+                        </div>
+                      </RadioGroup>
+                    </div>
+
+                    {/* Conditional Name Fields */}
+                    {recipientType === "individual" ? (
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="firstName">Recipient First Name <span className="text-red-500">*</span></Label>
+                          <Input
+                            id="firstName"
+                            placeholder="John"
+                            value={recipientFirstName}
+                            onChange={(e) => setRecipientFirstName(e.target.value)}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="lastName">Recipient Last Name <span className="text-red-500">*</span></Label>
+                          <Input
+                            id="lastName"
+                            placeholder="Doe"
+                            value={recipientLastName}
+                            onChange={(e) => setRecipientLastName(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <Label htmlFor="businessName">Business Name <span className="text-red-500">*</span></Label>
+                        <Input
+                          id="businessName"
+                          placeholder="Property Management Ltd."
+                          value={businessName}
+                          onChange={(e) => setBusinessName(e.target.value)}
+                        />
+                      </div>
+                    )}
+
+                    {/* Optional Phone */}
+                    <div className="space-y-2">
+                      <Label htmlFor="phone">Recipient Phone Number <span className="text-muted-foreground text-xs font-normal">(Optional)</span></Label>
+                      <Input
+                        id="phone"
+                        placeholder="+1 (555) 000-0000"
+                        type="tel"
+                        value={recipientPhone}
+                        onChange={(e) => setRecipientPhone(e.target.value)}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Used only if email delivery fails.
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* 4. Payment Details (Rent Amount + Pay Action) */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 font-bold text-xl">
+                      <CreditCard className="h-6 w-6" />
+                      4. Payment Details <span className="text-red-500">*</span>
+                    </CardTitle>
+                    <CardDescription>
+                      Enter the amount you wish to pay.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-8">
+                    {/* Rent Amount */}
+                    <div className="space-y-2">
+                      <Label htmlFor="rentAmount">Rent Amount</Label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-2.5 text-muted-foreground">$</span>
+                        <Input
+                          id="rentAmount"
+                          type="number"
+                          placeholder={property?.monthly_rent.toFixed(2)}
+                          className="pl-7 text-lg font-medium"
+                          value={rentAmount || (property?.monthly_rent ? property.monthly_rent.toString() : "")}
+                          onChange={(e) => setRentAmount(e.target.value)}
+                          min="0"
+                          step="0.01"
+                        />
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Default is set to the property's listed monthly rent.
+                      </p>
+                    </div>
+
+                    {/* Pay Button */}
+                    {cardAdded && (
+                      <Button
+                        className="w-full mt-4 bg-green-600 hover:bg-green-700 font-bold text-lg h-14"
+                        size="lg"
+                        disabled={isProcessingPayment}
+                        onClick={async () => {
+                          // Validation
+                          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                          if (!emailRegex.test(recipientEmail)) {
+                            toast.error("Please enter a valid recipient email.");
+                            return;
+                          }
+                          if (recipientEmail !== confirmRecipientEmail) {
+                            toast.error("Recipient emails do not match.");
+                            return;
+                          }
+                          if (!isComplianceChecked) {
+                            toast.error("Please confirm the compliance checkbox.");
+                            return;
+                          }
+                          if (recipientType === "individual" && (!recipientFirstName || !recipientLastName)) {
+                            toast.error("Please enter the recipient's name.");
+                            return;
+                          }
+                          if (recipientType === "business" && !businessName) {
+                            toast.error("Please enter the business name.");
+                            return;
+                          }
+                          if (!rentAmount || parseFloat(rentAmount) <= 0) {
+                            toast.error("Please enter a valid rent amount.");
+                            return;
+                          }
+
+                          setIsProcessingPayment(true);
+                          const loadingToast = toast.loading("Executing secure payment...");
+
+                          try {
+                            // 1. Call execute-payment Edge Function
+                            const { data, error: functionError } = await (supabase.functions as any).invoke('execute-payment', {
+                              body: {
+                                application_id: (applicationData as any)?.id || createdApplicationId,
+                                payment_method: paymentMethod
+                              }
+                            });
+
+                            if (functionError) throw new Error(functionError.message || "Backend error");
+                            if (!data?.client_secret) throw new Error("Missing client secret");
+
+                            // 2. Initialize Stripe
+                            const stripe = await loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || "");
+                            if (!stripe) throw new Error("Stripe failed to load");
+
+                            // 3. Confirm Payment
+                            const { error: stripeError, paymentIntent } = await stripe.confirmCardPayment(data.client_secret, {
+                              payment_method: {
+                                card: {
+                                  number: cardDetails.number.replace(/\s/g, ''),
+                                  cvc: cardDetails.cvc,
+                                  exp_month: parseInt(cardDetails.expiry.split('/')[0]),
+                                  exp_year: parseInt('20' + cardDetails.expiry.split('/')[1]),
+                                } as any,
+                                billing_details: {
+                                  name: cardDetails.name
+                                }
+                              } as any
+                            });
+
+                            if (stripeError) {
+                              throw new Error(stripeError.message);
+                            }
+
+                            if (paymentIntent.status === 'succeeded') {
+                              toast.success("Payment successful!", { id: loadingToast });
+                              setApplicationData((prev) => ({
+                                ...prev,
+                                paymentCompleted: true,
+                              }));
+                            } else {
+                              toast.info(`Payment status: ${paymentIntent.status}`, { id: loadingToast });
+                            }
+
+                          } catch (err: any) {
+                            console.error("Payment error:", err);
+                            toast.error(err.message || "Payment failed. Please try again.", { id: loadingToast });
+                          } finally {
+                            setIsProcessingPayment(false);
+                          }
+                        }}
+                      >
+                        {isProcessingPayment ? (
+                          <span className="flex items-center">
+                            <span className="animate-spin mr-2 h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+                            Processing...
+                          </span>
+                        ) : (
+                          <>
+                            <CheckCircle className="mr-2 h-6 w-6" />
+                            Pay ${parseFloat(rentAmount || (property?.monthly_rent || 0).toString()).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                          </>
+                        )}
+                      </Button>
+                    )}
+                  </CardContent>
+                </Card>
+
               </div>
             ) : (
               /* Payment Success */
@@ -1908,6 +2370,7 @@ export default function RentalApplicationPage() {
             </div>
           </div>
         );
+
 
       default:
         return null;

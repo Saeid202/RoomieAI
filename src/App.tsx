@@ -18,6 +18,7 @@ import OppositeSchedulePage from "@/pages/dashboard/OppositeSchedule";
 import WorkExchangePage from "@/pages/dashboard/WorkExchange";
 import LGBTQMatchingPage from "@/pages/dashboard/LGBTQMatching";
 import LandlordDashboardPage from "@/pages/dashboard/landlord/LandlordDashboard";
+import LandlordProfilePage from "@/pages/dashboard/landlord/Profile";
 import PropertiesPage from "@/pages/dashboard/landlord/Properties";
 import ApplicationsPage from "@/pages/dashboard/landlord/Applications";
 import AddPropertyPage from "@/pages/dashboard/landlord/AddProperty";
@@ -140,6 +141,8 @@ function AppRoutes() {
           <Route path="landlord" element={<LandlordDashboardPage />} />
           <Route path="landlord/properties" element={<PropertiesPage />} />
           <Route path="landlord/applications" element={<ApplicationsPage />} />
+          <Route path="landlord/payments" element={<DigitalWalletPage />} />
+          <Route path="landlord/profile" element={<LandlordProfilePage />} />
           <Route path="landlord/add-property" element={<AddPropertyPage />} />
           <Route path="landlord/contracts" element={<ContractReviewPage />} />
           <Route path="rent-opportunities" element={<RentOpportunitiesPage />} />
@@ -244,6 +247,8 @@ function AppRoutes() {
         <Route path="landlord" element={<LandlordDashboardPage />} />
         <Route path="landlord/properties" element={<PropertiesPage />} />
         <Route path="landlord/applications" element={<ApplicationsPage />} />
+        <Route path="landlord/payments" element={<DigitalWalletPage />} />
+        <Route path="landlord/profile" element={<LandlordProfilePage />} />
         <Route path="landlord/add-property" element={<AddPropertyPage />} />
         <Route path="rent-opportunities" element={<RentOpportunitiesPage />} />
         <Route path="find-property" element={<FindPropertyPage />} />

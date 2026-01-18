@@ -96,6 +96,18 @@ export function SeekerSidebar({ isActive, showLabels }: SeekerSidebarProps) {
 
       <SidebarMenuSection
         showLabels={showLabels}
+        title="Payments"
+        icon={() => <span className="text-lg">💳</span>}
+        isActive={isActive}
+        subItems={[
+          { label: "Digital Wallet", path: "/dashboard/digital-wallet" },
+          { label: "Auto Pay", path: "/dashboard/autopay" },
+          { label: "Rent Savings", path: "/dashboard/rent-savings" }
+        ]}
+      />
+
+      <SidebarMenuSection
+        showLabels={showLabels}
         title="Buying Opportunities"
         icon={() => <span className="text-lg">🏘️</span>}
         isActive={isActive}

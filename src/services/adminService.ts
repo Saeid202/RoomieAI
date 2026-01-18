@@ -81,12 +81,44 @@ export function clearAdminCache(userId?: string) {
  * Get list of available roles for a user
  */
 export async function getAvailableRoles(userId: string): Promise<string[]> {
-  const baseRoles = ['seeker', 'landlord', 'renovator'];
+  try {
+    const roles: string[] = ['seeker'];
 
-  const isAdmin = await checkIsAdmin(userId);
-  if (isAdmin) {
-    return [...baseRoles, 'admin'];
+    // 1. Check if user is an admin
+    const isAdmin = await checkIsAdmin(userId);
+    if (isAdmin) {
+      return ['seeker', 'landlord', 'renovator', 'admin'];
+    }
+
+    // 2. Fetch the user's primary profile role
+    const { data: profile } = await (supabase as any)
+      .from('user_profiles')
+      .select('role')
+      .eq('id', userId)
+      .maybeSingle();
+
+    const dbRole = (profile as any)?.role || 'seeker';
+
+    // 3. Check if they have a renovation partner profile
+    const { data: renovatorProfile } = await (supabase as any)
+      .from('renovation_partners')
+      .select('id')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    // 4. Determine available roles
+    // Everyone gets Seeker and Landlord (standard flow)
+    roles.push('landlord');
+
+    // Add Renovator if they have a profile OR if their DB role is renovator
+    if (renovatorProfile || dbRole === 'renovator') {
+      roles.push('renovator');
+    }
+
+    // Unique roles only
+    return Array.from(new Set(roles));
+  } catch (error) {
+    console.error('Error fetching available roles:', error);
+    return ['seeker', 'landlord'];
   }
-
-  return baseRoles;
 }
