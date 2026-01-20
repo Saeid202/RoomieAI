@@ -28,7 +28,7 @@ const ContactUs = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
+
     // Simulate form submission
     setTimeout(() => {
       toast({
@@ -51,7 +51,7 @@ const ContactUs = () => {
       <main className="flex-grow pt-20 pb-16">
         <div className="container mx-auto px-4 py-8">
           <h1 className="text-4xl font-bold mb-8 text-center">Contact Us</h1>
-          
+
           <div className="max-w-6xl mx-auto">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
               {/* Contact Form */}
@@ -71,7 +71,7 @@ const ContactUs = () => {
                       placeholder="John Doe"
                     />
                   </div>
-                  
+
                   <div>
                     <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
                       Email Address
@@ -86,7 +86,7 @@ const ContactUs = () => {
                       placeholder="your@email.com"
                     />
                   </div>
-                  
+
                   <div>
                     <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-1">
                       Subject
@@ -100,7 +100,7 @@ const ContactUs = () => {
                       placeholder="How can we help you?"
                     />
                   </div>
-                  
+
                   <div>
                     <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1">
                       Message
@@ -115,9 +115,9 @@ const ContactUs = () => {
                       className="min-h-[150px]"
                     />
                   </div>
-                  
-                  <Button 
-                    type="submit" 
+
+                  <Button
+                    type="submit"
                     className="w-full bg-roomie-purple hover:bg-roomie-dark text-white"
                     disabled={isSubmitting}
                   >
@@ -125,11 +125,11 @@ const ContactUs = () => {
                   </Button>
                 </form>
               </div>
-              
+
               {/* Contact Information */}
               <div>
                 <h2 className="text-2xl font-semibold mb-6 text-roomie-purple">Contact Information</h2>
-                
+
                 <div className="space-y-8">
                   <div className="flex items-start">
                     <div className="flex-shrink-0 h-10 w-10 rounded-full bg-roomie-purple/10 flex items-center justify-center">
@@ -138,14 +138,14 @@ const ContactUs = () => {
                     <div className="ml-4">
                       <h3 className="text-lg font-medium text-gray-800">Email</h3>
                       <p className="mt-1 text-gray-600">
-                        <a href="mailto:support@roomiematch.com" className="text-roomie-purple hover:underline">
-                          support@roomiematch.com
+                        <a href="mailto:support@roomieai.com" className="text-roomie-purple hover:underline">
+                          support@roomieai.com
                         </a>
                       </p>
                       <p className="mt-1 text-gray-500 text-sm">For general inquiries and support</p>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-start">
                     <div className="flex-shrink-0 h-10 w-10 rounded-full bg-roomie-purple/10 flex items-center justify-center">
                       <Phone className="h-5 w-5 text-roomie-purple" />
@@ -160,7 +160,7 @@ const ContactUs = () => {
                       <p className="mt-1 text-gray-500 text-sm">Monday-Friday, 9AM-5PM EST</p>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-start">
                     <div className="flex-shrink-0 h-10 w-10 rounded-full bg-roomie-purple/10 flex items-center justify-center">
                       <MapPin className="h-5 w-5 text-roomie-purple" />
@@ -175,7 +175,7 @@ const ContactUs = () => {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="mt-12">
                   <h3 className="text-lg font-medium text-gray-800 mb-4">Connect With Us</h3>
                   <div className="flex space-x-4">

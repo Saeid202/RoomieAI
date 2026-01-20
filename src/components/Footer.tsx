@@ -62,11 +62,11 @@ const Footer = ({ className }: FooterProps) => {
                 />
               </svg>
               <h1 className="text-xl font-bold text-roomie-purple">
-                RoomieMatch
+                Roomie AI
               </h1>
             </div>
             <p className="text-gray-400 mb-6 max-w-md">
-              RoomieMatch helps you find the ideal roommate based on your lifestyle, budget, and location preferences.
+              Roomie AI helps you find the ideal roommate based on your lifestyle, budget, and location preferences.
             </p>
             <div className="flex space-x-4">
               <a href="#" className="text-gray-400 hover:text-roomie-purple transition-colors">
@@ -83,7 +83,7 @@ const Footer = ({ className }: FooterProps) => {
               </a>
             </div>
           </div>
-          
+
           <div>
             <h3 className="font-semibold text-lg mb-4">Company</h3>
             <ul className="space-y-3">
@@ -93,7 +93,7 @@ const Footer = ({ className }: FooterProps) => {
               <li><a href="#" className="text-gray-400 hover:text-roomie-purple transition-colors">Press</a></li>
             </ul>
           </div>
-          
+
           <div>
             <h3 className="font-semibold text-lg mb-4">Support</h3>
             <ul className="space-y-3">
@@ -103,7 +103,7 @@ const Footer = ({ className }: FooterProps) => {
               <li><Link to="/contact-us" className="text-gray-400 hover:text-roomie-purple transition-colors">Contact Us</Link></li>
             </ul>
           </div>
-          
+
           <div>
             <h3 className="font-semibold text-lg mb-4">Legal</h3>
             <ul className="space-y-3">
@@ -114,9 +114,9 @@ const Footer = ({ className }: FooterProps) => {
             </ul>
           </div>
         </div>
-        
+
         <div className="pt-8 mt-8 border-t border-gray-800 text-center text-gray-400 text-sm">
-          <p>© {new Date().getFullYear()} RoomieMatch. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Roomie AI. All rights reserved.</p>
         </div>
       </div>
     </footer>

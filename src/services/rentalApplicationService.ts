@@ -322,6 +322,13 @@ export async function getLandlordApplications(): Promise<any[]> {
         *,
         property:properties!inner(
           id, listing_title, address, city, state, monthly_rent, user_id, images
+        ),
+        lease_contract:lease_contracts(
+          id, 
+          status, 
+          landlord_signature, 
+          tenant_signature,
+          stored_contracts:contracts(id, file_path, status)
         )
       `)
       .eq('property.user_id', user.id)  // Filter by landlord's properties
@@ -357,7 +364,14 @@ export async function getUserApplications(): Promise<any[]> {
       .from('rental_applications')
       .select(`
         *,
-        property:properties(listing_title, address, city, state, monthly_rent, property_type, user_id, images)
+        property:properties(listing_title, address, city, state, monthly_rent, property_type, user_id, images),
+        lease_contract:lease_contracts(
+          id, 
+          status, 
+          landlord_signature, 
+          tenant_signature,
+          stored_contracts:contracts(id, file_path, status)
+        )
       `)
       .eq('applicant_id', user.id)  // Filter by current user's applications
       .neq('status', 'withdrawn')   // Exclude withdrawn applications

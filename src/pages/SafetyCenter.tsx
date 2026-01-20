@@ -10,21 +10,21 @@ const SafetyCenter = () => {
       <main className="flex-grow pt-20 pb-16">
         <div className="container mx-auto px-4 py-8">
           <h1 className="text-4xl font-bold mb-8 text-center">Safety Center</h1>
-          
+
           <div className="max-w-4xl mx-auto space-y-12">
             <section className="text-center mb-12">
               <div className="inline-flex items-center justify-center w-20 h-20 bg-roomie-purple/10 rounded-full mb-4">
                 <Shield className="w-10 h-10 text-roomie-purple" />
               </div>
               <p className="text-xl text-gray-700 max-w-2xl mx-auto">
-                Your safety is our top priority. We've implemented various features and protocols 
-                to ensure you have a secure experience while using RoomieMatch.
+                Your safety is our top priority. We've implemented various features and protocols
+                to ensure you have a secure experience while using Roomie AI.
               </p>
             </section>
-            
+
             <section>
               <h2 className="text-2xl font-semibold mb-6 text-roomie-purple flex items-center">
-                <Users className="w-6 h-6 mr-2" /> 
+                <Users className="w-6 h-6 mr-2" />
                 Profile Verification
               </h2>
               <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
@@ -51,7 +51,7 @@ const SafetyCenter = () => {
                 </ul>
               </div>
             </section>
-            
+
             <section>
               <h2 className="text-2xl font-semibold mb-6 text-roomie-purple flex items-center">
                 <AlertCircle className="w-6 h-6 mr-2" />
@@ -85,7 +85,7 @@ const SafetyCenter = () => {
                 </ul>
               </div>
             </section>
-            
+
             <section>
               <h2 className="text-2xl font-semibold mb-6 text-roomie-purple flex items-center">
                 <MessageCircle className="w-6 h-6 mr-2" />
@@ -102,7 +102,7 @@ const SafetyCenter = () => {
                   </li>
                   <li className="flex items-start">
                     <CheckCircle className="w-5 h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                    <span className="text-gray-700">Contact our support team at safety@roomiematch.com</span>
+                    <span className="text-gray-700">Contact our support team at safety@roomieai.com</span>
                   </li>
                   <li className="flex items-start">
                     <CheckCircle className="w-5 h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
@@ -115,13 +115,13 @@ const SafetyCenter = () => {
                 </ul>
               </div>
             </section>
-            
+
             <section className="text-center">
               <p className="text-lg text-gray-700 mb-4">
-                Have questions about safety on RoomieMatch?
+                Have questions about safety on Roomie AI?
               </p>
-              <a 
-                href="mailto:safety@roomiematch.com" 
+              <a
+                href="mailto:safety@roomieai.com"
                 className="inline-flex items-center px-6 py-3 bg-roomie-purple text-white rounded-full hover:bg-roomie-dark transition-colors"
               >
                 Contact Our Safety Team

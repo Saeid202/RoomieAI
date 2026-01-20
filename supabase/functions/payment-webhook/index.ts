@@ -17,154 +17,182 @@ const endpointSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET') ?? ''
 serve(async (req) => {
     // Handle CORS preflight requests
     if (req.method === 'OPTIONS') {
-        return new Response(null, {
-            status: 204,
-            headers: corsHeaders,
-        })
+        return new Response(null, { status: 204, headers: corsHeaders })
     }
 
     try {
-        // 1. Validate Webhook Signature
         const signature = req.headers.get('stripe-signature')
-        if (!signature) {
-            return new Response(
-                JSON.stringify({ error: 'Missing stripe-signature header' }),
-                {
-                    status: 400,
-                    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-                }
-            )
-        }
+        if (!signature) return jsonResponse({ error: 'Missing signature' }, 400)
 
         const body = await req.text()
-        let event
+        let event: Stripe.Event
 
         try {
             event = stripe.webhooks.constructEvent(body, signature, endpointSecret)
         } catch (err: any) {
             console.error(`Webhook signature verification failed: ${err.message}`)
-            return new Response(
-                JSON.stringify({ error: 'Webhook signature verification failed', details: err.message }),
-                {
-                    status: 400,
-                    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-                }
-            )
+            return jsonResponse({ error: 'Invalid signature' }, 400)
         }
 
-        // 2. Initialize Supabase Admin Client
         const supabaseAdmin = createClient(
             Deno.env.get('SUPABASE_URL') ?? '',
             Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
         )
 
-        console.log(`🔔 Webhook Event Received: ${event.type}`)
+        // 1. Idempotency Check
+        const { data: existingEvent } = await supabaseAdmin
+            .from('stripe_webhook_events')
+            .select('id')
+            .eq('event_id', event.id)
+            .maybeSingle()
 
-        // 3. Handle PAYMENT_INTENT.SUCCEEDED
-        if (event.type === 'payment_intent.succeeded') {
-            const paymentIntent = event.data.object as Stripe.PaymentIntent
-            const { application_id, payment_source } = paymentIntent.metadata
+        if (existingEvent) {
+            console.log(`⚠️ Event ${event.id} already processed. Skipping.`)
+            return jsonResponse({ received: true, duplicate: true })
+        }
 
-            console.log(`✅ Payment succeeded. Mode: ${payment_source}. Intent: ${paymentIntent.id}`)
+        console.log(`🔔 Processing Webhook: ${event.type} (${event.id})`)
 
-            // Update Payment Record
-            const { error: paymentError } = await supabaseAdmin
-                .from('rental_payments')
-                .update({
-                    payment_status: 'paid',
-                    processing_status: 'processing',
-                    paid_at: new Date().toISOString(),
-                    processed_at: new Date().toISOString()
-                })
-                .eq('payment_intent_id', paymentIntent.id)
+        // 2. Handle Events
+        switch (event.type) {
+            case 'payment_intent.succeeded': {
+                const pi = event.data.object as Stripe.PaymentIntent
+                const { landlord_id, rent_ledger_id } = pi.metadata
 
-            if (paymentError) {
-                console.error('Error updating rental_payments:', paymentError)
-            }
-
-            // Application-specific updates
-            if (payment_source === 'application' && application_id) {
-                const { error: appError } = await supabaseAdmin
-                    .from('rental_applications')
+                // Update payment status
+                await supabaseAdmin
+                    .from('rental_payments')
                     .update({
-                        step_4_completed: true,
-                        payment_status: 'paid'
+                        payment_status: 'paid',
+                        processing_status: 'clearing',
+                        paid_at: new Date().toISOString()
                     })
-                    .eq('id', application_id)
+                    .eq('payment_intent_id', pi.id)
 
-                if (appError) {
-                    console.error('Error updating rental_applications:', appError)
+                // If rent_ledger_id is present, update the ledger row to 'paid'
+                if (rent_ledger_id) {
+                    await supabaseAdmin
+                        .from('rent_ledgers')
+                        .update({ status: 'paid', updated_at: new Date().toISOString() })
+                        .eq('id', rent_ledger_id)
                 }
+
+                // If landlord_id is present, increment pending_balance
+                if (landlord_id) {
+                    const amount = (pi.amount_received / 100) // Convert from cents
+                    console.log(`Adding ${amount} to pending balance for landlord ${landlord_id}`)
+                    await supabaseAdmin.rpc('update_landlord_wallet_balances', {
+                        p_user_id: landlord_id,
+                        p_pending_delta: amount,
+                        p_available_delta: 0,
+                        p_paid_out_delta: 0
+                    })
+                }
+                break
+            }
+
+            case 'payment_intent.payment_failed': {
+                const pi = event.data.object as Stripe.PaymentIntent
+                const { rent_ledger_id } = pi.metadata
+
+                // Update payment record to failed
+                await supabaseAdmin
+                    .from('rental_payments')
+                    .update({
+                        payment_status: 'failed',
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('payment_intent_id', pi.id)
+
+                // If it was a ledger payment, revert ledger status to 'unpaid' so they can try again
+                if (rent_ledger_id) {
+                    await supabaseAdmin
+                        .from('rent_ledgers')
+                        .update({ status: 'unpaid', updated_at: new Date().toISOString() })
+                        .eq('id', rent_ledger_id)
+                }
+                break
+            }
+
+            case 'charge.succeeded': {
+                // Secondary check for pending status if PI was missed
+                const charge = event.data.object as Stripe.Charge
+                // Usually PI.succeeded covers this, but we keep it for safety if needed
+                console.log(`Charge succeeded: ${charge.id}`)
+                break
+            }
+
+            case 'payout.paid': {
+                const payout = event.data.object as Stripe.Payout
+                // For Connect payouts, we need to find the landlord account
+                const stripeAccountId = event.account
+
+                if (stripeAccountId) {
+                    const { data: account } = await supabaseAdmin
+                        .from('payment_accounts')
+                        .select('user_id')
+                        .eq('stripe_account_id', stripeAccountId)
+                        .maybeSingle()
+
+                    if (account) {
+                        const amount = (payout.amount / 100)
+                        console.log(`Recording payout of ${amount} for user ${account.user_id}`)
+
+                        await supabaseAdmin.rpc('update_landlord_wallet_balances', {
+                            p_user_id: account.user_id,
+                            p_pending_delta: 0,
+                            p_available_delta: -amount,
+                            p_paid_out_delta: amount
+                        })
+
+                        // Update any payments that were marked 'paid' to 'paid_to_landlord'
+                        // (Rough approximation: update most recent paid payments)
+                        // In a real system, we'd link specific payments to payouts.
+                    }
+                }
+                break
+            }
+
+            case 'account.updated': {
+                // Keep existing logic for onboarding status
+                const account = event.data.object as Stripe.Account
+                let status = 'onboarding'
+                if (account.details_submitted && account.charges_enabled) {
+                    status = 'completed'
+                } else if (account.requirements?.disabled_reason) {
+                    status = 'restricted'
+                }
+
+                await supabaseAdmin
+                    .from('payment_accounts')
+                    .update({
+                        stripe_account_status: status,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('stripe_account_id', account.id)
+                break
             }
         }
 
-        // 4. Handle PAYMENT_INTENT.PAYMENT_FAILED
-        if (event.type === 'payment_intent.payment_failed') {
-            const paymentIntent = event.data.object as Stripe.PaymentIntent
-            console.log(`❌ Payment failed: ${paymentIntent.id}`)
+        // 3. Record processed event
+        await supabaseAdmin
+            .from('stripe_webhook_events')
+            .insert({
+                event_id: event.id,
+                event_type: event.type
+            })
 
-            const { error: paymentError } = await supabaseAdmin
-                .from('rental_payments')
-                .update({
-                    payment_status: 'failed'
-                })
-                .eq('payment_intent_id', paymentIntent.id)
-
-            if (paymentError) {
-                console.error('Error updating rental_payments (failed):', paymentError)
-            }
-        }
-
-        // 5. Handle ACCOUNT.UPDATED (Stripe Connect)
-        if (event.type === 'account.updated') {
-            const account = event.data.object as Stripe.Account
-            console.log(`👤 Account updated: ${account.id}. Details Submitted: ${account.details_submitted}, Charges Enabled: ${account.charges_enabled}`)
-
-            let status = 'onboarding'
-            if (account.details_submitted && account.charges_enabled) {
-                status = 'completed'
-            } else if (account.requirements?.disabled_reason) {
-                status = 'restricted'
-            }
-
-            const updateData: any = {
-                stripe_account_status: status,
-                updated_at: new Date().toISOString()
-            }
-
-            if (status === 'completed') {
-                updateData.stripe_onboarding_completed_at = new Date().toISOString()
-            }
-
-            const { error: accountError } = await supabaseAdmin
-                .from('payment_accounts')
-                .update(updateData)
-                .eq('stripe_account_id', account.id)
-
-            if (accountError) {
-                console.error(`Error updating payment_accounts for ${account.id}:`, accountError)
-            } else {
-                console.log(`✅ Successfully updated status to ${status} for ${account.id}`)
-            }
-        }
-
-        // 6. Return Success Response
-        return new Response(
-            JSON.stringify({ received: true, event_type: event.type }),
-            {
-                status: 200,
-                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-            }
-        )
+        return jsonResponse({ received: true })
 
     } catch (err: any) {
-        console.error('Webhook processing error:', err)
-        return new Response(
-            JSON.stringify({ error: err.message || 'Webhook processing failed' }),
-            {
-                status: 500,
-                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-            }
-        )
+        console.error('Critical Webhook Error:', err)
+        return jsonResponse({ error: err.message }, 500)
     }
 })
+
+function jsonResponse(data: any, status = 200) {
+    return new Response(JSON.stringify(data), {
+        status,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    })
+}

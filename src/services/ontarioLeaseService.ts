@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { OntarioLeaseFormData, OntarioLeaseContract, SignatureData } from "@/types/ontarioLease";
 import { createContractNotification } from "@/services/notificationService";
+import { finalizeAndStoreContract } from "@/services/leaseContractService";
 
 const sb: any = supabase;
 
@@ -288,6 +289,12 @@ export async function signOntarioLeaseAsTenant(
     }
 
     console.log("Tenant signature added successfully");
+
+    // Check if fully signed and finalize
+    if (data.status === 'fully_signed' || (data.landlord_signature && data.tenant_signature)) {
+      await finalizeAndStoreContract(data.id);
+    }
+
     return data as OntarioLeaseContract;
   } catch (error) {
     console.error("Error in signOntarioLeaseAsTenant:", error);
@@ -355,6 +362,11 @@ export async function signOntarioLeaseAsLandlord(
     }
 
     console.log("Contract signed by landlord successfully:", data.id);
+
+    // Check if fully signed and finalize
+    if (data.status === 'fully_signed' || (data.landlord_signature && data.tenant_signature)) {
+      await finalizeAndStoreContract(data.id);
+    }
 
     // Notify Tenant
     try {

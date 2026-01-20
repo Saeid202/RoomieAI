@@ -12,7 +12,7 @@ export default function HomePage() {
   const location = useLocation();
 
   useEffect(() => {
-    document.title = "RoomieMatch - Find Your Ideal Roommate";
+    document.title = "Roomie AI - Find Your Ideal Roommate";
     console.log("Home page rendered");
   }, []);
 
@@ -26,7 +26,7 @@ export default function HomePage() {
           element.scrollIntoView({ behavior: "smooth" });
         }, 0);
       }
-    }else {
+    } else {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
   }, [location]);

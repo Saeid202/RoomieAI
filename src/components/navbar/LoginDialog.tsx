@@ -26,7 +26,7 @@ export const LoginDialog = ({ isOpen, setIsOpen }: LoginDialogProps) => {
   const navigate = useNavigate();
   const { signIn, signInWithGoogle, signInWithFacebook, signInWithLinkedIn, resetPassword } = useAuth();
   const { setRole } = useRole();
-  
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -39,23 +39,23 @@ export const LoginDialog = ({ isOpen, setIsOpen }: LoginDialogProps) => {
     try {
       console.log("Attempting to sign in with:", email);
       const result = await signIn(email, password);
-      
+
       setIsOpen(false);
-      
+
       // Get user data to check role
       const { data, error } = await supabase.auth.getUser();
-      
+
       if (error) {
         throw error;
       }
-      
+
       // Log full user data for debugging
       console.log("Complete user data after login:", data);
       console.log("User metadata after login:", data.user?.user_metadata);
-      
+
       const userRole = data.user?.user_metadata?.role as UserRole | undefined;
       console.log("User logged in with role:", userRole);
-      
+
       // Set role in context
       if (userRole) {
         setRole(userRole);
@@ -64,7 +64,7 @@ export const LoginDialog = ({ isOpen, setIsOpen }: LoginDialogProps) => {
       } else {
         console.warn("No role found in user metadata after login, checking localStorage...");
         const storedRole = localStorage.getItem('userRole') as UserRole | null;
-        
+
         if (storedRole) {
           console.log("Using role from localStorage:", storedRole);
           setRole(storedRole);
@@ -74,7 +74,7 @@ export const LoginDialog = ({ isOpen, setIsOpen }: LoginDialogProps) => {
           localStorage.setItem('userRole', 'seeker');
         }
       }
-      
+
       // Redirect based on user role
       if (userRole === 'landlord' || localStorage.getItem('userRole') === 'landlord') {
         navigate("/dashboard/landlord");
@@ -82,7 +82,7 @@ export const LoginDialog = ({ isOpen, setIsOpen }: LoginDialogProps) => {
         // Default to roommate recommendations for seekers
         navigate("/dashboard/roommate-recommendations");
       }
-      
+
       toast({
         title: "Login successful",
         description: `Welcome back ${data.user?.email}!`,
@@ -109,7 +109,7 @@ export const LoginDialog = ({ isOpen, setIsOpen }: LoginDialogProps) => {
       });
       return;
     }
-    
+
     setIsLoading(true);
     try {
       await resetPassword(forgotEmail);
@@ -140,7 +140,7 @@ export const LoginDialog = ({ isOpen, setIsOpen }: LoginDialogProps) => {
       // Default to seeker for social login
       localStorage.setItem('pendingRole', 'seeker');
     }
-    
+
     if (provider === 'google') {
       signInWithGoogle();
     } else if (provider === 'facebook') {
@@ -158,12 +158,12 @@ export const LoginDialog = ({ isOpen, setIsOpen }: LoginDialogProps) => {
             {showForgotPassword ? "Reset Password" : "Login to your account"}
           </DialogTitle>
           <DialogDescription className="text-center">
-            {showForgotPassword 
+            {showForgotPassword
               ? "Enter your email to receive a password reset link"
-              : "Welcome back to RoomieMatch! Enter your credentials to continue."}
+              : "Welcome back to Roomie AI! Enter your credentials to continue."}
           </DialogDescription>
         </DialogHeader>
-        
+
         {showForgotPassword ? (
           <ForgotPasswordForm
             email={forgotEmail}
@@ -183,7 +183,7 @@ export const LoginDialog = ({ isOpen, setIsOpen }: LoginDialogProps) => {
               onSubmit={handleLoginSubmit}
               onForgotPassword={() => setShowForgotPassword(true)}
             />
-            
+
             <div className="relative mt-6 mb-4">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-300"></div>
@@ -192,7 +192,7 @@ export const LoginDialog = ({ isOpen, setIsOpen }: LoginDialogProps) => {
                 <span className="px-2 bg-white text-gray-500">Or continue with</span>
               </div>
             </div>
-            
+
             <SocialLoginButtons
               onGoogleClick={() => handleSocialLogin('google')}
               onFacebookClick={() => handleSocialLogin('facebook')}

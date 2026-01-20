@@ -43,18 +43,18 @@ const HowItWorks = () => {
               🚀 How It Works
             </span>
           </div>
-          <h2 className="text-3xl md:text-4xl font-bold mb-4 animate-slide-up">How RoomieMatch Works</h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto animate-slide-up" style={{animationDelay: '0.2s'}}>
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 animate-slide-up">How Roomie AI Works</h2>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto animate-slide-up" style={{ animationDelay: '0.2s' }}>
             Finding the perfect roommate is just a few simple steps away.
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {steps.map((step, index) => (
-            <div 
-              key={index} 
+            <div
+              key={index}
               className={`card p-6 relative animate-fade-in ${step.action ? 'cursor-pointer' : ''}`}
-              style={{animationDelay: `${index * 0.1}s`}}
+              style={{ animationDelay: `${index * 0.1}s` }}
               onClick={step.action}
             >
               <div className="absolute -top-4 -left-4 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold shadow-glow">
@@ -67,7 +67,7 @@ const HowItWorks = () => {
           ))}
         </div>
 
-        <div className="mt-16 text-center animate-slide-up" style={{animationDelay: '0.6s'}}>
+        <div className="mt-16 text-center animate-slide-up" style={{ animationDelay: '0.6s' }}>
           <div className="inline-block bg-background/90 backdrop-blur-sm rounded-full px-6 py-3 shadow-lg border border-primary/20">
             <p className="text-foreground">
               <span className="font-medium text-primary">92% of users</span> find a compatible roommate within 2 weeks!

@@ -53,7 +53,7 @@ export const NavLogo = () => {
         />
       </svg>
       <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-roomie-purple to-roomie-accent">
-        RoomieMatch
+        Roomie AI
       </h1>
     </Link>
   );

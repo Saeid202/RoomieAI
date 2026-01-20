@@ -1556,6 +1556,7 @@ export default function RentalApplicationPage() {
                                   contract_signed: false,
                                   payment_completed: false,
                                   pet_ownership: !!applicationData.petOwnership,
+                                  agree_to_terms: true, // Required by database constraint
                                 } as const;
 
                                 console.log(

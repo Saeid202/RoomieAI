@@ -22,6 +22,7 @@ export interface RenovationPartner {
   years_experience: number;
   certifications: string[];
   portfolio: string[];
+  is_featured: boolean;
   is_active: boolean;
   created_by?: string;
   created_at: string;
@@ -49,6 +50,7 @@ export interface RenovationPartnerInput {
   certifications?: string[];
   portfolio?: string[];
   is_active?: boolean;
+  is_featured?: boolean;
 }
 
 export class RenovationPartnerService {
@@ -57,9 +59,9 @@ export class RenovationPartnerService {
    */
   static async getAllPartners(): Promise<RenovationPartner[]> {
     try {
-      const { data, error } = await supabase
-        .from('renovation_partners')
-        .select('*')
+      const { data, error } = await (supabase
+        .from('renovation_partners' as any)
+        .select('*') as any)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -75,10 +77,10 @@ export class RenovationPartnerService {
    */
   static async getActivePartners(): Promise<RenovationPartner[]> {
     try {
-      const { data, error } = await supabase
-        .from('renovation_partners')
+      const { data, error } = await (supabase
+        .from('renovation_partners' as any)
         .select('*')
-        .eq('is_active', true)
+        .eq('is_active', true) as any)
         .order('rating', { ascending: false });
 
       if (error) throw error;
@@ -94,10 +96,10 @@ export class RenovationPartnerService {
    */
   static async getPartnerById(id: string): Promise<RenovationPartner | null> {
     try {
-      const { data, error } = await supabase
-        .from('renovation_partners')
+      const { data, error } = await (supabase
+        .from('renovation_partners' as any)
         .select('*')
-        .eq('id', id)
+        .eq('id', id) as any)
         .single();
 
       if (error) {
@@ -122,15 +124,15 @@ export class RenovationPartnerService {
         throw new Error('User not authenticated');
       }
 
-      const { data, error } = await supabase
-        .from('renovation_partners')
+      const { data, error } = await (supabase
+        .from('renovation_partners' as any)
         .insert({
           ...partnerData,
           created_by: user.id,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         })
-        .select()
+        .select() as any)
         .single();
 
       if (error) throw error;
@@ -146,14 +148,14 @@ export class RenovationPartnerService {
    */
   static async updatePartner(id: string, partnerData: Partial<RenovationPartnerInput>): Promise<RenovationPartner> {
     try {
-      const { data, error } = await supabase
-        .from('renovation_partners')
+      const { data, error } = await (supabase
+        .from('renovation_partners' as any)
         .update({
           ...partnerData,
           updated_at: new Date().toISOString()
         })
         .eq('id', id)
-        .select()
+        .select() as any)
         .single();
 
       if (error) throw error;
@@ -169,9 +171,9 @@ export class RenovationPartnerService {
    */
   static async deletePartner(id: string): Promise<void> {
     try {
-      const { error } = await supabase
-        .from('renovation_partners')
-        .delete()
+      const { error } = await (supabase
+        .from('renovation_partners' as any)
+        .delete() as any)
         .eq('id', id);
 
       if (error) throw error;
@@ -186,14 +188,14 @@ export class RenovationPartnerService {
    */
   static async togglePartnerStatus(id: string, isActive: boolean): Promise<RenovationPartner> {
     try {
-      const { data, error } = await supabase
-        .from('renovation_partners')
+      const { data, error } = await (supabase
+        .from('renovation_partners' as any)
         .update({
           is_active: isActive,
           updated_at: new Date().toISOString()
         })
         .eq('id', id)
-        .select()
+        .select() as any)
         .single();
 
       if (error) throw error;
@@ -209,14 +211,14 @@ export class RenovationPartnerService {
    */
   static async togglePartnerVerification(id: string, verified: boolean): Promise<RenovationPartner> {
     try {
-      const { data, error } = await supabase
-        .from('renovation_partners')
+      const { data, error } = await (supabase
+        .from('renovation_partners' as any)
         .update({
           verified: verified,
           updated_at: new Date().toISOString()
         })
         .eq('id', id)
-        .select()
+        .select() as any)
         .single();
 
       if (error) throw error;
@@ -232,16 +234,16 @@ export class RenovationPartnerService {
    */
   static async searchPartners(query: string, isActiveOnly: boolean = true): Promise<RenovationPartner[]> {
     try {
-      let queryBuilder = supabase
-        .from('renovation_partners')
+      let queryBuilder = (supabase as any)
+        .from('renovation_partners' as any)
         .select('*');
 
       if (isActiveOnly) {
         queryBuilder = queryBuilder.eq('is_active', true);
       }
 
-      const { data, error } = await queryBuilder
-        .or(`name.ilike.%${query}%,company.ilike.%${query}%,specialties.cs.{${query}}`)
+      const { data, error } = await (queryBuilder
+        .or(`name.ilike.%${query}%,company.ilike.%${query}%,specialties.cs.{${query}}`) as any)
         .order('rating', { ascending: false });
 
       if (error) throw error;
@@ -257,16 +259,16 @@ export class RenovationPartnerService {
    */
   static async getPartnersBySpecialty(specialty: string, isActiveOnly: boolean = true): Promise<RenovationPartner[]> {
     try {
-      let queryBuilder = supabase
-        .from('renovation_partners')
+      let queryBuilder = (supabase as any)
+        .from('renovation_partners' as any)
         .select('*');
 
       if (isActiveOnly) {
         queryBuilder = queryBuilder.eq('is_active', true);
       }
 
-      const { data, error } = await queryBuilder
-        .contains('specialties', [specialty])
+      const { data, error } = await (queryBuilder
+        .contains('specialties', [specialty]) as any)
         .order('rating', { ascending: false });
 
       if (error) throw error;
@@ -282,16 +284,16 @@ export class RenovationPartnerService {
    */
   static async getPartnersByLocation(location: string, isActiveOnly: boolean = true): Promise<RenovationPartner[]> {
     try {
-      let queryBuilder = supabase
-        .from('renovation_partners')
+      let queryBuilder = (supabase as any)
+        .from('renovation_partners' as any)
         .select('*');
 
       if (isActiveOnly) {
         queryBuilder = queryBuilder.eq('is_active', true);
       }
 
-      const { data, error } = await queryBuilder
-        .ilike('location', `%${location}%`)
+      const { data, error } = await (queryBuilder
+        .ilike('location', `%${location}%`) as any)
         .order('rating', { ascending: false });
 
       if (error) throw error;
@@ -312,9 +314,9 @@ export class RenovationPartnerService {
     averageRating: number;
   }> {
     try {
-      const { data, error } = await supabase
-        .from('renovation_partners')
-        .select('is_active, verified, rating');
+      const { data, error } = await (supabase
+        .from('renovation_partners' as any)
+        .select('is_active, verified, rating') as any);
 
       if (error) throw error;
 

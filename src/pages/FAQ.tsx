@@ -9,17 +9,17 @@ import { Search } from "lucide-react";
 
 const FAQ = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  
+
   const faqs = [
     {
       category: "General Questions",
       questions: [
         {
-          question: "What is RoomieMatch?",
-          answer: "RoomieMatch is an AI-powered platform that connects people with compatible roommates or co-investors based on lifestyle, budget, and location preferences. We use advanced matching algorithms to suggest the most compatible matches for your specific needs."
+          question: "What is Roomie AI?",
+          answer: "Roomie AI is an AI-powered platform that connects people with compatible roommates or co-investors based on lifestyle, budget, and location preferences. We use advanced matching algorithms to suggest the most compatible matches for your specific needs."
         },
         {
-          question: "Is RoomieMatch free to use?",
+          question: "Is Roomie AI free to use?",
           answer: "We offer both free and premium tiers. The basic matching service is free, allowing you to create a profile and browse potential matches. Premium features, such as advanced filters, priority matching, and unlimited messaging, require a subscription."
         },
         {
@@ -27,8 +27,8 @@ const FAQ = () => {
           answer: "Our proprietary AI algorithm analyzes over 50 different compatibility factors, including lifestyle habits, sleeping patterns, cleanliness preferences, financial reliability, and location preferences. The system then generates compatibility scores to help you find your ideal roommate or co-investor."
         },
         {
-          question: "Where is RoomieMatch available?",
-          answer: "RoomieMatch is currently available in most major cities across the United States, Canada, and the United Kingdom. We're rapidly expanding to new locations, so check back regularly if your area isn't currently supported."
+          question: "Where is Roomie AI available?",
+          answer: "Roomie AI is currently available in most major cities across the United States, Canada, and the United Kingdom. We're rapidly expanding to new locations, so check back regularly if your area isn't currently supported."
         }
       ]
     },
@@ -40,7 +40,7 @@ const FAQ = () => {
           answer: "Click the 'Sign Up' button in the top right corner of the homepage, enter your email address and create a password, then follow the prompts to complete your profile. The more detailed your profile, the better matches we can provide."
         },
         {
-          question: "Can I use RoomieMatch without creating a profile?",
+          question: "Can I use Roomie AI without creating a profile?",
           answer: "No, a profile is required to use our matching services. This ensures all users are committed to finding a roommate or co-investor and provides the necessary information for our matching algorithm."
         },
         {
@@ -117,24 +117,24 @@ const FAQ = () => {
       ]
     }
   ];
-  
+
   const filteredFAQs = searchQuery
     ? faqs.map(category => ({
-        ...category,
-        questions: category.questions.filter(faq => 
-          faq.question.toLowerCase().includes(searchQuery.toLowerCase()) || 
-          faq.answer.toLowerCase().includes(searchQuery.toLowerCase())
-        )
-      })).filter(category => category.questions.length > 0)
+      ...category,
+      questions: category.questions.filter(faq =>
+        faq.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        faq.answer.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    })).filter(category => category.questions.length > 0)
     : faqs;
-  
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
       <main className="flex-grow pt-20 pb-16">
         <div className="container mx-auto px-4 py-8">
           <h1 className="text-4xl font-bold mb-8 text-center">Frequently Asked Questions</h1>
-          
+
           <div className="max-w-3xl mx-auto mb-12">
             <div className="relative">
               <Input
@@ -157,13 +157,13 @@ const FAQ = () => {
               )}
             </div>
           </div>
-          
+
           {filteredFAQs.length === 0 ? (
             <div className="text-center py-10">
               <p className="text-lg text-gray-600 mb-4">No results found for "{searchQuery}"</p>
               <p className="text-gray-500">Try different keywords or browse our categories below</p>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="mt-6"
                 onClick={() => setSearchQuery("")}
               >
@@ -191,13 +191,13 @@ const FAQ = () => {
               ))}
             </div>
           )}
-          
+
           <div className="text-center mt-16 bg-roomie-purple/5 rounded-lg p-8">
             <h3 className="text-2xl font-medium mb-4">Still have questions?</h3>
             <p className="text-gray-700 mb-6">
               Our support team is here to help you with any questions not covered in the FAQ.
             </p>
-            <Button 
+            <Button
               onClick={() => window.location.href = '/contact-us'}
               className="bg-roomie-purple hover:bg-roomie-dark text-white"
             >

@@ -7,14 +7,14 @@ export interface LeaseContract {
   property_id: string;
   landlord_id: string;
   tenant_id: string;
-  
+
   // Contract Terms
   lease_start_date: string;
   lease_end_date: string;
   monthly_rent: number;
   security_deposit: number;
   lease_duration_months: number;
-  
+
   // Property Information (cached)
   property_address: string;
   property_city: string;
@@ -24,7 +24,7 @@ export interface LeaseContract {
   property_bedrooms?: number;
   property_bathrooms?: number;
   property_square_footage?: number;
-  
+
   // Party Information (cached)
   landlord_name: string;
   landlord_email: string;
@@ -32,7 +32,7 @@ export interface LeaseContract {
   tenant_name: string;
   tenant_email: string;
   tenant_phone?: string;
-  
+
   // Lease Terms
   pet_policy?: string;
   smoking_policy?: string;
@@ -40,10 +40,10 @@ export interface LeaseContract {
   parking_details?: string;
   maintenance_responsibility?: string;
   additional_terms?: string;
-  
+
   // Contract Status
   status: 'draft' | 'pending_landlord_signature' | 'pending_tenant_signature' | 'fully_signed' | 'executed' | 'cancelled';
-  
+
   // Digital Signatures
   landlord_signature?: {
     signature_data: string;
@@ -57,7 +57,7 @@ export interface LeaseContract {
     ip_address: string;
     user_agent?: string;
   };
-  
+
   // Metadata
   contract_template_version: string;
   generated_by?: string;
@@ -125,7 +125,7 @@ export interface TenantContractView {
  */
 export async function generateLeaseContract(input: LeaseContractInput): Promise<LeaseContract> {
   console.log("Generating lease contract:", input);
-  
+
   try {
     const { data, error } = await sb
       .rpc('generate_lease_contract', {
@@ -142,7 +142,7 @@ export async function generateLeaseContract(input: LeaseContractInput): Promise<
 
     // Fetch the created contract
     const contract = await getLeaseContractById(data);
-    
+
     if (!contract) {
       throw new Error("Failed to retrieve generated contract");
     }
@@ -160,7 +160,7 @@ export async function generateLeaseContract(input: LeaseContractInput): Promise<
  */
 export async function getLeaseContractById(contractId: string): Promise<LeaseContract | null> {
   console.log("Fetching lease contract by ID:", contractId);
-  
+
   try {
     const { data, error } = await sb
       .from('lease_contracts')
@@ -189,7 +189,7 @@ export async function getLeaseContractById(contractId: string): Promise<LeaseCon
  */
 export async function getLeaseContractByApplicationId(applicationId: string): Promise<LeaseContract | null> {
   console.log("Fetching lease contract by application ID:", applicationId);
-  
+
   try {
     const { data, error } = await sb
       .from('lease_contracts')
@@ -218,11 +218,11 @@ export async function getLeaseContractByApplicationId(applicationId: string): Pr
  * Add landlord signature to contract
  */
 export async function signContractAsLandlord(
-  contractId: string, 
+  contractId: string,
   signatureData: SignatureData
 ): Promise<LeaseContract> {
   console.log("Adding landlord signature to contract:", contractId);
-  
+
   try {
     const signature = {
       signature_data: signatureData.signature_data,
@@ -233,7 +233,7 @@ export async function signContractAsLandlord(
 
     const { data, error } = await sb
       .from('lease_contracts')
-      .update({ 
+      .update({
         landlord_signature: signature,
         terms_acceptance_landlord: true
       })
@@ -258,11 +258,11 @@ export async function signContractAsLandlord(
  * Add tenant signature to contract
  */
 export async function signContractAsTenant(
-  contractId: string, 
+  contractId: string,
   signatureData: SignatureData
 ): Promise<LeaseContract> {
   console.log("Adding tenant signature to contract:", contractId);
-  
+
   try {
     const signature = {
       signature_data: signatureData.signature_data,
@@ -273,7 +273,7 @@ export async function signContractAsTenant(
 
     const { data, error } = await sb
       .from('lease_contracts')
-      .update({ 
+      .update({
         tenant_signature: signature,
         terms_acceptance_tenant: true
       })
@@ -299,7 +299,7 @@ export async function signContractAsTenant(
  */
 export async function getLandlordContracts(): Promise<LandlordContractView[]> {
   console.log("Fetching landlord contracts");
-  
+
   try {
     const { data, error } = await sb
       .from('landlord_contracts_view')
@@ -324,7 +324,7 @@ export async function getLandlordContracts(): Promise<LandlordContractView[]> {
  */
 export async function getTenantContracts(): Promise<TenantContractView[]> {
   console.log("Fetching tenant contracts");
-  
+
   try {
     const { data, error } = await sb
       .from('tenant_contracts_view')
@@ -348,11 +348,11 @@ export async function getTenantContracts(): Promise<TenantContractView[]> {
  * Update contract status
  */
 export async function updateContractStatus(
-  contractId: string, 
+  contractId: string,
   status: LeaseContract['status']
 ): Promise<LeaseContract> {
   console.log("Updating contract status:", contractId, status);
-  
+
   try {
     const { data, error } = await sb
       .from('lease_contracts')
@@ -379,11 +379,11 @@ export async function updateContractStatus(
  */
 export async function cancelContract(contractId: string, reason?: string): Promise<void> {
   console.log("Cancelling contract:", contractId, reason);
-  
+
   try {
     const { error } = await sb
       .from('lease_contracts')
-      .update({ 
+      .update({
         status: 'cancelled',
         additional_terms: reason ? `CANCELLED: ${reason}` : 'CANCELLED'
       })
@@ -452,74 +452,74 @@ export async function getUserRoleInContract(contractId: string, userId: string):
  */
 export async function findPdfInStorage(): Promise<{ bucket: string; path: string } | null> {
   console.log("🔍 Searching for PDF in Ontario folder...");
-  
+
   try {
     // List all storage buckets
     const { data: buckets, error: bucketError } = await sb.storage.listBuckets();
-    
+
     if (bucketError) {
       console.error("❌ Error listing buckets:", bucketError);
       return null;
     }
-    
+
     if (!buckets || buckets.length === 0) {
       console.error("❌ No storage buckets found!");
       return null;
     }
-    
+
     console.log("✅ Found buckets:", buckets.map(b => b.id));
-    
+
     // Search each bucket for PDF in Ontario folder
     for (const bucket of buckets) {
       console.log(`🔍 Checking bucket: ${bucket.id}`);
-      
+
       try {
         // Check if Ontario folder exists
         const { data: ontarioFiles, error: ontarioError } = await sb.storage
           .from(bucket.id)
           .list('Ontario');
-        
+
         if (ontarioError) {
           console.log(`No Ontario folder in ${bucket.id}`);
           continue;
         }
-        
+
         if (ontarioFiles && ontarioFiles.length > 0) {
           console.log(`✅ Found Ontario folder in ${bucket.id}:`, ontarioFiles.map(f => f.name));
-          
+
           // Look for PDF files
           const pdfFiles = ontarioFiles.filter(f => f.name.toLowerCase().endsWith('.pdf'));
-          
+
           if (pdfFiles.length > 0) {
             const pdfFile = pdfFiles[0]; // Use first PDF found
             const path = `Ontario/${pdfFile.name}`;
             console.log(`✅ Found PDF in ${bucket.id}/${path}`);
-            
+
             // Test if we can access it
             const { data: pdfData, error: pdfError } = await sb.storage
               .from(bucket.id)
               .download(path);
-            
+
             if (pdfError) {
               console.error(`❌ Cannot access ${bucket.id}/${path}:`, pdfError.message);
               continue;
             }
-            
+
             if (pdfData) {
               console.log(`✅ PDF accessible! Size: ${pdfData.size} bytes`);
               return { bucket: bucket.id, path: path };
             }
           }
         }
-        
+
       } catch (error) {
         console.error(`Error checking bucket ${bucket.id}:`, error);
       }
     }
-    
+
     console.error("❌ No accessible PDF found in Ontario folder of any bucket");
     return null;
-    
+
   } catch (error) {
     console.error("Error finding PDF:", error);
     return null;
@@ -531,30 +531,30 @@ export async function findPdfInStorage(): Promise<{ bucket: string; path: string
  */
 export async function debugPdfSystem(): Promise<void> {
   console.log("=== PDF SYSTEM DEBUG ===");
-  
+
   try {
     // 1. Test Supabase connection
     console.log("1. Testing Supabase connection...");
     const { data: { user }, error: authError } = await sb.auth.getUser();
     console.log("Auth status:", { user: !!user, error: authError });
-    
+
     // 2. Find PDF in Ontario folder
     console.log("2. Searching for PDF in Ontario folder...");
     const pdfLocation = await findPdfInStorage();
-    
+
     if (!pdfLocation) {
       console.error("❌ No PDF found in Ontario folder of any bucket!");
       return;
     }
-    
+
     console.log("✅ Found PDF:", pdfLocation.bucket + '/' + pdfLocation.path);
-    
+
     // 3. Test public URL
     const { data: { publicUrl } } = sb.storage
       .from(pdfLocation.bucket)
       .getPublicUrl(pdfLocation.path);
     console.log("Public URL:", publicUrl);
-    
+
     // 4. Test fetch
     try {
       const response = await fetch(publicUrl);
@@ -562,7 +562,7 @@ export async function debugPdfSystem(): Promise<void> {
     } catch (fetchError) {
       console.error("Public URL fetch error:", fetchError);
     }
-    
+
     console.log("=== DEBUG COMPLETE ===");
   } catch (error) {
     console.error("Debug error:", error);
@@ -575,35 +575,35 @@ export async function debugPdfSystem(): Promise<void> {
 export async function generateContractPdf(applicationId?: string): Promise<Blob> {
   console.log("=== PDF GENERATION DEBUG ===");
   console.log("Application ID:", applicationId || 'template');
-  
+
   try {
     // Find PDF in Ontario folder
     const pdfLocation = await findPdfInStorage();
-    
+
     if (!pdfLocation) {
       throw new Error('No PDF found in Ontario folder of any storage bucket. Please upload a PDF to the Ontario folder.');
     }
-    
+
     console.log("Using PDF from:", pdfLocation.bucket + '/' + pdfLocation.path);
-    
+
     // Download PDF
     const { data: pdfData, error: pdfError } = await sb.storage
       .from(pdfLocation.bucket)
       .download(pdfLocation.path);
-    
+
     if (pdfError) {
       throw new Error(`Failed to download PDF: ${pdfError.message}`);
     }
-    
+
     if (!pdfData) {
       throw new Error('No PDF data received');
     }
-    
+
     console.log("PDF data received, converting to Blob...");
     const arrayBuffer = await pdfData.arrayBuffer();
     const pdfBlob = new Blob([arrayBuffer], { type: 'application/pdf' });
     console.log("PDF Blob created:", pdfBlob.size, "bytes");
-    
+
     return pdfBlob;
   } catch (error) {
     console.error("Error in generateContractPdf:", error);
@@ -617,21 +617,21 @@ export async function generateContractPdf(applicationId?: string): Promise<Blob>
 export async function downloadContractPdf(applicationId: string, filename?: string): Promise<void> {
   try {
     const pdfBlob = await generateContractPdf(applicationId);
-    
+
     // Create download link
     const url = URL.createObjectURL(pdfBlob);
     const link = document.createElement('a');
     link.href = url;
     link.download = filename || `lease-contract-${applicationId}.pdf`;
-    
+
     // Trigger download
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    
+
     // Clean up
     URL.revokeObjectURL(url);
-    
+
     console.log("Contract PDF downloaded successfully");
   } catch (error) {
     console.error("Error downloading contract PDF:", error);
@@ -653,19 +653,121 @@ export async function getContractPdfUrl(applicationId?: string): Promise<string>
 }
 
 /**
+ * Finalize contract and store PDF
+ */
+export async function finalizeAndStoreContract(contractId: string): Promise<void> {
+  console.log("Finalizing contract storage for:", contractId);
+
+  try {
+    // 1. Fetch complete contract details
+    const contract = await getLeaseContractById(contractId);
+    if (!contract) throw new Error("Contract not found");
+
+    if (!contract.landlord_signature || !contract.tenant_signature) {
+      console.warn("Contract not fully signed, skipping storage");
+      return;
+    }
+
+    // 2. Generate/Fetch the PDF Blob
+    console.log("Generating final PDF with signatures...");
+    const pdfBlob = await generateContractPdf(contract.application_id);
+
+    // 3. Define storage path: contracts/{property_id}/{lease_id}/{contract_id}.pdf
+    const filePath = `contracts/${contract.property_id}/${contract.id}/${contract.id}.pdf`;
+
+    // 4. Upload to Storage
+    console.log("Uploading to storage:", filePath);
+    await sb.storage.createBucket('contracts', { public: false }).catch(() => { });
+
+    const { error: uploadError } = await sb.storage
+      .from('contracts')
+      .upload(filePath, pdfBlob, {
+        upsert: true,
+        contentType: 'application/pdf'
+      });
+
+    if (uploadError) {
+      console.error("Upload failed:", uploadError);
+    }
+
+    // 5. Create record in 'contracts' table
+    console.log("Creating immutable contract record...");
+    const { error: dbError } = await sb
+      .from('contracts')
+      .insert({
+        application_id: contract.application_id,
+        lease_id: contract.id,
+        property_id: contract.property_id,
+        landlord_id: contract.landlord_id,
+        tenant_id: contract.tenant_id,
+        file_path: filePath,
+        file_name: `Lease_Contract_APP-${contract.application_id.slice(0, 8)}.pdf`,
+        file_size: pdfBlob.size,
+        status: 'signed',
+        signed_at: new Date().toISOString()
+      });
+
+    if (dbError) {
+      console.error("DB insert failed:", dbError);
+    } else {
+      console.log("Contract finalized and stored successfully!");
+    }
+
+  } catch (error) {
+    console.error("Error in finalizeAndStoreContract:", error);
+  }
+}
+
+/**
+ * Get signed contract PDF URL from storage
+ */
+export async function getSignedContractPdfUrl(contractId: string): Promise<string> {
+  try {
+    console.log("Using getSignedContractPdfUrl for contract:", contractId);
+    const { data, error } = await sb
+      .from('contracts')
+      .select('file_path')
+      .eq('lease_id', contractId)
+      .eq('status', 'signed')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (error || !data) {
+      console.log("No signed contract record found for:", contractId);
+      throw new Error("Signed contract document not found");
+    }
+
+    const { data: signedData, error: signError } = await sb.storage
+      .from('contracts')
+      .createSignedUrl(data.file_path, 3600);
+
+    if (signError || !signedData) {
+      throw new Error("Failed to generate download URL");
+    }
+
+    return signedData.signedUrl;
+
+  } catch (error) {
+    console.error("Error getting signed contract URL:", error);
+    throw error;
+  }
+}
+
+/**
  * Test function to check if PDF exists in storage
  */
 export async function testPdfExists(): Promise<boolean> {
   try {
     console.log("Testing PDF existence in Ontario folder...");
-    
+
     const pdfLocation = await findPdfInStorage();
-    
+
     if (!pdfLocation) {
       console.error("❌ No PDF found in Ontario folder of any bucket!");
       return false;
     }
-    
+
     console.log("✅ Found PDF:", pdfLocation.bucket + '/' + pdfLocation.path);
     return true;
   } catch (error) {

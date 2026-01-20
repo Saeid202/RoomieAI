@@ -29,6 +29,8 @@ import {
   Target,
   BarChart3,
   Sparkles,
+  Home,
+  Briefcase,
 } from "lucide-react";
 import { MatchResult } from "@/utils/matchingAlgorithm/types";
 import { idealRoommateMatchingEngine } from "@/services/idealRoommateMatchingService";
@@ -479,87 +481,98 @@ export default function MatchesPage() {
 
           <Separator />
 
-          {/* Matches Grid */}
+          {/* Matches Grid — Youth-Focused Social UI */}
           {filteredAndSortedMatches.length > 0 ? (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {filteredAndSortedMatches.map((match) => (
                 <Card
                   key={match.id}
-                  className="overflow-hidden hover:shadow-lg transition-shadow"
+                  className="group relative flex flex-col bg-white rounded-[20px] shadow-[0_4px_20px_rgba(0,0,0,0.05)] hover:shadow-[0_12px_30px_rgba(110,89,255,0.15)] transition-all duration-300 border-none overflow-hidden hover:-translate-y-1"
                 >
-                  <div
-                    className={`h-3 ${match.compatibility >= 85
-                      ? "bg-green-500"
-                      : match.compatibility >= 70
-                        ? "bg-blue-500"
-                        : match.compatibility >= 55
-                          ? "bg-yellow-500"
-                          : "bg-orange-500"
-                      }`}
-                  />
-                  <CardHeader className="pb-4">
-                    <div className="flex items-start justify-between">
+                  <div className="p-6 md:p-7 flex flex-col h-full space-y-5">
+
+                    {/* 1) Header - Human Identity */}
+                    <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
-                        <Avatar className="h-12 w-12">
-                          <AvatarFallback className="bg-primary text-primary-foreground">
+                        <Avatar className="h-12 w-12 border-2 border-slate-50 shadow-sm">
+                          <AvatarFallback className="bg-gradient-to-tr from-roomie-purple to-indigo-500 text-white font-bold text-base">
                             {match.image}
                           </AvatarFallback>
                         </Avatar>
-                        <div>
-                          <CardTitle className="text-lg flex items-center gap-2">
-                            {match.name}
-                            {match.compatibility >= 85 && (
-                              <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                            )}
-                          </CardTitle>
-                          <p className="text-sm text-muted-foreground">
-                            Age {match.age}
-                          </p>
+                        <div className="flex flex-col">
+                          <h3 className="text-base font-bold text-slate-900 leading-tight">
+                            {match.name.split(' ')[0]}, {match.age}
+                          </h3>
+                          <span className="text-[11px] font-medium text-slate-400">
+                            Based on lifestyle & habits
+                          </span>
                         </div>
                       </div>
-                      <Badge variant="secondary" className="font-semibold">
-                        {match.compatibility}% match
+                      <Badge
+                        className={`rounded-full px-3 py-1 border-none font-bold text-[10px] tracking-tight shadow-sm ${match.compatibility >= 85 ? 'bg-gradient-to-r from-emerald-400 to-teal-500 text-white' :
+                          match.compatibility >= 70 ? 'bg-gradient-to-r from-roomie-purple to-indigo-500 text-white' :
+                            'bg-gradient-to-r from-amber-400 to-orange-500 text-white'
+                          }`}
+                      >
+                        {match.compatibility}% Match
                       </Badge>
                     </div>
 
-                    {/* Match reasons preview */}
-                    {match.matchReasons && match.matchReasons.length > 0 && (
-                      <div className="mt-3">
-                        <p className="text-xs text-muted-foreground mb-1">
-                          Top reasons:
-                        </p>
-                        <p className="text-sm text-green-700 dark:text-green-400 line-clamp-2">
-                          {match.matchReasons[0]}
-                        </p>
-                      </div>
-                    )}
-                  </CardHeader>
+                    {/* 2) Main Intent - BIG BOLD TEXT */}
+                    <div className="pt-2">
+                      <p className="text-[19px] font-extrabold text-slate-800 leading-[1.3] tracking-tight line-clamp-2">
+                        “{match.bio.split('.')[0] || "Looking for a compatible roommate for a shared lifestyle."}”
+                      </p>
+                    </div>
 
-                  <CardContent className="space-y-4">
-                    <p className="text-sm text-muted-foreground line-clamp-2">
-                      {match.bio}
-                    </p>
-
-                    <div className="space-y-2">
-                      <div className="flex items-center text-sm">
-                        <MapPin className="w-4 h-4 mr-2 text-muted-foreground" />
-                        {match.location}
+                    {/* 3) Key Traits - Visual Chips */}
+                    <div className="flex flex-wrap gap-2">
+                      <div className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 text-slate-600 rounded-full text-[11px] font-bold">
+                        <Briefcase className="h-3.5 w-3.5" />
+                        Professional
                       </div>
-                      <div className="flex items-center text-sm">
-                        <Calendar className="w-4 h-4 mr-2 text-muted-foreground" />
-                        Move-in: {match.moveInDate}
+                      <div className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-full text-[11px] font-bold">
+                        <Home className="h-3.5 w-3.5" />
+                        {match.housingType}
                       </div>
-                      <div className="flex items-center text-sm">
-                        <Users className="w-4 h-4 mr-2 text-muted-foreground" />
-                        {match.housingType} • {match.budget}
+                      <div className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-50 text-roomie-purple rounded-full text-[11px] font-bold">
+                        <Calendar className="h-3.5 w-3.5" />
+                        {match.moveInDate.includes('20') ? 'Timeline Set' : match.moveInDate}
                       </div>
                     </div>
 
-                    <div className="flex gap-2">
+                    {/* 4) Quick Bio Highlight */}
+                    {match.bio && (
+                      <div className="pt-1">
+                        <p className="text-[13px] text-slate-500 italic leading-relaxed line-clamp-2">
+                          {match.bio.split('.').slice(1).join('.').trim() || "Values clean shared spaces and mutual respect."}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* 5) Actions - Strong CTA */}
+                    <div className="pt-4 mt-auto flex items-center gap-3">
                       <Button
-                        variant="outline"
-                        className="flex-1"
+                        className="flex-1 bg-gradient-to-r from-roomie-purple to-indigo-600 hover:from-roomie-purple/90 hover:to-indigo-600/90 text-white font-black text-sm h-12 rounded-2xl shadow-[0_8px_16px_rgba(110,89,255,0.25)] transition-all active:scale-95 flex items-center justify-center gap-2"
+                        onClick={() => handleContact(match.userId)}
+                        disabled={startingChatId === match.userId}
+                      >
+                        {startingChatId === match.userId ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          "Say Hi 👋"
+                        )}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        className="w-12 h-12 rounded-2xl border border-slate-100 text-slate-400 hover:text-rose-500 hover:bg-rose-50 hover:border-rose-100 transition-all active:scale-95 group/save p-0"
+                      >
+                        <Heart className="h-5 w-5 transition-colors group-hover/save:fill-rose-500" />
+                      </Button>
+                      <Button
+                        variant="ghost"
                         size="sm"
+                        className="text-[11px] font-bold text-slate-400 hover:text-slate-600 h-12 px-2"
                         onClick={() => handleViewDetails({
                           ...match,
                           compatibilityScore: match.compatibility,
@@ -570,35 +583,22 @@ export default function MatchesPage() {
                           guests: "Rarely"
                         } as any)}
                       >
-                        View Details
-                      </Button>
-                      <Button
-                        className="flex-1"
-                        size="sm"
-                        onClick={() => handleContact(match.userId)}
-                        disabled={startingChatId === match.userId}
-                      >
-                        {startingChatId === match.userId ? (
-                          <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                        ) : (
-                          <MessageSquare className="w-3 h-3 mr-1" />
-                        )}
-                        Contact
+                        Bio
                       </Button>
                     </div>
-                  </CardContent>
+                  </div>
                 </Card>
               ))}
             </div>
           ) : (
-            <Card className="text-center py-12">
+            <Card className="text-center py-12 bg-white/50 backdrop-blur-md rounded-3xl border-dashed border-2 border-slate-200">
               <CardContent>
-                <Target className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No matches found</h3>
-                <p className="text-muted-foreground mb-4">
+                <Target className="w-16 h-16 mx-auto text-slate-300 mb-6 animate-pulse" />
+                <h3 className="text-xl font-extrabold text-slate-800 mb-3">No profiles align with your strategy</h3>
+                <p className="text-slate-500 max-w-md mx-auto mb-8 font-medium">
                   {filterBy === "all"
-                    ? "Try adjusting your ideal roommate preferences or importance settings to find more matches."
-                    : "Try selecting a different filter level to see more matches."}
+                    ? "Adjust your compatibility requirements or expand your search criteria to discover more strategic partners."
+                    : "Expand your quality filter to view more potential co-occupancy profiles."}
                 </p>
                 <div className="flex gap-2 justify-center">
                   <Button variant="outline" onClick={() => setFilterBy("all")}>

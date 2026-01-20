@@ -43,7 +43,13 @@ import {
   Clock,
   CheckCircle,
   AlertCircle as AlertIcon,
+  Pencil,
+  Check,
+  X,
 } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { StripeConnectProvider } from "@/components/stripe/StripeConnectProvider";
+import { ConnectAccountOnboarding, ConnectAccountManagement } from "@stripe/react-connect-js";
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || "pk_live_51SIhcgRkKDAtZpXYFqQ1OK4OrOp6Y8j0ZN6F2qOKJzoKZeoCCfnLm4xjr5CI3L7s08EABtD1G87wcWNQ5b6kOw5o00E03lFJYY");
 
@@ -85,9 +91,12 @@ function DigitalWalletContent() {
   // Landlord specific state
   const [landlordPayments, setLandlordPayments] = useState<any[]>([]);
   const [isFetchingLandlordData, setIsFetchingLandlordData] = useState(false);
-  const [stripeAccountStatus, setStripeAccountStatus] = useState<string>("not_started");
+  const [stripeAccountStatus, setStripeAccountStatus] = useState<"not_started" | "in_progress" | "restricted" | "ready">("not_started");
   const [stripeAccountId, setStripeAccountId] = useState<string | null>(null);
   const [isRedirectingToStripe, setIsRedirectingToStripe] = useState(false);
+  const [connectAccountDetails, setConnectAccountDetails] = useState<any>(null);
+  const [isShowingEmbeddedOnboarding, setIsShowingEmbeddedOnboarding] = useState(false);
+  const [isShowingEmbeddedManagement, setIsShowingEmbeddedManagement] = useState(false);
 
   // Wallet balance state
   const [availableBalance, setAvailableBalance] = useState(0);
@@ -100,19 +109,59 @@ function DigitalWalletContent() {
   // Seeker specific state
   const [seekerPayments, setSeekerPayments] = useState<any[]>([]);
   const [isLoadingSeekerPayments, setIsLoadingSeekerPayments] = useState(false);
+  const [rentLedgers, setRentLedgers] = useState<any[]>([]);
+  const [isLoadingLedgers, setIsLoadingLedgers] = useState(false);
+
+  // Payment Methods Handling
+  const [savedMethods, setSavedMethods] = useState<any[]>([]);
+  const [selectedMethodId, setSelectedMethodId] = useState<string>('new');
+  const [isAddingNewCard, setIsAddingNewCard] = useState(false);
+
+  // Edit Amount State
+  const [editingLedgerId, setEditingLedgerId] = useState<string | null>(null);
+  const [editAmount, setEditAmount] = useState<string>("");
+  const [isSavingAmount, setIsSavingAmount] = useState(false);
+
+  // Checkout Dialog State
+  const [checkoutLedger, setCheckoutLedger] = useState<any | null>(null);
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
 
   // Handle Stripe onboarding completion
   useEffect(() => {
-    const onboardingComplete = searchParams.get('onboarding');
-    if (onboardingComplete === 'complete' && role === 'landlord') {
-      toast.success('Wallet setup completed successfully! Your payout account is now active.');
-      // Update the account status
-      setStripeAccountStatus('completed');
+    const onboardingParam = searchParams.get('onboarding');
+    if ((onboardingParam === 'complete' || onboardingParam === 'return') && role === 'landlord') {
+      // Fetch fresh status from Stripe
+      const refreshStatus = async () => {
+        try {
+          const { data: statusData, error: statusError } = await supabase.functions.invoke('stripe-connect', {
+            body: { action: 'refresh-status' }
+          });
+
+          if (statusError) throw statusError;
+
+          if (statusData) {
+            setStripeAccountStatus(statusData.onboarding_status || "not_started");
+            setStripeAccountId(statusData.stripe_account_id);
+            setConnectAccountDetails(statusData);
+
+            // Show success message if account is ready
+            if (statusData.onboarding_status === 'ready') {
+              toast.success('Wallet setup completed successfully! Your payout account is now active.');
+            } else if (statusData.onboarding_status === 'in_progress') {
+              toast.info('Almost there! Please complete the remaining steps to activate payouts.');
+            }
+          }
+        } catch (err) {
+          console.error('Error refreshing Stripe status:', err);
+          toast.error('Failed to verify account status. Please refresh the page.');
+        }
+      };
+
+      refreshStatus();
+
       // Remove the query parameter
       searchParams.delete('onboarding');
       setSearchParams(searchParams, { replace: true });
-      // Refresh the Stripe status from database
-      fetchStripeStatus();
     }
   }, [searchParams, role]);
 
@@ -122,8 +171,58 @@ function DigitalWalletContent() {
       fetchStripeStatus();
     } else {
       fetchSeekerPayments();
+      fetchRentLedgers();
+      fetchPaymentMethods();
     }
   }, [role, user?.email, user?.id]);
+
+  const fetchPaymentMethods = async () => {
+    if (!user?.id) return;
+    try {
+      const { data, error } = await supabase
+        .from('payment_methods' as any)
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setSavedMethods(data || []);
+
+      // If we have saved methods, select the most recent one (or default)
+      if (data && data.length > 0) {
+        // Ideally checking for is_default, but for now just pick first or 'new' if forced
+        // For UX, sticking to 'new' or pre-selecting could be debated. 
+        // Let's keep 'new' to forcing user choice unless we want auto-select.
+        // Actually, let's auto-select the first one matching the current 'paymentMethod' (credit/debit) filter?
+        // We'll handle selection logic in the render/effect.
+      }
+    } catch (err) {
+      console.error('Error fetching payment methods:', err);
+    }
+  };
+
+  const fetchRentLedgers = async () => {
+    if (!user?.id) return;
+    setIsLoadingLedgers(true);
+    try {
+      const { data, error } = await supabase
+        .from('rent_ledgers' as any)
+        .select(`
+          *,
+          property:properties(listing_title, address),
+          lease:lease_contracts(auto_pay_enabled, payment_day_of_month)
+        `)
+        .eq('tenant_id', user.id)
+        .order('due_date', { ascending: true });
+
+      if (error) throw error;
+      setRentLedgers(data || []);
+    } catch (err) {
+      console.error('Error fetching rent ledgers:', err);
+    } finally {
+      setIsLoadingLedgers(false);
+    }
+  };
 
   const fetchSeekerPayments = async () => {
     if (!user?.id) return;
@@ -144,36 +243,52 @@ function DigitalWalletContent() {
     }
   };
 
+  const refreshStripeStatus = async () => {
+    if (!user?.id) return;
+    try {
+      const { data: statusData, error: statusError } = await supabase.functions.invoke('stripe-connect', {
+        body: { action: 'refresh-status' }
+      });
+
+      if (statusError) throw statusError;
+
+      if (statusData) {
+        setStripeAccountStatus(statusData.onboarding_status || "not_started");
+        setStripeAccountId(statusData.stripe_account_id);
+        setConnectAccountDetails(statusData);
+      }
+    } catch (err) {
+      console.error('Error refreshing stripe status:', err);
+    }
+  };
+
   const fetchStripeStatus = async () => {
     if (!user?.id) return;
     try {
-      const { data, error } = await supabase
+      const { data: statusData, error: statusError } = await supabase.functions.invoke('stripe-connect', {
+        body: { action: 'status' }
+      });
+
+      if (statusError) throw statusError;
+
+      if (statusData) {
+        setStripeAccountStatus(statusData.onboarding_status || "not_started");
+        setStripeAccountId(statusData.stripe_account_id);
+        setConnectAccountDetails(statusData);
+      }
+
+      // Also fetch balances from payment_accounts (legacy table for now or keep synced)
+      const { data: legacyData } = await supabase
         .from('payment_accounts' as any)
-        .select('stripe_account_status, stripe_account_id, available_balance, pending_balance, total_paid_out')
+        .select('available_balance, pending_balance, total_paid_out')
         .eq('user_id', user.id)
         .eq('account_type', 'landlord')
         .maybeSingle() as any;
 
-      if (data) {
-        setStripeAccountStatus(data.stripe_account_status || "not_started");
-        setStripeAccountId(data.stripe_account_id);
-        setAvailableBalance(data.available_balance || 0);
-        setPendingBalance(data.pending_balance || 0);
-        setTotalPaidOut(data.total_paid_out || 0);
-
-        // If status is not completed, trigger a background sync check
-        if (data.stripe_account_status !== 'completed') {
-          console.log("Triggering background sync for Stripe status...");
-          const { data: syncData, error: syncError } = await supabase.functions.invoke('landlord-onboarding', {
-            body: { action: 'sync_only' }
-          });
-
-          if (syncData?.status === 'completed') {
-            console.log("Background sync found completed status, updating UI.");
-            setStripeAccountStatus('completed');
-            toast.success("Payout setup verified and completed!");
-          }
-        }
+      if (legacyData) {
+        setAvailableBalance(legacyData.available_balance || 0);
+        setPendingBalance(legacyData.pending_balance || 0);
+        setTotalPaidOut(legacyData.total_paid_out || 0);
       }
     } catch (err) {
       console.error('Error fetching stripe status:', err);
@@ -182,40 +297,12 @@ function DigitalWalletContent() {
 
   const handleStripeOnboarding = async () => {
     if (!user?.id) return;
-    setIsRedirectingToStripe(true);
-    const tid = toast.loading("Preparing your secure payout setup...");
+    setIsShowingEmbeddedOnboarding(true);
+  };
 
-    try {
-      // Call the Edge Function - it handles both account creation and link generation
-      const { data, error } = await supabase.functions.invoke('landlord-onboarding', {
-        body: {}
-      });
-
-      console.log('Onboarding response:', { data, error });
-
-      if (error) {
-        const errorMsg = error.message || "Failed to initiate onboarding";
-        const details = data?.error || data?.details || '';
-        throw new Error(details ? `${errorMsg}: ${details}` : errorMsg);
-      }
-
-      if (data?.error) {
-        throw new Error(`${data.error}${data.details ? ': ' + data.details : ''}`);
-      }
-
-      if (!data?.url) {
-        throw new Error('No onboarding URL returned from server');
-      }
-
-      // Redirect to Stripe
-      toast.success('Redirecting to secure setup...', { id: tid });
-      window.location.href = data.url;
-
-    } catch (err: any) {
-      console.error('Stripe onboarding error:', err);
-      toast.error(err.message || 'Failed to start onboarding', { id: tid });
-      setIsRedirectingToStripe(false);
-    }
+  const handleManagePayouts = async () => {
+    if (!user?.id) return;
+    setIsShowingEmbeddedManagement(true);
   };
 
   const fetchLandlordPayments = async () => {
@@ -250,9 +337,10 @@ function DigitalWalletContent() {
     switch (status) {
       case 'processing':
       case 'paid':
-        return { label: 'Processing', color: 'bg-blue-100 text-blue-800 border-blue-200', helper: 'Payment received, payout pending' };
+      case 'succeeded':
+        return { label: 'Paid', color: 'bg-green-100 text-green-800 border-green-200', helper: 'Payment received by Roomie AI' };
       case 'paid_to_landlord':
-        return { label: 'Paid', color: 'bg-green-100 text-green-800 border-green-200', helper: 'Funds sent to your account' };
+        return { label: 'Completed', color: 'bg-indigo-100 text-indigo-800 border-indigo-200', helper: 'Funds sent to your account' };
       case 'failed':
         return { label: 'Failed', color: 'bg-red-100 text-red-800 border-red-200', helper: 'Transaction failed' };
       case 'pending':
@@ -430,10 +518,10 @@ function DigitalWalletContent() {
     const cardElement = elements.getElement(CardElement);
     if (!cardElement) return;
 
-    const tid = toast.loading('Verifying card details...');
+    const tid = toast.loading('Verifying and saving card...');
 
     try {
-      const { paymentMethod, error } = await stripe.createPaymentMethod({
+      const { paymentMethod: stripeMethod, error } = await stripe.createPaymentMethod({
         type: 'card',
         card: cardElement,
         billing_details: {
@@ -445,238 +533,445 @@ function DigitalWalletContent() {
         throw new Error(error.message);
       }
 
-      setCardAdded(true);
-      setIsAddingCard(false);
-      setCardDetails({
-        ...cardDetails,
-        number: `**** **** **** ${paymentMethod.card.last4}`,
-        expiry: "09/27" // mock for display
-      });
+      // Reject prepaid cards
+      if (stripeMethod.card?.funding === 'prepaid') {
+        throw new Error("Prepaid cards are not accepted. Please use a valid Debit or Credit card.");
+      }
+
+      const detectedType = stripeMethod.card?.funding === 'debit' ? 'debit' : 'credit';
+
+      const { error: dbError } = await supabase
+        .from('payment_methods' as any)
+        .insert({
+          user_id: user.id,
+          stripe_payment_method_id: stripeMethod.id,
+          card_type: detectedType,
+          brand: stripeMethod.card?.brand,
+          last4: stripeMethod.card?.last4,
+          exp_month: stripeMethod.card?.exp_month,
+          exp_year: stripeMethod.card?.exp_year,
+          is_default: savedMethods.length === 0
+        });
+
+      if (dbError) throw dbError;
+
+      // Refresh and Update State
+      await fetchPaymentMethods();
+      setSelectedMethodId(stripeMethod.id);
+      setIsAddingNewCard(false);
+      setCardDetails({ ...cardDetails, number: `**** **** **** ${stripeMethod.card?.last4}` }); // Cosmetic update for old logic if any remains
+
+      // Switch view to match card type if needed
+      if (detectedType !== paymentMethod) {
+        setPaymentMethod(detectedType as "credit" | "debit");
+      }
+
       toast.success('Card successfully verified and linked', { id: tid });
     } catch (err: any) {
+      console.error(err);
       toast.error(err.message || 'Failed to verify card', { id: tid });
+    }
+  };
+
+  // --- Edit Amount Handlers ---
+  const handleStartEdit = (ledger: any) => {
+    setEditingLedgerId(ledger.id);
+    setEditAmount(ledger.rent_amount.toString());
+  };
+
+  const handleCancelEdit = () => {
+    setEditingLedgerId(null);
+    setEditAmount("");
+  };
+
+  const handleSaveAmount = async (ledgerId: string) => {
+    if (!editAmount || isNaN(parseFloat(editAmount))) {
+      toast.error("Please enter a valid amount");
+      return;
+    }
+
+    setIsSavingAmount(true);
+    try {
+      const { error } = await supabase
+        .from('rent_ledgers' as any)
+        .update({ rent_amount: parseFloat(editAmount) })
+        .eq('id', ledgerId);
+
+      if (error) throw error;
+
+      toast.success("Rent amount updated");
+      setEditingLedgerId(null);
+      // Refresh list to show new amount
+      fetchRentLedgers();
+    } catch (err: any) {
+      console.error("Error updating rent amount:", err);
+      toast.error("Failed to update amount");
+    } finally {
+      setIsSavingAmount(false);
+    }
+  };
+
+  // --- Checkout Handlers ---
+  const handleCheckoutClick = (ledger: any) => {
+    setCheckoutLedger(ledger);
+    setIsCheckoutOpen(true);
+  };
+
+  const handleConfirmPayment = async () => {
+    if (!checkoutLedger) return;
+
+    // Validation: Ensure a payment method is selected
+    if (selectedMethodId === 'new' && savedMethods.length === 0) {
+      toast.error("Please add and save a payment method first.");
+      setIsCheckoutOpen(false);
+      return;
+    }
+
+    const methodIdToUse = selectedMethodId === 'new' ? savedMethods[0]?.stripe_payment_method_id : selectedMethodId;
+
+    if (!methodIdToUse) {
+      toast.error("Please add and save a payment method first.");
+      setIsCheckoutOpen(false);
+      return;
+    }
+
+    // Determine type for history
+    const savedMethod = savedMethods.find(m => m.stripe_payment_method_id === methodIdToUse);
+    const paymentType = savedMethod?.card_type === 'debit' ? 'debit_card' : 'credit_card';
+
+    setIsCheckoutOpen(false); // Close dialog
+    const tid = toast.loading(`Processing payment for ${new Date(checkoutLedger.due_date).toLocaleDateString()}...`);
+    setIsPaying(true);
+
+    try {
+      const { data, error: functionError } = await (supabase.functions as any).invoke('execute-payment', {
+        body: {
+          rent_ledger_id: checkoutLedger.id,
+          compliance_confirmation: true,
+          payment_method_type: paymentType
+        }
+      });
+
+      if (functionError) throw new Error(functionError.message);
+      if (data?.error) throw new Error(data.error);
+
+      // Confirm Card Payment using Saved Method ID
+      const { error: stripeError, paymentIntent } = await stripe!.confirmCardPayment(data.client_secret, {
+        payment_method: methodIdToUse
+      });
+
+      if (stripeError) throw new Error(stripeError.message);
+
+      if (paymentIntent?.status === 'succeeded') {
+        toast.success(`Payment of $${checkoutLedger.rent_amount} successful!`, { id: tid });
+        setPaymentSuccess({ amount: checkoutLedger.rent_amount, date: new Date().toLocaleDateString() });
+        fetchRentLedgers();
+        fetchSeekerPayments();
+      } else {
+        throw new Error('Payment verification failed.');
+      }
+
+    } catch (err: any) {
+      console.error('Payment error:', err);
+      toast.error(err.message || 'Payment failed. Please try again.', { id: tid });
+    } finally {
+      setIsPaying(false);
+      setCheckoutLedger(null);
     }
   };
 
   if (role === 'landlord') {
     return (
-      <div className="p-4 md:p-8 max-w-5xl space-y-8 animate-in fade-in duration-500">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-          <div className="space-y-2">
-            <h1 className="text-3xl font-bold tracking-tight">Payments</h1>
-            <p className="text-muted-foreground text-lg">
-              Payments received from tenants via Roomie AI.
-            </p>
+      <StripeConnectProvider>
+        <div className="p-4 md:p-8 max-w-5xl space-y-8 animate-in fade-in duration-500">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div className="space-y-2">
+              <h1 className="text-3xl font-bold tracking-tight">Payments</h1>
+              <p className="text-muted-foreground text-lg">
+                Payments received from tenants via Roomie AI.
+              </p>
+            </div>
+            <Button variant="outline" size="sm" onClick={fetchLandlordPayments} disabled={isFetchingLandlordData}>
+              <History className={`h-4 w-4 mr-2 ${isFetchingLandlordData ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
           </div>
-          <Button variant="outline" size="sm" onClick={fetchLandlordPayments} disabled={isFetchingLandlordData}>
-            <History className={`h-4 w-4 mr-2 ${isFetchingLandlordData ? 'animate-spin' : ''}`} />
-            Refresh
-          </Button>
-        </div>
 
-        {/* Landlord Wallet Card */}
-        <Card className="border-indigo-100 bg-white shadow-lg overflow-hidden border-t-4 border-t-indigo-600">
-          <CardHeader className="flex flex-row items-center justify-between border-b bg-slate-50/50 py-4">
-            <div className="flex items-center gap-3">
-              <div className="bg-indigo-100 p-2 rounded-lg">
-                <Wallet className="h-6 w-6 text-indigo-600" />
-              </div>
-              <div>
-                <CardTitle className="text-xl font-bold text-slate-900">Landlord Wallet</CardTitle>
-                <CardDescription>Income tracking and automatic disbursements</CardDescription>
-              </div>
-            </div>
-            {stripeAccountStatus === 'completed' ? (
-              <Badge className="bg-emerald-500 hover:bg-emerald-600 text-white flex gap-1.5 px-3 py-1.5 rounded-full border-none shadow-sm animate-in zoom-in duration-300">
-                <ShieldCheck className="h-3.5 w-3.5" />
-                Wallet Active
-              </Badge>
-            ) : (
-              <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 px-3 py-1.5 rounded-full flex gap-1.5">
-                <AlertCircle className="h-3.5 w-3.5" />
-                Setup Required
-              </Badge>
-            )}
-          </CardHeader>
-          <CardContent className="pt-8 pb-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-              {/* Metric 1: Available Balance */}
-              <div className="space-y-2">
-                <p className="text-sm font-medium text-slate-500 flex items-center gap-2">
-                  <DollarSign className="h-4 w-4" />
-                  Available Balance
-                </p>
-                <p className="text-3xl font-bold text-indigo-600">
-                  ${availableBalance.toLocaleString()}
-                </p>
-                <p className="text-[10px] text-slate-400">Funds eligible for next payout</p>
-              </div>
-
-              {/* Metric 2: Pending Balance */}
-              <div className="space-y-2">
-                <p className="text-sm font-medium text-slate-500 flex items-center gap-2">
-                  <Clock className="h-4 w-4" />
-                  Pending Balance
-                </p>
-                <p className="text-3xl font-bold text-slate-700">
-                  ${pendingBalance.toLocaleString()}
-                </p>
-                <p className="text-[10px] text-slate-400">Funds currently processing</p>
-              </div>
-
-              {/* Metric 3: Total Paid Out */}
-              <div className="space-y-2">
-                <p className="text-sm font-medium text-slate-500 flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4" />
-                  Total Paid Out
-                </p>
-                <p className="text-3xl font-bold text-emerald-600">
-                  ${totalPaidOut.toLocaleString()}
-                </p>
-                <p className="text-[10px] text-slate-400">Lifetime earnings disbursed</p>
-              </div>
-
-              {/* Metric 4: Next Payout Date */}
-              <div className="space-y-2">
-                <p className="text-sm font-medium text-slate-500 flex items-center gap-2">
-                  <TrendingUp className="h-4 w-4" />
-                  Next Payout Date
-                </p>
-                <p className="text-xl font-semibold text-slate-700 pt-1.5">
-                  Automatic
-                </p>
-                <p className="text-[10px] text-slate-400">2-3 business days after clearing</p>
-              </div>
-            </div>
-
-            {/* Wallet Explanation Section */}
-            <div className="mt-10 pt-6 border-t border-slate-100">
-              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+          {/* Landlord Wallet Card */}
+          <Card className="border-indigo-100 bg-white shadow-lg overflow-hidden border-t-4 border-t-indigo-600">
+            <CardHeader className="flex flex-row items-center justify-between border-b bg-slate-50/50 py-4">
+              <div className="flex items-center gap-3">
+                <div className="bg-indigo-100 p-2 rounded-lg">
+                  <Wallet className="h-6 w-6 text-indigo-600" />
+                </div>
                 <div>
-                  <h4 className="text-sm font-semibold text-slate-800 mb-1">How payouts work</h4>
-                  <p className="text-xs text-slate-500 max-w-2xl leading-relaxed">
-                    Tenant rent is received by Roomie AI, securely processed, and automatically deposited into your connected bank account once cleared. No action is required from you.
+                  <CardTitle className="text-xl font-bold text-slate-900">Landlord Wallet</CardTitle>
+                  <CardDescription>Income tracking and automatic disbursements</CardDescription>
+                </div>
+              </div>
+              {stripeAccountStatus === 'ready' ? (
+                <Badge className="bg-emerald-500 hover:bg-emerald-600 text-white flex gap-1.5 px-3 py-1.5 rounded-full border-none shadow-sm animate-in zoom-in duration-300">
+                  <ShieldCheck className="h-3.5 w-3.5" />
+                  Ready to get paid
+                </Badge>
+              ) : stripeAccountStatus === 'not_started' ? (
+                <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 px-3 py-1.5 rounded-full flex gap-1.5">
+                  <AlertCircle className="h-3.5 w-3.5" />
+                  Setup Required
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 px-3 py-1.5 rounded-full flex gap-1.5">
+                  <Clock className="h-3.5 w-3.5 animate-pulse" />
+                  Verification in progress
+                </Badge>
+              )}
+            </CardHeader>
+            <CardContent className="pt-8 pb-6">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+                {/* Metric 1: Available Balance */}
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-slate-500 flex items-center gap-2">
+                    <DollarSign className="h-4 w-4" />
+                    Available Balance
                   </p>
+                  <p className="text-3xl font-bold text-indigo-600">
+                    ${availableBalance.toLocaleString()}
+                  </p>
+                  <p className="text-[10px] text-slate-400">Funds eligible for next payout</p>
                 </div>
 
-                {stripeAccountStatus !== 'completed' && (
-                  <Button
-                    onClick={handleStripeOnboarding}
-                    className="w-full md:w-auto bg-indigo-600 hover:bg-indigo-700 shadow-md animate-pulse"
-                    disabled={isRedirectingToStripe}
-                  >
-                    {isRedirectingToStripe ? (
-                      <>
-                        <History className="h-4 w-4 mr-2 animate-spin" />
-                        Redirecting...
-                      </>
-                    ) : (
-                      <>
-                        <Building2 className="h-4 w-4 mr-2" />
-                        Connect Bank Account
-                      </>
-                    )}
-                  </Button>
+                {/* Metric 2: Pending Balance */}
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-slate-500 flex items-center gap-2">
+                    <Clock className="h-4 w-4" />
+                    Pending Balance
+                  </p>
+                  <p className="text-3xl font-bold text-slate-700">
+                    ${pendingBalance.toLocaleString()}
+                  </p>
+                  <p className="text-[10px] text-slate-400">Funds currently processing</p>
+                </div>
+
+                {/* Metric 3: Total Paid Out */}
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-slate-500 flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4" />
+                    Total Paid Out
+                  </p>
+                  <p className="text-3xl font-bold text-emerald-600">
+                    ${totalPaidOut.toLocaleString()}
+                  </p>
+                  <p className="text-[10px] text-slate-400">Lifetime earnings disbursed</p>
+                </div>
+
+                {/* Metric 4: Next Payout Date */}
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-slate-500 flex items-center gap-2">
+                    <TrendingUp className="h-4 w-4" />
+                    Next Payout Date
+                  </p>
+                  <p className="text-xl font-semibold text-slate-700 pt-1.5">
+                    Automatic
+                  </p>
+                  <p className="text-[10px] text-slate-400">2-3 business days after clearing</p>
+                </div>
+              </div>
+
+              {/* Wallet Explanation Section */}
+              <div className="mt-10 pt-6 border-t border-slate-100">
+                {stripeAccountStatus === 'ready' ? (
+                  <div className="space-y-4">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex items-start gap-3">
+                        <div className="bg-emerald-100 p-2 rounded-lg">
+                          <CheckCircle className="h-5 w-5 text-emerald-600" />
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-semibold text-slate-800 mb-1">Bank Account Connected</h4>
+                          <p className="text-xs text-slate-500 leading-relaxed">
+                            Your payout account is active. Rent payments will be automatically transferred to your bank account within 2-3 business days.
+                          </p>
+                          {connectAccountDetails?.stripe_account_id && (
+                            <p className="text-[10px] text-slate-400 mt-2 font-mono">
+                              Account ID: {connectAccountDetails.stripe_account_id.substring(0, 20)}...
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      <Button
+                        onClick={handleManagePayouts}
+                        variant="outline"
+                        size="sm"
+                        className="border-indigo-200 text-indigo-700 hover:bg-indigo-50 shrink-0"
+                      >
+                        <ExternalLink className="h-4 w-4 mr-2" />
+                        Manage
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                    <div>
+                      <h4 className="text-sm font-semibold text-slate-800 mb-1">How payouts work</h4>
+                      <p className="text-xs text-slate-500 max-w-2xl leading-relaxed">
+                        Connect your bank once. Roomie AI deposits rent automatically. Secure, no paperwork for most landlords.
+                      </p>
+                    </div>
+
+                    <Button
+                      onClick={handleStripeOnboarding}
+                      className="w-full md:w-auto bg-indigo-600 hover:bg-indigo-700 shadow-md transition-all active:scale-95"
+                    >
+                      <Building2 className="h-4 w-4 mr-2" />
+                      Connect Bank Account (30 seconds)
+                    </Button>
+                  </div>
                 )}
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        {/* Payments Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-xl">Transaction History</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {isFetchingLandlordData ? (
-              <div className="py-12 flex flex-col items-center justify-center space-y-4">
-                <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-                <p className="text-muted-foreground animate-pulse">Fetching your payments...</p>
+          {/* Embedded Onboarding Dialog */}
+          <Dialog open={isShowingEmbeddedOnboarding} onOpenChange={setIsShowingEmbeddedOnboarding}>
+            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Setup Payout Account</DialogTitle>
+                <DialogDescription>
+                  Enter your details securely to receive payments directly to your bank account.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="py-4 min-h-[600px]">
+                <ConnectAccountOnboarding
+                  onExit={() => {
+                    setIsShowingEmbeddedOnboarding(false);
+                    refreshStripeStatus();
+                  }}
+                />
               </div>
-            ) : landlordPayments.length === 0 ? (
-              <div className="py-20 text-center space-y-4">
-                <div className="bg-gray-100 h-16 w-16 rounded-full flex items-center justify-center mx-auto">
-                  <Wallet className="h-8 w-8 text-gray-400" />
+            </DialogContent>
+          </Dialog>
+
+          {/* Embedded Management Dialog */}
+          <Dialog open={isShowingEmbeddedManagement} onOpenChange={setIsShowingEmbeddedManagement}>
+            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Manage Payouts</DialogTitle>
+                <DialogDescription>
+                  View your account status and update bank information.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="py-4 min-h-[600px]">
+                <ConnectAccountManagement />
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          {/* Payments Table */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl">Transaction History</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {isFetchingLandlordData ? (
+                <div className="py-12 flex flex-col items-center justify-center space-y-4">
+                  <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+                  <p className="text-muted-foreground animate-pulse">Fetching your payments...</p>
                 </div>
-                <div>
-                  <h3 className="text-lg font-semibold">No payments yet</h3>
-                  <p className="text-muted-foreground max-w-xs mx-auto">
-                    Payments will appear here once tenants pay rent through the platform.
-                  </p>
+              ) : landlordPayments.length === 0 ? (
+                <div className="py-20 text-center space-y-4">
+                  <div className="bg-gray-100 h-16 w-16 rounded-full flex items-center justify-center mx-auto">
+                    <Wallet className="h-8 w-8 text-gray-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold">No payments yet</h3>
+                    <p className="text-muted-foreground max-w-xs mx-auto">
+                      Payments will appear here once tenants pay rent through the platform.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="rounded-md border overflow-hidden">
+                  <Table>
+                    <TableHeader className="bg-muted/50">
+                      <TableRow>
+                        <TableHead className="w-[100px]">Payment ID</TableHead>
+                        <TableHead className="w-[140px]">Date & Time</TableHead>
+                        <TableHead>Tenant</TableHead>
+                        <TableHead className="hidden md:table-cell">Source</TableHead>
+                        <TableHead className="text-right">Amount</TableHead>
+                        <TableHead className="text-right w-[120px]">Status</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {landlordPayments.map((payment) => {
+                        const status = getStatusDisplay(payment.payment_status);
+                        return (
+                          <TableRow key={payment.id} className="hover:bg-muted/30 transition-colors">
+                            <TableCell>
+                              <code className="text-[10px] bg-slate-100 px-1 py-0.5 rounded text-slate-600">
+                                {payment.transaction_id?.substring(0, 10) || payment.id.substring(0, 6)}...
+                              </code>
+                            </TableCell>
+                            <TableCell className="font-medium text-xs md:text-sm">
+                              <div className="flex flex-col">
+                                <span>{new Date(payment.created_at).toLocaleDateString()}</span>
+                                <span className="text-[10px] text-muted-foreground font-normal">
+                                  {new Date(payment.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </span>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex flex-col">
+                                <span className="font-medium text-sm">
+                                  {payment.tenant?.full_name || 'Unknown Tenant'}
+                                </span>
+                                <span className="text-[10px] text-muted-foreground truncate max-w-[150px]">
+                                  {payment.tenant?.email || 'No email provided'}
+                                </span>
+                              </div>
+                            </TableCell>
+                            <TableCell className="hidden md:table-cell text-muted-foreground text-xs">
+                              <Badge variant="outline" className="bg-slate-50 font-normal">
+                                {payment.payment_source === 'manual' ? 'Digital Wallet' : 'Application'}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-right font-semibold">
+                              ${(payment.amount || 0).toLocaleString()}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <Badge variant="outline" className={`${status.color} px-2 py-0 border font-medium text-[10px] whitespace-nowrap`}>
+                                {status.label}
+                              </Badge>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+            <CardFooter className="bg-muted/20 border-t py-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
+                <div className="flex gap-3">
+                  <div className="mt-1"><Clock className="h-4 w-4 text-blue-600" /></div>
+                  <div className="space-y-1">
+                    <p className="text-sm font-semibold">Processing</p>
+                    <p className="text-xs text-muted-foreground text-pretty">Payment received, payout pending</p>
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <div className="mt-1"><CheckCircle className="h-4 w-4 text-green-600" /></div>
+                  <div className="space-y-1">
+                    <p className="text-sm font-semibold">Paid</p>
+                    <p className="text-xs text-muted-foreground text-pretty">Funds sent to your account</p>
+                  </div>
                 </div>
               </div>
-            ) : (
-              <div className="rounded-md border overflow-hidden">
-                <Table>
-                  <TableHeader className="bg-muted/50">
-                    <TableRow>
-                      <TableHead className="w-[120px]">Date</TableHead>
-                      <TableHead>Tenant</TableHead>
-                      <TableHead className="hidden md:table-cell">Source</TableHead>
-                      <TableHead className="text-right">Amount</TableHead>
-                      <TableHead className="text-right w-[120px]">Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {landlordPayments.map((payment) => {
-                      const status = getStatusDisplay(payment.payment_status);
-                      return (
-                        <TableRow key={payment.id} className="hover:bg-muted/30 transition-colors">
-                          <TableCell className="font-medium text-xs md:text-sm">
-                            {new Date(payment.created_at).toLocaleDateString()}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex flex-col">
-                              <span className="font-medium text-sm">
-                                {payment.tenant?.full_name || 'Unknown Tenant'}
-                              </span>
-                              <span className="text-[10px] text-muted-foreground truncate max-w-[150px]">
-                                {payment.tenant?.email || 'No email provided'}
-                              </span>
-                            </div>
-                          </TableCell>
-                          <TableCell className="hidden md:table-cell text-muted-foreground text-xs">
-                            <Badge variant="outline" className="bg-slate-50 font-normal">
-                              {payment.payment_source === 'manual' ? 'Digital Wallet' : 'Application'}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-right font-semibold">
-                            ${(payment.amount || 0).toLocaleString()}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <Badge variant="outline" className={`${status.color} px-2 py-0 border font-medium text-[10px] whitespace-nowrap`}>
-                              {status.label}
-                            </Badge>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </CardContent>
-          <CardFooter className="bg-muted/20 border-t py-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
-              <div className="flex gap-3">
-                <div className="mt-1"><Clock className="h-4 w-4 text-blue-600" /></div>
-                <div className="space-y-1">
-                  <p className="text-sm font-semibold">Processing</p>
-                  <p className="text-xs text-muted-foreground text-pretty">Payment received, payout pending</p>
-                </div>
-              </div>
-              <div className="flex gap-3">
-                <div className="mt-1"><CheckCircle className="h-4 w-4 text-green-600" /></div>
-                <div className="space-y-1">
-                  <p className="text-sm font-semibold">Paid</p>
-                  <p className="text-xs text-muted-foreground text-pretty">Funds sent to your account</p>
-                </div>
-              </div>
-            </div>
-          </CardFooter>
-        </Card>
-      </div>
+            </CardFooter>
+          </Card>
+        </div>
+      </StripeConnectProvider>
     );
   }
 
@@ -687,7 +982,7 @@ function DigitalWalletContent() {
         <div className="space-y-2">
           <h1 className="text-3xl font-bold tracking-tight">Digital Wallet</h1>
           <p className="text-muted-foreground text-lg">
-            Manage your rent payments and history.
+            Manage your rent payments, schedule, and history.
           </p>
         </div>
 
@@ -741,64 +1036,110 @@ function DigitalWalletContent() {
                 <CardContent className="space-y-4">
                   <RadioGroup
                     value={paymentMethod}
-                    onValueChange={(val: "credit" | "debit") => setPaymentMethod(val)}
+                    onValueChange={(val: "credit" | "debit") => {
+                      setPaymentMethod(val);
+                      setIsAddingNewCard(false);
+                      // Auto-select first stored method of this type, or new
+                      const firstMatch = savedMethods.find(m => m.card_type === val);
+                      setSelectedMethodId(firstMatch ? firstMatch.stripe_payment_method_id : 'new');
+                    }}
                     className="flex flex-col gap-2"
                   >
-                    <div className="flex items-center space-x-2 border p-3 rounded-lg cursor-pointer hover:bg-accent/50 transition-colors">
-                      <RadioGroupItem value="credit" id="credit" />
-                      <Label htmlFor="credit" className="flex-1 cursor-pointer font-medium flex items-center gap-2 text-sm">
-                        Credit Card
-                        <Badge variant="secondary" className="text-[10px] bg-primary/10 text-primary">Recommended</Badge>
-                      </Label>
-                    </div>
+                    {/* Credit Card Option + List */}
+                    <div className={`border p-3 rounded-lg transition-colors ${paymentMethod === 'credit' ? 'bg-accent/10 border-indigo-200' : 'hover:bg-accent/50'}`}>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="credit" id="credit" />
+                        <Label htmlFor="credit" className="flex-1 cursor-pointer font-medium flex items-center gap-2 text-sm">
+                          Credit Card
+                          <Badge variant="secondary" className="text-[10px] bg-primary/10 text-primary">Recommended</Badge>
+                        </Label>
+                      </div>
 
-                    <div className="flex items-center space-x-2 border p-3 rounded-lg cursor-pointer hover:bg-accent/50 transition-colors">
-                      <RadioGroupItem value="debit" id="debit" />
-                      <Label htmlFor="debit" className="flex-1 cursor-pointer font-medium text-sm">Debit Card</Label>
-                    </div>
-                  </RadioGroup>
+                      {paymentMethod === 'credit' && (
+                        <div className="mt-3 pl-6 space-y-2">
+                          {savedMethods.filter(m => m.card_type === 'credit').map(method => (
+                            <div
+                              key={method.id}
+                              onClick={() => { setSelectedMethodId(method.stripe_payment_method_id); setIsAddingNewCard(false); }}
+                              className={`p-2 border rounded text-sm flex items-center justify-between cursor-pointer ${selectedMethodId === method.stripe_payment_method_id ? 'border-indigo-500 bg-indigo-50' : 'hover:bg-slate-50'}`}
+                            >
+                              <div className="flex items-center gap-2">
+                                <div className="h-6 w-8 bg-slate-800 rounded text-white text-[9px] flex items-center justify-center font-bold uppercase">{method.brand || 'CARD'}</div>
+                                <span>•••• {method.last4}</span>
+                              </div>
+                              {selectedMethodId === method.stripe_payment_method_id && <CheckCircle2 className="h-4 w-4 text-indigo-600" />}
+                            </div>
+                          ))}
 
-                  <div className="space-y-3">
-                    <div className={cardAdded && !isAddingCard ? "hidden" : "block"}>
-                      {!cardAdded && !isAddingCard ? (
-                        <div className="flex flex-col gap-2">
-                          <div className="text-xs text-muted-foreground bg-muted p-2 rounded text-center border border-dashed">No card linked</div>
-                          <Button onClick={() => setIsAddingCard(true)} variant="outline" size="sm" className="w-full">
-                            + Add Card
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="w-full justify-start text-xs text-muted-foreground h-8"
+                            onClick={() => { setIsAddingNewCard(true); setSelectedMethodId('new'); }}
+                          >
+                            + Add another credit card
                           </Button>
-                        </div>
-                      ) : (
-                        <div className="bg-card border p-3 rounded-lg space-y-3">
-                          <div className="p-3 border rounded-md bg-background min-h-[40px]">
-                            <CardElement options={{ style: { base: { fontSize: '14px' } } }} />
-                          </div>
-                          <Input
-                            placeholder="Cardholder Name"
-                            value={cardDetails.name}
-                            onChange={(e) => setCardDetails({ ...cardDetails, name: e.target.value })}
-                            className="h-9 text-sm"
-                          />
-                          <div className="flex gap-2">
-                            <Button variant="ghost" size="sm" className="flex-1 h-8" onClick={() => setIsAddingCard(false)}>Cancel</Button>
-                            <Button size="sm" className="flex-1 h-8" onClick={handleSaveCard}>Save Card</Button>
-                          </div>
                         </div>
                       )}
                     </div>
 
-                    {cardAdded && !isAddingCard && (
-                      <div className="bg-secondary/50 p-3 rounded-lg flex items-center justify-between border">
-                        <div className="flex items-center gap-3">
-                          <div className="h-8 w-10 bg-slate-800 rounded flex items-center justify-center text-white text-[10px] font-bold">CARD</div>
-                          <div>
-                            <p className="font-medium text-sm">**** {cardDetails.number.slice(-4)}</p>
-                            <p className="text-xs text-muted-foreground">{cardDetails.name}</p>
-                          </div>
-                        </div>
-                        <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={() => { setCardAdded(false); setIsAddingCard(true); }}>Change</Button>
+                    {/* Debit Card Option + List */}
+                    <div className={`border p-3 rounded-lg transition-colors ${paymentMethod === 'debit' ? 'bg-accent/10 border-indigo-200' : 'hover:bg-accent/50'}`}>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="debit" id="debit" />
+                        <Label htmlFor="debit" className="flex-1 cursor-pointer font-medium text-sm">Debit Card</Label>
                       </div>
-                    )}
-                  </div>
+
+                      {paymentMethod === 'debit' && (
+                        <div className="mt-3 pl-6 space-y-2">
+                          {savedMethods.filter(m => m.card_type === 'debit').map(method => (
+                            <div
+                              key={method.id}
+                              onClick={() => { setSelectedMethodId(method.stripe_payment_method_id); setIsAddingNewCard(false); }}
+                              className={`p-2 border rounded text-sm flex items-center justify-between cursor-pointer ${selectedMethodId === method.stripe_payment_method_id ? 'border-indigo-500 bg-indigo-50' : 'hover:bg-slate-50'}`}
+                            >
+                              <div className="flex items-center gap-2">
+                                <div className="h-6 w-8 bg-slate-600 rounded text-white text-[9px] flex items-center justify-center font-bold uppercase">{method.brand || 'CARD'}</div>
+                                <span>•••• {method.last4}</span>
+                              </div>
+                              {selectedMethodId === method.stripe_payment_method_id && <CheckCircle2 className="h-4 w-4 text-indigo-600" />}
+                            </div>
+                          ))}
+
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="w-full justify-start text-xs text-muted-foreground h-8"
+                            onClick={() => { setIsAddingNewCard(true); setSelectedMethodId('new'); }}
+                          >
+                            + Add another debit card
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </RadioGroup>
+
+                  {/* New Card Entry Form */}
+                  {(isAddingNewCard || (savedMethods.length === 0 && selectedMethodId === 'new')) && (
+                    <div className="mt-4 bg-card border p-3 rounded-lg space-y-3 animate-in fade-in slide-in-from-top-2">
+                      <div className="text-xs font-semibold mb-1">Enter {paymentMethod === 'credit' ? 'Credit' : 'Debit'} Card Details:</div>
+                      <div className="p-3 border rounded-md bg-background min-h-[40px]">
+                        <CardElement options={{ style: { base: { fontSize: '14px' } } }} />
+                      </div>
+                      <Input
+                        placeholder="Cardholder Name"
+                        value={cardDetails.name}
+                        onChange={(e) => setCardDetails({ ...cardDetails, name: e.target.value })}
+                        className="h-9 text-sm"
+                      />
+                      <div className="flex gap-2">
+                        {savedMethods.length > 0 && (
+                          <Button variant="ghost" size="sm" className="flex-1 h-8" onClick={() => { setIsAddingNewCard(false); setSelectedMethodId(savedMethods[0]?.stripe_payment_method_id); }}>Cancel</Button>
+                        )}
+                        <Button size="sm" className="flex-1 h-8" onClick={handleSaveCard}>Save & Select</Button>
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
@@ -905,11 +1246,18 @@ function DigitalWalletContent() {
                       </Button>
                       <Button size="lg" className="w-full bg-green-600 hover:bg-green-700 font-bold shadow-md"
                         onClick={async () => {
-                          // Copied Payment Logic
+                          // Updated Payment Logic matching handleConfirmPayment
                           if (!isSaved) { toast.error("Please save details first."); return; }
                           if (!isComplianceChecked) { toast.error("Please confirm compliance."); return; }
                           const amount = parseFloat(rentAmount);
                           if (isNaN(amount) || amount <= 0) { toast.error("Invalid amount"); return; }
+
+                          // Determine Method
+                          const methodIdToUse = selectedMethodId === 'new' ? savedMethods[0]?.stripe_payment_method_id : selectedMethodId;
+                          if (!methodIdToUse) { toast.error("Please add and save a payment method first."); return; }
+
+                          const savedMethod = savedMethods.find(m => m.stripe_payment_method_id === methodIdToUse);
+                          const paymentType = savedMethod?.card_type === 'debit' ? 'debit_card' : 'credit_card';
 
                           setIsPaying(true);
                           const tid = toast.loading("Processing payment...");
@@ -919,7 +1267,8 @@ function DigitalWalletContent() {
                               body: {
                                 amount,
                                 compliance_confirmation: isComplianceChecked,
-                                note: paymentNote
+                                note: paymentNote,
+                                payment_method_type: paymentType
                               }
                             });
 
@@ -933,11 +1282,8 @@ function DigitalWalletContent() {
                             if (!data?.client_secret) throw new Error("Missing client secret");
                             if (!stripe || !elements) throw new Error("Stripe error");
 
-                            const cardElement = elements.getElement(CardElement);
-                            if (!cardElement) throw new Error("Card error");
-
                             const { error: stripeError, paymentIntent } = await stripe.confirmCardPayment(data.client_secret, {
-                              payment_method: { card: cardElement, billing_details: { name: cardDetails.name } }
+                              payment_method: methodIdToUse
                             });
 
                             if (stripeError) throw new Error(stripeError.message);
@@ -986,75 +1332,270 @@ function DigitalWalletContent() {
                 A record of all your rental payments made through Roomie AI.
               </CardDescription>
             </div>
-            <Button variant="outline" size="sm" onClick={() => fetchSeekerPayments()}>
+            <Button variant="outline" size="sm" onClick={() => {
+              fetchSeekerPayments();
+              fetchRentLedgers();
+            }}>
               <History className="h-4 w-4 mr-2" /> Refresh
             </Button>
           </div>
         </CardHeader>
-        <CardContent>
-          {isLoadingSeekerPayments ? (
-            <div className="py-12 flex justify-center">
-              <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
-            </div>
-          ) : seekerPayments.length === 0 ? (
-            <div className="text-center py-16 text-muted-foreground bg-slate-50 rounded-lg border border-dashed">
-              <Wallet className="h-10 w-10 mx-auto mb-3 opacity-20" />
-              <p>No payments found.</p>
-              <p className="text-xs">Click "Make a Payment" to send your first rent.</p>
-            </div>
-          ) : (
-            <div className="rounded-md border overflow-hidden shadow-sm">
-              <Table>
-                <TableHeader className="bg-slate-50">
-                  <TableRow>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Recipient</TableHead>
-                    <TableHead>Note</TableHead>
-                    <TableHead className="text-right">Amount</TableHead>
-                    <TableHead className="text-right">Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {seekerPayments.map((payment) => (
-                    <TableRow key={payment.id} className="hover:bg-slate-50/50">
-                      <TableCell className="font-medium">
-                        {new Date(payment.created_at).toLocaleDateString()}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-col">
-                          <span className="text-sm font-medium">{payment.recipient_email}</span>
-                          <span className="text-[10px] text-muted-foreground">Digital Transfer</span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="max-w-[150px]">
-                        <span className="text-xs text-muted-foreground line-clamp-1 italic">
-                          {payment.note || '-'}
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-right font-bold text-indigo-600">
-                        ${(payment.amount || 0).toFixed(2)}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Badge variant="outline" className={
-                          payment.payment_status === 'paid' || payment.payment_status === 'paid_to_landlord'
-                            ? "bg-green-100 text-green-800 border-green-200"
-                            : payment.payment_status === 'failed'
-                              ? "bg-red-100 text-red-800 border-red-200"
-                              : "bg-blue-100 text-blue-800 border-blue-200"
-                        }>
-                          {payment.payment_status === 'paid_to_landlord' ? 'Completed' :
-                            payment.payment_status === 'paid' ? 'Processing' :
-                              payment.payment_status}
-                        </Badge>
-                      </TableCell>
+        <CardContent className="space-y-8">
+          {/* Rent Schedule Section */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-bold flex items-center gap-2">
+              <Clock className="h-5 w-5 text-indigo-600" />
+              Rent Schedule
+            </h3>
+            {isLoadingLedgers ? (
+              <div className="py-8 flex justify-center"><Clock className="animate-spin h-6 w-6 text-muted-foreground" /></div>
+            ) : rentLedgers.length === 0 ? (
+              <div className="bg-slate-50 p-6 rounded-lg border border-dashed text-center">
+                <p className="text-sm text-muted-foreground">No active lease schedule found.</p>
+              </div>
+            ) : (
+              <div className="rounded-md border overflow-hidden">
+                <Table>
+                  <TableHeader className="bg-muted/50">
+                    <TableRow>
+                      <TableHead>Month</TableHead>
+                      <TableHead>Due Date</TableHead>
+                      <TableHead>Amount</TableHead>
+                      <TableHead>Auto-Pay</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Action</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                  </TableHeader>
+                  <TableBody>
+                    {rentLedgers.map((ledger) => {
+                      const isPayable = ledger.status === 'unpaid' || ledger.status === 'overdue';
+                      const isEditing = editingLedgerId === ledger.id;
+                      const dueDate = new Date(ledger.due_date);
+
+                      return (
+                        <TableRow key={ledger.id}>
+                          <TableCell className="font-medium">
+                            {dueDate.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
+                          </TableCell>
+                          <TableCell>{dueDate.toLocaleDateString()}</TableCell>
+                          <TableCell className="font-semibold">
+                            {isEditing ? (
+                              <div className="flex items-center gap-1">
+                                <span className="text-muted-foreground">$</span>
+                                <Input
+                                  value={editAmount}
+                                  onChange={(e) => setEditAmount(e.target.value)}
+                                  className="h-8 w-24"
+                                  type="number"
+                                />
+                                <Button size="icon" variant="ghost" className="h-8 w-8 text-green-600" onClick={() => handleSaveAmount(ledger.id)} disabled={isSavingAmount}>
+                                  <Check className="h-4 w-4" />
+                                </Button>
+                                <Button size="icon" variant="ghost" className="h-8 w-8 text-red-600" onClick={handleCancelEdit} disabled={isSavingAmount}>
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2">
+                                ${ledger.rent_amount}
+                                {isPayable && (
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-6 w-6 text-muted-foreground hover:text-indigo-600 p-0"
+                                    onClick={() => handleStartEdit(ledger)}
+                                  >
+                                    <Pencil className="h-3 w-3" />
+                                  </Button>
+                                )}
+                              </div>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            {ledger.lease?.auto_pay_enabled ? (
+                              <Badge variant="outline" className="bg-purple-100 text-purple-800 border-purple-200">On</Badge>
+                            ) : (
+                              <Badge variant="outline" className="bg-gray-100 text-gray-500 border-gray-200">Off</Badge>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className={
+                              ledger.status === 'paid' ? "bg-green-100 text-green-800 border-green-200" :
+                                ledger.status === 'pending' ? "bg-blue-100 text-blue-800 border-blue-200" :
+                                  ledger.status === 'overdue' ? "bg-red-100 text-red-800 border-red-200" :
+                                    "bg-slate-100 text-slate-800 border-slate-200"
+                            }>
+                              {ledger.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button
+                              size="sm"
+                              variant={isPayable ? "default" : "secondary"}
+                              disabled={!isPayable || isPaying || isEditing}
+                              className={isPayable ? "bg-indigo-600 hover:bg-indigo-700" : ""}
+                              onClick={() => handleCheckoutClick(ledger)}
+                            >
+                              Pay Now
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </div>
+          <Dialog open={isCheckoutOpen} onOpenChange={setIsCheckoutOpen}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <ShieldCheck className="h-5 w-5 text-indigo-600" />
+                  Checkout Confirmation
+                </DialogTitle>
+                <DialogDescription>
+                  Please review your payment details before confirming.
+                </DialogDescription>
+              </DialogHeader>
+
+              {checkoutLedger && (
+                <div className="space-y-4 py-4">
+                  <div className="bg-slate-50 p-4 rounded-lg border space-y-3">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Payment For:</span>
+                      <span className="font-medium">Rent - {new Date(checkoutLedger.due_date).toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Due Date:</span>
+                      <span className="font-medium">{new Date(checkoutLedger.due_date).toLocaleDateString()}</span>
+                    </div>
+                    <Separator />
+                    <div className="flex justify-between items-center pt-1">
+                      <span className="font-semibold text-slate-700">Total Amount:</span>
+                      <span className="font-bold text-xl text-indigo-600">${checkoutLedger.rent_amount}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 p-3 border rounded-md bg-white">
+                    <div className="bg-slate-100 p-2 rounded">
+                      <CreditCard className="h-4 w-4 text-slate-600" />
+                    </div>
+                    <div className="text-sm">
+                      {(() => {
+                        const selectedCard = savedMethods.find(m => m.stripe_payment_method_id === selectedMethodId);
+                        return (
+                          <p className="font-medium">
+                            Method: {selectedCard
+                              ? `${selectedCard.brand ? selectedCard.brand.toUpperCase() : 'Card'} •••• ${selectedCard.last4}`
+                              : (cardDetails.number && cardDetails.number.length > 4 ? `Card •••• ${cardDetails.number.slice(-4)}` : 'New Card')}
+                          </p>
+                        );
+                      })()}
+                      <p className="text-xs text-muted-foreground">Secure transaction via Stripe</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <DialogFooter className="flex-col sm:justify-between gap-2">
+                <Button variant="outline" onClick={() => setIsCheckoutOpen(false)} disabled={isPaying}>Cancel</Button>
+                <Button onClick={handleConfirmPayment} disabled={isPaying} className="bg-indigo-600 hover:bg-indigo-700 w-full sm:w-auto">
+                  {isPaying ? (
+                    <>
+                      <Clock className="mr-2 h-4 w-4 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    <>Confirm & Pay</>
+                  )}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          <Separator />
+
+          <div className="space-y-4">
+            <h3 className="text-lg font-bold flex items-center gap-2">
+              <History className="h-5 w-5 text-indigo-600" />
+              Payment History
+            </h3>
+            {isLoadingSeekerPayments ? (
+              <div className="py-12 flex justify-center">
+                <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
+              </div>
+            ) : seekerPayments.length === 0 ? (
+              <div className="text-center py-16 text-muted-foreground bg-slate-50 rounded-lg border border-dashed">
+                <Wallet className="h-10 w-10 mx-auto mb-3 opacity-20" />
+                <p>No payments found.</p>
+                <p className="text-xs">Click "Make a Payment" to send your first rent.</p>
+              </div>
+            ) : (
+              <div className="rounded-md border overflow-hidden shadow-sm">
+                <Table>
+                  <TableHeader className="bg-slate-50">
+                    <TableRow>
+                      <TableHead>Payment ID</TableHead>
+                      <TableHead>Date & Time</TableHead>
+                      <TableHead>Recipient</TableHead>
+                      <TableHead>Note</TableHead>
+                      <TableHead className="text-right">Amount</TableHead>
+                      <TableHead className="text-right">Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {seekerPayments.map((payment) => (
+                      <TableRow key={payment.id} className="hover:bg-slate-50/50">
+                        <TableCell>
+                          <code className="text-[10px] bg-slate-100 px-1 py-0.5 rounded text-slate-600">
+                            {payment.transaction_id?.substring(0, 15) || payment.id.substring(0, 8)}...
+                          </code>
+                        </TableCell>
+                        <TableCell className="font-medium">
+                          <div className="flex flex-col">
+                            <span className="text-sm">{new Date(payment.created_at).toLocaleDateString()}</span>
+                            <span className="text-[10px] text-muted-foreground">
+                              {new Date(payment.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-col">
+                            <span className="text-sm font-medium">{payment.recipient_email}</span>
+                            <span className="text-[10px] text-muted-foreground">Digital Transfer</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="max-w-[150px]">
+                          <span className="text-xs text-muted-foreground line-clamp-1 italic">
+                            {payment.note || '-'}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-right font-bold text-indigo-600">
+                          ${(payment.amount || 0).toFixed(2)}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Badge variant="outline" className={
+                            ['paid', 'paid_to_landlord', 'succeeded'].includes(payment.payment_status)
+                              ? "bg-green-100 text-green-800 border-green-200"
+                              : payment.payment_status === 'failed'
+                                ? "bg-red-100 text-red-800 border-red-200"
+                                : "bg-blue-100 text-blue-800 border-blue-200"
+                          }>
+                            {payment.payment_status === 'paid_to_landlord' ? 'Completed' :
+                              ['paid', 'succeeded'].includes(payment.payment_status) ? 'Paid' :
+                                payment.payment_status}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </div>
+        </CardContent >
+      </Card >
     </div >
   );
 }

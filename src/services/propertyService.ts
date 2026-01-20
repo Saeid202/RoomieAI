@@ -885,7 +885,7 @@ export interface CoOwnershipSignal {
   id: string;
   user_id: string;
   capital_available: string;
-  household_type: 'Single' | 'Couple' | 'Family';
+  household_type: 'Single' | 'Couple' | 'Family' | 'Investor group';
   intended_use: 'Live-in' | 'Investment' | 'Mixed';
   time_horizon: '1–2 years' | '3–5 years' | 'Flexible';
   notes?: string;

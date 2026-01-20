@@ -33,8 +33,8 @@ serve(async (req) => {
         }
 
         const body = await req.json()
-        const { application_id, amount, note, compliance_confirmation: bodyCompliance } = body
-        const payment_source = application_id ? 'application' : 'manual'
+        const { application_id, rent_ledger_id, amount, note, compliance_confirmation: bodyCompliance, payment_method_type } = body
+        const payment_source = application_id ? 'application' : (rent_ledger_id ? 'ledger' : 'manual')
 
         let amount_cents = 0
         let total_amount = 0
@@ -50,7 +50,57 @@ serve(async (req) => {
             created_at: new Date().toISOString()
         }
 
-        if (payment_source === 'application') {
+        if (payment_source === 'ledger') {
+            // Rent Ledger Payment
+            const { data: ledger, error: ledgerError } = await supabaseClient
+                .from('rent_ledgers')
+                .select('*, lease_contracts(*, properties(*, profiles(*)))')
+                .eq('id', rent_ledger_id)
+                .eq('tenant_id', user.id)
+                .single()
+
+            if (ledgerError || !ledger) {
+                return new Response(JSON.stringify({ error: 'Rent ledger row not found or unauthorized' }), {
+                    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+                    status: 400,
+                })
+            }
+
+            if (ledger.status === 'paid' || ledger.status === 'pending') {
+                return new Response(JSON.stringify({ error: 'This rent obligation is already paid or processing' }), {
+                    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+                    status: 400,
+                })
+            }
+
+            total_amount = Number(ledger.rent_amount)
+            amount_cents = Math.round(total_amount * 100)
+
+            metadata.rent_ledger_id = ledger.id
+            metadata.rent_ledger_id = ledger.id
+            metadata.lease_id = ledger.lease_id
+            metadata.rent_month = new Date(ledger.due_date).toISOString().slice(0, 7)
+
+            paymentRecord = {
+                ...paymentRecord,
+                rent_ledger_id: ledger.id,
+                lease_id: ledger.lease_id,
+                property_id: ledger.property_id,
+                landlord_id: (ledger.lease_contracts as any)?.landlord_id,
+                amount: total_amount,
+                description: `Rent for ${new Date(ledger.due_date).toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}`,
+                payment_type: 'ledger_payment',
+                payment_method: payment_method_type || 'credit_card',
+                recipient_email: (ledger.lease_contracts as any)?.properties?.profiles?.email || null
+            }
+
+            // Lock the ledger row to pending immediately
+            await supabaseClient
+                .from('rent_ledgers')
+                .update({ status: 'pending' })
+                .eq('id', ledger.id)
+
+        } else if (payment_source === 'application') {
             const { data: application, error: appError } = await supabaseClient
                 .from('rental_applications')
                 .select('*, properties(*, profiles(*))').eq('id', application_id).eq('applicant_id', user.id).single()
@@ -68,6 +118,7 @@ serve(async (req) => {
             amount_cents = Math.round(total_amount * 100)
 
             metadata.application_id = application.id
+            metadata.rent_month = 'Initial'
             paymentRecord = {
                 ...paymentRecord,
                 application_id: application.id,
@@ -76,7 +127,7 @@ serve(async (req) => {
                 amount: total_amount,
                 description: `Rent & Deposit for ${application.properties?.listing_title}`,
                 payment_type: 'combined_initial',
-                payment_method: 'credit_card',
+                payment_method: payment_method_type || 'credit_card',
                 recipient_email: (application.properties as any)?.profiles?.email || null
             }
         } else {
@@ -103,7 +154,9 @@ serve(async (req) => {
             amount_cents = Math.round(total_amount * 100)
 
             metadata.recipient_email = wallet.recipient_email
+            metadata.recipient_email = wallet.recipient_email
             metadata.recipient_type = wallet.recipient_type
+            metadata.rent_month = 'Manual'
             if (note) metadata.note = note
 
             const { data: landlordProfile } = await supabaseClient
@@ -156,11 +209,27 @@ serve(async (req) => {
 
         try {
             // 2. Call Stripe
+            const finalMetadata = {
+                ...metadata,
+                purpose: 'rent',
+                payment_id: insertedRecord.id,
+                tenant_id: user.id,
+                landlord_user_id: paymentRecord.landlord_id || '',
+                property_id: paymentRecord.property_id || '',
+
+                // Specific Rent Installment Metadata
+                lease_id: metadata.lease_id, // Already set for ledger payments
+                rent_installment_id: metadata.rent_ledger_id, // Mapping ledger_id to installment_id
+                month: metadata.rent_month === 'Initial' || metadata.rent_month === 'Manual'
+                    ? metadata.rent_month
+                    : (metadata.rent_month || new Date().toISOString().slice(0, 7))
+            };
+
             const paymentIntent = await stripe.paymentIntents.create({
                 amount: amount_cents,
                 currency: 'cad',
                 automatic_payment_methods: { enabled: true },
-                metadata: { ...metadata, payment_id: insertedRecord.id }
+                metadata: finalMetadata
             })
 
             // 3. Update Record with external_transaction_id (payment_intent_id)
@@ -185,6 +254,16 @@ serve(async (req) => {
                 .from('rental_payments')
                 .update({ payment_status: 'failed' })
                 .eq('id', insertedRecord.id)
+
+            // Revert ledger status to unpaid if it was involved
+            if (payment_source === 'ledger' && rent_ledger_id) {
+                // Determine if it should be overdue or unpaid based on date? For simplicity reset to unpaid or let background worker handle overdue
+                // Or check if duplicate payment isn't pending.
+                await supabaseClient
+                    .from('rent_ledgers')
+                    .update({ status: 'unpaid' })
+                    .eq('id', rent_ledger_id)
+            }
 
             throw stripeErr
         }

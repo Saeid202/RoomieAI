@@ -2,12 +2,13 @@ import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Search, MapPin, Loader2, Home, DollarSign, Users, Clock, AlertCircle, CheckCircle, XCircle, ArrowRight, MessageSquare, Edit2, Plus, Info, Scale, Pencil, PlusCircle, Handshake, HelpCircle, Image as ImageIcon, Eye, TrendingUp } from "lucide-react";
+import { Search, MapPin, Loader2, Home, DollarSign, Users, Clock, AlertCircle, CheckCircle, XCircle, ArrowRight, MessageSquare, Edit2, Plus, Info, Scale, Pencil, PlusCircle, Handshake, HelpCircle, Image as ImageIcon, Eye, TrendingUp, Briefcase, Shield, Search as SearchIcon, Star } from "lucide-react";
 import { CoOwnershipForecastModal } from "@/components/dashboard/CoOwnershipForecastModal";
 import { fetchAllSalesListings, SalesListing, CoOwnershipSignal, fetchCoOwnershipSignals, createCoOwnershipSignal, updateCoOwnershipSignal } from "@/services/propertyService";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MessageButton } from "@/components/MessageButton";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
     Dialog,
     DialogContent,
@@ -42,11 +43,11 @@ import { supabase } from "@/integrations/supabase/client";
 
 const createSignalSchema = z.object({
     capital_available: z.string().min(1, "Capital available is required"),
-    household_type: z.enum(["Single", "Couple", "Family"]),
+    household_type: z.enum(["Single", "Couple", "Family", "Investor group"]),
     intended_use: z.enum(["Live-in", "Investment", "Mixed"]),
     time_horizon: z.enum(["1–2 years", "3–5 years", "Flexible"]),
     notes: z.string().optional(),
-    disclaimer: z.boolean().refine(val => val === true, "You must agree to the disclaimer"),
+    disclaimer: z.boolean().refine(val => val === true, "You must agree to the non-binding confirmation"),
 });
 
 export default function BuyingOpportunitiesPage() {
@@ -176,7 +177,7 @@ export default function BuyingOpportunitiesPage() {
                 setSignals((prev) => [newSignal, ...prev]);
                 toast({
                     title: "Signal Created",
-                    description: "Your co-ownership signal has been posted successfully!",
+                    description: "Your co-ownership signal is now visible to potential partners",
                 });
             }
             setIsCreateSignalOpen(false);
@@ -294,68 +295,114 @@ export default function BuyingOpportunitiesPage() {
                             </Button>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12 max-w-5xl">
                             {signals.map((signal) => (
-                                <Card key={signal.id} className="overflow-hidden hover:shadow-xl transition-all border-slate-200 group relative">
-                                    <CardHeader className="p-4 pb-2">
-                                        <div className="flex justify-between items-start mb-4">
-                                            <div className="flex-1 mr-2">
-                                                <CardTitle className="text-xl font-black text-slate-900 line-clamp-1 flex items-center gap-2">
-                                                    <Users className="h-5 w-5 text-roomie-purple" />
-                                                    {signal.household_type} household
-                                                </CardTitle>
+                                <Card key={signal.id} className="group relative flex flex-col bg-white rounded-[20px] shadow-[0_4px_20px_rgba(0,0,0,0.05)] hover:shadow-[0_12px_30px_rgba(110,89,255,0.15)] transition-all duration-300 border-none overflow-hidden hover:-translate-y-1 max-w-[480px]">
+                                    <div className="p-6 md:p-8 flex flex-col h-full space-y-6">
+
+                                        {/* 1) Header - Identity & Social Context */}
+                                        <div className="space-y-1">
+                                            <div className="flex items-center justify-between">
                                                 <div
-                                                    className="flex items-center gap-2 mt-2 group cursor-pointer"
+                                                    className="flex items-center gap-1.5 cursor-pointer group/author"
                                                     onClick={() => navigate(`/dashboard/user/${signal.user_id}`)}
                                                 >
-                                                    <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Posted by:</span>
-                                                    <span className="text-sm font-bold text-roomie-purple group-hover:underline truncate max-w-[200px]">
+                                                    <span className="text-[11px] font-medium text-slate-400">Created by:</span>
+                                                    <span className="text-[11px] font-bold text-slate-600 group-hover/author:text-roomie-purple transition-colors">
                                                         {signal.creator_name && signal.creator_name !== "Unknown User" ? signal.creator_name : "Anonymous Member"}
                                                     </span>
+                                                    <div className="flex items-center gap-1">
+                                                        {(signal.creator_name === 'Mehdi' || signal.creator_name?.includes('Mehdi')) ? (
+                                                            <span className="text-[9px] font-black text-amber-500 uppercase tracking-tighter flex items-center gap-0.5">
+                                                                <Star className="h-2 w-2 fill-amber-500" /> SUPER START
+                                                            </span>
+                                                        ) : (
+                                                            <span className="text-[9px] font-bold text-emerald-500 uppercase tracking-tighter">· Verified</span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                <Badge variant="outline" className="text-[10px] font-bold border-slate-100 text-slate-400 rounded-full py-0">
+                                                    #{signal.id.substring(0, 4)}
+                                                </Badge>
+                                            </div>
+                                            <h3 className="text-2xl font-black text-slate-900 tracking-tight">
+                                                {signal.household_type}
+                                            </h3>
+                                        </div>
+
+                                        {/* 2) THE "I HAVE" SECTION - High Dominance */}
+                                        <div className="bg-emerald-50/50 border-2 border-emerald-100 rounded-[24px] p-6 relative overflow-hidden group/have">
+                                            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover/have:opacity-20 transition-opacity">
+                                                <DollarSign className="h-12 w-12 text-emerald-600" />
+                                            </div>
+                                            <span className="text-[10px] font-black text-emerald-600 uppercase tracking-[0.2em] block mb-2">MY CONTRIBUTION</span>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-3xl font-black text-emerald-700 tracking-tighter">
+                                                    💰 I HAVE {signal.capital_available}
+                                                </span>
+                                            </div>
+                                            <p className="text-[11px] font-bold text-emerald-600/70 mt-1 uppercase tracking-wider">Available for immediate partnership</p>
+                                        </div>
+
+                                        {/* 3) THE "I WANT" SECTION - Narrative Box */}
+                                        <div className="bg-purple-50/50 border-2 border-purple-100 rounded-[24px] p-6">
+                                            <span className="text-[10px] font-black text-roomie-purple uppercase tracking-[0.2em] block mb-3 text-opacity-70">I’M LOOKING FOR</span>
+                                            <p className="text-[17px] font-extrabold text-slate-800 leading-snug mb-4">
+                                                {signal.intended_use === 'Live-in'
+                                                    ? "I want to co-buy a home to live in together"
+                                                    : signal.intended_use === 'Investment'
+                                                        ? "Looking for a co-buyer for an investment property"
+                                                        : `Looking to partner on a ${signal.intended_use} property`}
+                                            </p>
+
+                                            {/* Context Chips */}
+                                            <div className="flex flex-wrap gap-2">
+                                                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white text-slate-600 rounded-lg text-[11px] font-bold shadow-sm border border-slate-100">
+                                                    {signal.intended_use === 'Live-in' ? <Home className="h-3.5 w-3.5 text-roomie-purple" /> : <TrendingUp className="h-3.5 w-3.5 text-emerald-500" />}
+                                                    {signal.intended_use}
+                                                </div>
+                                                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white text-slate-600 rounded-lg text-[11px] font-bold shadow-sm border border-slate-100">
+                                                    <Clock className="h-3.5 w-3.5 text-amber-500" />
+                                                    {signal.time_horizon}
+                                                </div>
+                                                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white text-slate-600 rounded-lg text-[11px] font-bold shadow-sm border border-slate-100">
+                                                    <MapPin className="h-3.5 w-3.5 text-blue-500" />
+                                                    Any Location
                                                 </div>
                                             </div>
+                                        </div>
 
-                                            {currentUserId === signal.user_id && (
+                                        {/* 4) Narrative Context (Optional sentence) */}
+                                        <div className="px-1">
+                                            <p className="text-[13px] font-medium text-slate-400 leading-relaxed italic">
+                                                {signal.notes ? (
+                                                    signal.notes.length > 100 ? `${signal.notes.substring(0, 100)}...` : signal.notes
+                                                ) : "Open to discussing structure, exit options, and premium locations."}
+                                            </p>
+                                        </div>
+
+                                        {/* 5) Primary Action */}
+                                        <div className="pt-4 mt-auto">
+                                            {currentUserId === signal.user_id ? (
                                                 <Button
-                                                    variant="secondary"
-                                                    size="sm"
-                                                    className="h-9 px-3 gap-2 bg-slate-100 hover:bg-roomie-purple hover:text-white text-slate-600 font-bold transition-all shadow-sm"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleOpenEditModal(signal);
-                                                    }}
+                                                    onClick={() => handleOpenEditModal(signal)}
+                                                    variant="outline"
+                                                    className="w-full border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-black text-sm h-14 rounded-2xl transition-all active:scale-95 shadow-sm uppercase tracking-widest"
                                                 >
-                                                    <Pencil className="h-4 w-4" /> Edit
+                                                    Edit My Signal
                                                 </Button>
+                                            ) : (
+                                                <MessageButton
+                                                    salesListingId={null}
+                                                    landlordId={signal.user_id}
+                                                    className="w-full bg-gradient-to-r from-roomie-purple to-indigo-600 hover:from-roomie-purple/90 hover:to-indigo-600/90 text-white font-black text-sm h-14 rounded-2xl shadow-[0_8px_16px_rgba(110,89,255,0.25)] transition-all active:scale-95 flex items-center justify-center gap-3 uppercase tracking-widest"
+                                                >
+                                                    <MessageSquare className="h-4 w-4" />
+                                                    Propose Partnership
+                                                </MessageButton>
                                             )}
                                         </div>
-                                        <div className="flex flex-col gap-1.5 text-slate-500 text-sm font-medium mt-2">
-                                            <span className="flex items-center gap-2">
-                                                <Home className="h-4 w-4 text-emerald-500" />
-                                                {signal.intended_use} Use
-                                            </span>
-                                            <span className="flex items-center gap-2">
-                                                <DollarSign className="h-4 w-4 text-emerald-500" />
-                                                {signal.capital_available} available
-                                            </span>
-                                            <span className="flex items-center gap-2">
-                                                <Clock className="h-4 w-4 text-emerald-500" />
-                                                {signal.time_horizon}
-                                            </span>
-                                        </div>
-                                    </CardHeader>
-                                    <CardContent className="p-4 pt-0">
-                                        <p className="text-slate-600 text-sm mb-4 line-clamp-3 min-h-[60px] italic">
-                                            "{signal.notes || "No additional notes provided."}"
-                                        </p>
-                                        <MessageButton
-                                            salesListingId={null}
-                                            landlordId={signal.user_id}
-                                            className="w-full bg-roomie-purple text-white py-3.5 rounded-2xl font-black text-sm hover:bg-roomie-purple/90 transition-all active:scale-95 shadow-lg shadow-purple-100"
-                                        >
-                                            Message Co-buyer
-                                        </MessageButton>
-                                    </CardContent>
+                                    </div>
                                 </Card>
                             ))}
                         </div>
@@ -569,136 +616,197 @@ export default function BuyingOpportunitiesPage() {
             </Tabs>
 
             <Dialog open={isCreateSignalOpen} onOpenChange={setIsCreateSignalOpen}>
-                <DialogContent className="sm:max-w-[500px]">
-                    <DialogHeader>
-                        <DialogTitle>{editingSignal ? "Edit Co-ownership Signal" : "Create Co-ownership Signal"}</DialogTitle>
-                        <DialogDescription>
-                            {editingSignal ? "Update the details of your signal." : "Let others know you're looking for a co-ownership opportunity."}
-                        </DialogDescription>
-                    </DialogHeader>
+                <DialogContent className="sm:max-w-[600px] p-0 overflow-hidden border-none shadow-2xl rounded-3xl">
+                    <div className="bg-roomie-purple p-8 text-white relative">
+                        <div className="absolute top-0 right-0 p-8 opacity-10">
+                            <Handshake className="h-24 w-24" />
+                        </div>
+                        <DialogHeader className="relative z-10">
+                            <DialogTitle className="text-3xl font-black tracking-tight text-white mb-2">
+                                Post Your Co-ownership Signal
+                            </DialogTitle>
+                            <DialogDescription className="text-purple-100 text-lg font-medium leading-tight">
+                                Let others quickly understand what you bring and what you’re looking for.
+                            </DialogDescription>
+                        </DialogHeader>
+                    </div>
+
                     <Form {...form}>
-                        <form onSubmit={form.handleSubmit(handleSubmitSignal)} className="grid gap-4 py-4">
-                            <FormField
-                                control={form.control}
-                                name="capital_available"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>💰 Capital Available</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="$30,000 – $50,000 or exact amount" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
+                        <form onSubmit={form.handleSubmit(handleSubmitSignal)} className="p-6 md:p-8 space-y-8 bg-white max-h-[80vh] overflow-y-auto">
+                            {/* Section 1: What I Have */}
+                            <div className="space-y-4">
+                                <div className="flex items-center gap-2 text-slate-900 border-b border-slate-100 pb-2">
+                                    <div className="bg-emerald-100 p-2 rounded-lg">
+                                        <Briefcase className="h-5 w-5 text-emerald-600" />
+                                    </div>
+                                    <h3 className="font-black text-xl tracking-tight">What I Have</h3>
+                                </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <FormField
-                                    control={form.control}
-                                    name="household_type"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>👤 Household Type</FormLabel>
-                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50/50 p-6 rounded-2xl border border-slate-100">
+                                    <FormField
+                                        control={form.control}
+                                        name="capital_available"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel className="text-slate-700 font-bold">Capital Available</FormLabel>
                                                 <FormControl>
-                                                    <SelectTrigger>
-                                                        <SelectValue placeholder="Select" />
-                                                    </SelectTrigger>
+                                                    <Input
+                                                        placeholder="$30,000 – $50,000"
+                                                        className="bg-white border-slate-200 focus:ring-roomie-purple focus:border-roomie-purple h-12 rounded-xl font-medium"
+                                                        {...field}
+                                                    />
                                                 </FormControl>
-                                                <SelectContent>
-                                                    <SelectItem value="Single">Single</SelectItem>
-                                                    <SelectItem value="Couple">Couple</SelectItem>
-                                                    <SelectItem value="Family">Family</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
+                                                <p className="text-[10px] text-slate-500 font-medium mt-1 uppercase tracking-wider">Cash available for down payment</p>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
 
-                                <FormField
-                                    control={form.control}
-                                    name="intended_use"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>🏠 Intended Use</FormLabel>
-                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                                <FormControl>
-                                                    <SelectTrigger>
-                                                        <SelectValue placeholder="Select" />
-                                                    </SelectTrigger>
-                                                </FormControl>
-                                                <SelectContent>
-                                                    <SelectItem value="Live-in">Live-in</SelectItem>
-                                                    <SelectItem value="Investment">Investment</SelectItem>
-                                                    <SelectItem value="Mixed">Mixed</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-
-                                <FormField
-                                    control={form.control}
-                                    name="time_horizon"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>⏳ Time Horizon</FormLabel>
-                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                                <FormControl>
-                                                    <SelectTrigger>
-                                                        <SelectValue placeholder="Select" />
-                                                    </SelectTrigger>
-                                                </FormControl>
-                                                <SelectContent>
-                                                    <SelectItem value="1–2 years">1–2 years</SelectItem>
-                                                    <SelectItem value="3–5 years">3–5 years</SelectItem>
-                                                    <SelectItem value="Flexible">Flexible</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
+                                    <FormField
+                                        control={form.control}
+                                        name="household_type"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel className="text-slate-700 font-bold">Household Type</FormLabel>
+                                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                    <FormControl>
+                                                        <SelectTrigger className="bg-white border-slate-200 focus:ring-roomie-purple focus:border-roomie-purple h-12 rounded-xl font-medium">
+                                                            <SelectValue placeholder="Select type" />
+                                                        </SelectTrigger>
+                                                    </FormControl>
+                                                    <SelectContent className="rounded-xl border-slate-200">
+                                                        <SelectItem value="Single">Single</SelectItem>
+                                                        <SelectItem value="Couple">Couple</SelectItem>
+                                                        <SelectItem value="Family">Family</SelectItem>
+                                                        <SelectItem value="Investor group">Investor group</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                                <p className="text-[10px] text-slate-500 font-medium mt-1 uppercase tracking-wider">Helps match with compatible co-owners</p>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                </div>
                             </div>
 
-                            <FormField
-                                control={form.control}
-                                name="notes"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>📝 Notes (Optional)</FormLabel>
-                                        <FormControl>
-                                            <Textarea placeholder="Goals, location preference, concerns..." {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
+                            {/* Section 2: What I'm Looking For */}
+                            <div className="space-y-4">
+                                <div className="flex items-center gap-2 text-slate-900 border-b border-slate-100 pb-2">
+                                    <div className="bg-blue-100 p-2 rounded-lg">
+                                        <SearchIcon className="h-5 w-5 text-blue-600" />
+                                    </div>
+                                    <h3 className="font-black text-xl tracking-tight">What I'm Looking For</h3>
+                                </div>
 
+                                <div className="space-y-6 bg-slate-50/50 p-6 rounded-2xl border border-slate-100">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <FormField
+                                            control={form.control}
+                                            name="intended_use"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel className="text-slate-700 font-bold">Intended Use</FormLabel>
+                                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                        <FormControl>
+                                                            <SelectTrigger className="bg-white border-slate-200 focus:ring-roomie-purple focus:border-roomie-purple h-12 rounded-xl font-medium">
+                                                                <SelectValue placeholder="Select use" />
+                                                            </SelectTrigger>
+                                                        </FormControl>
+                                                        <SelectContent className="rounded-xl border-slate-200">
+                                                            <SelectItem value="Live-in">Live-in</SelectItem>
+                                                            <SelectItem value="Investment">Investment</SelectItem>
+                                                            <SelectItem value="Mixed">Mixed</SelectItem>
+                                                        </SelectContent>
+                                                    </Select>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+
+                                        <FormField
+                                            control={form.control}
+                                            name="time_horizon"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel className="text-slate-700 font-bold">Time Horizon</FormLabel>
+                                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                        <FormControl>
+                                                            <SelectTrigger className="bg-white border-slate-200 focus:ring-roomie-purple focus:border-roomie-purple h-12 rounded-xl font-medium">
+                                                                <SelectValue placeholder="Select years" />
+                                                            </SelectTrigger>
+                                                        </FormControl>
+                                                        <SelectContent className="rounded-xl border-slate-200">
+                                                            <SelectItem value="1–2 years">1–2 years</SelectItem>
+                                                            <SelectItem value="3–5 years">3–5 years</SelectItem>
+                                                            <SelectItem value="Flexible">Flexible</SelectItem>
+                                                        </SelectContent>
+                                                    </Select>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                    </div>
+
+                                    <FormField
+                                        control={form.control}
+                                        name="notes"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel className="text-slate-700 font-bold">Preferences & Notes (Optional)</FormLabel>
+                                                <FormControl>
+                                                    <Textarea
+                                                        placeholder="Location preference, lifestyle, exit expectations, concerns..."
+                                                        className="bg-white border-slate-200 focus:ring-roomie-purple focus:border-roomie-purple rounded-xl font-medium min-h-[100px]"
+                                                        {...field}
+                                                    />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Trust & Legal Clarity */}
                             <FormField
                                 control={form.control}
                                 name="disclaimer"
                                 render={({ field }) => (
-                                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 bg-slate-50">
+                                    <FormItem className="flex flex-row items-center space-x-4 space-y-0 rounded-2xl border-2 border-indigo-100 p-5 bg-indigo-50/30">
                                         <FormControl>
                                             <Checkbox
                                                 checked={field.value}
                                                 onCheckedChange={field.onChange}
+                                                className="w-6 h-6 border-slate-300 data-[state=checked]:bg-roomie-purple data-[state=checked]:border-roomie-purple rounded-md"
                                             />
                                         </FormControl>
-                                        <div className="space-y-1 leading-none">
-                                            <FormLabel>
-                                                I understand this is non-binding and for group formation only
+                                        <div className="flex items-start gap-3">
+                                            <Shield className="h-5 w-5 text-indigo-500 mt-0.5 shrink-0" />
+                                            <FormLabel className="text-sm font-bold text-slate-700 leading-tight cursor-pointer">
+                                                I understand this signal is non-binding and used only to form potential co-ownership groups. No legal or financial commitment is created.
                                             </FormLabel>
                                         </div>
                                     </FormItem>
                                 )}
                             />
-                            <DialogFooter>
-                                <Button type="submit" className="bg-roomie-purple hover:bg-roomie-purple/90" disabled={form.formState.isSubmitting}>
-                                    {form.formState.isSubmitting ? (editingSignal ? "Updating..." : "Creating...") : (editingSignal ? "Update Signal" : "Create Signal")}
+
+                            <DialogFooter className="sticky bottom-0 bg-white pt-4 pb-0 flex items-center justify-between border-t border-slate-100">
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    className="text-slate-500 font-bold hover:bg-slate-50 px-6 h-12 rounded-xl"
+                                    onClick={() => setIsCreateSignalOpen(false)}
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    type="submit"
+                                    className="bg-roomie-purple hover:bg-roomie-purple/90 text-white font-black px-8 h-12 rounded-xl shadow-xl shadow-purple-100 transition-all active:scale-95 disabled:opacity-50"
+                                    disabled={form.formState.isSubmitting || !form.watch('disclaimer')}
+                                >
+                                    {form.formState.isSubmitting
+                                        ? (editingSignal ? "Updating..." : "Publishing...")
+                                        : (editingSignal ? "Update My Signal" : "Publish My Co-ownership Signal")}
                                 </Button>
                             </DialogFooter>
                         </form>

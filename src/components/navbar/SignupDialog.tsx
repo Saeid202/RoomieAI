@@ -33,16 +33,16 @@ export const SignupDialog = ({ isOpen, setIsOpen }: SignupDialogProps) => {
       // Simple signup - just email and password
       // Role and metadata will be handled after email verification
       const result = await signUp(values.email, values.password);
-      
+
       console.log("Signup successful, user data:", result.user);
       console.log("Selected role:", values.role);
-      
+
       // Store role for later (after email verification)
       localStorage.setItem('pendingRole', values.role);
       localStorage.setItem('pendingFullName', values.fullName);
-      
+
       setIsOpen(false);
-      
+
       // We should see a message about email verification
       toast({
         title: "Account created",
@@ -59,18 +59,18 @@ export const SignupDialog = ({ isOpen, setIsOpen }: SignupDialogProps) => {
       setIsLoading(false);
     }
   };
-  
+
   const handleSocialLogin = (provider: 'google' | 'facebook' | 'linkedin') => {
     // Make sure to get the current role selection from the form
     const formRole = document.querySelector('input[name="role"]:checked') as HTMLInputElement;
     const role = formRole ? formRole.value as UserRole : 'seeker';
-    
+
     // Store the role for OAuth flow
     console.log(`Setting pendingRole to ${role} for social login`);
     localStorage.setItem('pendingRole', role);
-    
+
     console.log(`Attempting social login with ${provider}, role: ${role}`);
-    
+
     if (provider === 'google') {
       signInWithGoogle();
     } else if (provider === 'facebook') {
@@ -79,7 +79,7 @@ export const SignupDialog = ({ isOpen, setIsOpen }: SignupDialogProps) => {
       signInWithLinkedIn();
     }
   };
-  
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent className="sm:max-w-[425px]">
@@ -88,15 +88,15 @@ export const SignupDialog = ({ isOpen, setIsOpen }: SignupDialogProps) => {
             Create an account
           </DialogTitle>
           <DialogDescription className="text-center">
-            Join RoomieMatch to find your perfect roommate or property match!
+            Join Roomie AI to find your perfect roommate or property match!
           </DialogDescription>
         </DialogHeader>
-        
-        <SignupForm 
+
+        <SignupForm
           onSubmit={handleSignupSubmit}
           isLoading={isLoading}
         />
-        
+
         <div className="relative mt-6 mb-4">
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-gray-300"></div>
@@ -105,17 +105,17 @@ export const SignupDialog = ({ isOpen, setIsOpen }: SignupDialogProps) => {
             <span className="px-2 bg-white text-gray-500">Or continue with</span>
           </div>
         </div>
-        
+
         <SocialLoginButtons
           onGoogleClick={() => handleSocialLogin('google')}
           onFacebookClick={() => handleSocialLogin('facebook')}
           onLinkedInClick={() => handleSocialLogin('linkedin')}
         />
-        
+
         <DialogFooter className="flex justify-center mt-4">
           <div className="text-sm text-center">
             Already have an account?{" "}
-            <button 
+            <button
               onClick={() => {
                 setIsOpen(false);
                 // You'd typically open the login dialog here

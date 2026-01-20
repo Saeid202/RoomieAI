@@ -26,6 +26,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { RentalApplication } from '@/services/rentalApplicationService';
 import { getApplicationDocuments, RentalDocument } from '@/services/rentalDocumentService';
+import { downloadContractPdf, getSignedContractPdfUrl } from '@/services/leaseContractService';
 import { toast } from 'sonner';
 
 interface ApplicationsListProps {
@@ -207,15 +208,21 @@ export function ApplicationsList({
 
   // Function to check if contract button should be shown
   const shouldShowContractButton = (application: any) => {
-    // Show contract button if:
-    // 1. Application has contract status data (contract exists)
-    // 2. OR application is approved (ready for contract)
-    // In a real app, this would check the actual contract status
-    return application.contract_status || application.status === 'approved';
+    // Show contract button if application is approved or a contract exists
+    const contract = application.lease_contract
+      ? (Array.isArray(application.lease_contract) ? application.lease_contract[0] : application.lease_contract)
+      : (Array.isArray(application.contract) ? application.contract[0] : application.contract);
+
+    return contract || application.status === 'approved';
   };
 
   // Function to get contract button text and variant
   const getContractButtonProps = (application: any) => {
+    // Handle new data structure where contract is under lease_contract
+    const contract = application.lease_contract
+      ? (Array.isArray(application.lease_contract) ? application.lease_contract[0] : application.lease_contract)
+      : (Array.isArray(application.contract) ? application.contract[0] : application.contract);
+
     // Handle withdrawn/rejected applications
     if (application.status === 'withdrawn' || application.status === 'rejected') {
       return {
@@ -226,8 +233,8 @@ export function ApplicationsList({
       };
     }
 
-    // If no contract status data, show "Create Contract" for approved applications
-    if (!application.contract_status) {
+    // If no contract, show "Create Contract" for approved applications
+    if (!contract) {
       if (application.status === 'approved') {
         return {
           text: 'Create Contract',
@@ -246,14 +253,14 @@ export function ApplicationsList({
     }
 
     // If contract exists, check signing status
-    if (application.contract_status.landlord_signed) {
+    if (contract.landlord_signature) {
       return {
         text: 'Contract Signed',
         variant: 'outline' as const,
         className: 'text-green-600 border-green-200',
-        disabled: true
+        disabled: false // Changed to false to allow viewing even when signed
       };
-    } else if (application.contract_status.applicant_signed) {
+    } else if (contract.tenant_signature) {
       return {
         text: 'Sign Contract',
         variant: 'default' as const,
@@ -494,21 +501,64 @@ export function ApplicationsList({
                       </Button>
                     )}
 
-                    {/* Contract Button - Show for all applications (for testing) */}
+                    {/* Contract Buttons */}
                     {onViewContract && (
                       (() => {
                         const contractProps = getContractButtonProps(application);
+                        // Handle new data structure where contract is under lease_contract
+                        const contract = application.lease_contract
+                          ? (Array.isArray(application.lease_contract) ? application.lease_contract[0] : application.lease_contract)
+                          : (Array.isArray(application.contract) ? application.contract[0] : application.contract);
+
+                        // Check for stored contract in new structure
+                        const storedContract = contract?.stored_contracts
+                          ? (Array.isArray(contract.stored_contracts) ? contract.stored_contracts[0] : contract.stored_contracts)
+                          : null;
+
                         return (
-                          <Button
-                            variant={contractProps.variant}
-                            size="sm"
-                            className={contractProps.className}
-                            disabled={contractProps.disabled}
-                            onClick={() => onViewContract(application)}
-                          >
-                            <FileSignature className="h-4 w-4 mr-1" />
-                            {contractProps.text}
-                          </Button>
+                          <div className="flex items-center gap-2">
+                            {(storedContract || contract) && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                                onClick={async (e) => {
+                                  e.stopPropagation();
+                                  try {
+                                    toast.info("Downloading contract...");
+
+                                    if (storedContract?.id) {
+                                      // Use new stored contract
+                                      toast.info("Fetching signed document...");
+                                      const url = await getSignedContractPdfUrl(contract.id);
+                                      window.open(url, '_blank');
+                                    } else {
+                                      // Fallback to dynamic generation
+                                      await downloadContractPdf(application.id, `Lease_Contract_${application.full_name.replace(/\s+/g, '_')}.pdf`);
+                                    }
+                                    toast.success("Download started!");
+                                  } catch (err) {
+                                    console.error("Download failed:", err);
+                                    toast.error("Failed to download contract");
+                                  }
+                                }}
+                              >
+                                <Download className="h-4 w-4 mr-1" />
+                                Download
+                              </Button>
+                            )}
+
+                            <Button
+                              variant={contractProps.variant}
+                              size="sm"
+                              className={contractProps.className}
+                              disabled={contractProps.disabled}
+                              onClick={() => onViewContract(application)}
+                            >
+                              <FileSignature className="h-4 w-4 mr-1" />
+                              {contractProps.text}
+                            </Button>
+                          </div>
                         );
                       })()
                     )}
@@ -553,11 +603,13 @@ export function ApplicationsList({
       </div>
 
       {/* Results Summary */}
-      {filteredApplications.length > 0 && (
-        <div className="text-sm text-muted-foreground text-center">
-          Showing {filteredApplications.length} of {applications.length} applications
-        </div>
-      )}
-    </div>
+      {
+        filteredApplications.length > 0 && (
+          <div className="text-sm text-muted-foreground text-center">
+            Showing {filteredApplications.length} of {applications.length} applications
+          </div>
+        )
+      }
+    </div >
   );
 }

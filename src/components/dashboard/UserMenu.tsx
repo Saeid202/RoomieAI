@@ -42,7 +42,7 @@ export function UserMenu() {
 
         <div className="block md:hidden">
           <h2 className="text-xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-            RoomieMatch
+            Roomie AI
           </h2>
         </div>
       </div>

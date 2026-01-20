@@ -18,10 +18,10 @@ export function RoleToggle() {
   const { user, updateMetadata } = useAuth();
   const [isRoleSwitching, setIsRoleSwitching] = useState(false);
   const [showRoleDialog, setShowRoleDialog] = useState(false);
-  
+
   // Get the user's assigned role from metadata
   const assignedRole = user?.user_metadata?.role as UserRole | undefined;
-  
+
   useEffect(() => {
     // Ensure the user's role matches their assigned role if they have one
     if (assignedRole && role !== assignedRole) {
@@ -31,16 +31,16 @@ export function RoleToggle() {
 
   const handleRoleChange = async (newRole: UserRole) => {
     if (newRole === role) return;
-    
+
     setIsRoleSwitching(true);
     try {
       await updateMetadata({ role: newRole });
-      
+
       setRole(newRole);
-      
+
       toast({
         title: "Role updated",
-        description: `You are now using RoomieMatch as a ${getRoleDisplay(newRole)}`,
+        description: `You are now using Roomie AI as a ${getRoleDisplay(newRole)}`,
       });
     } catch (error) {
       console.error("Error changing role:", error);
@@ -103,8 +103,8 @@ export function RoleToggle() {
     <div className="flex flex-col space-y-2 p-4 border-b border-sidebar-border">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             className="flex items-center justify-between w-full p-2 hover:bg-sidebar-accent"
             disabled={isRoleSwitching}
           >
@@ -116,7 +116,7 @@ export function RoleToggle() {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-56" align="start">
-          <DropdownMenuItem 
+          <DropdownMenuItem
             onClick={() => setShowRoleDialog(true)}
             className="cursor-pointer"
           >
@@ -125,13 +125,13 @@ export function RoleToggle() {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-      
+
       <p className="text-xs text-muted-foreground text-center">
         {roleInfo.description}
       </p>
 
-      <RoleSelectionDialog 
-        isOpen={showRoleDialog} 
+      <RoleSelectionDialog
+        isOpen={showRoleDialog}
         onClose={() => setShowRoleDialog(false)}
         onRoleSelect={handleRoleChange}
         currentRole={role as UserRole}

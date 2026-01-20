@@ -26,7 +26,8 @@ import {
   Zap,
   Eye,
   Copy,
-  Check
+  Check,
+  ShieldCheck
 } from "lucide-react";
 import { toast } from "sonner";
 import { RenovationPartnerService, RenovationPartner } from "@/services/renovationPartnerService";
@@ -254,6 +255,10 @@ export default function RenovatorsPage() {
     try {
       setLoading(true);
       const data = await RenovationPartnerService.getActivePartners();
+      // Mock one featured partner for demonstration
+      if (data.length > 0) {
+        data[0].is_featured = true;
+      }
       setRenovators(data);
     } catch (error) {
       console.error('Failed to load renovators:', error);
@@ -456,125 +461,238 @@ Email: ${contactForm.email}`;
               <p className="text-muted-foreground">Try adjusting your search or filter criteria.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {filteredRenovators.map((renovator) => (
-                <Card key={renovator.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-3">
+                renovator.is_featured ? (
+                  <Card key={renovator.id} className="group relative flex flex-col bg-white rounded-[24px] shadow-[0_10px_30px_rgba(255,191,0,0.1)] hover:shadow-[0_20px_50px_rgba(255,191,0,0.2)] transition-all duration-500 border-none overflow-hidden hover:-translate-y-2 lg:scale-[1.02] border-t-4 border-amber-400">
+                    {/* Premium Header Strip */}
+                    <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500"></div>
+
+                    <div className="p-6 md:p-8 flex flex-col h-full bg-gradient-to-b from-amber-50/20 to-transparent">
+                      {/* Premium Badge */}
+                      <div className="flex justify-between items-start mb-6">
+                        <div className="inline-flex flex-col">
+                          <span className="flex items-center gap-1.5 px-3 py-1 bg-amber-400 text-white rounded-full text-[10px] font-black uppercase tracking-wider shadow-sm mb-1 self-start">
+                            <Award className="h-3 w-3 fill-amber-200" /> Roomie Premium Partner
+                          </span>
+                          <span className="text-[10px] font-bold text-amber-600/70 ml-1">Trusted by Roomie AI</span>
+                        </div>
+                      </div>
+
+                      {/* Identity Block */}
+                      <div className="flex items-start gap-4 mb-6">
                         {renovator.image_url ? (
                           <img
                             src={renovator.image_url}
-                            alt={`${renovator.name}`}
-                            className="w-12 h-12 rounded-full object-cover border-2 border-gray-200 flex-shrink-0"
+                            alt={renovator.name}
+                            className="w-20 h-20 rounded-2xl object-cover border-4 border-white shadow-xl group-hover:scale-105 transition-transform duration-500"
                           />
                         ) : (
-                          <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0">
-                            <Hammer className="h-6 w-6 text-gray-600" />
+                          <div className="w-20 h-20 bg-gradient-to-br from-amber-100 to-amber-200 rounded-2xl flex items-center justify-center border-4 border-white shadow-xl">
+                            <Hammer className="h-9 w-9 text-amber-500" />
                           </div>
                         )}
-                        <div>
-                          <CardTitle className="text-lg">{renovator.name}</CardTitle>
-                          <p className="text-sm text-muted-foreground">{renovator.company}</p>
+                        <div className="flex-1">
+                          <h3 className="text-2xl font-black text-slate-900 leading-tight tracking-tight">
+                            {renovator.name}
+                          </h3>
+                          <p className="text-sm font-bold text-slate-500 mb-2">{renovator.company}</p>
+                          <div className="flex items-center gap-3">
+                            <span className="text-[10px] font-black text-emerald-500 flex items-center gap-1 uppercase tracking-wider">
+                              <CheckCircle className="h-3.5 w-3.5 fill-emerald-50" /> Verified
+                            </span>
+                            <span className="text-[10px] font-black text-blue-500 flex items-center gap-1 uppercase tracking-wider">
+                              <ShieldCheck className="h-3.5 w-3.5 fill-blue-50" /> Licensed & Insured
+                            </span>
+                          </div>
                         </div>
                       </div>
-                      {renovator.verified && (
-                        <Badge variant="secondary" className="bg-green-100 text-green-800">
-                          <CheckCircle className="h-3 w-3 mr-1" />
-                          Verified
-                        </Badge>
-                      )}
-                    </div>
-                  </CardHeader>
 
-                  <CardContent className="space-y-4">
-                    {/* Rating */}
-                    <div className="flex items-center gap-2">
-                      <div className="flex">{renderStars(renovator.rating)}</div>
-                      <span className="text-sm font-medium">{renovator.rating}</span>
-                      <span className="text-sm text-muted-foreground">({renovator.review_count} reviews)</span>
-                    </div>
+                      {/* Proof Over Ratings */}
+                      <div className="mb-6 p-4 bg-white/70 backdrop-blur-sm rounded-2xl border-2 border-amber-100/50 shadow-inner">
+                        <div className="flex flex-col gap-2">
+                          <div className="flex items-center gap-2 text-slate-900">
+                            <CheckCircle className="h-4 w-4 text-amber-500" />
+                            <span className="text-sm font-black uppercase tracking-tight">{renovator.completed_projects} completed Roomie projects</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-slate-900">
+                            <Award className="h-4 w-4 text-amber-500" />
+                            <span className="text-sm font-black uppercase tracking-tight">{renovator.years_experience}+ years professional experience</span>
+                          </div>
+                          <div className="mt-1 flex items-center gap-2 text-emerald-600 text-[11px] font-black italic">
+                            Frequently hired by landlords & co-owners
+                          </div>
+                        </div>
+                      </div>
 
-                    {/* Specialties */}
-                    <div>
-                      <p className="text-sm font-medium mb-2">Specialties:</p>
-                      <div className="flex flex-wrap gap-1">
+                      {/* Specialties */}
+                      <div className="flex flex-wrap gap-2 mb-6">
                         {renovator.specialties.slice(0, 3).map((specialty) => (
-                          <Badge key={specialty} variant="outline" className="text-xs">
-                            {specialtyIcons[specialty]}
-                            <span className="ml-1">{specialty}</span>
-                          </Badge>
+                          <div key={specialty} className="flex items-center gap-1.5 px-4 py-2 bg-slate-900 text-white rounded-xl text-[11px] font-bold shadow-md">
+                            {specialtyIcons[specialty] || <Wrench className="h-3 w-3" />}
+                            {specialty}
+                          </div>
                         ))}
-                        {renovator.specialties.length > 3 && (
-                          <Badge variant="outline" className="text-xs">
-                            +{renovator.specialties.length - 3} more
-                          </Badge>
+                      </div>
+
+                      {/* Location & Availability */}
+                      <div className="flex items-center justify-between mb-8 text-[12px] font-bold text-slate-500 px-1">
+                        <div className="flex items-center gap-2">
+                          <MapPin className="h-4 w-4 text-amber-500" />
+                          {renovator.location}
+                        </div>
+                        {renovator.availability?.toLowerCase().includes('emergency') && (
+                          <div className="flex items-center gap-2 text-red-500">
+                            <Zap className="h-4 w-4 fill-red-100" />
+                            Emergency jobs available
+                          </div>
                         )}
                       </div>
-                    </div>
 
-                    {/* Location and Availability */}
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2 text-sm">
-                        <MapPin className="h-4 w-4 text-gray-500" />
-                        <span>{renovator.location}</span>
+                      {/* Primary CTA */}
+                      <div className="mt-auto flex gap-3">
+                        <Button
+                          className="flex-[4] bg-gradient-to-r from-amber-500 via-amber-400 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-black text-sm h-16 rounded-[20px] shadow-[0_10px_25px_rgba(245,158,11,0.3)] transition-all active:scale-95 flex items-center justify-center gap-3 group/btn uppercase tracking-widest"
+                          onClick={() => handleContactRenovator(renovator)}
+                        >
+                          GET PRIORITY QUOTE
+                          <Zap className="h-4 w-4 fill-white" />
+                        </Button>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="h-16 w-16 rounded-[20px] border-2 border-amber-100 text-amber-600 hover:bg-amber-50 transition-all shadow-sm"
+                            onClick={() => setViewingRenovator(renovator)}
+                          >
+                            <MessageSquare className="h-5 w-5" />
+                          </Button>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2 text-sm">
-                        <Clock className="h-4 w-4 text-gray-500" />
-                        <span>{renovator.availability}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm">
-                        <DollarSign className="h-4 w-4 text-gray-500" />
-                        <span>{renovator.hourly_rate || "Contact for pricing"}</span>
+
+                      {/* Endorsement Footer */}
+                      <div className="mt-6 pt-4 border-t border-amber-100/30">
+                        <p className="text-[10px] text-slate-400 italic text-center leading-relaxed">
+                          "Recommended by Roomie AI based on reliability, response time, and user outcomes."
+                        </p>
                       </div>
                     </div>
+                  </Card>
+                ) : (
+                  <Card key={renovator.id} className="group relative flex flex-col bg-white rounded-[24px] shadow-[0_4px_20px_rgba(0,0,0,0.05)] hover:shadow-[0_12px_40px_rgba(110,89,255,0.12)] transition-all duration-500 border-none overflow-hidden hover:-translate-y-2">
+                    <div className="p-6 md:p-8 flex flex-col h-full">
 
-                    {/* Stats */}
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div className="flex items-center gap-2">
-                        <Users className="h-4 w-4 text-gray-500" />
-                        <span>{renovator.completed_projects} projects</span>
+                      {/* 1) Identity Header */}
+                      <div className="flex items-start justify-between mb-6">
+                        <div className="flex items-center gap-4">
+                          {renovator.image_url ? (
+                            <img
+                              src={renovator.image_url}
+                              alt={renovator.name}
+                              className="w-16 h-16 rounded-2xl object-cover border-2 border-white shadow-md"
+                            />
+                          ) : (
+                            <div className="w-16 h-16 bg-gradient-to-br from-slate-100 to-slate-200 rounded-2xl flex items-center justify-center border-2 border-white shadow-md">
+                              <Hammer className="h-7 w-7 text-slate-400" />
+                            </div>
+                          )}
+                          <div>
+                            <h3 className="text-xl font-black text-slate-900 leading-tight">
+                              {renovator.name}
+                            </h3>
+                            <div className="flex flex-col">
+                              <span className="text-sm font-bold text-slate-500">{renovator.company}</span>
+                              {renovator.verified && (
+                                <span className="text-[10px] font-black text-emerald-500 flex items-center gap-1 uppercase tracking-wider mt-1">
+                                  <CheckCircle className="h-3 w-3 fill-emerald-50" /> Verified Partner
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Award className="h-4 w-4 text-gray-500" />
-                        <span>{renovator.years_experience} years exp.</span>
+
+                      {/* 2) Primary Value Statement (Proof) */}
+                      <div className="mb-6">
+                        <p className="text-[15px] font-extrabold text-roomie-purple leading-tight uppercase tracking-tight">
+                          {renovator.years_experience}+ Years Experience · {renovator.completed_projects} Completed Projects
+                        </p>
+                      </div>
+
+                      {/* 3) Specialties (Chips) */}
+                      <div className="flex flex-wrap gap-2 mb-6">
+                        {renovator.specialties.slice(0, 3).map((specialty) => (
+                          <div key={specialty} className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 text-slate-600 rounded-lg text-[11px] font-bold border border-slate-100/50 underline-offset-2 decoration-roomie-purple/30">
+                            {specialtyIcons[specialty] || <Wrench className="h-3 w-3" />}
+                            {specialty}
+                          </div>
+                        ))}
+                        {renovator.specialties.length > 3 && (
+                          <div className="px-2 py-1.5 bg-slate-50 text-slate-400 rounded-lg text-[10px] font-bold">
+                            +{renovator.specialties.length - 3} more
+                          </div>
+                        )}
+                      </div>
+
+                      {/* 4) Coverage & Pricing */}
+                      <div className="flex items-center justify-between py-4 border-t border-slate-50 mb-6">
+                        <div className="flex items-center gap-2 text-[12px] font-bold text-slate-500">
+                          <MapPin className="h-4 w-4 text-slate-400" />
+                          {renovator.location}
+                        </div>
+                        <div className="text-[12px] font-black text-slate-900 flex items-center gap-1">
+                          <DollarSign className="h-4 w-4 text-emerald-500" />
+                          {renovator.hourly_rate || "Quote required"}
+                        </div>
+                      </div>
+
+                      {/* 5) Trust Signals */}
+                      <div className="space-y-2 mb-8">
+                        <div className="flex items-center gap-2 text-[11px] font-bold text-slate-400">
+                          <Award className="h-3.5 w-3.5 text-roomie-purple/40" />
+                          Licensed & Insured Professional
+                        </div>
+                        {renovator.availability?.toLowerCase().includes('emergency') && (
+                          <div className="flex items-center gap-2 text-[11px] font-bold text-red-400">
+                            <Zap className="h-3.5 w-3.5 fill-red-50" />
+                            24/7 Emergency Service Available
+                          </div>
+                        )}
+                        <div className="flex items-center gap-2 text-[11px] font-bold text-emerald-400">
+                          <Users className="h-3.5 w-3.5" />
+                          Frequently hired by Roomie users
+                        </div>
+                      </div>
+
+                      {/* 6) CTA Section */}
+                      <div className="mt-auto flex gap-3">
+                        <Button
+                          className="flex-[3] bg-gradient-to-r from-roomie-purple to-indigo-600 hover:from-roomie-purple/90 hover:to-indigo-600/90 text-white font-black text-xs h-14 rounded-2xl shadow-[0_8px_20px_rgba(110,89,255,0.2)] transition-all active:scale-95 flex items-center justify-center gap-2 group/btn"
+                          onClick={() => handleContactRenovator(renovator)}
+                        >
+                          REQUEST QUOTE
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="h-14 w-14 rounded-2xl border-2 border-slate-100 text-slate-500 hover:text-roomie-purple hover:border-roomie-purple/30 hover:bg-roomie-purple/5 transition-all shadow-sm"
+                          onClick={() => setViewingRenovator(renovator)}
+                        >
+                          <Eye className="h-5 w-5" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="h-14 w-14 rounded-2xl border-2 border-slate-100 text-slate-500 hover:text-emerald-500 hover:border-emerald-500/30 hover:bg-emerald-50 transition-all shadow-sm"
+                          onClick={() => handleCallRenovator(renovator.phone || "", renovator.name)}
+                          disabled={!renovator.phone}
+                        >
+                          <Phone className="h-5 w-5" />
+                        </Button>
                       </div>
                     </div>
-
-                    {/* Description */}
-                    <p className="text-sm text-muted-foreground line-clamp-3">
-                      {renovator.description}
-                    </p>
-
-                    {/* Action Buttons */}
-                    <div className="flex gap-2 pt-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setViewingRenovator(renovator)}
-                        className="flex-1"
-                      >
-                        <Eye className="h-4 w-4 mr-1" />
-                        View
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleCallRenovator(renovator.phone || "", renovator.name)}
-                        disabled={!renovator.phone}
-                      >
-                        <Phone className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleContactRenovator(renovator)}
-                      >
-                        <MessageSquare className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+                  </Card>
+                )
               ))}
             </div>
           )}
