@@ -205,12 +205,12 @@ export default function RenovatorDashboard() {
 
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Renovator Dashboard</h1>
+          <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">Renovator Dashboard</h1>
         </div>
         <div className="flex gap-2">
           <Link to="/renovator/availability">
-            <span className={`px-4 py-1.5 rounded-full text-sm font-semibold flex items-center gap-2 cursor-pointer transition-all border ${status === 'Online' ? 'bg-green-100 text-green-800 border-green-200 hover:bg-green-200' : 'bg-slate-100 text-slate-800 border-slate-200 hover:bg-slate-200'}`}>
-              <span className={`w-2.5 h-2.5 rounded-full ${status === 'Online' ? 'bg-green-500 animate-pulse' : 'bg-slate-400'}`}></span>
+            <span className={`px-4 py-1.5 rounded-full text-sm font-semibold flex items-center gap-2 cursor-pointer transition-all border ${status === 'Online' ? 'bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border-green-200 hover:from-green-200 hover:to-emerald-200' : 'bg-gradient-to-r from-slate-100 to-gray-100 text-slate-800 border-slate-200 hover:from-slate-200 hover:to-gray-200'}`}>
+              <span className={`w-2.5 h-2.5 rounded-full ${status === 'Online' ? 'bg-gradient-to-r from-green-500 to-emerald-500 animate-pulse' : 'bg-gradient-to-r from-slate-400 to-gray-400'}`}></span>
               {status}
             </span>
           </Link>
@@ -244,7 +244,7 @@ export default function RenovatorDashboard() {
           onClick={() => navigate("/renovator/jobs")}
         />
 
-        {/* Availability Master Box */}
+        {/* Tax Intelligence Master Box */}
         <MasterBox
           title="4. Availability"
           description="Set your availability and working schedule."
@@ -252,7 +252,7 @@ export default function RenovatorDashboard() {
           onClick={() => navigate("/renovator/availability")}
         />
 
-        {/* Tax Intelligence Master Box */}
+        {/* Service Area Master Box */}
         <MasterBox
           title="5. Tax Intelligence"
           description="AI-powered tax assistance and financial insights."

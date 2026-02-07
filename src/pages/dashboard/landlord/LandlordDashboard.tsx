@@ -124,7 +124,20 @@ export default function LandlordDashboardPage() {
           description="Manage your landlord profile and account settings."
           icon={User}
           onClick={() => navigate("/dashboard/landlord/profile")}
-        />
+        >
+          <div className="space-y-1">
+            <SubFeatureButton 
+              emoji="📅" 
+              label="Availability"
+              onClick={() => navigate("/dashboard/landlord/availability")}
+            />
+            <SubFeatureButton 
+              emoji="🔧" 
+              label="Service Area"
+              onClick={() => navigate("/dashboard/landlord/service-area")}
+            />
+          </div>
+        </MasterBox>
 
         {/* My Properties Master Box */}
         <MasterBox
