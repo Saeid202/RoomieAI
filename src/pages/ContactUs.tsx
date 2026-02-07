@@ -138,8 +138,8 @@ const ContactUs = () => {
                     <div className="ml-4">
                       <h3 className="text-lg font-medium text-gray-800">Email</h3>
                       <p className="mt-1 text-gray-600">
-                        <a href="mailto:support@roomieai.com" className="text-roomie-purple hover:underline">
-                          support@roomieai.com
+                        <a href="mailto:shabani_saeid@hotmail.com" className="text-roomie-purple hover:underline">
+                          shabani_saeid@hotmail.com
                         </a>
                       </p>
                       <p className="mt-1 text-gray-500 text-sm">For general inquiries and support</p>
@@ -153,8 +153,8 @@ const ContactUs = () => {
                     <div className="ml-4">
                       <h3 className="text-lg font-medium text-gray-800">Phone</h3>
                       <p className="mt-1 text-gray-600">
-                        <a href="tel:+18001234567" className="text-roomie-purple hover:underline">
-                          +1 (800) 123-4567
+                        <a href="tel:+14168825015" className="text-roomie-purple hover:underline">
+                          416-882-5015
                         </a>
                       </p>
                       <p className="mt-1 text-gray-500 text-sm">Monday-Friday, 9AM-5PM EST</p>
@@ -168,9 +168,8 @@ const ContactUs = () => {
                     <div className="ml-4">
                       <h3 className="text-lg font-medium text-gray-800">Address</h3>
                       <p className="mt-1 text-gray-600">
-                        123 Matching Street<br />
-                        Suite 100<br />
-                        San Francisco, CA 94105
+                        9131 Keele Street<br />
+                        Vaughan, Ontario, L4K 0G7
                       </p>
                     </div>
                   </div>

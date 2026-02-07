@@ -98,13 +98,39 @@ export default function AutoPayPage() {
     scheduleId: null,
     newStatus: false
   });
+
+  // Credit Reporting Consent
+  const { user } = useAuth();
+  const [isConsentGiven, setIsConsentGiven] = useState(false);
+  const [showConsentModal, setShowConsentModal] = useState(false);
+  const [pendingScheduleToggle, setPendingScheduleToggle] = useState<{ scheduleId: string, newStatus: boolean } | null>(null);
+
+  useEffect(() => {
+    // Check existing consent
+    const checkConsent = async () => {
+      if (!user?.id) return;
+      const { data } = await supabase
+        .from('user_consents' as any)
+        .select('granted')
+        .eq('user_id', user.id)
+        .eq('consent_type', 'rent_credit_reporting')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if ((data as any)?.granted) setIsConsentGiven(true);
+    };
+    checkConsent();
+  }, [user?.id]);
+
   const [userPaymentMethods, setUserPaymentMethods] = useState<any[]>([]);
+  const [walletConfig, setWalletConfig] = useState<any>(null);
 
   useEffect(() => {
     loadAutoPayData();
   }, []);
 
-  const { user } = useAuth();
+
 
   const loadAutoPayData = async () => {
     if (!user) return;
@@ -142,12 +168,22 @@ export default function AutoPayPage() {
       if (methodError) console.error("Error fetching methods:", methodError);
       setUserPaymentMethods(methods || []);
 
-      // 3. Fetch Installments for all leases
+      // 3. Fetch Wallet Config
+      const { data: config, error: configError } = await supabase
+        .from('seeker_digital_wallet_configs' as any)
+        .select('payment_method_type')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (configError) console.error("Error fetching wallet config:", configError);
+      setWalletConfig(config);
+
+      // 4. Fetch Installments for all leases
       const { data: installmentsData, error: installmentError } = await supabase
         .from('rent_ledgers' as any)
         .select('id, lease_id, due_date, rent_amount, status')
         .in('lease_id', (leases || []).map((l: any) => l.id))
-        .eq('status', 'unpaid')
+        .in('status', ['unpaid', 'processing'])
         .gte('due_date', new Date().toISOString().split('T')[0])
         .order('due_date', { ascending: true });
 
@@ -204,8 +240,13 @@ export default function AutoPayPage() {
 
     // Eligibility Check: Must have payment method to turn ON
     if (newStatus === true) {
-      if (userPaymentMethods.length === 0) {
-        toast.error("You must save a credit or debit card in your Digital Wallet before enabling Auto-Pay.");
+      if (walletConfig?.payment_method_type !== 'bank') {
+        toast.error("Auto-Pay is only available for Bank Account (PAD) payments to keep fees low.");
+        return;
+      }
+
+      if (userPaymentMethods.filter(m => m.card_type === 'bank_account').length === 0) {
+        toast.error("You must connect a bank account in your Digital Wallet before enabling Auto-Pay.");
         return;
       }
 
@@ -222,8 +263,20 @@ export default function AutoPayPage() {
     const { scheduleId, newStatus } = confirmDialog;
     if (!scheduleId) return;
 
+    // Credit Reporting Intercept
+    if (newStatus && !isConsentGiven) {
+      setConfirmDialog({ ...confirmDialog, open: false });
+      setPendingScheduleToggle({ scheduleId, newStatus });
+      setShowConsentModal(true);
+      return;
+    }
+
+    finalizeToggle(scheduleId, newStatus);
+  };
+
+  const finalizeToggle = async (scheduleId: string, newStatus: boolean) => {
     try {
-      setConfirmDialog({ ...confirmDialog, open: false }); // Close immediately
+      setConfirmDialog(prev => ({ ...prev, open: false }));
 
       // Optimistic update
       setSchedules(prev => prev.map(schedule =>
@@ -387,18 +440,30 @@ export default function AutoPayPage() {
                         checked={schedule.isActive}
                         onCheckedChange={() => initiateToggle(schedule.id, schedule.isActive)}
                         className="data-[state=checked]:bg-indigo-600"
-                        disabled={!schedule.isActive && (userPaymentMethods.length === 0 || schedule.installments.length === 0)}
+                        disabled={
+                          (!schedule.isActive && (walletConfig?.payment_method_type !== 'bank' || schedule.installments.filter(i => i.status === 'unpaid').length === 0)) ||
+                          schedule.installments.some(i => i.status === 'processing')
+                        }
                       />
                       <span className={`text-xs font-semibold px-3 py-1 rounded-full transition-colors ${schedule.isActive ? 'bg-indigo-100 text-indigo-700' : 'text-slate-400'}`}>
                         On
                       </span>
                     </div>
-                    <p className="text-[10px] text-muted-foreground font-medium text-center">
-                      {!schedule.isActive && userPaymentMethods.length === 0
-                        ? 'Add card to enable'
-                        : !schedule.isActive && schedule.installments.length === 0
-                          ? 'No upcoming charges'
-                          : schedule.isActive ? 'Next payment automatic' : 'Manual payments only'}
+                    <p className="text-[10px] text-muted-foreground font-medium text-center max-w-[140px]">
+                      {schedule.installments.some(i => i.status === 'processing')
+                        ? 'Locked: Payment currently processing.'
+                        : walletConfig?.payment_method_type !== 'bank'
+                          ? 'Autopay is only available for Bank Accounts to keep fees low.'
+                          : !schedule.isActive && schedule.installments.filter(i => i.status === 'unpaid').length === 0
+                            ? 'No upcoming charges'
+                            : (
+                              <div className="space-y-1">
+                                <span>Autopay is available for bank transfers.</span>
+                                {schedule.amount * 0.029 + 0.30 >= 1.00 && (
+                                  <span className="block text-emerald-600 font-bold animate-pulse">💸 Saves ${(schedule.amount * 0.029 + 0.30).toFixed(2)}/mo</span>
+                                )}
+                              </div>
+                            )}
                     </p>
                   </div>
 
@@ -484,6 +549,59 @@ export default function AutoPayPage() {
             >
               {confirmDialog.newStatus ? "Enable Auto-Pay" : "Disable Auto-Pay"}
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Credit Reporting Consent Modal */}
+      <Dialog open={showConsentModal} onOpenChange={setShowConsentModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Credit Reporting Consent</DialogTitle>
+          </DialogHeader>
+          <div className="py-4 space-y-3 text-slate-700">
+            <p>
+              By opting in, you allow Roomie AI to report your rent payment history to credit bureaus (such as Equifax or TransUnion) to help build your credit profile.
+            </p>
+            <div className="bg-indigo-50 p-3 rounded-lg border border-indigo-100 text-sm">
+              <p className="font-semibold text-indigo-900 mb-1">Reporting includes:</p>
+              <ul className="list-disc pl-5 space-y-1 text-indigo-800">
+                <li>Rent amount</li>
+                <li>Payment date</li>
+                <li>On-time or late status</li>
+              </ul>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              You can opt out at any time. Opting out stops future reporting and does not remove previously reported data.
+            </p>
+          </div>
+          <div className="flex justify-end gap-3">
+            <Button variant="outline" onClick={() => { setShowConsentModal(false); setPendingScheduleToggle(null); }}>Cancel</Button>
+            <Button onClick={async () => {
+              try {
+                const { error } = await supabase.from('user_consents' as any).insert({
+                  user_id: user?.id,
+                  consent_type: 'rent_credit_reporting',
+                  granted: true,
+                  source: 'autopay_setup'
+                });
+
+                if (error) throw error;
+
+                setIsConsentGiven(true);
+                setShowConsentModal(false);
+                toast.success("Credit reporting enabled!");
+
+                // Resume pending toggle
+                if (pendingScheduleToggle) {
+                  finalizeToggle(pendingScheduleToggle.scheduleId, pendingScheduleToggle.newStatus);
+                  setPendingScheduleToggle(null);
+                }
+              } catch (err) {
+                console.error("Error saving consent:", err);
+                toast.error("Failed to save consent.");
+              }
+            }} className="bg-indigo-600 hover:bg-indigo-700">Confirm & Enable</Button>
           </div>
         </DialogContent>
       </Dialog>

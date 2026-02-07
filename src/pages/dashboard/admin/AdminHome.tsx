@@ -1,15 +1,17 @@
 
-import { 
-  LayoutDashboard, 
-  Users, 
-  FileText, 
+import {
+  LayoutDashboard,
+  Users,
+  FileText,
   Hammer,
   Sparkles,
+  BarChart3,
+  Database,
   Settings
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "react-router-dom";
-import { 
+import {
   EnhancedPageLayout,
   EnhancedHeader,
   EnhancedCard,
@@ -90,6 +92,34 @@ export default function AdminHomePage() {
           </EnhancedCard>
         </Link>
 
+        <Link to="/dashboard/admin/reporting" className="block">
+          <EnhancedCard className="h-full">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-lg font-medium">Rent Reporting Preview</CardTitle>
+              <BarChart3 className="h-5 w-5 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                Review internal rent payment performance history
+              </p>
+            </CardContent>
+          </EnhancedCard>
+        </Link>
+
+        <Link to="/dashboard/admin/reporting-batches" className="block">
+          <EnhancedCard className="h-full">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-lg font-medium">Reporting Jobs</CardTitle>
+              <Database className="h-5 w-5 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                Manage monthly reporting batches (Dry Run)
+              </p>
+            </CardContent>
+          </EnhancedCard>
+        </Link>
+
         <Link to="/dashboard/admin/settings" className="block">
           <EnhancedCard className="h-full">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -104,7 +134,7 @@ export default function AdminHomePage() {
           </EnhancedCard>
         </Link>
       </div>
-      
+
       <div className="grid grid-cols-1 gap-6">
         <EnhancedCard>
           <CardHeader>

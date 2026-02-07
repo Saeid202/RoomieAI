@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS public.lease_contracts (
     additional_terms TEXT,
     
     -- Status
-    status VARCHAR(50) DEFAULT 'draft' CHECK (status IN ('draft', 'pending_landlord_signature', 'pending_tenant_signature', 'fully_signed', 'executed', 'cancelled')),
+    status VARCHAR(50) DEFAULT 'draft' CHECK (status IN ('draft', 'pending_landlord_signature', 'pending_tenant_signature', 'fully_signed', 'executed', 'active', 'cancelled')),
     
     -- Signatures
     landlord_signature JSONB,

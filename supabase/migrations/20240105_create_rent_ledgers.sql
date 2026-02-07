@@ -22,7 +22,9 @@ ALTER TABLE public.rent_ledgers ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can view their own rent ledgers" ON public.rent_ledgers
     FOR SELECT USING (auth.uid() = tenant_id OR auth.uid() IN (SELECT user_id FROM properties WHERE id = property_id));
 
+-- TEMPORARY SAFETY CHECK (Local/Dev Only)
 -- Add auto_pay_enabled to lease_contracts if not exists
+-- This handles cases where lease_contracts was created without these columns
 DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'lease_contracts' AND column_name = 'auto_pay_enabled') THEN

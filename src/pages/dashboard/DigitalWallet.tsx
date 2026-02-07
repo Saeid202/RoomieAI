@@ -46,12 +46,14 @@ import {
   Pencil,
   Check,
   X,
+  Search,
+  Star,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { StripeConnectProvider } from "@/components/stripe/StripeConnectProvider";
 import { ConnectAccountOnboarding, ConnectAccountManagement } from "@stripe/react-connect-js";
 
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || "pk_live_51SIhcgRkKDAtZpXYFqQ1OK4OrOp6Y8j0ZN6F2qOKJzoKZeoCCfnLm4xjr5CI3L7s08EABtD1G87wcWNQ5b6kOw5o00E03lFJYY");
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || "pk_test_51SIhcgRkKDAtZpXYFqQ1OK4OrOp6Y8j0ZN6F2qOKJzoKZeoCCfnLm4xjr5CI3L7s08EABtD1G87wcWNQ5b6kOw5o00E03lFJYY");
 
 function DigitalWalletContent() {
   const stripe = useStripe();
@@ -59,7 +61,20 @@ function DigitalWalletContent() {
   const { user } = useAuth();
   const { role } = useRole();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [paymentMethod, setPaymentMethod] = useState<"credit" | "debit">("credit");
+  const [paymentMethod, setPaymentMethod] = useState<"credit" | "debit" | "bank">("credit");
+
+  // Stripe loading check
+  const [stripeLoading, setStripeLoading] = useState(true);
+  
+  useEffect(() => {
+    // Check if Stripe is loaded
+    if (stripe) {
+      setStripeLoading(false);
+      console.log('✅ Stripe loaded successfully');
+    } else {
+      console.log('⏳ Stripe loading...');
+    }
+  }, [stripe]);
 
   // Card Details State
   const [cardAdded, setCardAdded] = useState(false);
@@ -70,6 +85,208 @@ function DigitalWalletContent() {
     cvc: "",
     name: ""
   });
+
+  // Bank Account State
+  const [bankDetails, setBankDetails] = useState({
+    routingNumber: "",
+    accountNumber: "",
+    accountHolderName: "",
+    accountType: "checking" as "checking" | "savings"
+  });
+
+  // Bank Selection State
+  const [showBankSelection, setShowBankSelection] = useState(false);
+  const [selectedBank, setSelectedBank] = useState<any>(null);
+  const [bankSearchTerm, setBankSearchTerm] = useState("");
+  const [isConnectingBank, setIsConnectingBank] = useState(false);
+
+  // Popular Canadian Banks Data
+  const popularBanks = [
+    { id: 'rbc', name: 'RBC', logo: '🦁', color: 'bg-blue-600', fullName: 'Royal Bank of Canada' },
+    { id: 'td', name: 'TD', logo: '🍁', color: 'bg-green-600', fullName: 'Toronto-Dominion Bank' },
+    { id: 'scotiabank', name: 'Scotiabank', logo: '🏴', color: 'bg-red-600', fullName: 'Bank of Nova Scotia' },
+    { id: 'bmo', name: 'BMO', logo: '🦅', color: 'bg-red-700', fullName: 'Bank of Montreal' },
+    { id: 'cibc', name: 'CIBC', logo: '🏦', color: 'bg-red-500', fullName: 'Canadian Imperial Bank of Commerce' },
+    { id: 'national', name: 'National Bank', logo: '🇨🇦', color: 'bg-green-700', fullName: 'National Bank of Canada' },
+    { id: 'tangerine', name: 'Tangerine', logo: '🍊', color: 'bg-orange-500', fullName: 'Tangerine Bank' },
+    { id: 'simplii', name: 'Simplii', logo: '💰', color: 'bg-red-400', fullName: 'Simplii Financial' },
+  ];
+
+  const allBanks = [
+    ...popularBanks,
+    { id: 'hsbc', name: 'HSBC Canada', logo: '🌍', color: 'bg-red-800', fullName: 'HSBC Bank Canada' },
+    { id: 'laurentian', name: 'Laurentian', logo: '🏔️', color: 'bg-green-500', fullName: 'Laurentian Bank of Canada' },
+    { id: 'desjardins', name: 'Desjardins', logo: '🌳', color: 'bg-green-600', fullName: 'Desjardins Group' },
+    { id: 'vancity', name: 'Vancity', logo: '🌲', color: 'bg-green-400', fullName: 'Vancity Credit Union' },
+    { id: 'meridian', name: 'Meridian', logo: '🌊', color: 'bg-blue-500', fullName: 'Meridian Credit Union' },
+    { id: 'servus', name: 'Servus', logo: '🏘️', color: 'bg-purple-600', fullName: 'Servus Credit Union' },
+    { id: 'first', name: 'First Nations', logo: '🏕️', color: 'bg-teal-600', fullName: 'First Nations Bank of Canada' },
+    { id: 'bridgewater', name: 'Bridgewater', logo: '🌉', color: 'bg-blue-400', fullName: 'Bridgewater Bank' },
+    { id: 'motusbank', name: 'Motusbank', logo: '🚗', color: 'bg-indigo-600', fullName: 'Motusbank' },
+    { id: 'eq', name: 'EQ Bank', logo: '⚡', color: 'bg-yellow-600', fullName: 'EQ Bank' },
+    { id: 'neo', name: 'Neo Financial', logo: '💎', color: 'bg-purple-500', fullName: 'Neo Financial' },
+    { id: 'wealthsimple', name: 'Wealthsimple', logo: '📈', color: 'bg-black', fullName: 'Wealthsimple Cash' },
+  ];
+
+  // Filter banks based on search
+  const filteredBanks = allBanks.filter(bank => 
+    bank.name.toLowerCase().includes(bankSearchTerm.toLowerCase()) ||
+    bank.fullName.toLowerCase().includes(bankSearchTerm.toLowerCase())
+  );
+
+  const handleBankSelection = async (bank: any) => {
+    // Check if Stripe is loaded
+    if (!stripe) {
+      console.error("❌ Stripe not loaded");
+      toast.error("Payment system is still loading. Please wait a moment and try again.");
+      return;
+    }
+    
+    setSelectedBank(bank);
+    setIsConnectingBank(true);
+    
+    console.log(`🍁 Starting Canadian bank connection for ${bank.name} (${bank.id})`);
+    
+    // Wait for Stripe to be fully ready
+    if (!stripe.elements) {
+      console.log("⏳ Waiting for Stripe to fully load...");
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+    
+    const tid = toast.loading(`Connecting to ${bank.name}...`);
+    try {
+      console.log(`🟡 Creating Canadian Financial Connections Session for ${bank.name}...`);
+      
+      let sessionData;
+      let sessionError;
+      
+      try {
+        const response = await supabase.functions.invoke('manage-financial-connections', {
+          body: { 
+            action: 'create-session',
+            preferred_bank: bank.id,
+            country: 'CA' // Explicitly Canadian
+          }
+        });
+        
+        sessionData = response.data;
+        sessionError = response.error;
+        
+        console.log("✅ Function call completed");
+      } catch (invokeError) {
+        console.error("❌ Function invoke failed:", invokeError);
+        sessionError = { message: `Function call failed: ${invokeError.message}` };
+      }
+
+      console.log("📊 Session response:", { sessionData, sessionError });
+
+      if (sessionError) {
+        console.error("❌ Session Create Error:", sessionError);
+        throw new Error(sessionError.message || `Failed to connect to ${bank.name}`);
+      }
+
+      if (!sessionData?.client_secret) {
+        console.error("❌ No client secret in response:", sessionData);
+        throw new Error(`No connection session created for ${bank.name}`);
+      }
+
+      console.log(`🟡 Opening ${bank.name} Canadian Bank Login Modal...`);
+      console.log("🔑 Client secret:", sessionData.client_secret.substring(0, 20) + "...");
+
+      if (!sessionData.client_secret.startsWith("fcsess_")) {
+        console.error("❌ Invalid session format:", sessionData.client_secret);
+        throw new Error(`Invalid bank connection format for ${bank.name}`);
+      }
+
+      // OPEN STRIPE BANK LOGIN MODAL
+      console.log(`🚀 Launching Stripe Financial Connections for ${bank.name}...`);
+      console.log("💳 Stripe object:", stripe);
+      console.log("💳 Stripe methods available:", Object.getOwnPropertyNames(stripe));
+      
+      // Check if collectFinancialConnectionsAccounts method exists
+      if (typeof stripe.collectFinancialConnectionsAccounts !== 'function') {
+        console.error("❌ Stripe collectFinancialConnectionsAccounts method not available");
+        toast.error("Stripe Financial Connections not available. Please refresh the page.", { id: tid });
+        setIsConnectingBank(false);
+        return;
+      }
+      
+      console.log("✅ Stripe method available, opening modal...");
+      
+      let result;
+      try {
+        result = await stripe.collectFinancialConnectionsAccounts({
+          clientSecret: sessionData.client_secret,
+        });
+        console.log("✅ Stripe modal call completed");
+      } catch (stripeError) {
+        console.error("❌ Stripe modal call failed:", stripeError);
+        toast.error("Failed to open bank connection modal. Please try again.", { id: tid });
+        setIsConnectingBank(false);
+        return;
+      }
+
+      console.log("📊 Stripe result:", result);
+
+      if (result.error) {
+        console.error("❌ Bank Login Error:", result.error);
+        if (result.error.code === 'canceled') {
+          toast.info(`${bank.name} connection cancelled`, { id: tid });
+          setIsConnectingBank(false);
+          return;
+        }
+        
+        // Handle 404 errors specifically
+        if (result.error.message?.includes('404') || result.error.type === 'invalid_request_error') {
+          console.error("❌ 404 Error - Bank connection URL issue");
+          toast.error(`${bank.name} connection failed. This might be a temporary issue. Please try again.`, { id: tid });
+        } else {
+          throw new Error(`${bank.name} login failed: ${result.error.message}`);
+        }
+      }
+
+      const sessionId = result.financialConnectionsSession.id;
+      console.log(`✅ ${bank.name} Canadian Bank Login Successful! Session ID:`, sessionId);
+
+      toast.loading(`Verifying ${bank.name} account...`, { id: tid });
+
+      // EXCHANGE ACCOUNT FOR PAYMENT METHOD
+      console.log(`🔄 Exchanging ${bank.name} session for payment method...`);
+      const { error: exchangeError } = await supabase.functions.invoke('manage-financial-connections', {
+        body: {
+          action: "exchange-account",
+          session_id: sessionId,
+        }
+      });
+
+      if (exchangeError) {
+        console.error("❌ Bank Account Exchange Error:", exchangeError);
+        throw new Error(`Failed to save ${bank.name} account: ${exchangeError.message}`);
+      }
+
+      console.log(`✅ ${bank.name} Account Connected Successfully!`);
+      toast.success(`${bank.name} account connected! 🎉`, { id: tid });
+      
+      // REFRESH PAYMENT METHODS
+      await fetchPaymentMethods();
+      setShowBankSelection(false);
+      setIsConnectingBank(false);
+      setSelectedBank(null);
+      
+      console.log(`🎉 ${bank.name} connection flow completed successfully`);
+      
+    } catch (err: any) {
+      console.error(`❌ ${bank.name} Connection Error:`, {
+        message: err.message,
+        stack: err.stack,
+        bank: bank.name,
+        bankId: bank.id
+      });
+      
+      toast.error(err.message || `Failed to connect to ${bank.name}`, { id: tid });
+      setIsConnectingBank(false);
+    }
+  };
 
   const [recipientEmail, setRecipientEmail] = useState("");
   const [confirmRecipientEmail, setConfirmRecipientEmail] = useState("");
@@ -637,7 +854,8 @@ function DigitalWalletContent() {
 
     // Determine type for history
     const savedMethod = savedMethods.find(m => m.stripe_payment_method_id === methodIdToUse);
-    const paymentType = savedMethod?.card_type === 'debit' ? 'debit_card' : 'credit_card';
+    const paymentType = savedMethod?.card_type === 'debit' ? 'debit_card' : 
+                       savedMethod?.card_type === 'bank_account' ? 'bank_account' : 'credit_card';
 
     setIsCheckoutOpen(false); // Close dialog
     const tid = toast.loading(`Processing payment for ${new Date(checkoutLedger.due_date).toLocaleDateString()}...`);
@@ -824,6 +1042,16 @@ function DigitalWalletContent() {
                     >
                       <Building2 className="h-4 w-4 mr-2" />
                       Connect Bank Account (30 seconds)
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        toast.info("Bank setup skipped. You can proceed with card payment or add bank account later.");
+                        setSelectedMethodId('credit'); // Default to credit card
+                      }}
+                      className="w-full md:w-auto mt-2 border-amber-300 text-amber-700 hover:bg-amber-50"
+                    >
+                      Skip Bank Setup
                     </Button>
                   </div>
                 )}
@@ -1036,7 +1264,7 @@ function DigitalWalletContent() {
                 <CardContent className="space-y-4">
                   <RadioGroup
                     value={paymentMethod}
-                    onValueChange={(val: "credit" | "debit") => {
+                    onValueChange={(val: "credit" | "debit" | "bank") => {
                       setPaymentMethod(val);
                       setIsAddingNewCard(false);
                       // Auto-select first stored method of this type, or new
@@ -1114,6 +1342,64 @@ function DigitalWalletContent() {
                           >
                             + Add another debit card
                           </Button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Bank Account Option */}
+                    <div className={`border p-3 rounded-lg transition-colors ${paymentMethod === 'bank' ? 'bg-accent/10 border-indigo-200' : 'hover:bg-accent/50'}`}>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="bank" id="bank" />
+                        <Label htmlFor="bank" className="flex-1 cursor-pointer font-medium flex items-center gap-2 text-sm">
+                          Bank Account (ACH)
+                          <Badge variant="secondary" className="text-[10px] bg-emerald-50 text-emerald-700 border-emerald-200">Lowest Fee</Badge>
+                        </Label>
+                      </div>
+
+                      {paymentMethod === 'bank' && (
+                        <div className="mt-3 pl-6 space-y-3">
+                          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                            <p className="text-xs text-amber-800">
+                              💡 Bank transfers have the lowest fees (typically $0.25-0.50) and are ideal for recurring rent payments.
+                            </p>
+                          </div>
+
+                          {savedMethods.filter(m => m.card_type === 'bank_account').map(method => (
+                            <div
+                              key={method.id}
+                              onClick={() => { setSelectedMethodId(method.stripe_payment_method_id); setIsAddingNewCard(false); }}
+                              className={`p-2 border rounded text-sm flex items-center justify-between cursor-pointer ${selectedMethodId === method.stripe_payment_method_id ? 'border-indigo-500 bg-indigo-50' : 'hover:bg-slate-50'}`}
+                            >
+                              <div className="flex items-center gap-2">
+                                <div className="h-6 w-8 bg-emerald-600 rounded text-white text-[9px] flex items-center justify-center font-bold">BANK</div>
+                                <span>•••• {method.last4}</span>
+                              </div>
+                              {selectedMethodId === method.stripe_payment_method_id && <CheckCircle2 className="h-4 w-4 text-indigo-600" />}
+                            </div>
+                          ))}
+
+                          <div className="space-y-3 p-3 border border-dashed rounded-lg bg-slate-50">
+                            <p className="text-xs font-semibold text-slate-700">Connect Your Canadian Bank Account:</p>
+                            
+                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                              <p className="text-xs text-blue-800 mb-3">
+                                🔐 Securely login to your Canadian bank to connect your account. We never see or store your bank credentials.
+                              </p>
+                              
+                              <Button
+                                size="sm"
+                                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                                onClick={() => setShowBankSelection(true)}
+                              >
+                                <Building2 className="h-3 w-3 mr-1" />
+                                Choose Your Canadian Bank
+                              </Button>
+                              
+                              <p className="text-[10px] text-blue-600 mt-2">
+                                🍁 Supports all major Canadian banks including RBC, TD, Scotiabank, BMO, CIBC, and more.
+                              </p>
+                            </div>
+                          </div>
                         </div>
                       )}
                     </div>
@@ -1257,7 +1543,8 @@ function DigitalWalletContent() {
                           if (!methodIdToUse) { toast.error("Please add and save a payment method first."); return; }
 
                           const savedMethod = savedMethods.find(m => m.stripe_payment_method_id === methodIdToUse);
-                          const paymentType = savedMethod?.card_type === 'debit' ? 'debit_card' : 'credit_card';
+                          const paymentType = savedMethod?.card_type === 'debit' ? 'debit_card' : 
+                                         savedMethod?.card_type === 'bank_account' ? 'bank_account' : 'credit_card';
 
                           setIsPaying(true);
                           const tid = toast.loading("Processing payment...");
@@ -1596,6 +1883,126 @@ function DigitalWalletContent() {
           </div>
         </CardContent >
       </Card >
+
+      {/* Bank Selection Dialog */}
+      <Dialog open={showBankSelection} onOpenChange={setShowBankSelection}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Building2 className="h-5 w-5" />
+              Choose Your Canadian Bank
+            </DialogTitle>
+            <DialogDescription>
+              Select your Canadian bank to securely connect your account. We support all major Canadian banks and credit unions.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6">
+            {/* Search Bar */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search for your Canadian bank..."
+                value={bankSearchTerm}
+                onChange={(e) => setBankSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+
+            {/* Popular Banks Grid */}
+            {!bankSearchTerm && (
+              <div>
+                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                  <Star className="h-4 w-4 text-yellow-500" />
+                  Popular Banks
+                </h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {popularBanks.map((bank) => (
+                    <Button
+                      key={bank.id}
+                      variant="outline"
+                      className={`h-20 flex-col gap-2 relative ${isConnectingBank && selectedBank?.id === bank.id ? 'opacity-50' : ''}`}
+                      onClick={() => !isConnectingBank && handleBankSelection(bank)}
+                      disabled={isConnectingBank}
+                    >
+                      <div className={`absolute top-2 right-2 w-8 h-8 ${bank.color} rounded-full flex items-center justify-center text-white text-lg`}>
+                        {bank.logo}
+                      </div>
+                      <span className="text-sm font-medium">{bank.name}</span>
+                      {isConnectingBank && selectedBank?.id === bank.id && (
+                        <div className="flex items-center gap-1">
+                          <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></div>
+                          <span className="text-xs text-blue-600">Connecting...</span>
+                        </div>
+                      )}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* All Banks List */}
+            <div>
+              <h3 className="text-lg font-semibold mb-4">
+                {bankSearchTerm ? 'Search Results' : 'All Banks'}
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-60 overflow-y-auto">
+                {filteredBanks.map((bank) => (
+                  <Button
+                    key={bank.id}
+                    variant="outline"
+                    className={`h-16 justify-start relative ${isConnectingBank && selectedBank?.id === bank.id ? 'opacity-50' : ''}`}
+                    onClick={() => !isConnectingBank && handleBankSelection(bank)}
+                    disabled={isConnectingBank}
+                  >
+                    <div className={`w-10 h-10 ${bank.color} rounded-full flex items-center justify-center text-white text-lg mr-3`}>
+                      {bank.logo}
+                    </div>
+                    <div className="flex-1 text-left">
+                      <div className="font-medium">{bank.name}</div>
+                      <div className="text-xs text-muted-foreground">{bank.fullName}</div>
+                    </div>
+                    {isConnectingBank && selectedBank?.id === bank.id && (
+                      <div className="flex items-center gap-1">
+                        <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></div>
+                        <span className="text-xs text-blue-600">Connecting...</span>
+                      </div>
+                    )}
+                  </Button>
+                ))}
+              </div>
+              
+              {filteredBanks.length === 0 && (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Building2 className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                  <p>No banks found matching "{bankSearchTerm}"</p>
+                  <p className="text-sm">Try searching with a different term</p>
+                </div>
+              )}
+            </div>
+
+            {/* Security Notice */}
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <ShieldCheck className="h-5 w-5 text-green-600 mt-0.5" />
+                <div>
+                  <h4 className="font-semibold text-green-800 text-sm">Bank-Level Security</h4>
+                  <p className="text-xs text-green-700 mt-1">
+                    Your bank login credentials are encrypted and sent directly to your bank. 
+                    We never store or have access to your bank username or password.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowBankSelection(false)}>
+              Cancel
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div >
   );
 }

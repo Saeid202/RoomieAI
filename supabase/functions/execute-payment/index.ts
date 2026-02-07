@@ -40,12 +40,14 @@ serve(async (req) => {
         let total_amount = 0
         let metadata: any = { user_id: user.id, payment_source }
 
-        // Base payment record matching the rental_payments table schema
+        // Determine initial status based on method - PAD is processing immediately
+        const isPAD = payment_method_type === 'bank_account' || payment_method_type === 'acss_debit'
+
         let paymentRecord: any = {
             tenant_id: user.id,
             currency: 'CAD',
             payment_source,
-            payment_status: 'pending',
+            payment_status: isPAD ? 'processing' : 'pending',
             transaction_id: `pay_${Date.now()}_${Math.random().toString(36).substring(7)}`,
             created_at: new Date().toISOString()
         }
@@ -94,10 +96,11 @@ serve(async (req) => {
                 recipient_email: (ledger.lease_contracts as any)?.properties?.profiles?.email || null
             }
 
-            // Lock the ledger row to pending immediately
+            // Lock the ledger row immediately
+            const ledgerStatus = isPAD ? 'processing' : 'pending'
             await supabaseClient
                 .from('rent_ledgers')
-                .update({ status: 'pending' })
+                .update({ status: ledgerStatus })
                 .eq('id', ledger.id)
 
         } else if (payment_source === 'application') {
@@ -169,7 +172,7 @@ serve(async (req) => {
                 note: note || null,
                 description: note || `Manual rent payment`,
                 payment_type: 'rent_payment',
-                payment_method: wallet.payment_method_type === 'debit' ? 'debit_card' : 'credit_card',
+                payment_method: payment_method_type || (wallet.payment_method_type === 'debit' ? 'debit_card' : 'credit_card'),
                 landlord_id: landlordProfile?.id || null,
                 recipient_email: wallet.recipient_email
             }
@@ -209,21 +212,27 @@ serve(async (req) => {
 
         try {
             // 2. Call Stripe
-            const finalMetadata = {
+            const finalMetadata: any = {
                 ...metadata,
                 purpose: 'rent',
                 payment_id: insertedRecord.id,
                 tenant_id: user.id,
-                landlord_user_id: paymentRecord.landlord_id || '',
-                property_id: paymentRecord.property_id || '',
-
-                // Specific Rent Installment Metadata
-                lease_id: metadata.lease_id, // Already set for ledger payments
-                rent_installment_id: metadata.rent_ledger_id, // Mapping ledger_id to installment_id
+                landlord_id: (paymentRecord.landlord_id || '').toString(),
+                property_id: (paymentRecord.property_id || '').toString(),
                 month: metadata.rent_month === 'Initial' || metadata.rent_month === 'Manual'
                     ? metadata.rent_month
                     : (metadata.rent_month || new Date().toISOString().slice(0, 7))
             };
+
+            // Only add these if they exist to avoid Stripe metadata errors
+            if (metadata.lease_id) finalMetadata.lease_id = metadata.lease_id.toString();
+            if (metadata.rent_ledger_id) finalMetadata.rent_ledger_id = metadata.rent_ledger_id.toString();
+
+            // Phase 1: Silent Credit Reporting - Pass payment method info
+            const methodType = payment_method_type ||
+                (paymentRecord.payment_method === 'bank_account' ? 'bank_account' :
+                    paymentRecord.payment_method === 'debit_card' ? 'debit' : 'credit');
+            finalMetadata.payment_method_type = methodType;
 
             const paymentIntent = await stripe.paymentIntents.create({
                 amount: amount_cents,

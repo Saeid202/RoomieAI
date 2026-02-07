@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { loadStripe } from "@stripe/stripe-js";
+
+import { stripePromise } from "@/integrations/stripe/client";
+
 import {
   Card,
   CardContent,
@@ -2271,7 +2273,7 @@ export default function RentalApplicationPage() {
                             if (!data?.client_secret) throw new Error("Missing client secret");
 
                             // 2. Initialize Stripe
-                            const stripe = await loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || "");
+                            const stripe = await stripePromise;
                             if (!stripe) throw new Error("Stripe failed to load");
 
                             // 3. Confirm Payment

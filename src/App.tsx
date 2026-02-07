@@ -65,6 +65,8 @@ import PagesPage from "@/pages/dashboard/admin/Pages";
 import UsersPage from "@/pages/dashboard/admin/Users";
 import RenovationPartnersPage from "@/pages/dashboard/admin/RenovationPartners";
 import AdminCleanersPage from "@/pages/dashboard/admin/Cleaners";
+import ReportingPreviewPage from "@/pages/dashboard/admin/ReportingPreview";
+import ReportingBatchesPage from "@/pages/dashboard/admin/ReportingBatches";
 import SettingsPage from "@/pages/dashboard/Settings";
 import MatchesPage from "@/pages/dashboard/Matches";
 import MyApplicationsPage from "@/pages/dashboard/MyApplications";
@@ -188,6 +190,8 @@ function AppRoutes() {
           <Route path="admin/users" element={<AdminRoute><UsersPage /></AdminRoute>} />
           <Route path="admin/renovation-partners" element={<AdminRoute><RenovationPartnersPage /></AdminRoute>} />
           <Route path="admin/cleaners" element={<AdminRoute><AdminCleanersPage /></AdminRoute>} />
+          <Route path="admin/reporting" element={<AdminRoute><ReportingPreviewPage /></AdminRoute>} />
+          <Route path="admin/reporting-batches" element={<AdminRoute><ReportingBatchesPage /></AdminRoute>} />
           <Route path="admin/settings" element={<AdminRoute><SettingsPage /></AdminRoute>} />
         </Route>
 
@@ -278,6 +282,8 @@ function AppRoutes() {
         <Route path="admin/users" element={<AdminRoute><UsersPage /></AdminRoute>} />
         <Route path="admin/renovation-partners" element={<AdminRoute><RenovationPartnersPage /></AdminRoute>} />
         <Route path="admin/cleaners" element={<AdminRoute><AdminCleanersPage /></AdminRoute>} />
+        <Route path="admin/reporting" element={<AdminRoute><ReportingPreviewPage /></AdminRoute>} />
+        <Route path="admin/reporting-batches" element={<AdminRoute><ReportingBatchesPage /></AdminRoute>} />
         <Route path="admin/settings" element={<AdminRoute><SettingsPage /></AdminRoute>} />
       </Route>
 

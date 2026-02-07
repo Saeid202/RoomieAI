@@ -7,7 +7,7 @@ import { useRole } from "@/contexts/RoleContext";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useState } from "react";
 import { RoleSelectionDialog } from "@/components/auth/RoleSelectionDialog";
-import { SeekerCommandCenter } from "@/components/dashboard/SeekerCommandCenter";
+import { RoommateRecommendations } from "@/components/dashboard/RoommateRecommendations";
 
 export default function Dashboard() {
   const { role } = useRole();
@@ -42,6 +42,13 @@ export default function Dashboard() {
       return <Navigate to="/dashboard/admin" replace />;
     } else if (assignedRole === 'renovator') {
       return <Navigate to="/renovator" replace />;
+    } else {
+      // For tenant/seeker, show RoommateRecommendations at main /dashboard route
+      return (
+        <DashboardLayout>
+          <RoommateRecommendations />
+        </DashboardLayout>
+      );
     }
   }
 
@@ -54,10 +61,7 @@ export default function Dashboard() {
         <RouteGuard>
           <DashboardLayout>
             {showDashboardContent ? (
-              <div className="py-8">
-                {/* <SeekerCommandCenter /> */}
-                <h1 className="text-2xl font-bold">Dashboard content here...</h1>
-              </div>
+              <RoommateRecommendations />
             ) : (
               <Outlet />
             )}
