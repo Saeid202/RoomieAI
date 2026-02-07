@@ -5,8 +5,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { MasterBox } from "@/components/dashboard/MasterBox";
+import { SubFeatureButton } from "@/components/dashboard/SubFeatureButton";
+import { User, Bell, Briefcase, Calendar, Calculator, Bot, MessageSquare, Shield } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export default function RenovatorDashboard() {
+    const navigate = useNavigate();
     const [stats, setStats] = useState({
         invites: 0,
         activeJobs: 0,
@@ -162,177 +167,100 @@ export default function RenovatorDashboard() {
     }
 
     return (
-        <div className="container mx-auto p-6 space-y-8">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-3xl font-bold text-gray-900">Renovator Dashboard</h1>
-                    <p className="text-gray-500 mt-1">Live overview of your current invites and jobs.</p>
-                </div>
-                <div className="flex gap-2">
-                    <Link to="/renovator/availability">
-                        <span className={`px-4 py-1.5 rounded-full text-sm font-semibold flex items-center gap-2 cursor-pointer transition-all border ${status === 'Online' ? 'bg-green-100 text-green-800 border-green-200 hover:bg-green-200' : 'bg-slate-100 text-slate-800 border-slate-200 hover:bg-slate-200'}`}>
-                            <span className={`w-2.5 h-2.5 rounded-full ${status === 'Online' ? 'bg-green-500 animate-pulse' : 'bg-slate-400'}`}></span>
-                            {status}
-                        </span>
-                    </Link>
-                </div>
-            </div>
-
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <Card className="border-blue-100 shadow-sm">
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-xs font-bold uppercase tracking-wider text-blue-600">Pending Invites</CardTitle>
-                        <Zap className="h-4 w-4 text-blue-500" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold text-blue-900">{stats.invites}</div>
-                        <p className="text-[10px] text-blue-500 mt-1">Awaiting your response</p>
-                    </CardContent>
-                </Card>
-
-                <Card className="border-orange-100 shadow-sm">
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-xs font-bold uppercase tracking-wider text-orange-600">Active Jobs</CardTitle>
-                        <Hammer className="h-4 w-4 text-orange-500" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold text-orange-900">{stats.activeJobs}</div>
-                        <p className="text-[10px] text-orange-500 mt-1">In progress right now</p>
-                    </CardContent>
-                </Card>
-
-                <Card className="border-green-100 shadow-sm">
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-xs font-bold uppercase tracking-wider text-green-600">Completed</CardTitle>
-                        <CheckCircle className="h-4 w-4 text-green-500" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold text-green-900">{stats.completed}</div>
-                        <p className="text-[10px] text-green-500 mt-1">Lifetime total</p>
-                    </CardContent>
-                </Card>
-
-                <Card className="border-slate-100 shadow-sm">
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-xs font-bold uppercase tracking-wider text-slate-600">Avg Response</CardTitle>
-                        <Clock className="h-4 w-4 text-slate-500" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold text-slate-900">12m</div>
-                        <p className="text-[10px] text-slate-500 mt-1">Excellent speed</p>
-                    </CardContent>
-                </Card>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Recent Invites Section */}
-                <Card className="shadow-lg border-red-50">
-                    <CardHeader className="pb-3 border-b">
-                        <div className="flex items-center justify-between">
-                            <CardTitle className="text-lg flex items-center gap-2">
-                                <Zap className="h-5 w-5 text-red-600" />
-                                Recent Emergency Invites
-                            </CardTitle>
-                            <Link to="/renovator/emergency" className="text-xs text-blue-600 hover:underline font-bold">VIEW ALL</Link>
-                        </div>
-                    </CardHeader>
-                    <CardContent className="pt-4 space-y-4">
-                        {recentInvites.length > 0 ? (
-                            recentInvites.map((invite) => (
-                                <div key={invite.id} className="flex flex-col p-4 bg-slate-50 rounded-xl border hover:border-red-200 transition-all group">
-                                    <div className="flex justify-between items-start mb-2">
-                                        <div className="flex gap-2 items-center">
-                                            <Badge variant={invite.job?.urgency === 'Immediate' ? "destructive" : "default"} className="text-[10px] uppercase font-bold">
-                                                {invite.job?.urgency}
-                                            </Badge>
-                                            <span className="font-bold text-slate-900">{invite.job?.category}</span>
-                                        </div>
-                                        <Link to="/renovator/emergency" className="text-[10px] bg-slate-900 text-white px-3 py-1 rounded-full group-hover:bg-red-600 transition-colors">
-                                            VIEW DETAILS
-                                        </Link>
-                                    </div>
-                                    <p className="text-xs text-slate-600 line-clamp-2 mb-3 leading-relaxed">{invite.job?.description}</p>
-                                    <div className="flex items-center gap-2 text-[10px] text-slate-500 mt-auto bg-white/50 p-2 rounded">
-                                        <MapPin className="h-3 w-3" />
-                                        {invite.job?.unit_address}
-                                    </div>
-                                </div>
-                            ))
-                        ) : (
-                            <div className="text-center py-16 bg-slate-50 rounded-xl border border-dashed border-slate-300">
-                                <Zap className="h-10 w-10 text-slate-200 mx-auto mb-3" />
-                                <p className="text-sm font-bold text-slate-500">No Pending Invites</p>
-                                <p className="text-xs text-slate-400 mt-2 max-w-[220px] mx-auto">
-                                    When a landlord broadcasts an emergency, it will appear here instantly.
-                                </p>
-                                <div className="mt-6">
-                                    <Link to="/renovator/availability">
-                                        <Button variant="outline" size="sm" className="bg-white text-xs gap-2">
-                                            Check Availability Status
-                                        </Button>
-                                    </Link>
-                                </div>
-                            </div>
-                        )}
-                    </CardContent>
-                </Card>
-
-                {/* Quick Stats / Info */}
-                <div className="space-y-6">
-                    <Card className="bg-blue-900 text-white border-none shadow-xl">
-                        <CardHeader>
-                            <CardTitle className="text-lg flex items-center gap-2">
-                                <Hammer className="h-5 w-5 text-blue-300" />
-                                Quick Management
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="grid grid-cols-2 gap-4">
-                                <Link to="/renovator/jobs" className="w-full">
-                                    <Button className="w-full bg-blue-700 hover:bg-blue-600 border-none h-12">
-                                        Active Jobs
-                                    </Button>
-                                </Link>
-                                <Link to="/renovator/availability" className="w-full">
-                                    <Button className="w-full bg-blue-700 hover:bg-blue-600 border-none h-12">
-                                        Availability
-                                    </Button>
-                                </Link>
-                            </div>
-                            <div className="p-4 bg-blue-800/50 rounded-lg border border-blue-700/50">
-                                <h4 className="text-sm font-bold flex items-center gap-2 mb-1">
-                                    <Zap className="h-3 w-3 text-yellow-400" />
-                                    Tip: Real-time Feed
-                                </h4>
-                                <p className="text-[11px] text-blue-200">
-                                    You don't need to refresh this page. New invites will pop up automatically as soon as they are sent.
-                                </p>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="text-md">Service Tips</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-3">
-                            <div className="flex items-start gap-3">
-                                <div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center text-green-700 text-xs font-bold">1</div>
-                                <p className="text-xs text-slate-600">Be clear about arrival times when accepting a job.</p>
-                            </div>
-                            <div className="flex items-start gap-3">
-                                <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 text-xs font-bold">2</div>
-                                <p className="text-xs text-slate-600">Take before-and-after photos for documentation.</p>
-                            </div>
-                            <div className="flex items-start gap-3">
-                                <div className="w-6 h-6 rounded-full bg-orange-100 flex items-center justify-center text-orange-700 text-xs font-bold">3</div>
-                                <p className="text-xs text-slate-600">Ensure the landlord is notified once work is complete.</p>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
-            </div>
+    <div className="w-full max-w-screen-xl mx-auto px-4 space-y-10 pb-10">
+      {/* Dashboard Orientation & Welcome Section */}
+      <div className="relative bg-gradient-to-br from-pink-500/30 via-purple-500/30 to-indigo-500/30 rounded-3xl p-2 border-2 border-white/50 shadow-2xl backdrop-blur-sm overflow-hidden">
+        {/* Animated Background Elements */}
+        <div className="absolute inset-0">
+          <div className="absolute top-4 left-4 w-32 h-32 bg-gradient-to-br from-yellow-400/40 to-pink-400/40 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-4 right-4 w-24 h-24 bg-gradient-to-br from-purple-400/40 to-indigo-400/40 rounded-full blur-2xl animate-pulse delay-1000"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-r from-orange-400/20 via-pink-400/20 to-purple-400/20 opacity-50 rotate-45 animate-spin-slow"></div>
+          <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-yellow-300/50 to-orange-300/50 rounded-full blur-xl animate-bounce delay-500"></div>
+          <div className="absolute bottom-0 left-0 w-16 h-16 bg-gradient-to-br from-pink-300/50 to-purple-300/50 rounded-full blur-lg animate-ping delay-700"></div>
         </div>
-    );
+
+        {/* Section Title */}
+        <div className="text-center mb-1 relative z-10">
+          <div className="inline-block bg-white/80 backdrop-blur-md rounded-2xl p-2 border border-white/50 shadow-xl">
+            <h1 className="text-3xl md:text-4xl font-black text-gray-900 mb-1 bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent animate-gradient">
+              Welcome to Roomie AI
+            </h1>
+            <div className="h-2 w-32 bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 rounded-full mx-auto shadow-lg"></div>
+            <p className="text-xl text-gray-800 max-w-2xl mx-auto font-bold leading-relaxed">
+              Your all-in-one platform for emergency repairs, job management, and building your renovation business.
+            </p>
+          </div>
+        </div>
+
+        {/* Short Explanation */}
+        <div className="text-center relative z-10">
+          <div className="bg-white/90 backdrop-blur-md rounded-2xl p-2 border-2 border-gradient-to-r from-pink-300 via-purple-300 to-indigo-300 shadow-xl relative overflow-hidden group">
+            <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/10 via-pink-400/10 to-purple-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <p className="text-gray-800 text-lg leading-relaxed relative z-10 font-medium">
+              Roomie AI brings every step of renovation work into one secure platform — from receiving emergency jobs to managing your schedule and handling tax compliance. The sections below guide you through each stage of your renovator journey.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Renovator Dashboard</h1>
+        </div>
+        <div className="flex gap-2">
+          <Link to="/renovator/availability">
+            <span className={`px-4 py-1.5 rounded-full text-sm font-semibold flex items-center gap-2 cursor-pointer transition-all border ${status === 'Online' ? 'bg-green-100 text-green-800 border-green-200 hover:bg-green-200' : 'bg-slate-100 text-slate-800 border-slate-200 hover:bg-slate-200'}`}>
+              <span className={`w-2.5 h-2.5 rounded-full ${status === 'Online' ? 'bg-green-500 animate-pulse' : 'bg-slate-400'}`}></span>
+              {status}
+            </span>
+          </Link>
+        </div>
+      </div>
+
+      {/* Dashboard Grid Layout */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        
+        {/* Profile Master Box */}
+        <MasterBox
+          title="1. Profile"
+          description="Manage your renovator profile and credentials."
+          icon={User}
+          onClick={() => navigate("/renovator/profile")}
+        />
+
+        {/* Emergency Inbox Master Box */}
+        <MasterBox
+          title="2. Emergency Inbox"
+          description="View and respond to emergency repair requests."
+          icon={Bell}
+          onClick={() => navigate("/renovator/emergency")}
+        />
+
+        {/* Jobs Master Box */}
+        <MasterBox
+          title="3. Jobs"
+          description="Track your active and completed renovation jobs."
+          icon={Briefcase}
+          onClick={() => navigate("/renovator/jobs")}
+        />
+
+        {/* Availability Master Box */}
+        <MasterBox
+          title="4. Availability"
+          description="Set your availability and working schedule."
+          icon={Calendar}
+          onClick={() => navigate("/renovator/availability")}
+        />
+
+        {/* Tax Intelligence Master Box */}
+        <MasterBox
+          title="5. Tax Intelligence"
+          description="AI-powered tax assistance and financial insights."
+          icon={Calculator}
+          onClick={() => navigate("/renovator/tax-intelligence")}
+        />
+        
+      </div>
+    </div>
+  );
 }
