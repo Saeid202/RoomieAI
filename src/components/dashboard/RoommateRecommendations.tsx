@@ -49,94 +49,35 @@ export function RoommateRecommendations({
   return (
     <div className="w-full max-w-screen-xl mx-auto px-4 space-y-10 pb-10">
       {/* Dashboard Orientation & Roadmap Section */}
-      <div className="relative bg-card rounded-2xl p-4 border shadow-2xl backdrop-blur-sm overflow-hidden">
+      <div className="relative bg-gradient-to-br from-pink-500/30 via-purple-500/30 to-indigo-500/30 rounded-3xl p-2 border-2 border-white/50 shadow-2xl backdrop-blur-sm overflow-hidden">
         {/* Animated Background Elements */}
         <div className="absolute inset-0">
-          <div className="absolute top-4 left-4 w-32 h-32 bg-primary/10 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-4 right-4 w-24 h-24 bg-secondary/20 rounded-full blur-2xl animate-pulse delay-1000"></div>
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-r from-primary/5 to-transparent opacity-30 rotate-45"></div>
+          <div className="absolute top-4 left-4 w-32 h-32 bg-gradient-to-br from-yellow-400/40 to-pink-400/40 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-4 right-4 w-24 h-24 bg-gradient-to-br from-purple-400/40 to-indigo-400/40 rounded-full blur-2xl animate-pulse delay-1000"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-r from-orange-400/20 via-pink-400/20 to-purple-400/20 opacity-50 rotate-45 animate-spin-slow"></div>
+          <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-yellow-300/50 to-orange-300/50 rounded-full blur-xl animate-bounce delay-500"></div>
+          <div className="absolute bottom-0 left-0 w-16 h-16 bg-gradient-to-br from-pink-300/50 to-purple-300/50 rounded-full blur-lg animate-ping delay-700"></div>
         </div>
 
         {/* Section Title */}
-        <div className="text-center mb-4 relative z-10">
-          <div className="inline-block">
-            <h1 className="text-3xl md:text-4xl font-black text-gray-900 mb-2 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+        <div className="text-center mb-1 relative z-10">
+          <div className="inline-block bg-white/80 backdrop-blur-md rounded-2xl p-2 border border-white/50 shadow-xl">
+            <h1 className="text-3xl md:text-4xl font-black text-gray-900 mb-1 bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent animate-gradient">
               Welcome to Roomie AI
             </h1>
-            <div className="h-1 w-24 bg-gradient-to-r from-primary to-secondary rounded-full mx-auto mb-2"></div>
-            <p className="text-lg text-foreground max-w-xl mx-auto font-medium leading-relaxed">
+            <div className="h-2 w-32 bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 rounded-full mx-auto shadow-lg"></div>
+            <p className="text-xl text-gray-800 max-w-2xl mx-auto font-bold leading-relaxed">
               Your all-in-one platform for renting, matching, paying, and building your future.
             </p>
           </div>
         </div>
 
         {/* Short Explanation */}
-        <div className="text-center mb-4 relative z-10">
-          <div className="bg-background/80 backdrop-blur-sm rounded-2xl p-3 border shadow-xl relative overflow-hidden group">
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-            <p className="text-foreground text-base leading-relaxed relative z-10">
-              Roomie AI brings every step of the rental journey into one secure platform — from finding the right roommate or home, to applying, paying rent, and accessing legal, financial, and educational support. The sections below guide you through each stage.
-            </p>
-          </div>
-        </div>
-
-        {/* Visual Roadmap */}
-        <div className="grid grid-cols-4 gap-3 mb-4 relative z-10">
-          <div className="text-center space-y-2 group">
-            <div className="bg-card rounded-2xl p-3 border shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              <div className="w-10 h-10 bg-gradient-to-br from-primary/20 to-primary/10 rounded-full flex items-center justify-center mx-auto mb-2 relative group-hover:scale-110 transition-transform duration-300">
-                <div className="absolute inset-0 bg-primary/20 rounded-full animate-ping opacity-20"></div>
-                <Users className="h-5 w-5 text-primary relative z-10" />
-              </div>
-              <h3 className="font-bold text-card-foreground text-sm mb-1 group-hover:text-primary transition-colors">Match & Plan</h3>
-              <p className="text-xs text-muted-foreground leading-tight">Find compatible roommates</p>
-            </div>
-          </div>
-          
-          <div className="text-center space-y-2 group">
-            <div className="bg-card rounded-2xl p-3 border shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-green-100/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              <div className="w-10 h-10 bg-gradient-to-br from-green-100/50 to-green-100/20 rounded-full flex items-center justify-center mx-auto mb-2 relative group-hover:scale-110 transition-transform duration-300">
-                <div className="absolute inset-0 bg-green-100/30 rounded-full animate-pulse opacity-30"></div>
-                <Home className="h-5 w-5 text-green-600 relative z-10" />
-              </div>
-              <h3 className="font-bold text-card-foreground text-sm mb-1 group-hover:text-green-600 transition-colors">Rent or Buy</h3>
-              <p className="text-xs text-muted-foreground leading-tight">Explore rental options</p>
-            </div>
-          </div>
-          
-          <div className="text-center space-y-2 group">
-            <div className="bg-card rounded-2xl p-3 border shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-purple-100/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              <div className="w-10 h-10 bg-gradient-to-br from-purple-100/50 to-purple-100/20 rounded-full flex items-center justify-center mx-auto mb-2 relative group-hover:scale-110 transition-transform duration-300">
-                <div className="absolute inset-0 bg-purple-100/30 rounded-full animate-pulse opacity-30"></div>
-                <CreditCard className="h-5 w-5 text-purple-600 relative z-10" />
-              </div>
-              <h3 className="font-bold text-card-foreground text-sm mb-1 group-hover:text-purple-600 transition-colors">Apply & Pay</h3>
-              <p className="text-xs text-muted-foreground leading-tight">Submit applications</p>
-            </div>
-          </div>
-          
-          <div className="text-center space-y-2 group">
-            <div className="bg-card rounded-2xl p-3 border shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-orange-100/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              <div className="w-10 h-10 bg-gradient-to-br from-orange-100/50 to-orange-100/20 rounded-full flex items-center justify-center mx-auto mb-2 relative group-hover:scale-110 transition-transform duration-300">
-                <div className="absolute inset-0 bg-orange-100/30 rounded-full animate-pulse opacity-30"></div>
-                <HelpCircle className="h-5 w-5 text-orange-600 relative z-10" />
-              </div>
-              <h3 className="font-bold text-card-foreground text-sm mb-1 group-hover:text-orange-600 transition-colors">Support & Growth</h3>
-              <p className="text-xs text-muted-foreground leading-tight">Access help & education</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Transition Line */}
-        <div className="text-center pt-4 border-t relative z-10">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full">
-            <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
-            <p className="text-foreground text-sm font-medium">
-              Explore the sections below to access each part of your Roomie AI experience.
+        <div className="text-center relative z-10">
+          <div className="bg-white/90 backdrop-blur-md rounded-2xl p-2 border-2 border-gradient-to-r from-pink-300 via-purple-300 to-indigo-300 shadow-xl relative overflow-hidden group">
+            <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/10 via-pink-400/10 to-purple-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <p className="text-gray-800 text-lg leading-relaxed relative z-10 font-medium">
+              Roomie AI brings every step of rental journey into one secure platform — from finding the right roommate or home, to applying, paying rent, and accessing legal, financial, and educational support. The sections below guide you through each stage.
             </p>
           </div>
         </div>
@@ -147,7 +88,7 @@ export function RoommateRecommendations({
         
         {/* Matches Master Box */}
         <MasterBox
-          title="Matches"
+          title="1. Matches"
           description="AI-powered roommate compatibility and planning tools."
           icon={Users}
           onClick={() => navigate("/dashboard/matches")}
@@ -188,7 +129,7 @@ export function RoommateRecommendations({
         
         {/* Rental Options Master Box */}
         <MasterBox
-          title="Rental Options"
+          title="2. Rental Options"
           description="Browse available rental listings and recommendations."
           icon={Home}
           onClick={() => navigate("/dashboard/rental-options")}
@@ -196,7 +137,7 @@ export function RoommateRecommendations({
         
         {/* My Applications Master Box */}
         <MasterBox
-          title="My Applications"
+          title="3. My Applications"
           description="Track rental applications, statuses, and decisions."
           icon={FileText}
           onClick={() => navigate("/dashboard/applications")}
@@ -204,7 +145,7 @@ export function RoommateRecommendations({
         
         {/* Payments Master Box */}
         <MasterBox
-          title="Payments"
+          title="4. Payments"
           description="Rent payments, digital wallet, and transaction history."
           icon={CreditCard}
           onClick={() => navigate("/dashboard/digital-wallet")}
@@ -212,7 +153,7 @@ export function RoommateRecommendations({
         
         {/* Buying Opportunities Master Box */}
         <MasterBox
-          title="Buying Opportunities"
+          title="5. Buying Opportunities"
           description="Alternative paths to ownership through Roomie AI."
           icon={TrendingUp}
           onClick={() => navigate("/dashboard/buying-opportunities")}
@@ -233,7 +174,7 @@ export function RoommateRecommendations({
         
         {/* Renovators Master Box */}
         <MasterBox
-          title="Renovators"
+          title="6. Renovators"
           description="Access trusted renovators and request emergency or planned renovations."
           icon={Hammer}
           onClick={() => navigate("/dashboard/renovators")}
@@ -241,7 +182,7 @@ export function RoommateRecommendations({
         
         {/* Education Centre Master Box */}
         <MasterBox
-          title="Education Centre"
+          title="7. Education Centre"
           description="Learn about renting, rights, ownership, and financial literacy."
           icon={BookOpen}
           onClick={() => navigate("/dashboard/education-centre")}
@@ -249,7 +190,7 @@ export function RoommateRecommendations({
         
         {/* AI Legal Assistant Master Box */}
         <MasterBox
-          title="AI Legal Assistant"
+          title="8. AI Legal Assistant"
           description="Instant legal guidance for rental, housing, and disputes."
           icon={Bot}
           onClick={() => navigate("/dashboard/legal-ai")}
