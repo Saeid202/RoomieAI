@@ -177,7 +177,7 @@ export default function LandlordProfilePage() {
                     </div>
                 </div>
 
-                <div className="flex">
+                <div className="flex gap-8">
                     {/* Left Side - Form */}
                     <div className="flex-1 lg:max-w-4xl border-r-2 border-purple-200">
                         <form onSubmit={form.handleSubmit(onSubmit)}>

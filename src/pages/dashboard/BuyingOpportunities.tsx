@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Search, MapPin, Loader2, Home, DollarSign, Users, Clock, AlertCircle, CheckCircle, XCircle, ArrowRight, MessageSquare, Edit2, Plus, Info, Scale, Pencil, PlusCircle, Handshake, HelpCircle, Image as ImageIcon, Eye, TrendingUp, Briefcase, Shield, Search as SearchIcon, Star } from "lucide-react";
+import { CoOwnershipCard } from "@/components/dashboard/CoOwnershipCard";
 import { CoOwnershipForecastModal } from "@/components/dashboard/CoOwnershipForecastModal";
 import { fetchAllSalesListings, SalesListing, CoOwnershipSignal, fetchCoOwnershipSignals, createCoOwnershipSignal, updateCoOwnershipSignal } from "@/services/propertyService";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -268,6 +269,9 @@ export default function BuyingOpportunitiesPage() {
                     <p className="text-slate-600 mb-6">
                         These are signals from users looking for co-ownership partners. Create your own to find matches!
                     </p>
+                    <Button onClick={handleOpenCreateModal} className="mt-6 bg-roomie-purple hover:bg-roomie-purple/90 text-white font-bold py-2 px-4 rounded-full flex items-center gap-2 shadow-lg">
+                        <PlusCircle className="h-5 w-5" /> Create Your Signal
+                    </Button>
                     {loadingSignals ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
                             {[1, 2, 3].map((i) => (
@@ -297,113 +301,13 @@ export default function BuyingOpportunitiesPage() {
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12 max-w-5xl">
                             {signals.map((signal) => (
-                                <Card key={signal.id} className="group relative flex flex-col bg-white rounded-[20px] shadow-[0_4px_20px_rgba(0,0,0,0.05)] hover:shadow-[0_12px_30px_rgba(110,89,255,0.15)] transition-all duration-300 border-none overflow-hidden hover:-translate-y-1 max-w-[480px]">
-                                    <div className="p-6 md:p-8 flex flex-col h-full space-y-6">
-
-                                        {/* 1) Header - Identity & Social Context */}
-                                        <div className="space-y-1">
-                                            <div className="flex items-center justify-between">
-                                                <div
-                                                    className="flex items-center gap-1.5 cursor-pointer group/author"
-                                                    onClick={() => navigate(`/dashboard/user/${signal.user_id}`)}
-                                                >
-                                                    <span className="text-[11px] font-medium text-slate-400">Created by:</span>
-                                                    <span className="text-[11px] font-bold text-slate-600 group-hover/author:text-roomie-purple transition-colors">
-                                                        {signal.creator_name && signal.creator_name !== "Unknown User" ? signal.creator_name : "Anonymous Member"}
-                                                    </span>
-                                                    <div className="flex items-center gap-1">
-                                                        {(signal.creator_name === 'Mehdi' || signal.creator_name?.includes('Mehdi')) ? (
-                                                            <span className="text-[9px] font-black text-amber-500 uppercase tracking-tighter flex items-center gap-0.5">
-                                                                <Star className="h-2 w-2 fill-amber-500" /> SUPER START
-                                                            </span>
-                                                        ) : (
-                                                            <span className="text-[9px] font-bold text-emerald-500 uppercase tracking-tighter">· Verified</span>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                                <Badge variant="outline" className="text-[10px] font-bold border-slate-100 text-slate-400 rounded-full py-0">
-                                                    #{signal.id.substring(0, 4)}
-                                                </Badge>
-                                            </div>
-                                            <h3 className="text-2xl font-black text-slate-900 tracking-tight">
-                                                {signal.household_type}
-                                            </h3>
-                                        </div>
-
-                                        {/* 2) THE "I HAVE" SECTION - High Dominance */}
-                                        <div className="bg-emerald-50/50 border-2 border-emerald-100 rounded-[24px] p-6 relative overflow-hidden group/have">
-                                            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover/have:opacity-20 transition-opacity">
-                                                <DollarSign className="h-12 w-12 text-emerald-600" />
-                                            </div>
-                                            <span className="text-[10px] font-black text-emerald-600 uppercase tracking-[0.2em] block mb-2">MY CONTRIBUTION</span>
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-3xl font-black text-emerald-700 tracking-tighter">
-                                                    💰 I HAVE {signal.capital_available}
-                                                </span>
-                                            </div>
-                                            <p className="text-[11px] font-bold text-emerald-600/70 mt-1 uppercase tracking-wider">Available for immediate partnership</p>
-                                        </div>
-
-                                        {/* 3) THE "I WANT" SECTION - Narrative Box */}
-                                        <div className="bg-purple-50/50 border-2 border-purple-100 rounded-[24px] p-6">
-                                            <span className="text-[10px] font-black text-roomie-purple uppercase tracking-[0.2em] block mb-3 text-opacity-70">I’M LOOKING FOR</span>
-                                            <p className="text-[17px] font-extrabold text-slate-800 leading-snug mb-4">
-                                                {signal.intended_use === 'Live-in'
-                                                    ? "I want to co-buy a home to live in together"
-                                                    : signal.intended_use === 'Investment'
-                                                        ? "Looking for a co-buyer for an investment property"
-                                                        : `Looking to partner on a ${signal.intended_use} property`}
-                                            </p>
-
-                                            {/* Context Chips */}
-                                            <div className="flex flex-wrap gap-2">
-                                                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white text-slate-600 rounded-lg text-[11px] font-bold shadow-sm border border-slate-100">
-                                                    {signal.intended_use === 'Live-in' ? <Home className="h-3.5 w-3.5 text-roomie-purple" /> : <TrendingUp className="h-3.5 w-3.5 text-emerald-500" />}
-                                                    {signal.intended_use}
-                                                </div>
-                                                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white text-slate-600 rounded-lg text-[11px] font-bold shadow-sm border border-slate-100">
-                                                    <Clock className="h-3.5 w-3.5 text-amber-500" />
-                                                    {signal.time_horizon}
-                                                </div>
-                                                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white text-slate-600 rounded-lg text-[11px] font-bold shadow-sm border border-slate-100">
-                                                    <MapPin className="h-3.5 w-3.5 text-blue-500" />
-                                                    Any Location
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* 4) Narrative Context (Optional sentence) */}
-                                        <div className="px-1">
-                                            <p className="text-[13px] font-medium text-slate-400 leading-relaxed italic">
-                                                {signal.notes ? (
-                                                    signal.notes.length > 100 ? `${signal.notes.substring(0, 100)}...` : signal.notes
-                                                ) : "Open to discussing structure, exit options, and premium locations."}
-                                            </p>
-                                        </div>
-
-                                        {/* 5) Primary Action */}
-                                        <div className="pt-4 mt-auto">
-                                            {currentUserId === signal.user_id ? (
-                                                <Button
-                                                    onClick={() => handleOpenEditModal(signal)}
-                                                    variant="outline"
-                                                    className="w-full border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-black text-sm h-14 rounded-2xl transition-all active:scale-95 shadow-sm uppercase tracking-widest"
-                                                >
-                                                    Edit My Signal
-                                                </Button>
-                                            ) : (
-                                                <MessageButton
-                                                    salesListingId={null}
-                                                    landlordId={signal.user_id}
-                                                    className="w-full bg-gradient-to-r from-roomie-purple to-indigo-600 hover:from-roomie-purple/90 hover:to-indigo-600/90 text-white font-black text-sm h-14 rounded-2xl shadow-[0_8px_16px_rgba(110,89,255,0.25)] transition-all active:scale-95 flex items-center justify-center gap-3 uppercase tracking-widest"
-                                                >
-                                                    <MessageSquare className="h-4 w-4" />
-                                                    Propose Partnership
-                                                </MessageButton>
-                                            )}
-                                        </div>
-                                    </div>
-                                </Card>
+                                <CoOwnershipCard
+                                    key={signal.id}
+                                    signal={signal}
+                                    currentUserId={currentUserId}
+                                    onEdit={handleOpenEditModal}
+                                    isOwner={currentUserId === signal.user_id}
+                                />
                             ))}
                         </div>
                     )}

@@ -46,11 +46,6 @@ export function SeekerSidebar({ isActive, showLabels }: SeekerSidebarProps) {
         }
         subItems={[
           {
-            label: "About Me",
-            path: "/dashboard/matches?tab=about-me",
-            icon: <span className="text-sm">👤</span>
-          },
-          {
             label: "Ideal Roommate",
             path: "/dashboard/matches?tab=ideal-roommate",
             icon: <span className="text-sm">❤️</span>

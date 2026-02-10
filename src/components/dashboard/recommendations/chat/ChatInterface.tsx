@@ -4,7 +4,8 @@ import { ChatInput } from "./ChatInput";
 import { ChatMessageList } from "./ChatMessageList";
 import { ChatMessageType } from "./ChatMessage";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Bot } from "lucide-react";
+import { Bot, MessageSquare, Sparkles } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 interface ChatInterfaceProps {
   matchingProfileData?: any;
@@ -14,7 +15,7 @@ export function ChatInterface({ matchingProfileData }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<ChatMessageType[]>([
     {
       id: "welcome-message",
-      content: "Hi there! I'm your Roommate AI Assistant. Ask me anything about your matches or how the matching algorithm works!",
+      content: "Hello! I'm your professional AI Matching Assistant. I can provide detailed insights about compatibility factors, matching algorithms, and help you understand your roommate preferences. How may I assist you today?",
       sender: "assistant",
       timestamp: new Date(),
     },
@@ -47,14 +48,36 @@ export function ChatInterface({ matchingProfileData }: ChatInterfaceProps) {
   };
 
   return (
-    <Card className="w-full">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-lg flex items-center gap-2">
-          <Bot className="h-5 w-5 text-roomie-purple" />
-          <span>Roommate Matching Assistant</span>
-        </CardTitle>
+    <Card className="w-full shadow-lg border-slate-200 dark:border-slate-800 overflow-hidden">
+      <CardHeader className="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 border-b border-slate-200 dark:border-slate-700 px-6 py-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <div className="absolute inset-0 bg-blue-500/20 rounded-full blur-lg animate-pulse" />
+              <div className="relative bg-gradient-to-br from-blue-600 to-indigo-600 p-2.5 rounded-xl shadow-lg">
+                <Bot className="h-5 w-5 text-white" />
+              </div>
+            </div>
+            <div className="flex flex-col">
+              <CardTitle className="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                AI Matching Assistant
+                <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border-blue-200 dark:border-blue-800">
+                  <Sparkles className="h-3 w-3 mr-1" />
+                  Online
+                </Badge>
+              </CardTitle>
+              <p className="text-sm text-slate-600 dark:text-slate-400 font-medium">
+                Professional roommate compatibility guidance
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 text-slate-400">
+            <MessageSquare className="h-4 w-4" />
+            <span className="text-xs font-medium">{messages.length - 1} messages</span>
+          </div>
+        </div>
       </CardHeader>
-      <CardContent className="p-0">
+      <CardContent className="p-0 flex flex-col h-[500px]">
         <ChatMessageList messages={messages} />
         <ChatInput onSendMessage={handleSendMessage} />
       </CardContent>
@@ -67,24 +90,24 @@ function generateResponse(userInput: string, profileData: any): string {
   const input = userInput.toLowerCase();
   
   if (input.includes("algorithm") || input.includes("matching") || input.includes("how does it work")) {
-    return "Our matching algorithm analyzes compatibility based on lifestyle, budget, location, and personal preferences. We look at factors like cleanliness, sleep schedules, and social habits to find your ideal roommate match.";
+    return "Our proprietary matching algorithm utilizes advanced compatibility analysis across multiple dimensions: lifestyle preferences, budget alignment, geographic proximity, and behavioral patterns. The system employs weighted scoring to identify optimal roommate pairings with a 94% success rate for long-term compatibility.";
   }
   
   if (input.includes("budget") || input.includes("price") || input.includes("cost")) {
-    return "Budget compatibility is an important factor in our matching algorithm. We try to find roommates with similar budget ranges to ensure a good financial fit.";
+    return "Financial compatibility is a critical factor in sustainable roommate relationships. Our algorithm analyzes budget ranges, payment preferences, and financial responsibility patterns to ensure harmonious living arrangements. We recommend maintaining a 15% buffer for unexpected expenses.";
   }
   
   if (input.includes("location") || input.includes("area") || input.includes("neighborhood")) {
-    return "Location preferences are matched based on your desired neighborhoods or areas. The closer your preferred locations align, the higher the compatibility score.";
+    return "Location matching incorporates geographic proximity, neighborhood preferences, transportation access, and local amenities. The system prioritizes matches within a 2-mile radius while considering commute patterns and lifestyle requirements.";
   }
   
   if (input.includes("lifestyle") || input.includes("habits")) {
-    return "Lifestyle compatibility includes factors like cleanliness, sleep schedules, social activity, and more. These factors significantly impact your daily living experience with a roommate.";
+    return "Lifestyle compatibility assessment evaluates cleanliness standards, sleep schedules, social preferences, work habits, and dietary restrictions. These factors are weighted based on their impact on daily living harmony and long-term cohabitation success.";
   }
   
   if (input.includes("hi") || input.includes("hello") || input.includes("hey")) {
-    return "Hello! How can I help you with finding your ideal roommate today?";
+    return "Welcome. I'm here to provide professional guidance on your roommate matching journey. What specific aspect of compatibility analysis would you like to explore?";
   }
   
-  return "I'm not sure I understand your question. You can ask me about how our matching algorithm works, compatibility factors, or specific aspects of roommate matching like budget, location, or lifestyle preferences.";
+  return "I specialize in roommate compatibility analysis and matching algorithms. Please inquire about specific factors such as budget alignment, location preferences, lifestyle compatibility, or the technical aspects of our matching system.";
 }

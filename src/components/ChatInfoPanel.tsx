@@ -92,11 +92,11 @@ export function ChatInfoPanel({ userId, userName, role, onClose, className }: Ch
                     </Avatar>
                 </div>
 
-                <h3 className="text-xl font-black text-slate-900 dark:text-white mb-1 tracking-tight">
+                <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-1 tracking-tight">
                     {profile.company ? profile.company : userName}
                 </h3>
                 {profile.company && (
-                    <p className="text-sm font-medium text-slate-500 mb-1">{profile.full_name}</p>
+                    <p className="text-sm font-medium text-slate-500 mb-1 tracking-wide">{profile.full_name}</p>
                 )}
 
                 <div className="flex flex-wrap justify-center gap-2 mt-3">
@@ -112,27 +112,27 @@ export function ChatInfoPanel({ userId, userName, role, onClose, className }: Ch
             <div className="p-6 space-y-8">
                 {/* Contact Info */}
                 <div className="space-y-4">
-                    <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Contact Information</h4>
+                    <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-4">Contact Information</h4>
                     <div className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-300">
-                        <div className="h-8 w-8 rounded-full bg-slate-50 dark:bg-slate-900 flex items-center justify-center shrink-0">
+                        <div className="h-8 w-8 rounded-lg bg-slate-50 dark:bg-slate-900 flex items-center justify-center shrink-0 border border-slate-200 dark:border-slate-700">
                             <Mail className="h-4 w-4 text-slate-400" />
                         </div>
-                        <span className="truncate">{profile?.email || "Email hidden"}</span>
+                        <span className="truncate font-medium">{profile?.email || "Email hidden"}</span>
                     </div>
                     {profile?.phone && (
                         <div className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-300">
-                            <div className="h-8 w-8 rounded-full bg-slate-50 dark:bg-slate-900 flex items-center justify-center shrink-0">
+                            <div className="h-8 w-8 rounded-lg bg-slate-50 dark:bg-slate-900 flex items-center justify-center shrink-0 border border-slate-200 dark:border-slate-700">
                                 <Phone className="h-4 w-4 text-slate-400" />
                             </div>
-                            <span>{profile.phone}</span>
+                            <span className="font-medium">{profile.phone}</span>
                         </div>
                     )}
                     {profile?.location && (
                         <div className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-300">
-                            <div className="h-8 w-8 rounded-full bg-slate-50 dark:bg-slate-900 flex items-center justify-center shrink-0">
+                            <div className="h-8 w-8 rounded-lg bg-slate-50 dark:bg-slate-900 flex items-center justify-center shrink-0 border border-slate-200 dark:border-slate-700">
                                 <MapPin className="h-4 w-4 text-slate-400" />
                             </div>
-                            <span>{profile.location}</span>
+                            <span className="font-medium">{profile.location}</span>
                         </div>
                     )}
                 </div>
@@ -140,10 +140,10 @@ export function ChatInfoPanel({ userId, userName, role, onClose, className }: Ch
                 {/* Renovator Specifics */}
                 {isRenovator && profile.specialties && (
                     <div className="space-y-3">
-                        <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Specialties</h4>
+                        <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3">Professional Services</h4>
                         <div className="flex flex-wrap gap-2">
                             {Array.isArray(profile.specialties) && profile.specialties.map((spec: string, i: number) => (
-                                <Badge key={i} variant="outline" className="font-medium text-slate-600 border-slate-200">
+                                <Badge key={i} variant="outline" className="font-medium text-slate-600 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900">
                                     {spec}
                                 </Badge>
                             ))}
@@ -154,21 +154,21 @@ export function ChatInfoPanel({ userId, userName, role, onClose, className }: Ch
                 {/* Tenant/Seeker Specifics - Placeholder for future logic */}
                 {!isRenovator && (role === 'tenant') && (
                     <div className="space-y-4">
-                        <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Preferences</h4>
+                        <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-4">Rental Preferences</h4>
                         <div className="grid grid-cols-2 gap-3">
                             <div className="p-3 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800">
                                 <div className="flex items-center gap-2 mb-1 text-slate-400">
                                     <Wallet className="h-3 w-3" />
-                                    <span className="text-[10px] font-bold uppercase">Budget</span>
+                                    <span className="text-[10px] font-semibold uppercase tracking-wide">Budget</span>
                                 </div>
-                                <p className="font-bold text-slate-700 dark:text-slate-200 text-sm">{profile?.budget_min ? `$${profile.budget_min} - $${profile.budget_max}` : "Not set"}</p>
+                                <p className="font-semibold text-slate-700 dark:text-slate-200 text-sm">{profile?.budget_min ? `$${profile.budget_min} - $${profile.budget_max}` : "Not specified"}</p>
                             </div>
                             <div className="p-3 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800">
                                 <div className="flex items-center gap-2 mb-1 text-slate-400">
                                     <Calendar className="h-3 w-3" />
-                                    <span className="text-[10px] font-bold uppercase">Move In</span>
+                                    <span className="text-[10px] font-semibold uppercase tracking-wide">Move In</span>
                                 </div>
-                                <p className="font-bold text-slate-700 dark:text-slate-200 text-sm">{profile?.move_in_date || "Flexible"}</p>
+                                <p className="font-semibold text-slate-700 dark:text-slate-200 text-sm">{profile?.move_in_date || "Flexible"}</p>
                             </div>
                         </div>
                     </div>

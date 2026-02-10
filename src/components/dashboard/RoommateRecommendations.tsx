@@ -95,11 +95,6 @@ export function RoommateRecommendations({
         >
           <div className="space-y-1">
             <SubFeatureButton 
-              emoji="❤️" 
-              label="About Me"
-              onClick={() => navigate("/dashboard/profile")}
-            />
-            <SubFeatureButton 
               emoji="🔍" 
               label="Ideal Roommate"
               onClick={() => navigate("/dashboard/roommate-recommendations")}

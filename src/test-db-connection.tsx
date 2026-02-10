@@ -7,108 +7,101 @@ type Status = 'pending' | 'success' | { error: string };
 type TestState = {
   auth: Status;
   salesListings: Status;
-  coOwnershipSignals: Status;
+  signals: Status;
 };
 
 export default function TestDBConnection() {
   const [state, setState] = useState<TestState>({
     auth: 'pending',
     salesListings: 'pending',
-    coOwnershipSignals: 'pending',
+    signals: 'pending',
   });
 
-  const safeMessage = (err: unknown): string => {
+  const getErrorMsg = (err: unknown): string => {
     if (err instanceof Error) return err.message;
     return String(err) || 'Unknown error';
   };
 
   const runTests = async () => {
-    setState({
-      auth: 'pending',
-      salesListings: 'pending',
-      coOwnershipSignals: 'pending',
-    });
+    setState({ auth: 'pending', salesListings: 'pending', signals: 'pending' });
 
-    // Auth
+    // 1. Auth
     try {
       const { error } = await supabase.auth.getUser();
       if (error) throw error;
-      setState((s) => ({ ...s, auth: 'success' }));
+      setState(s => ({ ...s, auth: 'success' }));
     } catch (err) {
-      setState((s) => ({ ...s, auth: { error: safeMessage(err) } }));
+      setState(s => ({ ...s, auth: { error: getErrorMsg(err) } }));
     }
 
-    // sales_listings
+    // 2. sales_listings
     try {
       const { error } = await supabase
         .from('sales_listings')
         .select('id', { count: 'exact', head: true });
       if (error) throw error;
-      setState((s) => ({ ...s, salesListings: 'success' }));
+      setState(s => ({ ...s, salesListings: 'success' }));
     } catch (err) {
-      const msg =
-        (err as PostgrestError)?.code === '42P01'
-          ? "Table 'sales_listings' does not exist"
-          : safeMessage(err);
-      setState((s) => ({ ...s, salesListings: { error: msg } }));
+      const msg = (err as PostgrestError)?.code === '42P01'
+        ? "Table 'sales_listings' does NOT exist"
+        : getErrorMsg(err);
+      setState(s => ({ ...s, salesListings: { error: msg } }));
     }
 
-    // co_ownership_signals
+    // 3. co_ownership_signals
     try {
       const { error } = await supabase
         .from('co_ownership_signals')
         .select('id', { count: 'exact', head: true });
       if (error) throw error;
-      setState((s) => ({ ...s, coOwnershipSignals: 'success' }));
+      setState(s => ({ ...s, signals: 'success' }));
     } catch (err) {
-      const msg =
-        (err as PostgrestError)?.code === '42P01'
-          ? "Table 'co_ownership_signals' does not exist"
-          : safeMessage(err);
-      setState((s) => ({ ...s, coOwnershipSignals: { error: msg } }));
+      const msg = (err as PostgrestError)?.code === '42P01'
+        ? "Table 'co_ownership_signals' does NOT exist"
+        : getErrorMsg(err);
+      setState(s => ({ ...s, signals: { error: msg } }));
     }
   };
 
-  useEffect(() => {
-    runTests();
-  }, []);
+  useEffect(() => { runTests(); }, []);
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">Supabase Connection Test</h1>
-
-      <div className="grid gap-4 md:grid-cols-3">
-        <TestBlock title="Auth" status={state.auth} />
-        <TestBlock title="sales_listings" status={state.salesListings} />
-        <TestBlock title="co_ownership_signals" status={state.coOwnershipSignals} />
+    <div className="p-8 max-w-4xl mx-auto">
+      <h1 className="text-3xl font-bold mb-8 text-center">Supabase Connection Test</h1>
+      
+      <div className="grid gap-6 md:grid-cols-3">
+        <StatusCard title="Authentication" status={state.auth} />
+        <StatusCard title="Sales Listings Table" status={state.salesListings} />
+        <StatusCard title="Co-Ownership Signals Table" status={state.signals} />
       </div>
 
-      <button
-        onClick={runTests}
-        className="mt-6 px-5 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-      >
-        Run Again
-      </button>
+      <div className="mt-8 text-center">
+        <button
+          onClick={runTests}
+          className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 font-medium"
+        >
+          Run Tests Again
+        </button>
+      </div>
     </div>
   );
 }
 
-function TestBlock({ title, status }: { title: string; status: Status }) {
-  let className = 'p-4 rounded border ';
+function StatusCard({ title, status }: { title: string; status: Status }) {
+  let bg = 'bg-gray-50 border-gray-200 text-gray-700';
   let text = '⏳ Testing...';
 
   if (status === 'success') {
-    className += 'bg-green-50 border-green-200 text-green-800';
-    text = '✅ OK';
+    bg = 'bg-green-50 border-green-200 text-green-800';
+    text = '✅ Working perfectly';
   } else if (typeof status === 'object') {
-    className += 'bg-red-50 border-red-200 text-red-800';
-    text = `❌ ${status.error}`;
+    bg = 'bg-red-50 border-red-200 text-red-800';
   }
 
   return (
-    <div className={className}>
-      <h3 className="font-semibold mb-1">{title}</h3>
-      <div className="text-sm">{text}</div>
+    <div className={`p-6 rounded-xl border ${bg} shadow-sm`}>
+      <h3 className="font-bold text-lg mb-3">{title}</h3>
+      <p className="text-base font-medium">{text}</p>
     </div>
   );
 }

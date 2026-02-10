@@ -894,71 +894,35 @@ export interface CoOwnershipSignal {
 }
 
 export const fetchCoOwnershipSignals = async (): Promise<CoOwnershipSignal[]> => {
-  const { data, error } = await sb
-    .from('co_ownership_signals')
-    .select('*')
-    .order('created_at', { ascending: false });
-
-  if (error) {
-    if (error.code !== '42P01') console.error('Error fetching signals:', error);
-    return [];
-  }
-
-  const signals = data as CoOwnershipSignal[];
-  if (signals.length === 0) return [];
-
   try {
-    const userIds = Array.from(new Set(signals.map(s => s.user_id)));
+    const { data, error } = await sb
+      .from('co_ownership_signals')
+      .select('*')
+      .order('created_at', { ascending: false });
 
-    // Fetch generic profiles
-    const { data: profiles, error: profileError } = await sb
-      .from('profiles')
-      .select('id, first_name, last_name, full_name, email')
-      .in('id', userIds);
-
-    if (profileError) console.error("Error fetching signal profiles:", profileError);
-
-    // Fetch renovator profiles
-    const { data: renovators, error: renovatorError } = await sb
-      .from('renovation_partners' as any)
-      .select('user_id, company, name')
-      .in('user_id', userIds);
-
-    if (renovatorError && renovatorError.code !== '42P01') {
-      console.error("Error fetching renovators:", renovatorError);
+    if (error) {
+      console.error('Error fetching signals:', error);
+      // Return empty array if table doesn't exist
+      if (error.code === '42P01') {
+        console.log('co_ownership_signals table does not exist yet');
+        return [];
+      }
+      return [];
     }
 
-    return signals.map(signal => {
-      let name = "Unknown User";
+    const signals = data as CoOwnershipSignal[];
+    if (signals.length === 0) return signals;
 
-      // 1. Try Renovator Profile
-      const renovator = renovators?.find((r: any) => r.user_id === signal.user_id);
-      if (renovator) {
-        if (renovator.company && renovator.name) {
-          name = `${renovator.company} (${renovator.name})`;
-        } else {
-          name = renovator.company || renovator.name;
-        }
-      }
-      // 2. Try Standard Profile
-      else {
-        const profile = profiles?.find((p: any) => p.id === signal.user_id);
-        if (profile) {
-          if (profile.first_name || profile.last_name) {
-            name = `${profile.first_name || ''} ${profile.last_name || ''}`.trim();
-          } else if (profile.full_name) {
-            name = profile.full_name;
-          } else if (profile.email) {
-            name = profile.email.split('@')[0];
-          }
-        }
-      }
+    // Add creator names from the signals themselves (no need to fetch profiles)
+    const signalsWithNames = signals.map(signal => ({
+      ...signal,
+      creator_name: signal.user_id ? 'Signal User' : 'Anonymous'
+    }));
 
-      return { ...signal, creator_name: name };
-    });
-  } catch (err) {
-    console.error("Error fetching creator profiles for signals:", err);
-    return signals;
+    return signalsWithNames;
+  } catch (error) {
+    console.error('Error in fetchCoOwnershipSignals:', error);
+    return [];
   }
 };
 

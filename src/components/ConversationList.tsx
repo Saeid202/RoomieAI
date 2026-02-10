@@ -87,13 +87,18 @@ export function ConversationList({
   return (
     <div className={`w-full h-full flex flex-col bg-white dark:bg-slate-950 border-r-2 border-slate-200 dark:border-slate-800 ${className}`}>
 
-      <div className="p-5 space-y-5">
-        <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Messages</h2>
+      <div className="p-6 space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-semibold text-slate-900 dark:text-white tracking-tight">Professional Communications</h2>
+          <Badge variant="outline" className="text-xs font-medium bg-slate-50 text-slate-600 border-slate-200">
+            {conversations.length} conversations
+          </Badge>
+        </div>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
           <Input
-            placeholder="Search"
-            className="pl-10 h-10 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all rounded-full text-sm font-semibold text-slate-700 placeholder:font-medium"
+            placeholder="Search conversations..."
+            className="pl-10 h-11 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:border-slate-900 focus:ring-2 focus:ring-slate-900/5 transition-all rounded-xl text-sm font-medium text-slate-700 placeholder:font-medium"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -103,8 +108,9 @@ export function ConversationList({
       <ScrollArea className="flex-1">
         <div className="px-3 pb-4 space-y-1">
           {filteredConversations.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-10 text-center">
-              <p className="text-sm text-slate-400">No messages found</p>
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <p className="text-sm font-medium text-slate-400">No conversations found</p>
+              <p className="text-xs text-slate-500 mt-1">Start a new conversation to see it here</p>
             </div>
           ) : filteredConversations.map((conversation) => {
             const isSelected = selectedConversationId === conversation.id;
@@ -119,15 +125,15 @@ export function ConversationList({
             return (
               <div
                 key={conversation.id}
-                className={`group flex items-start gap-3 p-3 rounded-2xl cursor-pointer transition-all duration-200 ${isSelected
-                  ? "bg-blue-50 dark:bg-blue-900/20 shadow-sm"
-                  : "hover:bg-slate-50 dark:hover:bg-slate-900/50"
+                className={`group flex items-start gap-3 p-4 rounded-xl cursor-pointer transition-all duration-200 border ${isSelected
+                  ? "bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 shadow-sm"
+                  : "hover:bg-slate-50/50 dark:hover:bg-slate-900/30 border-transparent"
                   }`}
                 onClick={() => onSelectConversation(conversation)}
               >
                 <div className="relative shrink-0 mt-1">
-                  <Avatar className="h-10 w-10 border border-slate-200 dark:border-slate-700 shadow-sm">
-                    <AvatarFallback className={`text-xs font-bold ${isEmergency ? "bg-rose-100 text-rose-600" : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"}`}>
+                  <Avatar className="h-11 w-11 border border-slate-200 dark:border-slate-700 shadow-sm">
+                    <AvatarFallback className={`text-sm font-semibold ${isEmergency ? "bg-rose-100 text-rose-600" : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"}`}>
                       {otherParticipantName[0]?.toUpperCase() || "U"}
                     </AvatarFallback>
                   </Avatar>
@@ -135,27 +141,27 @@ export function ConversationList({
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  <div className="flex justify-between items-center mb-0.5">
-                    <h4 className={`text-sm font-bold truncate ${isSelected ? 'text-slate-900 dark:text-white' : 'text-slate-700 dark:text-slate-200 group-hover:text-slate-900'}`}>
+                  <div className="flex justify-between items-center mb-1">
+                    <h4 className={`text-sm font-semibold truncate ${isSelected ? 'text-slate-900 dark:text-white' : 'text-slate-700 dark:text-slate-200 group-hover:text-slate-900'}`}>
                       {otherParticipantName}
                     </h4>
                     {lastMessageTime && (
-                      <span className={`text-[10px] font-medium ${isSelected ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400'}`}>
+                      <span className={`text-[10px] font-medium ${isSelected ? 'text-slate-600 dark:text-slate-400' : 'text-slate-400'}`}>
                         {lastMessageTime.replace('about ', '')}
                       </span>
                     )}
                   </div>
 
-                  <p className={`text-[13px] truncate leading-snug mb-1.5 font-medium ${isSelected ? 'text-slate-600 dark:text-slate-300' : 'text-slate-500 dark:text-slate-500'}`}>
+                  <p className={`text-[13px] truncate leading-snug mb-2 ${isSelected ? 'text-slate-600 dark:text-slate-300' : 'text-slate-500 dark:text-slate-500'}`}>
                     {isOwnMessage && <span className="text-slate-400 font-normal">You: </span>}{lastMessage}
                   </p>
 
                   {conversation.property_title && (
                     <div className="flex items-center gap-1.5">
                       {isEmergency ? (
-                        <Badge variant="destructive" className="h-5 px-1.5 text-[9px] font-bold rounded-md shadow-none">EMERGENCY</Badge>
+                        <Badge variant="destructive" className="h-5 px-2 text-[9px] font-semibold rounded-lg shadow-none">EMERGENCY</Badge>
                       ) : (
-                        <Badge variant="secondary" className="h-5 px-1.5 text-[9px] font-medium bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400 border border-slate-200 dark:border-slate-700 rounded-md shadow-none max-w-full truncate">
+                        <Badge variant="secondary" className="h-5 px-2 text-[9px] font-medium bg-slate-50 text-slate-500 dark:bg-slate-800 dark:text-slate-400 border border-slate-200 dark:border-slate-700 rounded-lg shadow-none max-w-full truncate">
                           {conversation.property_title.replace('Group Co-buy: ', 'Co-Buy').replace('🚨 Emergency: ', '')}
                         </Badge>
                       )}

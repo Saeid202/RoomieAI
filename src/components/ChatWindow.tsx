@@ -154,20 +154,20 @@ export function ChatWindow({
     return (
       <div className={`flex-1 flex flex-col items-center justify-center p-8 bg-[#f8fafc] dark:bg-slate-950 text-center relative overflow-hidden ${className}`}>
         {/* Animated Background Elements */}
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-400/10 rounded-full blur-[120px] animate-pulse" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-400/10 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '2s' }} />
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-slate-400/10 rounded-full blur-[120px] animate-pulse" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-slate-400/10 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '2s' }} />
 
         <div className="relative group mb-8">
-          <div className="absolute -inset-8 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-600 rounded-full opacity-20 blur-3xl group-hover:opacity-40 transition-opacity duration-700" />
+          <div className="absolute -inset-8 bg-gradient-to-r from-slate-500 via-slate-600 to-slate-700 rounded-full opacity-20 blur-3xl group-hover:opacity-40 transition-opacity duration-700" />
           <div className="relative bg-white dark:bg-slate-900 rounded-[2.5rem] p-12 shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-white/40 dark:border-slate-800/40">
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-slate-900 p-6 rounded-3xl">
-              <MessageCircle className="w-20 h-20 text-blue-600/60" strokeWidth={1} />
+            <div className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 p-6 rounded-3xl">
+              <MessageCircle className="w-20 h-20 text-slate-600/60" strokeWidth={1} />
             </div>
           </div>
         </div>
-        <h3 className="text-4xl font-black text-slate-900 dark:text-white mb-4 tracking-tight">Your Universe</h3>
+        <h3 className="text-4xl font-semibold text-slate-900 dark:text-white mb-4 tracking-tight">Professional Communications</h3>
         <p className="text-slate-500 dark:text-slate-400 max-w-sm text-lg font-medium leading-relaxed opacity-80">
-          Connect with roommates, landlords, and pros in a dynamic, secure workspace.
+          Connect with roommates, landlords, and professionals in a secure, business-oriented environment.
         </p>
       </div>
     );
@@ -204,12 +204,12 @@ export function ChatWindow({
               </div>
 
               <div className="cursor-pointer" onClick={() => setShowInfoPanel(true)}>
-                <h3 className="font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
+                <h3 className="font-semibold text-base text-slate-900 dark:text-white flex items-center gap-2 tracking-tight">
                   {otherParticipantName}
-                  {isEmergency && <Badge className="bg-rose-500 hover:bg-rose-600 animate-pulse border-none text-[10px] h-5 px-1.5">URGENT</Badge>}
+                  {isEmergency && <Badge className="bg-rose-500 hover:bg-rose-600 animate-pulse border-none text-[10px] h-5 px-1.5 font-semibold">URGENT</Badge>}
                 </h3>
-                <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                  {isEmergency ? 'Emergency Response' : 'Online'}
+                <p className="text-xs font-medium text-slate-500 dark:text-slate-400 tracking-wide">
+                  {isEmergency ? 'Emergency Response' : 'Active now'}
                 </p>
               </div>
             </div>
@@ -270,13 +270,13 @@ export function ChatWindow({
               </div>
             ) : messages.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20 text-center animate-in fade-in duration-500">
-                <Avatar className="h-20 w-20 mb-6">
-                  <AvatarFallback className="text-2xl bg-slate-100 text-slate-400">
+                <Avatar className="h-20 w-20 mb-6 border-2 border-slate-200 dark:border-slate-700">
+                  <AvatarFallback className="text-2xl font-semibold bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-500">
                     {otherParticipantName[0]}
                   </AvatarFallback>
                 </Avatar>
-                <h4 className="text-xl font-bold text-slate-900 mb-2">Say hello to {otherParticipantName}</h4>
-                <p className="text-slate-500">No messages yet. Start the conversation!</p>
+                <h4 className="text-xl font-semibold text-slate-900 dark:text-white mb-2 tracking-tight">Start your conversation</h4>
+                <p className="text-slate-500 dark:text-slate-400 font-medium">Send a message to begin communicating with {otherParticipantName}</p>
               </div>
             ) : (
               <div className="space-y-6">
@@ -305,17 +305,17 @@ export function ChatWindow({
 
                         <div className={`flex flex-col ${isOwn ? 'items-end' : 'items-start'}`}>
                           <div
-                            className={`px-5 py-3 text-[15px] shadow-sm relative transition-all duration-300 ${isOwn
-                              ? `bg-gradient-to-br from-blue-600 to-blue-700 text-white border-none ${isFirstInGroup ? 'rounded-t-[20px] rounded-l-[20px]' : 'rounded-l-[20px]'} ${isLastInGroup ? 'rounded-b-[20px]' : 'rounded-l-[20px]'}`
-                              : `bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border border-slate-100 ${isFirstInGroup ? 'rounded-t-[20px] rounded-r-[20px]' : 'rounded-r-[20px]'} ${isLastInGroup ? 'rounded-b-[20px]' : 'rounded-r-[20px]'}`
+                            className={`px-5 py-3 text-[15px] shadow-sm relative transition-all duration-300 leading-relaxed ${isOwn
+                              ? `bg-gradient-to-br from-slate-900 to-slate-800 text-white border-none ${isFirstInGroup ? 'rounded-t-[20px] rounded-l-[20px]' : 'rounded-l-[20px]'} ${isLastInGroup ? 'rounded-b-[20px]' : 'rounded-l-[20px]'}`
+                              : `bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border border-slate-100 dark:border-slate-700 ${isFirstInGroup ? 'rounded-t-[20px] rounded-r-[20px]' : 'rounded-r-[20px]'} ${isLastInGroup ? 'rounded-b-[20px]' : 'rounded-r-[20px]'}`
                               }`}
                           >
-                            <p className="whitespace-pre-wrap leading-relaxed">{message.content}</p>
+                            <p className="whitespace-pre-wrap font-medium tracking-tight">{message.content}</p>
                           </div>
 
                           {isLastInGroup && (
                             <div className="flex items-center gap-1.5 mt-1.5 px-1">
-                              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                              <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
                                 {formatDistanceToNow(new Date(message.created_at), { addSuffix: false }).replace('about ', '')}
                               </span>
                               {isOwn && <CheckCircle className="h-3 w-3 text-blue-600" />}

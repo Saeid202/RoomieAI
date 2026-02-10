@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, ArrowRight, Home, MapPin, DollarSign, Camera, FileText, CheckCircle, X, Upload, Train, ShoppingBag, GraduationCap, Coffee, Loader2, Sparkles, Volume2, Square, Box, Film } from "lucide-react";
+import { useRoleBasedVerification } from "@/hooks/useRoleBasedVerification";
 import { ai3DService } from "@/services/ai3DService";
 
 import { useNavigate } from "react-router-dom";
@@ -175,6 +176,7 @@ const steps = [
 export default function AddPropertyPage() {
   const navigate = useNavigate();
   const { role } = useRole();
+  const { isVerified, loading: verificationLoading, requireVerification } = useRoleBasedVerification();
   const [currentStep] = useState(1);
   const [formData, setFormData] = useState<PropertyFormData>(initialFormData);
   const [detailedDetection, setDetailedDetection] = useState<PropertyIntelligence | null>(null);
@@ -608,6 +610,11 @@ export default function AddPropertyPage() {
   const handleSubmit = async () => {
     console.log("🚀 Starting property submission...");
     console.log("📋 Form data:", formData);
+
+    // Check verification before allowing property submission
+    if (requireVerification('Publish listing')) {
+      return; // User will be redirected
+    }
 
     try {
       // Get current user
