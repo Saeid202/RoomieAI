@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { Session, User } from "@supabase/supabase-js";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/integrations/supabase/client-simple";
 
 interface AuthContextType {
   user: User | null;
@@ -37,11 +37,46 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (mounted) {
+        // Handle invalid refresh token error
+        if (event === 'TOKEN_REFRESHED' && !session) {
+          console.warn('Session refresh failed, signing out...');
+          await supabase.auth.signOut();
+        }
+        
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
       }
     });
+
+    // Also check for existing session with error handling
+    const checkSession = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        // Handle invalid refresh token error
+        if (error?.message?.includes("Invalid Refresh Token")) {
+          console.warn('Invalid refresh token detected, signing out...');
+          await supabase.auth.signOut();
+          return;
+        }
+        
+        if (mounted) {
+          setSession(session);
+          setUser(session?.user ?? null);
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error('Error checking session:', error);
+        if (mounted) {
+          setSession(null);
+          setUser(null);
+          setLoading(false);
+        }
+      }
+    };
+
+    checkSession();
 
     return () => {
       mounted = false;

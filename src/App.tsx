@@ -272,8 +272,8 @@ function AppRoutes() {
         <Route path="autopay" element={<AutoPayPage />} />
         <Route path="late-fees" element={<LateFeeManagementPage />} />
         <Route path="list-room" element={<ListRoomPage />} />
-        <Route path="profile" element={<Navigate to="/dashboard/roommate-recommendations" replace />} />
-        <Route path="profile/*" element={<Navigate to="/dashboard/roommate-recommendations" replace />} />
+        <Route path="profile" element={<SeekerProfilePage />} />
+        <Route path="profile/*" element={<SeekerProfilePage />} />
         <Route path="settings" element={<SettingsPage />} />
 
         {/* Admin routes - protected with AdminRoute */}
