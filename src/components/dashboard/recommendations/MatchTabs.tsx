@@ -58,6 +58,7 @@ export function MatchTabs({ activeTab, setActiveTab, roommates, properties, onVi
             <PropertyCard 
               key={index} 
               property={property} 
+              ownerName={property.landlord_name}
               onViewDetails={onViewDetails} 
             />
           ))}

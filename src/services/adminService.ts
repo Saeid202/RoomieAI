@@ -115,7 +115,12 @@ export async function getAvailableRoles(userId: string): Promise<string[]> {
       roles.push('renovator');
     }
 
-    // Unique roles only
+    // 5. Add admin if they are admin
+    if (isAdmin) {
+      roles.push('admin');
+    }
+
+    // Return unique roles
     return Array.from(new Set(roles));
   } catch (error) {
     console.error('Error fetching available roles:', error);

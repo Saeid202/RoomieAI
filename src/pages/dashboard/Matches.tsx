@@ -487,15 +487,15 @@ export default function MatchesPage() {
               {filteredAndSortedMatches.map((match) => (
                 <Card
                   key={match.id}
-                  className="group relative flex flex-col bg-white/80 backdrop-blur-sm rounded-[20px] shadow-xl hover:shadow-2xl transition-all duration-300 border-0 overflow-hidden hover:-translate-y-1"
+                  className="group relative flex flex-col bg-white rounded-[20px] shadow-[0_4px_20px_rgba(0,0,0,0.05)] hover:shadow-[0_12px_30px_rgba(110,89,255,0.15)] transition-all duration-300 border-none overflow-hidden hover:-translate-y-1"
                 >
                   <div className="p-6 md:p-7 flex flex-col h-full space-y-5">
 
                     {/* 1) Header - Human Identity */}
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
-                        <Avatar className="h-12 w-12 border-2 border-purple-100 shadow-sm">
-                          <AvatarFallback className="bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-base">
+                        <Avatar className="h-12 w-12 border-2 border-slate-50 shadow-sm">
+                          <AvatarFallback className="bg-gradient-to-tr from-roomie-purple to-indigo-500 text-white font-bold text-base">
                             {match.image}
                           </AvatarFallback>
                         </Avatar>
@@ -510,7 +510,7 @@ export default function MatchesPage() {
                       </div>
                       <Badge
                         className={`rounded-full px-3 py-1 border-none font-bold text-[10px] tracking-tight shadow-sm ${match.compatibility >= 85 ? 'bg-gradient-to-r from-emerald-400 to-teal-500 text-white' :
-                          match.compatibility >= 70 ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white' :
+                          match.compatibility >= 70 ? 'bg-gradient-to-r from-roomie-purple to-indigo-500 text-white' :
                             'bg-gradient-to-r from-amber-400 to-orange-500 text-white'
                           }`}
                       >
@@ -535,7 +535,7 @@ export default function MatchesPage() {
                         <Home className="h-3.5 w-3.5" />
                         {match.housingType}
                       </div>
-                      <div className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-50 text-purple-600 rounded-full text-[11px] font-bold">
+                      <div className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-50 text-roomie-purple rounded-full text-[11px] font-bold">
                         <Calendar className="h-3.5 w-3.5" />
                         {match.moveInDate.includes('20') ? 'Timeline Set' : match.moveInDate}
                       </div>
@@ -553,7 +553,7 @@ export default function MatchesPage() {
                     {/* 5) Actions - Strong CTA */}
                     <div className="pt-4 mt-auto flex items-center gap-3">
                       <Button
-                        className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-black text-sm h-12 rounded-2xl shadow-lg hover:shadow-xl transition-all active:scale-95 flex items-center justify-center gap-2"
+                        className="flex-1 bg-gradient-to-r from-roomie-purple to-indigo-600 hover:from-roomie-purple/90 hover:to-indigo-600/90 text-white font-black text-sm h-12 rounded-2xl shadow-[0_8px_16px_rgba(110,89,255,0.25)] transition-all active:scale-95 flex items-center justify-center gap-2"
                         onClick={() => handleContact(match.userId)}
                         disabled={startingChatId === match.userId}
                       >
@@ -591,9 +591,9 @@ export default function MatchesPage() {
               ))}
             </div>
           ) : (
-            <Card className="text-center py-12 bg-white/50 backdrop-blur-sm rounded-3xl border-dashed border-2 border-purple-200">
+            <Card className="text-center py-12 bg-white/50 backdrop-blur-md rounded-3xl border-dashed border-2 border-slate-200">
               <CardContent>
-                <Target className="w-16 h-16 mx-auto text-purple-300 mb-6 animate-pulse" />
+                <Target className="w-16 h-16 mx-auto text-slate-300 mb-6 animate-pulse" />
                 <h3 className="text-xl font-extrabold text-slate-800 mb-3">No profiles align with your strategy</h3>
                 <p className="text-slate-500 max-w-md mx-auto mb-8 font-medium">
                   {filterBy === "all"

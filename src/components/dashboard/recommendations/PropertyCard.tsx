@@ -6,9 +6,10 @@ import { Building, Bed } from "lucide-react";
 interface PropertyCardProps {
   property: any;
   onViewDetails: (property: any) => void;
+  ownerName?: string; // Add owner name prop
 }
 
-export function PropertyCard({ property, onViewDetails }: PropertyCardProps) {
+export function PropertyCard({ property, onViewDetails, ownerName }: PropertyCardProps) {
   return (
     <Card className="overflow-hidden">
       <div 
@@ -49,6 +50,21 @@ export function PropertyCard({ property, onViewDetails }: PropertyCardProps) {
                 <p className="text-sm text-gray-500">Address</p>
                 <p className="font-semibold text-md text-gray-800">{property.propertyDetails?.address || property.location}</p>
               </div>
+              {/* Owner Information */}
+              {ownerName && ownerName !== 'Property Owner' && (
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <p className="text-sm text-gray-500">Listed by</p>
+                  <p className="font-semibold text-md text-gray-800">{ownerName}</p>
+                </div>
+              )}
+              
+              {/* Fallback if no specific owner name */}
+              {(!ownerName || ownerName === 'Property Owner') && (
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <p className="text-sm text-gray-500">Listed by</p>
+                  <p className="font-semibold text-md text-gray-800">Property Owner</p>
+                </div>
+              )}
               <div className="mt-4 flex items-center justify-start space-x-4">
                 <div className="flex items-center space-x-2">
                   <Bed size={16} className="text-gray-600" />

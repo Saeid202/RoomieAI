@@ -56,6 +56,10 @@ export interface Property {
   roommate_preference?: string;
   images?: string[];
 
+  // UI enrichment (not in DB schema directly)
+  landlord_name?: string;
+  listing_agent?: string;
+
   // Metadata
   created_at: string;
   updated_at: string;
@@ -464,8 +468,77 @@ export async function fetchProperties(filters?: {
       throw new Error(`Failed to fetch properties: ${error.message}`);
     }
 
-    console.log("Properties fetched successfully:", data);
-    return (data as any as Property[]) || [];
+    const properties = (data as any as Property[]) || [];
+
+    const propertyIds = properties.map((p: any) => p.id).filter(Boolean) as string[];
+    const userIds = Array.from(
+      new Set(properties.map((p: any) => p.user_id).filter(Boolean))
+    ) as string[];
+
+    const nameByUserId = new Map<string, string>();
+    const roleByUserId = new Map<string, string>();
+
+    // First try public_property_owners view (public access, no RLS issues)
+    if (propertyIds.length > 0) {
+      console.log('Fetching public_property_owners for propertyIds:', propertyIds);
+      const { data: owners, error: ownersError } = await sb
+        .from('public_property_owners')
+        .select('property_id, owner_name, owner_email')
+        .in('property_id', propertyIds);
+
+      console.log('public_property_owners result:', { owners, ownersError });
+
+      if (!ownersError && owners) {
+        for (const o of owners as any[]) {
+          if (o?.property_id && o?.owner_name) {
+            // Find the user_id for this property_id
+            const property = properties.find((p: any) => p.id === o.property_id);
+            if (property?.user_id) {
+              nameByUserId.set(property.user_id, o.owner_name);
+            }
+          }
+        }
+        console.log('nameByUserId map:', Object.fromEntries(nameByUserId));
+      } else {
+        console.error('Error fetching public_property_owners for property list:', ownersError);
+      }
+    }
+
+    // Fallback: fetch user_profiles for missing names and roles
+    const missingUserIds = userIds.filter(uid => !nameByUserId.has(uid));
+
+    if (missingUserIds.length > 0) {
+      console.log('Fetching user_profiles fallback for missing userIds:', missingUserIds);
+      const { data: profiles, error: profilesError } = await sb
+        .from('user_profiles')
+        .select('id, full_name, role')
+        .in('id', missingUserIds);
+
+      console.log('Profiles fallback result:', { profiles, profilesError });
+
+      if (!profilesError && profiles) {
+        for (const p of profiles as any[]) {
+          if (p?.id) {
+            nameByUserId.set(p.id, p.full_name || 'Property Owner');
+            // We'll use this in the enrichment step
+            roleByUserId.set(p.id, p.role ? p.role.charAt(0).toUpperCase() + p.role.slice(1) : '');
+          }
+        }
+      } else {
+        console.error('Error fetching user_profiles fallback:', profilesError);
+      }
+    }
+
+    const enriched = properties.map((p: any) => {
+      const landlord_name = nameByUserId.get(p.user_id) || 'Property Owner';
+      const listing_agent = roleByUserId.get(p.user_id) || undefined;
+      const enriched = { ...p, landlord_name, listing_agent };
+      console.log('Enriched property:', enriched);
+      return enriched;
+    });
+
+    console.log("Properties fetched successfully:", enriched);
+    return enriched;
   } catch (error) {
     console.error("Error in fetchProperties:", error);
     // Return empty array if table doesn't exist or other error
@@ -477,19 +550,74 @@ export async function fetchPropertyById(id: string) {
   console.log("Fetching property by ID:", id);
 
   try {
-    const { data, error } = await sb
+    // First fetch the property
+    const { data: property, error: propertyError } = await sb
       .from('properties')
       .select('*')
       .eq('id', id)
       .single();
 
-    if (error) {
-      console.error("Error fetching property:", error);
-      throw new Error(`Failed to fetch property: ${error.message}`);
+    if (propertyError) {
+      console.error("Error fetching property:", propertyError);
+      throw new Error(`Failed to fetch property: ${propertyError.message}`);
     }
 
-    console.log("Property fetched successfully:", data);
-    return data;
+    let landlord_name = 'Property Owner';
+    let listing_agent: string | undefined;
+
+    // Prefer the non-recursive view to resolve owner name by property_id
+    try {
+      const { data: owner, error: ownerError } = await sb
+        .from('public_property_owners')
+        .select('owner_name')
+        .eq('property_id', property.id)
+        .single();
+
+      if (!ownerError && owner?.owner_name) {
+        landlord_name = owner.owner_name;
+      } else if (ownerError) {
+        console.error('Error fetching owner from public_property_owners:', ownerError);
+      }
+    } catch (e) {
+      console.error('Exception fetching owner from public_property_owners:', e);
+    }
+
+    // Fallback to user_profiles if view didn't resolve it, and also fetch role
+    if (landlord_name === 'Property Owner' || !listing_agent) {
+      try {
+        console.log("Fetching profile for user_id:", property.user_id);
+        const { data: profile, error: profileError } = await sb
+          .from('user_profiles')
+          .select('full_name, role')
+          .eq('id', property.user_id)
+          .single();
+
+        console.log("Profile data:", profile, "Error:", profileError);
+
+        if (!profileError && profile) {
+          if (!landlord_name || landlord_name === 'Property Owner') {
+            landlord_name = profile.full_name || 'Property Owner';
+          }
+          // Capitalize role for display (landlord -> Landlord, realtor -> Realtor)
+          listing_agent = profile.role ? profile.role.charAt(0).toUpperCase() + profile.role.slice(1) : undefined;
+          console.log("Found landlord name:", landlord_name, "role:", listing_agent);
+        } else {
+          console.log("Using fallback landlord name");
+        }
+      } catch (err) {
+        console.error('Exception fetching profile for rental property:', err);
+      }
+    }
+
+    // Add landlord_name and listing_agent to property data
+    const propertyWithOwner = {
+      ...property,
+      landlord_name,
+      listing_agent
+    };
+
+    console.log("Property fetched successfully:", propertyWithOwner);
+    return propertyWithOwner;
   } catch (error) {
     console.error("Error in fetchPropertyById:", error);
     throw error;
@@ -498,17 +626,46 @@ export async function fetchPropertyById(id: string) {
 
 export async function fetchSalesListingById(id: string) {
   try {
-    const { data, error } = await sb
+    // First fetch the sales listing
+    const { data: listing, error: listingError } = await sb
       .from('sales_listings')
       .select('*')
       .eq('id', id)
       .single();
 
-    if (error) {
-      throw new Error(`Failed to fetch sales listing: ${error.message}`);
+    if (listingError) {
+      throw new Error(`Failed to fetch sales listing: ${listingError.message}`);
     }
 
-    return data;
+    // Then fetch the owner's profile separately
+    let landlord_name = 'Property Owner';
+    if (listing.user_id) {
+      console.log("Fetching profile for sales listing user_id:", listing.user_id);
+      const { data: profile, error: profileError } = await sb
+        .from('user_profiles')
+        .select('full_name')
+        .eq('id', listing.user_id)
+        .single();
+
+      console.log("Sales listing profile data:", profile, "Error:", profileError);
+      
+      if (!profileError && profile?.full_name) {
+        landlord_name = profile.full_name;
+        console.log("Found sales listing landlord name:", landlord_name);
+      } else {
+        console.log("Using fallback sales listing landlord name");
+      }
+    } else {
+      console.log("No user_id found in sales listing");
+    }
+
+    // Add landlord_name to listing data
+    const listingWithOwner = {
+      ...listing,
+      landlord_name
+    };
+
+    return listingWithOwner;
   } catch (error) {
     console.error("Error in fetchSalesListingById:", error);
     throw error;
@@ -677,22 +834,60 @@ export async function updateSalesListing(id: string, updates: any) {
 }
 
 export async function deleteProperty(id: string) {
-  console.log("Deleting property:", id);
+  console.log("🗑️ Deleting property:", id);
 
   try {
+    // First, check if user is authenticated
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    if (authError) {
+      console.error("❌ Auth error:", authError);
+      throw new Error("Authentication error: Please try logging out and back in");
+    }
+
+    if (!user) {
+      console.error("❌ User not authenticated:", { user, authError });
+      throw new Error("User not authenticated: Please log in to delete properties");
+    }
+
+    console.log("🔍 Current user:", { id: user?.id, email: user?.email });
+
+    // Check if property exists and belongs to current user
+    const { data: property, error: checkError } = await supabase
+      .from('properties')
+      .select('id, user_id, listing_title')
+      .eq('id', id)
+      .single();
+
+    if (checkError) {
+      console.error("❌ Error checking property:", checkError);
+      throw new Error(`Property not found: ${checkError.message}`);
+    }
+
+    if (!property) {
+      throw new Error("Property not found");
+    }
+
+    if (property.user_id !== user?.id) {
+      console.error("❌ Permission denied: User", user?.id, "trying to delete property owned by", property.user_id);
+      throw new Error(`You don't have permission to delete this property. Property owner: ${property.user_id}, Current user: ${user?.id}`);
+    }
+
+    console.log("✅ Property verified, belongs to user:", property.listing_title);
+
     // First, check if there are any rental applications for this property
-    const { data: applications, error: checkError } = await supabase
+    const { data: applications, error: appsError } = await supabase
       .from('rental_applications' as any)
       .select('id, full_name, status')
       .eq('property_id', id);
 
-    if (checkError) {
-      console.error("Error checking rental applications:", checkError);
-      throw new Error(`Failed to check rental applications: ${checkError.message}`);
+    if (appsError) {
+      console.error("❌ Error checking rental applications:", appsError);
+      throw new Error(`Failed to check rental applications: ${appsError.message}`);
     }
 
     if (applications && applications.length > 0) {
-      console.log(`Found ${applications.length} rental applications for this property:`, applications);
+      console.log(`📋 Found ${applications.length} rental applications for this property:`, applications);
 
       // Delete all rental applications first
       const { error: deleteAppsError } = await supabase
@@ -701,12 +896,43 @@ export async function deleteProperty(id: string) {
         .eq('property_id', id);
 
       if (deleteAppsError) {
-        console.error("Error deleting rental applications:", deleteAppsError);
+        console.error("❌ Error deleting rental applications:", deleteAppsError);
         throw new Error(`Failed to delete rental applications: ${deleteAppsError.message}`);
       }
 
-      console.log(`Successfully deleted ${applications.length} rental applications`);
+      console.log(`✅ Successfully deleted ${applications.length} rental applications`);
     }
+
+    // Check and delete lease contracts (this was causing the 409 error)
+    const { data: leaseContracts, error: leaseError } = await supabase
+      .from('lease_contracts' as any)
+      .select('id, tenant_id, status')
+      .eq('property_id', id);
+
+    if (leaseError) {
+      console.error("❌ Error checking lease contracts:", leaseError);
+      // Don't throw error here, continue with deletion
+    }
+
+    if (leaseContracts && leaseContracts.length > 0) {
+      console.log(`📋 Found ${leaseContracts.length} lease contracts for this property:`, leaseContracts);
+
+      // Delete all lease contracts first
+      const { error: deleteLeaseError } = await supabase
+        .from('lease_contracts' as any)
+        .delete()
+        .eq('property_id', id);
+
+      if (deleteLeaseError) {
+        console.error("❌ Error deleting lease contracts:", deleteLeaseError);
+        throw new Error(`Failed to delete lease contracts: ${deleteLeaseError.message}`);
+      }
+
+      console.log(`✅ Successfully deleted ${leaseContracts.length} lease contracts`);
+    }
+
+    // Check and delete property images (table doesn't exist - skip this check)
+    // Note: property_images table doesn't exist in the database, so we skip this step
 
     // Now delete the property
     const { error } = await supabase
@@ -715,32 +941,73 @@ export async function deleteProperty(id: string) {
       .eq('id', id);
 
     if (error) {
-      console.error("Error deleting property:", error);
+      console.error("❌ Error deleting property:", error);
       throw new Error(`Failed to delete property: ${error.message}`);
     }
 
-    console.log("Property deleted successfully");
+    console.log("✅ Property deleted successfully");
     return { success: true };
   } catch (error) {
-    console.error("Error in deleteProperty:", error);
+    console.error("❌ Error in deleteProperty:", error);
     throw error;
   }
 }
 
 export async function deleteSalesListing(id: string) {
+  console.log("🗑️ Deleting sales listing:", id);
+
   try {
+    // First, check if user is authenticated
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    if (authError) {
+      console.error("❌ Auth error:", authError);
+      throw new Error("Authentication error: Please try logging out and back in");
+    }
+
+    if (!user) {
+      console.error("❌ User not authenticated:", { user, authError });
+      throw new Error("User not authenticated: Please log in to delete properties");
+    }
+
+    // Check if sales listing exists and belongs to current user
+    const { data: listing, error: checkError } = await supabase
+      .from('sales_listings')
+      .select('id, user_id, listing_title')
+      .eq('id', id)
+      .single();
+
+    if (checkError) {
+      console.error("❌ Error checking sales listing:", checkError);
+      throw new Error(`Sales listing not found: ${checkError.message}`);
+    }
+
+    if (!listing) {
+      throw new Error("Sales listing not found");
+    }
+
+    if (listing.user_id !== user?.id) {
+      console.error("❌ Permission denied: User", user?.id, "trying to delete sales listing owned by", listing.user_id);
+      throw new Error(`You don't have permission to delete this sales listing. Sales listing owner: ${listing.user_id}, Current user: ${user?.id}`);
+    }
+
+    console.log("✅ Sales listing verified, belongs to user:", listing.listing_title);
+
+    // Delete the sales listing
     const { error } = await sb
       .from('sales_listings')
       .delete()
       .eq('id', id);
 
     if (error) {
+      console.error("❌ Error deleting sales listing:", error);
       throw new Error(`Failed to delete sales listing: ${error.message}`);
     }
 
+    console.log("✅ Sales listing deleted successfully");
     return { success: true };
   } catch (error) {
-    console.error("Error in deleteSalesListing:", error);
+    console.error("❌ Error in deleteSalesListing:", error);
     throw error;
   }
 }

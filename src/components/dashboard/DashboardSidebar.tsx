@@ -1,4 +1,3 @@
-
 import { useLocation, Link } from "react-router-dom";
 import {
   Sidebar,
@@ -21,8 +20,8 @@ import { DeveloperSidebar } from "./sidebar/DeveloperSidebar";
 import { AdminSidebar } from "./sidebar/AdminSidebar";
 import { RenovatorSidebar } from "./sidebar/RenovatorSidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Menu, X, Home, LogOut, Settings, ChevronUp, User } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { ChevronUp, Settings, LogOut, Home } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,

@@ -22,7 +22,7 @@ export function RoleSwitcher({ variant = 'default' }: RoleSwitcherProps) {
   const { updateMetadata, user } = useAuth();
   const navigate = useNavigate();
   const [isRoleSwitching, setIsRoleSwitching] = useState(false);
-  const [availableRoles, setAvailableRoles] = useState<UserRole[]>(['seeker', 'landlord']);
+  const [availableRoles, setAvailableRoles] = useState<UserRole[]>(['seeker', 'landlord', 'renovator']);
 
   // Load available roles on mount
   useEffect(() => {
@@ -32,6 +32,13 @@ export function RoleSwitcher({ variant = 'default' }: RoleSwitcherProps) {
       try {
         const roles = await getAvailableRoles(user.id) as UserRole[];
         setAvailableRoles(roles);
+        
+        // If current role is not in available roles, reset to seeker
+        if (role && !roles.includes(role as UserRole)) {
+          console.log(`Current role '${role}' is not available, resetting to seeker`);
+          setRole('seeker');
+          await updateMetadata({ role: 'seeker' });
+        }
       } catch (error) {
         console.error('Error loading available roles:', error);
       }
@@ -83,7 +90,7 @@ export function RoleSwitcher({ variant = 'default' }: RoleSwitcherProps) {
     }
   };
 
-  const getRoleDisplay = (roleValue: UserRole) => {
+  const getRoleDisplay = (roleValue: UserRole | string) => {
     switch (roleValue) {
       case 'seeker': return 'Seeker';
       case 'landlord': return 'Landlord';
@@ -94,7 +101,7 @@ export function RoleSwitcher({ variant = 'default' }: RoleSwitcherProps) {
     }
   };
 
-  const getRoleIcon = (roleValue: UserRole) => {
+  const getRoleIcon = (roleValue: UserRole | string) => {
     switch (roleValue) {
       case 'seeker': return <User className="h-4 w-4" />;
       case 'landlord': return <Building className="h-4 w-4" />;

@@ -42,16 +42,14 @@ export function RoleInitializer({ children }: RoleInitializerProps) {
   }, [user, setRole, role]);
 
   // Helper function to get a display-friendly role name
-  const getRoleDisplay = (roleValue: string): string => {
-    switch (roleValue) {
-      case 'seeker':
-        return 'Seeker';
-      case 'landlord':
-        return 'Landlord';
-      case 'developer':
-        return 'Builder/Realtor';
-      default:
-        return 'User';
+  const getRoleDisplay = (role: string) => {
+    switch (role) {
+      case 'seeker': return 'Seeker';
+      case 'landlord': return 'Landlord';
+      case 'admin': return 'Administrator';
+      case 'renovator': return 'Renovator';
+      case 'developer': return 'Developer';
+      default: return 'User';
     }
   };
 

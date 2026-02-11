@@ -21,7 +21,7 @@ const formSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Please enter a valid email"),
   password: z.string().min(6, "Password must be at least 6 characters"),
-  role: z.enum(["seeker", "landlord", "renovator"], {
+  role: z.enum(["seeker", "landlord", "renovator", "lawyer"], {
     required_error: "Please select a role",
   }),
 });
@@ -146,6 +146,14 @@ export const SignupForm = ({ onSubmit, isLoading }: SignupFormProps) => {
                     </FormControl>
                     <FormLabel className="font-normal cursor-pointer">
                       Renovator - Find jobs & receive requests
+                    </FormLabel>
+                  </FormItem>
+                  <FormItem className="flex items-center space-x-3 space-y-0">
+                    <FormControl>
+                      <RadioGroupItem value="lawyer" />
+                    </FormControl>
+                    <FormLabel className="font-normal cursor-pointer">
+                      Lawyer - Legal services & consultations
                     </FormLabel>
                   </FormItem>
                 </RadioGroup>

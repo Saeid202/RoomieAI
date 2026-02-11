@@ -16,7 +16,7 @@ export default function AuthPage() {
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState<'seeker' | 'renovator'>('seeker');
+  const [role, setRole] = useState<'seeker' | 'landlord' | 'renovator'>('seeker');
   const [loading, setLoading] = useState(false);
 
   // If already logged in, redirect to dashboard

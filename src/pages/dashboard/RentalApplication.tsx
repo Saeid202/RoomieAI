@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
 import { stripePromise } from "@/integrations/stripe/client";
-import { useRoleBasedVerification } from "@/hooks/useRoleBasedVerification";
 
 import {
   Card,
@@ -167,7 +166,6 @@ export default function RentalApplicationPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { isVerified, loading: verificationLoading, requireVerification } = useRoleBasedVerification();
   const [currentStep, setCurrentStep] = useState(1);
   const [property, setProperty] = useState<Property | null>(null);
   const [loading, setLoading] = useState(true);
@@ -1864,11 +1862,6 @@ export default function RentalApplicationPage() {
         );
 
       case 4:
-        // Check verification before allowing payment
-        if (requireVerification('Rent payment')) {
-          return null; // User will be redirected
-        }
-        
         return (
           <div className="space-y-6">
             <div className="text-center mb-6">

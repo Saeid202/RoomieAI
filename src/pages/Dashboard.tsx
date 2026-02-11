@@ -42,13 +42,33 @@ export default function Dashboard() {
       return <Navigate to="/dashboard/admin" replace />;
     } else if (assignedRole === 'renovator') {
       return <Navigate to="/renovator" replace />;
-    } else {
-      // For tenant/seeker, show RoommateRecommendations at main /dashboard route
+    } else if (assignedRole === 'seeker') {
+      // Only seekers should see RoommateRecommendations at main /dashboard route
       return (
         <DashboardLayout>
           <RoommateRecommendations />
         </DashboardLayout>
       );
+    } else {
+      // Default fallback for any other role (shouldn't happen)
+      return (
+        <DashboardLayout>
+          <RoommateRecommendations />
+        </DashboardLayout>
+      );
+    }
+  }
+
+  // Additional redirect: if user is on /dashboard but role doesn't match the route, redirect to correct dashboard
+  if (!loading && assignedRole && location.pathname.startsWith('/dashboard') && !showRoleDialog) {
+    if (assignedRole === 'landlord' && location.pathname !== '/dashboard/landlord') {
+      return <Navigate to="/dashboard/landlord" replace />;
+    }
+    if (assignedRole === 'admin' && location.pathname !== '/dashboard/admin') {
+      return <Navigate to="/dashboard/admin" replace />;
+    }
+    if (assignedRole === 'renovator' && location.pathname !== '/renovator') {
+      return <Navigate to="/renovator" replace />;
     }
   }
 
