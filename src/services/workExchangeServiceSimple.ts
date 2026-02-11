@@ -64,7 +64,7 @@ class WorkExchangeServiceSimple {
       
       try {
         const { data: profile, error: profileError } = await supabase
-          .from('profiles')
+          .from('user_profiles')
           .select('full_name, email')
           .eq('id', user.id)
           .single();

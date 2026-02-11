@@ -40,7 +40,7 @@ export class MessagingService {
         { data: sales },
         { data: lastMessages }
       ] = await Promise.all([
-        supabase.from("profiles").select("id, first_name, last_name, full_name, email").in("id", participantIds),
+        supabase.from("user_profiles").select("id, full_name, email").in("id", participantIds),
         supabase.from("renovation_partners" as any).select("user_id, company, name").in("user_id", participantIds),
         supabase.from("properties" as any).select("id, listing_title, address").in("id", propertyIds),
         supabase.from("emergency_jobs" as any).select("id, category, unit_address, status").in("id", jobIds),
@@ -194,10 +194,9 @@ export class MessagingService {
         if (r) return (r.company && r.name) ? `${r.company} (${r.name})` : (r.company || r.name);
 
         // Try Profile
-        const { data: pResult } = await supabase.from('profiles').select('first_name, last_name, full_name, email').eq('id', uid).maybeSingle();
+        const { data: pResult } = await supabase.from('user_profiles').select('full_name, email').eq('id', uid).maybeSingle();
         const p = pResult as any;
         if (p) {
-          if (p.first_name || p.last_name) return `${p.first_name || ''} ${p.last_name || ''}`.trim();
           if (p.full_name) return p.full_name;
           if (p.email) return p.email.split('@')[0];
         }

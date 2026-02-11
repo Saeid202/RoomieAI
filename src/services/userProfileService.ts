@@ -18,11 +18,11 @@ export async function fetchUserProfileForApplication(
   console.log("Fetching user profile for application, userId:", userId);
 
   try {
-    // Priority 1: Check profiles table (primary source) - with error handling
+    // Priority 1: Check user_profiles table (primary source) - with error handling
     try {
       const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('full_name, email, phone, date_of_birth, occupation')
+        .from('user_profiles')
+        .select('full_name, email, date_of_birth, occupation')
         .eq('id', userId)
         .single();
 
@@ -31,7 +31,7 @@ export async function fetchUserProfileForApplication(
         return {
           fullName: profile.full_name || '',
           email: profile.email || '',
-          phone: profile.phone || undefined,
+          phone: undefined,
           dateOfBirth: profile.date_of_birth || undefined,
           occupation: profile.occupation || undefined,
         };

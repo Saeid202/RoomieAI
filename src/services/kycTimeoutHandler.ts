@@ -103,7 +103,7 @@ export class KYCTimeoutHandler {
 
       // Update user profile
       const { error: profileError } = await supabase
-        .from('profiles')
+        .from('user_profiles')
         .update({
           verification_status: KYC_STATUS.EXPIRED,
           verification_completed_at: now,
