@@ -767,37 +767,58 @@ export default function AddPropertyPage() {
     switch (currentStep) {
       case 1:
         return (
-          <div className="space-y-8">
-            {/* SECTION 1: Property Information */}
-            <section className="space-y-4">
-              <div className="flex items-center gap-2 pb-2 border-b">
-                <div className="h-8 w-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 font-semibold text-sm">1</div>
-                <h3 className="text-lg font-semibold text-gray-800">Property Information</h3>
-              </div>
-
-              <div className="space-y-6">
-                <div className="flex items-center gap-6">
-                  <div className="space-y-2 max-w-xs flex-1">
-                    <Label htmlFor="listingCategory" className="text-sm font-medium">Listing Category</Label>
-                    <Select value={formData.listingCategory} onValueChange={(value) => handleInputChange("listingCategory", value)}>
-                      <SelectTrigger className="h-9 w-full border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                        <SelectValue placeholder="Select category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="rental">Rentals</SelectItem>
-                        <SelectItem value="sale">Sales</SelectItem>
-                      </SelectContent>
-                    </Select>
+          <div className="space-y-6">
+            {/* UNIFIED FORM - All Sections in One Card */}
+            <Card className="border-2 border-blue-200 shadow-2xl overflow-hidden">
+              {/* Single Unified Header */}
+              <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 px-8 py-6">
+                <div className="flex items-center gap-4">
+                  <div className="h-12 w-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                    <Home className="h-7 w-7 text-white drop-shadow-md" />
                   </div>
+                  <div>
+                    <h3 className="text-3xl font-bold text-white tracking-tight">Property Listing Form</h3>
+                    <p className="text-blue-100 text-sm mt-1">Complete all details to create your listing</p>
+                  </div>
+                </div>
+              </div>
+              
+              <CardContent className="p-10 space-y-10 bg-gradient-to-br from-white via-blue-50/20 to-purple-50/20">
+                
+                {/* Property Information Section */}
+                <div className="space-y-6">
+                  <div className="flex items-center gap-3 pb-3 border-b-2 border-blue-200">
+                    <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-md">
+                      <Home className="h-6 w-6 text-white" />
+                    </div>
+                    <h4 className="text-2xl font-bold text-gray-800">Property Information</h4>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-7">
+                    <div className="space-y-3">
+                      <Label htmlFor="listingCategory" className="text-base font-bold text-gray-800 flex items-center gap-2">
+                        <span className="text-blue-600">●</span> Listing Category
+                      </Label>
+                      <Select value={formData.listingCategory} onValueChange={(value) => handleInputChange("listingCategory", value)}>
+                        <SelectTrigger className="h-14 text-base font-medium border-2 border-gray-300 hover:border-blue-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200 rounded-lg shadow-sm">
+                          <SelectValue placeholder="Select category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="rental">Rentals</SelectItem>
+                          <SelectItem value="sale">Sales</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
 
                   {formData.listingCategory === "sale" && (
-                    <div className="flex items-center space-x-2 self-end pb-2">
+                    <div className="flex items-center space-x-3 self-end pb-2">
                       <Checkbox
                         id="isCoOwnership"
                         checked={formData.isCoOwnership}
                         onCheckedChange={(checked) => handleInputChange("isCoOwnership", checked)}
+                        className="h-5 w-5"
                       />
-                      <Label htmlFor="isCoOwnership" className="text-sm font-medium cursor-pointer">
+                      <Label htmlFor="isCoOwnership" className="text-base font-semibold cursor-pointer text-gray-900">
                         Open to co-ownership
                       </Label>
                     </div>
@@ -848,25 +869,30 @@ export default function AddPropertyPage() {
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="propertyType" className="text-sm font-medium">Property Type</Label>
-                    <Select value={formData.propertyType} onValueChange={(value) => handleInputChange("propertyType", value)}>
-                      <SelectTrigger className="h-9 w-full border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                        <SelectValue placeholder="Select type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="studio">Studio</SelectItem>
-                        <SelectItem value="one-bed-room-share-cando">Shared 1-Bed Condo</SelectItem>
-                        <SelectItem value="two-bed-room-share-cando">Shared 2-Bed Condo</SelectItem>
-                        <SelectItem value="entire-one-bed-room-cando">Entire 1-Bed Condo</SelectItem>
-                        <SelectItem value="entire-two-bed-room-cando">Entire 2-Bed Condo</SelectItem>
-                        <SelectItem value="room-from-house">Private Room (House)</SelectItem>
-                        <SelectItem value="entire-house">Entire House</SelectItem>
-                        <SelectItem value="entire-basement">Entire Basement</SelectItem>
-                        <SelectItem value="room-from-basement">Room in Basement</SelectItem>
-                        <SelectItem value="shared-room">Shared Room</SelectItem>
-                      </SelectContent>
-                    </Select>
+                  <div className="space-y-3">
+                    <Label htmlFor="propertyType" className="text-base font-bold text-gray-800 flex items-center gap-2">
+                      <span className="text-blue-600">●</span> Property Type
+                    </Label>
+                    <div className="relative">
+                      <Home className="absolute left-4 top-4 h-5 w-5 text-slate-400 z-10" />
+                      <Select value={formData.propertyType} onValueChange={(value) => handleInputChange("propertyType", value)}>
+                        <SelectTrigger className="h-14 text-base font-medium pl-12 border-2 border-gray-300 hover:border-blue-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200 rounded-lg shadow-sm">
+                          <SelectValue placeholder="Select type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="studio">Studio</SelectItem>
+                          <SelectItem value="one-bed-room-share-cando">Shared 1-Bed Condo</SelectItem>
+                          <SelectItem value="two-bed-room-share-cando">Shared 2-Bed Condo</SelectItem>
+                          <SelectItem value="entire-one-bed-room-cando">Entire 1-Bed Condo</SelectItem>
+                          <SelectItem value="entire-two-bed-room-cando">Entire 2-Bed Condo</SelectItem>
+                          <SelectItem value="room-from-house">Private Room (House)</SelectItem>
+                          <SelectItem value="entire-house">Entire House</SelectItem>
+                          <SelectItem value="entire-basement">Entire Basement</SelectItem>
+                          <SelectItem value="room-from-basement">Room in Basement</SelectItem>
+                          <SelectItem value="shared-room">Shared Room</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                 </div>
 
@@ -1254,28 +1280,29 @@ export default function AddPropertyPage() {
                     />
                   </div>
                 )}
+                </div>
 
-
-              </div>
-            </section>
-
-            {/* SECTION 3: Features & Amenities */}
-            <section className="space-y-4">
-              <div className="flex items-center gap-2 pb-2 border-b">
-                <div className="h-8 w-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 font-semibold text-sm">3</div>
-                <h3 className="text-lg font-semibold text-gray-800">Features & Amenities</h3>
-              </div>
-
-              <div className="space-y-3">
-                <Label className="text-sm font-medium">Property Amenities</Label>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {[
-                    "Air Conditioning", "Heating", "Dishwasher", "Washer/Dryer",
-                    "Balcony/Patio", "Hardwood Floors", "Carpet", "Fireplace",
-                    "Swimming Pool", "Gym/Fitness Center", "Elevator", "Garden"
-                  ].map((amenity) => (
-                    <div key={amenity} className="flex items-center space-x-2">
-                      <Checkbox
+                {/* Features & Amenities Section */}
+                <div className="space-y-6 pt-4">
+                  <div className="flex items-center gap-3 pb-3 border-b-2 border-purple-200">
+                    <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-md">
+                      <Home className="h-6 w-6 text-white" />
+                    </div>
+                    <h4 className="text-2xl font-bold text-gray-800">Features & Amenities</h4>
+                  </div>
+                  
+                <div className="space-y-4">
+                  <Label className="text-base font-bold text-gray-800 flex items-center gap-2">
+                    <span className="text-purple-600">●</span> Property Amenities
+                  </Label>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {[
+                      "Air Conditioning", "Heating", "Dishwasher", "Washer/Dryer",
+                      "Balcony/Patio", "Hardwood Floors", "Carpet", "Fireplace",
+                      "Swimming Pool", "Gym/Fitness Center", "Elevator", "Garden"
+                    ].map((amenity) => (
+                      <div key={amenity} className="flex items-center space-x-2">
+                        <Checkbox
                         id={amenity}
                         checked={formData.amenities.includes(amenity)}
                         onCheckedChange={(checked) => handleArrayChange("amenities", amenity, checked as boolean)}
@@ -1338,31 +1365,33 @@ export default function AddPropertyPage() {
                   </div>
                 </div>
               </div>
-            </section>
+                </div>
 
-            {/* SECTION 4: Rental/Sales Information */}
-            <section className="space-y-4">
-              <div className="flex items-center gap-2 pb-2 border-b">
-                <div className="h-8 w-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 font-semibold text-sm">4</div>
-                <h3 className="text-lg font-semibold text-gray-800">
-                  {formData.listingCategory === 'sale' ? 'Sales Information' : 'Rental Information'}
-                </h3>
-              </div>
-
-              {formData.listingCategory === 'sale' ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="salesPrice" className="text-sm font-medium">Sales Price ($)</Label>
-                    <Input
-                      id="salesPrice"
-                      placeholder="0.00"
-                      type="number"
-                      value={formData.salesPrice}
-                      onChange={(e) => handleInputChange("salesPrice", e.target.value)}
-                      className="h-9 border-gray-300 shadow-sm focus:border-blue-500"
-                    />
-                    {errors.salesPrice && <p className="text-xs text-red-500 font-medium">{errors.salesPrice}</p>}
+                {/* Rental/Sales Information Section */}
+                <div className="space-y-6 pt-4">
+                  <div className="flex items-center gap-3 pb-3 border-b-2 border-orange-200">
+                    <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-md">
+                      <DollarSign className="h-6 w-6 text-white" />
+                    </div>
+                    <h4 className="text-2xl font-bold text-gray-800">
+                      {formData.listingCategory === 'sale' ? 'Sales Information' : 'Rental Information'}
+                    </h4>
                   </div>
+                  
+                {formData.listingCategory === 'sale' ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="salesPrice" className="text-sm font-medium text-gray-700">Sales Price ($)</Label>
+                      <Input
+                        id="salesPrice"
+                        placeholder="0.00"
+                        type="number"
+                        value={formData.salesPrice}
+                        onChange={(e) => handleInputChange("salesPrice", e.target.value)}
+                        className="h-11 border-2 border-gray-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200"
+                      />
+                      {errors.salesPrice && <p className="text-xs text-red-500 font-medium">{errors.salesPrice}</p>}
+                    </div>
                   <div className="space-y-2">
                     <Label htmlFor="availableDate" className="text-sm font-medium">Available Date</Label>
                     <Input
@@ -1387,17 +1416,22 @@ export default function AddPropertyPage() {
                 </div>
               ) : (
                 <>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <Label htmlFor="monthlyRent" className="text-sm font-medium">Monthly Rent ($)</Label>
-                      <Input
-                        id="monthlyRent"
-                        placeholder="0.00"
-                        type="number"
-                        value={formData.monthlyRent}
-                        onChange={(e) => handleInputChange("monthlyRent", e.target.value)}
-                        className="h-9 border-gray-300 shadow-sm focus:border-blue-500"
-                      />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-7">
+                    <div className="space-y-3">
+                      <Label htmlFor="monthlyRent" className="text-base font-bold text-gray-800 flex items-center gap-2">
+                        <span className="text-orange-600">●</span> Monthly Rent ($)
+                      </Label>
+                      <div className="relative">
+                        <DollarSign className="absolute left-4 top-4 h-5 w-5 text-slate-400" />
+                        <Input
+                          id="monthlyRent"
+                          placeholder="0.00"
+                          type="number"
+                          value={formData.monthlyRent}
+                          onChange={(e) => handleInputChange("monthlyRent", e.target.value)}
+                          className="pl-12 h-14 text-base font-medium border-2 border-gray-300 hover:border-orange-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all duration-200 rounded-lg shadow-sm"
+                        />
+                      </div>
                       {errors.monthlyRent && <p className="text-xs text-red-500 font-medium">{errors.monthlyRent}</p>}
                     </div>
                     <div className="space-y-2">
@@ -1442,9 +1476,9 @@ export default function AddPropertyPage() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="furnished" className="text-sm font-medium">Furnishing</Label>
+                      <Label htmlFor="furnished" className="text-base font-semibold text-gray-900">Furnishing</Label>
                       <Select value={formData.furnished} onValueChange={(value) => handleInputChange("furnished", value)}>
-                        <SelectTrigger className="h-9 border-gray-300 shadow-sm focus:border-blue-500">
+                        <SelectTrigger className="h-12 text-base border-2 border-gray-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200">
                           <SelectValue placeholder="Select" />
                         </SelectTrigger>
                         <SelectContent>
@@ -1509,13 +1543,18 @@ export default function AddPropertyPage() {
                   </Button>
                 </div>
 
-                <Textarea
-                  id="description"
-                  placeholder="Describe your property details... (Click 'Generate with AI' to get a head start!)"
-                  value={formData.description}
-                  onChange={(e) => handleInputChange("description", e.target.value)}
-                  className="min-h-[150px] text-sm border-gray-300 shadow-sm focus:border-blue-500"
-                />
+                <div className="space-y-3">
+                  <Label htmlFor="description" className="text-base font-bold text-gray-800 flex items-center gap-2">
+                    <span className="text-blue-600">●</span> Property Description
+                  </Label>
+                  <Textarea
+                    id="description"
+                    placeholder="Describe your property details... (Click 'Generate with AI' to get a head start!)"
+                    value={formData.description}
+                    onChange={(e) => handleInputChange("description", e.target.value)}
+                    className="min-h-[150px] text-base font-medium border-2 border-gray-300 hover:border-blue-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200 rounded-lg shadow-sm"
+                  />
+                </div>
 
                 {/* Audio Description Section */}
                 <div className="flex flex-col gap-3 pt-2">
@@ -1597,35 +1636,39 @@ export default function AddPropertyPage() {
                       </Button>
                     )}
                   </div>
-
-                  {formData.descriptionAudioUrl && (
-                    <div className="bg-white border rounded-lg p-3">
-                      <p className="text-xs font-medium text-gray-500 mb-2">My Property Voice Tour:</p>
-                      <audio controls className="w-full h-8">
-                        <source src={formData.descriptionAudioUrl} type="audio/mpeg" />
-                        Your browser does not support the audio element.
-                      </audio>
-                    </div>
-                  )}
                 </div>
-              </div>
-            </section>
 
-            {/* SECTION 5: Additional Details */}
-            <section className="space-y-4">
-              <div className="flex items-center gap-2 pb-2 border-b">
-                <div className="h-8 w-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 font-semibold text-sm">5</div>
-                <h3 className="text-lg font-semibold text-gray-800">Additional Details</h3>
+                {formData.descriptionAudioUrl && (
+                  <div className="bg-white border rounded-lg p-3">
+                    <p className="text-xs font-medium text-gray-500 mb-2">My Property Voice Tour:</p>
+                    <audio controls className="w-full h-8">
+                      <source src={formData.descriptionAudioUrl} type="audio/mpeg" />
+                      Your browser does not support the audio element.
+                    </audio>
+                  </div>
+                )}
               </div>
+                </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="roommatePreference" className="text-sm font-medium">{dynamicText.label.replace(/\*\*\d+\.\*\*\s*/, '')}</Label>
-                  <Select value={formData.roommatePreference} onValueChange={(value) => handleInputChange("roommatePreference", value)}>
-                    <SelectTrigger className="h-9 border-gray-300 shadow-sm focus:border-blue-500">
-                      <SelectValue placeholder={dynamicText.placeholder} />
-                    </SelectTrigger>
-                    <SelectContent>
+                {/* Additional Details Section */}
+                <div className="space-y-6 pt-4">
+                  <div className="flex items-center gap-3 pb-3 border-b-2 border-pink-200">
+                    <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-pink-500 to-pink-600 flex items-center justify-center shadow-md">
+                      <FileText className="h-6 w-6 text-white" />
+                    </div>
+                    <h4 className="text-2xl font-bold text-gray-800">Additional Details</h4>
+                  </div>
+                  
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-7">
+                  <div className="space-y-3">
+                    <Label htmlFor="roommatePreference" className="text-base font-bold text-gray-800 flex items-center gap-2">
+                      <span className="text-pink-600">●</span> {dynamicText.label.replace(/\*\*\d+\.\*\*\s*/, '')}
+                    </Label>
+                    <Select value={formData.roommatePreference} onValueChange={(value) => handleInputChange("roommatePreference", value)}>
+                      <SelectTrigger className="h-14 text-base font-medium border-2 border-gray-300 hover:border-pink-400 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 transition-all duration-200 rounded-lg shadow-sm">
+                        <SelectValue placeholder={dynamicText.placeholder} />
+                      </SelectTrigger>
+                      <SelectContent>
                       <SelectItem value="any">{dynamicText.noPreferenceText}</SelectItem>
                       <SelectItem value="students">Students Only</SelectItem>
                       <SelectItem value="professionals">Working Professionals Only</SelectItem>
@@ -1638,25 +1681,28 @@ export default function AddPropertyPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="specialInstructions" className="text-sm font-medium">Special Instructions</Label>
+                <Label htmlFor="specialInstructions" className="text-base font-semibold text-gray-900">Special Instructions</Label>
                 <Textarea
                   id="specialInstructions"
                   placeholder="Any additional notes..."
                   value={formData.specialInstructions}
                   onChange={(e) => handleInputChange("specialInstructions", e.target.value)}
-                  className="min-h-[80px] text-sm border-gray-300 shadow-sm focus:border-blue-500"
+                  className="min-h-[100px] text-base border-2 border-gray-200 focus:border-pink-500 focus:ring-2 focus:ring-pink-200"
                 />
               </div>
-            </section>
+                </div>
+                
+              </CardContent>
+            </Card>
 
             {/* Submit Action */}
-            <div className="pt-6 mt-6 border-t flex justify-end">
+            <div className="flex justify-center pt-6 pb-4">
               <Button
                 onClick={handleSubmit}
-                className="px-8 font-semibold bg-blue-600 hover:bg-blue-700 text-white"
-                size="default"
+                className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 text-white font-bold text-xl px-16 py-7 h-auto rounded-2xl shadow-2xl hover:shadow-3xl hover:scale-105 transition-all duration-300 tracking-wide"
+                size="lg"
               >
-                {editId ? 'Save Changes' : 'Create Listing'}
+                {editId ? '✓ Save Changes' : '✨ Create Listing'}
               </Button>
             </div>
           </div>
@@ -1668,17 +1714,26 @@ export default function AddPropertyPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50/50">
-      <div className="max-w-6xl mx-auto py-6 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/20 p-4 md:p-8">
+      <div className="max-w-6xl ml-24 space-y-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-200">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="sm" onClick={() => navigate("/dashboard/landlord/properties")} className="h-8 w-8 p-0">
-              <ArrowLeft className="h-4 w-4" />
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => navigate("/dashboard/landlord/properties")} 
+              className="h-12 w-12 p-0 hover:bg-blue-50 rounded-xl transition-all duration-200"
+            >
+              <ArrowLeft className="h-6 w-6 text-gray-700" />
             </Button>
             <div>
-              <h1 className="text-2xl font-semibold tracking-tight text-gray-900">Add New Property</h1>
-              <p className="text-sm text-muted-foreground">{editId ? 'Edit your property listing' : 'Fill out the details to list your property'}</p>
+              <h1 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                {editId ? 'Edit Property' : 'Add New Property'}
+              </h1>
+              <p className="text-base text-gray-600 mt-2 font-medium">
+                {editId ? 'Update your property listing details' : 'Fill out the details to list your property'}
+              </p>
             </div>
           </div>
           {!editId && (
@@ -1686,29 +1741,16 @@ export default function AddPropertyPage() {
               variant="outline"
               size="sm"
               onClick={resetForm}
-              className="text-xs"
+              className="hover:bg-red-50 border-2 hover:border-red-300 transition-all duration-200 h-11 px-5 rounded-xl font-semibold"
             >
-              <X className="h-3.5 w-3.5 mr-2" />
+              <X className="h-5 w-5 mr-2" />
               Reset Form
             </Button>
           )}
         </div>
 
         {/* Form Content */}
-        <Card className="shadow-sm border">
-          <CardHeader className="pb-4 border-b">
-            <CardTitle className="flex items-center gap-2 text-xl font-semibold">
-              <Home className="h-5 w-5 text-primary" />
-              Property Details
-            </CardTitle>
-            <CardDescription className="text-sm">
-              Enter the comprehensive details of your rental property below.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="pt-6">
-            {renderStepContent()}
-          </CardContent>
-        </Card>
+        {renderStepContent()}
       </div>
     </div>
   );

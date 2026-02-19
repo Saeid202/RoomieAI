@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -8,37 +7,14 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import {
-  User,
   DollarSign,
   FileText,
-  CheckCircle,
   Send,
   ArrowLeft,
-  ChevronDown,
-  ChevronRight,
-  Home,
-  Calendar,
   CreditCard,
-  Wrench,
   Shield,
-  Users,
-  Key,
-  Phone,
-  Mail,
-  MapPin,
-  Clock,
-  Building,
-  Car,
-  Wifi,
-  Thermometer,
-  Droplets,
-  Flame,
-  Snowflake,
-  Trash2,
   AlertTriangle,
-  Info,
-  PenTool,
-  FileCheck
+  PenTool
 } from 'lucide-react';
 import { OntarioLeaseFormData } from '@/types/ontarioLease';
 
@@ -49,66 +25,51 @@ interface OntarioLeaseForm2229EProps {
   isLandlord?: boolean;
 }
 
-// CollapsibleSection Component
-interface CollapsibleSectionProps {
+// Section Component (simplified - always visible)
+interface SectionProps {
   title: string;
-  isExpanded: boolean;
-  onToggle: () => void;
   icon: React.ComponentType<any>;
   color: string;
   children: React.ReactNode;
 }
 
-const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
+const Section: React.FC<SectionProps> = ({
   title,
-  isExpanded,
-  onToggle,
   icon: Icon,
   color,
   children
 }) => {
-  const colorClasses = {
-    blue: 'bg-blue-50 border-blue-200 text-blue-800 hover:bg-blue-100',
-    purple: 'bg-purple-50 border-purple-200 text-purple-800 hover:bg-purple-100',
-    orange: 'bg-orange-50 border-orange-200 text-orange-800 hover:bg-orange-100',
-    indigo: 'bg-indigo-50 border-indigo-200 text-indigo-800 hover:bg-indigo-100',
-    emerald: 'bg-emerald-50 border-emerald-200 text-emerald-800 hover:bg-emerald-100',
-    teal: 'bg-teal-50 border-teal-200 text-teal-800 hover:bg-teal-100',
-    amber: 'bg-amber-50 border-amber-200 text-amber-800 hover:bg-amber-100',
-    rose: 'bg-rose-50 border-rose-200 text-rose-800 hover:bg-rose-100',
-    cyan: 'bg-cyan-50 border-cyan-200 text-cyan-800 hover:bg-cyan-100',
-    lime: 'bg-lime-50 border-lime-200 text-lime-800 hover:bg-lime-100',
-    violet: 'bg-violet-50 border-violet-200 text-violet-800 hover:bg-violet-100',
-    slate: 'bg-slate-50 border-slate-200 text-slate-800 hover:bg-slate-100',
-    red: 'bg-red-50 border-red-200 text-red-800 hover:bg-red-100',
-    yellow: 'bg-yellow-50 border-yellow-200 text-yellow-800 hover:bg-yellow-100',
-    pink: 'bg-pink-50 border-pink-200 text-pink-800 hover:bg-pink-100',
-    green: 'bg-green-50 border-green-200 text-green-800 hover:bg-green-100'
+  // Gradient color scheme for headers
+  const gradientClasses = {
+    blue: 'from-blue-500 to-blue-600',
+    purple: 'from-purple-500 to-purple-600',
+    orange: 'from-orange-500 to-orange-600',
+    indigo: 'from-indigo-500 to-indigo-600',
+    emerald: 'from-emerald-500 to-emerald-600',
+    teal: 'from-teal-500 to-teal-600',
+    amber: 'from-amber-500 to-amber-600',
+    rose: 'from-rose-500 to-rose-600',
+    cyan: 'from-cyan-500 to-cyan-600',
+    lime: 'from-lime-500 to-lime-600',
+    violet: 'from-violet-500 to-violet-600',
+    slate: 'from-slate-500 to-slate-600',
+    red: 'from-red-500 to-red-600',
+    yellow: 'from-yellow-500 to-yellow-600',
+    pink: 'from-pink-500 to-pink-600',
+    green: 'from-green-500 to-green-600'
   };
 
   return (
-    <div className="border border-gray-200 rounded-lg overflow-hidden">
-      <button
-        onClick={onToggle}
-        className={`w-full px-6 py-4 text-left border-b border-gray-200 transition-colors ${colorClasses[color as keyof typeof colorClasses]}`}
-      >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <Icon className="w-5 h-5" />
-            <span className="font-semibold">{title}</span>
-          </div>
-          {isExpanded ? (
-            <ChevronDown className="w-5 h-5" />
-          ) : (
-            <ChevronRight className="w-5 h-5" />
-          )}
+    <div className="border-2 border-slate-200 rounded-xl overflow-hidden shadow-lg mb-6">
+      <div className={`bg-gradient-to-r ${gradientClasses[color as keyof typeof gradientClasses]} px-6 py-4`}>
+        <div className="flex items-center gap-3">
+          <Icon className="h-6 w-6 text-white" />
+          <h2 className="text-2xl font-bold text-white">{title}</h2>
         </div>
-      </button>
-      {isExpanded && (
-        <div className="p-6 bg-white">
-          {children}
-        </div>
-      )}
+      </div>
+      <div className="p-8 bg-white">
+        {children}
+      </div>
     </div>
   );
 };
@@ -119,35 +80,18 @@ const OntarioLeaseForm2229E: React.FC<OntarioLeaseForm2229EProps> = ({
   onCancel,
   isLandlord = false,
 }): JSX.Element => {
-  const [currentSection, setCurrentSection] = useState(0);
   const [formData, setFormData] = useState<OntarioLeaseFormData>({
     tenancyType: 'fixed',
+    rentPaymentPeriod: 'monthly',
+    rentDiscount: 'none',
+    rentDeposit: 'not-required',
+    keyDeposit: 'not-required',
+    smokingRules: 'none',
+    insuranceRequirements: 'none',
+    additionalTerms: 'none',
     ...initialData
   } as OntarioLeaseFormData);
   const [errors, setErrors] = useState<Record<string, string>>({});
-
-  // Collapsible section states
-  const [isSection1Expanded, setIsSection1Expanded] = useState(false);
-  const [isSection2Expanded, setIsSection2Expanded] = useState(false);
-  const [isSection3Expanded, setIsSection3Expanded] = useState(false);
-  const [isSection4Expanded, setIsSection4Expanded] = useState(false);
-  const [isSection5Expanded, setIsSection5Expanded] = useState(false);
-  const [isSection6Expanded, setIsSection6Expanded] = useState(false);
-  const [isSection7Expanded, setIsSection7Expanded] = useState(false);
-  const [isSection8Expanded, setIsSection8Expanded] = useState(false);
-  const [isSection9Expanded, setIsSection9Expanded] = useState(false);
-  const [isSection10Expanded, setIsSection10Expanded] = useState(false);
-  const [isSection11Expanded, setIsSection11Expanded] = useState(false);
-  const [isSection12Expanded, setIsSection12Expanded] = useState(false);
-  const [isSection13Expanded, setIsSection13Expanded] = useState(false);
-  const [isSection14Expanded, setIsSection14Expanded] = useState(false);
-  const [isSection15Expanded, setIsSection15Expanded] = useState(false);
-  const [isSection16Expanded, setIsSection16Expanded] = useState(false);
-  const [isSection17Expanded, setIsSection17Expanded] = useState(false);
-
-  const sections = [
-    { id: 0, title: 'Complete Lease Agreement', icon: FileText, description: 'Fill out all sections of the Ontario lease agreement' }
-  ];
 
   const handleInputChange = (field: keyof OntarioLeaseFormData, value: any) => {
     setFormData(prev => ({
@@ -187,7 +131,7 @@ const OntarioLeaseForm2229E: React.FC<OntarioLeaseForm2229EProps> = ({
     }
 
     if (newErrors.tenantFirstName || newErrors.tenantLastName) {
-      setIsSection1Expanded(true);
+      // Sections are always visible now, no need to expand
     }
 
     // Section 2: Rental Unit
@@ -208,10 +152,6 @@ const OntarioLeaseForm2229E: React.FC<OntarioLeaseForm2229EProps> = ({
       missing.push('Section 2: Postal Code');
     }
 
-    if (newErrors.streetNumber || newErrors.streetName || newErrors.cityTown || newErrors.postalCode) {
-      setIsSection2Expanded(true);
-    }
-
     // Section 4: Term
     if (!formData.startDate) {
       newErrors.startDate = 'Start date is required';
@@ -222,18 +162,10 @@ const OntarioLeaseForm2229E: React.FC<OntarioLeaseForm2229EProps> = ({
       missing.push('Section 4: Tenancy Type');
     }
 
-    if (newErrors.startDate || newErrors.tenancyType) {
-      setIsSection4Expanded(true);
-    }
-
     // Section 5: Rent
     if (!formData.totalRent && formData.totalRent !== 0) {
       newErrors.totalRent = 'Total rent is required';
       missing.push('Section 5: Total Rent');
-    }
-
-    if (newErrors.totalRent) {
-      setIsSection5Expanded(true);
     }
 
     // Section 17: Signatures
@@ -264,10 +196,6 @@ const OntarioLeaseForm2229E: React.FC<OntarioLeaseForm2229EProps> = ({
       }
     }
 
-    if (newErrors.landlord1Name || newErrors.landlordAgreement || newErrors.tenant1Name || newErrors.tenant1Signature || newErrors.tenantAgreement) {
-      setIsSection17Expanded(true);
-    }
-
     setErrors(newErrors);
     setMissingFields(missing);
     return Object.keys(newErrors).length === 0;
@@ -276,24 +204,14 @@ const OntarioLeaseForm2229E: React.FC<OntarioLeaseForm2229EProps> = ({
   const handleSubmit = () => {
     if (validateSection()) {
       onSubmit(formData);
-      // toast.success('Lease agreement completed successfully!'); 
     } else {
       toast.error('Please fill in all required fields marked in red.');
 
-      // Give the UI a moment to expand sections before scrolling
+      // Scroll to first error
       setTimeout(() => {
-        const firstErrorKey = Object.keys(errors)[0] ||
-          (!formData.landlordLegalName && 'landlordLegalName') ||
-          (!formData.streetNumber && 'streetNumber') ||
-          (!formData.startDate && 'tenancyStartDate') || // Map to ID
-          (!formData.totalRent && 'totalRent') ||
-          (!formData.tenant1Signature && 'tenant1Signature');
-
+        const firstErrorKey = Object.keys(errors)[0];
         if (firstErrorKey) {
-          // Map data keys to element IDs if they differ
-          const elementId = firstErrorKey === 'startDate' ? 'tenancyStartDate' : firstErrorKey;
-
-          const element = document.getElementById(elementId);
+          const element = document.getElementById(firstErrorKey);
           if (element) {
             element.scrollIntoView({ behavior: 'smooth', block: 'center' });
             element.focus();
@@ -304,382 +222,125 @@ const OntarioLeaseForm2229E: React.FC<OntarioLeaseForm2229EProps> = ({
   };
 
   const renderSectionContent = () => {
-    switch (currentSection) {
-      case 0: // Complete Lease Agreement - All Sections 1-17
-        return (
+    return (
           <div className="space-y-8">
             {/* Legal Notice */}
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm">
-              <p className="font-semibold mb-2">Note:</p>
-              <p className="mb-2">This tenancy agreement is required for tenancies entered into on March 1, 2021 or later. It does not apply to care homes, sites in mobile home parks and land lease communities, most social housing, certain other special tenancies or co-operative housing (see Part A of General Information).</p>
-              <p className="mb-2">Residential tenancies in Ontario are governed by the Residential Tenancies Act, 2006. This agreement cannot take away a right or responsibility under the Act.</p>
-              <p className="mb-2">Under the Ontario Human Rights Code, everyone has the right to equal treatment in housing without discrimination or harassment.</p>
-              <p className="font-semibold">All sections of this agreement are mandatory and cannot be changed.</p>
+            <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200 rounded-xl p-6 shadow-sm">
+              <div className="flex gap-4">
+                <div className="flex-shrink-0">
+                  <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center">
+                    <AlertTriangle className="w-6 h-6 text-amber-600" />
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-amber-900 mb-3">Important Legal Notice</h3>
+                  <div className="space-y-2 text-amber-800 leading-relaxed">
+                    <p>This tenancy agreement is required for tenancies entered into on March 1, 2021 or later. It does not apply to care homes, sites in mobile home parks and land lease communities, most social housing, certain other special tenancies or co-operative housing.</p>
+                    <p>Residential tenancies in Ontario are governed by the Residential Tenancies Act, 2006. This agreement cannot take away a right or responsibility under the Act.</p>
+                    <p>Under the Ontario Human Rights Code, everyone has the right to equal treatment in housing without discrimination or harassment.</p>
+                    <p className="font-bold">All sections of this agreement are mandatory and cannot be changed.</p>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            {/* Section 1: Parties to the Agreement - Collapsible */}
-            <CollapsibleSection
-              title="1. Parties to the Agreement"
-              isExpanded={isSection1Expanded}
-              onToggle={() => setIsSection1Expanded(!isSection1Expanded)}
-              icon={User}
+            {/* Sections 1-4: Basic Information - MERGED */}
+            <Section
+              title="Sections 1-4: Basic Lease Information"
+              icon={FileText}
               color="blue"
             >
-              <div className="space-y-6">
-                <p className="text-lg text-gray-700">Residential Tenancy Agreement between:</p>
-
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  {/* Landlord Section */}
-                  <div className="space-y-4">
-                    <h4 className="font-semibold text-blue-600">Landlord(s):</h4>
-                    <div>
-                      <Label htmlFor="landlordLegalName">Legal Name *</Label>
-                      <Input
-                        id="landlordLegalName"
-                        value={formData.landlordLegalName || ''}
-                        onChange={(e) => handleInputChange('landlordLegalName', e.target.value)}
-                        placeholder="Enter landlord legal name"
-                      />
-                      {errors.landlordLegalName && <p className="text-red-500 text-sm">{errors.landlordLegalName}</p>}
-                    </div>
-                  </div>
-
-                  {/* Tenant Section */}
-                  <div className="space-y-4">
-                    <h4 className="font-semibold text-blue-600">Tenant(s):</h4>
-                    <div>
-                      <Label htmlFor="tenantFirstName">First Name *</Label>
-                      <Input
-                        id="tenantFirstName"
-                        value={formData.tenantFirstName || ''}
-                        onChange={(e) => handleInputChange('tenantFirstName', e.target.value)}
-                        placeholder="Enter tenant first name"
-                      />
-                      {errors.tenantFirstName && <p className="text-red-500 text-sm">{errors.tenantFirstName}</p>}
-                    </div>
-                    <div>
-                      <Label htmlFor="tenantLastName">Last Name *</Label>
-                      <Input
-                        id="tenantLastName"
-                        value={formData.tenantLastName || ''}
-                        onChange={(e) => handleInputChange('tenantLastName', e.target.value)}
-                        placeholder="Enter tenant last name"
-                      />
-                      {errors.tenantLastName && <p className="text-red-500 text-sm">{errors.tenantLastName}</p>}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </CollapsibleSection>
-
-            {/* Section 2: Rental Unit - Collapsible */}
-            <CollapsibleSection
-              title="2. Rental Unit"
-              isExpanded={isSection2Expanded}
-              onToggle={() => setIsSection2Expanded(!isSection2Expanded)}
-              icon={Home}
-              color="purple"
-            >
-              <div className="space-y-6">
-                <p className="text-gray-700">The rental unit is located at:</p>
-
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <div>
-                    <Label htmlFor="unitNumber">Unit Number (if applicable)</Label>
-                    <Input
-                      id="unitNumber"
-                      value={formData.unitNumber || ''}
-                      onChange={(e) => handleInputChange('unitNumber', e.target.value)}
-                      placeholder="e.g., Apt 101"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="streetNumber">Street Number *</Label>
-                    <Input
-                      id="streetNumber"
-                      value={formData.streetNumber || ''}
-                      onChange={(e) => handleInputChange('streetNumber', e.target.value)}
-                      placeholder="e.g., 123"
-                    />
-                    {errors.streetNumber && <p className="text-red-500 text-sm">{errors.streetNumber}</p>}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <div>
-                    <Label htmlFor="streetName">Street Name *</Label>
-                    <Input
-                      id="streetName"
-                      value={formData.streetName || ''}
-                      onChange={(e) => handleInputChange('streetName', e.target.value)}
-                      placeholder="e.g., Main Street"
-                    />
-                    {errors.streetName && <p className="text-red-500 text-sm">{errors.streetName}</p>}
-                  </div>
-                  <div>
-                    <Label htmlFor="cityTown">City/Town *</Label>
-                    <Input
-                      id="cityTown"
-                      value={formData.cityTown || ''}
-                      onChange={(e) => handleInputChange('cityTown', e.target.value)}
-                      placeholder="e.g., Toronto"
-                    />
-                    {errors.cityTown && <p className="text-red-500 text-sm">{errors.cityTown}</p>}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  <div>
-                    <Label htmlFor="province">Province *</Label>
-                    <Input
-                      id="province"
-                      value="Ontario"
-                      disabled
-                      className="bg-gray-100"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="postalCode">Postal Code *</Label>
-                    <Input
-                      id="postalCode"
-                      value={formData.postalCode || ''}
-                      onChange={(e) => handleInputChange('postalCode', e.target.value)}
-                      placeholder="e.g., M5V 3A8"
-                    />
-                    {errors.postalCode && <p className="text-red-500 text-sm">{errors.postalCode}</p>}
-                  </div>
-                </div>
-
+              <div className="space-y-10">
+                {/* Section 1 */}
                 <div className="space-y-4">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="isCondominium"
-                      checked={formData.isCondominium || false}
-                      onCheckedChange={(checked) => handleInputChange('isCondominium', checked)}
-                    />
-                    <Label htmlFor="isCondominium">This rental unit is in a condominium</Label>
+                  <h3 className="text-xl font-bold text-slate-900 border-b-2 border-blue-200 pb-2">1. Parties to the Agreement</h3>
+                  <p className="text-gray-700">Residential Tenancy Agreement between:</p>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="space-y-3">
+                      <h4 className="font-semibold text-blue-600">Landlord(s):</h4>
+                      <div>
+                        <Label htmlFor="landlordLegalName">Legal Name *</Label>
+                        <Input id="landlordLegalName" value={formData.landlordLegalName || ''} onChange={(e) => handleInputChange('landlordLegalName', e.target.value)} placeholder="Enter landlord legal name" />
+                        {errors.landlordLegalName && <p className="text-red-500 text-sm">{errors.landlordLegalName}</p>}
+                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      <h4 className="font-semibold text-blue-600">Tenant(s):</h4>
+                      <div>
+                        <Label htmlFor="tenantFirstName">First Name *</Label>
+                        <Input id="tenantFirstName" value={formData.tenantFirstName || ''} onChange={(e) => handleInputChange('tenantFirstName', e.target.value)} placeholder="Enter tenant first name" />
+                        {errors.tenantFirstName && <p className="text-red-500 text-sm">{errors.tenantFirstName}</p>}
+                      </div>
+                      <div>
+                        <Label htmlFor="tenantLastName">Last Name *</Label>
+                        <Input id="tenantLastName" value={formData.tenantLastName || ''} onChange={(e) => handleInputChange('tenantLastName', e.target.value)} placeholder="Enter tenant last name" />
+                        {errors.tenantLastName && <p className="text-red-500 text-sm">{errors.tenantLastName}</p>}
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </CollapsibleSection>
 
-            {/* Section 3: Contact Information - Collapsible */}
-            <CollapsibleSection
-              title="3. Contact Information"
-              isExpanded={isSection3Expanded}
-              onToggle={() => setIsSection3Expanded(!isSection3Expanded)}
-              icon={Phone}
-              color="orange"
-            >
-              <div className="space-y-6">
-                <p className="text-gray-700">Contact information for giving notices and other documents:</p>
-
+                {/* Section 2 */}
                 <div className="space-y-4">
+                  <h3 className="text-xl font-bold text-slate-900 border-b-2 border-purple-200 pb-2">2. Rental Unit</h3>
+                  <p className="text-gray-700">The rental unit is located at:</p>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div><Label htmlFor="unitNumber">Unit Number (if applicable)</Label><Input id="unitNumber" value={formData.unitNumber || ''} onChange={(e) => handleInputChange('unitNumber', e.target.value)} placeholder="e.g., Apt 101" /></div>
+                    <div><Label htmlFor="streetNumber">Street Number *</Label><Input id="streetNumber" value={formData.streetNumber || ''} onChange={(e) => handleInputChange('streetNumber', e.target.value)} placeholder="e.g., 123" />{errors.streetNumber && <p className="text-red-500 text-sm">{errors.streetNumber}</p>}</div>
+                    <div><Label htmlFor="streetName">Street Name *</Label><Input id="streetName" value={formData.streetName || ''} onChange={(e) => handleInputChange('streetName', e.target.value)} placeholder="e.g., Main Street" />{errors.streetName && <p className="text-red-500 text-sm">{errors.streetName}</p>}</div>
+                    <div><Label htmlFor="cityTown">City/Town *</Label><Input id="cityTown" value={formData.cityTown || ''} onChange={(e) => handleInputChange('cityTown', e.target.value)} placeholder="e.g., Toronto" />{errors.cityTown && <p className="text-red-500 text-sm">{errors.cityTown}</p>}</div>
+                    <div><Label htmlFor="province">Province *</Label><Input id="province" value="Ontario" disabled className="bg-gray-100" /></div>
+                    <div><Label htmlFor="postalCode">Postal Code *</Label><Input id="postalCode" value={formData.postalCode || ''} onChange={(e) => handleInputChange('postalCode', e.target.value)} placeholder="e.g., M5V 3A8" />{errors.postalCode && <p className="text-red-500 text-sm">{errors.postalCode}</p>}</div>
+                  </div>
+                  <div className="flex items-center space-x-2"><Checkbox id="isCondominium" checked={formData.isCondominium || false} onCheckedChange={(checked) => handleInputChange('isCondominium', checked)} /><Label htmlFor="isCondominium">This rental unit is in a condominium</Label></div>
+                </div>
+
+                {/* Section 3 */}
+                <div className="space-y-4">
+                  <h3 className="text-xl font-bold text-slate-900 border-b-2 border-orange-200 pb-2">3. Contact Information</h3>
+                  <p className="text-gray-700">Contact information for giving notices and other documents:</p>
                   <h4 className="font-semibold text-orange-600">Landlord Contact Information</h4>
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div>
-                      <Label htmlFor="landlordNoticeUnit">Unit (if applicable)</Label>
-                      <Input
-                        id="landlordNoticeUnit"
-                        value={formData.landlordNoticeUnit || ''}
-                        onChange={(e) => handleInputChange('landlordNoticeUnit', e.target.value)}
-                        placeholder="e.g., Suite 200"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="landlordNoticeStreetNumber">Street Number *</Label>
-                      <Input
-                        id="landlordNoticeStreetNumber"
-                        value={formData.landlordNoticeStreetNumber || ''}
-                        onChange={(e) => handleInputChange('landlordNoticeStreetNumber', e.target.value)}
-                        placeholder="e.g., 456"
-                      />
-                      {errors.landlordNoticeStreetNumber && <p className="text-red-500 text-sm">{errors.landlordNoticeStreetNumber}</p>}
-                    </div>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div><Label htmlFor="landlordNoticeUnit">Unit (if applicable)</Label><Input id="landlordNoticeUnit" value={formData.landlordNoticeUnit || ''} onChange={(e) => handleInputChange('landlordNoticeUnit', e.target.value)} placeholder="e.g., Suite 200" /></div>
+                    <div><Label htmlFor="landlordNoticeStreetNumber">Street Number *</Label><Input id="landlordNoticeStreetNumber" value={formData.landlordNoticeStreetNumber || ''} onChange={(e) => handleInputChange('landlordNoticeStreetNumber', e.target.value)} placeholder="e.g., 456" />{errors.landlordNoticeStreetNumber && <p className="text-red-500 text-sm">{errors.landlordNoticeStreetNumber}</p>}</div>
+                    <div><Label htmlFor="landlordNoticeStreetName">Street Name *</Label><Input id="landlordNoticeStreetName" value={formData.landlordNoticeStreetName || ''} onChange={(e) => handleInputChange('landlordNoticeStreetName', e.target.value)} placeholder="e.g., Business Ave" />{errors.landlordNoticeStreetName && <p className="text-red-500 text-sm">{errors.landlordNoticeStreetName}</p>}</div>
+                    <div><Label htmlFor="landlordNoticePOBox">PO Box (if applicable)</Label><Input id="landlordNoticePOBox" value={formData.landlordNoticePOBox || ''} onChange={(e) => handleInputChange('landlordNoticePOBox', e.target.value)} placeholder="e.g., PO Box 123" /></div>
+                    <div><Label htmlFor="landlordNoticeCityTown">City/Town *</Label><Input id="landlordNoticeCityTown" value={formData.landlordNoticeCityTown || ''} onChange={(e) => handleInputChange('landlordNoticeCityTown', e.target.value)} placeholder="e.g., Toronto" />{errors.landlordNoticeCityTown && <p className="text-red-500 text-sm">{errors.landlordNoticeCityTown}</p>}</div>
+                    <div><Label htmlFor="landlordNoticeProvince">Province *</Label><Input id="landlordNoticeProvince" value={formData.landlordNoticeProvince || ''} onChange={(e) => handleInputChange('landlordNoticeProvince', e.target.value)} placeholder="e.g., Ontario" />{errors.landlordNoticeProvince && <p className="text-red-500 text-sm">{errors.landlordNoticeProvince}</p>}</div>
+                    <div><Label htmlFor="landlordNoticePostalCode">Postal Code *</Label><Input id="landlordNoticePostalCode" value={formData.landlordNoticePostalCode || ''} onChange={(e) => handleInputChange('landlordNoticePostalCode', e.target.value)} placeholder="e.g., M5V 3A8" />{errors.landlordNoticePostalCode && <p className="text-red-500 text-sm">{errors.landlordNoticePostalCode}</p>}</div>
                   </div>
-
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div>
-                      <Label htmlFor="landlordNoticeStreetName">Street Name *</Label>
-                      <Input
-                        id="landlordNoticeStreetName"
-                        value={formData.landlordNoticeStreetName || ''}
-                        onChange={(e) => handleInputChange('landlordNoticeStreetName', e.target.value)}
-                        placeholder="e.g., Business Ave"
-                      />
-                      {errors.landlordNoticeStreetName && <p className="text-red-500 text-sm">{errors.landlordNoticeStreetName}</p>}
-                    </div>
-                    <div>
-                      <Label htmlFor="landlordNoticePOBox">PO Box (if applicable)</Label>
-                      <Input
-                        id="landlordNoticePOBox"
-                        value={formData.landlordNoticePOBox || ''}
-                        onChange={(e) => handleInputChange('landlordNoticePOBox', e.target.value)}
-                        placeholder="e.g., PO Box 123"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div>
-                      <Label htmlFor="landlordNoticeCityTown">City/Town *</Label>
-                      <Input
-                        id="landlordNoticeCityTown"
-                        value={formData.landlordNoticeCityTown || ''}
-                        onChange={(e) => handleInputChange('landlordNoticeCityTown', e.target.value)}
-                        placeholder="e.g., Toronto"
-                      />
-                      {errors.landlordNoticeCityTown && <p className="text-red-500 text-sm">{errors.landlordNoticeCityTown}</p>}
-                    </div>
-                    <div>
-                      <Label htmlFor="landlordNoticeProvince">Province *</Label>
-                      <Input
-                        id="landlordNoticeProvince"
-                        value={formData.landlordNoticeProvince || ''}
-                        onChange={(e) => handleInputChange('landlordNoticeProvince', e.target.value)}
-                        placeholder="e.g., Ontario"
-                      />
-                      {errors.landlordNoticeProvince && <p className="text-red-500 text-sm">{errors.landlordNoticeProvince}</p>}
-                    </div>
-                    <div>
-                      <Label htmlFor="landlordNoticePostalCode">Postal Code *</Label>
-                      <Input
-                        id="landlordNoticePostalCode"
-                        value={formData.landlordNoticePostalCode || ''}
-                        onChange={(e) => handleInputChange('landlordNoticePostalCode', e.target.value)}
-                        placeholder="e.g., M5V 3A8"
-                      />
-                      {errors.landlordNoticePostalCode && <p className="text-red-500 text-sm">{errors.landlordNoticePostalCode}</p>}
-                    </div>
+                  <h4 className="font-semibold text-orange-600 mt-4">Email Consent</h4>
+                  <div className="flex items-center space-x-2"><Checkbox id="emailConsent" checked={formData.emailConsent || false} onCheckedChange={(checked) => handleInputChange('emailConsent', checked)} /><Label htmlFor="emailConsent">The landlord and tenant agree to communicate by email</Label></div>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div><Label htmlFor="landlordEmail">Landlord Email</Label><Input id="landlordEmail" type="email" value={formData.landlordEmail || ''} onChange={(e) => handleInputChange('landlordEmail', e.target.value)} placeholder="landlord@example.com" /></div>
+                    <div><Label htmlFor="tenantEmail">Tenant Email</Label><Input id="tenantEmail" type="email" value={formData.tenantEmail || ''} onChange={(e) => handleInputChange('tenantEmail', e.target.value)} placeholder="tenant@example.com" /></div>
                   </div>
                 </div>
 
+                {/* Section 4 */}
                 <div className="space-y-4">
-                  <h4 className="font-semibold text-orange-600">Email Consent</h4>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="emailConsent"
-                      checked={formData.emailConsent || false}
-                      onCheckedChange={(checked) => handleInputChange('emailConsent', checked)}
-                    />
-                    <Label htmlFor="emailConsent">The landlord and tenant agree to communicate by email</Label>
+                  <h3 className="text-xl font-bold text-slate-900 border-b-2 border-indigo-200 pb-2">4. Term of Tenancy</h3>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div><Label htmlFor="tenancyStartDate">Start Date *</Label><Input id="tenancyStartDate" type="date" value={formData.startDate || ''} onChange={(e) => handleInputChange('startDate', e.target.value)} />{errors.startDate && <p className="text-red-500 text-sm">{errors.startDate}</p>}</div>
+                    <div><Label htmlFor="tenancyType">Type of Tenancy *</Label><Select value={formData.tenancyType} onValueChange={(value) => handleInputChange('tenancyType', value)}><SelectTrigger><SelectValue placeholder="Select tenancy type" /></SelectTrigger><SelectContent><SelectItem value="fixed">Fixed Term</SelectItem><SelectItem value="periodic">Periodic</SelectItem><SelectItem value="monthly">Monthly</SelectItem><SelectItem value="other">Other</SelectItem></SelectContent></Select></div>
                   </div>
-
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div>
-                      <Label htmlFor="landlordEmail">Landlord Email</Label>
-                      <Input
-                        id="landlordEmail"
-                        type="email"
-                        value={formData.landlordEmail || ''}
-                        onChange={(e) => handleInputChange('landlordEmail', e.target.value)}
-                        placeholder="landlord@example.com"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="tenantEmail">Tenant Email</Label>
-                      <Input
-                        id="tenantEmail"
-                        type="email"
-                        value={formData.tenantEmail || ''}
-                        onChange={(e) => handleInputChange('tenantEmail', e.target.value)}
-                        placeholder="tenant@example.com"
-                      />
-                    </div>
-                  </div>
+                  {formData.tenancyType === 'fixed' && (<div><Label htmlFor="tenancyEndDate">End Date *</Label><Input id="tenancyEndDate" type="date" value={formData.endDate || ''} onChange={(e) => handleInputChange('endDate', e.target.value)} />{errors.endDate && <p className="text-red-500 text-sm">{errors.endDate}</p>}</div>)}
+                  {formData.tenancyType === 'periodic' && (<div><Label htmlFor="periodicType">Periodic Type *</Label><Select value={formData.periodicType || ''} onValueChange={(value) => handleInputChange('periodicType', value)}><SelectTrigger><SelectValue placeholder="Select periodic type" /></SelectTrigger><SelectContent><SelectItem value="weekly">Weekly</SelectItem><SelectItem value="monthly">Monthly</SelectItem><SelectItem value="yearly">Yearly</SelectItem></SelectContent></Select></div>)}
+                  {formData.tenancyType === 'other' && (<div><Label htmlFor="otherTenancyType">Other Tenancy Type *</Label><Input id="otherTenancyType" value={formData.otherTenancyType || ''} onChange={(e) => handleInputChange('otherTenancyType', e.target.value)} placeholder="Describe the tenancy type" />{errors.otherTenancyType && <p className="text-red-500 text-sm">{errors.otherTenancyType}</p>}</div>)}
                 </div>
               </div>
-            </CollapsibleSection>
+            </Section>
 
-            {/* Section 4: Term of Tenancy - Collapsible */}
-            <CollapsibleSection
-              title="4. Term of Tenancy"
-              isExpanded={isSection4Expanded}
-              onToggle={() => setIsSection4Expanded(!isSection4Expanded)}
-              icon={Calendar}
-              color="indigo"
-            >
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <div>
-                    <Label htmlFor="tenancyStartDate">Start Date *</Label>
-                    <Input
-                      id="tenancyStartDate"
-                      type="date"
-                      value={formData.startDate || ''}
-                      onChange={(e) => handleInputChange('startDate', e.target.value)}
-                    />
-                    {errors.startDate && <p className="text-red-500 text-sm">{errors.startDate}</p>}
-                  </div>
-                  <div>
-                    <Label htmlFor="tenancyType">Type of Tenancy *</Label>
-                    <Select value={formData.tenancyType} onValueChange={(value) => handleInputChange('tenancyType', value)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select tenancy type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="fixed">Fixed Term</SelectItem>
-                        <SelectItem value="periodic">Periodic</SelectItem>
-                        <SelectItem value="monthly">Monthly</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                {formData.tenancyType === 'fixed' && (
-                  <div>
-                    <Label htmlFor="tenancyEndDate">End Date *</Label>
-                    <Input
-                      id="tenancyEndDate"
-                      type="date"
-                      value={formData.endDate || ''}
-                      onChange={(e) => handleInputChange('endDate', e.target.value)}
-                    />
-                    {errors.endDate && <p className="text-red-500 text-sm">{errors.endDate}</p>}
-                  </div>
-                )}
-
-                {formData.tenancyType === 'periodic' && (
-                  <div>
-                    <Label htmlFor="periodicType">Periodic Type *</Label>
-                    <Select value={formData.periodicType || ''} onValueChange={(value) => handleInputChange('periodicType', value)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select periodic type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="weekly">Weekly</SelectItem>
-                        <SelectItem value="monthly">Monthly</SelectItem>
-                        <SelectItem value="yearly">Yearly</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-
-                {formData.tenancyType === 'other' && (
-                  <div>
-                    <Label htmlFor="otherTenancyType">Other Tenancy Type *</Label>
-                    <Input
-                      id="otherTenancyType"
-                      value={formData.otherTenancyType || ''}
-                      onChange={(e) => handleInputChange('otherTenancyType', e.target.value)}
-                      placeholder="Describe the tenancy type"
-                    />
-                    {errors.otherTenancyType && <p className="text-red-500 text-sm">{errors.otherTenancyType}</p>}
-                  </div>
-                )}
-              </div>
-            </CollapsibleSection>
-
-            {/* Section 5: Rent - Collapsible */}
-            <CollapsibleSection
-              title="5. Rent"
-              isExpanded={isSection5Expanded}
-              onToggle={() => setIsSection5Expanded(!isSection5Expanded)}
+            {/* Sections 5-7: Financial Terms - MERGED */}
+            <Section
+              title="Sections 5-7: Rent & Financial Terms"
               icon={DollarSign}
               color="emerald"
             >
-              <div className="space-y-6">
+              <div className="space-y-10">
+                {/* Section 5: Rent */}
+                <div className="space-y-6">
+                  <h3 className="text-xl font-bold text-slate-900 border-b-2 border-emerald-200 pb-2">5. Rent</h3>
                 {/* a) Rent Payment Schedule */}
                 <div className="space-y-4">
                   <p className="text-gray-700">
@@ -696,12 +357,26 @@ const OntarioLeaseForm2229E: React.FC<OntarioLeaseForm2229EProps> = ({
 
                   <div className="space-y-3">
                     <div className="flex items-center space-x-4">
-                      <input type="radio" name="rentPaymentPeriod" value="monthly" className="text-emerald-600" />
+                      <input 
+                        type="radio" 
+                        name="rentPaymentPeriod" 
+                        value="monthly" 
+                        checked={formData.rentPaymentPeriod === 'monthly'}
+                        onChange={(e) => handleInputChange('rentPaymentPeriod', e.target.value)}
+                        className="text-emerald-600" 
+                      />
                       <Label>Month</Label>
                     </div>
 
                     <div className="flex items-center space-x-4">
-                      <input type="radio" name="rentPaymentPeriod" value="other" className="text-emerald-600" />
+                      <input 
+                        type="radio" 
+                        name="rentPaymentPeriod" 
+                        value="other" 
+                        checked={formData.rentPaymentPeriod === 'other'}
+                        onChange={(e) => handleInputChange('rentPaymentPeriod', e.target.value)}
+                        className="text-emerald-600" 
+                      />
                       <Label>Other (e.g., weekly)</Label>
                       {formData.rentPaymentPeriod === 'other' && (
                         <Input
@@ -875,18 +550,11 @@ const OntarioLeaseForm2229E: React.FC<OntarioLeaseForm2229EProps> = ({
                     </p>
                   </div>
                 </div>
-              </div>
-            </CollapsibleSection>
+                </div>
 
-            {/* Section 6: Services and Utilities - Collapsible */}
-            <CollapsibleSection
-              title="6. Services and Utilities"
-              isExpanded={isSection6Expanded}
-              onToggle={() => setIsSection6Expanded(!isSection6Expanded)}
-              icon={Wifi}
-              color="teal"
-            >
-              <div className="space-y-6">
+                {/* Section 6: Services and Utilities */}
+                <div className="space-y-6">
+                  <h3 className="text-xl font-bold text-slate-900 border-b-2 border-teal-200 pb-2">6. Services and Utilities</h3>
                 <p className="text-gray-700">The following services are included in the lawful rent for the rental unit, as specified:</p>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -895,11 +563,25 @@ const OntarioLeaseForm2229E: React.FC<OntarioLeaseForm2229EProps> = ({
                       <Label className="flex-1">Gas</Label>
                       <div className="flex space-x-4">
                         <label className="flex items-center space-x-2">
-                          <input type="radio" name="gas" value="yes" className="text-teal-600" />
+                          <input 
+                            type="radio" 
+                            name="gas" 
+                            value="yes" 
+                            checked={formData.gas === 'yes'}
+                            onChange={(e) => handleInputChange('gas', e.target.value)}
+                            className="text-teal-600" 
+                          />
                           <span>Yes</span>
                         </label>
                         <label className="flex items-center space-x-2">
-                          <input type="radio" name="gas" value="no" className="text-teal-600" />
+                          <input 
+                            type="radio" 
+                            name="gas" 
+                            value="no" 
+                            checked={formData.gas === 'no'}
+                            onChange={(e) => handleInputChange('gas', e.target.value)}
+                            className="text-teal-600" 
+                          />
                           <span>No</span>
                         </label>
                       </div>
@@ -909,11 +591,25 @@ const OntarioLeaseForm2229E: React.FC<OntarioLeaseForm2229EProps> = ({
                       <Label className="flex-1">Air conditioning</Label>
                       <div className="flex space-x-4">
                         <label className="flex items-center space-x-2">
-                          <input type="radio" name="airConditioning" value="yes" className="text-teal-600" />
+                          <input 
+                            type="radio" 
+                            name="airConditioning" 
+                            value="yes" 
+                            checked={formData.airConditioning === 'yes'}
+                            onChange={(e) => handleInputChange('airConditioning', e.target.value)}
+                            className="text-teal-600" 
+                          />
                           <span>Yes</span>
                         </label>
                         <label className="flex items-center space-x-2">
-                          <input type="radio" name="airConditioning" value="no" className="text-teal-600" />
+                          <input 
+                            type="radio" 
+                            name="airConditioning" 
+                            value="no" 
+                            checked={formData.airConditioning === 'no'}
+                            onChange={(e) => handleInputChange('airConditioning', e.target.value)}
+                            className="text-teal-600" 
+                          />
                           <span>No</span>
                         </label>
                       </div>
@@ -923,11 +619,25 @@ const OntarioLeaseForm2229E: React.FC<OntarioLeaseForm2229EProps> = ({
                       <Label className="flex-1">Additional storage space</Label>
                       <div className="flex space-x-4">
                         <label className="flex items-center space-x-2">
-                          <input type="radio" name="additionalStorage" value="yes" className="text-teal-600" />
+                          <input 
+                            type="radio" 
+                            name="additionalStorage" 
+                            value="yes" 
+                            checked={formData.additionalStorage === 'yes'}
+                            onChange={(e) => handleInputChange('additionalStorage', e.target.value)}
+                            className="text-teal-600" 
+                          />
                           <span>Yes</span>
                         </label>
                         <label className="flex items-center space-x-2">
-                          <input type="radio" name="additionalStorage" value="no" className="text-teal-600" />
+                          <input 
+                            type="radio" 
+                            name="additionalStorage" 
+                            value="no" 
+                            checked={formData.additionalStorage === 'no'}
+                            onChange={(e) => handleInputChange('additionalStorage', e.target.value)}
+                            className="text-teal-600" 
+                          />
                           <span>No</span>
                         </label>
                       </div>
@@ -937,11 +647,25 @@ const OntarioLeaseForm2229E: React.FC<OntarioLeaseForm2229EProps> = ({
                       <Label className="flex-1">On-Site Laundry</Label>
                       <div className="flex space-x-4">
                         <label className="flex items-center space-x-2">
-                          <input type="radio" name="laundry" value="no-charge" className="text-teal-600" />
+                          <input 
+                            type="radio" 
+                            name="laundry" 
+                            value="no_charge" 
+                            checked={formData.onSiteLaundry === 'no_charge'}
+                            onChange={(e) => handleInputChange('onSiteLaundry', e.target.value as 'no_charge' | 'pay_per_use' | 'not_included')}
+                            className="text-teal-600" 
+                          />
                           <span>No Charge</span>
                         </label>
                         <label className="flex items-center space-x-2">
-                          <input type="radio" name="laundry" value="pay-per-use" className="text-teal-600" />
+                          <input 
+                            type="radio" 
+                            name="laundry" 
+                            value="pay_per_use" 
+                            checked={formData.onSiteLaundry === 'pay_per_use'}
+                            onChange={(e) => handleInputChange('onSiteLaundry', e.target.value as 'no_charge' | 'pay_per_use' | 'not_included')}
+                            className="text-teal-600" 
+                          />
                           <span>Pay Per use</span>
                         </label>
                       </div>
@@ -951,11 +675,25 @@ const OntarioLeaseForm2229E: React.FC<OntarioLeaseForm2229EProps> = ({
                       <Label className="flex-1">Guest Parking</Label>
                       <div className="flex space-x-4">
                         <label className="flex items-center space-x-2">
-                          <input type="radio" name="guestParking" value="no-charge" className="text-teal-600" />
+                          <input 
+                            type="radio" 
+                            name="guestParking" 
+                            value="no_charge" 
+                            checked={formData.guestParking === 'no_charge'}
+                            onChange={(e) => handleInputChange('guestParking', e.target.value as 'no_charge' | 'pay_per_use' | 'not_included')}
+                            className="text-teal-600" 
+                          />
                           <span>No Charge</span>
                         </label>
                         <label className="flex items-center space-x-2">
-                          <input type="radio" name="guestParking" value="pay-per-use" className="text-teal-600" />
+                          <input 
+                            type="radio" 
+                            name="guestParking" 
+                            value="pay_per_use" 
+                            checked={formData.guestParking === 'pay_per_use'}
+                            onChange={(e) => handleInputChange('guestParking', e.target.value as 'no_charge' | 'pay_per_use' | 'not_included')}
+                            className="text-teal-600" 
+                          />
                           <span>Pay Per use</span>
                         </label>
                       </div>
@@ -965,11 +703,25 @@ const OntarioLeaseForm2229E: React.FC<OntarioLeaseForm2229EProps> = ({
                       <Label className="flex-1">Other</Label>
                       <div className="flex space-x-4">
                         <label className="flex items-center space-x-2">
-                          <input type="radio" name="other1" value="yes" className="text-teal-600" />
+                          <input 
+                            type="radio" 
+                            name="other1" 
+                            value="yes" 
+                            checked={formData.other1 === 'yes'}
+                            onChange={(e) => handleInputChange('other1', e.target.value)}
+                            className="text-teal-600" 
+                          />
                           <span>Yes</span>
                         </label>
                         <label className="flex items-center space-x-2">
-                          <input type="radio" name="other1" value="no" className="text-teal-600" />
+                          <input 
+                            type="radio" 
+                            name="other1" 
+                            value="no" 
+                            checked={formData.other1 === 'no'}
+                            onChange={(e) => handleInputChange('other1', e.target.value)}
+                            className="text-teal-600" 
+                          />
                           <span>No</span>
                         </label>
                       </div>
@@ -979,11 +731,25 @@ const OntarioLeaseForm2229E: React.FC<OntarioLeaseForm2229EProps> = ({
                       <Label className="flex-1">Other</Label>
                       <div className="flex space-x-4">
                         <label className="flex items-center space-x-2">
-                          <input type="radio" name="other2" value="yes" className="text-teal-600" />
+                          <input 
+                            type="radio" 
+                            name="other2" 
+                            value="yes" 
+                            checked={formData.other2 === 'yes'}
+                            onChange={(e) => handleInputChange('other2', e.target.value)}
+                            className="text-teal-600" 
+                          />
                           <span>Yes</span>
                         </label>
                         <label className="flex items-center space-x-2">
-                          <input type="radio" name="other2" value="no" className="text-teal-600" />
+                          <input 
+                            type="radio" 
+                            name="other2" 
+                            value="no" 
+                            checked={formData.other2 === 'no'}
+                            onChange={(e) => handleInputChange('other2', e.target.value)}
+                            className="text-teal-600" 
+                          />
                           <span>No</span>
                         </label>
                       </div>
@@ -993,11 +759,25 @@ const OntarioLeaseForm2229E: React.FC<OntarioLeaseForm2229EProps> = ({
                       <Label className="flex-1">Other</Label>
                       <div className="flex space-x-4">
                         <label className="flex items-center space-x-2">
-                          <input type="radio" name="other3" value="yes" className="text-teal-600" />
+                          <input 
+                            type="radio" 
+                            name="other3" 
+                            value="yes" 
+                            checked={formData.other3 === 'yes'}
+                            onChange={(e) => handleInputChange('other3', e.target.value)}
+                            className="text-teal-600" 
+                          />
                           <span>Yes</span>
                         </label>
                         <label className="flex items-center space-x-2">
-                          <input type="radio" name="other3" value="no" className="text-teal-600" />
+                          <input 
+                            type="radio" 
+                            name="other3" 
+                            value="no" 
+                            checked={formData.other3 === 'no'}
+                            onChange={(e) => handleInputChange('other3', e.target.value)}
+                            className="text-teal-600" 
+                          />
                           <span>No</span>
                         </label>
                       </div>
@@ -1011,11 +791,25 @@ const OntarioLeaseForm2229E: React.FC<OntarioLeaseForm2229EProps> = ({
                         <Label className="flex-1">Electricity</Label>
                         <div className="flex space-x-4">
                           <label className="flex items-center space-x-2">
-                            <input type="radio" name="electricity" value="landlord" className="text-teal-600" />
+                            <input 
+                              type="radio" 
+                              name="electricity" 
+                              value="landlord" 
+                              checked={formData.electricity === 'landlord'}
+                              onChange={(e) => handleInputChange('electricity', e.target.value)}
+                              className="text-teal-600" 
+                            />
                             <span>Landlord</span>
                           </label>
                           <label className="flex items-center space-x-2">
-                            <input type="radio" name="electricity" value="tenant" className="text-teal-600" />
+                            <input 
+                              type="radio" 
+                              name="electricity" 
+                              value="tenant" 
+                              checked={formData.electricity === 'tenant'}
+                              onChange={(e) => handleInputChange('electricity', e.target.value)}
+                              className="text-teal-600" 
+                            />
                             <span>Tenant</span>
                           </label>
                         </div>
@@ -1025,11 +819,25 @@ const OntarioLeaseForm2229E: React.FC<OntarioLeaseForm2229EProps> = ({
                         <Label className="flex-1">Heat</Label>
                         <div className="flex space-x-4">
                           <label className="flex items-center space-x-2">
-                            <input type="radio" name="heat" value="landlord" className="text-teal-600" />
+                            <input 
+                              type="radio" 
+                              name="heat" 
+                              value="landlord" 
+                              checked={formData.heat === 'landlord'}
+                              onChange={(e) => handleInputChange('heat', e.target.value)}
+                              className="text-teal-600" 
+                            />
                             <span>Landlord</span>
                           </label>
                           <label className="flex items-center space-x-2">
-                            <input type="radio" name="heat" value="tenant" className="text-teal-600" />
+                            <input 
+                              type="radio" 
+                              name="heat" 
+                              value="tenant" 
+                              checked={formData.heat === 'tenant'}
+                              onChange={(e) => handleInputChange('heat', e.target.value)}
+                              className="text-teal-600" 
+                            />
                             <span>Tenant</span>
                           </label>
                         </div>
@@ -1039,11 +847,25 @@ const OntarioLeaseForm2229E: React.FC<OntarioLeaseForm2229EProps> = ({
                         <Label className="flex-1">Water</Label>
                         <div className="flex space-x-4">
                           <label className="flex items-center space-x-2">
-                            <input type="radio" name="water" value="landlord" className="text-teal-600" />
+                            <input 
+                              type="radio" 
+                              name="water" 
+                              value="landlord" 
+                              checked={formData.water === 'landlord'}
+                              onChange={(e) => handleInputChange('water', e.target.value)}
+                              className="text-teal-600" 
+                            />
                             <span>Landlord</span>
                           </label>
                           <label className="flex items-center space-x-2">
-                            <input type="radio" name="water" value="tenant" className="text-teal-600" />
+                            <input 
+                              type="radio" 
+                              name="water" 
+                              value="tenant" 
+                              checked={formData.water === 'tenant'}
+                              onChange={(e) => handleInputChange('water', e.target.value)}
+                              className="text-teal-600" 
+                            />
                             <span>Tenant</span>
                           </label>
                         </div>
@@ -1073,28 +895,35 @@ const OntarioLeaseForm2229E: React.FC<OntarioLeaseForm2229EProps> = ({
                     rows={3}
                   />
                 </div>
-              </div>
-            </CollapsibleSection>
+                </div>
 
-            {/* Section 7: Rent Discounts - Collapsible */}
-            <CollapsibleSection
-              title="7. Rent Discounts"
-              isExpanded={isSection7Expanded}
-              onToggle={() => setIsSection7Expanded(!isSection7Expanded)}
-              icon={DollarSign}
-              color="amber"
-            >
-              <div className="space-y-6">
+                {/* Section 7: Rent Discounts */}
+                <div className="space-y-6">
+                  <h3 className="text-xl font-bold text-slate-900 border-b-2 border-amber-200 pb-2">7. Rent Discounts</h3>
                 <p className="text-gray-700">Select one:</p>
 
                 <div className="space-y-4">
                   <div className="flex items-center space-x-4">
-                    <input type="radio" name="rentDiscount" value="none" className="text-amber-600" />
+                    <input 
+                      type="radio" 
+                      name="rentDiscount" 
+                      value="none" 
+                      checked={formData.rentDiscount === 'none'}
+                      onChange={(e) => handleInputChange('rentDiscount', e.target.value)}
+                      className="text-amber-600" 
+                    />
                     <Label>There is no rent discount.</Label>
                   </div>
 
                   <div className="flex items-center space-x-4">
-                    <input type="radio" name="rentDiscount" value="discounted" className="text-amber-600" />
+                    <input 
+                      type="radio" 
+                      name="rentDiscount" 
+                      value="discounted" 
+                      checked={formData.rentDiscount === 'discounted'}
+                      onChange={(e) => handleInputChange('rentDiscount', e.target.value)}
+                      className="text-amber-600" 
+                    />
                     <Label>The lawful rent will be discounted as follows:</Label>
                   </div>
                 </div>
@@ -1115,29 +944,45 @@ const OntarioLeaseForm2229E: React.FC<OntarioLeaseForm2229EProps> = ({
                     <strong>Note:</strong> See Part G in General Information for what types of discounts are allowed.
                   </p>
                 </div>
+                </div>
               </div>
-            </CollapsibleSection>
+            </Section>
 
-            {/* Section 8: Rent Deposit - Collapsible */}
-            <CollapsibleSection
-              title="8. Rent Deposit"
-              isExpanded={isSection8Expanded}
-              onToggle={() => setIsSection8Expanded(!isSection8Expanded)}
+            {/* Sections 8-10: Deposits & Rules - MERGED */}
+            <Section
+              title="Sections 8-10: Deposits & Property Rules"
               icon={CreditCard}
               color="rose"
             >
-              <div className="space-y-6">
+              <div className="space-y-10">
+                {/* Section 8: Rent Deposit */}
+                <div className="space-y-6">
+                  <h3 className="text-xl font-bold text-slate-900 border-b-2 border-rose-200 pb-2">8. Rent Deposit</h3>
                 <p className="text-gray-700">Select one:</p>
 
                 <div className="space-y-4">
                   <div className="flex items-center space-x-4">
-                    <input type="radio" name="rentDeposit" value="not-required" className="text-rose-600" />
+                    <input 
+                      type="radio" 
+                      name="rentDeposit" 
+                      value="not-required" 
+                      checked={formData.rentDeposit === 'not-required'}
+                      onChange={(e) => handleInputChange('rentDeposit', e.target.value)}
+                      className="text-rose-600" 
+                    />
                     <Label>A rent deposit is not required.</Label>
                   </div>
 
                   <div className="space-y-2">
                     <div className="flex items-center space-x-4">
-                      <input type="radio" name="rentDeposit" value="required" className="text-rose-600" />
+                      <input 
+                        type="radio" 
+                        name="rentDeposit" 
+                        value="required" 
+                        checked={formData.rentDeposit === 'required'}
+                        onChange={(e) => handleInputChange('rentDeposit', e.target.value)}
+                        className="text-rose-600" 
+                      />
                       <Label>The tenant will pay a rent deposit of $</Label>
                     </div>
                     <div className="ml-8">
@@ -1159,29 +1004,36 @@ const OntarioLeaseForm2229E: React.FC<OntarioLeaseForm2229EProps> = ({
                     <strong>Note:</strong> This amount cannot be more than one month's rent or the rent for one rental period (e.g., one week in a weekly tenancy), whichever is less. This cannot be used as a damage deposit. The landlord must pay the tenant interest on the rent deposit every year. See Part H in General Information.
                   </p>
                 </div>
-              </div>
-            </CollapsibleSection>
+                </div>
 
-            {/* Section 9: Key Deposit - Collapsible */}
-            <CollapsibleSection
-              title="9. Key Deposit"
-              isExpanded={isSection9Expanded}
-              onToggle={() => setIsSection9Expanded(!isSection9Expanded)}
-              icon={Key}
-              color="cyan"
-            >
-              <div className="space-y-6">
+                {/* Section 9: Key Deposit */}
+                <div className="space-y-6">
+                  <h3 className="text-xl font-bold text-slate-900 border-b-2 border-cyan-200 pb-2">9. Key Deposit</h3>
                 <p className="text-gray-700">Select one:</p>
 
                 <div className="space-y-4">
                   <div className="flex items-center space-x-4">
-                    <input type="radio" name="keyDeposit" value="not-required" className="text-cyan-600" />
+                    <input 
+                      type="radio" 
+                      name="keyDeposit" 
+                      value="not-required" 
+                      checked={formData.keyDeposit === 'not-required'}
+                      onChange={(e) => handleInputChange('keyDeposit', e.target.value)}
+                      className="text-cyan-600" 
+                    />
                     <Label>A key deposit is not required.</Label>
                   </div>
 
                   <div className="space-y-2">
                     <div className="flex items-center space-x-4">
-                      <input type="radio" name="keyDeposit" value="required" className="text-cyan-600" />
+                      <input 
+                        type="radio" 
+                        name="keyDeposit" 
+                        value="required" 
+                        checked={formData.keyDeposit === 'required'}
+                        onChange={(e) => handleInputChange('keyDeposit', e.target.value)}
+                        className="text-cyan-600" 
+                      />
                       <Label>The tenant will pay a refundable key deposit of $</Label>
                     </div>
                     <div className="ml-8">
@@ -1214,18 +1066,11 @@ const OntarioLeaseForm2229E: React.FC<OntarioLeaseForm2229EProps> = ({
                     <strong>Note:</strong> The key deposit cannot be more than the expected replacement cost. See Part H in General Information.
                   </p>
                 </div>
-              </div>
-            </CollapsibleSection>
+                </div>
 
-            {/* Section 10: Smoking - Collapsible */}
-            <CollapsibleSection
-              title="10. Smoking"
-              isExpanded={isSection10Expanded}
-              onToggle={() => setIsSection10Expanded(!isSection10Expanded)}
-              icon={Trash2}
-              color="lime"
-            >
-              <div className="space-y-6">
+                {/* Section 10: Smoking */}
+                <div className="space-y-6">
+                  <h3 className="text-xl font-bold text-slate-900 border-b-2 border-lime-200 pb-2">10. Smoking</h3>
                 <p className="text-gray-700">
                   Under provincial law, smoking is not allowed in any indoor common areas of the building. The tenant agrees to these additional rules on smoking:
                 </p>
@@ -1234,13 +1079,27 @@ const OntarioLeaseForm2229E: React.FC<OntarioLeaseForm2229EProps> = ({
 
                 <div className="space-y-4">
                   <div className="flex items-center space-x-4">
-                    <input type="radio" name="smokingRules" value="none" className="text-lime-600" />
+                    <input 
+                      type="radio" 
+                      name="smokingRules" 
+                      value="none" 
+                      checked={formData.smokingRules === 'none'}
+                      onChange={(e) => handleInputChange('smokingRules', e.target.value)}
+                      className="text-lime-600" 
+                    />
                     <Label>None</Label>
                   </div>
 
                   <div className="space-y-2">
                     <div className="flex items-center space-x-4">
-                      <input type="radio" name="smokingRules" value="rules" className="text-lime-600" />
+                      <input 
+                        type="radio" 
+                        name="smokingRules" 
+                        value="rules" 
+                        checked={formData.smokingRules === 'rules'}
+                        onChange={(e) => handleInputChange('smokingRules', e.target.value)}
+                        className="text-lime-600" 
+                      />
                       <Label>Smoking rules</Label>
                     </div>
                     <div className="ml-8">
@@ -1261,61 +1120,63 @@ const OntarioLeaseForm2229E: React.FC<OntarioLeaseForm2229EProps> = ({
                     <strong>Note:</strong> In making and enforcing smoking rules, the landlord must follow the Ontario Human Rights Code. See Parts M and S in General Information.
                   </p>
                 </div>
+                </div>
               </div>
-            </CollapsibleSection>
+            </Section>
 
-            {/* Section 11: Tenant's Insurance - Collapsible */}
-            <CollapsibleSection
-              title="11. Tenant's Insurance"
-              isExpanded={isSection11Expanded}
-              onToggle={() => setIsSection11Expanded(!isSection11Expanded)}
+            {/* Sections 11-16: Terms & Conditions - MERGED */}
+            <Section
+              title="Sections 11-16: Terms, Conditions & Responsibilities"
               icon={Shield}
               color="violet"
             >
-              <div className="space-y-6">
+              <div className="space-y-10">
+                {/* Section 11: Tenant's Insurance */}
+                <div className="space-y-6">
+                  <h3 className="text-xl font-bold text-slate-900 border-b-2 border-violet-200 pb-2">11. Tenant's Insurance</h3>
                 <p className="text-gray-700">Select one:</p>
 
                 <div className="space-y-4">
                   <div className="flex items-center space-x-4">
-                    <input type="radio" name="insuranceRequirements" value="none" className="text-violet-600" />
+                    <input 
+                      type="radio" 
+                      name="insuranceRequirements" 
+                      value="none" 
+                      checked={formData.insuranceRequirements === 'none'}
+                      onChange={(e) => handleInputChange('insuranceRequirements', e.target.value)}
+                      className="text-violet-600" 
+                    />
                     <Label>There are no tenant insurance requirements.</Label>
                   </div>
 
                   <div className="flex items-center space-x-4">
-                    <input type="radio" name="insuranceRequirements" value="required" className="text-violet-600" />
+                    <input 
+                      type="radio" 
+                      name="insuranceRequirements" 
+                      value="required" 
+                      checked={formData.insuranceRequirements === 'required'}
+                      onChange={(e) => handleInputChange('insuranceRequirements', e.target.value)}
+                      className="text-violet-600" 
+                    />
                     <Label>The tenant must have liability insurance at all times. If the landlord asks for proof of coverage, the tenant must provide it. It is up to the tenant to get contents insurance if they want it.</Label>
                   </div>
                 </div>
-              </div>
-            </CollapsibleSection>
+                </div>
 
-            {/* Section 12: Changes to the Rental Unit - Collapsible */}
-            <CollapsibleSection
-              title="12. Changes to the Rental Unit"
-              isExpanded={isSection12Expanded}
-              onToggle={() => setIsSection12Expanded(!isSection12Expanded)}
-              icon={Wrench}
-              color="slate"
-            >
-              <div className="space-y-6">
+                {/* Section 12: Changes to the Rental Unit */}
+                <div className="space-y-6">
+                  <h3 className="text-xl font-bold text-slate-900 border-b-2 border-slate-200 pb-2">12. Changes to the Rental Unit</h3>
                 <p className="text-gray-700">
                   The tenant may install decorative items, such as pictures or window coverings. This is subject to any reasonable restrictions set out in the additional terms under Section 15.
                 </p>
                 <p className="text-gray-700">
                   The tenant cannot make other changes to the rental unit without the landlord's permission.
                 </p>
-              </div>
-            </CollapsibleSection>
+                </div>
 
-            {/* Section 13: Maintenance and Repairs - Collapsible */}
-            <CollapsibleSection
-              title="13. Maintenance and Repairs"
-              isExpanded={isSection13Expanded}
-              onToggle={() => setIsSection13Expanded(!isSection13Expanded)}
-              icon={Wrench}
-              color="slate"
-            >
-              <div className="space-y-6">
+                {/* Section 13: Maintenance and Repairs */}
+                <div className="space-y-6">
+                  <h3 className="text-xl font-bold text-slate-900 border-b-2 border-slate-300 pb-2">13. Maintenance and Repairs</h3>
                 <p className="text-gray-700">
                   The landlord must keep the rental unit and property in good repair and comply with all health, safety and maintenance standards.
                 </p>
@@ -1331,18 +1192,11 @@ const OntarioLeaseForm2229E: React.FC<OntarioLeaseForm2229EProps> = ({
                     <strong>Note:</strong> See Part J in General Information.
                   </p>
                 </div>
-              </div>
-            </CollapsibleSection>
+                </div>
 
-            {/* Section 14: Assignment and Subletting - Collapsible */}
-            <CollapsibleSection
-              title="14. Assignment and Subletting"
-              isExpanded={isSection14Expanded}
-              onToggle={() => setIsSection14Expanded(!isSection14Expanded)}
-              icon={Users}
-              color="red"
-            >
-              <div className="space-y-6">
+                {/* Section 14: Assignment and Subletting */}
+                <div className="space-y-6">
+                  <h3 className="text-xl font-bold text-slate-900 border-b-2 border-red-200 pb-2">14. Assignment and Subletting</h3>
                 <p className="text-gray-700">
                   The tenant may assign or sublet the rental unit to another person only with the consent of the landlord. The landlord cannot arbitrarily or unreasonably withhold consent to a sublet or potential assignee.
                 </p>
@@ -1352,18 +1206,11 @@ const OntarioLeaseForm2229E: React.FC<OntarioLeaseForm2229EProps> = ({
                     <strong>Note:</strong> There are additional rules if the tenant wants to assign or sublet the rental unit. See Part P in General Information.
                   </p>
                 </div>
-              </div>
-            </CollapsibleSection>
+                </div>
 
-            {/* Section 15: Additional Terms - Collapsible */}
-            <CollapsibleSection
-              title="15. Additional Terms"
-              isExpanded={isSection15Expanded}
-              onToggle={() => setIsSection15Expanded(!isSection15Expanded)}
-              icon={FileText}
-              color="yellow"
-            >
-              <div className="space-y-6">
+                {/* Section 15: Additional Terms */}
+                <div className="space-y-6">
+                  <h3 className="text-xl font-bold text-slate-900 border-b-2 border-yellow-200 pb-2">15. Additional Terms</h3>
                 <p className="text-gray-700">
                   Landlords and tenants can agree to additional terms. Examples may include terms that:
                 </p>
@@ -1404,28 +1251,35 @@ const OntarioLeaseForm2229E: React.FC<OntarioLeaseForm2229EProps> = ({
                   <p className="text-gray-700">Select one:</p>
                   <div className="space-y-4">
                     <div className="flex items-center space-x-4">
-                      <input type="radio" name="additionalTerms" value="none" className="text-yellow-600" />
+                      <input 
+                        type="radio" 
+                        name="additionalTerms" 
+                        value="none" 
+                        checked={formData.additionalTerms === 'none'}
+                        onChange={(e) => handleInputChange('additionalTerms', e.target.value)}
+                        className="text-yellow-600" 
+                      />
                       <Label>There are no additional terms.</Label>
                     </div>
 
                     <div className="flex items-center space-x-4">
-                      <input type="radio" name="additionalTerms" value="attachment" className="text-yellow-600" />
+                      <input 
+                        type="radio" 
+                        name="additionalTerms" 
+                        value="attachment" 
+                        checked={formData.additionalTerms === 'attachment'}
+                        onChange={(e) => handleInputChange('additionalTerms', e.target.value)}
+                        className="text-yellow-600" 
+                      />
                       <Label>This tenancy agreement includes an attachment with additional terms that the landlord and tenant agreed to.</Label>
                     </div>
                   </div>
                 </div>
-              </div>
-            </CollapsibleSection>
+                </div>
 
-            {/* Section 16: Changes to this Agreement - Collapsible */}
-            <CollapsibleSection
-              title="16. Changes to this Agreement"
-              isExpanded={isSection16Expanded}
-              onToggle={() => setIsSection16Expanded(!isSection16Expanded)}
-              icon={PenTool}
-              color="pink"
-            >
-              <div className="space-y-6">
+                {/* Section 16: Changes to this Agreement */}
+                <div className="space-y-6">
+                  <h3 className="text-xl font-bold text-slate-900 border-b-2 border-pink-200 pb-2">16. Changes to this Agreement</h3>
                 <p className="text-gray-700">
                   After this agreement is signed, it can be changed only if the landlord and tenant agree to the changes in writing.
                 </p>
@@ -1439,14 +1293,13 @@ const OntarioLeaseForm2229E: React.FC<OntarioLeaseForm2229EProps> = ({
                 <div className="text-center text-sm text-gray-500 mt-8">
                   <p>2229E (2020/12) Page 7 of 14</p>
                 </div>
+                </div>
               </div>
-            </CollapsibleSection>
+            </Section>
 
-            {/* Section 17: Signatures - Collapsible */}
-            <CollapsibleSection
+            {/* Section 17: Signatures */}
+            <Section
               title="17. Signatures"
-              isExpanded={isSection17Expanded}
-              onToggle={() => setIsSection17Expanded(!isSection17Expanded)}
               icon={PenTool}
               color="green"
             >
@@ -1569,94 +1422,63 @@ const OntarioLeaseForm2229E: React.FC<OntarioLeaseForm2229EProps> = ({
                   </p>
                 </div>
               </div>
-            </CollapsibleSection>
+            </Section>
           </div>
         );
-
-      default:
-        return (
-          <div className="text-center py-8">
-            <p className="text-red-500">ERROR: Section {currentSection + 1} not found!</p>
-            <p className="text-gray-500">Total sections available: {sections.length}</p>
-            <p className="text-gray-500">Current section index: {currentSection}</p>
-          </div>
-        );
-    }
   };
 
   return (
-    <div className="w-full max-w-7xl mx-auto space-y-6 px-4">
-      {/* Progress Display */}
-      <div className="bg-white border border-gray-200 rounded-lg p-6">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center space-x-4">
-            {sections.map((section, index) => {
-              const Icon = section.icon;
-              const isActive = index === currentSection;
-              const isCompleted = index < currentSection;
-
-              return (
-                <div key={section.id} className="flex items-center space-x-2">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${isCompleted ? 'bg-green-500 text-white' :
-                    isActive ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-500'
-                    }`}>
-                    <Icon className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <p className={`font-medium ${isActive ? 'text-blue-600' : isCompleted ? 'text-green-600' : 'text-gray-500'}`}>
-                      {section.title}
-                    </p>
-                    <p className="text-sm text-gray-500">{section.description}</p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 p-4 md:p-8">
+      <div className="max-w-7xl ml-12 md:ml-24 lg:ml-40 xl:ml-48 space-y-8">
+        {/* Header */}
+        <div className="space-y-3">
+          <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight">Ontario Standard Lease</h1>
+          <p className="text-lg text-slate-600">Form 2229E - Residential Tenancies Act, 2006</p>
         </div>
-      </div>
 
-      {/* Section Content */}
-      <div className="bg-white border border-gray-200 rounded-lg p-6">
-        {renderSectionContent()}
-      </div>
+        {/* Section Content */}
+        <div className="space-y-6">
+          {renderSectionContent()}
+        </div>
 
-      {/* Navigation */}
-      <div className="flex flex-col gap-4 bg-white border border-gray-200 rounded-lg p-6">
-        <div className="flex justify-between items-center flex-col-reverse gap-2 sm:flex-row w-full">
-          <Button
-            variant="outline"
-            onClick={onCancel}
-            className="flex items-center space-x-2"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Cancel</span>
-          </Button>
+        {/* Navigation */}
+        <div className="bg-white border-2 border-slate-200 rounded-xl shadow-lg p-6 space-y-4">
+          <div className="flex justify-between items-center flex-col-reverse gap-4 sm:flex-row w-full">
+            <Button
+              variant="outline"
+              onClick={onCancel}
+              className="flex items-center space-x-2 h-12 px-6"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Cancel</span>
+            </Button>
 
-          <div className="flex items-center space-x-4">
             <Button
               onClick={handleSubmit}
-              className="flex items-center bg-blue-600 hover:bg-blue-700 text-xs sm:text-sm md:text-base !gap-1 sm:!gap-2 md:!gap-4 !p-1 sm:!p-2 md:!p-4"
+              className="flex items-center h-12 px-8 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold shadow-lg gap-2"
             >
               <Send className="w-4 h-4" />
               <span>Complete Lease Agreement</span>
             </Button>
           </div>
-        </div>
 
-        {/* Missing Fields Display */}
-        {missingFields.length > 0 && (
-          <div className="w-full mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <div className="flex items-center gap-2 text-red-700 mb-2">
-              <AlertTriangle className="w-5 h-5" />
-              <span className="font-semibold">Please complete the following required fields:</span>
+          {/* Missing Fields Display */}
+          {missingFields.length > 0 && (
+            <div className="w-full p-6 bg-gradient-to-r from-red-50 to-orange-50 border-2 border-red-200 rounded-xl">
+              <div className="flex items-center gap-3 text-red-700 mb-3">
+                <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                  <AlertTriangle className="w-5 h-5" />
+                </div>
+                <span className="font-bold text-lg">Please complete the following required fields:</span>
+              </div>
+              <ul className="list-disc list-inside space-y-2 text-base text-red-600 ml-2">
+                {missingFields.map((field, index) => (
+                  <li key={index}>{field}</li>
+                ))}
+              </ul>
             </div>
-            <ul className="list-disc list-inside space-y-1 text-sm text-red-600 ml-2">
-              {missingFields.map((field, index) => (
-                <li key={index}>{field}</li>
-              ))}
-            </ul>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

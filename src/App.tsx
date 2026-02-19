@@ -27,6 +27,7 @@ import FindPropertyPage from "@/pages/dashboard/FindProperty";
 import AuthPage from "@/pages/Auth";
 import Callback from "@/pages/auth/Callback";
 import { ErrorBoundary } from "@/components/utility/ErrorBoundary";
+import { RenovatorLayout } from "@/components/renovator/RenovatorLayout";
 import PropertyDetailsPage from "@/pages/dashboard/PropertyDetails";
 import RentalApplicationPage from "@/pages/dashboard/RentalApplication";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -198,7 +199,7 @@ function AppRoutes() {
         {/* Renovator Portal Routes */}
         <Route path="/renovator" element={
           <ProtectedRoute>
-            <Dashboard />
+            <RenovatorLayout />
           </ProtectedRoute>
         }>
           <Route index element={<Navigate to="dashboard" replace />} />

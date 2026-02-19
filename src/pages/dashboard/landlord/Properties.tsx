@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Button } from "@/components/ui/button";
 import { Plus, Building, MapPin, DollarSign, Pencil, Eye, Trash2, Image as ImageIcon, AlertTriangle, Home } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { getPropertiesByOwnerId, Property, deleteProperty, getSalesListingsByOwnerId, SalesListing, deleteSalesListing, claimProperties } from "@/services/propertyService";
+import { getPropertiesByOwnerId, Property, deleteProperty, getSalesListingsByOwnerId, SalesListing, deleteSalesListing, claimProperties, getArchivedProperties, relistProperty } from "@/services/propertyService";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -14,6 +14,7 @@ export default function PropertiesPage() {
   const navigate = useNavigate();
   const [properties, setProperties] = useState<Property[]>([]);
   const [salesListings, setSalesListings] = useState<SalesListing[]>([]);
+  const [archivedProperties, setArchivedProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -30,12 +31,15 @@ export default function PropertiesPage() {
 
         const list = await getPropertiesByOwnerId(user.id);
         const sList = await getSalesListingsByOwnerId(user.id);
+        const archived = await getArchivedProperties(user.id);
         console.log("🔍 Properties loaded:", list);
         console.log("🔍 Sales listings loaded:", sList);
+        console.log("🔍 Archived properties loaded:", archived);
 
         if (mounted) {
           setProperties(list);
           setSalesListings(sList);
+          setArchivedProperties(archived);
         }
       } catch (e: any) {
         console.error("Failed to load landlord properties", e);
@@ -79,6 +83,24 @@ export default function PropertiesPage() {
     }
   };
 
+  const handleRelist = async (id: string) => {
+    try {
+      const confirmed = window.confirm("Re-list this property? It will become available for rent again.");
+      if (!confirmed) return;
+      await relistProperty(id);
+      // Move from archived to active
+      const property = archivedProperties.find(p => p.id === id);
+      if (property) {
+        setArchivedProperties((prev) => prev.filter(p => p.id !== id));
+        setProperties((prev) => [...prev, { ...property, status: 'active' }]);
+      }
+      toast.success("Property re-listed successfully");
+    } catch (e: any) {
+      console.error("Re-list failed", e);
+      toast.error(e?.message || "Failed to re-list property");
+    }
+  };
+
 
   return (
     <div className="space-y-6">
@@ -88,14 +110,18 @@ export default function PropertiesPage() {
       </div>
 
       <Tabs defaultValue="rentals" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 mb-8 max-w-md">
+        <TabsList className="grid w-full grid-cols-3 mb-8 max-w-2xl">
           <TabsTrigger value="rentals" className="flex items-center gap-2">
             <Building className="h-4 w-4" />
-            rentals
+            Rentals
           </TabsTrigger>
           <TabsTrigger value="sales" className="flex items-center gap-2">
             <DollarSign className="h-4 w-4" />
-            sales
+            Sales
+          </TabsTrigger>
+          <TabsTrigger value="archived" className="flex items-center gap-2">
+            <Home className="h-4 w-4" />
+            Archived ({archivedProperties.length})
           </TabsTrigger>
         </TabsList>
 
@@ -351,6 +377,125 @@ export default function PropertiesPage() {
                 </Card>
               ))}
             </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="archived" className="space-y-6">
+          {archivedProperties.length === 0 ? (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Home className="h-5 w-5" />
+                  Archived Properties
+                </CardTitle>
+                <CardDescription>Properties that have been rented and are no longer available</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-12">
+                  <Home className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-medium mb-2">No Archived Properties</h3>
+                  <p className="text-muted-foreground">
+                    When you sign a lease contract, the property will be automatically archived here.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Home className="h-5 w-5" />
+                  Archived Properties
+                </CardTitle>
+                <CardDescription>Properties currently rented - you can re-list them when the lease ends</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {archivedProperties.map((p) => (
+                    <Card key={p.id} className="border overflow-hidden bg-gray-50">
+                      <div className="relative h-40 bg-gray-100 flex items-center justify-center">
+                        {(() => {
+                          let imageUrl = null;
+                          if (p.images && Array.isArray(p.images) && p.images.length > 0) {
+                            imageUrl = p.images[0];
+                          } else if (p.images && typeof p.images === 'string') {
+                            imageUrl = p.images;
+                          }
+
+                          if (imageUrl && imageUrl !== "/placeholder.svg") {
+                            return (
+                              <img
+                                src={imageUrl}
+                                alt={`${p.listing_title} photo`}
+                                className="h-40 w-full object-cover opacity-75"
+                                onError={(e) => {
+                                  (e.currentTarget as HTMLImageElement).src = "/placeholder.svg";
+                                }}
+                                loading="lazy"
+                              />
+                            );
+                          } else {
+                            return (
+                              <div className="flex flex-col items-center justify-center text-gray-400">
+                                <ImageIcon className="h-12 w-12 mb-2" />
+                                <span className="text-sm">No image</span>
+                              </div>
+                            );
+                          }
+                        })()}
+                        <div className="absolute top-2 right-2 bg-orange-500 text-white px-2 py-1 rounded text-xs font-medium">
+                          Archived
+                        </div>
+                      </div>
+                      <CardHeader>
+                        <CardTitle className="text-base line-clamp-1">{p.listing_title}</CardTitle>
+                        <CardDescription className="line-clamp-2">{p.description}</CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-2 text-sm text-muted-foreground">
+                          <div className="flex items-center gap-2">
+                            <MapPin className="h-4 w-4" />
+                            <span>{p.address ? `${p.address}, ` : ''}{p.city}, {p.state}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <DollarSign className="h-4 w-4" />
+                            <span>${p.monthly_rent}/mo</span>
+                          </div>
+                          {p.archived_at && (
+                            <div className="text-xs text-gray-500 mt-2">
+                              Archived: {new Date(p.archived_at).toLocaleDateString()}
+                            </div>
+                          )}
+                          {p.archive_reason && (
+                            <div className="text-xs text-gray-500">
+                              Reason: {p.archive_reason.replace('_', ' ')}
+                            </div>
+                          )}
+                        </div>
+                        <div className="mt-4 grid grid-cols-2 gap-2">
+                          <Button
+                            variant="outline"
+                            className="flex items-center justify-center gap-1"
+                            onClick={() => navigate(`/dashboard/rental-options/${p.id}`)}
+                            title="View property details"
+                          >
+                            <Eye className="h-4 w-4" /> View
+                          </Button>
+                          <Button
+                            variant="default"
+                            className="flex items-center justify-center gap-1 bg-green-600 hover:bg-green-700"
+                            onClick={() => handleRelist(p.id)}
+                            title="Re-list this property"
+                          >
+                            <Plus className="h-4 w-4" /> Re-list
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
           )}
         </TabsContent>
       </Tabs>

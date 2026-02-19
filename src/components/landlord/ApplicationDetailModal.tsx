@@ -17,9 +17,11 @@ import {
   CheckCircle,
   XCircle,
   Download,
-  Eye
+  Eye,
+  Zap
 } from 'lucide-react';
 import { getApplicationDocuments, RentalDocument } from '@/services/rentalDocumentService';
+import { getTenantProfileForLandlord, getTenantDocumentUrl, TenantProfileView } from '@/services/tenantProfileViewService';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 
@@ -41,10 +43,13 @@ export function ApplicationDetailModal({
   const [loadingDocuments, setLoadingDocuments] = useState(false);
   const [rejectionNotes, setRejectionNotes] = useState('');
   const [showRejectionForm, setShowRejectionForm] = useState(false);
+  const [tenantProfile, setTenantProfile] = useState<TenantProfileView | null>(null);
+  const [loadingProfile, setLoadingProfile] = useState(false);
 
   useEffect(() => {
     if (isOpen && application?.id) {
       loadDocuments();
+      loadTenantProfile();
     }
   }, [isOpen, application?.id]);
 
@@ -79,6 +84,63 @@ export function ApplicationDetailModal({
       toast.error(`Failed to load application documents: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setLoadingDocuments(false);
+    }
+  };
+
+  const loadTenantProfile = async () => {
+    if (!application?.applicant_id) {
+      console.log('No applicant ID provided');
+      return;
+    }
+    
+    try {
+      setLoadingProfile(true);
+      console.log('Loading tenant profile for:', application.applicant_id);
+      const profile = await getTenantProfileForLandlord(application.applicant_id);
+      console.log('Tenant profile loaded:', profile);
+      setTenantProfile(profile);
+    } catch (error) {
+      console.error('Failed to load tenant profile:', error);
+    } finally {
+      setLoadingProfile(false);
+    }
+  };
+
+  const handleDownloadDocument = async (filePath: string, fileName: string) => {
+    try {
+      toast.info(`Downloading ${fileName}...`);
+      
+      // Get signed URL
+      const url = await getTenantDocumentUrl(filePath);
+      if (!url) {
+        toast.error('Failed to get document URL');
+        return;
+      }
+
+      // Fetch the file as blob
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error('Failed to download file');
+      }
+      
+      const blob = await response.blob();
+      
+      // Create download link
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      
+      // Cleanup
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(downloadUrl);
+      
+      toast.success(`${fileName} downloaded successfully`);
+    } catch (error) {
+      console.error('Download error:', error);
+      toast.error('Failed to download document');
     }
   };
 
@@ -213,8 +275,14 @@ export function ApplicationDetailModal({
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="profile">
+              <div className="flex items-center gap-1">
+                Profile
+                {tenantProfile && <Zap className="h-3 w-3 text-indigo-600" />}
+              </div>
+            </TabsTrigger>
             <TabsTrigger value="documents">Documents</TabsTrigger>
             <TabsTrigger value="property">Property</TabsTrigger>
             <TabsTrigger value="actions">Actions</TabsTrigger>
@@ -342,6 +410,190 @@ export function ApplicationDetailModal({
                   <p className="text-sm">{application.additional_info}</p>
                 </CardContent>
               </Card>
+            )}
+          </TabsContent>
+
+          {/* NEW: Profile Tab - Shows tenant's complete profile */}
+          <TabsContent value="profile" className="space-y-6">
+            {loadingProfile ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                <p className="text-sm text-muted-foreground mt-2">Loading profile...</p>
+              </div>
+            ) : tenantProfile ? (
+              <>
+                {/* Quick Apply Badge */}
+                <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4 flex items-center gap-3">
+                  <Zap className="h-5 w-5 text-indigo-600" />
+                  <div>
+                    <p className="font-semibold text-indigo-900">Quick Apply Profile</p>
+                    <p className="text-sm text-indigo-700">This applicant used their profile for instant application</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Profile Documents */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <FileText className="h-5 w-5" />
+                        Profile Documents
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      {tenantProfile.reference_letters && (
+                        <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+                          <div className="flex items-center gap-2">
+                            <CheckCircle className="h-4 w-4 text-green-600" />
+                            <span className="text-sm font-medium text-green-900">Reference Letters</span>
+                          </div>
+                          <div className="flex gap-1">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={async () => {
+                                const url = await getTenantDocumentUrl(tenantProfile.reference_letters!);
+                                if (url) window.open(url, '_blank');
+                              }}
+                              title="View document"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleDownloadDocument(tenantProfile.reference_letters!, 'reference_letters.pdf')}
+                              title="Download document"
+                            >
+                              <Download className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                      {tenantProfile.employment_letter && (
+                        <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+                          <div className="flex items-center gap-2">
+                            <CheckCircle className="h-4 w-4 text-green-600" />
+                            <span className="text-sm font-medium text-green-900">Employment Letter</span>
+                          </div>
+                          <div className="flex gap-1">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={async () => {
+                                const url = await getTenantDocumentUrl(tenantProfile.employment_letter!);
+                                if (url) window.open(url, '_blank');
+                              }}
+                              title="View document"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleDownloadDocument(tenantProfile.employment_letter!, 'employment_letter.pdf')}
+                              title="Download document"
+                            >
+                              <Download className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                      {tenantProfile.credit_score_report && (
+                        <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+                          <div className="flex items-center gap-2">
+                            <CheckCircle className="h-4 w-4 text-green-600" />
+                            <span className="text-sm font-medium text-green-900">Credit Score Report</span>
+                          </div>
+                          <div className="flex gap-1">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={async () => {
+                                const url = await getTenantDocumentUrl(tenantProfile.credit_score_report!);
+                                if (url) window.open(url, '_blank');
+                              }}
+                              title="View document"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleDownloadDocument(tenantProfile.credit_score_report!, 'credit_score_report.pdf')}
+                              title="Download document"
+                            >
+                              <Download className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                      {!tenantProfile.reference_letters && !tenantProfile.employment_letter && !tenantProfile.credit_score_report && (
+                        <p className="text-sm text-muted-foreground text-center py-4">No documents uploaded</p>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  {/* Additional Profile Info */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <User className="h-5 w-5" />
+                        Additional Information
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      {tenantProfile.age && (
+                        <div>
+                          <p className="text-sm text-muted-foreground">Age</p>
+                          <p className="text-sm font-medium">{tenantProfile.age} years old</p>
+                        </div>
+                      )}
+                      {tenantProfile.nationality && (
+                        <div>
+                          <p className="text-sm text-muted-foreground">Nationality</p>
+                          <p className="text-sm font-medium">{tenantProfile.nationality}</p>
+                        </div>
+                      )}
+                      {tenantProfile.preferred_location && (
+                        <div>
+                          <p className="text-sm text-muted-foreground">Preferred Location</p>
+                          <p className="text-sm font-medium">{tenantProfile.preferred_location}</p>
+                        </div>
+                      )}
+                      {tenantProfile.budget_range && (
+                        <div>
+                          <p className="text-sm text-muted-foreground">Budget Range</p>
+                          <p className="text-sm font-medium">{tenantProfile.budget_range}</p>
+                        </div>
+                      )}
+                      {tenantProfile.housing_type && (
+                        <div>
+                          <p className="text-sm text-muted-foreground">Housing Type Preference</p>
+                          <p className="text-sm font-medium capitalize">{tenantProfile.housing_type}</p>
+                        </div>
+                      )}
+                      {tenantProfile.pet_preference && (
+                        <div>
+                          <p className="text-sm text-muted-foreground">Pet Preference</p>
+                          <p className="text-sm font-medium">{tenantProfile.pet_preference}</p>
+                        </div>
+                      )}
+                      {tenantProfile.smoking && (
+                        <div>
+                          <p className="text-sm text-muted-foreground">Smoking</p>
+                          <p className="text-sm font-medium">{tenantProfile.smoking}</p>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+              </>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-sm text-muted-foreground">No profile data available</p>
+                <p className="text-xs text-muted-foreground mt-1">This applicant may have used the standard application form</p>
+              </div>
             )}
           </TabsContent>
 

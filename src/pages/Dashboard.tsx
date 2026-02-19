@@ -18,22 +18,24 @@ export default function Dashboard() {
   const assignedRole = user?.user_metadata?.role;
 
   useEffect(() => {
-    console.log("Dashboard mounted - current path:", location.pathname);
-    console.log("Dashboard mounted - role:", role);
-    console.log("Dashboard mounted - user:", user?.email);
-    console.log("Dashboard mounted - loading:", loading);
-    console.log("Dashboard mounted - assigned role:", assignedRole);
+    // Only log once when path changes
+    console.log("Dashboard - path:", location.pathname, "role:", assignedRole);
+  }, [location.pathname]);
 
-    // If user is logged in but has no role assigned, show the role selection dialog
-    if (!loading && user && !assignedRole && location.pathname === '/dashboard') {
-      console.log("No role assigned, showing role selection dialog");
-      setShowRoleDialog(true);
-    }
-  }, [location.pathname, role, user, loading, assignedRole]);
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p>Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Only redirect if we're exactly at /dashboard and not at a sub-route
-  if (!loading && location.pathname === '/dashboard' && !showRoleDialog) {
-    // Make sure we have routes for all these destinations
+  if (location.pathname === '/dashboard' && !showRoleDialog) {
     if (assignedRole === 'landlord') {
       return <Navigate to="/dashboard/landlord" replace />;
     } else if (assignedRole === 'developer') {
@@ -41,34 +43,13 @@ export default function Dashboard() {
     } else if (assignedRole === 'admin') {
       return <Navigate to="/dashboard/admin" replace />;
     } else if (assignedRole === 'renovator') {
-      return <Navigate to="/renovator" replace />;
+      return <Navigate to="/renovator/dashboard" replace />;
     } else if (assignedRole === 'seeker') {
-      // Only seekers should see RoommateRecommendations at main /dashboard route
       return (
         <DashboardLayout>
           <RoommateRecommendations />
         </DashboardLayout>
       );
-    } else {
-      // Default fallback for any other role (shouldn't happen)
-      return (
-        <DashboardLayout>
-          <RoommateRecommendations />
-        </DashboardLayout>
-      );
-    }
-  }
-
-  // Additional redirect: if user is on /dashboard but role doesn't match the route, redirect to correct dashboard
-  if (!loading && assignedRole && location.pathname.startsWith('/dashboard') && !showRoleDialog) {
-    if (assignedRole === 'landlord' && location.pathname !== '/dashboard/landlord') {
-      return <Navigate to="/dashboard/landlord" replace />;
-    }
-    if (assignedRole === 'admin' && location.pathname !== '/dashboard/admin') {
-      return <Navigate to="/dashboard/admin" replace />;
-    }
-    if (assignedRole === 'renovator' && location.pathname !== '/renovator') {
-      return <Navigate to="/renovator" replace />;
     }
   }
 

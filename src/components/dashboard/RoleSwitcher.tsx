@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Building, User, Shield, ChevronDown, Hammer } from "lucide-react";
 import { useRole, UserRole } from "@/contexts/RoleContext";
@@ -23,6 +23,7 @@ export function RoleSwitcher({ variant = 'default' }: RoleSwitcherProps) {
   const navigate = useNavigate();
   const [isRoleSwitching, setIsRoleSwitching] = useState(false);
   const [availableRoles, setAvailableRoles] = useState<UserRole[]>(['seeker', 'landlord', 'renovator']);
+  const isNavigatingRef = useRef(false);
 
   // Load available roles on mount
   useEffect(() => {
@@ -45,11 +46,12 @@ export function RoleSwitcher({ variant = 'default' }: RoleSwitcherProps) {
     }
 
     loadAvailableRoles();
-  }, [user]);
+  }, [user?.id]); // Only depend on user ID
 
   const handleRoleChange = async (newRole: UserRole) => {
-    if (newRole === role) return;
+    if (newRole === role || isNavigatingRef.current) return;
 
+    isNavigatingRef.current = true;
     setIsRoleSwitching(true);
     try {
       await updateMetadata({ role: newRole });
@@ -58,19 +60,19 @@ export function RoleSwitcher({ variant = 'default' }: RoleSwitcherProps) {
       // Navigate to appropriate dashboard
       switch (newRole) {
         case 'seeker':
-          navigate('/dashboard/roommate-recommendations');
+          navigate('/dashboard/roommate-recommendations', { replace: true });
           break;
         case 'landlord':
-          navigate('/dashboard/landlord');
+          navigate('/dashboard/landlord', { replace: true });
           break;
         case 'admin':
-          navigate('/dashboard/admin');
+          navigate('/dashboard/admin', { replace: true });
           break;
         case 'renovator':
-          navigate('/renovator/dashboard');
+          navigate('/renovator/dashboard', { replace: true });
           break;
         case 'developer':
-          navigate('/renovator/dashboard'); // For testing/developer access
+          navigate('/dashboard/landlord', { replace: true }); // Developers can access landlord features
           break;
       }
 
@@ -87,6 +89,9 @@ export function RoleSwitcher({ variant = 'default' }: RoleSwitcherProps) {
       });
     } finally {
       setIsRoleSwitching(false);
+      setTimeout(() => {
+        isNavigatingRef.current = false;
+      }, 1000);
     }
   };
 

@@ -124,20 +124,7 @@ export default function LandlordDashboardPage() {
           description="Manage your landlord profile and account settings."
           icon={User}
           onClick={() => navigate("/dashboard/landlord/profile")}
-        >
-          <div className="space-y-1">
-            <SubFeatureButton 
-              emoji="📅" 
-              label="Availability"
-              onClick={() => navigate("/dashboard/landlord/availability")}
-            />
-            <SubFeatureButton 
-              emoji="🔧" 
-              label="Service Area"
-              onClick={() => navigate("/dashboard/landlord/service-area")}
-            />
-          </div>
-        </MasterBox>
+        />
 
         {/* My Properties Master Box */}
         <MasterBox
@@ -147,17 +134,9 @@ export default function LandlordDashboardPage() {
           onClick={() => navigate("/dashboard/landlord/properties")}
         />
 
-        {/* Rentals Master Box */}
-        <MasterBox
-          title="3. Rentals"
-          description="Track rental agreements and tenant information."
-          icon={FileText}
-          onClick={() => navigate("/dashboard/landlord/rentals")}
-        />
-
         {/* Sales Master Box */}
         <MasterBox
-          title="4. Sales"
+          title="3. Sales"
           description="Manage property sales and listings."
           icon={TrendingUp}
           onClick={() => navigate("/dashboard/landlord/sales")}
@@ -165,7 +144,7 @@ export default function LandlordDashboardPage() {
 
         {/* Applications Master Box */}
         <MasterBox
-          title="5. Applications"
+          title="4. Applications"
           description="Review and process rental applications."
           icon={Users}
           onClick={() => navigate("/dashboard/landlord/applications")}
@@ -173,7 +152,7 @@ export default function LandlordDashboardPage() {
 
         {/* Payments Master Box */}
         <MasterBox
-          title="6. Payments"
+          title="5. Payments"
           description="Track rent payments and financial transactions."
           icon={CreditCard}
           onClick={() => navigate("/dashboard/landlord/payments")}
@@ -181,7 +160,7 @@ export default function LandlordDashboardPage() {
 
         {/* Legal AI Master Box */}
         <MasterBox
-          title="7. Legal AI"
+          title="6. Legal AI"
           description="AI-powered legal assistance for landlords."
           icon={Bot}
           onClick={() => navigate("/dashboard/landlord/legal-ai")}
@@ -212,7 +191,7 @@ export default function LandlordDashboardPage() {
 
         {/* Service Companies Master Box */}
         <MasterBox
-          title="8. Service Companies"
+          title="7. Service Companies"
           description="Access trusted service providers and partners."
           icon={Building}
           onClick={() => navigate("/dashboard/landlord/service-companies")}
@@ -221,19 +200,19 @@ export default function LandlordDashboardPage() {
             <SubFeatureButton 
               emoji="🔧" 
               label="Partnered Renovators"
-              onClick={() => navigate("/dashboard/landlord/partnered-renovators")}
+              onClick={() => navigate("/dashboard/renovators")}
             />
             <SubFeatureButton 
               emoji="🧹" 
               label="Partnered Cleaners"
-              onClick={() => navigate("/dashboard/landlord/partnered-cleaners")}
+              onClick={() => navigate("/dashboard/cleaners")}
             />
           </div>
         </MasterBox>
 
         {/* Education Centre Master Box */}
         <MasterBox
-          title="9. Education Centre"
+          title="8. Education Centre"
           description="Learn about property management and best practices."
           icon={Sparkles}
           onClick={() => navigate("/dashboard/landlord/education-centre")}

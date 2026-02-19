@@ -13,45 +13,16 @@ export function RoleInitializer({ children }: RoleInitializerProps) {
   const { user } = useAuth();
   
   useEffect(() => {
-    console.log("RoleInitializer - current role:", role);
-    console.log("RoleInitializer - user:", user?.email);
-    console.log("RoleInitializer - user metadata:", user?.user_metadata);
+    if (!user) return;
     
-    const checkUserRole = async () => {
-      if (user) {
-        const userRole = user.user_metadata?.role;
-        console.log("RoleInitializer - checking role from metadata:", userRole);
-        
-        if (userRole && role !== userRole) {
-          console.log("Setting role to match user metadata:", userRole);
-          setRole(userRole);
-          
-          // Show a toast notification when role is set/changed
-          toast({
-            title: "Role initialized",
-            description: `You are using Roomi AI as a ${getRoleDisplay(userRole)}`,
-            duration: 3000,
-          });
-        } else if (!userRole) {
-          console.warn("No role found in user metadata in RoleInitializer");
-        }
-      }
-    };
+    const userRole = user.user_metadata?.role;
     
-    checkUserRole();
-  }, [user, setRole, role]);
-
-  // Helper function to get a display-friendly role name
-  const getRoleDisplay = (role: string) => {
-    switch (role) {
-      case 'seeker': return 'Seeker';
-      case 'landlord': return 'Landlord';
-      case 'admin': return 'Administrator';
-      case 'renovator': return 'Renovator';
-      case 'developer': return 'Developer';
-      default: return 'User';
+    // Only update role if it's different and userRole exists
+    if (userRole && role !== userRole) {
+      console.log("RoleInitializer - syncing role:", userRole);
+      setRole(userRole);
     }
-  };
+  }, [user?.id, user?.user_metadata?.role]); // Only depend on user ID and role from metadata
 
   return <>{children}</>;
 }

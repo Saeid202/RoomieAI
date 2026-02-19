@@ -16,6 +16,7 @@ export default function ApplicationsPage() {
   const [loading, setLoading] = useState(true);
   const [selectedApplication, setSelectedApplication] = useState<any>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadApplications();
@@ -23,12 +24,24 @@ export default function ApplicationsPage() {
 
   const loadApplications = async () => {
     try {
+      console.log('🔄 Loading landlord applications...');
       setLoading(true);
+      setError(null);
+      
       const data = await getLandlordApplications();
-      setApplications(data);
+      console.log('✅ Applications loaded:', data?.length || 0);
+      
+      setApplications(data || []);
+      
+      if (!data || data.length === 0) {
+        console.log('ℹ️ No applications found for this landlord');
+      }
     } catch (error) {
-      console.error('Failed to load applications:', error);
-      toast.error('Failed to load applications');
+      console.error('❌ Failed to load applications:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to load applications';
+      setError(errorMessage);
+      toast.error(errorMessage);
+      setApplications([]);
     } finally {
       setLoading(false);
     }
@@ -126,6 +139,29 @@ export default function ApplicationsPage() {
           </Button>
         </div>
       </div>
+
+      {/* Error State */}
+      {error && !loading && (
+        <Card className="border-red-200 bg-red-50">
+          <CardContent className="p-6">
+            <div className="flex items-center gap-3">
+              <XCircle className="h-6 w-6 text-red-600" />
+              <div>
+                <h3 className="font-semibold text-red-900">Error Loading Applications</h3>
+                <p className="text-sm text-red-700 mt-1">{error}</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={loadApplications}
+                  className="mt-3"
+                >
+                  Try Again
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Statistics Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">

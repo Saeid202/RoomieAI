@@ -72,14 +72,6 @@ export default function MyApplicationsPage() {
     }
   };
 
-  const continueFlow = (app: any) => {
-    const currentStep = app.current_step || 1;
-    const targetStep = Math.min(currentStep + 1, 5);
-
-    // Navigate with step and applicationId parameters
-    navigate(`/dashboard/rental-application/${app.property_id}?step=${targetStep}&applicationId=${app.id}`);
-  };
-
   const withdraw = async (appId: string) => {
     if (!confirm("Are you sure you want to withdraw this application? This action cannot be undone.")) {
       return;
@@ -341,7 +333,6 @@ export default function MyApplicationsPage() {
                     application={application}
                     onViewDetails={openApplicationDetails}
                     onWithdraw={withdraw}
-                    onContinue={continueFlow}
                   />
                 ))
               )}
@@ -389,13 +380,11 @@ export default function MyApplicationsPage() {
 function ProfessionalApplicationCard({
   application,
   onViewDetails,
-  onWithdraw,
-  onContinue
+  onWithdraw
 }: {
   application: any;
   onViewDetails: (app: any) => void;
   onWithdraw: (id: string) => void;
-  onContinue: (app: any) => void;
 }) {
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -510,24 +499,6 @@ function ProfessionalApplicationCard({
             >
               <Eye className="h-3.5 w-3.5" />
               View
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onContinue(application)}
-              className="h-8 text-xs flex items-center gap-1.5 bg-green-50 border-green-200 text-green-700 hover:bg-green-100 rounded px-3"
-            >
-              <Edit className="h-3.5 w-3.5" />
-              Edit
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onContinue(application)}
-              className="h-8 text-xs flex items-center gap-1.5 bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100 rounded px-3"
-            >
-              <ChevronRight className="h-3.5 w-3.5" />
-              Continue
             </Button>
           </div>
 

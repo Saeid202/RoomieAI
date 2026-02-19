@@ -118,7 +118,15 @@ export async function getPropertiesByOwnerId(userId: string): Promise<Property[]
     }
 
     console.log("Properties fetched successfully:", data);
-    return (data as any as Property[]) || [];
+    
+    // Exclude only archived properties from the main list
+    // Show all other properties (including NULL, 'available', 'active', 'draft', 'inactive' for backward compatibility)
+    const activeProperties = (data as any as Property[])?.filter(p => 
+      p.status !== 'archived'
+    ) || [];
+    
+    console.log("Active properties after filtering:", activeProperties);
+    return activeProperties;
   } catch (error) {
     console.error("Error in getPropertiesByOwnerId:", error);
     throw error;
@@ -437,6 +445,10 @@ export async function fetchProperties(filters?: {
 
   try {
     let query = sb.from('properties').select('*');
+
+    // IMPORTANT: Exclude archived properties from rental listings
+    // Accept both 'active' and 'available' for backward compatibility
+    query = query.in('status', ['active', 'available']);
 
     if (filters) {
       if (filters.location) {
@@ -1227,3 +1239,156 @@ export const updateCoOwnershipSignal = async (id: string, updates: Partial<CoOwn
   }
   return data;
 };
+
+/**
+ * Archive a property when lease is signed
+ * This removes the property from active rental listings
+ */
+export async function archiveProperty(
+  propertyId: string,
+  leaseId: string,
+  tenantId: string,
+  reason: string = 'lease_signed'
+): Promise<void> {
+  console.log("🗄️ Archiving property:", propertyId);
+
+  try {
+    const { error } = await sb
+      .from('properties')
+      .update({
+        status: 'archived',
+        archived_at: new Date().toISOString(),
+        archive_reason: reason,
+        current_lease_id: leaseId,
+        current_tenant_id: tenantId
+      })
+      .eq('id', propertyId);
+
+    if (error) {
+      console.error("❌ Error archiving property:", error);
+      throw new Error(`Failed to archive property: ${error.message}`);
+    }
+
+    console.log("✅ Property archived successfully");
+
+    // Reject all pending applications for this property
+    await rejectPendingApplications(propertyId);
+  } catch (error) {
+    console.error("❌ Error in archiveProperty:", error);
+    throw error;
+  }
+}
+
+/**
+ * Re-list an archived property
+ * This makes the property available for rent again
+ */
+export async function relistProperty(propertyId: string): Promise<void> {
+  console.log("📋 Re-listing property:", propertyId);
+
+  try {
+    const { error } = await sb
+      .from('properties')
+      .update({
+        status: 'active',
+        archived_at: null,
+        archive_reason: null,
+        current_lease_id: null,
+        current_tenant_id: null
+      })
+      .eq('id', propertyId);
+
+    if (error) {
+      console.error("❌ Error re-listing property:", error);
+      throw new Error(`Failed to re-list property: ${error.message}`);
+    }
+
+    console.log("✅ Property re-listed successfully");
+  } catch (error) {
+    console.error("❌ Error in relistProperty:", error);
+    throw error;
+  }
+}
+
+/**
+ * Get archived properties for a landlord
+ */
+export async function getArchivedProperties(userId: string): Promise<Property[]> {
+  console.log("Fetching archived properties for owner:", userId);
+
+  try {
+    const { data, error } = await sb
+      .from('properties')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('status', 'archived')
+      .order('archived_at', { ascending: false });
+
+    if (error) {
+      console.error("Error fetching archived properties:", error);
+      throw new Error(`Failed to fetch archived properties: ${error.message}`);
+    }
+
+    console.log("Archived properties fetched successfully:", data);
+    return (data as any as Property[]) || [];
+  } catch (error) {
+    console.error("Error in getArchivedProperties:", error);
+    throw error;
+  }
+}
+
+/**
+ * Reject all pending applications for a property
+ * Called when property is archived
+ */
+async function rejectPendingApplications(propertyId: string): Promise<void> {
+  console.log("Rejecting pending applications for property:", propertyId);
+
+  try {
+    const { error } = await sb
+      .from('rental_applications')
+      .update({
+        status: 'rejected',
+        rejection_reason: 'Property is no longer available for rent'
+      })
+      .eq('property_id', propertyId)
+      .in('status', ['pending', 'under_review']);
+
+    if (error) {
+      console.error("Error rejecting pending applications:", error);
+      // Don't throw - this is a secondary operation
+    } else {
+      console.log("✅ Pending applications rejected");
+    }
+  } catch (error) {
+    console.error("Error in rejectPendingApplications:", error);
+    // Don't throw - this is a secondary operation
+  }
+}
+
+/**
+ * Update property status
+ */
+export async function updatePropertyStatus(
+  propertyId: string,
+  status: 'active' | 'archived' | 'draft' | 'inactive'
+): Promise<void> {
+  console.log("Updating property status:", propertyId, status);
+
+  try {
+    const { error } = await sb
+      .from('properties')
+      .update({ status })
+      .eq('id', propertyId);
+
+    if (error) {
+      console.error("Error updating property status:", error);
+      throw new Error(`Failed to update property status: ${error.message}`);
+    }
+
+    console.log("✅ Property status updated successfully");
+  } catch (error) {
+    console.error("Error in updatePropertyStatus:", error);
+    throw error;
+  }
+}

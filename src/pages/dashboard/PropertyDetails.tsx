@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { fetchPropertyById, Property, updateProperty, fetchSalesListingById, SalesListing, fetchInvestorOffers, submitInvestorOffer, InvestorOffer, deleteInvestorOffer, updateInvestorOffer } from "@/services/propertyService";
 import { useRole } from "@/contexts/RoleContext";
-import { Calendar, DollarSign, MapPin, Volume2, Play, Square, Box, ChevronLeft, ChevronRight, User, Users, Pencil, Trash2, Check, X, MessageSquare, Reply } from "lucide-react";
+import { Calendar, DollarSign, MapPin, Volume2, Play, Square, Box, ChevronLeft, ChevronRight, User, Users, Pencil, Trash2, Check, X, MessageSquare, Reply, Zap } from "lucide-react";
 import { PropertyVideoPlayer } from "@/components/property/PropertyVideoPlayer";
 import { useAuth } from "@/hooks/useAuth";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,9 @@ import { toast } from "sonner";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { MessageButton } from "@/components/MessageButton";
+import { QuickApplyModal } from "@/components/application/QuickApplyModal";
+import { checkProfileCompleteness, getTenantProfileForApplication } from "@/utils/profileCompleteness";
+import { submitQuickApplication, hasUserApplied } from "@/services/quickApplyService";
 
 export default function PropertyDetailsPage() {
   const { id } = useParams<{ id: string }>();
@@ -48,6 +51,12 @@ export default function PropertyDetailsPage() {
   const [parkingDraft, setParkingDraft] = useState<string>("");
   const [petPolicyDraft, setPetPolicyDraft] = useState<string>("");
   const [furnishedDraft, setFurnishedDraft] = useState<string>("");
+
+  // Quick Apply states
+  const [showQuickApplyModal, setShowQuickApplyModal] = useState(false);
+  const [profileData, setProfileData] = useState<any>(null);
+  const [isSubmittingQuickApply, setIsSubmittingQuickApply] = useState(false);
+  const [hasApplied, setHasApplied] = useState(false);
   const [isPlayingLocalAudio, setIsPlayingLocalAudio] = useState(false);
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
 
@@ -254,6 +263,88 @@ export default function PropertyDetailsPage() {
     const d = new Date(property.available_date);
     return isNaN(d.getTime()) ? null : d.toLocaleDateString();
   }, [property?.available_date]);
+
+  // Quick Apply Handlers
+  const handleQuickApplyClick = async () => {
+    if (!user) {
+      toast.error("Please log in to apply");
+      return;
+    }
+
+    // Check if already applied
+    const applied = await hasUserApplied(user.id, id!);
+    if (applied) {
+      toast.error("You have already applied to this property");
+      setHasApplied(true);
+      return;
+    }
+
+    // Check profile completeness
+    const completeness = await checkProfileCompleteness(user.id);
+    
+    if (!completeness.isComplete) {
+      const missing = [
+        ...completeness.missingFields,
+        ...completeness.missingDocuments
+      ];
+      
+      toast.error(
+        `Please complete your profile first. Missing: ${missing.join(', ')}`,
+        { duration: 5000 }
+      );
+      
+      // Redirect to profile page
+      setTimeout(() => {
+        navigate('/dashboard/profile');
+      }, 2000);
+      return;
+    }
+
+    // Load profile data
+    const data = await getTenantProfileForApplication(user.id);
+    if (!data) {
+      toast.error("Could not load profile data");
+      return;
+    }
+
+    setProfileData(data);
+    setShowQuickApplyModal(true);
+  };
+
+  const handleQuickApplyConfirm = async (message: string) => {
+    if (!user || !property) return;
+
+    setIsSubmittingQuickApply(true);
+
+    try {
+      console.log("Starting quick application submission...");
+      const applicationId = await submitQuickApplication({
+        user_id: user.id,
+        property_id: property.id,
+        message,
+      });
+
+      if (!applicationId) {
+        throw new Error("Failed to submit application - no ID returned");
+      }
+
+      console.log("Application submitted successfully with ID:", applicationId);
+      toast.success("Application submitted successfully!");
+      setShowQuickApplyModal(false);
+      setHasApplied(true);
+      
+      // Optionally navigate to applications page
+      setTimeout(() => {
+        navigate('/dashboard/applications');
+      }, 1500);
+    } catch (error) {
+      console.error("Error submitting quick application:", error);
+      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+      toast.error(`Failed to submit application: ${errorMessage}`);
+    } finally {
+      setIsSubmittingQuickApply(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -1134,10 +1225,21 @@ export default function PropertyDetailsPage() {
           </Card>
 
           <div className="space-y-2">
-            {role !== 'landlord' && !isSale && (
-              <Button variant="default" className="w-full" onClick={() => navigate(`/dashboard/rental-application/${id}`)}>
-                Apply to Rent
+            {role !== 'landlord' && !isSale && !hasApplied && (
+              <Button 
+                variant="default" 
+                className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700" 
+                onClick={handleQuickApplyClick}
+              >
+                <Zap className="h-4 w-4 mr-2" />
+                Quick Apply
               </Button>
+            )}
+            {hasApplied && (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+                <p className="text-green-800 font-semibold">✓ Application Submitted</p>
+                <p className="text-green-600 text-sm mt-1">The landlord will review your application</p>
+              </div>
             )}
             {role !== 'landlord' && property && (
               <MessageButton
@@ -1155,6 +1257,19 @@ export default function PropertyDetailsPage() {
           </div>
         </aside>
       </main>
+
+      {/* Quick Apply Modal */}
+      {showQuickApplyModal && profileData && property && (
+        <QuickApplyModal
+          open={showQuickApplyModal}
+          onOpenChange={setShowQuickApplyModal}
+          property={property}
+          profileData={profileData}
+          onConfirm={handleQuickApplyConfirm}
+          isSubmitting={isSubmittingQuickApply}
+        />
+      )}
     </>
   );
 }
+

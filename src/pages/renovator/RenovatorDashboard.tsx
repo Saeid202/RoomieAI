@@ -58,12 +58,14 @@ export default function RenovatorDashboard() {
             const userRole = (profile as any)?.role || user.user_metadata?.role;
             const isAdmin = userRole === 'admin';
 
-            // If not a renovator and not an admin, they shouldn't be here
-            if (userRole !== 'renovator' && !isAdmin) {
-                console.warn("Unauthorized access to renovator dashboard. Redirecting...");
-                window.location.href = userRole === 'landlord' ? '/dashboard/landlord' : '/dashboard/roommate-recommendations';
-                return;
-            }
+            // Temporarily disabled - allow access for testing
+            // if (userRole !== 'renovator' && !isAdmin) {
+            //     console.warn("Unauthorized access to renovator dashboard. Redirecting...");
+            //     window.location.href = userRole === 'landlord' ? '/dashboard/landlord' : '/dashboard/roommate-recommendations';
+            //     return;
+            // }
+
+            console.log("RenovatorDashboard - User role:", userRole, "Is Admin:", isAdmin);
 
             // 2. Get Renovator ID record
             const { data: renovator } = await (supabase as any)

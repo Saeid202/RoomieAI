@@ -307,14 +307,42 @@ export async function hasUserAppliedForProperty(propertyId: string, userId: stri
  * Get applications for landlord dashboard (filtered by landlord's properties)
  */
 export async function getLandlordApplications(): Promise<any[]> {
-  console.log("Fetching landlord applications");
+  console.log("🔍 Fetching landlord applications");
 
   try {
     // Get current user
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    if (authError) {
+      console.error("❌ Authentication error:", authError);
+      throw new Error(`Authentication failed: ${authError.message}`);
+    }
+    
     if (!user) {
+      console.error("❌ No authenticated user found");
       throw new Error("User not authenticated");
     }
+
+    console.log("✅ Authenticated user:", user.id);
+
+    // First, check if user has any properties
+    const { data: properties, error: propertiesError } = await sb
+      .from('properties')
+      .select('id')
+      .eq('user_id', user.id)
+      .limit(1);
+
+    if (propertiesError) {
+      console.error("❌ Error checking properties:", propertiesError);
+      throw new Error(`Failed to check properties: ${propertiesError.message}`);
+    }
+
+    if (!properties || properties.length === 0) {
+      console.log("ℹ️ No properties found for this landlord");
+      return [];
+    }
+
+    console.log("✅ Landlord has properties, fetching applications...");
 
     const { data, error } = await sb
       .from('rental_applications')
@@ -335,15 +363,15 @@ export async function getLandlordApplications(): Promise<any[]> {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error("Error fetching landlord applications:", error);
+      console.error("❌ Error fetching landlord applications:", error);
       throw new Error(`Failed to fetch applications: ${error.message}`);
     }
 
-    console.log("Landlord applications fetched successfully:", data?.length || 0);
+    console.log(`✅ Landlord applications fetched successfully: ${data?.length || 0} applications`);
     return data || [];
   } catch (error) {
-    console.error("Error in getLandlordApplications:", error);
-    return [];
+    console.error("❌ Error in getLandlordApplications:", error);
+    throw error;
   }
 }
 

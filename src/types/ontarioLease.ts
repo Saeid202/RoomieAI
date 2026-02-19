@@ -66,10 +66,14 @@ export interface OntarioLeaseFormData {
   additionalStorageIncluded: boolean;
   onSiteLaundry: 'no_charge' | 'pay_per_use' | 'not_included';
   guestParking: 'no_charge' | 'pay_per_use' | 'not_included';
-  gas?: boolean;
-  airConditioning?: boolean;
-  additionalStorage?: boolean;
-  laundry?: string;
+  gas?: 'yes' | 'no';
+  airConditioning?: 'yes' | 'no';
+  additionalStorage?: 'yes' | 'no';
+  laundry?: 'no-charge' | 'pay-per-use';
+  guestParking?: 'no-charge' | 'pay-per-use';
+  other1?: 'yes' | 'no';
+  other2?: 'yes' | 'no';
+  other3?: 'yes' | 'no';
   otherServices1?: string;
   otherServices1Included?: boolean;
   otherServices2?: string;
@@ -81,36 +85,36 @@ export interface OntarioLeaseFormData {
   heatResponsibility: 'landlord' | 'tenant';
   waterResponsibility: 'landlord' | 'tenant';
   utilitiesDetails?: string;
-  electricity?: string;
-  heat?: string;
-  water?: string;
+  electricity?: 'landlord' | 'tenant';
+  heat?: 'landlord' | 'tenant';
+  water?: 'landlord' | 'tenant';
   
   // Section 7: Rent Discounts
-  rentDiscount: boolean;
+  rentDiscount: 'none' | 'discounted';
   rentDiscountDetails?: string;
   
   // Section 8: Rent Deposit
   rentDepositRequired: boolean;
   rentDepositAmount?: number;
-  rentDeposit?: boolean;
+  rentDeposit?: 'not-required' | 'required';
   
   // Section 9: Key Deposit
   keyDepositRequired: boolean;
   keyDepositAmount?: number;
   keyDepositDescription?: string;
-  keyDeposit?: boolean;
+  keyDeposit?: 'not-required' | 'required';
   
   // Section 10: Smoking
-  smokingRules?: boolean;
+  smokingRules?: 'none' | 'rules';
   smokingRulesDetails?: string;
   
   // Section 11: Tenant's Insurance
   tenantInsuranceRequired: boolean;
-  insuranceRequirements?: boolean;
+  insuranceRequirements?: 'none' | 'required';
   insurancePageReference?: string;
   
   // Section 15: Additional Terms
-  additionalTerms: boolean;
+  additionalTerms: 'none' | 'attachment';
   additionalTermsDetails?: string;
   
   // Legal

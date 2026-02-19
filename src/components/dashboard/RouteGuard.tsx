@@ -10,7 +10,6 @@ interface RouteGuardProps {
 }
 
 export function RouteGuard({ children }: RouteGuardProps) {
-  const { role } = useRole();
   const { user, loading } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -18,82 +17,30 @@ export function RouteGuard({ children }: RouteGuardProps) {
   const assignedRole = user?.user_metadata?.role;
   
   useEffect(() => {
-    console.log("RouteGuard - Loading:", loading);
-    console.log("RouteGuard - User:", user?.email);
-    console.log("RouteGuard - Role:", role);
-    console.log("RouteGuard - AssignedRole:", assignedRole);
-    console.log("RouteGuard - Current path:", location.pathname);
+    if (loading || !user) return;
     
-    if (loading) {
-      console.log("RouteGuard - Still loading, skipping checks");
-      return;
-    }
-    
-    if (!user) {
-      console.log("RouteGuard - No user, redirecting to home");
+    // Only block access to role-specific dashboard sections
+    // Don't redirect renovators - they have their own /renovator routes
+    if (location.pathname.startsWith('/dashboard/landlord') && assignedRole !== 'landlord') {
       toast({
-        title: "Authentication required",
-        description: "Please log in to access the dashboard",
+        title: "Access restricted",
+        description: "You need to be a Landlord to access this section",
         variant: "destructive",
       });
-      navigate('/', { replace: true });
+      navigate('/dashboard', { replace: true });
       return;
     }
     
-    // Check for role-specific paths and ensure user has appropriate role
-    const checkRoleAccess = () => {
-      if (location.pathname.includes('/dashboard/landlord') && assignedRole !== 'landlord') {
-        toast({
-          title: "Access restricted",
-          description: "You need to be a Landlord to access this section",
-          variant: "destructive",
-        });
-        navigate('/dashboard', { replace: true });
-        return false;
-      }
-      
-      if (location.pathname.includes('/dashboard/developer') && assignedRole !== 'developer') {
-        toast({
-          title: "Access restricted",
-          description: "You need to be a Builder/Realtor to access this section",
-          variant: "destructive",
-        });
-        navigate('/dashboard', { replace: true });
-        return false;
-      }
-      
-      if (location.pathname.includes('/dashboard/admin') && assignedRole !== 'admin') {
-        toast({
-          title: "Access restricted",
-          description: "You need to be an Administrator to access this section",
-          variant: "destructive",
-        });
-        navigate('/dashboard', { replace: true });
-        return false;
-      }
-      
-      return true;
-    };
-    
-    // Check if we're on the exact dashboard route and need to redirect
-    if (location.pathname === '/dashboard') {
-      console.log("RouteGuard - On exact dashboard path, should redirect");
-      if (assignedRole === 'landlord') {
-        navigate('/dashboard/landlord', { replace: true });
-      } else if (assignedRole === 'developer') {
-        navigate('/dashboard/developer', { replace: true });
-      } else if (assignedRole === 'admin') {
-        navigate('/dashboard/admin', { replace: true });
-      } else {
-        navigate('/dashboard/roommate-recommendations', { replace: true });
-      }
-    } else {
-      // Only check role access for non-root dashboard paths
-      checkRoleAccess();
+    if (location.pathname.startsWith('/dashboard/admin') && assignedRole !== 'admin') {
+      toast({
+        title: "Access restricted",
+        description: "You need to be an Administrator to access this section",
+        variant: "destructive",
+      });
+      navigate('/dashboard', { replace: true });
+      return;
     }
-    
-    console.log("RouteGuard - Checks complete, allowing access");
-  }, [location.pathname, navigate, user, loading, role, assignedRole]);
+  }, [location.pathname, navigate, user, loading, assignedRole]);
 
   return <>{children}</>;
 }

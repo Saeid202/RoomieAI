@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -190,6 +190,33 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import EmergencyMode from "./EmergencyMode";
 
 export default function RenovatorsPage() {
+  const renderCount = useRef(0);
+  const hasLoadedOnce = useRef(false);
+  
+  renderCount.current++;
+  
+  console.log("🔧 RenovatorsPage render #", renderCount.current);
+  
+  // Prevent infinite renders - stop after 5 renders
+  if (renderCount.current > 5) {
+    console.error("❌ Too many renders detected! Stopping at render #", renderCount.current);
+    return (
+      <div className="container mx-auto py-6 px-4 max-w-7xl">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-red-600">Render Loop Detected</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="mb-4">The page rendered {renderCount.current} times. This indicates an infinite loop.</p>
+            <Button onClick={() => window.location.reload()}>
+              Refresh Page
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+  
   const [renovators, setRenovators] = useState<RenovationPartner[]>([]);
   // ... (keep existing state variables)
   const [loading, setLoading] = useState(true);
@@ -215,12 +242,24 @@ export default function RenovatorsPage() {
 
   const [activeTab, setActiveTab] = useState("browse");
 
-  useEffect(() => {
-    loadRenovators();
-    loadUserProperties();
+  const loadRenovators = useCallback(async () => {
+    try {
+      setLoading(true);
+      const data = await RenovationPartnerService.getActivePartners();
+      // Mock one featured partner for demonstration
+      if (data.length > 0) {
+        data[0].is_featured = true;
+      }
+      setRenovators(data);
+    } catch (error) {
+      console.error('Failed to load renovators:', error);
+      toast.error('Failed to load renovation partners');
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  const loadUserProperties = async () => {
+  const loadUserProperties = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       const { data } = await supabase
@@ -243,40 +282,34 @@ export default function RenovatorsPage() {
         setContactForm(prev => ({
           ...prev,
           name: (profile as any).full_name || "",
-          email: (profile as any).email || "" // User email fallback handling is good practice but keeping simple for now
+          email: (profile as any).email || ""
         }));
       } else if (user.email) {
         setContactForm(prev => ({ ...prev, email: user.email || "" }));
       }
     }
-  };
+  }, []);
 
-  const loadRenovators = async () => {
-    try {
-      setLoading(true);
-      const data = await RenovationPartnerService.getActivePartners();
-      // Mock one featured partner for demonstration
-      if (data.length > 0) {
-        data[0].is_featured = true;
-      }
-      setRenovators(data);
-    } catch (error) {
-      console.error('Failed to load renovators:', error);
-      toast.error('Failed to load renovation partners');
-    } finally {
-      setLoading(false);
-    }
-  };
+  useEffect(() => {
+    loadRenovators();
+    loadUserProperties();
+  }, [loadRenovators, loadUserProperties]);
 
-  const specialties = Array.from(new Set(renovators.flatMap(r => r.specialties)));
+  const specialties = useMemo(() => 
+    Array.from(new Set(renovators.flatMap(r => r.specialties))),
+    [renovators]
+  );
 
-  const filteredRenovators = renovators.filter(renovator => {
-    const matchesSearch = renovator.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      renovator.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      renovator.specialties.some(s => s.toLowerCase().includes(searchTerm.toLowerCase()));
-    const matchesSpecialty = !selectedSpecialty || renovator.specialties.includes(selectedSpecialty);
-    return matchesSearch && matchesSpecialty;
-  });
+  const filteredRenovators = useMemo(() => 
+    renovators.filter(renovator => {
+      const matchesSearch = renovator.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        renovator.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        renovator.specialties.some(s => s.toLowerCase().includes(searchTerm.toLowerCase()));
+      const matchesSpecialty = !selectedSpecialty || renovator.specialties.includes(selectedSpecialty);
+      return matchesSearch && matchesSpecialty;
+    }),
+    [renovators, searchTerm, selectedSpecialty]
+  );
 
   const handleContactRenovator = (renovator: RenovationPartner) => {
     setSelectedRenovator(renovator);
@@ -414,9 +447,6 @@ Email: ${contactForm.email}`;
         </TabsList>
 
         <TabsContent value="browse" className="space-y-6">
-          {/* Search and Filter */}
-          {/* ...existing code... */}
-
           {/* Search and Filter */}
           <div className="mb-6 space-y-4">
             <div className="flex gap-4">

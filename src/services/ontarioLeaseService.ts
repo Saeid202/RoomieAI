@@ -2,6 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { OntarioLeaseFormData, OntarioLeaseContract, SignatureData } from "@/types/ontarioLease";
 import { createContractNotification } from "@/services/notificationService";
 import { finalizeAndStoreContract } from "@/services/leaseContractService";
+import { archiveProperty } from "@/services/propertyService";
 
 const sb: any = supabase;
 
@@ -293,6 +294,15 @@ export async function signOntarioLeaseAsTenant(
     // Check if fully signed and finalize
     if (data.status === 'fully_signed' || (data.landlord_signature && data.tenant_signature)) {
       await finalizeAndStoreContract(data.id);
+      
+      // Archive the property when lease is fully signed
+      try {
+        await archiveProperty(data.property_id, data.id, data.tenant_id, 'lease_signed');
+        console.log("✅ Property archived after lease signing");
+      } catch (archiveError) {
+        console.error("⚠️ Failed to archive property:", archiveError);
+        // Don't throw - contract is still valid even if archiving fails
+      }
     }
 
     return data as OntarioLeaseContract;
@@ -366,6 +376,15 @@ export async function signOntarioLeaseAsLandlord(
     // Check if fully signed and finalize
     if (data.status === 'fully_signed' || (data.landlord_signature && data.tenant_signature)) {
       await finalizeAndStoreContract(data.id);
+      
+      // Archive the property when lease is fully signed
+      try {
+        await archiveProperty(data.property_id, data.id, data.tenant_id, 'lease_signed');
+        console.log("✅ Property archived after lease signing");
+      } catch (archiveError) {
+        console.error("⚠️ Failed to archive property:", archiveError);
+        // Don't throw - contract is still valid even if archiving fails
+      }
     }
 
     // Notify Tenant

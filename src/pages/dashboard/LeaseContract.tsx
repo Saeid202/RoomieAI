@@ -47,10 +47,6 @@ export default function LeaseContractPage() {
 
       if (existingContract) {
         // Contract exists - Verify access
-        // Pass contract ID, not object
-        // const hasAccess = await canUserAccessContract(existingContract.id, user!.id);
-        // Note: canUserAccessContract might fetch contract again, but here we just check IDs
-        // Simplification for now:
         const hasAccess = existingContract.landlord_id === user!.id || existingContract.tenant_id === user!.id;
 
         if (!hasAccess) {
@@ -186,37 +182,75 @@ export default function LeaseContractPage() {
   if (showEditor) {
     if (!appData || (!property && !contract)) return <div>Error loading application details</div>;
 
-    // Use existing contract data if avaliable, otherwise incomplete/new defaults
+    // Use existing contract data if available, otherwise incomplete/new defaults
     const existingFormData = isOntarioContract ? (contract as OntarioLeaseContract).ontario_form_data : {};
 
-    // Attempt to parse address better (for new or generic drafts)
+    // Parse property address
     const addressParts = property?.address?.split(' ') || [];
     const streetNum = addressParts.length > 0 && /^\d+$/.test(addressParts[0]) ? addressParts[0] : '';
     const streetName = streetNum ? addressParts.slice(1).join(' ') : property?.address || '';
 
+    // Parse tenant name
+    const tenantNameParts = appData?.full_name?.split(' ') || [];
+    const tenantFirstName = tenantNameParts[0] || '';
+    const tenantLastName = tenantNameParts.slice(1).join(' ') || '';
+
+    // Get landlord name
+    const landlordFullName = user?.user_metadata?.full_name ||
+      (user?.user_metadata?.first_name ? `${user.user_metadata.first_name} ${user.user_metadata.last_name}` : '') ||
+      '';
+
     const initialFormData = {
-      // Defaults from Property/App
-      landlordLegalName: user?.user_metadata?.full_name ||
-        (user?.user_metadata?.first_name ? `${user.user_metadata.first_name} ${user.user_metadata.last_name}` : '') ||
-        '',
-      landlordEmail: user?.email || '',
+      // Section 1: Parties
+      landlordLegalName: landlordFullName,
+      tenantFirstName: tenantFirstName,
+      tenantLastName: tenantLastName,
+
+      // Section 2: Rental Unit
+      unitNumber: property?.unit || '',
       streetNumber: streetNum,
       streetName: streetName,
       cityTown: property?.city || '',
+      province: 'Ontario',
       postalCode: property?.zip_code || '',
-      tenantFirstName: appData?.full_name?.split(' ')[0] || '',
-      tenantLastName: appData?.full_name?.split(' ').slice(1).join(' ') || '',
+      isCondominium: false,
+
+      // Section 3: Contact Information
+      landlordEmail: user?.email || '',
+      landlordPhone: user?.user_metadata?.phone || '',
       tenantEmail: appData?.email || '',
+      tenantPhone: appData?.phone || '',
+      emailConsent: true,
+
+      // Section 4: Term of Tenancy
+      startDate: appData?.move_in_date || appData?.moveInDate || '',
+      tenancyType: 'fixed',
+      endDate: '',
+
+      // Section 5: Rent
       baseRent: property?.monthly_rent || 0,
       totalRent: property?.monthly_rent || 0,
-      startDate: appData?.move_in_date || appData?.moveInDate || '',
+      rentPaymentDay: 'first',
+      rentPayableTo: landlordFullName,
+      paymentMethod: 'E-transfer, Cheque, or Direct Deposit',
+
+      // Section 6: Services and Utilities (from property amenities)
+      heat: property?.amenities?.includes('heating') || false,
+      electricity: false,
+      water: property?.amenities?.includes('water') || false,
+      airConditioning: property?.amenities?.includes('air_conditioning') || false,
+      parking: property?.amenities?.includes('parking') || false,
+      additionalStorage: property?.amenities?.includes('storage') || false,
+
+      // Section 10: Smoking
+      smokingPermitted: property?.smoking_allowed || false,
 
       // Override with existing saved data if present
       ...existingFormData
     };
 
     return (
-      <div className="container mx-auto py-8 px-4">
+      <div className="py-8 px-4">
         <Button
           variant="ghost"
           onClick={() => navigate(-1)}
@@ -234,7 +268,7 @@ export default function LeaseContractPage() {
           initialData={initialFormData}
           onSubmit={handleCreateContract}
           onCancel={() => navigate(-1)}
-          isLandlord={true} // Explicitly passing true
+          isLandlord={true}
         />
       </div>
     );
