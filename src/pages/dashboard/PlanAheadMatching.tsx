@@ -46,10 +46,8 @@ export default function PlanAheadMatchingPage() {
               property matches below.
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="max-h-[60vh] overflow-y-auto">
-              <PlanAheadForm />
-            </div>
+          <CardContent className="p-4">
+            <PlanAheadForm />
           </CardContent>
         </Card>
       </section>

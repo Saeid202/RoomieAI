@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { fetchPublicPropertyById, PublicProperty } from "@/services/publicPropertyService";
 import { useAuth } from "@/hooks/useAuth";
+import { PropertyDocumentViewer } from "@/components/property/PropertyDocumentViewer";
 
 export default function PublicPropertyDetailsPage() {
   const { id } = useParams<{ id: string }>();
@@ -235,6 +236,14 @@ export default function PublicPropertyDetailsPage() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Property Documents */}
+            {(property.listing_type === 'sale' || property.listing_type === 'sales') && (
+              <PropertyDocumentViewer
+                propertyId={property.id}
+                propertyAddress={`${property.address}, ${property.city}, ${property.state}`}
+              />
+            )}
           </div>
 
           {/* Sidebar */}

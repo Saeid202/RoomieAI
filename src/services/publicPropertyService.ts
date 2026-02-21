@@ -56,42 +56,26 @@ export async function fetchPublicProperties(
   try {
     console.log('🚀 Starting fetchPublicProperties with filters:', filters);
     
-    // Fetch rental properties
-    const { data: rentalProperties, error: rentalError } = await sb
+    // Fetch all properties from unified properties table
+    const { data: properties, error } = await sb
       .from('properties')
       .select(`
         id, listing_title, property_type, address, city, state, zip_code,
-        neighborhood, monthly_rent, bedrooms, bathrooms, square_footage,
+        neighborhood, monthly_rent, sales_price, listing_category, bedrooms, bathrooms, square_footage,
         description, images, available_date, amenities, furnished,
         parking, pet_policy, utilities_included, created_at, updated_at, user_id
       `)
       .eq('is_active', true)
       .order('created_at', { ascending: false });
 
-    // Fetch sales properties
-    const { data: salesProperties, error: salesError } = await sb
-      .from('sales_listings')
-      .select(`
-        id, listing_title, property_type, address, city, state, zip_code,
-        neighborhood, sales_price, bedrooms, bathrooms, square_footage,
-        description, images, available_date, amenities, furnished,
-        parking, pet_policy, utilities_included, created_at, updated_at, user_id
-      `)
-      .eq('is_active', true)
-      .order('created_at', { ascending: false });
+    if (error) throw error;
 
-    if (rentalError) throw rentalError;
-    if (salesError) throw salesError;
-
-    console.log('🔍 Total properties found:', {
-      rental: rentalProperties?.length || 0,
-      sales: salesProperties?.length || 0
-    });
+    console.log('🔍 Total properties found:', properties?.length || 0);
 
     const allProperties: PublicProperty[] = [];
 
-    // Process rental properties
-    for (const property of rentalProperties || []) {
+    // Process all properties
+    for (const property of properties || []) {
       let landlord_name = 'Property Owner';
       let property_owner = 'Property Owner';
       
@@ -116,40 +100,12 @@ export async function fetchPublicProperties(
         }
       }
 
-      allProperties.push({
-        ...property,
-        listing_type: 'rental',
-        landlord_name,
-        property_owner
-      });
-    }
-
-    // Process sales properties
-    for (const property of salesProperties || []) {
-      let landlord_name = 'Property Owner';
-      let property_owner = 'Property Owner';
-      
-      if (property.user_id) {
-        try {
-          // Direct query to user_profiles table (bypass view)
-          const { data: profile, error } = await sb
-            .from('user_profiles')
-            .select('full_name, email')
-            .eq('id', property.user_id)
-            .single();
-          
-          if (!error && profile?.full_name) {
-            landlord_name = profile.full_name;
-            property_owner = profile.full_name;
-          }
-        } catch (err) {
-          console.error('Exception fetching profile:', err);
-        }
-      }
+      // Map listing_category to listing_type for backward compatibility
+      const listing_type = property.listing_category === 'sale' ? 'sales' : 'rental';
 
       allProperties.push({
         ...property,
-        listing_type: 'sales',
+        listing_type,
         landlord_name,
         property_owner
       });
@@ -206,12 +162,12 @@ export async function fetchPublicProperties(
  */
 export async function fetchPublicPropertyById(id: string): Promise<PublicProperty | null> {
   try {
-    // Try rental first
-    const { data: rentalProperty, error: rentalError } = await sb
+    // Query unified properties table
+    const { data: property, error } = await sb
       .from('properties')
       .select(`
         id, listing_title, property_type, address, city, state, zip_code,
-        neighborhood, monthly_rent, bedrooms, bathrooms, square_footage,
+        neighborhood, monthly_rent, sales_price, listing_category, bedrooms, bathrooms, square_footage,
         description, images, available_date, amenities, furnished,
         parking, pet_policy, utilities_included, created_at, updated_at, user_id
       `)
@@ -219,70 +175,36 @@ export async function fetchPublicPropertyById(id: string): Promise<PublicPropert
       .eq('is_active', true)
       .single();
 
-    if (rentalProperty && !rentalError) {
-      let landlord_name = 'Property Owner';
-      let property_owner = 'Property Owner';
-      
-      if (rentalProperty.user_id) {
-        const { data: profile, error } = await sb
-          .from('user_profiles')
-          .select('full_name, email')
-          .eq('id', rentalProperty.user_id)
-          .single();
-        
-        if (!error && profile?.full_name) {
-          landlord_name = profile.full_name;
-          property_owner = profile.full_name;
-        }
-      }
-
-      return {
-        ...rentalProperty,
-        listing_type: 'rental',
-        landlord_name,
-        property_owner
-      };
+    if (error || !property) {
+      console.error('Property not found:', error);
+      return null;
     }
 
-    // Try sales
-    const { data: salesProperty, error: salesError } = await sb
-      .from('sales_listings')
-      .select(`
-        id, listing_title, property_type, address, city, state, zip_code,
-        neighborhood, sales_price, bedrooms, bathrooms, square_footage,
-        description, images, available_date, amenities, furnished,
-        parking, pet_policy, utilities_included, created_at, updated_at, user_id
-      `)
-      .eq('id', id)
-      .eq('is_active', true)
-      .single();
-
-    if (salesProperty && !salesError) {
-      let landlord_name = 'Property Owner';
-      let property_owner = 'Property Owner';
+    let landlord_name = 'Property Owner';
+    let property_owner = 'Property Owner';
+    
+    if (property.user_id) {
+      const { data: profile, error: profileError } = await sb
+        .from('user_profiles')
+        .select('full_name, email')
+        .eq('id', property.user_id)
+        .single();
       
-      if (salesProperty.user_id) {
-        const { data: profile, error } = await sb
-          .from('user_profiles')
-          .select('full_name, email')
-          .eq('id', salesProperty.user_id)
-          .single();
-        
-        if (!error && profile?.full_name) {
-          landlord_name = profile.full_name;
-          property_owner = profile.full_name;
-        }
+      if (!profileError && profile?.full_name) {
+        landlord_name = profile.full_name;
+        property_owner = profile.full_name;
       }
-
-      return {
-        ...salesProperty,
-        listing_type: 'sales',
-        landlord_name,
-        property_owner
-      };
     }
 
-    return null;
+    // Map listing_category to listing_type for backward compatibility
+    const listing_type = property.listing_category === 'sale' ? 'sales' : 'rental';
+
+    return {
+      ...property,
+      listing_type,
+      landlord_name,
+      property_owner
+    };
 
   } catch (error) {
     console.error('Error fetching public property:', error);

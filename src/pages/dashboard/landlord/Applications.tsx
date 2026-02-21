@@ -2,13 +2,17 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Users, FileText, Clock, CheckCircle, XCircle, RefreshCw, FileSignature } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Users, FileText, Clock, CheckCircle, XCircle, RefreshCw, FileSignature, Lock } from "lucide-react";
 import { getLandlordApplications, updateApplicationStatus } from "@/services/rentalApplicationService";
 import { ApplicationsList } from "@/components/landlord/ApplicationsList";
 import { ApplicationDetailModal } from "@/components/landlord/ApplicationDetailModal";
+import { DocumentAccessRequestCard } from "@/components/landlord/DocumentAccessRequestCard";
+import { getPropertyAccessRequests } from "@/services/propertyDocumentService";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { MessagingService } from "@/services/messagingService";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function ApplicationsPage() {
   const navigate = useNavigate();
@@ -17,10 +21,79 @@ export default function ApplicationsPage() {
   const [selectedApplication, setSelectedApplication] = useState<any>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'rental' | 'sales'>('rental');
+  const [documentRequests, setDocumentRequests] = useState<any[]>([]);
+  const [loadingRequests, setLoadingRequests] = useState(false);
 
   useEffect(() => {
     loadApplications();
   }, []);
+
+  useEffect(() => {
+    if (activeTab === 'sales') {
+      loadDocumentRequests();
+    }
+  }, [activeTab]);
+
+  const loadDocumentRequests = async () => {
+    try {
+      setLoadingRequests(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      console.log('🔍 Loading document requests for user:', user?.id);
+      
+      if (!user) {
+        console.log('❌ No user found');
+        return;
+      }
+
+      // Get all properties owned by this landlord
+      const { data: properties, error: propsError } = await supabase
+        .from('properties')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('listing_category', 'sale');
+
+      console.log('📦 Sales properties found:', properties?.length || 0, properties);
+      
+      if (propsError) {
+        console.error('❌ Error fetching properties:', propsError);
+        throw propsError;
+      }
+
+      if (!properties || properties.length === 0) {
+        console.log('ℹ️ No sales properties found for this user');
+        setDocumentRequests([]);
+        return;
+      }
+
+      // Get all document requests for these properties
+      const propertyIds = properties.map(p => p.id);
+      console.log('🔑 Property IDs to check:', propertyIds);
+      
+      const { data: requests, error: reqError } = await supabase
+        .from('document_access_requests')
+        .select(`
+          *,
+          property:properties!property_id(address, listing_title)
+        `)
+        .in('property_id', propertyIds)
+        .order('requested_at', { ascending: false });
+
+      console.log('📨 Document requests found:', requests?.length || 0, requests);
+      
+      if (reqError) {
+        console.error('❌ Error fetching requests:', reqError);
+        throw reqError;
+      }
+
+      setDocumentRequests(requests || []);
+    } catch (error) {
+      console.error('❌ Failed to load document requests:', error);
+      toast.error('Failed to load document access requests');
+    } finally {
+      setLoadingRequests(false);
+    }
+  };
 
   const loadApplications = async () => {
     try {
@@ -113,6 +186,24 @@ export default function ApplicationsPage() {
     rejected: applications.filter(app => app.status === 'rejected').length,
   };
 
+  // Filter applications by category
+  const rentalApplications = applications.filter(app => 
+    app.property?.listing_category === 'rental' || !app.property?.listing_category
+  );
+  const salesApplications = applications.filter(app => 
+    app.property?.listing_category === 'sale'
+  );
+
+  // Calculate stats for active tab
+  const activeApplications = activeTab === 'rental' ? rentalApplications : salesApplications;
+  const activeStats = {
+    total: activeApplications.length,
+    pending: activeApplications.filter(app => app.status === 'pending').length,
+    under_review: activeApplications.filter(app => app.status === 'under_review').length,
+    approved: activeApplications.filter(app => app.status === 'approved').length,
+    rejected: activeApplications.filter(app => app.status === 'rejected').length,
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between mb-6">
@@ -121,14 +212,16 @@ export default function ApplicationsPage() {
           <p className="text-muted-foreground mt-1">Review and manage tenant applications</p>
         </div>
         <div className="flex space-x-2">
-          <Button
-            onClick={() => navigate('/dashboard/landlord/contracts')}
-            variant="outline"
-            className="flex items-center"
-          >
-            <FileSignature className="h-4 w-4 mr-2" />
-            View Contracts
-          </Button>
+          {activeTab === 'rental' && (
+            <Button
+              onClick={() => navigate('/dashboard/landlord/contracts')}
+              variant="outline"
+              className="flex items-center"
+            >
+              <FileSignature className="h-4 w-4 mr-2" />
+              View Contracts
+            </Button>
+          )}
           <Button
             variant="outline"
             onClick={loadApplications}
@@ -164,82 +257,165 @@ export default function ApplicationsPage() {
       )}
 
       {/* Statistics Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Applications</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.total}</div>
-            <p className="text-xs text-muted-foreground">
-              {stats.total === 0 ? 'No applications received' : 'Total received'}
-            </p>
-          </CardContent>
-        </Card>
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'rental' | 'sales')} className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2 h-14 bg-gradient-to-r from-blue-50 to-purple-50 p-1 rounded-xl border-2 border-blue-200 shadow-sm">
+          <TabsTrigger 
+            value="rental" 
+            className="flex items-center gap-2 h-full text-base font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-blue-700 data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg transition-all"
+          >
+            <FileText className="h-5 w-5" />
+            Rental Applications
+            {rentalApplications.length > 0 && (
+              <Badge variant="secondary" className="ml-1 data-[state=active]:bg-white data-[state=active]:text-blue-700">{rentalApplications.length}</Badge>
+            )}
+          </TabsTrigger>
+          <TabsTrigger 
+            value="sales" 
+            className="flex items-center gap-2 h-full text-base font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-purple-700 data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg transition-all"
+          >
+            <Users className="h-5 w-5" />
+            Sales Inquiries
+            {salesApplications.length > 0 && (
+              <Badge variant="secondary" className="ml-1 data-[state=active]:bg-white data-[state=active]:text-purple-700">{salesApplications.length}</Badge>
+            )}
+          </TabsTrigger>
+        </TabsList>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">{stats.pending}</div>
-            <p className="text-xs text-muted-foreground">
-              {stats.pending === 0 ? 'No pending applications' : 'Awaiting review'}
-            </p>
-          </CardContent>
-        </Card>
+        <TabsContent value={activeTab} className="space-y-6">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total {activeTab === 'rental' ? 'Applications' : 'Inquiries'}</CardTitle>
+                <FileText className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{activeStats.total}</div>
+                <p className="text-xs text-muted-foreground">
+                  {activeStats.total === 0 ? 'No applications received' : 'Total received'}
+                </p>
+              </CardContent>
+            </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Under Review</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-600">{stats.under_review}</div>
-            <p className="text-xs text-muted-foreground">
-              {stats.under_review === 0 ? 'None under review' : 'Being reviewed'}
-            </p>
-          </CardContent>
-        </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Pending</CardTitle>
+                <Clock className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-yellow-600">{activeStats.pending}</div>
+                <p className="text-xs text-muted-foreground">
+                  {activeStats.pending === 0 ? 'No pending applications' : 'Awaiting review'}
+                </p>
+              </CardContent>
+            </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Approved</CardTitle>
-            <CheckCircle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">{stats.approved}</div>
-            <p className="text-xs text-muted-foreground">
-              {stats.approved === 0 ? 'No approved applications' : 'Successfully approved'}
-            </p>
-          </CardContent>
-        </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Under Review</CardTitle>
+                <Users className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-blue-600">{activeStats.under_review}</div>
+                <p className="text-xs text-muted-foreground">
+                  {activeStats.under_review === 0 ? 'None under review' : 'Being reviewed'}
+                </p>
+              </CardContent>
+            </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Rejected</CardTitle>
-            <XCircle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">{stats.rejected}</div>
-            <p className="text-xs text-muted-foreground">
-              {stats.rejected === 0 ? 'No rejected applications' : 'Applications rejected'}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Approved</CardTitle>
+                <CheckCircle className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-green-600">{activeStats.approved}</div>
+                <p className="text-xs text-muted-foreground">
+                  {activeStats.approved === 0 ? 'No approved applications' : 'Successfully approved'}
+                </p>
+              </CardContent>
+            </Card>
 
-      {/* Applications List */}
-      <ApplicationsList
-        applications={applications}
-        loading={loading}
-        onViewDetails={handleViewDetails}
-        onUpdateStatus={handleUpdateStatus}
-        onMessageApplicant={handleMessageApplicant}
-        onViewContract={handleViewContract}
-      />
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Rejected</CardTitle>
+                <XCircle className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-red-600">{activeStats.rejected}</div>
+                <p className="text-xs text-muted-foreground">
+                  {activeStats.rejected === 0 ? 'No rejected applications' : 'Applications rejected'}
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Applications List */}
+          <ApplicationsList
+            applications={activeApplications}
+            loading={loading}
+            onViewDetails={handleViewDetails}
+            onUpdateStatus={handleUpdateStatus}
+            onMessageApplicant={handleMessageApplicant}
+            onViewContract={activeTab === 'rental' ? handleViewContract : undefined}
+          />
+
+          {/* Document Access Requests (Sales Tab Only) */}
+          {activeTab === 'sales' && (
+            <div className="mt-8">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Lock className="h-5 w-5 text-purple-600" />
+                  <h2 className="text-xl font-bold">Document Access Requests</h2>
+                  {documentRequests.length > 0 && (
+                    <Badge variant="secondary" className="ml-2">
+                      {documentRequests.length}
+                    </Badge>
+                  )}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={loadDocumentRequests}
+                  disabled={loadingRequests}
+                >
+                  <RefreshCw className={`h-4 w-4 mr-2 ${loadingRequests ? 'animate-spin' : ''}`} />
+                  Refresh
+                </Button>
+              </div>
+
+              {loadingRequests ? (
+                <Card>
+                  <CardContent className="p-8">
+                    <div className="flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : documentRequests.length === 0 ? (
+                <Card className="border-2 border-dashed border-slate-200">
+                  <CardContent className="p-8 text-center">
+                    <Lock className="h-12 w-12 mx-auto text-slate-300 mb-3" />
+                    <h3 className="font-semibold text-slate-900 mb-1">No Document Requests</h3>
+                    <p className="text-sm text-slate-600">
+                      When buyers request access to private documents, they'll appear here
+                    </p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {documentRequests.map((request) => (
+                    <DocumentAccessRequestCard
+                      key={request.id}
+                      request={request}
+                      onStatusUpdate={loadDocumentRequests}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
 
       {/* Application Detail Modal */}
       <ApplicationDetailModal

@@ -7,7 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, Home, Building, MapPin, Users } from "lucide-react";
+import { Search, Home, Building, MapPin } from "lucide-react";
 
 export default function FindPropertyPage() {
   const [searchType, setSearchType] = useState("rental");
@@ -53,7 +53,7 @@ export default function FindPropertyPage() {
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="rental" value={searchType} onValueChange={setSearchType} className="w-full mb-6">
-            <TabsList className="grid grid-cols-3 w-full">
+            <TabsList className="grid grid-cols-2 w-full">
               <TabsTrigger value="rental" className="flex items-center gap-1">
                 <Building className="h-4 w-4" />
                 Rentals
@@ -61,10 +61,6 @@ export default function FindPropertyPage() {
               <TabsTrigger value="purchase" className="flex items-center gap-1">
                 <Home className="h-4 w-4" />
                 For Sale
-              </TabsTrigger>
-              <TabsTrigger value="co-ownership" className="flex items-center gap-1">
-                <Users className="h-4 w-4" />
-                Co-ownership
               </TabsTrigger>
             </TabsList>
             

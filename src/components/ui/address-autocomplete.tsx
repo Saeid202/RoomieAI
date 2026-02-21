@@ -13,6 +13,7 @@ interface AddressAutocompleteProps {
   label?: string;
   required?: boolean;
   disabled?: boolean;
+  value?: string; // NEW: Allow external value control
 }
 
 const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
@@ -21,18 +22,29 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
   placeholder = "Enter property address",
   label = "Property Address",
   required = false,
-  disabled = false
+  disabled = false,
+  value = "" // NEW: Default to empty string
 }) => {
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(value);
   const [suggestions, setSuggestions] = useState<AddressSuggestion[]>([]);
   const [selected, setSelected] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
-  const listRef = useRef<HTMLUListElement>(null);
+  const listRef = useRef<HTMLULElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<NodeJS.Timeout>();
+
+  // NEW: Update internal state when external value changes
+  useEffect(() => {
+    if (value !== query) {
+      setQuery(value);
+      if (value) {
+        setSelected(true); // Mark as selected if value is provided
+      }
+    }
+  }, [value]);
 
   // Clear search if query is too short or address is already selected
   useEffect(() => {

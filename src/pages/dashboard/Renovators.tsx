@@ -190,35 +190,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import EmergencyMode from "./EmergencyMode";
 
 export default function RenovatorsPage() {
-  const renderCount = useRef(0);
-  const hasLoadedOnce = useRef(false);
-  
-  renderCount.current++;
-  
-  console.log("🔧 RenovatorsPage render #", renderCount.current);
-  
-  // Prevent infinite renders - stop after 5 renders
-  if (renderCount.current > 5) {
-    console.error("❌ Too many renders detected! Stopping at render #", renderCount.current);
-    return (
-      <div className="container mx-auto py-6 px-4 max-w-7xl">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-red-600">Render Loop Detected</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="mb-4">The page rendered {renderCount.current} times. This indicates an infinite loop.</p>
-            <Button onClick={() => window.location.reload()}>
-              Refresh Page
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-  
   const [renovators, setRenovators] = useState<RenovationPartner[]>([]);
-  // ... (keep existing state variables)
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedSpecialty, setSelectedSpecialty] = useState("");
@@ -242,58 +214,58 @@ export default function RenovatorsPage() {
 
   const [activeTab, setActiveTab] = useState("browse");
 
-  const loadRenovators = useCallback(async () => {
-    try {
-      setLoading(true);
-      const data = await RenovationPartnerService.getActivePartners();
-      // Mock one featured partner for demonstration
-      if (data.length > 0) {
-        data[0].is_featured = true;
-      }
-      setRenovators(data);
-    } catch (error) {
-      console.error('Failed to load renovators:', error);
-      toast.error('Failed to load renovation partners');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  const loadUserProperties = useCallback(async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      const { data } = await supabase
-        .from('properties' as any)
-        .select('id, listing_title, address')
-        .eq('landlord_id', user.id);
-
-      if (data) {
-        setUserProperties(data as any);
-      }
-
-      // Pre-fill user details
-      const { data: profile } = await supabase
-        .from('user_profiles' as any)
-        .select('full_name, email')
-        .eq('id', user.id)
-        .single();
-
-      if (profile) {
-        setContactForm(prev => ({
-          ...prev,
-          name: (profile as any).full_name || "",
-          email: (profile as any).email || ""
-        }));
-      } else if (user.email) {
-        setContactForm(prev => ({ ...prev, email: user.email || "" }));
-      }
-    }
-  }, []);
-
   useEffect(() => {
+    const loadRenovators = async () => {
+      try {
+        setLoading(true);
+        const data = await RenovationPartnerService.getActivePartners();
+        // Mock one featured partner for demonstration
+        if (data.length > 0) {
+          data[0].is_featured = true;
+        }
+        setRenovators(data);
+      } catch (error) {
+        console.error('Failed to load renovators:', error);
+        toast.error('Failed to load renovation partners');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const loadUserProperties = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data } = await supabase
+          .from('properties' as any)
+          .select('id, listing_title, address')
+          .eq('landlord_id', user.id);
+
+        if (data) {
+          setUserProperties(data as any);
+        }
+
+        // Pre-fill user details
+        const { data: profile } = await supabase
+          .from('user_profiles' as any)
+          .select('full_name, email')
+          .eq('id', user.id)
+          .single();
+
+        if (profile) {
+          setContactForm(prev => ({
+            ...prev,
+            name: (profile as any).full_name || "",
+            email: (profile as any).email || ""
+          }));
+        } else if (user.email) {
+          setContactForm(prev => ({ ...prev, email: user.email || "" }));
+        }
+      }
+    };
+
     loadRenovators();
     loadUserProperties();
-  }, [loadRenovators, loadUserProperties]);
+  }, []); // Run only once on mount
 
   const specialties = useMemo(() => 
     Array.from(new Set(renovators.flatMap(r => r.specialties))),
@@ -310,7 +282,6 @@ export default function RenovatorsPage() {
     }),
     [renovators, searchTerm, selectedSpecialty]
   );
-
   const handleContactRenovator = (renovator: RenovationPartner) => {
     setSelectedRenovator(renovator);
     setContactForm({
@@ -424,16 +395,22 @@ Email: ${contactForm.email}`;
   };
 
   return (
-    <div className="container mx-auto py-6 px-4 max-w-7xl">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2 flex items-center gap-3">
-          <Hammer className="h-8 w-8 text-orange-600" />
-          Renovation Partners
-        </h1>
-        <p className="text-muted-foreground">
-          Connect with trusted renovation professionals for your property repairs and improvements.
-        </p>
-      </div>
+    <div className="max-w-7xl mx-auto px-4 md:px-6 py-6">
+      <header className="mb-6">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="p-2 rounded-lg bg-gradient-to-r from-orange-500 to-amber-600">
+            <Hammer className="h-6 w-6 text-white" aria-hidden="true" />
+          </div>
+          <div>
+            <h1 className="text-xl md:text-2xl font-bold text-gradient">
+              Renovation Partners
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Connect with trusted renovation professionals for your property repairs and improvements.
+            </p>
+          </div>
+        </div>
+      </header>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full space-y-6">
         <TabsList className="grid w-full grid-cols-2 lg:w-[400px]">
@@ -477,6 +454,15 @@ Email: ${contactForm.email}`;
           </div>
 
           {/* Renovators Grid */}
+          <section className="mb-8">
+            <div className="bg-slate-50 rounded-lg p-4 border-2 border-slate-400">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="bg-orange-600 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center shrink-0">1</span>
+                <h2 className="text-lg font-bold text-slate-900">Available Renovation Partners</h2>
+              </div>
+              <p className="text-sm text-slate-600 mb-6 font-medium">
+                Browse our verified renovation professionals and request quotes for your property projects.
+              </p>
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <div className="text-center">
@@ -485,13 +471,13 @@ Email: ${contactForm.email}`;
               </div>
             </div>
           ) : filteredRenovators.length === 0 ? (
-            <div className="text-center py-12">
+            <div className="text-center py-12 bg-white rounded-lg border-2 border-dashed border-slate-300">
               <Hammer className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">No renovation partners found</h3>
               <p className="text-muted-foreground">Try adjusting your search or filter criteria.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredRenovators.map((renovator) => (
                 renovator.is_featured ? (
                   <Card key={renovator.id} className="group relative flex flex-col bg-white rounded-[24px] shadow-[0_10px_30px_rgba(255,191,0,0.1)] hover:shadow-[0_20px_50px_rgba(255,191,0,0.2)] transition-all duration-500 border-none overflow-hidden hover:-translate-y-2 lg:scale-[1.02] border-t-4 border-amber-400">
@@ -582,7 +568,7 @@ Email: ${contactForm.email}`;
                       {/* Primary CTA */}
                       <div className="mt-auto flex gap-3">
                         <Button
-                          className="flex-[4] bg-gradient-to-r from-amber-500 via-amber-400 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-black text-sm h-16 rounded-[20px] shadow-[0_10px_25px_rgba(245,158,11,0.3)] transition-all active:scale-95 flex items-center justify-center gap-3 group/btn uppercase tracking-widest"
+                          className="flex-[4] bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-700 hover:via-purple-700 hover:to-pink-700 text-white font-black text-sm h-16 rounded-[20px] shadow-lg transition-all active:scale-95 flex items-center justify-center gap-3 group/btn uppercase tracking-widest"
                           onClick={() => handleContactRenovator(renovator)}
                         >
                           GET PRIORITY QUOTE
@@ -697,7 +683,7 @@ Email: ${contactForm.email}`;
                       {/* 6) CTA Section */}
                       <div className="mt-auto flex gap-3">
                         <Button
-                          className="flex-[3] bg-gradient-to-r from-roomie-purple to-indigo-600 hover:from-roomie-purple/90 hover:to-indigo-600/90 text-white font-black text-xs h-14 rounded-2xl shadow-[0_8px_20px_rgba(110,89,255,0.2)] transition-all active:scale-95 flex items-center justify-center gap-2 group/btn"
+                          className="flex-[3] bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-700 hover:via-purple-700 hover:to-pink-700 text-white font-black text-xs h-14 rounded-2xl shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2 group/btn"
                           onClick={() => handleContactRenovator(renovator)}
                         >
                           REQUEST QUOTE
@@ -726,6 +712,8 @@ Email: ${contactForm.email}`;
               ))}
             </div>
           )}
+            </div>
+          </section>
 
           {/* Contact Dialog */}
           <Dialog open={!!selectedRenovator} onOpenChange={() => setSelectedRenovator(null)}>

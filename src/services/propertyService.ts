@@ -8,7 +8,13 @@ export interface Property {
 
   // Basic Information (matching database schema)
   listing_title: string;
-  property_type: string;
+  property_type: string; // Legacy field - kept for backward compatibility
+
+  // NEW: Property Categorization (Parent-Child Hierarchy)
+  property_category?: 'Condo' | 'House' | 'Townhouse';
+  property_configuration?: string; // Dynamic based on category
+  listing_strength_score?: number; // 0-100 based on documents
+
   description: string;
   description_audio_url?: string;
   three_d_model_url?: string;
@@ -25,7 +31,6 @@ export interface Property {
   city: string;
   state: string;
   zip_code: string;
-  neighborhood: string;
   latitude?: number;
   longitude?: number;
   public_transport_access?: string;
@@ -65,6 +70,9 @@ export interface Property {
   updated_at: string;
   status?: string;
   views_count?: number;
+  archived_at?: string;
+  archive_reason?: string;
+  neighborhood?: string;
 }
 
 export interface SalesListing extends Omit<Property, 'monthly_rent' | 'security_deposit' | 'lease_terms'> {
@@ -118,13 +126,13 @@ export async function getPropertiesByOwnerId(userId: string): Promise<Property[]
     }
 
     console.log("Properties fetched successfully:", data);
-    
+
     // Exclude only archived properties from the main list
     // Show all other properties (including NULL, 'available', 'active', 'draft', 'inactive' for backward compatibility)
-    const activeProperties = (data as any as Property[])?.filter(p => 
+    const activeProperties = (data as any as Property[])?.filter(p =>
       p.status !== 'archived'
     ) || [];
-    
+
     console.log("Active properties after filtering:", activeProperties);
     return activeProperties;
   } catch (error) {
@@ -137,18 +145,16 @@ export async function getSalesListingsByOwnerId(userId: string): Promise<SalesLi
   console.log("Fetching sales listings for owner:", userId);
 
   try {
+    // Query unified properties table with listing_category = 'sale'
     const { data, error } = await sb
-      .from('sales_listings')
+      .from('properties')
       .select('*')
       .eq('user_id', userId)
+      .eq('listing_category', 'sale')
       .order('created_at', { ascending: false });
 
     if (error) {
       console.error("Error fetching sales listings by owner:", error);
-      if (error.code === '42P01') {
-        console.log("Sales listings table doesn't exist yet, returning empty array");
-        return [];
-      }
       throw new Error(`Failed to fetch sales listings: ${error.message}`);
     }
 
@@ -307,7 +313,6 @@ export async function createProperty(propertyData: any): Promise<Property | null
     city: propertyData.city,
     state: propertyData.state,
     zip_code: propertyData.zipCode || propertyData.zip_code,
-    neighborhood: propertyData.neighborhood,
     latitude: propertyData.latitude,
     longitude: propertyData.longitude,
     public_transport_access: propertyData.publicTransportAccess || propertyData.public_transport_access,
@@ -326,6 +331,11 @@ export async function createProperty(propertyData: any): Promise<Property | null
     utilities_included: propertyData.utilitiesIncluded || propertyData.utilities_included || [],
     special_instructions: propertyData.specialInstructions || propertyData.special_instructions,
     roommate_preference: propertyData.roommatePreference || propertyData.roommate_preference,
+    property_category: propertyData.propertyCategory || propertyData.property_category,
+    property_configuration: propertyData.propertyConfiguration || propertyData.property_configuration,
+    sales_price: propertyData.salesPrice ? parseFloat(String(propertyData.salesPrice).replace(/[^0-9.]/g, '')) : (propertyData.sales_price ? parseFloat(String(propertyData.sales_price).replace(/[^0-9.]/g, '')) : null),
+    downpayment_target: propertyData.downpaymentTarget ? parseFloat(String(propertyData.downpaymentTarget).replace(/[^0-9.]/g, '')) : (propertyData.downpayment_target ? parseFloat(String(propertyData.downpayment_target).replace(/[^0-9.]/g, '')) : null),
+    is_co_ownership: propertyData.isCoOwnership || propertyData.is_co_ownership || false,
     images: propertyData.images || []
   };
 
@@ -388,7 +398,6 @@ export async function createSalesListing(salesData: any): Promise<SalesListing |
     city: salesData.city,
     state: salesData.state,
     zip_code: salesData.zipCode || salesData.zip_code,
-    neighborhood: salesData.neighborhood,
     latitude: salesData.latitude,
     longitude: salesData.longitude,
     public_transport_access: salesData.publicTransportAccess || salesData.public_transport_access,
@@ -660,7 +669,7 @@ export async function fetchSalesListingById(id: string) {
         .single();
 
       console.log("Sales listing profile data:", profile, "Error:", profileError);
-      
+
       if (!profileError && profile?.full_name) {
         landlord_name = profile.full_name;
         console.log("Found sales listing landlord name:", landlord_name);
@@ -693,6 +702,8 @@ export async function updateProperty(id: string, updates: any) {
   // Map all possible field names from frontend to database
   if (updates.listingTitle || updates.listing_title) payload.listing_title = updates.listingTitle || updates.listing_title;
   if (updates.propertyType || updates.property_type) payload.property_type = updates.propertyType || updates.property_type;
+  if (updates.propertyCategory || updates.property_category) payload.property_category = updates.propertyCategory || updates.property_category;
+  if (updates.propertyConfiguration || updates.property_configuration) payload.property_configuration = updates.propertyConfiguration || updates.property_configuration;
   if (updates.listingCategory || updates.listing_category) payload.listing_category = updates.listingCategory || updates.listing_category;
   if (updates.description !== undefined) payload.description = updates.description;
   if (updates.descriptionAudioUrl || updates.description_audio_url) payload.description_audio_url = updates.descriptionAudioUrl || updates.description_audio_url;
@@ -707,7 +718,6 @@ export async function updateProperty(id: string, updates: any) {
   if (updates.city !== undefined) payload.city = updates.city;
   if (updates.state !== undefined) payload.state = updates.state;
   if (updates.zipCode || updates.zip_code) payload.zip_code = updates.zipCode || updates.zip_code;
-  if (updates.neighborhood !== undefined) payload.neighborhood = updates.neighborhood;
   if (updates.latitude !== undefined) payload.latitude = updates.latitude;
   if (updates.longitude !== undefined) payload.longitude = updates.longitude;
   if (updates.publicTransportAccess || updates.public_transport_access) {
@@ -747,6 +757,17 @@ export async function updateProperty(id: string, updates: any) {
     payload.roommate_preference = updates.roommatePreference || updates.roommate_preference;
   }
   if (updates.images !== undefined) payload.images = updates.images;
+
+  // Sales-specific fields
+  if (updates.salesPrice !== undefined || updates.sales_price !== undefined) {
+    payload.sales_price = updates.salesPrice || updates.sales_price;
+  }
+  if (updates.downpaymentTarget !== undefined || updates.downpayment_target !== undefined) {
+    payload.downpayment_target = updates.downpaymentTarget || updates.downpayment_target;
+  }
+  if (updates.isCoOwnership !== undefined || updates.is_co_ownership !== undefined) {
+    payload.is_co_ownership = updates.isCoOwnership ?? updates.is_co_ownership;
+  }
 
   // Fix furnished field - convert string to boolean
   if (payload.furnished !== null && payload.furnished !== undefined) {
@@ -791,7 +812,6 @@ export async function updateSalesListing(id: string, updates: any) {
   if (updates.city !== undefined) payload.city = updates.city;
   if (updates.state !== undefined) payload.state = updates.state;
   if (updates.zipCode || updates.zip_code) payload.zip_code = updates.zipCode || updates.zip_code;
-  if (updates.neighborhood !== undefined) payload.neighborhood = updates.neighborhood;
   if (updates.latitude !== undefined) payload.latitude = updates.latitude;
   if (updates.longitude !== undefined) payload.longitude = updates.longitude;
   if (updates.publicTransportAccess || updates.public_transport_access) payload.public_transport_access = updates.publicTransportAccess || updates.public_transport_access;
@@ -851,7 +871,7 @@ export async function deleteProperty(id: string) {
   try {
     // First, check if user is authenticated
     const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
+
     if (authError) {
       console.error("❌ Auth error:", authError);
       throw new Error("Authentication error: Please try logging out and back in");
@@ -971,7 +991,7 @@ export async function deleteSalesListing(id: string) {
   try {
     // First, check if user is authenticated
     const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
+
     if (authError) {
       console.error("❌ Auth error:", authError);
       throw new Error("Authentication error: Please try logging out and back in");
@@ -982,11 +1002,12 @@ export async function deleteSalesListing(id: string) {
       throw new Error("User not authenticated: Please log in to delete properties");
     }
 
-    // Check if sales listing exists and belongs to current user
+    // Check if property exists and belongs to current user
     const { data: listing, error: checkError } = await supabase
-      .from('sales_listings')
-      .select('id, user_id, listing_title')
+      .from('properties')
+      .select('id, user_id, listing_title, listing_category')
       .eq('id', id)
+      .eq('listing_category', 'sale')
       .single();
 
     if (checkError) {
@@ -1005,9 +1026,9 @@ export async function deleteSalesListing(id: string) {
 
     console.log("✅ Sales listing verified, belongs to user:", listing.listing_title);
 
-    // Delete the sales listing
+    // Delete the property
     const { error } = await sb
-      .from('sales_listings')
+      .from('properties')
       .delete()
       .eq('id', id);
 
@@ -1027,13 +1048,13 @@ export async function deleteSalesListing(id: string) {
 export async function fetchAllSalesListings(): Promise<SalesListing[]> {
   try {
     const { data, error } = await sb
-      .from('sales_listings')
+      .from('properties')
       .select('*')
+      .eq('listing_category', 'sale')
       .order('created_at', { ascending: false });
 
     if (error) {
       console.error("Error fetching all sales listings:", error);
-      if (error.code === '42P01') return [];
       throw new Error(`Failed to fetch sales listings: ${error.message}`);
     }
 

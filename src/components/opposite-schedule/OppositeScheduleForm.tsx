@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Clock, User, Home, Search, DollarSign, MapPin, MessageSquare, Save } from 'lucide-react';
+import { Clock, Search, MessageSquare, Save } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { OppositeScheduleFormData } from '@/types/oppositeSchedule';
@@ -146,218 +144,219 @@ export default function OppositeScheduleForm({ onProfileSaved }: OppositeSchedul
 
   return (
     <div className="w-full">
-      <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm">
-        <CardHeader className="relative overflow-hidden rounded-t-lg bg-gradient-to-r from-purple-100 to-purple-200 p-8 text-purple-900 shadow">
-          <div className="absolute inset-0 bg-white/20"></div>
+      <form onSubmit={handleSubmit} className="space-y-3">
+        
+        {/* Section 1: Your Work Schedule */}
+        <div className="bg-slate-50 rounded-lg p-3 border-2 border-slate-400">
+          <h3 className="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2">
+            <Clock className="h-4 w-4 text-blue-600" />
+            Your Work Schedule
+          </h3>
           
-          <div className="relative z-10 text-center">
-            <CardTitle className="text-3xl font-bold tracking-tight mb-2 text-purple-900">
-              Opposite Schedule Room Sharing
-            </CardTitle>
-            <CardDescription className="text-purple-600 text-lg">
-              Find roommates with opposite work schedules - perfect for shared living spaces
-            </CardDescription>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Field 1: Work Schedule */}
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-2">
+                <span className="bg-blue-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shrink-0">1</span>
+                <Label htmlFor="work_schedule" className="text-sm font-semibold">
+                  Work Schedule *
+                </Label>
+              </div>
+              <select
+                id="work_schedule"
+                value={formData.work_schedule}
+                onChange={(e) => handleInputChange('work_schedule', e.target.value)}
+                className="w-full rounded-md border-2 border-slate-300 bg-white px-3 py-2 text-sm h-9"
+                required
+              >
+                <option value="">Select your work schedule</option>
+                {SCHEDULE_OPTIONS.map((schedule) => (
+                  <option key={schedule} value={schedule}>
+                    {schedule}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Field 2: Occupation */}
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-2">
+                <span className="bg-blue-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shrink-0">2</span>
+                <Label htmlFor="occupation" className="text-sm font-semibold">
+                  Occupation
+                </Label>
+              </div>
+              <Input
+                id="occupation"
+                value={formData.occupation}
+                onChange={(e) => handleInputChange('occupation', e.target.value)}
+                placeholder="e.g., Software Engineer, Nurse"
+                className="h-9 text-sm border-2 border-slate-300"
+              />
+            </div>
+
+            {/* Field 3: Nationality */}
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-2">
+                <span className="bg-blue-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shrink-0">3</span>
+                <Label htmlFor="nationality" className="text-sm font-semibold">
+                  Nationality
+                </Label>
+              </div>
+              <select
+                id="nationality"
+                value={formData.nationality}
+                onChange={(e) => handleInputChange('nationality', e.target.value)}
+                className="w-full rounded-md border-2 border-slate-300 bg-white px-3 py-2 text-sm h-9"
+              >
+                <option value="">Select your nationality</option>
+                {NATIONALITIES.map((nationality) => (
+                  <option key={nationality} value={nationality}>
+                    {nationality}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Field 4: Property Type */}
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-2">
+                <span className="bg-blue-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shrink-0">4</span>
+                <Label htmlFor="property_type" className="text-sm font-semibold">
+                  Property Type *
+                </Label>
+              </div>
+              <select
+                id="property_type"
+                value={formData.property_type}
+                onChange={(e) => handleInputChange('property_type', e.target.value)}
+                className="w-full rounded-md border-2 border-slate-300 bg-white px-3 py-2 text-sm h-9"
+                required
+              >
+                <option value="">Select property type</option>
+                {PROPERTY_TYPES.map((type) => (
+                  <option key={type.value} value={type.value}>
+                    {type.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Section 2: What You're Looking For */}
+        <div className="bg-slate-50 rounded-lg p-3 border-2 border-slate-400">
+          <h3 className="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2">
+            <Search className="h-4 w-4 text-purple-600" />
+            What You're Looking For
+          </h3>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Field 5: Preferred Roommate Schedule */}
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-2">
+                <span className="bg-purple-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shrink-0">5</span>
+                <Label htmlFor="preferred_schedule" className="text-sm font-semibold">
+                  Preferred Roommate Schedule *
+                </Label>
+              </div>
+              <select
+                id="preferred_schedule"
+                value={formData.preferred_schedule}
+                onChange={(e) => handleInputChange('preferred_schedule', e.target.value)}
+                className="w-full rounded-md border-2 border-slate-300 bg-white px-3 py-2 text-sm h-9"
+                required
+              >
+                <option value="">Select preferred schedule</option>
+                {SCHEDULE_OPTIONS.map((schedule) => (
+                  <option key={schedule} value={schedule}>
+                    {schedule}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Field 6: Preferred Nationality */}
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-2">
+                <span className="bg-purple-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shrink-0">6</span>
+                <Label htmlFor="preferred_nationality" className="text-sm font-semibold">
+                  Preferred Nationality
+                </Label>
+              </div>
+              <select
+                id="preferred_nationality"
+                value={formData.preferred_nationality}
+                onChange={(e) => handleInputChange('preferred_nationality', e.target.value)}
+                className="w-full rounded-md border-2 border-slate-300 bg-white px-3 py-2 text-sm h-9"
+              >
+                <option value="">Any nationality</option>
+                {NATIONALITIES.map((nationality) => (
+                  <option key={nationality} value={nationality}>
+                    {nationality}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
-          <div className="absolute -top-4 -right-4 w-24 h-24 bg-white/30 rounded-full"></div>
-          <div className="absolute -bottom-2 -left-2 w-16 h-16 bg-white/20 rounded-full"></div>
-        </CardHeader>
-        
-        <CardContent className="p-6">
-          <form onSubmit={handleSubmit} className="space-y-8">
-            
-            {/* Section 1: Your Work Schedule */}
-            <div className="space-y-6">
-              <div className="flex items-center gap-4 mb-6">
-                <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-3 rounded-xl shadow-lg">
-                  <Clock className="h-6 w-6 text-white" />
-                </div>
-                <h3 className="text-xl font-bold text-gray-800">Your Work Schedule</h3>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="work_schedule" className="text-sm font-medium">
-                    Work Schedule *
-                  </Label>
-                  <select
-                    id="work_schedule"
-                    value={formData.work_schedule}
-                    onChange={(e) => handleInputChange('work_schedule', e.target.value)}
-                    className="w-full h-12 text-lg border-2 border-gray-200 focus:border-blue-500 rounded-xl transition-all duration-300 hover:border-gray-300 px-4"
-                    required
-                  >
-                    <option value="">Select your work schedule</option>
-                    {SCHEDULE_OPTIONS.map((schedule) => (
-                      <option key={schedule} value={schedule}>
-                        {schedule}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="occupation" className="text-sm font-medium">
-                    Occupation
-                  </Label>
-                  <Input
-                    id="occupation"
-                    value={formData.occupation}
-                    onChange={(e) => handleInputChange('occupation', e.target.value)}
-                    placeholder="e.g., Software Engineer, Nurse, Teacher"
-                    className="h-12 text-lg border-2 border-gray-200 focus:border-blue-500 rounded-xl transition-all duration-300 hover:border-gray-300"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="nationality" className="text-sm font-medium">
-                    Nationality
-                  </Label>
-                  <select
-                    id="nationality"
-                    value={formData.nationality}
-                    onChange={(e) => handleInputChange('nationality', e.target.value)}
-                    className="w-full h-12 text-lg border-2 border-gray-200 focus:border-blue-500 rounded-xl transition-all duration-300 hover:border-gray-300 px-4"
-                  >
-                    <option value="">Select your nationality</option>
-                    {NATIONALITIES.map((nationality) => (
-                      <option key={nationality} value={nationality}>
-                        {nationality}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="property_type" className="text-sm font-medium">
-                    Property Type *
-                  </Label>
-                  <select
-                    id="property_type"
-                    value={formData.property_type}
-                    onChange={(e) => handleInputChange('property_type', e.target.value)}
-                    className="w-full h-12 text-lg border-2 border-gray-200 focus:border-blue-500 rounded-xl transition-all duration-300 hover:border-gray-300 px-4"
-                    required
-                  >
-                    <option value="">Select property type</option>
-                    {PROPERTY_TYPES.map((type) => (
-                      <option key={type.value} value={type.value}>
-                        {type.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
+          {/* Field 7: Food Restrictions */}
+          <div className="space-y-1.5 mt-4">
+            <div className="flex items-center gap-2">
+              <span className="bg-purple-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shrink-0">7</span>
+              <Label htmlFor="food_restrictions" className="text-sm font-semibold">
+                Food Restrictions/Preferences
+              </Label>
             </div>
+            <Textarea
+              id="food_restrictions"
+              value={formData.food_restrictions}
+              onChange={(e) => handleInputChange('food_restrictions', e.target.value)}
+              placeholder="e.g., Vegetarian, Halal, No pork, Gluten-free"
+              rows={3}
+              className="text-sm border-2 border-slate-300"
+            />
+          </div>
+        </div>
 
-            <Separator />
-
-            {/* Section 2: What You're Looking For */}
-            <div className="space-y-6">
-              <div className="flex items-center gap-4 mb-6">
-                <div className="bg-gradient-to-r from-purple-500 to-purple-600 p-3 rounded-xl shadow-lg">
-                  <Search className="h-6 w-6 text-white" />
-                </div>
-                <h3 className="text-xl font-bold text-gray-800">What You're Looking For</h3>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="preferred_schedule" className="text-sm font-medium">
-                    Preferred Roommate Schedule *
-                  </Label>
-                  <select
-                    id="preferred_schedule"
-                    value={formData.preferred_schedule}
-                    onChange={(e) => handleInputChange('preferred_schedule', e.target.value)}
-                    className="w-full h-12 text-lg border-2 border-gray-200 focus:border-purple-500 rounded-xl transition-all duration-300 hover:border-gray-300 px-4"
-                    required
-                  >
-                    <option value="">Select preferred roommate schedule</option>
-                    {SCHEDULE_OPTIONS.map((schedule) => (
-                      <option key={schedule} value={schedule}>
-                        {schedule}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="preferred_nationality" className="text-sm font-medium">
-                    Preferred Nationality
-                  </Label>
-                  <select
-                    id="preferred_nationality"
-                    value={formData.preferred_nationality}
-                    onChange={(e) => handleInputChange('preferred_nationality', e.target.value)}
-                    className="w-full h-12 text-lg border-2 border-gray-200 focus:border-purple-500 rounded-xl transition-all duration-300 hover:border-gray-300 px-4"
-                  >
-                    <option value="">Any nationality</option>
-                    {NATIONALITIES.map((nationality) => (
-                      <option key={nationality} value={nationality}>
-                        {nationality}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="food_restrictions" className="text-sm font-medium">
-                  Food Restrictions/Preferences
-                </Label>
-                <Textarea
-                  id="food_restrictions"
-                  value={formData.food_restrictions}
-                  onChange={(e) => handleInputChange('food_restrictions', e.target.value)}
-                  placeholder="e.g., Vegetarian, Halal, No pork, Gluten-free, etc."
-                  rows={3}
-                  className="text-lg border-2 border-gray-200 focus:border-purple-500 rounded-xl transition-all duration-300 hover:border-gray-300"
-                />
-              </div>
+        {/* Section 3: Additional Information */}
+        <div className="bg-slate-50 rounded-lg p-3 border-2 border-slate-400">
+          <h3 className="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2">
+            <MessageSquare className="h-4 w-4 text-green-600" />
+            Additional Information
+          </h3>
+          
+          {/* Field 8: Additional Notes */}
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-2">
+              <span className="bg-green-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shrink-0">8</span>
+              <Label htmlFor="additional_notes" className="text-sm font-semibold">
+                Additional Notes
+              </Label>
             </div>
+            <Textarea
+              id="additional_notes"
+              value={formData.additional_notes}
+              onChange={(e) => handleInputChange('additional_notes', e.target.value)}
+              placeholder="Any other preferences or requirements..."
+              rows={3}
+              className="text-sm border-2 border-slate-300"
+            />
+          </div>
+        </div>
 
-            <Separator />
-
-            {/* Section 3: Additional Preferences */}
-            <div className="space-y-6">
-              <div className="flex items-center gap-4 mb-6">
-                <div className="bg-gradient-to-r from-green-500 to-green-600 p-3 rounded-xl shadow-lg">
-                  <DollarSign className="h-6 w-6 text-white" />
-                </div>
-                <h3 className="text-xl font-bold text-gray-800">Additional Preferences</h3>
-              </div>
-              
-
-              <div className="space-y-2">
-                <Label htmlFor="additional_notes" className="text-sm font-medium">
-                  Additional Notes
-                </Label>
-                <Textarea
-                  id="additional_notes"
-                  value={formData.additional_notes}
-                  onChange={(e) => handleInputChange('additional_notes', e.target.value)}
-                  placeholder="Any other preferences or requirements..."
-                  rows={3}
-                  className="text-lg border-2 border-gray-200 focus:border-green-500 rounded-xl transition-all duration-300 hover:border-gray-300"
-                />
-              </div>
-            </div>
-
-            {/* Submit Button */}
-            <div className="pt-8">
-              <Button 
-                type="submit" 
-                className="w-full h-14 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold text-lg rounded-xl shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105"
-                disabled={isSubmitting}
-              >
-                <Save className="mr-3 h-6 w-6" />
-                {isSubmitting ? "Saving Profile..." : "Save Opposite Schedule Profile"}
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+        {/* Submit Button */}
+        <div className="pt-2">
+          <Button 
+            type="submit" 
+            className="w-full button-gradient text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 h-10"
+            disabled={isSubmitting}
+          >
+            <Save className="mr-2 h-4 w-4" />
+            {isSubmitting ? "Saving..." : "Save and find my perfect match"}
+          </Button>
+        </div>
+      </form>
     </div>
   );
 }

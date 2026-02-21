@@ -7,18 +7,13 @@ import {
   Clock, 
   Users, 
   Home, 
-  MapPin, 
-  DollarSign, 
   MessageSquare,
-  RefreshCw,
-  User,
-  Calendar
+  User
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import OppositeScheduleForm from '@/components/opposite-schedule/OppositeScheduleForm';
 import { OppositeScheduleProfile, OppositeScheduleMatch } from '@/types/oppositeSchedule';
-import { EnhancedButton, EnhancedHeader } from '@/components/ui/design-system';
 
 export default function OppositeSchedulePage() {
   const [profile, setProfile] = useState<OppositeScheduleProfile | null>(null);
@@ -98,51 +93,23 @@ export default function OppositeSchedulePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20">
-      <div className="space-y-8 p-6">
-        {/* Enhanced Header */}
-        <EnhancedHeader
-          title="Opposite Schedule Room Sharing"
-          subtitle="Find roommates with opposite work schedules for optimal shared living"
-          actionButton={
-            <EnhancedButton
-              variant="secondary"
-              size="lg"
-              onClick={loadMatches}
-              className="flex items-center gap-2"
-            >
-              <RefreshCw className="h-5 w-5" />
-              Refresh Matches
-            </EnhancedButton>
-          }
-        />
-
-        {/* Enhanced Statistics */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <StatCard 
-            title="Your Profile" 
-            value={profile ? 1 : 0} 
-            icon={User} 
-            gradient="from-indigo-400 to-indigo-500"
-            subtitle={profile ? 'Complete' : 'Incomplete'}
-          />
-          <StatCard 
-            title="Potential Matches" 
-            value={matches.length} 
-            icon={Users} 
-            gradient="from-emerald-400 to-emerald-500"
-            subtitle="Compatible roommates"
-          />
-          <StatCard 
-            title="Last Updated" 
-            value={profile?.updated_at ? 1 : 0} 
-            icon={Calendar} 
-            gradient="from-slate-300 to-slate-400"
-            subtitle={profile?.updated_at ? new Date(profile.updated_at).toLocaleDateString() : 'Never'}
-          />
+    <div className="max-w-7xl mx-auto px-4 md:px-6 py-6">
+      <header className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-lg orange-purple-gradient">
+            <Clock className="h-6 w-6 text-white" aria-hidden="true" />
+          </div>
+          <div>
+            <h1 className="text-xl md:text-2xl font-bold text-gradient">
+              Opposite Schedule Room Sharing
+            </h1>
+            <p className="text-sm text-muted-foreground">Find roommates with opposite work schedules for optimal shared living</p>
+          </div>
         </div>
+      </header>
 
-        {/* Enhanced Tabs */}
+      {/* Tabs */}
+      <section className="mb-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <div className="flex justify-center">
             <TabsList className="grid w-full max-w-md grid-cols-2 bg-white/80 backdrop-blur-sm border-2 border-gray-200 rounded-xl p-1">
@@ -163,30 +130,48 @@ export default function OppositeSchedulePage() {
 
         {/* Profile Tab */}
         <TabsContent value="profile" className="space-y-6">
-          <OppositeScheduleForm onProfileSaved={handleProfileSaved} />
+          <Card className="border-orange-200/30 shadow-lg">
+            <CardHeader className="bg-slate-50/50">
+              <CardTitle className="text-gradient">Your Profile</CardTitle>
+              <CardDescription className="text-muted-foreground">
+                Complete your profile to find compatible roommates with opposite schedules
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-4">
+              <OppositeScheduleForm onProfileSaved={handleProfileSaved} />
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* Matches Tab */}
         <TabsContent value="matches" className="space-y-6">
-          {matches.length === 0 ? (
-            <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm">
-              <CardContent className="py-16 text-center">
-                <div className="bg-gradient-to-br from-blue-100 to-purple-100 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Users className="h-12 w-12 text-blue-600" />
+          <Card className="border-purple-200/30 shadow-lg">
+            <CardHeader className="bg-slate-50/50">
+              <CardTitle className="text-gradient">Your Matches</CardTitle>
+              <CardDescription className="text-muted-foreground">
+                Compatible roommates with opposite work schedules
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {matches.length === 0 ? (
+                <div className="flex flex-col items-center justify-center text-center py-16">
+                  <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+                    <Users className="h-6 w-6 text-primary" aria-hidden="true" />
+                  </div>
+                  <h2 className="text-lg font-medium text-foreground">No Matches Yet</h2>
+                  <p className="mt-2 max-w-md text-sm text-muted-foreground">
+                    Complete your profile to find compatible roommates with opposite schedules.
+                  </p>
+                  <Button 
+                    onClick={() => setActiveTab('profile')}
+                    className="mt-6 button-gradient text-white"
+                  >
+                    Complete Profile
+                  </Button>
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-3">No Matches Yet</h3>
-                <p className="text-lg text-gray-600 mb-6">Complete your profile to find compatible roommates with opposite schedules.</p>
-                <Button 
-                  onClick={() => setActiveTab('profile')}
-                  className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300"
-                >
-                  Complete Profile
-                </Button>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="space-y-6">
-              {matches.map((match) => (
+              ) : (
+                <div className="space-y-6">
+                  {matches.map((match) => (
                 <Card key={match.id} className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 transform bg-white/90 backdrop-blur-sm">
                   <CardHeader>
                     <div className="flex items-center justify-between">
@@ -270,41 +255,14 @@ export default function OppositeSchedulePage() {
                     </div>
                   </CardContent>
                 </Card>
-              ))}
-            </div>
-          )}
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
-      </div>
+      </section>
     </div>
-  );
-}
-
-function StatCard({ title, value, icon: Icon, className = "", gradient = "from-blue-500 to-blue-600", subtitle }: { 
-  title: string; 
-  value: number; 
-  icon?: any; 
-  className?: string; 
-  gradient?: string;
-  subtitle?: string;
-}) {
-  return (
-    <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 transform bg-white/90 backdrop-blur-sm">
-      <CardContent className="p-6">
-        <div className="flex items-center justify-between mb-4">
-          <div className={`bg-gradient-to-r ${gradient} p-3 rounded-xl shadow-lg`}>
-            {Icon ? <Icon className="h-6 w-6 text-white" /> : null}
-          </div>
-          <div className="text-right">
-            <p className="text-sm font-medium text-gray-600 mb-1">{title}</p>
-            <div className={`text-3xl font-bold ${className}`}>{value}</div>
-            {subtitle && <p className="text-xs text-gray-500 mt-1">{subtitle}</p>}
-          </div>
-        </div>
-        <div className="h-1 bg-gray-200 rounded-full overflow-hidden">
-          <div className={`h-full bg-gradient-to-r ${gradient} rounded-full transition-all duration-1000`} style={{ width: `${Math.min((value / Math.max(value, 1)) * 100, 100)}%` }}></div>
-        </div>
-      </CardContent>
-    </Card>
   );
 }

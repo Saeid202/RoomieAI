@@ -124,22 +124,23 @@ export default function PlanAheadForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-3">
 
       {/* Ultra-Compact Organized Form */}
       <div className="space-y-3">
                 {/* Section 1: Location Information */}
-                <div className="bg-slate-50 rounded-lg p-3 border border-slate-200/50">
-                  <h3 className="text-sm font-semibold text-slate-800 mb-2 flex items-center gap-2">
+                <div className="bg-slate-50 rounded-lg p-3 border-2 border-slate-400">
+                  <h3 className="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2">
                     <MapPin className="h-4 w-4 text-orange-600" />
                     Location Information
                   </h3>
           
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <div className="space-y-2">
+            {/* Field 1: Current Location */}
+            <div className="space-y-1.5">
         <div className="flex items-center gap-2">
-                <span className="bg-primary text-primary-foreground text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">1</span>
-                <Label htmlFor="currentLocation" className="text-sm font-medium">Current location</Label>
+                <span className="bg-primary text-primary-foreground text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shrink-0">1</span>
+                <Label htmlFor="currentLocation" className="text-sm font-semibold">Current location</Label>
         </div>
             <Input
               id="currentLocation"
@@ -149,16 +150,17 @@ export default function PlanAheadForm() {
               }
                 placeholder="City or country"
               required
-                className="ml-7 h-8 text-sm"
+                className="h-9 text-sm border-2 border-slate-300"
             />
           </div>
 
-          <div className="space-y-2">
+            {/* Field 2: Target Locations */}
+          <div className="space-y-1.5">
             <div className="flex items-center gap-2">
-                <span className="bg-primary text-primary-foreground text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">2</span>
-                <Label htmlFor="targetLocation" className="text-sm font-medium">Target locations (max 5)</Label>
+                <span className="bg-primary text-primary-foreground text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shrink-0">2</span>
+                <Label htmlFor="targetLocation" className="text-sm font-semibold">Target locations (max 5)</Label>
               </div>
-              <div className="flex items-center gap-1 ml-7">
+              <div className="flex items-center gap-2">
               <Input
                 id="targetLocation"
                 value={newLocation}
@@ -170,27 +172,27 @@ export default function PlanAheadForm() {
                     handleAddLocation();
                   }
                 }}
-                  className="h-8 text-sm"
+                  className="h-9 text-sm border-2 border-slate-300 flex-1"
               />
               <Button
                 type="button"
                 variant="secondary"
                 onClick={handleAddLocation}
                 disabled={formData.targetLocations.length >= 5}
-                  className="h-8 px-2 text-xs"
+                  className="h-9 px-3 text-xs font-semibold shrink-0"
               >
                 Add
               </Button>
             </div>
             {formData.targetLocations.length > 0 && (
-                <div className="flex flex-wrap gap-1 ml-7">
+                <div className="flex flex-wrap gap-1.5 mt-1">
                 {formData.targetLocations.map((loc, i) => (
-                    <Badge key={`${loc}-${i}`} variant="secondary" className="gap-1 text-xs px-2 py-0">
+                    <Badge key={`${loc}-${i}`} variant="secondary" className="gap-1 text-xs px-2 py-1 font-medium">
                     {loc}
                     <button
                       type="button"
                       onClick={() => handleRemoveLocation(i)}
-                      className="ml-1 text-muted-foreground hover:text-foreground"
+                      className="ml-1 text-muted-foreground hover:text-foreground font-bold"
                       aria-label={`Remove ${loc}`}
                     >
                       ×
@@ -201,10 +203,11 @@ export default function PlanAheadForm() {
             )}
           </div>
 
-          <div className="space-y-2">
+            {/* Field 3: Planned Move Date */}
+          <div className="space-y-1.5">
               <div className="flex items-center gap-2">
-                <span className="bg-primary text-primary-foreground text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">3</span>
-                <Label htmlFor="moveDate" className="text-sm font-medium">Planned move date</Label>
+                <span className="bg-primary text-primary-foreground text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shrink-0">3</span>
+                <Label htmlFor="moveDate" className="text-sm font-semibold">Planned move date</Label>
               </div>
             <Input
               type="date"
@@ -217,28 +220,29 @@ export default function PlanAheadForm() {
                 .toISOString()
                 .split("T")[0]}
               required
-                className="ml-7 h-8 text-sm"
+                className="h-9 text-sm border-2 border-slate-300"
             />
           </div>
         </div>
         </div>
 
                 {/* Section 2: Property & Living Preferences */}
-                <div className="bg-slate-50 rounded-lg p-3 border border-slate-200/50">
-                  <h3 className="text-sm font-semibold text-slate-800 mb-2 flex items-center gap-2">
+                <div className="bg-slate-50 rounded-lg p-3 border-2 border-slate-400">
+                  <h3 className="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2">
                     <MessageSquare className="h-4 w-4 text-purple-600" />
                     Property & Living Preferences
                   </h3>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Field 4: Property Type */}
+        <div className="space-y-1.5">
               <div className="flex items-center gap-2">
-                <span className="bg-purple-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">4</span>
-                <Label htmlFor="propertyType" className="text-sm font-medium">Property type</Label>
+                <span className="bg-purple-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shrink-0">4</span>
+                <Label htmlFor="propertyType" className="text-sm font-semibold">Property type</Label>
               </div>
               <select
                 id="propertyType"
-                className="w-full rounded-md border bg-transparent px-3 py-1 text-sm ml-7 h-8"
+                className="w-full rounded-md border-2 border-slate-300 bg-white px-3 py-2 text-sm h-9"
                 value={formData.propertyType}
                 onChange={(e) =>
                   setFormData((p) => ({ ...p, propertyType: e.target.value }))
@@ -260,13 +264,14 @@ export default function PlanAheadForm() {
               </select>
         </div>
 
-        <div className="space-y-2">
+            {/* Field 5: Looking for Roommate */}
+        <div className="space-y-1.5">
               <div className="flex items-center gap-2">
-                <span className="bg-purple-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">5</span>
-                <Label className="text-sm font-medium">Looking for roommate?</Label>
+                <span className="bg-purple-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shrink-0">5</span>
+                <Label className="text-sm font-semibold">Looking for roommate?</Label>
               </div>
-              <div className="flex gap-4 ml-7">
-                <label className="flex items-center gap-1">
+              <div className="flex gap-4">
+                <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="radio"
                     name="lookingForRoommate"
@@ -275,11 +280,11 @@ export default function PlanAheadForm() {
               onChange={(e) =>
                       setFormData((p) => ({ ...p, lookingForRoommate: e.target.value }))
                     }
-                    className="rounded border-gray-300"
+                    className="w-4 h-4 shrink-0"
                   />
-                  <span className="text-xs font-medium">Yes</span>
+                  <span className="text-sm font-medium">Yes</span>
                 </label>
-                <label className="flex items-center gap-1">
+                <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="radio"
                     name="lookingForRoommate"
@@ -288,9 +293,9 @@ export default function PlanAheadForm() {
               onChange={(e) =>
                       setFormData((p) => ({ ...p, lookingForRoommate: e.target.value }))
                     }
-                    className="rounded border-gray-300"
+                    className="rounded border-2-gray-300"
                   />
-                  <span className="text-xs font-medium">No</span>
+                  <span className="text-sm font-medium">No</span>
               </label>
           </div>
         </div>
@@ -299,20 +304,21 @@ export default function PlanAheadForm() {
 
                 {/* Section 3: Roommate Preferences (Conditional) */}
                 {formData.lookingForRoommate === "yes" && (
-                  <div className="bg-slate-50 rounded-lg p-3 border border-slate-200/50">
-                    <h3 className="text-sm font-semibold text-slate-800 mb-2 flex items-center gap-2">
+                  <div className="bg-slate-50 rounded-lg p-3 border-2 border-slate-400">
+                    <h3 className="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2">
                       <Users className="h-4 w-4 text-orange-600" />
                       Roommate Preferences
                     </h3>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* Field 6: Gender Preference */}
+          <div className="space-y-1.5">
                 <div className="flex items-center gap-2">
-                  <span className="bg-orange-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">6</span>
-                  <Label className="text-sm font-medium">Gender preference</Label>
+                  <span className="bg-orange-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shrink-0">6</span>
+                  <Label className="text-sm font-semibold">Gender preference</Label>
                 </div>
-                <div className="grid grid-cols-2 gap-2 ml-7">
-                  <label className="flex items-center gap-1 p-1 rounded border bg-white">
+                <div className="grid grid-cols-2 gap-2">
+                  <label className="flex items-center gap-2 p-2 rounded border-2 border-slate-300 bg-white hover:border-primary cursor-pointer">
                     <input
                       type="radio"
                       name="roommateGenderPref"
@@ -321,11 +327,11 @@ export default function PlanAheadForm() {
                       onChange={(e) =>
                         setFormData((p) => ({ ...p, roommateGenderPref: e.target.value }))
                       }
-                      className="rounded border-gray-300"
+                      className="w-4 h-4 shrink-0"
                     />
-                    <span className="text-xs font-medium">Any</span>
+                    <span className="text-sm font-medium">Any</span>
                   </label>
-                  <label className="flex items-center gap-1 p-1 rounded border bg-white">
+                  <label className="flex items-center gap-2 p-2 rounded border-2 border-slate-300 bg-white hover:border-primary cursor-pointer">
                     <input
                       type="radio"
                       name="roommateGenderPref"
@@ -334,11 +340,11 @@ export default function PlanAheadForm() {
                       onChange={(e) =>
                         setFormData((p) => ({ ...p, roommateGenderPref: e.target.value }))
                       }
-                      className="rounded border-gray-300"
+                      className="w-4 h-4 shrink-0"
                     />
-                    <span className="text-xs font-medium">Male</span>
+                    <span className="text-sm font-medium">Male</span>
                   </label>
-                  <label className="flex items-center gap-1 p-1 rounded border bg-white">
+                  <label className="flex items-center gap-2 p-2 rounded border-2 border-slate-300 bg-white hover:border-primary cursor-pointer">
                     <input
                       type="radio"
                       name="roommateGenderPref"
@@ -347,11 +353,11 @@ export default function PlanAheadForm() {
               onChange={(e) =>
                         setFormData((p) => ({ ...p, roommateGenderPref: e.target.value }))
                       }
-                      className="rounded border-gray-300"
+                      className="w-4 h-4 shrink-0"
                     />
-                    <span className="text-xs font-medium">Female</span>
+                    <span className="text-sm font-medium">Female</span>
                   </label>
-                  <label className="flex items-center gap-1 p-1 rounded border bg-white">
+                  <label className="flex items-center gap-2 p-2 rounded border-2 border-slate-300 bg-white hover:border-primary cursor-pointer">
                     <input
                       type="radio"
                       name="roommateGenderPref"
@@ -360,21 +366,22 @@ export default function PlanAheadForm() {
               onChange={(e) =>
                         setFormData((p) => ({ ...p, roommateGenderPref: e.target.value }))
               }
-                      className="rounded border-gray-300"
+                      className="w-4 h-4 shrink-0"
             />
-                    <span className="text-xs font-medium">Non-binary</span>
+                    <span className="text-sm font-medium">Non-binary</span>
                   </label>
           </div>
         </div>
 
-          <div className="space-y-2">
+          {/* Field 7: Language Preference */}
+          <div className="space-y-1.5">
                 <div className="flex items-center gap-2">
-                  <span className="bg-purple-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">7</span>
-                  <Label htmlFor="languagePref" className="text-sm font-medium">Language preference</Label>
+                  <span className="bg-purple-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shrink-0">7</span>
+                  <Label htmlFor="languagePref" className="text-sm font-semibold">Language preference</Label>
                 </div>
                 <select
                   id="languagePref"
-                  className="w-full rounded-md border bg-transparent px-3 py-1 text-sm ml-7 h-8"
+                  className="w-full rounded-md border-2 border-slate-300 bg-white px-3 py-2 text-sm h-9"
                   value={formData.languagePref}
                   onChange={(e) =>
                     setFormData((p) => ({ ...p, languagePref: e.target.value }))
@@ -421,16 +428,16 @@ export default function PlanAheadForm() {
         </div>
 
       {/* Section 4: Additional Information */}
-      <div className="bg-slate-50 rounded-lg p-3 border border-slate-200/50">
-        <h3 className="text-sm font-semibold text-slate-800 mb-2 flex items-center gap-2">
+      <div className="bg-slate-50 rounded-lg p-3 border-2 border-slate-400">
+        <h3 className="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2">
           <MessageSquare className="h-4 w-4 text-purple-600" />
           Additional Information
         </h3>
         
-        <div className="space-y-2">
+        <div className="space-y-1.5">
         <div className="flex items-center gap-2">
-            <span className="bg-purple-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">8</span>
-            <Label htmlFor="additionalInfo" className="text-sm font-medium">Anything else we should know?</Label>
+            <span className="bg-purple-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shrink-0">8</span>
+            <Label htmlFor="additionalInfo" className="text-sm font-semibold">Anything else we should know?</Label>
         </div>
         <Textarea
           id="additionalInfo"
@@ -454,3 +461,5 @@ export default function PlanAheadForm() {
     </form>
   );
 }
+
+

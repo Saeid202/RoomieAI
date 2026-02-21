@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -177,191 +178,220 @@ export default function MyApplicationsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20">
-      <div className="space-y-8 p-6">
-        {/* Compact Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+    <div className="max-w-7xl mx-auto px-4 md:px-6 py-6">
+      <header className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-lg orange-purple-gradient">
+            <FileText className="h-6 w-6 text-white" aria-hidden="true" />
+          </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">My Applications</h1>
+            <h1 className="text-xl md:text-2xl font-bold text-gradient">
+              My Applications
+            </h1>
             <p className="text-sm text-muted-foreground">Track and manage your rental journey</p>
           </div>
-          <Button variant="outline" size="sm" onClick={load} className="h-9">
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
-          </Button>
         </div>
+        <Button variant="outline" size="sm" onClick={load} className="h-9">
+          <RefreshCw className="h-4 w-4 mr-2" />
+          Refresh
+        </Button>
+      </header>
 
-        {/* Compact Statistics */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
-          <Card className="bg-white border shadow-sm">
-            <CardContent className="p-3 flex items-center justify-between">
-              <div>
-                <p className="text-xs text-muted-foreground font-medium">Total</p>
-                <p className="text-lg font-bold text-gray-900">{stats.total}</p>
-              </div>
-              <div className="bg-slate-100 p-1.5 rounded text-slate-600">
-                <FileText className="h-4 w-4" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white border shadow-sm">
-            <CardContent className="p-3 flex items-center justify-between">
-              <div>
-                <p className="text-xs text-muted-foreground font-medium">Pending</p>
-                <p className="text-lg font-bold text-amber-600">{stats.pending}</p>
-              </div>
-              <div className="bg-amber-100 p-1.5 rounded text-amber-600">
-                <Clock className="h-4 w-4" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white border shadow-sm">
-            <CardContent className="p-3 flex items-center justify-between">
-              <div>
-                <p className="text-xs text-muted-foreground font-medium">Reviewing</p>
-                <p className="text-lg font-bold text-indigo-600">{stats.underReview}</p>
-              </div>
-              <div className="bg-indigo-100 p-1.5 rounded text-indigo-600">
-                <Eye className="h-4 w-4" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white border shadow-sm">
-            <CardContent className="p-3 flex items-center justify-between">
-              <div>
-                <p className="text-xs text-muted-foreground font-medium">Approved</p>
-                <p className="text-lg font-bold text-emerald-600">{stats.approved}</p>
-              </div>
-              <div className="bg-emerald-100 p-1.5 rounded text-emerald-600">
-                <CheckCircle className="h-4 w-4" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white border shadow-sm">
-            <CardContent className="p-3 flex items-center justify-between">
-              <div>
-                <p className="text-xs text-muted-foreground font-medium">Rejected</p>
-                <p className="text-lg font-bold text-rose-600">{stats.rejected}</p>
-              </div>
-              <div className="bg-rose-100 p-1.5 rounded text-rose-600">
-                <XCircle className="h-4 w-4" />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        <Tabs defaultValue="applications" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-8 p-1 bg-white/50 backdrop-blur-sm rounded-xl">
-            <TabsTrigger
-              value="applications"
-              className="rounded-lg text-lg data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-md transition-all duration-300"
-            >
-              Applications
-            </TabsTrigger>
-            <TabsTrigger
-              value="contracts"
-              className="rounded-lg text-lg data-[state=active]:bg-white data-[state=active]:text-green-600 data-[state=active]:shadow-md transition-all duration-300"
-            >
-              My Contracts
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="applications" className="space-y-4 animate-in slide-in-from-left-4 duration-500">
-            {/* Compact Search and Filter */}
-            <Card className="border shadow-sm bg-white mb-4">
-              <CardContent className="p-4">
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <div className="flex-1">
-                    <div className="relative group">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 group-focus-within:text-blue-500 transition-colors" />
-                      <Input
-                        placeholder="Search property, city, state..."
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        className="pl-9 h-9 text-sm border-gray-200 focus:border-blue-500 rounded-md transition-all duration-300 hover:border-gray-300"
-                      />
-                    </div>
+      {/* Statistics Section */}
+      <section className="mb-8">
+        <Card className="border-orange-200/30 shadow-lg">
+          <CardHeader className="bg-slate-50/50">
+            <CardTitle className="text-gradient">Application Statistics</CardTitle>
+          </CardHeader>
+          <CardContent className="p-4">
+            <div className="bg-slate-50 rounded-lg p-3 border-2 border-slate-400">
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                {/* Stat 1: Total */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="bg-slate-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shrink-0">1</span>
+                    <Label className="text-sm font-semibold text-slate-900">Total</Label>
                   </div>
-                  <div className="w-full sm:w-48">
-                    <Select value={status} onValueChange={setStatus}>
-                      <SelectTrigger className="h-9 text-sm border-gray-200 focus:border-blue-500 rounded-md">
-                        <div className="flex items-center gap-2">
-                          <Filter className="h-3.5 w-3.5 text-gray-500" />
-                          <SelectValue placeholder="Status" />
-                        </div>
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Status</SelectItem>
-                        <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="under_review">Under Review</SelectItem>
-                        <SelectItem value="approved">Approved</SelectItem>
-                        <SelectItem value="rejected">Rejected</SelectItem>
-                        <SelectItem value="withdrawn">Withdrawn</SelectItem>
-                      </SelectContent>
-                    </Select>
+                  <div className="bg-white rounded-lg p-3 border-2 border-slate-300 shadow-sm">
+                    <div className="flex items-center justify-between">
+                      <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
+                      <div className="bg-slate-100 p-1.5 rounded">
+                        <FileText className="h-4 w-4 text-slate-600" />
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
 
-            {/* Professional Application List */}
-            <div className="space-y-6">
-              {filtered.length === 0 ? (
-                <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm">
-                  <CardContent className="py-16 text-center">
-                    <div className="bg-gradient-to-br from-blue-100 to-purple-100 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6">
-                      <FileText className="h-12 w-12 text-blue-600" />
-                    </div>
-                    <h3 className="text-2xl font-bold text-gray-900 mb-3">No Applications Found</h3>
-                    <p className="text-lg text-gray-600 mb-6">Your submitted applications will appear here.</p>
-                    <Button
-                      onClick={() => navigate('/dashboard/rental-options')}
-                      className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300"
-                    >
-                      Browse Properties
-                    </Button>
-                  </CardContent>
-                </Card>
-              ) : (
-                filtered.map((application) => (
-                  <ProfessionalApplicationCard
-                    key={application.id}
-                    application={application}
-                    onViewDetails={openApplicationDetails}
-                    onWithdraw={withdraw}
-                  />
-                ))
-              )}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="contracts" className="space-y-6 animate-in slide-in-from-right-4 duration-500">
-            {contracts.length === 0 ? (
-              <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm">
-                <CardContent className="py-16 text-center">
-                  <div className="bg-gradient-to-br from-green-100 to-emerald-100 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <FileText className="h-12 w-12 text-green-600" />
+                {/* Stat 2: Pending */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="bg-amber-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shrink-0">2</span>
+                    <Label className="text-sm font-semibold text-slate-900">Pending</Label>
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-3">No Contracts Found</h3>
-                  <p className="text-lg text-gray-600 mb-6">Signed lease agreements will appear here.</p>
-                </CardContent>
-              </Card>
-            ) : (
-              contracts.map((contract) => (
-                <ContractCard
-                  key={contract.id}
-                  contract={contract}
-                  onDownload={(c) => printOntarioLease(c)}
-                  onSign={(c) => navigate(`/dashboard/contracts/${c.application_id}`)}
-                />
-              ))
-            )}
-          </TabsContent>
-        </Tabs>
+                  <div className="bg-white rounded-lg p-3 border-2 border-slate-300 shadow-sm">
+                    <div className="flex items-center justify-between">
+                      <p className="text-2xl font-bold text-amber-600">{stats.pending}</p>
+                      <div className="bg-amber-100 p-1.5 rounded">
+                        <Clock className="h-4 w-4 text-amber-600" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Stat 3: Reviewing */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="bg-indigo-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shrink-0">3</span>
+                    <Label className="text-sm font-semibold text-slate-900">Reviewing</Label>
+                  </div>
+                  <div className="bg-white rounded-lg p-3 border-2 border-slate-300 shadow-sm">
+                    <div className="flex items-center justify-between">
+                      <p className="text-2xl font-bold text-indigo-600">{stats.underReview}</p>
+                      <div className="bg-indigo-100 p-1.5 rounded">
+                        <Eye className="h-4 w-4 text-indigo-600" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Stat 4: Approved */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="bg-emerald-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shrink-0">4</span>
+                    <Label className="text-sm font-semibold text-slate-900">Approved</Label>
+                  </div>
+                  <div className="bg-white rounded-lg p-3 border-2 border-slate-300 shadow-sm">
+                    <div className="flex items-center justify-between">
+                      <p className="text-2xl font-bold text-emerald-600">{stats.approved}</p>
+                      <div className="bg-emerald-100 p-1.5 rounded">
+                        <CheckCircle className="h-4 w-4 text-emerald-600" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Stat 5: Rejected */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="bg-rose-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shrink-0">5</span>
+                    <Label className="text-sm font-semibold text-slate-900">Rejected</Label>
+                  </div>
+                  <div className="bg-white rounded-lg p-3 border-2 border-slate-300 shadow-sm">
+                    <div className="flex items-center justify-between">
+                      <p className="text-2xl font-bold text-rose-600">{stats.rejected}</p>
+                      <div className="bg-rose-100 p-1.5 rounded">
+                        <XCircle className="h-4 w-4 text-rose-600" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </section>
+
+      {/* Main Content */}
+      <main className="space-y-6">
+        <Card className="border-purple-200/30 shadow-lg">
+          <CardHeader className="bg-slate-50/50">
+            <CardTitle className="text-gradient">Applications & Contracts</CardTitle>
+          </CardHeader>
+          <CardContent className="p-4">
+            {/* Section with numbered badges */}
+            <div className="bg-slate-50 rounded-lg p-3 border-2 border-slate-400 mb-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {/* Field 1: Applications Tab */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-2">
+                    <span className="bg-blue-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shrink-0">1</span>
+                    <Label className="text-sm font-semibold">View Applications</Label>
+                  </div>
+                </div>
+
+                {/* Field 2: Contracts Tab */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-2">
+                    <span className="bg-green-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shrink-0">2</span>
+                    <Label className="text-sm font-semibold">View Contracts</Label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <Tabs defaultValue="applications" className="w-full">
+              <TabsList className="grid w-full grid-cols-2 mb-6 p-1 bg-white/50 backdrop-blur-sm rounded-xl">
+                <TabsTrigger
+                  value="applications"
+                  className="rounded-lg text-sm data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-md transition-all duration-300"
+                >
+                  <span className="bg-blue-600 text-white text-xs font-bold rounded-full w-5 h-5 inline-flex items-center justify-center mr-2">1</span>
+                  Applications
+                </TabsTrigger>
+                <TabsTrigger
+                  value="contracts"
+                  className="rounded-lg text-sm data-[state=active]:bg-white data-[state=active]:text-green-600 data-[state=active]:shadow-md transition-all duration-300"
+                >
+                  <span className="bg-green-600 text-white text-xs font-bold rounded-full w-5 h-5 inline-flex items-center justify-center mr-2">2</span>
+                  My Contracts
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="applications" className="space-y-4 animate-in slide-in-from-left-4 duration-500">
+                {/* Applications List Section */}
+                <div className="space-y-6">
+                  {filtered.length === 0 ? (
+                    <div className="py-16 text-center">
+                      <div className="bg-gradient-to-br from-blue-100 to-purple-100 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <FileText className="h-12 w-12 text-blue-600" />
+                      </div>
+                      <h3 className="text-2xl font-bold text-gray-900 mb-3">No Applications Found</h3>
+                      <p className="text-lg text-gray-600 mb-6">Your submitted applications will appear here.</p>
+                      <Button
+                        onClick={() => navigate('/dashboard/rental-options')}
+                        className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300"
+                      >
+                        Browse Properties
+                      </Button>
+                    </div>
+                  ) : (
+                    filtered.map((application) => (
+                      <ProfessionalApplicationCard
+                        key={application.id}
+                        application={application}
+                        onViewDetails={openApplicationDetails}
+                        onWithdraw={withdraw}
+                      />
+                    ))
+                  )}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="contracts" className="space-y-6 animate-in slide-in-from-right-4 duration-500">
+                {contracts.length === 0 ? (
+                  <div className="py-16 text-center">
+                    <div className="bg-gradient-to-br from-green-100 to-emerald-100 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6">
+                      <FileText className="h-12 w-12 text-green-600" />
+                    </div>
+                    <h3 className="text-2xl font-bold text-gray-900 mb-3">No Contracts Found</h3>
+                    <p className="text-lg text-gray-600 mb-6">Signed lease agreements will appear here.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    {contracts.map((contract) => (
+                      <ContractCard
+                        key={contract.id}
+                        contract={contract}
+                        onDownload={(c) => printOntarioLease(c)}
+                        onSign={(c) => navigate(`/dashboard/contracts/${c.application_id}`)}
+                      />
+                    ))}
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
 
         {/* Application Details Modal */}
         {selectedApplication && (
@@ -372,7 +402,7 @@ export default function MyApplicationsPage() {
             onDownloadDocument={downloadDocument}
           />
         )}
-      </div>
+      </main>
     </div>
   );
 }
@@ -404,8 +434,9 @@ function ProfessionalApplicationCard({
   };
 
   return (
-    <Card className="group hover:shadow-lg transition-all duration-300 border-0 bg-white transform">
-      <CardContent className="p-4">
+    <div className="bg-slate-50 rounded-lg p-3 border-2 border-slate-400">
+      <Card className="group hover:shadow-lg transition-all duration-300 border-2 border-slate-300 bg-white transform">
+        <CardContent className="p-4">
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-start gap-4">
             <div className="relative">
@@ -495,7 +526,7 @@ function ProfessionalApplicationCard({
               variant="outline"
               size="sm"
               onClick={() => onViewDetails(application)}
-              className="h-8 text-xs flex items-center gap-1.5 bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 rounded px-3"
+              className="h-8 text-xs flex items-center gap-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 border-0 rounded px-3"
             >
               <Eye className="h-3.5 w-3.5" />
               View
@@ -508,7 +539,7 @@ function ProfessionalApplicationCard({
                 variant="outline"
                 size="sm"
                 onClick={() => onWithdraw(application.id)}
-                className="h-8 text-xs bg-red-50 border-red-200 text-red-700 hover:bg-red-100 rounded px-3"
+                className="h-8 text-xs bg-gradient-to-r from-red-600 to-rose-600 text-white hover:from-red-700 hover:to-rose-700 border-0 rounded px-3"
               >
                 <Trash2 className="h-3.5 w-3.5 mr-1" />
                 Withdraw
@@ -518,6 +549,7 @@ function ProfessionalApplicationCard({
         </div>
       </CardContent>
     </Card>
+    </div>
   );
 }
 
@@ -880,8 +912,9 @@ function ContractCard({ contract, onDownload, onSign }: ContractCardProps) {
   };
 
   return (
-    <Card className="group hover:shadow-lg transition-all duration-300 border-0 bg-white shadow-sm">
-      <CardContent className="p-4">
+    <div className="bg-slate-50 rounded-lg p-3 border-2 border-slate-400">
+      <Card className="group hover:shadow-lg transition-all duration-300 border-2 border-slate-300 bg-white shadow-sm">
+        <CardContent className="p-4">
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-start gap-4">
             <div className="relative">
@@ -961,7 +994,7 @@ function ContractCard({ contract, onDownload, onSign }: ContractCardProps) {
             variant="outline"
             size="sm"
             onClick={() => onSign(contract)}
-            className="h-8 text-xs flex items-center gap-1.5 bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100 rounded px-3"
+            className="h-8 text-xs flex items-center gap-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 border-0 rounded px-3"
           >
             <Eye className="h-3.5 w-3.5" />
             View
@@ -970,7 +1003,7 @@ function ContractCard({ contract, onDownload, onSign }: ContractCardProps) {
             <Button
               size="sm"
               onClick={() => onSign(contract)}
-              className="h-8 text-xs flex items-center gap-1.5 bg-blue-600 text-white hover:bg-blue-700 rounded px-3 shadow-sm"
+              className="h-8 text-xs flex items-center gap-1.5 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white hover:from-indigo-700 hover:via-purple-700 hover:to-pink-700 border-0 rounded px-3 shadow-sm"
             >
               <Edit className="h-3.5 w-3.5" />
               Review & Sign
@@ -981,7 +1014,7 @@ function ContractCard({ contract, onDownload, onSign }: ContractCardProps) {
               variant="outline"
               size="sm"
               onClick={() => onDownload(contract)}
-              className="h-8 text-xs flex items-center gap-1.5 bg-green-50 border-green-200 text-green-700 hover:bg-green-100 rounded px-3"
+              className="h-8 text-xs flex items-center gap-1.5 bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:from-green-700 hover:to-emerald-700 border-0 rounded px-3"
             >
               <Download className="h-3.5 w-3.5" />
               PDF
@@ -990,5 +1023,6 @@ function ContractCard({ contract, onDownload, onSign }: ContractCardProps) {
         </div>
       </CardContent>
     </Card>
+    </div>
   );
 }

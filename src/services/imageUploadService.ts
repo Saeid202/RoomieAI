@@ -147,9 +147,17 @@ export class ImageUploadService {
     userId: string
   ): Promise<ImageUploadResult> {
     try {
+      console.log('🔍 Upload attempt:', { 
+        fileName: file.name, 
+        fileSize: file.size, 
+        propertyId, 
+        userId: userId ? 'present' : 'MISSING' 
+      });
+
       // Validate the image first
       const validation = this.validateImage(file);
       if (!validation.valid) {
+        console.error('❌ Validation failed:', validation.error);
         return {
           success: false,
           error: validation.error
@@ -177,7 +185,7 @@ export class ImageUploadService {
         });
 
       if (error) {
-        console.error('Property image upload error:', error);
+        console.error('❌ Property image upload error:', error);
         return {
           success: false,
           error: error.message
@@ -197,7 +205,7 @@ export class ImageUploadService {
         path: filePath
       };
     } catch (error) {
-      console.error('Property image upload error:', error);
+      console.error('❌ Property image upload error:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Upload failed'
@@ -214,9 +222,15 @@ export class ImageUploadService {
   ): Promise<boolean> {
     try {
       // Extract file path from URL
-      const urlParts = imageUrl.split('/');
-      const fileName = urlParts[urlParts.length - 1];
-      const filePath = `${userId}/property-temp/${fileName}`;
+      // URL format: https://.../storage/v1/object/public/property-images/{userId}/property-{id}/{filename}
+      const urlParts = imageUrl.split('/property-images/');
+      if (urlParts.length < 2) {
+        console.error('Invalid image URL format:', imageUrl);
+        return false;
+      }
+      
+      // Get the path after 'property-images/'
+      const filePath = urlParts[1];
 
       console.log('🗑️ Deleting property image:', filePath);
 

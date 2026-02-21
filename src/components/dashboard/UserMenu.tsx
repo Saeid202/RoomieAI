@@ -20,7 +20,6 @@ export function UserMenu() {
   const { user, signOut, updateMetadata } = useAuth();
   const { role, setRole } = useRole();
   const { toggleSidebar } = useSidebar();
-  // Role switching is now handled by RoleSwitcher component
 
   return (
     <div className="flex items-center justify-between px-4 py-3 bg-background/95 backdrop-blur-sm">
@@ -34,11 +33,8 @@ export function UserMenu() {
           <Menu className="h-5 w-5" />
         </Button>
 
-
-
         {/* Notifications */}
         <NotificationBell />
-
 
         <div className="block md:hidden">
           <h2 className="text-xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
@@ -46,8 +42,6 @@ export function UserMenu() {
           </h2>
         </div>
       </div>
-
-      {/* Role switching is now handled by RoleSwitcher component */}
     </div>
   );
 }
