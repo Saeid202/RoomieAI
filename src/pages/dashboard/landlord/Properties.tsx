@@ -220,6 +220,9 @@ export default function PropertiesPage() {
                               );
                             }
                           })()}
+                          <div className="absolute bottom-2 left-2 bg-blue-600 text-white px-2 py-1 rounded text-xs font-medium">
+                            Rental
+                          </div>
                         </div>
                         <CardHeader>
                           <CardTitle className="text-base line-clamp-1">{p.listing_title}</CardTitle>
@@ -340,6 +343,9 @@ export default function PropertiesPage() {
                         );
                       }
                     })()}
+                    <div className="absolute bottom-2 left-2 bg-green-600 text-white px-2 py-1 rounded text-xs font-medium">
+                      For Sale
+                    </div>
                   </div>
                   <CardHeader>
                     <CardTitle className="text-base line-clamp-1">{p.listing_title}</CardTitle>
@@ -361,7 +367,7 @@ export default function PropertiesPage() {
                       <Button
                         variant="outline"
                         className="flex items-center justify-center gap-1"
-                        onClick={() => navigate(`/dashboard/rental-options/${p.id}?type=sale`)}
+                        onClick={() => navigate(`/dashboard/buy/${p.id}?type=sale`)}
                       >
                         <Eye className="h-4 w-4" /> View
                       </Button>

@@ -84,7 +84,7 @@ import TenancyLegalAIPage from "@/pages/dashboard/forms/TenancyLegalAI";
 import RenovatorsPage from "@/pages/dashboard/Renovators";
 import CleanersPage from "@/pages/dashboard/Cleaners";
 import ShopPage from "@/pages/dashboard/Shop";
-import DigitalWalletPage from "@/pages/dashboard/landlord/DigitalWallet";
+import LandlordPaymentsPage from "@/pages/dashboard/landlord/LandlordPayments";
 import AutoPayPage from "@/pages/dashboard/landlord/AutoPay";
 import LateFeeManagementPage from "@/pages/dashboard/landlord/LateFeeManagement";
 import ListRoomPage from "@/pages/dashboard/ListRoom";
@@ -133,6 +133,8 @@ function AppRoutes() {
           <Route path="roommate-recommendations" element={<RoommateRecommendationsPage />} />
           <Route path="rental-options" element={<ErrorBoundary componentName="RentalOptionsPage"><RentalOptionsPage /></ErrorBoundary>} />
           <Route path="rental-options/:id" element={<ErrorBoundary componentName="PropertyDetailsPage"><PropertyDetailsPage /></ErrorBoundary>} />
+          <Route path="rent/:id" element={<ErrorBoundary componentName="PropertyDetailsPage"><PropertyDetailsPage /></ErrorBoundary>} />
+          <Route path="buy/:id" element={<ErrorBoundary componentName="PropertyDetailsPage"><PropertyDetailsPage /></ErrorBoundary>} />
           <Route path="rental-application/:id" element={<ErrorBoundary componentName="RentalApplicationPage"><RentalApplicationPage /></ErrorBoundary>} />
           <Route path="application-overview/:applicationId" element={<ApplicationOverviewPage />} />
           <Route path="plan-ahead-matching" element={<PlanAheadMatchingPage />} />
@@ -144,7 +146,7 @@ function AppRoutes() {
           <Route path="landlord" element={<LandlordDashboardPage />} />
           <Route path="landlord/properties" element={<PropertiesPage />} />
           <Route path="landlord/applications" element={<ApplicationsPage />} />
-          <Route path="landlord/payments" element={<DigitalWalletPage />} />
+          <Route path="landlord/payments" element={<LandlordPaymentsPage />} />
           <Route path="landlord/profile" element={<LandlordProfilePage />} />
           <Route path="landlord/add-property" element={<AddPropertyPage />} />
           <Route path="landlord/contracts" element={<ContractReviewPage />} />
@@ -177,7 +179,7 @@ function AppRoutes() {
           <Route path="tax-intelligence" element={<ErrorBoundary componentName="TaxIntelligencePage"><TaxIntelligencePage /></ErrorBoundary>} />
           <Route path="cleaners" element={<CleanersPage />} />
           <Route path="shop" element={<ShopPage />} />
-          <Route path="digital-wallet" element={<DigitalWalletPage />} />
+          <Route path="digital-wallet" element={<LandlordPaymentsPage />} />
           <Route path="autopay" element={<AutoPayPage />} />
           <Route path="late-fees" element={<LateFeeManagementPage />} />
           <Route path="list-room" element={<ListRoomPage />} />
@@ -241,6 +243,8 @@ function AppRoutes() {
         <Route path="roommate-recommendations" element={<RoommateRecommendationsPage />} />
         <Route path="rental-options" element={<ErrorBoundary componentName="RentalOptionsPage"><RentalOptionsPage /></ErrorBoundary>} />
         <Route path="rental-options/:id" element={<ErrorBoundary componentName="PropertyDetailsPage"><PropertyDetailsPage /></ErrorBoundary>} />
+        <Route path="rent/:id" element={<ErrorBoundary componentName="PropertyDetailsPage"><PropertyDetailsPage /></ErrorBoundary>} />
+        <Route path="buy/:id" element={<ErrorBoundary componentName="PropertyDetailsPage"><PropertyDetailsPage /></ErrorBoundary>} />
         <Route path="rental-application/:id" element={<ErrorBoundary componentName="RentalApplicationPage"><RentalApplicationPage /></ErrorBoundary>} />
         <Route path="application-overview/:applicationId" element={<ApplicationOverviewPage />} />
         <Route path="plan-ahead-matching" element={<PlanAheadMatchingPage />} />
@@ -252,7 +256,7 @@ function AppRoutes() {
         <Route path="landlord" element={<LandlordDashboardPage />} />
         <Route path="landlord/properties" element={<PropertiesPage />} />
         <Route path="landlord/applications" element={<ApplicationsPage />} />
-        <Route path="landlord/payments" element={<DigitalWalletPage />} />
+        <Route path="landlord/payments" element={<LandlordPaymentsPage />} />
         <Route path="landlord/profile" element={<LandlordProfilePage />} />
         <Route path="landlord/add-property" element={<AddPropertyPage />} />
         <Route path="rent-opportunities" element={<RentOpportunitiesPage />} />
@@ -284,7 +288,7 @@ function AppRoutes() {
         <Route path="tax-intelligence" element={<ErrorBoundary componentName="TaxIntelligencePage"><TaxIntelligencePage /></ErrorBoundary>} />
         <Route path="cleaners" element={<CleanersPage />} />
         <Route path="shop" element={<ShopPage />} />
-        <Route path="digital-wallet" element={<DigitalWalletPage />} />
+        <Route path="digital-wallet" element={<LandlordPaymentsPage />} />
         <Route path="autopay" element={<AutoPayPage />} />
         <Route path="late-fees" element={<LateFeeManagementPage />} />
         <Route path="list-room" element={<ListRoomPage />} />
@@ -326,3 +330,4 @@ function App() {
 }
 
 export default App;
+

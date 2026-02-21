@@ -8,6 +8,7 @@ import { fetchPropertyById, Property, updateProperty, fetchSalesListingById, Sal
 import { useRole } from "@/contexts/RoleContext";
 import { Calendar, DollarSign, MapPin, Volume2, Play, Square, Box, ChevronLeft, ChevronRight, User, Users, Pencil, Trash2, Check, X, MessageSquare, Reply, Zap } from "lucide-react";
 import { PropertyVideoPlayer } from "@/components/property/PropertyVideoPlayer";
+import { PropertyDocumentViewer } from "@/components/property/PropertyDocumentViewerSimplified";
 import { useAuth } from "@/hooks/useAuth";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -80,48 +81,60 @@ export default function PropertyDetailsPage() {
         const params = new URLSearchParams(window.location.search);
         const type = params.get('type');
 
-        console.log("Loading listing data for id:", id, "type:", type);
-        if (!id) throw new Error("Missing property id");
+        console.log("🔍 Loading listing data for id:", id, "type:", type);
+        if (!id) {
+          console.error("❌ Missing property id");
+          throw new Error("Missing property id");
+        }
 
         let data;
         let isSalesListing = false;
 
         if (type === 'sale') {
           // If explicitly type=sale, fetch from sales_listings first
+          console.log("📦 Fetching from sales_listings (type=sale)...");
           try {
             data = await fetchSalesListingById(id);
             isSalesListing = true;
-          } catch {
+            console.log("✅ Found in sales_listings");
+          } catch (err) {
             // Fallback to properties table if not found in sales_listings
-            console.log("Not found in sales_listings, trying properties table...");
+            console.log("⚠️ Not found in sales_listings, trying properties table...");
             data = await fetchPropertyById(id);
+            console.log("✅ Found in properties table");
           }
         } else {
           // Default: try properties first, then fallback to sales_listings
+          console.log("📦 Fetching from properties table (default)...");
           try {
             data = await fetchPropertyById(id);
+            console.log("✅ Found in properties table");
           } catch (propError: any) {
-            console.log("Not found in properties, trying sales_listings table...");
+            console.log("⚠️ Not found in properties, trying sales_listings table...");
             try {
               data = await fetchSalesListingById(id);
               isSalesListing = true;
+              console.log("✅ Found in sales_listings");
             } catch {
               // Re-throw the original properties error if both fail
+              console.error("❌ Not found in either table");
               throw propError;
             }
           }
         }
 
-        console.log("Listing data loaded:", data, "isSalesListing:", isSalesListing);
+        console.log("✅ Listing data loaded:", data, "isSalesListing:", isSalesListing);
         if (mounted) setProperty(data as any);
 
         // Load investor signals for sales listings
         if (isSalesListing && id) {
+          console.log("📊 Loading investor offers...");
           const offersData = await fetchInvestorOffers(id);
           if (mounted) setOffers(offersData);
+          console.log("✅ Investor offers loaded:", offersData.length);
         }
       } catch (e: any) {
-        console.error("Failed to load property", e);
+        console.error("❌ Failed to load property", e);
         const errorMessage = e?.message || "Failed to load property";
         // Provide a more user-friendly error message
         if (errorMessage.includes("NOT_FOUND") || errorMessage.includes("PGRST116")) {
@@ -130,7 +143,10 @@ export default function PropertyDetailsPage() {
           if (mounted) setError(errorMessage);
         }
       } finally {
-        if (mounted) setLoading(false);
+        if (mounted) {
+          console.log("🏁 Loading complete, setting loading=false");
+          setLoading(false);
+        }
       }
     };
     load();
@@ -210,7 +226,9 @@ export default function PropertyDetailsPage() {
     }
     meta.setAttribute('content', descText.slice(0, 155));
 
-    const canonicalHref = `${window.location.origin}/dashboard/rental-options/${id || ''}`;
+    // Determine the correct route based on property type
+    const routePrefix = isSale ? 'buy' : 'rental-options';
+    const canonicalHref = `${window.location.origin}/dashboard/${routePrefix}/${id || ''}`;
     let link = document.querySelector('link[rel="canonical"]');
     if (!link) {
       link = document.createElement('link');
@@ -281,18 +299,18 @@ export default function PropertyDetailsPage() {
 
     // Check profile completeness
     const completeness = await checkProfileCompleteness(user.id);
-    
+
     if (!completeness.isComplete) {
       const missing = [
         ...completeness.missingFields,
         ...completeness.missingDocuments
       ];
-      
+
       toast.error(
         `Please complete your profile first. Missing: ${missing.join(', ')}`,
         { duration: 5000 }
       );
-      
+
       // Redirect to profile page
       setTimeout(() => {
         navigate('/dashboard/profile');
@@ -332,7 +350,7 @@ export default function PropertyDetailsPage() {
       toast.success("Application submitted successfully!");
       setShowQuickApplyModal(false);
       setHasApplied(true);
-      
+
       // Optionally navigate to applications page
       setTimeout(() => {
         navigate('/dashboard/applications');
@@ -588,364 +606,7 @@ export default function PropertyDetailsPage() {
               {/* Co-buy Interest Section - Below Audio Tour */}
               {isSale && (
                 <div className="mt-10 space-y-8 animate-fadeIn">
-                  {/* Co-Buy section heading - Visible to Everyone */}
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="h-10 w-10 bg-indigo-50 rounded-xl flex items-center justify-center">
-                      <DollarSign className="h-6 w-6 text-indigo-600" />
-                    </div>
-                    <div>
-                      <h3 className="text-2xl font-black text-slate-900 leading-tight">Co-Buy Signal</h3>
-                      <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Interest and Community momentum</p>
-                    </div>
-                  </div>
-
-                  {/* Community Activity - Visible to Everyone */}
-                  <div className="space-y-4">
-                    <h4 className="text-xs font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                      <Box className="h-4 w-4" />
-                      Community Activity ({offers.length})
-                    </h4>
-                    {offers.length === 0 ? (
-                      <div className="py-6 text-center bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl">
-                        <p className="text-slate-400 text-xs italic">No activity yet. Be the first to signal interest.</p>
-                      </div>
-                    ) : (
-                      <div className="grid grid-cols-1 gap-4">
-                        {offers.map((offer) => {
-                          const isMyOffer = user && offer.user_id === user.id;
-                          const isEditing = editingOfferId === offer.id;
-
-                          return (
-                            <div key={offer.id} className="bg-white border border-slate-100 p-6 rounded-2xl hover:border-indigo-200 transition-all shadow-sm relative overflow-hidden group">
-                              <div className="absolute top-0 left-0 w-1 h-full bg-slate-100 group-hover:bg-indigo-300 transition-colors" />
-
-                              <div className="flex justify-between items-start mb-4">
-                                <div className="space-y-1">
-                                  <div className="flex items-center gap-2">
-                                    <span className="text-[10px] font-black text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded uppercase tracking-tighter">Interest Signal</span>
-                                    <span className="text-[9px] text-slate-400 font-bold">{new Date(offer.created_at).toLocaleDateString()}</span>
-                                  </div>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                  <div className="flex items-center gap-2">
-                                    <div className="flex items-center gap-1.5 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-100">
-                                      <User className="h-3 w-3 text-slate-400" />
-                                      <span className="text-[10px] font-bold text-slate-600">
-                                        {isMyOffer ? 'You' : (offer.user_email?.split('@')[0] || 'Member')}
-                                      </span>
-                                    </div>
-                                    {!isMyOffer && (
-                                      <MessageButton
-                                        landlordId={offer.user_id}
-                                        salesListingId={offer.listing_id}
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-8 w-8 rounded-full hover:bg-indigo-50 text-indigo-500 transition-colors border border-transparent hover:border-indigo-100"
-                                      >
-                                        <span className="sr-only">Quick Message</span>
-                                      </MessageButton>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-
-                              {isEditing ? (
-                                <div className="mb-6 space-y-4">
-                                  <div className="space-y-3">
-                                    <Textarea
-                                      value={editingOfferDraft.additional_notes || ""}
-                                      onChange={(e) => setEditingOfferDraft({ ...editingOfferDraft, additional_notes: e.target.value })}
-                                      className="text-lg font-bold italic bg-slate-50 border-indigo-200 focus:ring-indigo-500 rounded-xl min-h-[100px]"
-                                      placeholder="Edit your specifics..."
-                                    />
-                                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">Editing your signal message</p>
-                                  </div>
-                                </div>
-                              ) : (
-                                <div className="mb-6 space-y-4">
-                                  {offer.additional_notes && (
-                                    <p className="text-lg font-bold text-slate-800 italic leading-relaxed">
-                                      "{offer.additional_notes}"
-                                    </p>
-                                  )}
-                                </div>
-                              )}
-
-                              <div className="flex flex-wrap items-center gap-8 pt-6 pb-6 border-t border-slate-50">
-                                <div className="flex flex-col">
-                                  <span className="text-[11px] text-slate-400 font-black uppercase tracking-widest mb-1.5">Contribution</span>
-                                  <span className="text-2xl font-black text-indigo-600">${offer.contribution_amount.toLocaleString()}</span>
-                                </div>
-
-                                <div className="h-10 w-[1px] bg-slate-100 hidden sm:block" />
-
-                                <div className="flex flex-col">
-                                  <span className="text-[11px] text-slate-400 font-black uppercase tracking-widest mb-1.5">Intended Use</span>
-                                  <div className="flex items-center gap-2 text-sm font-bold text-slate-700">
-                                    <div className="h-2 w-2 rounded-full bg-indigo-500 shadow-sm shadow-indigo-200" />
-                                    {offer.intended_use}
-                                  </div>
-                                </div>
-
-                                <div className="h-10 w-[1px] bg-slate-100 hidden sm:block" />
-
-                                <div className="flex flex-col">
-                                  <span className="text-[11px] text-slate-400 font-black uppercase tracking-widest mb-1.5">Occupancy</span>
-                                  <div className="flex items-center gap-2 text-sm font-bold text-slate-700">
-                                    <div className="h-2 w-2 rounded-full bg-indigo-500 shadow-sm shadow-indigo-200" />
-                                    {offer.occupancy_plan}
-                                  </div>
-                                </div>
-
-                                <div className="h-10 w-[1px] bg-slate-100 hidden sm:block" />
-
-                                <div className="flex flex-col">
-                                  <span className="text-[11px] text-slate-400 font-black uppercase tracking-widest mb-1.5">Flexibility</span>
-                                  <div className="flex items-center gap-2 text-sm font-bold text-slate-700">
-                                    <div className="h-2 w-2 rounded-full bg-indigo-500 shadow-sm shadow-indigo-200" />
-                                    {offer.flexibility}
-                                  </div>
-                                </div>
-                              </div>
-
-                              {/* Action Footer */}
-                              <div className="pt-6 border-t border-slate-50 flex flex-wrap items-center justify-between gap-4">
-                                <div className="flex flex-wrap items-center gap-3">
-                                  {/* Message & Reply - Always visible */}
-                                  <MessageButton
-                                    landlordId={offer.user_id}
-                                    salesListingId={offer.listing_id}
-                                    variant="default"
-                                    className="group relative bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl px-5 py-2.5 text-[11px] font-black uppercase tracking-[0.1em] flex items-center gap-2 h-auto shadow-lg shadow-indigo-100 transition-all active:scale-95 overflow-hidden"
-                                  >
-                                    <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-500" />
-                                    Message
-                                  </MessageButton>
-
-                                  <MessageButton
-                                    landlordId={offer.user_id}
-                                    salesListingId={offer.listing_id}
-                                    variant="outline"
-                                    className="flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-slate-50 text-slate-600 rounded-xl text-[11px] font-black uppercase tracking-wider transition-all border border-slate-200 shadow-sm active:scale-95 h-auto"
-                                  >
-                                    <Reply className="h-3.5 w-3.5" />
-                                    Reply
-                                  </MessageButton>
-
-                                  {isMyOffer && !isEditing && (
-                                    <>
-                                      <button
-                                        onClick={() => {
-                                          setEditingOfferId(offer.id);
-                                          setEditingOfferDraft({ additional_notes: offer.additional_notes });
-                                        }}
-                                        className="flex items-center gap-2 px-4 py-2.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl text-[11px] font-black uppercase tracking-wider transition-all border border-indigo-100 shadow-sm active:scale-95"
-                                      >
-                                        <Pencil className="h-3.5 w-3.5" />
-                                        Edit
-                                      </button>
-                                      <button
-                                        onClick={async () => {
-                                          if (confirm("Are you sure you want to withdraw your signal?")) {
-                                            try {
-                                              await deleteInvestorOffer(offer.id);
-                                              const updated = await fetchInvestorOffers(offer.listing_id);
-                                              setOffers(updated);
-                                              toast.success("Signal deleted");
-                                            } catch (err: any) {
-                                              console.error("Delete failed:", err);
-                                              toast.error("Failed to delete: " + (err.message || "Unknown error"));
-                                            }
-                                          }
-                                        }}
-                                        className="flex items-center gap-2 px-4 py-2.5 bg-red-50 hover:bg-red-100 text-red-700 rounded-xl text-[11px] font-black uppercase tracking-wider transition-all border border-red-100 shadow-sm active:scale-95"
-                                      >
-                                        <Trash2 className="h-3.5 w-3.5" />
-                                        Withdraw
-                                      </button>
-                                    </>
-                                  )}
-
-                                  {isMyOffer && isEditing && (
-                                    <>
-                                      <button
-                                        onClick={async () => {
-                                          try {
-                                            await updateInvestorOffer(offer.id, { additional_notes: editingOfferDraft.additional_notes });
-                                            setEditingOfferId(null);
-                                            const updated = await fetchInvestorOffers(offer.listing_id);
-                                            setOffers(updated);
-                                            toast.success("Signal updated");
-                                          } catch (err: any) {
-                                            console.error("Update failed:", err);
-                                            toast.error("Failed to update: " + (err.message || "Unknown error"));
-                                          }
-                                        }}
-                                        className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-[11px] font-black uppercase tracking-wider transition-all shadow-md shadow-indigo-100 active:scale-95"
-                                      >
-                                        <Check className="h-4 w-4" />
-                                        Save
-                                      </button>
-                                      <button
-                                        onClick={() => setEditingOfferId(null)}
-                                        className="flex items-center gap-2 px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-[11px] font-black uppercase tracking-wider transition-all active:scale-95"
-                                      >
-                                        <X className="h-4 w-4" />
-                                        Cancel
-                                      </button>
-                                    </>
-                                  )}
-                                </div>
-                                <div className="hidden lg:flex text-[10px] text-slate-400 font-bold items-center gap-1.5 bg-slate-50 px-3 py-1.5 rounded-full">
-                                  <Users className="h-3 w-3" />
-                                  Active Signal
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Submission Form - Only for Seekers/Investors, Hidden for Landlords */}
-                  {role !== 'landlord' && (
-                    <div className="bg-gradient-to-br from-indigo-50 via-slate-50 to-white border border-indigo-100 rounded-2xl p-6 shadow-sm relative overflow-hidden">
-                      <div className="absolute top-0 left-0 w-1 h-full bg-indigo-500" />
-
-                      {/* Header */}
-                      <div className="flex items-center justify-between mb-5">
-                        <div>
-                          <h4 className="text-base font-black text-slate-800">Signal Your Interest</h4>
-                          <p className="text-xs text-slate-500">Share your investment details with the community</p>
-                        </div>
-                        <Badge variant="outline" className="bg-indigo-100 text-indigo-700 border-indigo-200 text-[10px] font-bold uppercase">Co-Buy</Badge>
-                      </div>
-
-                      {/* Main Form Grid */}
-                      <div className="space-y-5">
-                        {/* Row 1: Contribution Amount */}
-                        <div className="flex items-center gap-4">
-                          <Label className="text-slate-700 font-bold text-xs uppercase tracking-wide whitespace-nowrap">Your Contribution</Label>
-                          <div className="relative flex-1 max-w-xs">
-                            <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-indigo-500" />
-                            <Input
-                              type="number"
-                              placeholder="e.g. 50,000"
-                              className="bg-white border-indigo-200 pl-10 focus:border-indigo-500 focus:ring-indigo-500 rounded-xl h-12 text-lg font-bold"
-                              value={contributionAmount}
-                              onChange={(e) => setContributionAmount(e.target.value)}
-                            />
-                          </div>
-                        </div>
-
-                        {/* Row 2: Quick Options */}
-                        <div className="flex flex-wrap items-center gap-4">
-                          {/* Intended Use */}
-                          <div className="space-y-2">
-                            <Label className="text-slate-500 font-bold text-[10px] uppercase tracking-wider">Intended Use</Label>
-                            <div className="flex items-center gap-2">
-                              {['Live-In', 'Investment', 'Mixed'].map((option) => (
-                                <button
-                                  key={option}
-                                  onClick={() => setIntendedUse(option === 'Investment' ? 'Rent / Investment' : option)}
-                                  className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wide transition-all ${(intendedUse === option || (option === 'Investment' && intendedUse === 'Rent / Investment'))
-                                    ? 'bg-indigo-600 text-white shadow-md'
-                                    : 'bg-white text-slate-600 border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50'
-                                    }`}
-                                >
-                                  {option}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-
-                          {/* Occupancy */}
-                          <div className="space-y-2">
-                            <Label className="text-slate-500 font-bold text-[10px] uppercase tracking-wider">Occupancy</Label>
-                            <div className="flex items-center gap-2">
-                              {['Single', 'Couple', 'Family'].map((option) => (
-                                <button
-                                  key={option}
-                                  onClick={() => setOccupancyPlan(option === 'Family' ? 'Couple + kids' : option)}
-                                  className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wide transition-all ${(occupancyPlan === option || (option === 'Family' && occupancyPlan === 'Couple + kids'))
-                                    ? 'bg-slate-700 text-white shadow-md'
-                                    : 'bg-white text-slate-600 border border-slate-200 hover:border-slate-400 hover:bg-slate-50'
-                                    }`}
-                                >
-                                  {option}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-
-                          {/* Flexibility */}
-                          <div className="space-y-2">
-                            <Label className="text-slate-500 font-bold text-[10px] uppercase tracking-wider">Terms</Label>
-                            <div className="flex items-center gap-2">
-                              {['Fixed', 'Flexible'].map((option) => (
-                                <button
-                                  key={option}
-                                  onClick={() => setFlexibility(option)}
-                                  className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wide transition-all ${flexibility === option
-                                    ? (option === 'Flexible' ? 'bg-emerald-500 text-white shadow-md' : 'bg-slate-700 text-white shadow-md')
-                                    : 'bg-white text-slate-600 border border-slate-200 hover:border-slate-400 hover:bg-slate-50'
-                                    }`}
-                                >
-                                  {option}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Row 3: Notes */}
-                        <div className="space-y-2">
-                          <Label className="text-slate-500 font-bold text-[10px] uppercase tracking-wider">Additional Notes (Optional)</Label>
-                          <Textarea
-                            placeholder="Share more about your investment goals, timeline, or any questions..."
-                            className="bg-white border-slate-200 focus:border-indigo-500 focus:ring-indigo-500 rounded-xl text-sm min-h-[70px] resize-none"
-                            value={additionalNotes}
-                            onChange={(e) => setAdditionalNotes(e.target.value)}
-                          />
-                        </div>
-
-                        {/* Submit Button */}
-                        <Button
-                          className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-3 rounded-xl shadow-lg shadow-indigo-100 transition-all active:scale-[0.98] text-sm uppercase tracking-wider h-12"
-                          onClick={async () => {
-                            if (!contributionAmount) {
-                              toast.error("Please enter your contribution amount");
-                              return;
-                            }
-                            try {
-                              setSubmittingOffer(true);
-                              await submitInvestorOffer(property.id, {
-                                contribution_amount: parseFloat(contributionAmount),
-                                intended_use: intendedUse,
-                                flexibility: flexibility,
-                                occupancy_plan: occupancyPlan,
-                                additional_notes: additionalNotes
-                              });
-                              toast.success("Signal sent successfully!");
-                              setContributionAmount("");
-                              setAdditionalNotes("");
-
-                              const updatedOffers = await fetchInvestorOffers(property.id);
-                              setOffers(updatedOffers);
-                            } catch (e: any) {
-                              toast.error(e.message || "Failed to send signal");
-                            } finally {
-                              setSubmittingOffer(false);
-                            }
-                          }}
-                          disabled={submittingOffer}
-                        >
-                          {submittingOffer ? "Submitting..." : "Submit Signal"}
-                        </Button>
-                      </div>
-                    </div>
-                  )}
+                  {/* Sales listing - no co-buy section */}
                 </div>
               )}
 
@@ -1224,11 +885,22 @@ export default function PropertyDetailsPage() {
             </CardContent>
           </Card>
 
+          {/* Property Documents (for sales listings, non-owners) */}
+          {(() => {
+            const shouldShow = isSale && !isOwner;
+            return shouldShow ? (
+              <PropertyDocumentViewer
+                propertyId={property.id}
+                propertyAddress={`${property.address}, ${property.city}, ${property.state}`}
+              />
+            ) : null;
+          })()}
+
           <div className="space-y-2">
             {role !== 'landlord' && !isSale && !hasApplied && (
-              <Button 
-                variant="default" 
-                className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700" 
+              <Button
+                variant="default"
+                className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
                 onClick={handleQuickApplyClick}
               >
                 <Zap className="h-4 w-4 mr-2" />

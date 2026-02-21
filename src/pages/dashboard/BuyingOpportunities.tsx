@@ -254,13 +254,6 @@ export default function BuyingOpportunitiesPage() {
             )}
 
             <Tabs value={activeTab} className="w-full" onValueChange={handleTabChange}>
-                {activeTab !== 'co-ownership' && (
-                    <TabsList className="grid w-full grid-cols-2 mb-6">
-                        <TabsTrigger value="co-ownership">Co-ownership</TabsTrigger>
-                        <TabsTrigger value="sales">Buy Unit</TabsTrigger>
-                    </TabsList>
-                )}
-
                 <TabsContent value="co-ownership">
                     <h2 className="text-2xl md:text-3xl font-bold text-slate-800 mb-4 flex items-center gap-2">
                         <Handshake className="h-7 w-7 text-roomie-purple" /> Active Co-buyer Signals
@@ -442,7 +435,7 @@ export default function BuyingOpportunitiesPage() {
                                 <Card
                                     key={listing.id}
                                     className="overflow-hidden hover:shadow-xl transition-all border-slate-200 group cursor-pointer"
-                                    onClick={() => window.open(`/dashboard/rental-options/${listing.id}?type=sale`, '_blank')}
+                                    onClick={() => window.open(`/dashboard/buy/${listing.id}?type=sale`, '_blank')}
                                 >
                                     <div className="aspect-video bg-slate-100 relative overflow-hidden">
                                         {listing.images && listing.images.length > 0 ? (
@@ -480,13 +473,13 @@ export default function BuyingOpportunitiesPage() {
                                         <div className="flex flex-col gap-2" onClick={(e) => e.stopPropagation()}>
                                             <div className="flex gap-2">
                                                 <button
-                                                    onClick={() => window.open(`/dashboard/rental-options/${listing.id}?type=sale&view=investor`, '_blank')}
+                                                    onClick={() => window.open(`/dashboard/buy/${listing.id}?type=sale&view=investor`, '_blank')}
                                                     className="flex-1 bg-indigo-600 text-white py-3.5 rounded-2xl font-black text-xs hover:bg-indigo-700 transition-all active:scale-95 shadow-md flex items-center justify-center gap-2"
                                                 >
                                                     Co-Buy Interest
                                                 </button>
                                                 <button
-                                                    onClick={() => window.open(`/dashboard/rental-options/${listing.id}?type=sale`, '_blank')}
+                                                    onClick={() => window.open(`/dashboard/buy/${listing.id}?type=sale`, '_blank')}
                                                     className="flex-1 bg-slate-100 text-slate-900 py-3.5 rounded-2xl font-black text-sm hover:bg-slate-200 transition-all active:scale-95 flex items-center justify-center gap-2"
                                                 >
                                                     <Eye className="h-4 w-4" /> View
@@ -538,7 +531,7 @@ export default function BuyingOpportunitiesPage() {
                                 <Card
                                     key={listing.id}
                                     className="overflow-hidden hover:shadow-xl transition-all border-slate-200 group cursor-pointer"
-                                    onClick={() => window.open(`/dashboard/rental-options/${listing.id}?type=sale`, '_blank')}
+                                    onClick={() => window.open(`/dashboard/buy/${listing.id}?type=sale`, '_blank')}
                                 >
                                     <div className="aspect-video bg-slate-100 relative overflow-hidden">
                                         {listing.images && listing.images.length > 0 ? (
@@ -554,18 +547,18 @@ export default function BuyingOpportunitiesPage() {
                                             </div>
                                         )}
                                         <div className="absolute top-3 right-3">
-                                            <span className="bg-emerald-500 text-white px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg">For Sale</span>
+                                            <span className="bg-gradient-to-r from-orange-500 to-pink-500 text-white px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg">For Sale</span>
                                         </div>
                                     </div>
                                     <CardHeader className="p-4">
                                         <div className="flex justify-between items-start mb-2">
                                             <CardTitle className="text-xl font-black text-slate-900 line-clamp-1">{listing.listing_title}</CardTitle>
-                                            <span className="text-emerald-600 font-black text-lg">
+                                            <span className="text-orange-600 font-black text-lg">
                                                 ${listing.sales_price ? listing.sales_price.toLocaleString() : "0"}
                                             </span>
                                         </div>
                                         <div className="flex items-center gap-1.5 text-slate-500 text-sm font-medium">
-                                            <MapPin className="h-4 w-4 text-emerald-500" />
+                                            <MapPin className="h-4 w-4 text-orange-500" />
                                             <span className="line-clamp-1">{listing.city}, {listing.state}</span>
                                         </div>
                                     </CardHeader>
@@ -585,26 +578,18 @@ export default function BuyingOpportunitiesPage() {
                                             </span>
                                         </div>
                                         <div className="flex flex-col gap-2" onClick={(e) => e.stopPropagation()}>
-                                            <div className="flex gap-2">
-                                                <button
-                                                    onClick={() => window.open(`/dashboard/rental-options/${listing.id}?type=sale&view=investor`, '_blank')}
-                                                    className="flex-1 bg-indigo-600 text-white py-3.5 rounded-2xl font-black text-xs hover:bg-indigo-700 transition-all active:scale-95 shadow-md flex items-center justify-center gap-2"
-                                                >
-                                                    Co-Buy Interest
-                                                </button>
-                                                <button
-                                                    onClick={() => window.open(`/dashboard/rental-options/${listing.id}?type=sale`, '_blank')}
-                                                    className="flex-1 bg-slate-100 text-slate-900 py-3.5 rounded-2xl font-black text-sm hover:bg-slate-200 transition-all active:scale-95 flex items-center justify-center gap-2"
-                                                >
-                                                    <Eye className="h-4 w-4" /> View
-                                                </button>
-                                            </div>
+                                            <button
+                                                onClick={() => window.open(`/dashboard/buy/${listing.id}?type=sale`, '_blank')}
+                                                className="w-full bg-slate-100 text-slate-900 py-3.5 rounded-2xl font-black text-sm hover:bg-slate-200 transition-all active:scale-95 flex items-center justify-center gap-2"
+                                            >
+                                                <Eye className="h-4 w-4" /> View Details
+                                            </button>
                                             <MessageButton
                                                 salesListingId={listing.id}
                                                 landlordId={listing.user_id}
-                                                className="w-full bg-emerald-600 text-white py-3.5 rounded-2xl font-black text-sm hover:bg-emerald-700 transition-all active:scale-95 shadow-lg"
+                                                className="w-full bg-gradient-to-r from-orange-500 via-purple-500 to-pink-500 hover:from-orange-600 hover:via-purple-600 hover:to-pink-600 text-white py-3.5 rounded-2xl font-black text-sm transition-all active:scale-95 shadow-lg"
                                             >
-                                                Message
+                                                Message Seller
                                             </MessageButton>
                                         </div>
                                     </CardContent>

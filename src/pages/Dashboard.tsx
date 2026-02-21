@@ -1,5 +1,5 @@
 
-import { Outlet, useLocation, Navigate } from "react-router-dom";
+import { Outlet, useLocation, Navigate, matchPath } from "react-router-dom";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { RouteGuard } from "@/components/dashboard/RouteGuard";
 import { RoleInitializer } from "@/components/dashboard/RoleInitializer";
@@ -54,7 +54,9 @@ export default function Dashboard() {
   }
 
   // If we're at the root dashboard page and not redirecting elsewhere, show the Roomie AI introduction
-  const showDashboardContent = location.pathname === '/dashboard' && !showRoleDialog;
+  // Use matchPath for exact matching to avoid blocking nested routes
+  const isExactDashboard = matchPath({ path: "/dashboard", end: true }, location.pathname);
+  const showDashboardContent = isExactDashboard !== null && !showRoleDialog;
 
   return (
     <>
