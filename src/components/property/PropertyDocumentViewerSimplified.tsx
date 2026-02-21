@@ -36,7 +36,7 @@ export function PropertyDocumentViewer({
   const loadDocuments = async () => {
     try {
       setLoading(true);
-      
+
       const { data: { user } } = await supabase.auth.getUser();
       console.log('👤 Current user:', user?.id);
       setUserId(user?.id || null);
@@ -49,12 +49,12 @@ export function PropertyDocumentViewer({
       if (user) {
         console.log('🔍 Checking access status for property:', propertyId);
         console.log('👤 User ID:', user.id);
-        
+
         try {
           // Use any type to bypass TypeScript type checking
           // The table exists in the database but not in the generated types
           const supabaseAny = supabase as any;
-          
+
           // Get the most recent request (order by requested_at DESC, limit 1)
           const { data: accessRequests, error: accessError } = await supabaseAny
             .from('document_access_requests')
@@ -106,7 +106,7 @@ export function PropertyDocumentViewer({
 
     try {
       console.log('📤 Requesting document access for property:', propertyId);
-      
+
       const { data: profile } = await supabase
         .from('user_profiles')
         .select('full_name, email')
@@ -276,7 +276,7 @@ export function PropertyDocumentViewer({
 
           {accessStatus === 'approved' && (
             <Button
-              onClick={() => navigate(`property/${propertyId}/documents`)}
+              onClick={() => navigate(`/dashboard/property/${propertyId}/documents`)}
               className="w-full bg-green-600 hover:bg-green-700"
             >
               <ExternalLink className="h-4 w-4 mr-2" />

@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { PropertyDocument, PropertyDocumentType } from "@/types/propertyCategories";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 // Pending document type
 interface PendingDocument {
@@ -243,7 +244,38 @@ export function DocumentSlot({
                 variant="outline"
                 size="sm"
                 className="flex-1 text-[10px] h-7"
-                onClick={() => window.open(document.file_url, '_blank')}
+                onClick={async () => {
+                  try {
+                    // Extract the file path from the URL
+                    const urlParts = document.file_url.split('/storage/v1/object/public/');
+                    if (urlParts.length > 1) {
+                      const pathParts = urlParts[1].split('/');
+                      const bucketName = pathParts[0];
+                      const filePath = pathParts.slice(1).join('/');
+                      
+                      console.log('📄 Opening document:', { bucketName, filePath });
+                      
+                      // Try to get a fresh signed URL with correct bucket name
+                      const { data } = supabase.storage
+                        .from('property-documents') // Use hyphen, not underscore
+                        .getPublicUrl(filePath);
+                      
+                      if (data?.publicUrl) {
+                        window.open(data.publicUrl, '_blank');
+                      } else {
+                        // Fallback to original URL
+                        window.open(document.file_url, '_blank');
+                      }
+                    } else {
+                      // Fallback to original URL
+                      window.open(document.file_url, '_blank');
+                    }
+                  } catch (error) {
+                    console.error('Error opening document:', error);
+                    // Fallback to original URL
+                    window.open(document.file_url, '_blank');
+                  }
+                }}
               >
                 <Download className="h-3 w-3 mr-1" />
                 View

@@ -23,6 +23,7 @@ import {
   getPropertyDocuments,
   deletePropertyDocument,
   updateDocumentPrivacy,
+  ensureBucketExists,
 } from "@/services/propertyDocumentService";
 import { toast } from "sonner";
 
@@ -60,9 +61,14 @@ export function DocumentVault({
 
   // Load documents when property ID is available
   useEffect(() => {
-    if (propertyId) {
-      loadDocuments();
-    }
+    const initVault = async () => {
+      if (propertyId) {
+        // Ensure bucket exists when vault is opened
+        await ensureBucketExists();
+        await loadDocuments();
+      }
+    };
+    initVault();
   }, [propertyId]);
 
   // Calculate listing strength when documents change
@@ -94,6 +100,7 @@ export function DocumentVault({
     setLoading(true);
     try {
       const docs = await getPropertyDocuments(propertyId);
+      console.log('📄 DocumentVault: Loaded documents:', docs);
       setDocuments(docs);
     } catch (error) {
       console.error('Failed to load documents:', error);
@@ -108,13 +115,13 @@ export function DocumentVault({
       // Store as pending document with preview
       const previewUrl = URL.createObjectURL(file);
       const pending: PendingDocument = { type, label, file, previewUrl };
-      
+
       setPendingDocuments(prev => {
         const newMap = new Map(prev);
         newMap.set(type, pending);
         return newMap;
       });
-      
+
       toast.success(`${label} ready to upload (will be saved when you create the property)`);
       return;
     }
@@ -323,7 +330,7 @@ export function DocumentVault({
                       Documents ready to upload
                     </p>
                     <p className="text-xs text-blue-800">
-                      Click "Create Listing" at the bottom to save your property first. 
+                      Click "Create Listing" at the bottom to save your property first.
                       Then you can upload documents by editing the property.
                     </p>
                   </div>

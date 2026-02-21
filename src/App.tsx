@@ -89,6 +89,8 @@ import AutoPayPage from "@/pages/dashboard/landlord/AutoPay";
 import LateFeeManagementPage from "@/pages/dashboard/landlord/LateFeeManagement";
 import ListRoomPage from "@/pages/dashboard/ListRoom";
 import LeaseContractPage from "@/pages/dashboard/LeaseContract";
+import PropertyDocumentVault from "@/pages/dashboard/PropertyDocumentVault";
+
 
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect } from "react";
@@ -184,6 +186,7 @@ function AppRoutes() {
           <Route path="late-fees" element={<LateFeeManagementPage />} />
           <Route path="list-room" element={<ListRoomPage />} />
           <Route path="profile" element={<SeekerProfilePage />} />
+          <Route path="property/:id/documents" element={<PropertyDocumentVault />} />
           <Route path="user/:userId" element={<PublicProfilePage />} />
           <Route path="settings" element={<SettingsPage />} />
 
@@ -293,6 +296,7 @@ function AppRoutes() {
         <Route path="late-fees" element={<LateFeeManagementPage />} />
         <Route path="list-room" element={<ListRoomPage />} />
         <Route path="profile" element={<SeekerProfilePage />} />
+        <Route path="property/:id/documents" element={<PropertyDocumentVault />} />
         <Route path="user/:userId" element={<PublicProfilePage />} />
         <Route path="settings" element={<SettingsPage />} />
 

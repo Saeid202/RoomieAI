@@ -11,6 +11,76 @@ import type { PropertyDocument, DocumentAccessRequest, PropertyDocumentType } fr
 const STORAGE_BUCKET = 'property-documents';
 
 /**
+ * Ensure the storage bucket exists and is public
+ */
+export async function ensureBucketExists(): Promise<void> {
+  try {
+    console.log(`🔍 Checking bucket ${STORAGE_BUCKET}...`);
+    const { data: buckets, error: listError } = await supabase.storage.listBuckets();
+    
+    if (listError) {
+      console.error(`❌ Failed to list buckets:`, listError);
+      throw listError;
+    }
+
+    const bucket = buckets?.find(b => b.id === STORAGE_BUCKET);
+
+    if (!bucket) {
+      console.log(`⚠️ ${STORAGE_BUCKET} bucket missing, attempting to create...`);
+      const { data, error } = await supabase.storage.createBucket(STORAGE_BUCKET, {
+        public: true,
+        fileSizeLimit: 10485760, // 10MB
+        allowedMimeTypes: [
+          'image/png',
+          'image/jpeg',
+          'application/pdf',
+          'application/msword',
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        ]
+      });
+
+      if (error) {
+        console.error(`❌ Failed to create bucket ${STORAGE_BUCKET}:`, error);
+        console.log(`💡 Please create the bucket manually in Supabase Dashboard`);
+        throw error;
+      } else {
+        console.log(`✅ Bucket ${STORAGE_BUCKET} created successfully as PUBLIC`);
+      }
+    } else if (!bucket.public) {
+      console.log(`⚠️ ${STORAGE_BUCKET} bucket exists but is PRIVATE (public: ${bucket.public})`);
+      console.log(`🔄 Attempting to make bucket PUBLIC...`);
+      
+      const { data, error } = await supabase.storage.updateBucket(STORAGE_BUCKET, {
+        public: true
+      });
+
+      if (error) {
+        console.error(`❌ Failed to update bucket privacy for ${STORAGE_BUCKET}:`, error);
+        console.log(`💡 MANUAL FIX REQUIRED:`);
+        console.log(`   1. Go to Supabase Dashboard > Storage > Buckets`);
+        console.log(`   2. Click ⋮ next to '${STORAGE_BUCKET}'`);
+        console.log(`   3. Click 'Edit bucket'`);
+        console.log(`   4. Toggle 'Public bucket' to ON`);
+        console.log(`   5. Click 'Save'`);
+        // Don't throw - allow upload to continue, user can fix bucket later
+      } else {
+        console.log(`✅ Bucket ${STORAGE_BUCKET} updated to PUBLIC successfully!`);
+        
+        // Verify the update worked
+        const { data: updatedBuckets } = await supabase.storage.listBuckets();
+        const updatedBucket = updatedBuckets?.find(b => b.id === STORAGE_BUCKET);
+        console.log(`📊 Verification - Bucket is now public: ${updatedBucket?.public}`);
+      }
+    } else {
+      console.log(`✅ Bucket ${STORAGE_BUCKET} exists and is PUBLIC`);
+    }
+  } catch (error) {
+    console.error(`❌ Error checking/updating bucket ${STORAGE_BUCKET}:`, error);
+    // Don't throw - allow the upload to attempt anyway
+  }
+}
+
+/**
  * Upload a property document
  */
 export async function uploadPropertyDocument(
@@ -21,14 +91,27 @@ export async function uploadPropertyDocument(
   isPublic: boolean = false
 ): Promise<PropertyDocument> {
   try {
+    console.log("🔵 Starting document upload...", { propertyId, documentType, documentLabel, fileName: file.name, fileSize: file.size });
+    
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error("User not authenticated");
+    if (!user) {
+      console.error("❌ User not authenticated");
+      throw new Error("User not authenticated");
+    }
+    console.log("✅ User authenticated:", user.id);
+
+    // Ensure bucket exists before uploading
+    console.log("🔵 Checking if bucket exists...");
+    await ensureBucketExists();
+    console.log("✅ Bucket check complete");
 
     // Generate unique file path
     const fileExt = file.name.split('.').pop();
     const fileName = `${propertyId}/${documentType}_${Date.now()}.${fileExt}`;
+    console.log("🔵 Generated file path:", fileName);
 
     // Upload file to storage
+    console.log("🔵 Uploading to storage bucket:", STORAGE_BUCKET);
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from(STORAGE_BUCKET)
       .upload(fileName, file, {
@@ -36,35 +119,48 @@ export async function uploadPropertyDocument(
         upsert: false
       });
 
-    if (uploadError) throw uploadError;
+    if (uploadError) {
+      console.error("❌ Storage upload error:", uploadError);
+      throw uploadError;
+    }
+    console.log("✅ File uploaded to storage:", uploadData);
 
     // Get public URL
     const { data: { publicUrl } } = supabase.storage
       .from(STORAGE_BUCKET)
       .getPublicUrl(fileName);
+    console.log("✅ Public URL generated:", publicUrl);
 
     // Create document record
+    console.log("🔵 Creating database record...");
+    const documentData = {
+      property_id: propertyId,
+      document_type: documentType,
+      document_label: documentLabel,
+      file_url: publicUrl,
+      file_name: file.name,
+      file_size: file.size,
+      mime_type: file.type,
+      is_public: isPublic,
+      uploaded_by: user.id,
+    };
+    console.log("🔵 Document data:", documentData);
+
     const { data, error } = await supabase
       .from('property_documents')
-      .insert({
-        property_id: propertyId,
-        document_type: documentType,
-        document_label: documentLabel,
-        file_url: publicUrl,
-        file_name: file.name,
-        file_size: file.size,
-        mime_type: file.type,
-        is_public: isPublic,
-        uploaded_by: user.id,
-      })
+      .insert(documentData)
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error("❌ Database insert error:", error);
+      throw error;
+    }
+    console.log("✅ Document record created:", data);
 
     return data as PropertyDocument;
   } catch (error) {
-    console.error('Error uploading property document:', error);
+    console.error('❌ Error uploading property document:', error);
     throw error;
   }
 }
@@ -77,7 +173,7 @@ export async function getPropertyDocuments(
 ): Promise<PropertyDocument[]> {
   try {
     console.log('🔍 getPropertyDocuments called with propertyId:', propertyId);
-    
+
     const { data, error } = await supabase
       .from('property_documents')
       .select('*')

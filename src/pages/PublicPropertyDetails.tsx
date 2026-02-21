@@ -4,16 +4,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { 
-  MapPin, 
-  Bed, 
-  Bath, 
-  Square, 
-  Calendar, 
-  Home, 
-  Car, 
-  PawPrint, 
-  Wifi, 
+import {
+  MapPin,
+  Bed,
+  Bath,
+  Square,
+  Calendar,
+  Home,
+  Car,
+  PawPrint,
+  Wifi,
   Zap,
   DollarSign,
   User,
@@ -23,7 +23,7 @@ import {
 } from "lucide-react";
 import { fetchPublicPropertyById, PublicProperty } from "@/services/publicPropertyService";
 import { useAuth } from "@/hooks/useAuth";
-import { PropertyDocumentViewer } from "@/components/property/PropertyDocumentViewer";
+import { PropertyDocumentViewer } from "@/components/property/PropertyDocumentViewerSimplified";
 
 export default function PublicPropertyDetailsPage() {
   const { id } = useParams<{ id: string }>();
@@ -238,7 +238,7 @@ export default function PublicPropertyDetailsPage() {
             </Card>
 
             {/* Property Documents */}
-            {(property.listing_type === 'sale' || property.listing_type === 'sales') && (
+            {property.listing_type === 'sales' && (
               <PropertyDocumentViewer
                 propertyId={property.id}
                 propertyAddress={`${property.address}, ${property.city}, ${property.state}`}
@@ -270,13 +270,13 @@ export default function PublicPropertyDetailsPage() {
                   )}
                 </div>
                 <p className="text-gray-600">
-                  {property.listing_type === 'rental' 
+                  {property.listing_type === 'rental'
                     ? 'Ready to apply for this rental property?'
                     : 'Interested in this property? Get in touch with the owner.'
                   }
                 </p>
-                
-                <Button 
+
+                <Button
                   onClick={handleContactOwner}
                   className="w-full"
                   size="lg"
