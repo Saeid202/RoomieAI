@@ -1,14 +1,19 @@
 -- Add missing storage policies for property-documents bucket
 
+-- Drop policies if they exist first
+DROP POLICY IF EXISTS "Public can read property documents" ON storage.objects;
+DROP POLICY IF EXISTS "Users can update their property documents" ON storage.objects;
+DROP POLICY IF EXISTS "Users can delete their property documents" ON storage.objects;
+
 -- Policy for SELECT (reading files) - allow public access since bucket is public
-CREATE POLICY IF NOT EXISTS "Public can read property documents"
+CREATE POLICY "Public can read property documents"
 ON storage.objects
 FOR SELECT
 TO public
 USING (bucket_id = 'property-documents');
 
 -- Policy for UPDATE (updating file metadata)
-CREATE POLICY IF NOT EXISTS "Users can update their property documents"
+CREATE POLICY "Users can update their property documents"
 ON storage.objects
 FOR UPDATE
 TO authenticated
@@ -22,7 +27,7 @@ WITH CHECK (
 );
 
 -- Policy for DELETE (deleting files)
-CREATE POLICY IF NOT EXISTS "Users can delete their property documents"
+CREATE POLICY "Users can delete their property documents"
 ON storage.objects
 FOR DELETE
 TO authenticated
