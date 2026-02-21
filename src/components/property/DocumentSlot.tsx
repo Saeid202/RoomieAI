@@ -9,6 +9,7 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
 import { 
   Upload, 
   FileText, 
@@ -24,6 +25,7 @@ import {
 import { PropertyDocument, PropertyDocumentType } from "@/types/propertyCategories";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { SecureDocumentViewer } from "./SecureDocumentViewer";
 
 // Pending document type
 interface PendingDocument {
@@ -45,6 +47,8 @@ interface DocumentSlotProps {
   onDeletePending?: () => void;
   onPrivacyToggle?: (documentId: string, isPublic: boolean) => Promise<void>;
   disabled?: boolean;
+  readOnly?: boolean; // New: Read-only mode
+  isBuyerView?: boolean; // New: Buyer-specific UI
 }
 
 export function DocumentSlot({
@@ -59,9 +63,13 @@ export function DocumentSlot({
   onDeletePending,
   onPrivacyToggle,
   disabled = false,
+  readOnly = false,
+  isBuyerView = false,
 }: DocumentSlotProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showSecureViewer, setShowSecureViewer] = useState(false);
+  const [viewerInfo, setViewerInfo] = useState<{ name: string; email: string } | null>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const hasDocument = !!document;
@@ -143,6 +151,62 @@ export function DocumentSlot({
     }
   };
 
+  const handleViewDocument = async () => {
+    if (!document) return;
+
+    if (isBuyerView) {
+      // Use secure viewer for buyers
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          toast.error("Please log in to view documents");
+          return;
+        }
+
+        // Get user profile for watermark
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("full_name, email")
+          .eq("id", user.id)
+          .single();
+
+        setViewerInfo({
+          name: profile?.full_name || user.email || "Unknown User",
+          email: profile?.email || user.email || "unknown@email.com",
+        });
+
+        setShowSecureViewer(true);
+      } catch (error) {
+        console.error("Error opening secure viewer:", error);
+        toast.error("Failed to open document");
+      }
+    } else {
+      // Regular view for property owners
+      try {
+        const urlParts = document.file_url.split('/storage/v1/object/public/');
+        if (urlParts.length > 1) {
+          const pathParts = urlParts[1].split('/');
+          const filePath = pathParts.slice(1).join('/');
+          
+          const { data } = supabase.storage
+            .from('property-documents')
+            .getPublicUrl(filePath);
+          
+          if (data?.publicUrl) {
+            window.open(data.publicUrl, '_blank');
+          } else {
+            window.open(document.file_url, '_blank');
+          }
+        } else {
+          window.open(document.file_url, '_blank');
+        }
+      } catch (error) {
+        console.error('Error opening document:', error);
+        window.open(document.file_url, '_blank');
+      }
+    }
+  };
+
   const getFileIcon = () => {
     if (!document) return <File className="h-6 w-6 text-slate-300" />;
 
@@ -211,85 +275,73 @@ export function DocumentSlot({
               </div>
             </div>
 
-            {/* Privacy Toggle */}
-            <div className="flex items-center justify-between p-2 bg-slate-50 rounded-lg border border-slate-200">
-              <div className="flex items-center gap-1.5">
-                {document.is_public ? (
-                  <Eye className="h-3 w-3 text-green-600" />
-                ) : (
-                  <EyeOff className="h-3 w-3 text-slate-400" />
-                )}
-                <div>
-                  <Label className="text-[10px] font-semibold text-slate-900">
-                    {document.is_public ? 'Public' : 'Private'}
-                  </Label>
-                  <p className="text-[9px] text-slate-500">
-                    {document.is_public 
-                      ? 'Buyers can download' 
-                      : 'Request access'}
-                  </p>
-                </div>
+            {/* Privacy Toggle or Approved Access Badge */}
+            {isBuyerView ? (
+              <div className="flex items-center justify-center p-2 bg-green-50 rounded-lg border border-green-200">
+                <Badge className="bg-green-600 hover:bg-green-600 text-white text-[10px] font-semibold">
+                  Approved Access
+                </Badge>
               </div>
-              <Switch
-                checked={document.is_public}
-                onCheckedChange={handlePrivacyToggle}
-                disabled={disabled}
-                className="scale-75"
-              />
-            </div>
+            ) : (
+              <div className="flex items-center justify-between p-2 bg-slate-50 rounded-lg border border-slate-200">
+                <div className="flex items-center gap-1.5">
+                  {document.is_public ? (
+                    <Eye className="h-3 w-3 text-green-600" />
+                  ) : (
+                    <EyeOff className="h-3 w-3 text-slate-400" />
+                  )}
+                  <div>
+                    <Label className="text-[10px] font-semibold text-slate-900">
+                      {document.is_public ? 'Public' : 'Private'}
+                    </Label>
+                    <p className="text-[9px] text-slate-500">
+                      {document.is_public 
+                        ? 'Buyers can download' 
+                        : 'Request access'}
+                    </p>
+                  </div>
+                </div>
+                <Switch
+                  checked={document.is_public}
+                  onCheckedChange={handlePrivacyToggle}
+                  disabled={disabled}
+                  className="scale-75"
+                />
+              </div>
+            )}
 
             {/* Actions */}
-            <div className="flex gap-1.5">
+            {isBuyerView ? (
               <Button
                 variant="outline"
                 size="sm"
-                className="flex-1 text-[10px] h-7"
-                onClick={async () => {
-                  try {
-                    // Extract the file path from the URL
-                    const urlParts = document.file_url.split('/storage/v1/object/public/');
-                    if (urlParts.length > 1) {
-                      const pathParts = urlParts[1].split('/');
-                      const bucketName = pathParts[0];
-                      const filePath = pathParts.slice(1).join('/');
-                      
-                      console.log('📄 Opening document:', { bucketName, filePath });
-                      
-                      // Try to get a fresh signed URL with correct bucket name
-                      const { data } = supabase.storage
-                        .from('property-documents') // Use hyphen, not underscore
-                        .getPublicUrl(filePath);
-                      
-                      if (data?.publicUrl) {
-                        window.open(data.publicUrl, '_blank');
-                      } else {
-                        // Fallback to original URL
-                        window.open(document.file_url, '_blank');
-                      }
-                    } else {
-                      // Fallback to original URL
-                      window.open(document.file_url, '_blank');
-                    }
-                  } catch (error) {
-                    console.error('Error opening document:', error);
-                    // Fallback to original URL
-                    window.open(document.file_url, '_blank');
-                  }
-                }}
+                className="w-full text-xs h-9 font-semibold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white hover:opacity-90 border-0"
+                onClick={handleViewDocument}
               >
-                <Download className="h-3 w-3 mr-1" />
-                View
+                View Document
               </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="text-[10px] h-7 text-red-600 hover:text-red-700 hover:bg-red-50"
-                onClick={handleDelete}
-                disabled={isDeleting || disabled}
-              >
-                <Trash2 className="h-3 w-3" />
-              </Button>
-            </div>
+            ) : (
+              <div className="flex gap-1.5">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1 text-[10px] h-7"
+                  onClick={handleViewDocument}
+                >
+                  <Download className="h-3 w-3 mr-1" />
+                  View
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-[10px] h-7 text-red-600 hover:text-red-700 hover:bg-red-50"
+                  onClick={handleDelete}
+                  disabled={isDeleting || disabled}
+                >
+                  <Trash2 className="h-3 w-3" />
+                </Button>
+              </div>
+            )}
           </div>
         ) : hasPending ? (
           <div className="space-y-2">
@@ -354,6 +406,20 @@ export function DocumentSlot({
           </div>
         )}
       </div>
+
+      {/* Secure Document Viewer Modal */}
+      {isBuyerView && showSecureViewer && document && viewerInfo && (
+        <SecureDocumentViewer
+          isOpen={showSecureViewer}
+          onClose={() => setShowSecureViewer(false)}
+          documentUrl={document.file_url}
+          documentName={document.file_name}
+          documentId={document.id}
+          propertyId={document.property_id}
+          viewerName={viewerInfo.name}
+          viewerEmail={viewerInfo.email}
+        />
+      )}
     </div>
   );
 }
