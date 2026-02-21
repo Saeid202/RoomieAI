@@ -26,6 +26,7 @@ import { PropertyDocument, PropertyDocumentType } from "@/types/propertyCategori
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { SecureDocumentViewer } from "./SecureDocumentViewer";
+import { DocumentProcessingBadge } from "./DocumentProcessingBadge";
 
 // Pending document type
 interface PendingDocument {
@@ -283,31 +284,42 @@ export function DocumentSlot({
                 </Badge>
               </div>
             ) : (
-              <div className="flex items-center justify-between p-2 bg-slate-50 rounded-lg border border-slate-200">
-                <div className="flex items-center gap-1.5">
-                  {document.is_public ? (
-                    <Eye className="h-3 w-3 text-green-600" />
-                  ) : (
-                    <EyeOff className="h-3 w-3 text-slate-400" />
-                  )}
-                  <div>
-                    <Label className="text-[10px] font-semibold text-slate-900">
-                      {document.is_public ? 'Public' : 'Private'}
-                    </Label>
-                    <p className="text-[9px] text-slate-500">
-                      {document.is_public 
-                        ? 'Buyers can download' 
-                        : 'Request access'}
-                    </p>
+              <>
+                <div className="flex items-center justify-between p-2 bg-slate-50 rounded-lg border border-slate-200">
+                  <div className="flex items-center gap-1.5">
+                    {document.is_public ? (
+                      <Eye className="h-3 w-3 text-green-600" />
+                    ) : (
+                      <EyeOff className="h-3 w-3 text-slate-400" />
+                    )}
+                    <div>
+                      <Label className="text-[10px] font-semibold text-slate-900">
+                        {document.is_public ? 'Public' : 'Private'}
+                      </Label>
+                      <p className="text-[9px] text-slate-500">
+                        {document.is_public 
+                          ? 'Buyers can download' 
+                          : 'Request access'}
+                      </p>
+                    </div>
                   </div>
+                  <Switch
+                    checked={document.is_public}
+                    onCheckedChange={handlePrivacyToggle}
+                    disabled={disabled}
+                    className="scale-75"
+                  />
                 </div>
-                <Switch
-                  checked={document.is_public}
-                  onCheckedChange={handlePrivacyToggle}
-                  disabled={disabled}
-                  className="scale-75"
+                
+                {/* AI Processing Status */}
+                <DocumentProcessingBadge
+                  documentId={document.id}
+                  propertyId={document.property_id}
+                  documentUrl={document.file_url}
+                  documentType={type}
+                  compact
                 />
-              </div>
+              </>
             )}
 
             {/* Actions */}

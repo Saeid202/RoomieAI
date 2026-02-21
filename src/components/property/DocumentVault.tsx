@@ -11,6 +11,8 @@ import { Button } from "@/components/ui/button";
 import { FolderOpen, Info, Sparkles, ChevronDown, ChevronUp } from "lucide-react";
 import { ListingStrengthMeter } from "./ListingStrengthMeter";
 import { DocumentSlot } from "./DocumentSlot";
+import { AIReadinessIndicator } from "./AIReadinessIndicator";
+import { AIPropertyChat } from "./AIPropertyChat";
 import {
   PropertyCategory,
   PropertyDocument,
@@ -57,6 +59,7 @@ export function DocumentVault({
   const [loading, setLoading] = useState(false);
   const [listingStrength, setListingStrength] = useState(0);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [showAIChat, setShowAIChat] = useState(false);
 
   // Get relevant document slots based on category
   const documentSlots = getDocumentSlotsForCategory(propertyCategory);
@@ -268,6 +271,15 @@ export function DocumentVault({
             {/* Listing Strength Meter - Hide for buyers */}
             {!isBuyerView && <ListingStrengthMeter score={listingStrength} />}
 
+            {/* AI Readiness Indicator - Show for buyers */}
+            {isBuyerView && propertyId && (
+              <AIReadinessIndicator
+                propertyId={propertyId}
+                onOpenChat={() => setShowAIChat(true)}
+                variant="full"
+              />
+            )}
+
             {/* Buyer-Centric Categories */}
             {isBuyerView ? (
               <>
@@ -478,6 +490,15 @@ export function DocumentVault({
           </CardContent>
         )}
       </Card>
+
+      {/* AI Chat Modal */}
+      {isBuyerView && propertyId && (
+        <AIPropertyChat
+          propertyId={propertyId}
+          isOpen={showAIChat}
+          onClose={() => setShowAIChat(false)}
+        />
+      )}
     </div>
   );
 }
