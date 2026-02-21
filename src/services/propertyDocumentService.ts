@@ -93,12 +93,28 @@ export async function uploadPropertyDocument(
   try {
     console.log("🔵 Starting document upload...", { propertyId, documentType, documentLabel, fileName: file.name, fileSize: file.size });
     
-    const { data: { user } } = await supabase.auth.getUser();
+    // Check authentication
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError) {
+      console.error("❌ Auth error:", authError);
+      throw new Error(`Authentication error: ${authError.message}`);
+    }
     if (!user) {
       console.error("❌ User not authenticated");
-      throw new Error("User not authenticated");
+      throw new Error("User not authenticated. Please log in and try again.");
     }
     console.log("✅ User authenticated:", user.id);
+    
+    // Check session
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError) {
+      console.error("❌ Session error:", sessionError);
+    }
+    if (!session) {
+      console.error("❌ No active session");
+      throw new Error("No active session. Please log in again.");
+    }
+    console.log("✅ Active session found");
 
     // Ensure bucket exists before uploading
     console.log("🔵 Checking if bucket exists...");
