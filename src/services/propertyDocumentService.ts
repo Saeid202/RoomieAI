@@ -7,8 +7,28 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import type { PropertyDocument, DocumentAccessRequest, PropertyDocumentType } from "@/types/propertyCategories";
+import { processDocumentForAI } from "./aiPropertyAssistantService";
 
 const STORAGE_BUCKET = 'property-documents';
+
+/**
+ * Trigger AI processing for a document (non-blocking)
+ */
+async function triggerAIProcessing(
+  documentId: string,
+  propertyId: string,
+  documentUrl: string,
+  documentType: string
+): Promise<void> {
+  try {
+    console.log("🤖 Triggering AI processing for document:", documentId);
+    await processDocumentForAI(documentId, propertyId, documentUrl, documentType);
+    console.log("✅ AI processing triggered successfully");
+  } catch (error) {
+    console.error("❌ AI processing trigger failed:", error);
+    throw error;
+  }
+}
 
 /**
  * Ensure the storage bucket exists and is public
@@ -173,6 +193,12 @@ export async function uploadPropertyDocument(
       throw error;
     }
     console.log("✅ Document record created:", data);
+
+    // Trigger AI processing in background (don't wait for completion)
+    triggerAIProcessing(data.id, propertyId, publicUrl, documentType).catch((error) => {
+      console.error("⚠️ Failed to trigger AI processing (non-blocking):", error);
+      // Don't throw - document upload succeeded, AI processing can be retried later
+    });
 
     return data as PropertyDocument;
   } catch (error) {
