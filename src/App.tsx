@@ -90,6 +90,7 @@ import LateFeeManagementPage from "@/pages/dashboard/landlord/LateFeeManagement"
 import ListRoomPage from "@/pages/dashboard/ListRoom";
 import LeaseContractPage from "@/pages/dashboard/LeaseContract";
 import PropertyDocumentVault from "@/pages/dashboard/PropertyDocumentVault";
+import TenantPaymentsPage from "@/pages/dashboard/tenant/TenantPayments";
 
 
 import { useAuth } from "@/hooks/useAuth";
@@ -181,7 +182,7 @@ function AppRoutes() {
           <Route path="tax-intelligence" element={<ErrorBoundary componentName="TaxIntelligencePage"><TaxIntelligencePage /></ErrorBoundary>} />
           <Route path="cleaners" element={<CleanersPage />} />
           <Route path="shop" element={<ShopPage />} />
-          <Route path="digital-wallet" element={<LandlordPaymentsPage />} />
+          <Route path="digital-wallet" element={<TenantPaymentsPage />} />
           <Route path="autopay" element={<AutoPayPage />} />
           <Route path="late-fees" element={<LateFeeManagementPage />} />
           <Route path="list-room" element={<ListRoomPage />} />
@@ -291,7 +292,7 @@ function AppRoutes() {
         <Route path="tax-intelligence" element={<ErrorBoundary componentName="TaxIntelligencePage"><TaxIntelligencePage /></ErrorBoundary>} />
         <Route path="cleaners" element={<CleanersPage />} />
         <Route path="shop" element={<ShopPage />} />
-        <Route path="digital-wallet" element={<LandlordPaymentsPage />} />
+        <Route path="digital-wallet" element={<TenantPaymentsPage />} />
         <Route path="autopay" element={<AutoPayPage />} />
         <Route path="late-fees" element={<LateFeeManagementPage />} />
         <Route path="list-room" element={<ListRoomPage />} />
