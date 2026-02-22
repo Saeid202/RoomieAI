@@ -13,6 +13,7 @@ import { ListingStrengthMeter } from "./ListingStrengthMeter";
 import { DocumentSlot } from "./DocumentSlot";
 import { AIReadinessIndicator } from "./AIReadinessIndicator";
 import { AIPropertyChat } from "./AIPropertyChat";
+import { FloatingAIButton } from "./FloatingAIButton";
 import {
   PropertyCategory,
   PropertyDocument,
@@ -25,7 +26,6 @@ import {
   getPropertyDocuments,
   deletePropertyDocument,
   updateDocumentPrivacy,
-  ensureBucketExists,
 } from "@/services/propertyDocumentService";
 import { toast } from "sonner";
 
@@ -68,14 +68,9 @@ export function DocumentVault({
 
   // Load documents when property ID is available
   useEffect(() => {
-    const initVault = async () => {
-      if (propertyId) {
-        // Ensure bucket exists when vault is opened
-        await ensureBucketExists();
-        await loadDocuments();
-      }
-    };
-    initVault();
+    if (propertyId) {
+      loadDocuments();
+    }
   }, [propertyId]);
 
   // Calculate listing strength when documents change
@@ -490,6 +485,14 @@ export function DocumentVault({
           </CardContent>
         )}
       </Card>
+
+      {/* Floating AI Button - Only for buyers */}
+      {isBuyerView && propertyId && (
+        <FloatingAIButton
+          propertyId={propertyId}
+          onOpenChat={() => setShowAIChat(true)}
+        />
+      )}
 
       {/* AI Chat Modal */}
       {isBuyerView && propertyId && (

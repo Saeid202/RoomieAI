@@ -156,7 +156,7 @@ export const PropertyVideoPlayer: React.FC<PropertyVideoPlayerProps> = ({
             <div className="absolute inset-0 overflow-hidden">
                 {images.map((img, index) => (
                     <div
-                        key={img}
+                        key={`slide-${index}`}
                         className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${index === currentImageIndex ? 'opacity-100' : 'opacity-0'}`}
                     >
                         <img

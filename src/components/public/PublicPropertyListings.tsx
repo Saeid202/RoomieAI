@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Building, MapPin, DollarSign, Pencil, Eye, Trash2, Image as ImageIcon, AlertTriangle, Home, User, Square, Bed, Bath, Car, Search, Filter, Calendar } from "lucide-react";
 import { fetchPublicProperties, PublicProperty, PublicPropertyFilters } from "@/services/publicPropertyService";
 import { Link } from "react-router-dom";
+import { AIPropertyBadge } from "@/components/property/AIPropertyBadge";
 
 interface PublicPropertyListingsProps {
   limit?: number;
@@ -163,6 +164,9 @@ export function PublicPropertyListings({ limit = 6, showFilters = true, showSear
                 <Badge variant={property.listing_type === 'rental' ? 'default' : 'secondary'}>
                   {property.listing_type === 'rental' ? 'For Rent' : 'For Sale'}
                 </Badge>
+              </div>
+              <div className="absolute top-2 right-2">
+                <AIPropertyBadge propertyId={property.id} variant="compact" />
               </div>
             </div>
 

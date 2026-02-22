@@ -23,6 +23,7 @@ export const Sidebar = React.forwardRef<
     side?: "left" | "right";
     variant?: "sidebar" | "floating" | "inset";
     collapsible?: "offcanvas" | "icon" | "none";
+    defaultOpen?: boolean; // Accept but don't pass to DOM
   }
 >(
   (
@@ -32,6 +33,7 @@ export const Sidebar = React.forwardRef<
       collapsible = "offcanvas",
       className,
       children,
+      defaultOpen, // Extract to prevent passing to DOM
       ...props
     },
     ref
@@ -55,7 +57,7 @@ export const Sidebar = React.forwardRef<
 
     if (isMobile) {
       return (
-        <Sheet open={openMobile} onOpenChange={setOpenMobile} {...props}>
+        <Sheet open={openMobile} onOpenChange={setOpenMobile}>
           <SheetContent
             data-sidebar="sidebar"
             data-mobile="true"

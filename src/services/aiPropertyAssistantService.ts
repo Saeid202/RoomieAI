@@ -30,7 +30,7 @@ export async function processDocumentForAI(
     console.log("🔵 Processing document for AI:", { documentId, documentType });
 
     const { data, error } = await supabase.functions.invoke(
-      "process-property-document",
+      "process-property-document-simple",
       {
         body: {
           documentId,
@@ -42,14 +42,20 @@ export async function processDocumentForAI(
     );
 
     if (error) {
-      console.error("❌ Error processing document:", error);
+      console.error("❌ Edge Function Error Status:", error.status);
+      try {
+        const errorBody = await error.context.json();
+        console.error("❌ Edge Function Error Detail:", errorBody);
+      } catch (e) {
+        console.error("❌ Could not parse error body as JSON");
+      }
       throw error;
     }
 
     console.log("✅ Document processed:", data);
     return data as ProcessDocumentResponse;
-  } catch (error) {
-    console.error("❌ Failed to process document:", error);
+  } catch (error: any) {
+    console.error("❌ Failed to process document:", error.message || error);
     throw error;
   }
 }
@@ -220,7 +226,7 @@ export async function checkPropertyAIReadiness(
     // Get all documents for property
     const { data: documents, error: docsError } = await supabase
       .from("property_documents")
-      .select("id")
+      .select("id, file_url, document_type")
       .eq("property_id", propertyId)
       .is("deleted_at", null);
 
@@ -242,12 +248,22 @@ export async function checkPropertyAIReadiness(
     // Get processing statuses
     const statuses = await getPropertyProcessingStatuses(propertyId);
 
+    // DISABLED: Auto-trigger processing is causing issues with broken Edge Function
+    // Documents should be processed manually or via a working Edge Function
+    // Identify documents that haven't even started processing (missing status record)
+    const processedDocIds = new Set(statuses.map(s => s.document_id));
+    const unprocessedDocs = documents.filter(doc => !processedDocIds.has(doc.id));
+
+    if (unprocessedDocs.length > 0) {
+      console.log(`⚠️ Found ${unprocessedDocs.length} unprocessed documents (auto-trigger disabled)`);
+    }
+
     const processedDocuments = statuses.filter(
       (s) => s.status === "completed"
     ).length;
     const pendingDocuments = statuses.filter(
       (s) => s.status === "pending"
-    ).length;
+    ).length + unprocessedDocs.length; // Count untriggered ones as pending
     const failedDocuments = statuses.filter(
       (s) => s.status === "failed"
     ).length;

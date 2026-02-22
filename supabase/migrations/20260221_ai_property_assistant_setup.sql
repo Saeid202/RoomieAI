@@ -27,8 +27,8 @@ CREATE TABLE IF NOT EXISTS property_document_embeddings (
   content TEXT NOT NULL,
   chunk_index INTEGER NOT NULL, -- Order of chunk in document
   
-  -- Vector embedding (1536 dimensions for OpenAI text-embedding-3-small)
-  embedding vector(1536) NOT NULL,
+  -- Vector embedding (768 dimensions for Gemini gemini-embedding-001)
+  embedding vector(768) NOT NULL,
   
   -- Metadata for citation
   page_number INTEGER,
@@ -217,7 +217,7 @@ CREATE POLICY "Property owners can view processing status"
 -- Function to search similar document chunks
 CREATE OR REPLACE FUNCTION search_property_documents(
   p_property_id UUID,
-  p_query_embedding vector(1536),
+  p_query_embedding vector(768),
   p_match_threshold FLOAT DEFAULT 0.7,
   p_match_count INTEGER DEFAULT 5
 )

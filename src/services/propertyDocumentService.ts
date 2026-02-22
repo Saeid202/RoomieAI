@@ -31,74 +31,9 @@ async function triggerAIProcessing(
 }
 
 /**
- * Ensure the storage bucket exists and is public
+ * Note: The property-documents bucket is created via database migration.
+ * No need to check/create it from client code.
  */
-export async function ensureBucketExists(): Promise<void> {
-  try {
-    console.log(`🔍 Checking bucket ${STORAGE_BUCKET}...`);
-    const { data: buckets, error: listError } = await supabase.storage.listBuckets();
-    
-    if (listError) {
-      console.error(`❌ Failed to list buckets:`, listError);
-      throw listError;
-    }
-
-    const bucket = buckets?.find(b => b.id === STORAGE_BUCKET);
-
-    if (!bucket) {
-      console.log(`⚠️ ${STORAGE_BUCKET} bucket missing, attempting to create...`);
-      const { data, error } = await supabase.storage.createBucket(STORAGE_BUCKET, {
-        public: true,
-        fileSizeLimit: 10485760, // 10MB
-        allowedMimeTypes: [
-          'image/png',
-          'image/jpeg',
-          'application/pdf',
-          'application/msword',
-          'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-        ]
-      });
-
-      if (error) {
-        console.error(`❌ Failed to create bucket ${STORAGE_BUCKET}:`, error);
-        console.log(`💡 Please create the bucket manually in Supabase Dashboard`);
-        throw error;
-      } else {
-        console.log(`✅ Bucket ${STORAGE_BUCKET} created successfully as PUBLIC`);
-      }
-    } else if (!bucket.public) {
-      console.log(`⚠️ ${STORAGE_BUCKET} bucket exists but is PRIVATE (public: ${bucket.public})`);
-      console.log(`🔄 Attempting to make bucket PUBLIC...`);
-      
-      const { data, error } = await supabase.storage.updateBucket(STORAGE_BUCKET, {
-        public: true
-      });
-
-      if (error) {
-        console.error(`❌ Failed to update bucket privacy for ${STORAGE_BUCKET}:`, error);
-        console.log(`💡 MANUAL FIX REQUIRED:`);
-        console.log(`   1. Go to Supabase Dashboard > Storage > Buckets`);
-        console.log(`   2. Click ⋮ next to '${STORAGE_BUCKET}'`);
-        console.log(`   3. Click 'Edit bucket'`);
-        console.log(`   4. Toggle 'Public bucket' to ON`);
-        console.log(`   5. Click 'Save'`);
-        // Don't throw - allow upload to continue, user can fix bucket later
-      } else {
-        console.log(`✅ Bucket ${STORAGE_BUCKET} updated to PUBLIC successfully!`);
-        
-        // Verify the update worked
-        const { data: updatedBuckets } = await supabase.storage.listBuckets();
-        const updatedBucket = updatedBuckets?.find(b => b.id === STORAGE_BUCKET);
-        console.log(`📊 Verification - Bucket is now public: ${updatedBucket?.public}`);
-      }
-    } else {
-      console.log(`✅ Bucket ${STORAGE_BUCKET} exists and is PUBLIC`);
-    }
-  } catch (error) {
-    console.error(`❌ Error checking/updating bucket ${STORAGE_BUCKET}:`, error);
-    // Don't throw - allow the upload to attempt anyway
-  }
-}
 
 /**
  * Upload a property document
@@ -135,11 +70,6 @@ export async function uploadPropertyDocument(
       throw new Error("No active session. Please log in again.");
     }
     console.log("✅ Active session found");
-
-    // Ensure bucket exists before uploading
-    console.log("🔵 Checking if bucket exists...");
-    await ensureBucketExists();
-    console.log("✅ Bucket check complete");
 
     // Generate unique file path
     const fileExt = file.name.split('.').pop();

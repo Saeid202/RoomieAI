@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { fetchPropertyById, Property, updateProperty, fetchSalesListingById, SalesListing, fetchInvestorOffers, submitInvestorOffer, InvestorOffer, deleteInvestorOffer, updateInvestorOffer } from "@/services/propertyService";
+import { fetchPropertyById, Property, updateProperty, fetchInvestorOffers, submitInvestorOffer, InvestorOffer, deleteInvestorOffer, updateInvestorOffer } from "@/services/propertyService";
 import { useRole } from "@/contexts/RoleContext";
 import { Calendar, DollarSign, MapPin, Volume2, Play, Square, Box, ChevronLeft, ChevronRight, User, Users, Pencil, Trash2, Check, X, MessageSquare, Reply, Zap } from "lucide-react";
 import { PropertyVideoPlayer } from "@/components/property/PropertyVideoPlayer";
@@ -78,56 +78,22 @@ export default function PropertyDetailsPage() {
     let mounted = true;
     const load = async () => {
       try {
-        const params = new URLSearchParams(window.location.search);
-        const type = params.get('type');
-
-        console.log("🔍 Loading listing data for id:", id, "type:", type);
+        console.log("🔍 Loading property data for id:", id);
         if (!id) {
           console.error("❌ Missing property id");
           throw new Error("Missing property id");
         }
 
-        let data;
-        let isSalesListing = false;
-
-        if (type === 'sale') {
-          // If explicitly type=sale, fetch from sales_listings first
-          console.log("📦 Fetching from sales_listings (type=sale)...");
-          try {
-            data = await fetchSalesListingById(id);
-            isSalesListing = true;
-            console.log("✅ Found in sales_listings");
-          } catch (err) {
-            // Fallback to properties table if not found in sales_listings
-            console.log("⚠️ Not found in sales_listings, trying properties table...");
-            data = await fetchPropertyById(id);
-            console.log("✅ Found in properties table");
-          }
-        } else {
-          // Default: try properties first, then fallback to sales_listings
-          console.log("📦 Fetching from properties table (default)...");
-          try {
-            data = await fetchPropertyById(id);
-            console.log("✅ Found in properties table");
-          } catch (propError: any) {
-            console.log("⚠️ Not found in properties, trying sales_listings table...");
-            try {
-              data = await fetchSalesListingById(id);
-              isSalesListing = true;
-              console.log("✅ Found in sales_listings");
-            } catch {
-              // Re-throw the original properties error if both fail
-              console.error("❌ Not found in either table");
-              throw propError;
-            }
-          }
-        }
-
-        console.log("✅ Listing data loaded:", data, "isSalesListing:", isSalesListing);
+        // All properties (rental, sale, co-ownership) are in properties table
+        console.log("📦 Fetching from properties table...");
+        const data = await fetchPropertyById(id);
+        console.log("✅ Property data loaded:", data);
+        
         if (mounted) setProperty(data as any);
 
-        // Load investor signals for sales listings
-        if (isSalesListing && id) {
+        // Load investor offers for sale/co-ownership properties
+        const isSaleProperty = data.listing_category === 'sale' || data.listing_category === 'co-ownership';
+        if (isSaleProperty && id) {
           console.log("📊 Loading investor offers...");
           const offersData = await fetchInvestorOffers(id);
           if (mounted) setOffers(offersData);

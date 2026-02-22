@@ -42,16 +42,16 @@ serve(async (req) => {
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const openaiApiKey = Deno.env.get("OPENAI_API_KEY");
+    const geminiApiKey = Deno.env.get("GEMINI_API_KEY");
 
-    if (!openaiApiKey) {
-      throw new Error("OPENAI_API_KEY not configured");
+    if (!geminiApiKey) {
+      throw new Error("GEMINI_API_KEY not configured");
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Parse request
-    const { propertyId, userId, message, conversationHistory }: AssistantRequest = 
+    const { propertyId, userId, message, conversationHistory }: AssistantRequest =
       await req.json();
 
     console.log("🤖 AI Assistant query:", { propertyId, userId, message });
@@ -73,7 +73,7 @@ serve(async (req) => {
 
     // Step 2: Generate embedding for user's question
     console.log("🧠 Generating query embedding...");
-    const queryEmbedding = await generateEmbedding(message, openaiApiKey);
+    const queryEmbedding = await generateEmbedding(message, geminiApiKey);
 
     // Step 3: Search for relevant document chunks
     console.log("🔍 Searching for relevant documents...");
@@ -111,7 +111,7 @@ serve(async (req) => {
       message,
       context,
       conversationHistory || [],
-      openaiApiKey
+      geminiApiKey
     );
 
     const responseTime = Date.now() - startTime;
@@ -127,7 +127,7 @@ serve(async (req) => {
         citations: citations,
         response_time_ms: responseTime,
         tokens_used: aiResponse.tokensUsed,
-        model_used: "gpt-4o-mini",
+        model_used: "gemini-1.5-flash-latest",
       });
 
     if (saveError) {
@@ -157,7 +157,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: false,
-        error: error.message,
+        error: (error as any).message || "Unknown error occurred",
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -212,9 +212,8 @@ function buildContext(chunks: any[]): string {
 
   return chunks
     .map((chunk, index) => {
-      const source = `[${chunk.document_category} - ${chunk.document_type}${
-        chunk.page_number ? `, Page ${chunk.page_number}` : ""
-      }]`;
+      const source = `[${chunk.document_category} - ${chunk.document_type}${chunk.page_number ? `, Page ${chunk.page_number}` : ""
+        }]`;
       return `${source}\n${chunk.content}\n`;
     })
     .join("\n---\n\n");
@@ -222,6 +221,7 @@ function buildContext(chunks: any[]): string {
 
 /**
  * Generate AI response with strict system rules
+ * Uses Google Gemini 1.5 Flash (Free tier: 15 RPM, 1M tokens/day)
  */
 async function generateAIResponse(
   userMessage: string,
@@ -252,63 +252,92 @@ ${context}
 
 If the context is empty or doesn't contain relevant information, you MUST respond with the standard "information not available" message.`;
 
-  const messages = [
-    { role: "system", content: systemPrompt },
-    ...conversationHistory.slice(-5), // Last 5 messages for context
-    { role: "user", content: userMessage },
-  ];
+  // Build conversation history for Gemini format
+  const contents = [];
 
-  const response = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "gpt-4o-mini",
-      messages,
-      temperature: 0.3, // Low temperature for factual responses
-      max_tokens: 500,
-    }),
+  // Add system instruction as first user message
+  contents.push({
+    role: "user",
+    parts: [{ text: systemPrompt }],
   });
+  contents.push({
+    role: "model",
+    parts: [{ text: "I understand. I will only provide factual information from the documents and always include citations." }],
+  });
+
+  // Add conversation history (last 5 messages)
+  conversationHistory.slice(-5).forEach((msg) => {
+    contents.push({
+      role: msg.role === "user" ? "user" : "model",
+      parts: [{ text: msg.content }],
+    });
+  });
+
+  // Add current user message
+  contents.push({
+    role: "user",
+    parts: [{ text: userMessage }],
+  });
+
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        contents,
+        generationConfig: {
+          temperature: 0.3,
+          maxOutputTokens: 500,
+        },
+      }),
+    }
+  );
 
   if (!response.ok) {
     const error = await response.text();
-    throw new Error(`OpenAI API error: ${error}`);
+    throw new Error(`Gemini API error: ${error}`);
   }
 
   const data = await response.json();
-  
+
   return {
-    content: data.choices[0].message.content,
-    tokensUsed: data.usage.total_tokens,
+    content: data.candidates[0].content.parts[0].text,
+    tokensUsed: data.usageMetadata?.totalTokenCount || 0,
   };
 }
 
 /**
- * Generate embedding using OpenAI API
+ * Generate embedding using Google Gemini API
+ * Uses text-embedding-004 model (768 dimensions)
  */
 async function generateEmbedding(
   text: string,
   apiKey: string
 ): Promise<number[]> {
-  const response = await fetch("https://api.openai.com/v1/embeddings", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "text-embedding-3-small",
-      input: text,
-    }),
-  });
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1/models/text-embedding-004:embedContent?key=${apiKey}`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "models/text-embedding-004",
+        content: {
+          parts: [{ text }],
+        },
+      }),
+    }
+  );
 
   if (!response.ok) {
     const error = await response.text();
-    throw new Error(`OpenAI API error: ${error}`);
+    throw new Error(`Gemini API error: ${error}`);
   }
 
   const data = await response.json();
-  return data.data[0].embedding;
+  return data.embedding.values;
 }

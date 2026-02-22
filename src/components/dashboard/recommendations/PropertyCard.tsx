@@ -2,6 +2,7 @@
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Building, Bed } from "lucide-react";
+import { AIPropertyBadge } from "@/components/property/AIPropertyBadge";
 
 interface PropertyCardProps {
   property: any;
@@ -11,7 +12,7 @@ interface PropertyCardProps {
 
 export function PropertyCard({ property, onViewDetails, ownerName }: PropertyCardProps) {
   return (
-    <Card className="overflow-hidden">
+    <Card className="overflow-hidden relative">
       <div 
         className={`h-2 ${
           property.compatibilityScore > 80 
@@ -22,10 +23,15 @@ export function PropertyCard({ property, onViewDetails, ownerName }: PropertyCar
         }`} 
       />
       <CardHeader className="pb-2">
-        <div className="flex justify-between items-start">
+        <div className="flex justify-between items-start gap-2">
           <CardTitle className="text-lg">Share with {property.name}</CardTitle>
-          <div className="bg-muted px-2 py-1 rounded-full font-semibold text-sm">
-            {property.compatibilityScore}% Match
+          <div className="flex items-center gap-2 shrink-0">
+            {property.propertyDetails?.id && (
+              <AIPropertyBadge propertyId={property.propertyDetails.id} variant="compact" />
+            )}
+            <div className="bg-muted px-2 py-1 rounded-full font-semibold text-sm">
+              {property.compatibilityScore}% Match
+            </div>
           </div>
         </div>
         <CardDescription>{property.propertyDetails?.address || property.location}</CardDescription>

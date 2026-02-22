@@ -645,53 +645,6 @@ export async function fetchPropertyById(id: string) {
   }
 }
 
-export async function fetchSalesListingById(id: string) {
-  try {
-    // First fetch the sales listing
-    const { data: listing, error: listingError } = await sb
-      .from('sales_listings')
-      .select('*')
-      .eq('id', id)
-      .single();
-
-    if (listingError) {
-      throw new Error(`Failed to fetch sales listing: ${listingError.message}`);
-    }
-
-    // Then fetch the owner's profile separately
-    let landlord_name = 'Property Owner';
-    if (listing.user_id) {
-      console.log("Fetching profile for sales listing user_id:", listing.user_id);
-      const { data: profile, error: profileError } = await sb
-        .from('user_profiles')
-        .select('full_name')
-        .eq('id', listing.user_id)
-        .single();
-
-      console.log("Sales listing profile data:", profile, "Error:", profileError);
-
-      if (!profileError && profile?.full_name) {
-        landlord_name = profile.full_name;
-        console.log("Found sales listing landlord name:", landlord_name);
-      } else {
-        console.log("Using fallback sales listing landlord name");
-      }
-    } else {
-      console.log("No user_id found in sales listing");
-    }
-
-    // Add landlord_name to listing data
-    const listingWithOwner = {
-      ...listing,
-      landlord_name
-    };
-
-    return listingWithOwner;
-  } catch (error) {
-    console.error("Error in fetchSalesListingById:", error);
-    throw error;
-  }
-}
 
 export async function updateProperty(id: string, updates: any) {
   console.log("Updating property:", id, updates);
