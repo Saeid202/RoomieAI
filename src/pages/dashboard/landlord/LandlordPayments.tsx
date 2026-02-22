@@ -24,9 +24,12 @@ export default function LandlordPayments() {
   const [showPayoutModal, setShowPayoutModal] = useState(false);
 
   useEffect(() => {
-    if (!user) return;
-
     const fetchPayments = async () => {
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
+
       try {
         setIsLoading(true);
         const data = await getLandlordPayments(user.id);
@@ -41,6 +44,16 @@ export default function LandlordPayments() {
 
     fetchPayments();
   }, [user]);
+
+  if (!user) {
+    return (
+      <div className="container mx-auto p-6 max-w-6xl">
+        <div className="flex items-center justify-center h-64">
+          <p className="text-muted-foreground">Please log in to view payments.</p>
+        </div>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (

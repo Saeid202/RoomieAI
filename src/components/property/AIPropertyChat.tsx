@@ -49,6 +49,7 @@ export function AIPropertyChat({
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const [isAIReady, setIsAIReady] = useState(false);
   const [showCitations, setShowCitations] = useState<string | null>(null);
+  const [readiness, setReadiness] = useState<any>(null);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -57,11 +58,21 @@ export function AIPropertyChat({
   useEffect(() => {
     const checkReadiness = async () => {
       try {
-        const readiness = await checkPropertyAIReadiness(propertyId);
-        setIsAIReady(readiness.isReady);
+        const readinessData = await checkPropertyAIReadiness(propertyId);
+        setReadiness(readinessData);
+        setIsAIReady(readinessData.isReady);
         
-        if (!readiness.isReady) {
-          toast.info("Documents are still being processed. AI will be ready soon!");
+        // Add welcome message if no history
+        if (messages.length === 0 && !isLoadingHistory) {
+          const welcomeMsg = getWelcomeMessage(readinessData);
+          if (welcomeMsg) {
+            setMessages([{
+              id: 'welcome',
+              role: 'assistant',
+              content: welcomeMsg,
+              timestamp: new Date().toISOString(),
+            }]);
+          }
         }
       } catch (error) {
         console.error("Failed to check AI readiness:", error);
@@ -71,7 +82,7 @@ export function AIPropertyChat({
     if (isOpen) {
       checkReadiness();
     }
-  }, [propertyId, isOpen]);
+  }, [propertyId, isOpen, messages.length, isLoadingHistory]);
 
   // Load conversation history
   useEffect(() => {
@@ -105,7 +116,7 @@ export function AIPropertyChat({
   }, [isOpen]);
 
   const handleSendMessage = async () => {
-    if (!inputMessage.trim() || isLoading || !isAIReady) return;
+    if (!inputMessage.trim() || isLoading) return;
 
     const userMessage = inputMessage.trim();
     setInputMessage("");
@@ -136,6 +147,15 @@ export function AIPropertyChat({
           responseTime: response.responseTime,
         };
         setMessages(prev => [...prev, aiMsg]);
+        
+        // If this was a process command, refresh readiness after a delay
+        if (userMessage.toLowerCase().includes('process')) {
+          setTimeout(async () => {
+            const newReadiness = await checkPropertyAIReadiness(propertyId);
+            setReadiness(newReadiness);
+            setIsAIReady(newReadiness.isReady);
+          }, 2000);
+        }
       } else {
         throw new Error(response.error || "Failed to get AI response");
       }
@@ -159,6 +179,50 @@ export function AIPropertyChat({
 
   const toggleCitations = (messageId: string) => {
     setShowCitations(prev => prev === messageId ? null : messageId);
+  };
+
+  const handleQuickAction = (text: string) => {
+    setInputMessage(text);
+    textareaRef.current?.focus();
+  };
+
+  const getWelcomeMessage = (readinessData: any): string => {
+    if (!readinessData) return "";
+    
+    if (readinessData.totalDocuments === 0) {
+      return "Hello! I'm your AI Property Assistant. Upload some documents first, then I can help you understand them.";
+    }
+    
+    if (readinessData.processedDocuments === 0) {
+      return `Hello! I see you have ${readinessData.totalDocuments} document(s) uploaded but not yet processed.\n\n💡 Type "process documents" to analyze them, then you can ask me questions!`;
+    }
+    
+    if (readinessData.processingDocuments > 0) {
+      return `Hello! I'm currently processing ${readinessData.processingDocuments} document(s). You can ask questions about the ${readinessData.processedDocuments} already completed, or wait for processing to finish!`;
+    }
+    
+    return `Hello! All ${readinessData.totalDocuments} document(s) are ready. Ask me anything about this property!`;
+  };
+
+  const getQuickActions = (): string[] => {
+    if (!readiness) return [];
+    
+    const actions: string[] = [];
+    
+    if (readiness.pendingDocuments > 0 || readiness.totalDocuments > readiness.processedDocuments) {
+      actions.push("process documents");
+    }
+    
+    if (readiness.processedDocuments > 0) {
+      actions.push("What are the pet policies?");
+      actions.push("Tell me about fees");
+      actions.push("list documents");
+    } else {
+      actions.push("status");
+      actions.push("help");
+    }
+    
+    return actions;
   };
 
   if (!isOpen) return null;
@@ -196,15 +260,32 @@ export function AIPropertyChat({
               <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
             </div>
           ) : messages.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-center">
+            <div className="flex flex-col items-center justify-center h-full text-center px-4">
               <MessageCircle className="h-16 w-16 text-slate-300 mb-4" />
               <h3 className="text-lg font-semibold text-slate-700 mb-2">
                 Start a Conversation
               </h3>
-              <p className="text-sm text-slate-500 max-w-md">
+              <p className="text-sm text-slate-500 max-w-md mb-6">
                 Ask me anything about this property's documents. I can help you understand
                 pet policies, fees, maintenance history, and more.
               </p>
+              
+              {/* Quick Action Buttons */}
+              {getQuickActions().length > 0 && (
+                <div className="flex flex-wrap gap-2 justify-center max-w-md">
+                  {getQuickActions().map((action, idx) => (
+                    <Button
+                      key={idx}
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleQuickAction(action)}
+                      className="text-xs"
+                    >
+                      {action}
+                    </Button>
+                  ))}
+                </div>
+              )}
             </div>
           ) : (
             <>
@@ -297,37 +378,32 @@ export function AIPropertyChat({
 
         {/* Input Area */}
         <div className="p-4 border-t bg-white">
-          {!isAIReady ? (
-            <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-              <AlertCircle className="h-5 w-5 text-amber-600 shrink-0" />
-              <p className="text-sm text-amber-800">
-                Documents are being processed. The AI assistant will be ready in a few moments.
-              </p>
-            </div>
-          ) : (
-            <div className="flex gap-2">
-              <Textarea
-                ref={textareaRef}
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Ask about pet policies, fees, maintenance history..."
-                className="resize-none min-h-[60px] max-h-[120px]"
-                disabled={isLoading}
-              />
-              <Button
-                onClick={handleSendMessage}
-                disabled={!inputMessage.trim() || isLoading}
-                className="shrink-0 bg-indigo-600 hover:bg-indigo-700"
-              >
-                {isLoading ? (
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                ) : (
-                  <Send className="h-5 w-5" />
-                )}
-              </Button>
-            </div>
-          )}
+          <div className="flex gap-2">
+            <Textarea
+              ref={textareaRef}
+              value={inputMessage}
+              onChange={(e) => setInputMessage(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder={
+                isAIReady 
+                  ? "Ask about pet policies, fees, maintenance history..." 
+                  : 'Type "process documents" to get started, or ask a question...'
+              }
+              className="resize-none min-h-[60px] max-h-[120px]"
+              disabled={isLoading}
+            />
+            <Button
+              onClick={handleSendMessage}
+              disabled={!inputMessage.trim() || isLoading}
+              className="shrink-0 bg-indigo-600 hover:bg-indigo-700"
+            >
+              {isLoading ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                <Send className="h-5 w-5" />
+              )}
+            </Button>
+          </div>
           
           <p className="text-[10px] text-slate-400 mt-2 text-center">
             AI responses are based on uploaded documents. Always verify important details with the property owner.
