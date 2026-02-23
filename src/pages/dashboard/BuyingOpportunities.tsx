@@ -517,13 +517,34 @@ export default function BuyingOpportunitiesPage() {
                 intended_use: values.intended_use,
                 target_location: values.target_location,
                 timeline_to_buy: values.timeline_to_buy,
+                broker_consent: mortgageProfile?.broker_consent || false,
             };
+            
+            // Track consent changes for notifications
+            const consentChanged = mortgageProfile?.broker_consent !== (mortgageProfile?.broker_consent || false);
+            const consentGiven = !mortgageProfile?.broker_consent && (mortgageProfile?.broker_consent || false);
+            const consentRevoked = mortgageProfile?.broker_consent && !(mortgageProfile?.broker_consent || false);
+            
             const savedProfile = await saveMortgageProfile(currentUserId, formData);
             setMortgageProfile(savedProfile);
-            toast({
-                title: "Profile Saved",
-                description: "Your mortgage profile has been saved successfully!",
-            });
+            
+            // Show appropriate toast based on consent status
+            if (consentGiven) {
+                toast({
+                    title: "Profile Saved & Consent Recorded",
+                    description: "Your profile will now be visible to our mortgage broker.",
+                });
+            } else if (consentRevoked) {
+                toast({
+                    title: "Profile Saved & Consent Revoked",
+                    description: "Your profile is no longer visible to mortgage brokers.",
+                });
+            } else {
+                toast({
+                    title: "Profile Saved",
+                    description: "Your mortgage profile has been saved successfully!",
+                });
+            }
         } catch (error) {
             console.error("Failed to save mortgage profile:", error);
             toast({
@@ -2374,6 +2395,59 @@ export default function BuyingOpportunitiesPage() {
                                                     </FormItem>
                                                 )}
                                             />
+                                        </CardContent>
+                                    </Card>
+
+                                    {/* Broker Consent Section */}
+                                    <Card className="border-2 border-purple-200 bg-gradient-to-br from-pink-50 to-purple-50">
+                                        <CardContent className="p-6">
+                                            <div className="flex items-start gap-4">
+                                                <Checkbox
+                                                    id="broker_consent"
+                                                    checked={mortgageProfile?.broker_consent || false}
+                                                    onCheckedChange={(checked) => {
+                                                        // Update the profile state
+                                                        if (mortgageProfile) {
+                                                            setMortgageProfile({
+                                                                ...mortgageProfile,
+                                                                broker_consent: checked as boolean
+                                                            });
+                                                        }
+                                                    }}
+                                                    className="mt-1 data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600"
+                                                />
+                                                <div className="flex-1">
+                                                    <label 
+                                                        htmlFor="broker_consent" 
+                                                        className="text-sm font-bold text-gray-900 cursor-pointer flex items-center gap-2 mb-2"
+                                                    >
+                                                        <Shield className="h-5 w-5 text-purple-600" />
+                                                        <span>Share with Mortgage Broker</span>
+                                                    </label>
+                                                    <p className="text-sm text-gray-700 leading-relaxed font-medium">
+                                                        I consent to share my mortgage profile with Roomie AI's trusted mortgage broker 
+                                                        for the purpose of mortgage review and recommendations. You can revoke this 
+                                                        consent at any time.
+                                                    </p>
+                                                    {mortgageProfile?.broker_consent && (
+                                                        <div className="mt-3 flex items-center gap-2 text-xs text-green-700 font-semibold bg-green-50 p-2 rounded-lg border border-green-200">
+                                                            <CheckCircle className="h-4 w-4" />
+                                                            <span>Your profile is visible to our mortgage broker</span>
+                                                            {mortgageProfile?.broker_consent_date && (
+                                                                <span className="text-gray-600">
+                                                                    • Consented on {new Date(mortgageProfile.broker_consent_date).toLocaleDateString()}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                    {!mortgageProfile?.broker_consent && (
+                                                        <div className="mt-3 flex items-center gap-2 text-xs text-gray-600 font-medium bg-gray-50 p-2 rounded-lg border border-gray-200">
+                                                            <Info className="h-4 w-4" />
+                                                            <span>Your profile is private and not shared with brokers</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
                                         </CardContent>
                                     </Card>
 
