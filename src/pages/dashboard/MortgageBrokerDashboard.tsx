@@ -1,37 +1,26 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { 
   fetchMortgageBrokerProfile, 
-  saveMortgageBrokerProfile,
   fetchAllMortgageProfiles 
 } from "@/services/mortgageBrokerService";
-import { MortgageBrokerProfile, MortgageBrokerFormData } from "@/types/mortgageBroker";
-import { MortgageProfile } from "@/types/mortgage";
-import { Building2, Users, Phone, Mail, Award, User, LogOut } from "lucide-react";
+import { MortgageBrokerProfile } from "@/types/mortgageBroker";
+import { Building2, Users, FileText, TrendingUp } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export default function MortgageBrokerDashboard() {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const [profile, setProfile] = useState<MortgageBrokerProfile | null>(null);
-  const [clients, setClients] = useState<MortgageProfile[]>([]);
-  const [formData, setFormData] = useState<MortgageBrokerFormData>({
-    full_name: "",
-    email: "",
-    phone_number: "",
-    company_name: "",
-    license_number: "",
-  });
+  const [clientCount, setClientCount] = useState(0);
 
   useEffect(() => {
-    loadData();
+    loadDashboardData();
   }, []);
 
-  const loadData = async () => {
+  const loadDashboardData = async () => {
     try {
       setLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
@@ -41,54 +30,19 @@ export default function MortgageBrokerDashboard() {
         return;
       }
 
-      // Load broker profile
       const brokerProfile = await fetchMortgageBrokerProfile(user.id);
       if (brokerProfile) {
         setProfile(brokerProfile);
-        setFormData({
-          full_name: brokerProfile.full_name || "",
-          email: brokerProfile.email || "",
-          phone_number: brokerProfile.phone_number || "",
-          company_name: brokerProfile.company_name || "",
-          license_number: brokerProfile.license_number || "",
-        });
       }
 
-      // Load all mortgage profiles (clients)
-      const mortgageProfiles = await fetchAllMortgageProfiles();
-      setClients(mortgageProfiles);
+      const clients = await fetchAllMortgageProfiles();
+      setClientCount(clients.length);
     } catch (error) {
-      console.error("Error loading data:", error);
-      toast.error("Failed to load data");
+      console.error("Error loading dashboard:", error);
+      toast.error("Failed to load dashboard");
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleSaveProfile = async () => {
-    try {
-      setSaving(true);
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        toast.error("Please log in to continue");
-        return;
-      }
-
-      await saveMortgageBrokerProfile(user.id, formData);
-      toast.success("Profile saved successfully");
-      await loadData();
-    } catch (error) {
-      console.error("Error saving profile:", error);
-      toast.error("Failed to save profile");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    window.location.href = "/";
   };
 
   if (loading) {
@@ -103,210 +57,127 @@ export default function MortgageBrokerDashboard() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 md:px-6 py-6">
-      {/* Header */}
-      <header className="mb-6">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="p-2 rounded-lg bg-gradient-to-r from-blue-500 to-indigo-600">
-            <Building2 className="h-6 w-6 text-white" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-semibold text-gray-900">
-              Mortgage Broker Dashboard
+    <div className="w-full max-w-screen-xl mx-auto px-4 space-y-10 pb-10">
+      {/* Welcome Banner with Animations - Matching Main Dashboard Style */}
+      <div className="relative bg-gradient-to-br from-pink-500/30 via-purple-500/30 to-indigo-500/30 rounded-3xl p-2 border-2 border-white/50 shadow-2xl backdrop-blur-sm overflow-hidden">
+        {/* Animated Background Elements */}
+        <div className="absolute inset-0">
+          <div className="absolute top-4 left-4 w-32 h-32 bg-gradient-to-br from-yellow-400/40 to-pink-400/40 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-4 right-4 w-24 h-24 bg-gradient-to-br from-purple-400/40 to-indigo-400/40 rounded-full blur-2xl animate-pulse delay-1000"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-r from-orange-400/20 via-pink-400/20 to-purple-400/20 opacity-50 rotate-45 animate-spin-slow"></div>
+          <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-yellow-300/50 to-orange-300/50 rounded-full blur-xl animate-bounce delay-500"></div>
+          <div className="absolute bottom-0 left-0 w-16 h-16 bg-gradient-to-br from-pink-300/50 to-purple-300/50 rounded-full blur-lg animate-ping delay-700"></div>
+        </div>
+
+        {/* Content */}
+        <div className="text-center mb-1 relative z-10">
+          <div className="inline-block bg-white/80 backdrop-blur-md rounded-2xl p-2 border border-white/50 shadow-xl">
+            <h1 className="text-3xl md:text-4xl font-black text-gray-900 mb-1 bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent animate-gradient">
+              Welcome back, {profile?.full_name || 'Mortgage Broker'}!
             </h1>
-            <p className="text-sm text-gray-600">
-              Manage your profile and view client mortgage applications
+            <div className="h-2 w-32 bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 rounded-full mx-auto shadow-lg"></div>
+            <p className="text-xl text-gray-800 max-w-2xl mx-auto font-bold leading-relaxed">
+              Your all-in-one platform for managing clients, tracking applications, and growing your mortgage brokerage business.
             </p>
           </div>
         </div>
-      </header>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Profile Section */}
-        <div className="lg:col-span-2">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <User className="h-5 w-5" />
-                Broker Profile
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="full_name">Full Name</Label>
-                  <Input
-                    id="full_name"
-                    value={formData.full_name || ""}
-                    onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                    placeholder="Enter your full name"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={formData.email || ""}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    placeholder="Enter your email"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="phone_number">Phone Number</Label>
-                  <Input
-                    id="phone_number"
-                    value={formData.phone_number || ""}
-                    onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
-                    placeholder="Enter your phone number"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="company_name">Company Name</Label>
-                  <Input
-                    id="company_name"
-                    value={formData.company_name || ""}
-                    onChange={(e) => setFormData({ ...formData, company_name: e.target.value })}
-                    placeholder="Enter your company name"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="license_number">License Number</Label>
-                <Input
-                  id="license_number"
-                  value={formData.license_number || ""}
-                  onChange={(e) => setFormData({ ...formData, license_number: e.target.value })}
-                  placeholder="Enter your license number"
-                />
-              </div>
-
-              <Button 
-                onClick={handleSaveProfile} 
-                disabled={saving}
-                className="w-full"
-              >
-                {saving ? "Saving..." : "Save Profile"}
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Quick Stats */}
-        <div className="space-y-4">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <div className="p-3 rounded-lg bg-blue-50">
-                  <Users className="h-6 w-6 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">Total Clients</p>
-                  <p className="text-2xl font-semibold">{clients.length}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
       </div>
 
-      {/* Clients Section */}
-      <div className="mt-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              Clients ({clients.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {clients.length === 0 ? (
-              <div className="text-center py-12 text-gray-500">
-                <Users className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                <p>No clients have filled out mortgage profiles yet</p>
+      {/* Dashboard Grid Layout - Matching Main Dashboard */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        
+        {/* Update Profile Card */}
+        <Card 
+          className="group cursor-pointer transition-all duration-300 hover:shadow-2xl hover:scale-[1.02] border-2 hover:border-white/60 bg-gradient-to-br from-pink-500/20 via-purple-500/20 to-indigo-500/20 hover:from-pink-500/30 hover:via-purple-500/30 hover:to-indigo-500/30 relative overflow-hidden h-full min-h-[160px]"
+          onClick={() => navigate('/dashboard/mortgage-broker/profile')}
+        >
+          <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/20 via-pink-400/20 to-purple-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <CardContent className="p-3 relative z-10 h-full flex flex-col">
+            <div className="flex items-start gap-2 mb-2">
+              <div className="p-1.5 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 group-hover:from-yellow-400 group-hover:to-orange-500 transition-all duration-300 group-hover:scale-110 shadow-lg">
+                <Users className="h-5 w-5 text-white group-hover:text-white transition-colors" />
               </div>
-            ) : (
-              <div className="space-y-4">
-                {clients.map((client) => (
-                  <div 
-                    key={client.id} 
-                    className="p-4 border rounded-lg hover:bg-gray-50 transition-colors"
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-lg">
-                          {client.full_name || "Name not provided"}
-                        </h3>
-                        <div className="mt-2 space-y-1">
-                          {client.email && (
-                            <div className="flex items-center gap-2 text-sm text-gray-600">
-                              <Mail className="h-4 w-4" />
-                              {client.email}
-                            </div>
-                          )}
-                          {client.phone_number && (
-                            <div className="flex items-center gap-2 text-sm text-gray-600">
-                              <Phone className="h-4 w-4" />
-                              {client.phone_number}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      <div className="text-right space-y-2">
-                        {client.credit_score_range && (
-                          <div className="text-sm">
-                            <span className="text-gray-600">Credit Score: </span>
-                            <span className="font-semibold">{client.credit_score_range}</span>
-                          </div>
-                        )}
-                        {client.purchase_price_range && (
-                          <div className="text-sm">
-                            <span className="text-gray-600">Budget: </span>
-                            <span className="font-semibold">{client.purchase_price_range}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ))}
+              <div className="flex-1">
+                <h3 className="text-base font-bold text-gray-900 mb-1 group-hover:text-purple-600 transition-colors leading-tight">Update Profile</h3>
+                <p className="text-gray-600 text-xs leading-relaxed group-hover:text-gray-700 transition-colors line-clamp-2">Manage your professional information and credentials</p>
               </div>
-            )}
+            </div>
           </CardContent>
         </Card>
-      </div>
 
-      {/* Bottom Left Corner - Account Actions */}
-      <div className="fixed bottom-6 left-6 flex flex-col gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => window.location.href = "/dashboard/settings"}
-          className="bg-white shadow-md"
+        {/* View Clients Card */}
+        <Card 
+          className="group cursor-pointer transition-all duration-300 hover:shadow-2xl hover:scale-[1.02] border-2 hover:border-white/60 bg-gradient-to-br from-pink-500/20 via-purple-500/20 to-indigo-500/20 hover:from-pink-500/30 hover:via-purple-500/30 hover:to-indigo-500/30 relative overflow-hidden h-full min-h-[160px]"
+          onClick={() => navigate('/dashboard/mortgage-broker/clients')}
         >
-          <User className="h-4 w-4 mr-2" />
-          My Account
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => window.location.href = "/dashboard/settings"}
-          className="bg-white shadow-md"
+          <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/20 via-pink-400/20 to-purple-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <CardContent className="p-3 relative z-10 h-full flex flex-col">
+            <div className="flex items-start gap-2 mb-2">
+              <div className="p-1.5 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 group-hover:from-yellow-400 group-hover:to-orange-500 transition-all duration-300 group-hover:scale-110 shadow-lg">
+                <FileText className="h-5 w-5 text-white group-hover:text-white transition-colors" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-base font-bold text-gray-900 mb-1 group-hover:text-purple-600 transition-colors leading-tight">View Clients</h3>
+                <p className="text-gray-600 text-xs leading-relaxed group-hover:text-gray-700 transition-colors line-clamp-2">Review and manage client mortgage applications</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Total Clients Stats Card */}
+        <Card 
+          className="group cursor-pointer transition-all duration-300 hover:shadow-2xl hover:scale-[1.02] border-2 hover:border-white/60 bg-gradient-to-br from-pink-500/20 via-purple-500/20 to-indigo-500/20 hover:from-pink-500/30 hover:via-purple-500/30 hover:to-indigo-500/30 relative overflow-hidden h-full min-h-[160px]"
         >
-          Settings
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleLogout}
-          className="bg-white shadow-md text-red-600 hover:text-red-700"
+          <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/20 via-pink-400/20 to-purple-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <CardContent className="p-3 relative z-10 h-full flex flex-col">
+            <div className="flex items-start gap-2 mb-2">
+              <div className="p-1.5 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 group-hover:from-yellow-400 group-hover:to-orange-500 transition-all duration-300 group-hover:scale-110 shadow-lg">
+                <Building2 className="h-5 w-5 text-white group-hover:text-white transition-colors" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-base font-bold text-gray-900 mb-1 group-hover:text-purple-600 transition-colors leading-tight">Total Clients</h3>
+                <p className="text-3xl font-black text-gray-900 group-hover:text-purple-600 transition-colors">{clientCount}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Active Applications Stats Card */}
+        <Card 
+          className="group cursor-pointer transition-all duration-300 hover:shadow-2xl hover:scale-[1.02] border-2 hover:border-white/60 bg-gradient-to-br from-pink-500/20 via-purple-500/20 to-indigo-500/20 hover:from-pink-500/30 hover:via-purple-500/30 hover:to-indigo-500/30 relative overflow-hidden h-full min-h-[160px]"
         >
-          <LogOut className="h-4 w-4 mr-2" />
-          Log Out
-        </Button>
+          <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/20 via-pink-400/20 to-purple-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <CardContent className="p-3 relative z-10 h-full flex flex-col">
+            <div className="flex items-start gap-2 mb-2">
+              <div className="p-1.5 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 group-hover:from-yellow-400 group-hover:to-orange-500 transition-all duration-300 group-hover:scale-110 shadow-lg">
+                <FileText className="h-5 w-5 text-white group-hover:text-white transition-colors" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-base font-bold text-gray-900 mb-1 group-hover:text-purple-600 transition-colors leading-tight">Active Applications</h3>
+                <p className="text-3xl font-black text-gray-900 group-hover:text-purple-600 transition-colors">{clientCount}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Growth Stats Card */}
+        <Card 
+          className="group cursor-pointer transition-all duration-300 hover:shadow-2xl hover:scale-[1.02] border-2 hover:border-white/60 bg-gradient-to-br from-pink-500/20 via-purple-500/20 to-indigo-500/20 hover:from-pink-500/30 hover:via-purple-500/30 hover:to-indigo-500/30 relative overflow-hidden h-full min-h-[160px]"
+        >
+          <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/20 via-pink-400/20 to-purple-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <CardContent className="p-3 relative z-10 h-full flex flex-col">
+            <div className="flex items-start gap-2 mb-2">
+              <div className="p-1.5 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 group-hover:from-yellow-400 group-hover:to-orange-500 transition-all duration-300 group-hover:scale-110 shadow-lg">
+                <TrendingUp className="h-5 w-5 text-white group-hover:text-white transition-colors" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-base font-bold text-gray-900 mb-1 group-hover:text-purple-600 transition-colors leading-tight">This Month</h3>
+                <p className="text-3xl font-black text-gray-900 group-hover:text-purple-600 transition-colors">+{clientCount}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
       </div>
     </div>
   );
