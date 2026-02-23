@@ -90,7 +90,7 @@ export default function MortgageBrokerProfile() {
   }
 
   return (
-    <div className="w-full max-w-screen-xl mx-auto px-4 space-y-6 pb-10">
+    <div className="w-full px-4 space-y-6 pb-10">
       {/* Page Header with Organizational Style */}
       <div className="relative bg-gradient-to-br from-pink-500/30 via-purple-500/30 to-indigo-500/30 rounded-3xl p-4 border-2 border-white/50 shadow-2xl backdrop-blur-sm overflow-hidden">
         {/* Animated Background Elements */}
