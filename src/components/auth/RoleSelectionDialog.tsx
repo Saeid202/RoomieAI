@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { User, Building, HardHat, Shield } from "lucide-react";
+import { User, Building, HardHat, Shield, Briefcase } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useRole, UserRole } from "@/contexts/RoleContext";
 import { useNavigate } from "react-router-dom";
@@ -94,6 +94,9 @@ export function RoleSelectionDialog({
       case 'seeker':
         navigate('/dashboard/roommate-recommendations');
         break;
+      case 'mortgage_broker':
+        navigate('/dashboard/mortgage-broker');
+        break;
     }
   };
   
@@ -105,6 +108,8 @@ export function RoleSelectionDialog({
         return 'Landlord';
       case 'admin':
         return 'Administrator';
+      case 'mortgage_broker':
+        return 'Mortgage Broker';
       default:
         return 'User';
     }
@@ -118,6 +123,8 @@ export function RoleSelectionDialog({
         return 'List and manage rental properties, communicate with potential tenants.';
       case 'admin':
         return 'Manage the website content, user accounts, and system settings.';
+      case 'mortgage_broker':
+        return 'Help clients with mortgage applications and home financing.';
       default:
         return '';
     }
@@ -160,6 +167,17 @@ export function RoleSelectionDialog({
               onClick={() => handleRoleSelect('landlord')}
               isLoading={loading && selectedRole === 'landlord'}
               isCurrent={currentRole === 'landlord'}
+            />
+            
+            <RoleCard
+              role="mortgage_broker"
+              icon={<Briefcase size={24} />}
+              title="Mortgage Broker"
+              description={getRoleDescription('mortgage_broker')}
+              isSelected={selectedRole === 'mortgage_broker'}
+              onClick={() => handleRoleSelect('mortgage_broker')}
+              isLoading={loading && selectedRole === 'mortgage_broker'}
+              isCurrent={currentRole === 'mortgage_broker'}
             />
             
             {/* Only show admin option if user is verified admin */}

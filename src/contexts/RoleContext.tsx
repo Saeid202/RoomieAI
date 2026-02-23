@@ -1,10 +1,10 @@
 import { createContext, useContext, useState, ReactNode } from 'react';
 
 // Define possible user roles
-export type UserRole = 'seeker' | 'landlord' | 'admin' | 'developer' | 'renovator';
+export type UserRole = 'seeker' | 'landlord' | 'admin' | 'developer' | 'renovator' | 'mortgage_broker';
 
 type RoleContextType = {
-  role: UserRole;
+  role: UserRole | null;
   toggleRole: () => void;
   setRole: (role: UserRole) => void;
 };
@@ -12,17 +12,19 @@ type RoleContextType = {
 const RoleContext = createContext<RoleContextType | undefined>(undefined);
 
 export function RoleProvider({ children }: { children: ReactNode }) {
-  const [role, setRole] = useState<UserRole>('seeker');
+  // Don't default to 'seeker' - let RoleInitializer set it
+  const [role, setRole] = useState<UserRole | null>(null);
 
   const toggleRole = () => {
-    // Cycle through roles: seeker -> landlord -> admin -> developer -> renovator -> seeker
+    // Cycle through roles: seeker -> landlord -> admin -> developer -> renovator -> mortgage_broker -> seeker
     setRole(prev => {
       switch (prev) {
         case 'seeker': return 'landlord';
         case 'landlord': return 'admin';
         case 'admin': return 'developer';
         case 'developer': return 'renovator';
-        case 'renovator': return 'seeker';
+        case 'renovator': return 'mortgage_broker';
+        case 'mortgage_broker': return 'seeker';
         default: return 'seeker';
       }
     });

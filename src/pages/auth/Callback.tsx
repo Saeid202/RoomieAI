@@ -11,7 +11,7 @@ export default function Callback() {
 
   // Helper function to validate if a role is one of the expected values
   function isValidRole(role: any): boolean {
-    const validRoles: UserRole[] = ['seeker', 'landlord', 'renovator'];
+    const validRoles: UserRole[] = ['seeker', 'landlord', 'renovator', 'mortgage_broker', 'admin', 'developer'];
     return validRoles.includes(role as UserRole);
   }
 
@@ -25,7 +25,7 @@ export default function Callback() {
         try {
           const { data: existingProfile } = await supabase
             .from('user_profiles')
-            .select('id, full_name')
+            .select('id, full_name, role, email')
             .eq('id', session.user.id)
             .single();
 
@@ -50,15 +50,25 @@ export default function Callback() {
             } else {
               console.log("Profile created successfully in callback");
             }
-          } else if (!existingProfile.full_name && session.user.user_metadata?.full_name) {
-            // Update profile if full_name is missing
-            await supabase
-              .from('user_profiles')
-              .update({
-                full_name: session.user.user_metadata.full_name,
-                email: session.user.email || existingProfile.email,
-              })
-              .eq('id', session.user.id);
+          } else {
+            // Profile exists, sync the role if metadata is missing/wrong
+            if (existingProfile.role && existingProfile.role !== (session.user.user_metadata?.role)) {
+              console.log("Syncing metadata role with database role:", existingProfile.role);
+              await supabase.auth.updateUser({
+                data: { role: existingProfile.role }
+              });
+            }
+
+            if (!existingProfile.full_name && session.user.user_metadata?.full_name) {
+              // Update profile if full_name is missing
+              await supabase
+                .from('user_profiles')
+                .update({
+                  full_name: session.user.user_metadata.full_name,
+                  email: session.user.email || (existingProfile as any).email,
+                })
+                .eq('id', session.user.id);
+            }
           }
         } catch (profileErr) {
           console.warn("Error checking/creating profile in callback:", profileErr);
@@ -130,7 +140,16 @@ export default function Callback() {
 
         if (effectiveRole === 'landlord') {
           navigate('/dashboard/landlord');
+        } else if (effectiveRole === 'renovator') {
+          navigate('/renovator/dashboard');
+        } else if (effectiveRole === 'mortgage_broker') {
+          navigate('/dashboard/mortgage-broker');
+        } else if (effectiveRole === 'admin') {
+          navigate('/dashboard/admin');
+        } else if (effectiveRole === 'developer') {
+          navigate('/dashboard/developer');
         } else {
+          // Default for seekers or unknown roles that were validated
           navigate('/dashboard/roommate-recommendations');
         }
       } else {

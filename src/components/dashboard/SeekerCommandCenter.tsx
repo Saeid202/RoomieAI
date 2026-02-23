@@ -42,8 +42,7 @@ export function SeekerCommandCenter() {
         nextRentDue: null as { amount: number; date: string } | null,
         coOwnershipActive: false,
         matches: [] as any[],
-        walletConnected: false,
-        autoPayOn: false
+        walletConnected: false
     });
 
     useEffect(() => {
@@ -88,13 +87,6 @@ export function SeekerCommandCenter() {
                     ? { amount: installments[0].rent_amount, date: new Date(installments[0].due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) }
                     : null;
 
-                // 7. Auto-Pay status from lease contracts
-                const { data: leases } = await supabase
-                    .from('lease_contracts' as any)
-                    .select('auto_pay_enabled')
-                    .eq('tenant_id', user.id)
-                    .eq('auto_pay_enabled', true);
-
                 setStats({
                     profileComplete,
                     matchingActive: profileComplete,
@@ -102,8 +94,7 @@ export function SeekerCommandCenter() {
                     nextRentDue: nextRent,
                     coOwnershipActive: userSignals > 0,
                     matches: matches,
-                    walletConnected: !!paymentAccount && paymentMethods.length > 0,
-                    autoPayOn: leases && leases.length > 0
+                    walletConnected: !!paymentAccount && paymentMethods.length > 0
                 });
             } catch (error) {
                 console.error("Error loading dashboard data:", error);
@@ -144,13 +135,6 @@ export function SeekerCommandCenter() {
             description: "Secure your payments and enable instant rent transfers.",
             cta: "Connect Wallet",
             path: "/dashboard/wallet"
-        };
-    } else if (stats.nextRentDue && !stats.autoPayOn) {
-        nextAction = {
-            title: "Turn on Auto-Pay",
-            description: "Avoid missing rent and build your credit score effortlessly.",
-            cta: "Enable Auto-Pay",
-            path: "/dashboard/autopay"
         };
     } else if (!stats.coOwnershipActive) {
         nextAction = {
@@ -309,12 +293,6 @@ export function SeekerCommandCenter() {
                             status={stats.walletConnected ? "Connected" : "Not Connected"}
                             active={stats.walletConnected}
                         />
-                        <FinanceCard
-                            icon={<CreditCard className="h-8 w-8 text-indigo-500" />}
-                            label="Auto-Pay"
-                            status={stats.autoPayOn ? "Enabled" : "Disabled"}
-                            active={stats.autoPayOn}
-                        />
                         {stats.nextRentDue ? (
                             <Card className="col-span-1 sm:col-span-2 bg-slate-900 text-white rounded-[32px] p-8 overflow-hidden relative border-none shadow-2xl">
                                 <div className="absolute top-0 right-0 p-12 opacity-10 scale-150">
@@ -365,12 +343,6 @@ export function SeekerCommandCenter() {
                         title="Renovators"
                         desc="Top-tier partners recommended by Roomie AI."
                         path="/dashboard/renovators"
-                    />
-                    <OpportunityCard
-                        icon={<Star className="h-8 w-8 text-amber-500" />}
-                        title="Rent Savings"
-                        desc="Unlock exclusive deals to lower your rent."
-                        path="/dashboard/rent-savings"
                     />
                 </div>
             </section>

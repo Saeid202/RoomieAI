@@ -6,7 +6,6 @@ import {
   PaymentMethod,
   RentPayment,
   PaymentTransaction,
-  AutoPayConfig,
   PaymentResult,
   RefundResult,
   PayoutResult,
@@ -298,60 +297,6 @@ export class PaymentService {
     }
   }
 
-  // Auto-Pay Management
-  static async setupAutoPay(tenantId: string, propertyId: string, config: Partial<AutoPayConfig>): Promise<void> {
-    try {
-      const { error } = await supabase
-        .from('auto_pay_configs')
-        .upsert({
-          tenant_id: tenantId,
-          property_id: propertyId,
-          amount: config.amount || 0,
-          payment_method_id: config.paymentMethodId || '',
-          schedule_type: config.scheduleType || 'monthly',
-          day_of_month: config.dayOfMonth,
-          day_of_week: config.dayOfWeek,
-          is_active: true,
-          next_payment_date: config.nextPaymentDate || new Date().toISOString()
-        });
-
-      if (error) throw error;
-    } catch (error) {
-      console.error('Error setting up auto-pay:', error);
-      throw new Error('Failed to setup auto-pay');
-    }
-  }
-
-  static async getAutoPayConfigs(tenantId: string): Promise<AutoPayConfig[]> {
-    try {
-      const { data, error } = await supabase
-        .from('auto_pay_configs')
-        .select('*')
-        .eq('tenant_id', tenantId)
-        .eq('is_active', true);
-
-      if (error) throw error;
-      return data as AutoPayConfig[];
-    } catch (error) {
-      console.error('Error getting auto-pay configs:', error);
-      throw new Error('Failed to get auto-pay configs');
-    }
-  }
-
-  static async cancelAutoPay(autoPayId: string): Promise<void> {
-    try {
-      const { error } = await supabase
-        .from('auto_pay_configs')
-        .update({ is_active: false })
-        .eq('id', autoPayId);
-
-      if (error) throw error;
-    } catch (error) {
-      console.error('Error canceling auto-pay:', error);
-      throw new Error('Failed to cancel auto-pay');
-    }
-  }
-
   // Landlord Operations
   static async processPayout(landlordId: string, amount: number): Promise<PayoutResult> {
     try {
@@ -458,11 +403,10 @@ export class PaymentService {
   // Dashboard Data
   static async getPaymentDashboardData(userId: string): Promise<PaymentDashboardData> {
     try {
-      const [upcomingPayments, recentPayments, paymentMethods, autoPayConfigs, analytics] = await Promise.all([
+      const [upcomingPayments, recentPayments, paymentMethods, analytics] = await Promise.all([
         this.getUpcomingPayments(userId),
         this.getRecentPayments(userId),
         this.getPaymentMethods(userId),
-        this.getAutoPayConfigs(userId),
         this.getPaymentAnalytics(userId, '30d')
       ]);
 
@@ -470,7 +414,6 @@ export class PaymentService {
         upcomingPayments,
         recentPayments,
         paymentMethods,
-        autoPayConfigs,
         analytics
       };
     } catch (error) {

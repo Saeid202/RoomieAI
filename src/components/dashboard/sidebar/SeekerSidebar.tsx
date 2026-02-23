@@ -89,16 +89,12 @@ export function SeekerSidebar({ isActive, showLabels }: SeekerSidebarProps) {
         isActive={isActive('/dashboard/applications')}
       />
 
-      <SidebarMenuSection
-        showLabels={showLabels}
-        title="Payments"
-        icon={() => <span className="text-lg">💳</span>}
-        isActive={isActive}
-        subItems={[
-          { label: "Digital Wallet", path: "/dashboard/digital-wallet" },
-          { label: "Auto Pay", path: "/dashboard/autopay" },
-          { label: "Rent Savings", path: "/dashboard/rent-savings" }
-        ]}
+      <SidebarSimpleMenuItem
+        showLabel={showLabels}
+        icon={<span className="text-lg">💳</span>}
+        label="Digital Wallet"
+        to="/dashboard/digital-wallet"
+        isActive={isActive('/dashboard/digital-wallet')}
       />
 
       <SidebarMenuSection
@@ -117,6 +113,11 @@ export function SeekerSidebar({ isActive, showLabels }: SeekerSidebarProps) {
             label: "Buy Unit",
             path: "/dashboard/buying-opportunities?tab=sales",
             icon: <span className="text-sm">🏠</span>
+          },
+          {
+            label: "Mortgage Profile",
+            path: "/dashboard/buying-opportunities?tab=mortgage-profile",
+            icon: <span className="text-sm">💰</span>
           }
         ]}
       />

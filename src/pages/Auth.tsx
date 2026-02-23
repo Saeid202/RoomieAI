@@ -16,7 +16,7 @@ export default function AuthPage() {
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState<'seeker' | 'landlord' | 'renovator'>('seeker');
+  const [role, setRole] = useState<'seeker' | 'landlord' | 'renovator' | 'mortgage_broker'>('seeker');
   const [loading, setLoading] = useState(false);
 
   // If already logged in, redirect to dashboard
@@ -25,6 +25,8 @@ export default function AuthPage() {
       navigate('/renovator/dashboard');
     } else if (user.user_metadata?.role === 'landlord') {
       navigate('/dashboard/landlord');
+    } else if (user.user_metadata?.role === 'mortgage_broker') {
+      navigate('/dashboard/mortgage-broker');
     } else {
       navigate('/dashboard/roommate-recommendations');
     }
@@ -54,6 +56,8 @@ export default function AuthPage() {
           navigate('/renovator/dashboard');
         } else if (user?.user_metadata?.role === 'landlord') {
           navigate('/dashboard/landlord');
+        } else if (user?.user_metadata?.role === 'mortgage_broker') {
+          navigate('/dashboard/mortgage-broker');
         } else {
           navigate('/dashboard/roommate-recommendations');
         }
@@ -85,7 +89,7 @@ export default function AuthPage() {
           <CardContent className="space-y-4">
 
             {isSignUp && (
-              <div className="grid grid-cols-2 gap-2 mb-4">
+              <div className="grid grid-cols-3 gap-2 mb-4">
                 <div
                   className={`cursor-pointer border rounded-lg p-3 text-center transition-all ${role === 'seeker' ? 'bg-primary/10 border-primary ring-2 ring-primary/20' : 'hover:bg-gray-50'}`}
                   onClick={() => setRole('seeker')}
@@ -99,6 +103,13 @@ export default function AuthPage() {
                 >
                   <div className="font-semibold text-sm">Renovator / Pro</div>
                   <div className="text-xs text-muted-foreground mt-1">Find jobs & requests</div>
+                </div>
+                <div
+                  className={`cursor-pointer border rounded-lg p-3 text-center transition-all ${role === 'mortgage_broker' ? 'bg-primary/10 border-primary ring-2 ring-primary/20' : 'hover:bg-gray-50'}`}
+                  onClick={() => setRole('mortgage_broker')}
+                >
+                  <div className="font-semibold text-sm">Mortgage Broker</div>
+                  <div className="text-xs text-muted-foreground mt-1">Help clients with financing</div>
                 </div>
               </div>
             )}

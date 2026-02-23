@@ -44,17 +44,12 @@ export function LandlordSidebar({ isActive, showLabels }: LandlordSidebarProps) 
         isActive={isActive('/dashboard/landlord/applications')}
       />
 
-      <SidebarMenuSection
-        showLabels={showLabels}
-        title="Payments"
-        icon={() => <span className="text-lg">💳</span>}
-        isActive={isActive}
-        subItems={[
-          { label: "Digital Wallet", path: "/dashboard/digital-wallet" },
-          { label: "Landlord Payments", path: "/dashboard/landlord/payments" },
-          { label: "Auto-Pay", path: "/dashboard/autopay" },
-          { label: "Late Fee Hub", path: "/dashboard/late-fees" }
-        ]}
+      <SidebarSimpleMenuItem
+        showLabel={showLabels}
+        icon={<span className="text-lg">💳</span>}
+        label="Payments"
+        to="/dashboard/landlord/payments"
+        isActive={isActive('/dashboard/landlord/payments')}
       />
 
       <SidebarMenuSection

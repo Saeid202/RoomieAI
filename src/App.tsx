@@ -64,7 +64,6 @@ import PublicProfilePage from "@/pages/dashboard/PublicProfile";
 import RentOpportunitiesPage from "@/pages/dashboard/RentOpportunities";
 import ChatsPage from "@/pages/dashboard/Chats";
 import TailorAIPage from "@/pages/dashboard/TailorAI";
-import RentSavingsPage from "@/pages/dashboard/RentSavings";
 import LegalAssistantPage from "@/pages/dashboard/LegalAssistant";
 import LegalAIPage from "@/pages/dashboard/LegalAI";
 import PropertyCompliancePage from "@/pages/dashboard/forms/PropertyCompliance";
@@ -85,12 +84,11 @@ import RenovatorsPage from "@/pages/dashboard/Renovators";
 import CleanersPage from "@/pages/dashboard/Cleaners";
 import ShopPage from "@/pages/dashboard/Shop";
 import LandlordPaymentsPage from "@/pages/dashboard/landlord/LandlordPayments";
-import AutoPayPage from "@/pages/dashboard/landlord/AutoPay";
-import LateFeeManagementPage from "@/pages/dashboard/landlord/LateFeeManagement";
 import ListRoomPage from "@/pages/dashboard/ListRoom";
 import LeaseContractPage from "@/pages/dashboard/LeaseContract";
 import PropertyDocumentVault from "@/pages/dashboard/PropertyDocumentVault";
 import TenantPaymentsPage from "@/pages/dashboard/tenant/TenantPayments";
+import MortgageBrokerDashboard from "@/pages/dashboard/MortgageBrokerDashboard";
 
 
 import { useAuth } from "@/hooks/useAuth";
@@ -157,9 +155,7 @@ function AppRoutes() {
           <Route path="find-property" element={<FindPropertyPage />} />
           <Route path="contracts/:applicationId" element={<LeaseContractPage />} />
           <Route path="chats" element={<ChatsPage />} />
-          <Route path="tailor-ai" element={<TailorAIPage />} />
-          <Route path="rent-savings" element={<RentSavingsPage />} />
-          <Route path="legal-assistant" element={<LegalAssistantPage />} />
+          <Route path="tailor-ai" element={<TailorAIPage />} />          <Route path="legal-assistant" element={<LegalAssistantPage />} />
           <Route path="legal-ai" element={<LegalAIPage />} />
           <Route path="property-compliance-ai" element={<ErrorBoundary componentName="PropertyCompliancePage"><PropertyCompliancePage /></ErrorBoundary>} />
           <Route path="eviction-assistant" element={<ErrorBoundary componentName="EvictionAssistantPage"><EvictionAssistantPage /></ErrorBoundary>} />
@@ -182,10 +178,10 @@ function AppRoutes() {
           <Route path="tax-intelligence" element={<ErrorBoundary componentName="TaxIntelligencePage"><TaxIntelligencePage /></ErrorBoundary>} />
           <Route path="cleaners" element={<CleanersPage />} />
           <Route path="shop" element={<ShopPage />} />
-          <Route path="digital-wallet" element={<TenantPaymentsPage />} />
-          <Route path="autopay" element={<AutoPayPage />} />
-          <Route path="late-fees" element={<LateFeeManagementPage />} />
-          <Route path="list-room" element={<ListRoomPage />} />
+          <Route path="digital-wallet" element={<TenantPaymentsPage />} />          <Route path="list-room" element={<ListRoomPage />} />
+          <Route path="mortgage-broker" element={<MortgageBrokerDashboard />} />
+          <Route path="mortgage-broker/profile" element={<MortgageBrokerDashboard />} />
+          <Route path="mortgage-broker/clients" element={<MortgageBrokerDashboard />} />
           <Route path="profile" element={<SeekerProfilePage />} />
           <Route path="property/:id/documents" element={<PropertyDocumentVault />} />
           <Route path="user/:userId" element={<PublicProfilePage />} />
@@ -267,9 +263,7 @@ function AppRoutes() {
         <Route path="find-property" element={<FindPropertyPage />} />
         <Route path="contracts/:applicationId" element={<LeaseContractPage />} />
         <Route path="chats" element={<ChatsPage />} />
-        <Route path="tailor-ai" element={<TailorAIPage />} />
-        <Route path="rent-savings" element={<RentSavingsPage />} />
-        <Route path="legal-assistant" element={<LegalAssistantPage />} />
+        <Route path="tailor-ai" element={<TailorAIPage />} />        <Route path="legal-assistant" element={<LegalAssistantPage />} />
         <Route path="legal-ai" element={<LegalAIPage />} />
         <Route path="property-compliance-ai" element={<ErrorBoundary componentName="PropertyCompliancePage"><PropertyCompliancePage /></ErrorBoundary>} />
         <Route path="eviction-assistant" element={<ErrorBoundary componentName="EvictionAssistantPage"><EvictionAssistantPage /></ErrorBoundary>} />
@@ -292,10 +286,10 @@ function AppRoutes() {
         <Route path="tax-intelligence" element={<ErrorBoundary componentName="TaxIntelligencePage"><TaxIntelligencePage /></ErrorBoundary>} />
         <Route path="cleaners" element={<CleanersPage />} />
         <Route path="shop" element={<ShopPage />} />
-        <Route path="digital-wallet" element={<TenantPaymentsPage />} />
-        <Route path="autopay" element={<AutoPayPage />} />
-        <Route path="late-fees" element={<LateFeeManagementPage />} />
-        <Route path="list-room" element={<ListRoomPage />} />
+        <Route path="digital-wallet" element={<TenantPaymentsPage />} />        <Route path="list-room" element={<ListRoomPage />} />
+        <Route path="mortgage-broker" element={<MortgageBrokerDashboard />} />
+        <Route path="mortgage-broker/profile" element={<MortgageBrokerDashboard />} />
+        <Route path="mortgage-broker/clients" element={<MortgageBrokerDashboard />} />
         <Route path="profile" element={<SeekerProfilePage />} />
         <Route path="property/:id/documents" element={<PropertyDocumentVault />} />
         <Route path="user/:userId" element={<PublicProfilePage />} />

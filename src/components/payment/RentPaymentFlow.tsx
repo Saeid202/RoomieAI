@@ -207,21 +207,21 @@ export function RentPaymentFlow({
       case 'confirm':
         return (
           <div className="space-y-6">
-            <Card>
+            <Card className="bg-white shadow-sm">
               <CardHeader>
-                <CardTitle>Confirm Payment</CardTitle>
-                <CardDescription>Review your payment details</CardDescription>
+                <CardTitle className="text-xl">Confirm Payment</CardTitle>
+                <CardDescription className="text-gray-600">Review your payment details</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Rent Amount:</span>
-                    <span className="font-semibold">{formatCurrency(rentAmount)}</span>
+                    <span className="font-semibold text-gray-900">{formatCurrency(rentAmount)}</span>
                   </div>
                   
                   <div className="flex justify-between">
                     <span className="text-gray-600">Payment Method:</span>
-                    <Badge variant={selectedMethod === 'acss_debit' ? 'default' : 'secondary'}>
+                    <Badge variant={selectedMethod === 'acss_debit' ? 'default' : 'secondary'} className={selectedMethod === 'acss_debit' ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-100 text-gray-700'}>
                       {selectedMethod === 'acss_debit' ? (
                         <><Building2 className="mr-1 h-3 w-3" /> Bank Account (PAD)</>
                       ) : (
@@ -233,17 +233,17 @@ export function RentPaymentFlow({
                   {selectedMethod === 'acss_debit' && bankDetails && (
                     <div className="flex justify-between">
                       <span className="text-gray-600">Bank:</span>
-                      <span className="font-medium">
+                      <span className="font-medium text-gray-900">
                         {bankDetails.bankName || 'Canadian Bank'} (****{bankDetails.accountNumber.slice(-4)})
                       </span>
                     </div>
                   )}
 
-                  <Separator />
+                  <Separator className="bg-gray-200" />
 
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600">Processing Time:</span>
-                    <span className="flex items-center gap-1 text-sm">
+                    <span className="flex items-center gap-1 text-sm text-gray-900">
                       <Clock className="h-4 w-4" />
                       {selectedMethod === 'acss_debit' ? '3-5 business days' : 'Instant'}
                     </span>
@@ -252,7 +252,7 @@ export function RentPaymentFlow({
                   {selectedMethod === 'acss_debit' && (
                     <div className="flex justify-between">
                       <span className="text-gray-600">Expected Clear Date:</span>
-                      <span className="font-medium">
+                      <span className="font-medium text-gray-900">
                         {calculateExpectedClearDate(5).toLocaleDateString()}
                       </span>
                     </div>
@@ -260,9 +260,9 @@ export function RentPaymentFlow({
                 </div>
 
                 {error && (
-                  <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>{error}</AlertDescription>
+                  <Alert variant="destructive" className="bg-red-50 border-red-200">
+                    <AlertCircle className="h-4 w-4 text-red-800" />
+                    <AlertDescription className="text-red-800">{error}</AlertDescription>
                   </Alert>
                 )}
 
@@ -270,7 +270,7 @@ export function RentPaymentFlow({
                   <Button
                     onClick={handleConfirmPayment}
                     disabled={isProcessing}
-                    className="flex-1"
+                    className="flex-1 bg-blue-600 hover:bg-blue-700"
                   >
                     {isProcessing ? (
                       <>
@@ -288,6 +288,7 @@ export function RentPaymentFlow({
                     variant="outline"
                     onClick={() => setCurrentStep(selectedMethod === 'acss_debit' ? 'connect-bank' : 'select-method')}
                     disabled={isProcessing}
+                    className="border-gray-300 text-gray-700 hover:bg-gray-50"
                   >
                     Back
                   </Button>
@@ -299,11 +300,11 @@ export function RentPaymentFlow({
 
       case 'processing':
         return (
-          <Card>
+          <Card className="bg-white shadow-sm">
             <CardContent className="py-12">
               <div className="text-center space-y-4">
                 <Loader2 className="h-12 w-12 animate-spin mx-auto text-blue-600" />
-                <h3 className="text-xl font-semibold">Processing Payment...</h3>
+                <h3 className="text-xl font-semibold text-gray-900">Processing Payment...</h3>
                 <p className="text-gray-600">Please wait while we process your payment</p>
               </div>
             </CardContent>
@@ -312,21 +313,21 @@ export function RentPaymentFlow({
 
       case 'complete':
         return (
-          <Card>
+          <Card className="bg-white shadow-sm">
             <CardContent className="py-12">
               <div className="text-center space-y-4">
                 <CheckCircle2 className="h-16 w-16 mx-auto text-green-600" />
-                <h3 className="text-2xl font-bold text-green-600">Payment Initiated!</h3>
+                <h3 className="text-2xl font-bold text-green-700">Payment Initiated!</h3>
                 
                 {selectedMethod === 'acss_debit' ? (
                   <div className="space-y-2">
                     <p className="text-gray-600">
                       Your rent payment has been initiated via Pre-Authorized Debit.
                     </p>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-gray-600">
                       The payment will clear in 3-5 business days. You'll receive a notification once it's complete.
                     </p>
-                    <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+                    <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
                       <p className="text-sm text-blue-800">
                         <strong>Expected Clear Date:</strong> {calculateExpectedClearDate(5).toLocaleDateString()}
                       </p>
@@ -338,7 +339,7 @@ export function RentPaymentFlow({
                   </p>
                 )}
 
-                <Button onClick={() => window.location.reload()} className="mt-6">
+                <Button onClick={() => window.location.reload()} className="mt-6 bg-blue-600 hover:bg-blue-700">
                   Done
                 </Button>
               </div>
@@ -352,7 +353,7 @@ export function RentPaymentFlow({
   };
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="w-full">
       {renderStepContent()}
     </div>
   );

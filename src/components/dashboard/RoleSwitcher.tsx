@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Building, User, Shield, ChevronDown, Hammer } from "lucide-react";
+import { Building, User, Shield, ChevronDown, Hammer, Briefcase } from "lucide-react";
 import { useRole, UserRole } from "@/contexts/RoleContext";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/hooks/use-toast";
@@ -22,7 +22,7 @@ export function RoleSwitcher({ variant = 'default' }: RoleSwitcherProps) {
   const { updateMetadata, user } = useAuth();
   const navigate = useNavigate();
   const [isRoleSwitching, setIsRoleSwitching] = useState(false);
-  const [availableRoles, setAvailableRoles] = useState<UserRole[]>(['seeker', 'landlord', 'renovator']);
+  const [availableRoles, setAvailableRoles] = useState<UserRole[]>(['seeker', 'landlord', 'renovator', 'mortgage_broker']);
   const isNavigatingRef = useRef(false);
 
   // Load available roles on mount
@@ -71,6 +71,9 @@ export function RoleSwitcher({ variant = 'default' }: RoleSwitcherProps) {
         case 'renovator':
           navigate('/renovator/dashboard', { replace: true });
           break;
+        case 'mortgage_broker':
+          navigate('/dashboard/mortgage-broker', { replace: true });
+          break;
         case 'developer':
           navigate('/dashboard/landlord', { replace: true }); // Developers can access landlord features
           break;
@@ -101,6 +104,7 @@ export function RoleSwitcher({ variant = 'default' }: RoleSwitcherProps) {
       case 'landlord': return 'Landlord';
       case 'admin': return 'Administrator';
       case 'renovator': return 'Renovator';
+      case 'mortgage_broker': return 'Mortgage Broker';
       case 'developer': return 'Developer';
       default: return 'User';
     }
@@ -112,6 +116,7 @@ export function RoleSwitcher({ variant = 'default' }: RoleSwitcherProps) {
       case 'landlord': return <Building className="h-4 w-4" />;
       case 'admin': return <Shield className="h-4 w-4" />;
       case 'renovator': return <Hammer className="h-4 w-4" />;
+      case 'mortgage_broker': return <Briefcase className="h-4 w-4" />;
       case 'developer': return <User className="h-4 w-4" />;
       default: return <User className="h-4 w-4" />;
     }

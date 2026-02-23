@@ -459,6 +459,10 @@ export async function fetchProperties(filters?: {
     // Accept both 'active' and 'available' for backward compatibility
     query = query.in('status', ['active', 'available']);
 
+    // IMPORTANT: Exclude sales properties from rental listings
+    // Only filter out properties explicitly marked as 'sale'
+    query = query.not('listing_category', 'eq', 'sale');
+
     if (filters) {
       if (filters.location) {
         query = query.or(`city.ilike.%${filters.location}%,state.ilike.%${filters.location}%`);

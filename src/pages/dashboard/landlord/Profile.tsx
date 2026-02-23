@@ -191,23 +191,26 @@ export default function LandlordProfilePage() {
     };
 
     return (
-        <div className="max-w-4xl mx-auto space-y-6 pb-20">
-            <div className="flex justify-between items-center">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Landlord Profile</h1>
-                    <p className="text-muted-foreground mt-1">Manage your identity and verification status</p>
-                </div>
-                {verificationStatus === 'verified' && (
-                    <div className="flex items-center gap-2 bg-green-100 text-green-800 px-4 py-2 rounded-full border border-green-200">
-                        <ShieldCheck className="h-5 w-5" />
-                        <span className="font-semibold">Verified Landlord</span>
+        <div className="space-y-6">
+            {/* Header Section */}
+            <div className="mb-6">
+                <div className="flex justify-between items-center">
+                    <div>
+                        <h1 className="text-3xl font-bold tracking-tight">Landlord Profile</h1>
+                        <p className="text-muted-foreground mt-1">Manage your identity and verification status</p>
                     </div>
-                )}
+                    {verificationStatus === 'verified' && (
+                        <div className="flex items-center gap-2 bg-green-100 text-green-800 px-4 py-2 rounded-md border border-green-200">
+                            <ShieldCheck className="h-5 w-5" />
+                            <span className="font-semibold">Verified Landlord</span>
+                        </div>
+                    )}
+                </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Left Column: Form */}
-                <div className="md:col-span-2 space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Left Column: Form - Takes 2/3 width */}
+                <div className="lg:col-span-2 space-y-6">
                     <form onSubmit={form.handleSubmit(onSubmit)}>
                         <Card>
                             <CardHeader>
@@ -220,14 +223,25 @@ export default function LandlordProfilePage() {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="space-y-2">
                                         <Label htmlFor="fullName">Full Name</Label>
-                                        <Input id="fullName" {...form.register("fullName")} />
+                                        <Input 
+                                            id="fullName" 
+                                            {...form.register("fullName")}
+                                        />
                                         {form.formState.errors.fullName && (
-                                            <p className="text-red-500 text-sm">{form.formState.errors.fullName.message}</p>
+                                            <p className="text-red-600 text-sm flex items-center gap-1">
+                                                <AlertCircle className="h-3 w-3" />
+                                                {form.formState.errors.fullName.message}
+                                            </p>
                                         )}
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="email">Email Address</Label>
-                                        <Input id="email" {...form.register("email")} readOnly className="bg-gray-50 text-gray-500 cursor-not-allowed" />
+                                        <Input 
+                                            id="email" 
+                                            {...form.register("email")} 
+                                            readOnly 
+                                            className="bg-gray-50 text-gray-500 cursor-not-allowed" 
+                                        />
                                         <p className="text-xs text-muted-foreground">Contact support to change email</p>
                                     </div>
                                 </div>
@@ -261,12 +275,15 @@ export default function LandlordProfilePage() {
                                         </SelectContent>
                                     </Select>
                                     {form.formState.errors.userType && (
-                                        <p className="text-red-500 text-sm">{form.formState.errors.userType.message}</p>
+                                        <p className="text-red-600 text-sm flex items-center gap-1">
+                                            <AlertCircle className="h-3 w-3" />
+                                            {form.formState.errors.userType.message}
+                                        </p>
                                     )}
                                 </div>
 
                                 {userType === 'realtor' && (
-                                    <div className="space-y-4 pt-2 border-t">
+                                    <div className="space-y-4 pt-4 border-t">
                                         <div className="space-y-2">
                                             <Label htmlFor="licenseNumber">Realtor License Number</Label>
                                             <Input
@@ -278,7 +295,7 @@ export default function LandlordProfilePage() {
 
                                         <div className="space-y-2">
                                             <Label>Upload License Document (Optional)</Label>
-                                            <div className="border-2 border-dashed border-gray-200 rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors">
+                                            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors">
                                                 <Upload className="h-8 w-8 text-gray-400 mb-2" />
                                                 <span className="text-sm text-gray-600">Click to upload license image/PDF</span>
                                                 <input
@@ -286,15 +303,19 @@ export default function LandlordProfilePage() {
                                                     className="hidden"
                                                     onChange={(e) => setLicenseFile(e.target.files?.[0] || null)}
                                                 />
-                                                {licenseFile && <span className="text-xs font-semibold text-green-600 mt-2">{licenseFile.name}</span>}
+                                                {licenseFile && (
+                                                    <span className="text-xs font-semibold text-green-600 mt-2">
+                                                        {licenseFile.name}
+                                                    </span>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
                                 )}
 
-                                <div className="space-y-2 pt-2 border-t">
+                                <div className="space-y-2 pt-4 border-t">
                                     <Label>Government ID (For Verification - Optional)</Label>
-                                    <div className="border-2 border-dashed border-gray-200 rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors">
+                                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors">
                                         <CreditCard className="h-8 w-8 text-gray-400 mb-2" />
                                         <span className="text-sm text-gray-600">Click to upload Government ID</span>
                                         <input
@@ -302,15 +323,35 @@ export default function LandlordProfilePage() {
                                             className="hidden"
                                             onChange={(e) => setIdFile(e.target.files?.[0] || null)}
                                         />
-                                        {idFile && <span className="text-xs font-semibold text-green-600 mt-2">{idFile.name}</span>}
+                                        {idFile && (
+                                            <span className="text-xs font-semibold text-green-600 mt-2">
+                                                {idFile.name}
+                                            </span>
+                                        )}
                                     </div>
-                                    <p className="text-xs text-muted-foreground">Your ID is encrypted and used only for verification purposes.</p>
+                                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                                        <ShieldCheck className="h-3 w-3" />
+                                        Your ID is encrypted and used only for verification purposes.
+                                    </p>
                                 </div>
 
                             </CardContent>
                             <CardFooter className="flex justify-between border-t p-6 bg-gray-50/50">
-                                <div className="text-xs text-muted-foreground italic">
-                                    {verificationStatus ? `Status: ${verificationStatus.toUpperCase()}` : 'Not submitted'}
+                                <div className="text-sm text-muted-foreground">
+                                    {verificationStatus ? (
+                                        <span className="flex items-center gap-2">
+                                            Status: 
+                                            <span className={`font-semibold px-2 py-1 rounded text-xs ${
+                                                verificationStatus === 'verified' ? 'bg-green-100 text-green-700' :
+                                                verificationStatus === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                                                'bg-gray-100 text-gray-700'
+                                            }`}>
+                                                {verificationStatus.toUpperCase()}
+                                            </span>
+                                        </span>
+                                    ) : (
+                                        'Not submitted'
+                                    )}
                                 </div>
                                 <Button type="submit" disabled={loading}>
                                     {loading ? "Saving..." : "Save Profile"}
@@ -320,10 +361,10 @@ export default function LandlordProfilePage() {
                     </form>
                 </div>
 
-                {/* Right Column: Info */}
+                {/* Right Column: Info - Takes 1/3 width */}
                 <div className="space-y-6">
                     <Card>
-                        <CardHeader className="pb-2">
+                        <CardHeader className="pb-3">
                             <CardTitle className="text-sm font-medium flex items-center gap-2">
                                 <ShieldCheck className="h-4 w-4 text-primary" />
                                 Account Overview
@@ -340,7 +381,9 @@ export default function LandlordProfilePage() {
                             </div>
                             <div className="flex justify-between text-sm border-t pt-2 mt-2">
                                 <span className="text-muted-foreground">Login Email:</span>
-                                <span className="font-semibold text-xs truncate max-w-[140px]">{user?.email}</span>
+                                <span className="font-semibold text-xs truncate max-w-[140px]" title={user?.email}>
+                                    {user?.email}
+                                </span>
                             </div>
                         </CardContent>
                     </Card>

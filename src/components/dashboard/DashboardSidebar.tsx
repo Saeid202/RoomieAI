@@ -19,6 +19,7 @@ import { LandlordSidebar } from "./sidebar/LandlordSidebar";
 import { DeveloperSidebar } from "./sidebar/DeveloperSidebar";
 import { AdminSidebar } from "./sidebar/AdminSidebar";
 import { RenovatorSidebar } from "./sidebar/RenovatorSidebar";
+import { MortgageBrokerSidebar } from "./sidebar/MortgageBrokerSidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/hooks/useAuth";
 import { ChevronUp, Settings, LogOut, Home } from "lucide-react";
@@ -66,6 +67,8 @@ export function DashboardSidebar() {
                 <LandlordSidebar isActive={isActive} />
               ) : role === 'renovator' ? (
                 <RenovatorSidebar isActive={isActive} />
+              ) : role === 'mortgage_broker' ? (
+                <MortgageBrokerSidebar isActive={isActive} />
               ) : (
                 <SeekerSidebar isActive={isActive} />
               )}

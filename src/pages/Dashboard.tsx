@@ -22,12 +22,17 @@ export default function Dashboard() {
   const assignedRole = user?.user_metadata?.role;
 
   useEffect(() => {
-    // Only log once when path changes
-    console.log("Dashboard - path:", location.pathname, "role:", assignedRole);
-  }, [location.pathname]);
+    // Only log once when path or role changes
+    console.log("📍 Dashboard - Current state:", {
+      path: location.pathname,
+      role: role,
+      assignedRole: assignedRole,
+      loading: loading
+    });
+  }, [location.pathname, role, assignedRole, loading]);
 
   // Show loading state
-  if (loading) {
+  if (loading || role === null) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -40,15 +45,20 @@ export default function Dashboard() {
 
   // Only redirect if we're exactly at /dashboard and not at a sub-route
   if (location.pathname === '/dashboard' && !showRoleDialog) {
-    if (assignedRole === 'landlord') {
+    // Prioritize context role (loaded from DB/metadata by RoleInitializer) over user_metadata
+    const effectiveRole = role || assignedRole;
+
+    if (effectiveRole === 'landlord') {
       return <Navigate to="/dashboard/landlord" replace />;
-    } else if (assignedRole === 'developer') {
-      return <Navigate to="/dashboard/developer" replace />;
-    } else if (assignedRole === 'admin') {
+    } else if (effectiveRole === 'developer') {
+      return <Navigate to="/dashboard/landlord" replace />; // Developers use landlord dashboard
+    } else if (effectiveRole === 'admin') {
       return <Navigate to="/dashboard/admin" replace />;
-    } else if (assignedRole === 'renovator') {
+    } else if (effectiveRole === 'renovator') {
       return <Navigate to="/renovator/dashboard" replace />;
-    } else if (assignedRole === 'seeker') {
+    } else if (effectiveRole === 'mortgage_broker') {
+      return <Navigate to="/dashboard/mortgage-broker" replace />;
+    } else if (effectiveRole === 'seeker') {
       return (
         <DashboardLayout>
           <RoommateRecommendations />

@@ -24,29 +24,29 @@ export default function DigitalWallet() {
   }
 
   return (
-    <div className="container mx-auto p-6 max-w-6xl space-y-6">
+    <div className="max-w-full px-6 py-6 space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold">Digital Wallet</h1>
-        <p className="text-muted-foreground mt-2">
+        <h1 className="text-3xl font-semibold tracking-tight">Digital Wallet</h1>
+        <p className="text-gray-600 mt-2">
           Manage your rent payments with Canadian Pre-Authorized Debit (PAD)
         </p>
       </div>
 
       {/* Info Alert */}
-      <Alert>
-        <Info className="h-4 w-4" />
-        <AlertDescription>
+      <Alert className="bg-blue-50 border-blue-200">
+        <Info className="h-4 w-4 text-blue-800" />
+        <AlertDescription className="text-blue-800">
           Save money with Canadian PAD! Pay only 1% + $0.25 per transaction instead of 2.9% + $0.30 with cards.
           That's ~$38 savings per month on $2,000 rent.
         </AlertDescription>
       </Alert>
 
       {/* Payment Flow */}
-      <Card>
+      <Card className="bg-white shadow-sm">
         <CardHeader>
-          <CardTitle>Pay Your Rent</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-xl">Pay Your Rent</CardTitle>
+          <CardDescription className="text-gray-600">
             Choose your payment method and complete your rent payment securely
           </CardDescription>
         </CardHeader>
@@ -63,18 +63,18 @@ export default function DigitalWallet() {
       </Card>
 
       {/* Test Credentials Card */}
-      <Card className="border-dashed">
+      <Card className="border-dashed bg-gray-50">
         <CardHeader>
-          <CardTitle className="text-sm">Test Mode - Stripe Test Credentials</CardTitle>
-          <CardDescription className="text-xs">
+          <CardTitle className="text-sm text-gray-700">Test Mode - Stripe Test Credentials</CardTitle>
+          <CardDescription className="text-xs text-gray-600">
             Use these test bank account details for testing
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <h3 className="font-semibold text-sm text-green-600">✅ Successful Payment</h3>
-              <ul className="list-disc list-inside space-y-1 text-xs text-muted-foreground">
+              <h3 className="font-semibold text-sm text-green-700">✅ Successful Payment</h3>
+              <ul className="list-disc list-inside space-y-1 text-xs text-gray-600">
                 <li>Account Holder: Test User</li>
                 <li>Institution: 000</li>
                 <li>Transit: 00022</li>
@@ -83,8 +83,8 @@ export default function DigitalWallet() {
             </div>
             
             <div className="space-y-2">
-              <h3 className="font-semibold text-sm text-red-600">❌ Failed Payment Tests</h3>
-              <ul className="list-disc list-inside space-y-1 text-xs text-muted-foreground">
+              <h3 className="font-semibold text-sm text-red-700">❌ Failed Payment Tests</h3>
+              <ul className="list-disc list-inside space-y-1 text-xs text-gray-600">
                 <li>Insufficient Funds: 000111111116</li>
                 <li>Account Closed: 000222222227</li>
               </ul>
