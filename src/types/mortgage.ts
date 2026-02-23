@@ -59,6 +59,8 @@ export interface MortgageProfile {
   intended_use: string | null;
   target_location: string | null;
   timeline_to_buy: string | null;
+  broker_consent: boolean | null;
+  broker_consent_date: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -122,4 +124,5 @@ export interface MortgageProfileFormData {
   intended_use?: string | null;
   target_location?: string | null;
   timeline_to_buy?: string | null;
+  broker_consent?: boolean | null;
 }

@@ -87,11 +87,13 @@ export async function saveMortgageBrokerProfile(
 
 /**
  * Fetch all mortgage profiles (for clients list)
+ * Only returns profiles where the user has given consent to share with brokers
  */
 export async function fetchAllMortgageProfiles(): Promise<MortgageProfile[]> {
   const { data, error } = await supabase
     .from('mortgage_profiles')
     .select('*')
+    .eq('broker_consent', true)  // Only fetch profiles with explicit consent
     .order('created_at', { ascending: false });
 
   if (error) {
