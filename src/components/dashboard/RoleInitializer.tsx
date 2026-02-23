@@ -19,6 +19,18 @@ export function RoleInitializer({ children }: RoleInitializerProps) {
       return;
     }
     
+    // Add timeout to prevent infinite loading
+    const timeoutId = setTimeout(() => {
+      console.warn("⏱️ RoleInitializer - Timeout reached, forcing load completion");
+      setIsLoading(false);
+      // If role is still null after timeout, set a default
+      if (!role) {
+        const fallbackRole = user.user_metadata?.role || 'seeker';
+        console.log("⚠️ RoleInitializer - Setting fallback role after timeout:", fallbackRole);
+        setRole(fallbackRole);
+      }
+    }, 5000); // 5 second timeout
+    
     const loadUserRole = async () => {
       try {
         console.log("🔍 RoleInitializer - Starting role load for user:", user.id);
@@ -57,12 +69,21 @@ export function RoleInitializer({ children }: RoleInitializerProps) {
         }
       } catch (error) {
         console.error("❌ RoleInitializer - Error loading role:", error);
+        // Set fallback role on error
+        const fallbackRole = user.user_metadata?.role || 'seeker';
+        console.log("⚠️ RoleInitializer - Setting fallback role after error:", fallbackRole);
+        setRole(fallbackRole);
       } finally {
+        clearTimeout(timeoutId);
         setIsLoading(false);
       }
     };
     
     loadUserRole();
+    
+    return () => {
+      clearTimeout(timeoutId);
+    };
   }, [user?.id]); // Only depend on user ID, not metadata
 
   // Show loading state while fetching role
