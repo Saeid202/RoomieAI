@@ -1,5 +1,5 @@
 
-import { Outlet, useLocation, Navigate, matchPath } from "react-router-dom";
+import { Outlet, useLocation, Navigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { RouteGuard } from "@/components/dashboard/RouteGuard";
 import { RoleInitializer } from "@/components/dashboard/RoleInitializer";
@@ -22,7 +22,6 @@ export default function Dashboard() {
   const assignedRole = user?.user_metadata?.role;
 
   useEffect(() => {
-    // Only log once when path or role changes
     console.log("📍 Dashboard - Current state:", {
       path: location.pathname,
       role: role,
@@ -31,8 +30,8 @@ export default function Dashboard() {
     });
   }, [location.pathname, role, assignedRole, loading]);
 
-  // Show loading state
-  if (loading || role === null) {
+  // Show loading state only if auth is loading
+  if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -43,46 +42,16 @@ export default function Dashboard() {
     );
   }
 
-  // Only redirect if we're exactly at /dashboard and not at a sub-route
-  if (location.pathname === '/dashboard' && !showRoleDialog) {
-    // Prioritize context role (loaded from DB/metadata by RoleInitializer) over user_metadata
-    const effectiveRole = role || assignedRole;
-
-    if (effectiveRole === 'landlord') {
-      return <Navigate to="/dashboard/landlord" replace />;
-    } else if (effectiveRole === 'developer') {
-      return <Navigate to="/dashboard/landlord" replace />; // Developers use landlord dashboard
-    } else if (effectiveRole === 'admin') {
-      return <Navigate to="/dashboard/admin" replace />;
-    } else if (effectiveRole === 'renovator') {
-      return <Navigate to="/renovator/dashboard" replace />;
-    } else if (effectiveRole === 'mortgage_broker') {
-      return <Navigate to="/dashboard/mortgage-broker" replace />;
-    } else if (effectiveRole === 'seeker') {
-      return (
-        <DashboardLayout>
-          <RoommateRecommendations />
-        </DashboardLayout>
-      );
-    }
-  }
-
-  // If we're at the root dashboard page and not redirecting elsewhere, show the Roomie AI introduction
-  // Use matchPath for exact matching to avoid blocking nested routes
-  const isExactDashboard = matchPath({ path: "/dashboard", end: true }, location.pathname);
-  const showDashboardContent = isExactDashboard !== null && !showRoleDialog;
-
   return (
     <>
       <RoleInitializer>
         <RouteGuard>
-          <DashboardLayout>
-            {showDashboardContent ? (
-              <RoommateRecommendations />
-            ) : (
-              <Outlet />
-            )}
-          </DashboardLayout>
+          <DashboardContent 
+            role={role}
+            assignedRole={assignedRole}
+            location={location}
+            showRoleDialog={showRoleDialog}
+          />
         </RouteGuard>
       </RoleInitializer>
 
@@ -111,5 +80,37 @@ export default function Dashboard() {
         placeholder="Ask about properties, rentals, applications..."
       />
     </>
+  );
+}
+
+function DashboardContent({ role, assignedRole, location, showRoleDialog }: any) {
+  // Only redirect if we're exactly at /dashboard root
+  if (location.pathname === '/dashboard' && !showRoleDialog) {
+    const effectiveRole = role || assignedRole;
+
+    if (effectiveRole === 'landlord') {
+      return <Navigate to="/dashboard/landlord" replace />;
+    } else if (effectiveRole === 'developer') {
+      return <Navigate to="/dashboard/landlord" replace />;
+    } else if (effectiveRole === 'admin') {
+      return <Navigate to="/dashboard/admin" replace />;
+    } else if (effectiveRole === 'renovator') {
+      return <Navigate to="/renovator/dashboard" replace />;
+    } else if (effectiveRole === 'mortgage_broker') {
+      return <Navigate to="/dashboard/mortgage-broker" replace />;
+    } else if (effectiveRole === 'seeker') {
+      return (
+        <DashboardLayout>
+          <RoommateRecommendations />
+        </DashboardLayout>
+      );
+    }
+  }
+
+  // For all other routes, show the layout with outlet
+  return (
+    <DashboardLayout>
+      <Outlet />
+    </DashboardLayout>
   );
 }

@@ -89,6 +89,8 @@ import LeaseContractPage from "@/pages/dashboard/LeaseContract";
 import PropertyDocumentVault from "@/pages/dashboard/PropertyDocumentVault";
 import TenantPaymentsPage from "@/pages/dashboard/tenant/TenantPayments";
 import MortgageBrokerDashboard from "@/pages/dashboard/MortgageBrokerDashboard";
+import MortgageBrokerProfile from "@/pages/dashboard/MortgageBrokerProfile";
+import MortgageBrokerClients from "@/pages/dashboard/MortgageBrokerClients";
 
 
 import { useAuth } from "@/hooks/useAuth";
@@ -180,8 +182,8 @@ function AppRoutes() {
           <Route path="shop" element={<ShopPage />} />
           <Route path="digital-wallet" element={<TenantPaymentsPage />} />          <Route path="list-room" element={<ListRoomPage />} />
           <Route path="mortgage-broker" element={<MortgageBrokerDashboard />} />
-          <Route path="mortgage-broker/profile" element={<MortgageBrokerDashboard />} />
-          <Route path="mortgage-broker/clients" element={<MortgageBrokerDashboard />} />
+          <Route path="mortgage-broker/profile" element={<MortgageBrokerProfile />} />
+          <Route path="mortgage-broker/clients" element={<MortgageBrokerClients />} />
           <Route path="profile" element={<SeekerProfilePage />} />
           <Route path="property/:id/documents" element={<PropertyDocumentVault />} />
           <Route path="user/:userId" element={<PublicProfilePage />} />
@@ -288,8 +290,8 @@ function AppRoutes() {
         <Route path="shop" element={<ShopPage />} />
         <Route path="digital-wallet" element={<TenantPaymentsPage />} />        <Route path="list-room" element={<ListRoomPage />} />
         <Route path="mortgage-broker" element={<MortgageBrokerDashboard />} />
-        <Route path="mortgage-broker/profile" element={<MortgageBrokerDashboard />} />
-        <Route path="mortgage-broker/clients" element={<MortgageBrokerDashboard />} />
+        <Route path="mortgage-broker/profile" element={<MortgageBrokerProfile />} />
+        <Route path="mortgage-broker/clients" element={<MortgageBrokerClients />} />
         <Route path="profile" element={<SeekerProfilePage />} />
         <Route path="property/:id/documents" element={<PropertyDocumentVault />} />
         <Route path="user/:userId" element={<PublicProfilePage />} />

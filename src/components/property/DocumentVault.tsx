@@ -188,71 +188,64 @@ export function DocumentVault({
   return (
     <div className={`space-y-4 ${className}`}>
       {/* Header Card */}
-      <Card className="border-2 border-purple-200 shadow-lg overflow-hidden">
-        <CardHeader className="bg-gradient-to-r from-purple-50 to-indigo-50 border-b border-purple-100">
+      <Card className="border-4 border-purple-300 shadow-2xl overflow-hidden bg-white">
+        <CardHeader className="bg-gradient-to-r from-purple-100 via-pink-100 to-indigo-100 border-b-4 border-purple-200">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-md">
-                <FolderOpen className="h-6 w-6 text-white" />
+            <div className="flex items-center gap-4">
+              <div className="h-14 w-14 rounded-xl bg-gradient-to-br from-purple-500 via-pink-500 to-indigo-600 flex items-center justify-center shadow-xl">
+                <FolderOpen className="h-8 w-8 text-white" />
               </div>
               <div>
-                <CardTitle className="text-xl font-bold text-slate-900 flex items-center gap-2">
-                  {isBuyerView ? 'Available Documents' : 'Property Document Vault'}
+                <CardTitle className="text-2xl font-black text-slate-900 flex items-center gap-2">
+                  <span className="bg-gradient-to-r from-purple-600 via-pink-600 to-indigo-600 bg-clip-text text-transparent">
+                    {isBuyerView ? 'Available Documents' : 'Property Document Vault'}
+                  </span>
                   {!isBuyerView && (
-                    <span className="text-xs font-bold text-purple-600 bg-purple-100 px-2 py-1 rounded-full">
+                    <span className="text-xs font-bold text-white bg-gradient-to-r from-purple-600 to-pink-600 px-3 py-1 rounded-full shadow-md">
                       Optional
                     </span>
                   )}
                 </CardTitle>
-                <p className="text-sm text-slate-600 mt-1">
+                <p className="text-sm text-slate-700 mt-1 font-medium">
                   {isBuyerView 
                     ? 'Review property documentation' 
                     : 'Boost your listing credibility with professional documentation'}
                 </p>
               </div>
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsExpanded(!isExpanded)}
-              className="shrink-0"
-            >
-              {isExpanded ? (
-                <ChevronUp className="h-5 w-5" />
-              ) : (
-                <ChevronDown className="h-5 w-5" />
-              )}
-            </Button>
           </div>
         </CardHeader>
 
-        {isExpanded && (
-          <CardContent className="p-6 space-y-6">
-            {/* Info Banner */}
-            {isBuyerView ? (
-              <div className="bg-indigo-50 border-2 border-indigo-200 rounded-lg p-4">
-                <div className="flex items-start gap-3">
-                  <Info className="h-5 w-5 text-indigo-600 shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-sm font-semibold text-indigo-900 mb-2">
-                      Document Access Granted
-                    </p>
-                    <p className="text-xs text-indigo-800 leading-relaxed">
-                      The seller has granted you access to these documents for your due diligence. 
-                      Please contact the owner directly for any questions regarding the Status Certificate or Title.
-                    </p>
-                  </div>
+        <CardContent className="p-6 space-y-6">
+          {/* Info Banner */}
+          {isBuyerView ? (
+            <div className="bg-gradient-to-r from-purple-50 to-indigo-50 border-2 border-purple-200 rounded-lg p-4 shadow-md">
+              <div className="flex items-start gap-3">
+                <div className="h-10 w-10 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shrink-0 shadow-lg">
+                  <Info className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-purple-900 mb-2">
+                    Document Access Granted
+                  </p>
+                  <p className="text-xs text-purple-800 leading-relaxed">
+                    The seller has granted you access to these documents for your due diligence. 
+                    Please contact the owner directly for any questions regarding the Status Certificate or Title.
+                  </p>
                 </div>
               </div>
-            ) : (
-              <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
-                <div className="flex items-start gap-3">
-                  <Info className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" />
+            </div>
+          ) : (
+            <div className="bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200 rounded-lg p-4 shadow-md">
+              <div className="flex items-start gap-3">
+                <div className="h-10 w-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center shrink-0 shadow-lg">
+                  <Info className="h-5 w-5 text-white" />
+                </div>
                   <div className="space-y-2">
-                    <p className="text-sm font-semibold text-blue-900">
+                    <p className="text-sm font-semibold text-purple-900">
                       Why upload documents?
                     </p>
-                    <ul className="text-xs text-blue-800 space-y-1 list-disc list-inside">
+                    <ul className="text-xs text-purple-800 space-y-1 list-disc list-inside">
                       <li>Build trust with serious buyers</li>
                       <li>Speed up the due diligence process</li>
                       <li>Stand out from other listings</li>
@@ -279,16 +272,20 @@ export function DocumentVault({
             {isBuyerView ? (
               <>
                 {/* Legal Identity */}
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 pb-2 border-b-2 border-slate-200">
-                    <span className="bg-indigo-600 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center shrink-0">
+                <div className="space-y-6 bg-gradient-to-br from-purple-50/50 to-indigo-50/50 p-6 rounded-2xl border-3 border-purple-200 shadow-lg">
+                  <div className="flex items-center gap-3 pb-3 border-b-4 border-purple-300">
+                    <span className="bg-gradient-to-br from-purple-600 to-indigo-600 text-white text-sm font-black rounded-full w-10 h-10 flex items-center justify-center shrink-0 shadow-xl">
                       1
                     </span>
-                    <h3 className="text-base font-bold text-slate-900">Legal Identity</h3>
-                    <span className="text-xs text-slate-500">(Ownership & Tax)</span>
+                    <div>
+                      <h3 className="text-xl font-black bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                        Legal Identity
+                      </h3>
+                      <span className="text-xs font-bold text-purple-600">(Ownership & Tax)</span>
+                    </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {documentSlots
                       .filter(slot => ['title_deed', 'property_tax_bill'].includes(slot.type))
                       .map((slot) => (
@@ -313,16 +310,20 @@ export function DocumentVault({
                 </div>
 
                 {/* Property Condition */}
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 pb-2 border-b-2 border-slate-200">
-                    <span className="bg-purple-600 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center shrink-0">
+                <div className="space-y-6 bg-gradient-to-br from-pink-50/50 to-purple-50/50 p-6 rounded-2xl border-3 border-pink-200 shadow-lg">
+                  <div className="flex items-center gap-3 pb-3 border-b-4 border-pink-300">
+                    <span className="bg-gradient-to-br from-pink-600 to-purple-600 text-white text-sm font-black rounded-full w-10 h-10 flex items-center justify-center shrink-0 shadow-xl">
                       2
                     </span>
-                    <h3 className="text-base font-bold text-slate-900">Property Condition</h3>
-                    <span className="text-xs text-slate-500">(Disclosures & Inspections)</span>
+                    <div>
+                      <h3 className="text-xl font-black bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
+                        Property Condition
+                      </h3>
+                      <span className="text-xs font-bold text-pink-600">(Disclosures & Inspections)</span>
+                    </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {documentSlots
                       .filter(slot => ['disclosures', 'building_inspection'].includes(slot.type))
                       .map((slot) => (
@@ -347,16 +348,20 @@ export function DocumentVault({
                 </div>
 
                 {/* Governance */}
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 pb-2 border-b-2 border-slate-200">
-                    <span className="bg-orange-600 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center shrink-0">
+                <div className="space-y-6 bg-gradient-to-br from-indigo-50/50 to-purple-50/50 p-6 rounded-2xl border-3 border-indigo-200 shadow-lg">
+                  <div className="flex items-center gap-3 pb-3 border-b-4 border-indigo-300">
+                    <span className="bg-gradient-to-br from-indigo-600 to-purple-600 text-white text-sm font-black rounded-full w-10 h-10 flex items-center justify-center shrink-0 shadow-xl">
                       3
                     </span>
-                    <h3 className="text-base font-bold text-slate-900">Governance</h3>
-                    <span className="text-xs text-slate-500">(Condo Rules & Status)</span>
+                    <div>
+                      <h3 className="text-xl font-black bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                        Governance
+                      </h3>
+                      <span className="text-xs font-bold text-indigo-600">(Condo Rules & Status)</span>
+                    </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {documentSlots
                       .filter(slot => ['condo_bylaws', 'status_certificate', 'survey_plan'].includes(slot.type))
                       .map((slot) => (
@@ -383,16 +388,20 @@ export function DocumentVault({
             ) : (
               <>
                 {/* Common Documents Section */}
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 pb-2 border-b-2 border-slate-200">
-                    <span className="bg-blue-600 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center shrink-0">
+                <div className="space-y-6 bg-gradient-to-br from-purple-50/50 to-indigo-50/50 p-6 rounded-2xl border-3 border-purple-200 shadow-lg">
+                  <div className="flex items-center gap-3 pb-3 border-b-4 border-purple-300">
+                    <span className="bg-gradient-to-br from-purple-600 to-indigo-600 text-white text-sm font-black rounded-full w-10 h-10 flex items-center justify-center shrink-0 shadow-xl">
                       1
                     </span>
-                    <h3 className="text-base font-bold text-slate-900">Essential Documents</h3>
-                    <span className="text-xs text-slate-500">(For all property types)</span>
+                    <div>
+                      <h3 className="text-xl font-black bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                        Essential Documents
+                      </h3>
+                      <span className="text-xs font-bold text-purple-600">(For all property types)</span>
+                    </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {commonSlots.map((slot) => (
                       <DocumentSlot
                         key={slot.type}
@@ -416,18 +425,20 @@ export function DocumentVault({
 
                 {/* Category-Specific Documents Section */}
                 {categorySlots.length > 0 && propertyCategory && (
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2 pb-2 border-b-2 border-purple-200">
-                      <span className="bg-purple-600 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center shrink-0">
+                  <div className="space-y-6 bg-gradient-to-br from-pink-50/50 to-purple-50/50 p-6 rounded-2xl border-3 border-pink-200 shadow-lg">
+                    <div className="flex items-center gap-3 pb-3 border-b-4 border-pink-300">
+                      <span className="bg-gradient-to-br from-pink-600 to-purple-600 text-white text-sm font-black rounded-full w-10 h-10 flex items-center justify-center shrink-0 shadow-xl">
                         2
                       </span>
-                      <h3 className="text-base font-bold text-slate-900">
-                        {propertyCategory}-Specific Documents
-                      </h3>
-                      <Sparkles className="h-4 w-4 text-purple-600" />
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-xl font-black bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
+                          {propertyCategory}-Specific Documents
+                        </h3>
+                        <Sparkles className="h-5 w-5 text-pink-600" />
+                      </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                       {categorySlots.map((slot) => (
                         <DocumentSlot
                           key={slot.type}
@@ -467,14 +478,16 @@ export function DocumentVault({
 
             {/* No Property ID Message - Hide for buyers */}
             {!isBuyerView && !propertyId && propertyCategory && (
-              <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
+              <div className="bg-gradient-to-r from-indigo-50 to-purple-50 border-2 border-indigo-200 rounded-lg p-4 shadow-md">
                 <div className="flex items-start gap-3">
-                  <Info className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" />
+                  <div className="h-10 w-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shrink-0 shadow-lg">
+                    <Info className="h-5 w-5 text-white" />
+                  </div>
                   <div>
-                    <p className="text-sm font-semibold text-blue-900 mb-1">
+                    <p className="text-sm font-semibold text-indigo-900 mb-1">
                       Documents ready to upload
                     </p>
-                    <p className="text-xs text-blue-800">
+                    <p className="text-xs text-indigo-800">
                       Click "Create Listing" at the bottom to save your property first.
                       Then you can upload documents by editing the property.
                     </p>
@@ -483,7 +496,6 @@ export function DocumentVault({
               </div>
             )}
           </CardContent>
-        )}
       </Card>
 
       {/* Floating AI Button - Only for buyers */}

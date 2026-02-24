@@ -1,3 +1,8 @@
+// Broker Feedback System Types
+export type ReviewStatus = 'pending_review' | 'under_review' | 'feedback_sent' | 'under_discussion' | 'approved' | 'rejected';
+
+export type FeedbackSection = 'employment' | 'assets' | 'credit' | 'property' | 'general';
+
 export interface MortgageProfile {
   id: string;
   user_id: string;
@@ -61,6 +66,9 @@ export interface MortgageProfile {
   timeline_to_buy: string | null;
   broker_consent: boolean | null;
   broker_consent_date: string | null;
+  review_status: ReviewStatus | null;
+  last_reviewed_at: string | null;
+  last_reviewed_by: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -125,4 +133,23 @@ export interface MortgageProfileFormData {
   target_location?: string | null;
   timeline_to_buy?: string | null;
   broker_consent?: boolean | null;
+}
+
+export interface MortgageProfileFeedback {
+  id: string;
+  profile_id: string;
+  sender_id: string;
+  message: string;
+  section: FeedbackSection | null;
+  is_read: boolean;
+  created_at: string;
+  updated_at: string;
+  sender_name?: string; // Populated from join
+  sender_role?: string; // Populated from join
+}
+
+export interface MortgageProfileWithReview extends MortgageProfile {
+  review_status: ReviewStatus;
+  last_reviewed_at: string | null;
+  last_reviewed_by: string | null;
 }

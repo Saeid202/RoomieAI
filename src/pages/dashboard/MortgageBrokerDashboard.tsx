@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { 
@@ -7,7 +8,8 @@ import {
   fetchAllMortgageProfiles 
 } from "@/services/mortgageBrokerService";
 import { MortgageBrokerProfile } from "@/types/mortgageBroker";
-import { Building2, Users, FileText, TrendingUp } from "lucide-react";
+import { MortgageProfile } from "@/types/mortgage";
+import { Building2, Users, FileText, TrendingUp, Eye, Download, User, Calendar } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export default function MortgageBrokerDashboard() {
@@ -15,6 +17,7 @@ export default function MortgageBrokerDashboard() {
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<MortgageBrokerProfile | null>(null);
   const [clientCount, setClientCount] = useState(0);
+  const [recentClients, setRecentClients] = useState<MortgageProfile[]>([]);
 
   useEffect(() => {
     loadDashboardData();
@@ -37,6 +40,7 @@ export default function MortgageBrokerDashboard() {
 
       const clients = await fetchAllMortgageProfiles();
       setClientCount(clients.length);
+      setRecentClients(clients.slice(0, 3)); // Get first 3 clients
     } catch (error) {
       console.error("Error loading dashboard:", error);
       toast.error("Failed to load dashboard");
@@ -179,6 +183,105 @@ export default function MortgageBrokerDashboard() {
         </Card>
 
       </div>
+
+      {/* Recent Clients Section */}
+      {recentClients.length > 0 && (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-black bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
+              Recent Clients
+            </h2>
+            <Button
+              onClick={() => navigate('/dashboard/mortgage-broker/clients')}
+              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold shadow-lg"
+            >
+              View All Clients
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-1 gap-6">
+            {recentClients.map((client) => (
+              <Card 
+                key={client.id}
+                className="relative overflow-hidden border-2 border-purple-100 hover:border-purple-300 transition-all duration-300 hover:shadow-2xl bg-gradient-to-br from-white via-purple-50/30 to-pink-50/30 group"
+              >
+                {/* Animated background on hover */}
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-400/0 via-pink-400/0 to-indigo-400/0 group-hover:from-purple-400/5 group-hover:via-pink-400/5 group-hover:to-indigo-400/5 transition-all duration-500"></div>
+                
+                <CardContent className="p-6 relative z-10">
+                  <div className="flex items-start justify-between gap-6">
+                    {/* Left: Client Info */}
+                    <div className="flex items-center gap-4 flex-1">
+                      {/* Avatar */}
+                      <div className="relative flex-shrink-0">
+                        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 via-pink-500 to-indigo-500 flex items-center justify-center shadow-lg">
+                          <User className="h-8 w-8 text-white" />
+                        </div>
+                        <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-white shadow-md"></div>
+                      </div>
+
+                      {/* Client Details */}
+                      <div className="flex-1 space-y-2">
+                        <h3 className="text-xl font-black text-gray-900">{client.full_name || "Not provided"}</h3>
+                        
+                        <div className="flex flex-wrap gap-4 text-sm">
+                          <div className="flex items-center gap-2">
+                            <Calendar className="h-4 w-4 text-purple-500" />
+                            <span className="text-gray-600">
+                              Joined {client.created_at ? new Date(client.created_at).toLocaleDateString() : "N/A"}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-gray-600">📧</span>
+                            <span className="text-gray-700 font-medium">{client.email || "Not provided"}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-gray-600">📞</span>
+                            <span className="text-gray-700 font-medium">{client.phone_number || "Not provided"}</span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-semibold text-gray-600">Target:</span>
+                          <span className="text-sm font-bold text-purple-600">
+                            {client.purchase_price_range?.replace(/_/g, " ") || "Not provided"}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Right: Actions */}
+                    <div className="flex flex-col gap-3 items-end">
+                      <Button
+                        onClick={() => navigate('/dashboard/mortgage-broker/clients')}
+                        className="bg-gradient-to-r from-purple-600 via-pink-600 to-indigo-600 hover:from-purple-700 hover:via-pink-700 hover:to-indigo-700 text-white font-bold shadow-lg hover:shadow-xl transition-all duration-300"
+                      >
+                        <Eye className="h-4 w-4 mr-2" />
+                        View Details
+                      </Button>
+                      
+                      <Button
+                        variant="outline"
+                        className="border-2 border-purple-300 hover:bg-purple-50 text-purple-700 font-semibold"
+                      >
+                        <Download className="h-4 w-4 mr-2" />
+                        Quick Download
+                      </Button>
+
+                      <div className="mt-2">
+                        <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Status</span>
+                        <div className="mt-1 px-3 py-1 bg-gradient-to-r from-green-100 to-green-200 text-green-700 text-sm font-bold rounded-full border border-green-300 inline-block">
+                          Active Application
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

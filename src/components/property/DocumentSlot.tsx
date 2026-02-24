@@ -222,55 +222,55 @@ export function DocumentSlot({
   };
 
   return (
-    <div className={`relative bg-white rounded-lg border-2 transition-all duration-200 ${
+    <div className={`relative bg-white rounded-xl border-4 transition-all duration-200 shadow-lg hover:shadow-xl ${
       hasDocument 
-        ? 'border-green-200 bg-green-50/30' 
+        ? 'border-green-400 bg-gradient-to-br from-green-50 to-emerald-50' 
         : hasPending
-        ? 'border-yellow-200 bg-yellow-50/30'
-        : 'border-slate-200 hover:border-slate-300'
+        ? 'border-yellow-400 bg-gradient-to-br from-yellow-50 to-amber-50'
+        : 'border-purple-200 hover:border-purple-400 bg-gradient-to-br from-white to-purple-50/30'
     }`}>
       {/* Status Indicator */}
-      <div className="absolute -top-1.5 -right-1.5 z-10">
+      <div className="absolute -top-2 -right-2 z-10">
         {hasDocument ? (
-          <div className="h-5 w-5 rounded-full bg-green-500 border-2 border-white flex items-center justify-center shadow-md">
-            <CheckCircle className="h-3 w-3 text-white" />
+          <div className="h-8 w-8 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 border-4 border-white flex items-center justify-center shadow-xl">
+            <CheckCircle className="h-5 w-5 text-white" />
           </div>
         ) : hasPending ? (
-          <div className="h-5 w-5 rounded-full bg-yellow-500 border-2 border-white flex items-center justify-center shadow-md">
-            <CheckCircle className="h-3 w-3 text-white" />
+          <div className="h-8 w-8 rounded-full bg-gradient-to-br from-yellow-500 to-amber-600 border-4 border-white flex items-center justify-center shadow-xl">
+            <CheckCircle className="h-5 w-5 text-white" />
           </div>
         ) : (
-          <div className="h-5 w-5 rounded-full bg-slate-200 border-2 border-white flex items-center justify-center">
-            <Circle className="h-2.5 w-2.5 text-slate-400" />
+          <div className="h-8 w-8 rounded-full bg-gradient-to-br from-slate-200 to-slate-300 border-4 border-white flex items-center justify-center shadow-md">
+            <Circle className="h-4 w-4 text-slate-400" />
           </div>
         )}
       </div>
 
-      <div className="p-3 space-y-2">
+      <div className="p-4 space-y-3">
         {/* Header */}
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <div className="flex items-center gap-1.5 mb-0.5">
-              <Label className="text-xs font-bold text-slate-900">{label}</Label>
-              <span className="text-[9px] font-bold text-purple-600 bg-purple-100 px-1.5 py-0.5 rounded-full">
+            <div className="flex items-center gap-2 mb-1">
+              <Label className="text-sm font-black text-slate-900">{label}</Label>
+              <span className="text-xs font-black text-white bg-gradient-to-r from-purple-600 to-pink-600 px-2 py-1 rounded-full shadow-md">
                 +{weight}%
               </span>
             </div>
-            <p className="text-[10px] text-slate-600 leading-tight">{description}</p>
+            <p className="text-xs text-slate-600 leading-snug font-medium">{description}</p>
           </div>
         </div>
 
         {/* Document Preview or Upload Area */}
         {hasDocument ? (
-          <div className="space-y-2">
+          <div className="space-y-3">
             {/* File Preview */}
-            <div className="flex items-center gap-2 p-2 bg-slate-50 rounded-lg border border-slate-200">
+            <div className="flex items-center gap-3 p-3 bg-white rounded-xl border-2 border-slate-200 shadow-sm">
               {getFileIcon()}
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-semibold text-slate-900 truncate">
+                <p className="text-sm font-bold text-slate-900 truncate">
                   {document.file_name}
                 </p>
-                <p className="text-[10px] text-slate-500">
+                <p className="text-xs text-slate-500 font-medium">
                   {document.file_size ? `${(document.file_size / 1024).toFixed(1)} KB` : 'Unknown size'}
                 </p>
               </div>
@@ -278,25 +278,25 @@ export function DocumentSlot({
 
             {/* Privacy Toggle or Approved Access Badge */}
             {isBuyerView ? (
-              <div className="flex items-center justify-center p-2 bg-green-50 rounded-lg border border-green-200">
-                <Badge className="bg-green-600 hover:bg-green-600 text-white text-[10px] font-semibold">
-                  Approved Access
+              <div className="flex items-center justify-center p-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border-2 border-green-300 shadow-sm">
+                <Badge className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white text-xs font-bold px-3 py-1 shadow-md">
+                  ✓ Approved Access
                 </Badge>
               </div>
             ) : (
               <>
-                <div className="flex items-center justify-between p-2 bg-slate-50 rounded-lg border border-slate-200">
-                  <div className="flex items-center gap-1.5">
+                <div className="flex items-center justify-between p-3 bg-white rounded-xl border-2 border-slate-200 shadow-sm">
+                  <div className="flex items-center gap-2">
                     {document.is_public ? (
-                      <Eye className="h-3 w-3 text-green-600" />
+                      <Eye className="h-4 w-4 text-green-600" />
                     ) : (
-                      <EyeOff className="h-3 w-3 text-slate-400" />
+                      <EyeOff className="h-4 w-4 text-slate-400" />
                     )}
                     <div>
-                      <Label className="text-[10px] font-semibold text-slate-900">
+                      <Label className="text-xs font-bold text-slate-900">
                         {document.is_public ? 'Public' : 'Private'}
                       </Label>
-                      <p className="text-[9px] text-slate-500">
+                      <p className="text-xs text-slate-500 font-medium">
                         {document.is_public 
                           ? 'Buyers can download' 
                           : 'Request access'}
@@ -307,7 +307,6 @@ export function DocumentSlot({
                     checked={document.is_public}
                     onCheckedChange={handlePrivacyToggle}
                     disabled={disabled}
-                    className="scale-75"
                   />
                 </div>
                 
@@ -327,52 +326,52 @@ export function DocumentSlot({
               <Button
                 variant="outline"
                 size="sm"
-                className="w-full text-xs h-9 font-semibold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white hover:opacity-90 border-0"
+                className="w-full text-sm h-11 font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white hover:opacity-90 border-0 shadow-lg"
                 onClick={handleViewDocument}
               >
                 View Document
               </Button>
             ) : (
-              <div className="flex gap-1.5">
+              <div className="flex gap-2">
                 <Button
                   variant="outline"
                   size="sm"
-                  className="flex-1 text-[10px] h-7"
+                  className="flex-1 text-xs h-10 font-bold border-2 border-purple-300 hover:bg-purple-50 hover:border-purple-400"
                   onClick={handleViewDocument}
                 >
-                  <Download className="h-3 w-3 mr-1" />
+                  <Download className="h-4 w-4 mr-1" />
                   View
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
-                  className="text-[10px] h-7 text-red-600 hover:text-red-700 hover:bg-red-50"
+                  className="text-xs h-10 font-bold text-red-600 hover:text-red-700 hover:bg-red-50 border-2 border-red-300 hover:border-red-400"
                   onClick={handleDelete}
                   disabled={isDeleting || disabled}
                 >
-                  <Trash2 className="h-3 w-3" />
+                  <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
             )}
           </div>
         ) : hasPending ? (
-          <div className="space-y-2">
+          <div className="space-y-3">
             {/* Pending File Preview */}
-            <div className="flex items-center gap-2 p-2 bg-yellow-50 rounded-lg border border-yellow-200">
+            <div className="flex items-center gap-3 p-3 bg-white rounded-xl border-2 border-yellow-300 shadow-sm">
               <File className="h-6 w-6 text-yellow-600" />
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-semibold text-slate-900 truncate">
+                <p className="text-sm font-bold text-slate-900 truncate">
                   {pendingDocument.file.name}
                 </p>
-                <p className="text-[10px] text-yellow-600 font-medium">
+                <p className="text-xs text-yellow-600 font-bold">
                   Ready • {(pendingDocument.file.size / 1024).toFixed(1)} KB
                 </p>
               </div>
             </div>
 
             {/* Pending Status Message */}
-            <div className="p-2 bg-yellow-50 rounded-lg border border-yellow-200">
-              <p className="text-[10px] text-yellow-800">
+            <div className="p-3 bg-gradient-to-r from-yellow-50 to-amber-50 rounded-xl border-2 border-yellow-300 shadow-sm">
+              <p className="text-xs text-yellow-800 font-bold text-center">
                 Will upload when you save
               </p>
             </div>
@@ -381,15 +380,15 @@ export function DocumentSlot({
             <Button
               variant="outline"
               size="sm"
-              className="w-full text-[10px] h-7 text-red-600 hover:text-red-700 hover:bg-red-50"
+              className="w-full text-xs h-10 font-bold text-red-600 hover:text-red-700 hover:bg-red-50 border-2 border-red-300 hover:border-red-400"
               onClick={handleDeletePending}
             >
-              <Trash2 className="h-3 w-3 mr-1" />
+              <Trash2 className="h-4 w-4 mr-1" />
               Remove
             </Button>
           </div>
         ) : (
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             {/* Upload Button */}
             <input
               ref={fileInputRef}
@@ -401,16 +400,16 @@ export function DocumentSlot({
             />
             <Button
               variant="outline"
-              className="w-full h-16 border-2 border-dashed border-slate-300 hover:border-purple-400 hover:bg-purple-50 transition-all"
+              className="w-full h-24 border-4 border-dashed border-purple-300 hover:border-purple-500 hover:bg-purple-50 transition-all shadow-md hover:shadow-lg"
               onClick={() => fileInputRef.current?.click()}
               disabled={disabled || isUploading}
             >
-              <div className="flex flex-col items-center gap-1">
-                <Upload className={`h-4 w-4 ${isUploading ? 'animate-bounce' : ''} text-slate-400`} />
-                <span className="text-[10px] font-semibold text-slate-600">
+              <div className="flex flex-col items-center gap-2">
+                <Upload className={`h-6 w-6 ${isUploading ? 'animate-bounce' : ''} text-purple-500`} />
+                <span className="text-xs font-bold text-slate-700">
                   {isUploading ? 'Uploading...' : 'Click to upload'}
                 </span>
-                <span className="text-[9px] text-slate-400">
+                <span className="text-xs text-slate-500 font-medium">
                   PDF, JPG, PNG, DOC (10MB)
                 </span>
               </div>

@@ -32,7 +32,8 @@ export function FloatingAIButton({
       try {
         const status = await checkPropertyAIReadiness(propertyId);
         setIsReady(status.isReady);
-        setIsVisible(status.totalDocuments > 0); // Only show if documents exist
+        // Only show button when AI is actually ready (documents processed)
+        setIsVisible(status.isReady);
       } catch (error) {
         console.error("Failed to check AI readiness:", error);
       } finally {
@@ -42,18 +43,16 @@ export function FloatingAIButton({
 
     checkReadiness();
 
-    // Poll every 10 seconds if not ready
+    // Poll every 10 seconds to check if processing completed
     const interval = setInterval(() => {
-      if (!isReady) {
-        checkReadiness();
-      }
+      checkReadiness();
     }, 10000);
 
     return () => clearInterval(interval);
-  }, [propertyId, isReady]);
+  }, [propertyId]);
 
-  // Don't show if no documents or still loading
-  if (!isVisible || isLoading) {
+  // Only show when AI is ready - hide during processing
+  if (!isVisible || isLoading || !isReady) {
     return null;
   }
 
@@ -66,32 +65,15 @@ export function FloatingAIButton({
     >
       <Button
         onClick={onOpenChat}
-        disabled={!isReady}
         size="lg"
-        className={cn(
-          "h-14 px-6 rounded-full shadow-2xl transition-all duration-300",
-          isReady
-            ? "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 hover:scale-105 hover:shadow-indigo-500/50"
-            : "bg-slate-400 cursor-not-allowed"
-        )}
+        className="h-14 px-6 rounded-full shadow-2xl transition-all duration-300 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 hover:scale-105 hover:shadow-indigo-500/50"
       >
-        {!isReady ? (
-          <>
-            <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-            <span className="font-semibold">Processing...</span>
-          </>
-        ) : (
-          <>
-            <Sparkles className="h-5 w-5 mr-2" />
-            <span className="font-semibold">Ask AI</span>
-          </>
-        )}
+        <Sparkles className="h-5 w-5 mr-2" />
+        <span className="font-semibold">Ask AI</span>
       </Button>
 
-      {/* Pulse animation when ready */}
-      {isReady && (
-        <div className="absolute inset-0 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 animate-ping opacity-20" />
-      )}
+      {/* Pulse animation */}
+      <div className="absolute inset-0 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 animate-ping opacity-20" />
     </div>
   );
 }

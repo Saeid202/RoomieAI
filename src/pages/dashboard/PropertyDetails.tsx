@@ -866,7 +866,7 @@ export default function PropertyDetailsPage() {
             {role !== 'landlord' && !isSale && !hasApplied && (
               <Button
                 variant="default"
-                className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
+                className="w-full bg-gradient-to-r from-purple-600 via-pink-600 to-indigo-600 hover:from-purple-700 hover:via-pink-700 hover:to-indigo-700 shadow-lg shadow-purple-200"
                 onClick={handleQuickApplyClick}
               >
                 <Zap className="h-4 w-4 mr-2" />
@@ -884,12 +884,12 @@ export default function PropertyDetailsPage() {
                 propertyId={!isSale ? property.id : undefined}
                 salesListingId={isSale ? property.id : undefined}
                 landlordId={property.user_id}
-                className="w-full"
+                className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white shadow-lg shadow-pink-200"
               >
                 {isCoOwnership ? "Join Co-Ownership Group" : "Message"}
               </MessageButton>
             )}
-            <Button variant="outline" className="w-full" onClick={() => navigate(-1)}>
+            <Button variant="outline" className="w-full border-2 border-purple-200 hover:bg-purple-50 text-purple-700 font-semibold" onClick={() => navigate(-1)}>
               {role === 'landlord' ? 'Back to properties' : (isSale ? 'Back to opportunities' : 'Back to results')}
             </Button>
           </div>

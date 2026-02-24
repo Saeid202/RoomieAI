@@ -218,6 +218,7 @@ export async function getPropertyProcessingStatuses(
 
 /**
  * Check if property is ready for AI assistant
+ * NO AUTO-PROCESSING - User must manually trigger processing
  */
 export async function checkPropertyAIReadiness(
   propertyId: string
@@ -248,15 +249,9 @@ export async function checkPropertyAIReadiness(
     // Get processing statuses
     const statuses = await getPropertyProcessingStatuses(propertyId);
 
-    // DISABLED: Auto-trigger processing is causing issues with broken Edge Function
-    // Documents should be processed manually or via a working Edge Function
-    // Identify documents that haven't even started processing (missing status record)
+    // Count documents that haven't been processed yet
     const processedDocIds = new Set(statuses.map(s => s.document_id));
     const unprocessedDocs = documents.filter(doc => !processedDocIds.has(doc.id));
-
-    if (unprocessedDocs.length > 0) {
-      console.log(`⚠️ Found ${unprocessedDocs.length} unprocessed documents (auto-trigger disabled)`);
-    }
 
     const processedDocuments = statuses.filter(
       (s) => s.status === "completed"
@@ -291,6 +286,95 @@ export async function checkPropertyAIReadiness(
       pendingDocuments: 0,
       failedDocuments: 0,
       processingDocuments: 0,
+    };
+  }
+}
+
+/**
+ * Manually process all unprocessed documents for a property
+ * User must explicitly trigger this action
+ */
+export async function processAllPropertyDocuments(
+  propertyId: string
+): Promise<{
+  success: boolean;
+  message: string;
+  results: Array<{ documentId: string; documentLabel: string; status: "started" | "failed" }>;
+}> {
+  try {
+    console.log("🚀 Starting manual document processing for property:", propertyId);
+
+    // Get all documents for property
+    const { data: documents, error: docsError } = await supabase
+      .from("property_documents")
+      .select("id, file_url, document_type, document_label")
+      .eq("property_id", propertyId)
+      .is("deleted_at", null);
+
+    if (docsError) throw docsError;
+
+    if (!documents || documents.length === 0) {
+      return {
+        success: false,
+        message: "No documents found to process",
+        results: [],
+      };
+    }
+
+    // Get processing statuses to find unprocessed documents
+    const statuses = await getPropertyProcessingStatuses(propertyId);
+    const processedDocIds = new Set(
+      statuses
+        .filter((s) => s.status === "completed" || s.status === "processing")
+        .map((s) => s.document_id)
+    );
+
+    const unprocessedDocs = documents.filter((doc) => !processedDocIds.has(doc.id));
+
+    if (unprocessedDocs.length === 0) {
+      return {
+        success: true,
+        message: "All documents are already processed or processing",
+        results: [],
+      };
+    }
+
+    // Process each unprocessed document
+    const results = [];
+    for (const doc of unprocessedDocs) {
+      try {
+        await processDocumentForAI(doc.id, propertyId, doc.file_url, doc.document_type);
+        results.push({
+          documentId: doc.id,
+          documentLabel: doc.document_label || doc.document_type,
+          status: "started" as const,
+        });
+      } catch (error) {
+        console.error(`Failed to process document ${doc.id}:`, error);
+        results.push({
+          documentId: doc.id,
+          documentLabel: doc.document_label || doc.document_type,
+          status: "failed" as const,
+        });
+      }
+    }
+
+    const successCount = results.filter((r) => r.status === "started").length;
+    const failedCount = results.filter((r) => r.status === "failed").length;
+
+    return {
+      success: successCount > 0,
+      message: `Started processing ${successCount} document(s)${
+        failedCount > 0 ? `, ${failedCount} failed to start` : ""
+      }`,
+      results,
+    };
+  } catch (error) {
+    console.error("❌ Failed to process documents:", error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : "Failed to process documents",
+      results: [],
     };
   }
 }

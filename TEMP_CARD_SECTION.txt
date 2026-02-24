@@ -1,0 +1,65 @@
+{/* Partnership Goals */}
+<div className="space-y-4">
+    <div className="flex items-center gap-2">
+        <div className="w-1 h-6 bg-gradient-to-b from-indigo-500 to-violet-600 rounded-full" />
+        <h4 className="text-sm font-bold text-slate-600 uppercase tracking-wide">Partnership Goals</h4>
+    </div>
+    
+    <p className="text-base font-semibold text-slate-800 leading-relaxed">
+        {signal.intended_use === 'Live-in'
+            ? "Seeking co-buyer for primary residence"
+            : signal.intended_use === 'Investment'
+                ? "Looking for investment property partner"
+                : `Interested in ${signal.intended_use.toLowerCase()} property partnership`}
+    </p>
+
+    {/* Info Chips - Modern Design */}
+    <div className="flex flex-wrap gap-2">
+        <div className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-700 rounded-xl text-sm font-semibold">
+            {signal.intended_use === 'Live-in' ? <Home className="h-4 w-4" /> : <TrendingUp className="h-4 w-4" />}
+            {signal.intended_use}
+        </div>
+        <div className="flex items-center gap-2 px-4 py-2 bg-amber-50 text-amber-700 rounded-xl text-sm font-semibold">
+            <Clock className="h-4 w-4" />
+            {signal.time_horizon}
+        </div>
+        <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 rounded-xl text-sm font-semibold">
+            <Globe className="h-4 w-4" />
+            Flexible Location
+        </div>
+    </div>
+</div>
+
+{/* Additional Notes */}
+{signal.notes && (
+    <div className="px-4 py-3 bg-slate-50 rounded-xl border border-slate-100">
+        <p className="text-sm font-medium text-slate-600 leading-relaxed">
+            {signal.notes.length > 120 ? `${signal.notes.substring(0, 120)}...` : signal.notes}
+        </p>
+    </div>
+)}
+
+{/* Action Buttons */}
+<div className="pt-4 mt-auto space-y-3">
+    {currentUserId === signal.user_id ? (
+        <Button
+            onClick={() => handleOpenEditModal(signal)}
+            variant="outline"
+            className="w-full border-2 border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 font-bold text-sm h-14 rounded-xl transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+        >
+            <Edit2 className="h-4 w-4" />
+            Edit My Signal
+        </Button>
+    ) : (
+        <MessageButton
+            salesListingId={null}
+            landlordId={signal.user_id}
+            className="w-full bg-gradient-to-r from-indigo-600 via-violet-600 to-indigo-600 hover:from-indigo-700 hover:via-violet-700 hover:to-indigo-700 text-white font-bold text-sm h-16 rounded-xl shadow-[0_8px_24px_rgba(99,102,241,0.35)] hover:shadow-[0_12px_32px_rgba(99,102,241,0.45)] transition-all active:scale-[0.98] flex items-center justify-center gap-3 relative overflow-hidden group/button"
+        >
+            {/* Shine effect */}
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-200%] group-hover/button:translate-x-[200%] transition-transform duration-1000" />
+            <Handshake className="h-5 w-5 relative z-10" />
+            <span className="relative z-10">Connect & Discuss</span>
+        </MessageButton>
+    )}
+</div>
