@@ -28,6 +28,7 @@ export interface PublicProperty {
   user_id?: string;
   landlord_name?: string;
   property_owner?: string;
+  listing_agent?: string;
   listing_type: 'rental' | 'sales';
 }
 
@@ -55,17 +56,10 @@ export async function fetchPublicProperties(
 ): Promise<{ properties: PublicProperty[]; total: number }> {
   try {
     console.log('🚀 Starting fetchPublicProperties with filters:', filters);
-    
-    // Fetch all properties from unified properties table
+
     const { data: properties, error } = await sb
       .from('properties')
-      .select(`
-        id, listing_title, property_type, address, city, state, zip_code,
-        neighborhood, monthly_rent, sales_price, listing_category, bedrooms, bathrooms, square_footage,
-        description, images, available_date, amenities, furnished,
-        parking, pet_policy, utilities_included, created_at, updated_at, user_id
-      `)
-      .eq('is_active', true)
+      .select('*')
       .order('created_at', { ascending: false });
 
     if (error) throw error;
@@ -78,22 +72,24 @@ export async function fetchPublicProperties(
     for (const property of properties || []) {
       let landlord_name = 'Property Owner';
       let property_owner = 'Property Owner';
-      
+
       if (property.user_id) {
         try {
           // Direct query to user_profiles table (bypass view)
           const { data: profile, error } = await sb
             .from('user_profiles')
-            .select('full_name, email')
+            .select('full_name, email, role')
             .eq('id', property.user_id)
             .single();
-          
+
           console.log('🔄 Profile query result:', { profile, error });
-          
+
           if (!error && profile?.full_name) {
             landlord_name = profile.full_name;
             property_owner = profile.full_name;
-            console.log('✅ Using profile name:', landlord_name);
+            const role = profile.role ? profile.role.charAt(0).toUpperCase() + profile.role.slice(1) : undefined;
+            (property as any).listing_agent = role;
+            console.log('✅ Using profile name:', landlord_name, 'role:', role);
           }
         } catch (err) {
           console.error('Exception fetching profile:', err);
@@ -107,7 +103,8 @@ export async function fetchPublicProperties(
         ...property,
         listing_type,
         landlord_name,
-        property_owner
+        property_owner,
+        listing_agent: (property as any).listing_agent
       });
     }
 
@@ -117,12 +114,12 @@ export async function fetchPublicProperties(
       filteredProperties = filteredProperties.filter(p => p.listing_type === filters.listing_type);
     }
     if (filters.property_type) {
-      filteredProperties = filteredProperties.filter(p => 
+      filteredProperties = filteredProperties.filter(p =>
         p.property_type.toLowerCase().includes(filters.property_type!.toLowerCase())
       );
     }
     if (filters.city) {
-      filteredProperties = filteredProperties.filter(p => 
+      filteredProperties = filteredProperties.filter(p =>
         p.city.toLowerCase().includes(filters.city!.toLowerCase())
       );
     }
@@ -165,14 +162,8 @@ export async function fetchPublicPropertyById(id: string): Promise<PublicPropert
     // Query unified properties table
     const { data: property, error } = await sb
       .from('properties')
-      .select(`
-        id, listing_title, property_type, address, city, state, zip_code,
-        neighborhood, monthly_rent, sales_price, listing_category, bedrooms, bathrooms, square_footage,
-        description, images, available_date, amenities, furnished,
-        parking, pet_policy, utilities_included, created_at, updated_at, user_id
-      `)
+      .select('*')
       .eq('id', id)
-      .eq('is_active', true)
       .single();
 
     if (error || !property) {
@@ -182,17 +173,19 @@ export async function fetchPublicPropertyById(id: string): Promise<PublicPropert
 
     let landlord_name = 'Property Owner';
     let property_owner = 'Property Owner';
-    
+
     if (property.user_id) {
       const { data: profile, error: profileError } = await sb
         .from('user_profiles')
-        .select('full_name, email')
+        .select('full_name, email, role')
         .eq('id', property.user_id)
         .single();
-      
+
       if (!profileError && profile?.full_name) {
         landlord_name = profile.full_name;
         property_owner = profile.full_name;
+        const role = profile.role ? profile.role.charAt(0).toUpperCase() + profile.role.slice(1) : undefined;
+        (property as any).listing_agent = role;
       }
     }
 
@@ -203,7 +196,8 @@ export async function fetchPublicPropertyById(id: string): Promise<PublicPropert
       ...property,
       listing_type,
       landlord_name,
-      property_owner
+      property_owner,
+      listing_agent: (property as any).listing_agent
     };
 
   } catch (error) {

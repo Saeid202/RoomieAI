@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -177,32 +177,43 @@ export default function ApplicationsPage() {
     }
   };
 
-  // Calculate statistics
-  const stats = {
+  // Calculate statistics - memoized to prevent re-renders
+  const stats = useMemo(() => ({
     total: applications.length,
     pending: applications.filter(app => app.status === 'pending').length,
     under_review: applications.filter(app => app.status === 'under_review').length,
     approved: applications.filter(app => app.status === 'approved').length,
     rejected: applications.filter(app => app.status === 'rejected').length,
-  };
+  }), [applications]);
 
-  // Filter applications by category
-  const rentalApplications = applications.filter(app => 
-    app.property?.listing_category === 'rental' || !app.property?.listing_category
+  // Filter applications by category - memoized to stabilize array references
+  const rentalApplications = useMemo(
+    () => applications.filter(app => 
+      app.property?.listing_category === 'rental' || !app.property?.listing_category
+    ),
+    [applications]
   );
-  const salesApplications = applications.filter(app => 
-    app.property?.listing_category === 'sale'
+  
+  const salesApplications = useMemo(
+    () => applications.filter(app => 
+      app.property?.listing_category === 'sale'
+    ),
+    [applications]
   );
 
-  // Calculate stats for active tab
-  const activeApplications = activeTab === 'rental' ? rentalApplications : salesApplications;
-  const activeStats = {
+  // Calculate stats for active tab - memoized to prevent recalculation
+  const activeApplications = useMemo(
+    () => activeTab === 'rental' ? rentalApplications : salesApplications,
+    [activeTab, rentalApplications, salesApplications]
+  );
+  
+  const activeStats = useMemo(() => ({
     total: activeApplications.length,
     pending: activeApplications.filter(app => app.status === 'pending').length,
     under_review: activeApplications.filter(app => app.status === 'under_review').length,
     approved: activeApplications.filter(app => app.status === 'approved').length,
     rejected: activeApplications.filter(app => app.status === 'rejected').length,
-  };
+  }), [activeApplications]);
 
   return (
     <div className="space-y-6">

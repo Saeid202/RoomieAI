@@ -5,8 +5,21 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Building2, Shield, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
+import { Building2, Shield, AlertCircle, CheckCircle2, Loader2, ChevronDown, Search } from 'lucide-react';
 import { BankAccountDetails } from '@/types/payment';
+import { CANADIAN_BANKS, searchBanks, CanadianBank } from '@/data/canadianBanks';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 interface PadBankConnectionProps {
   onBankConnected: (bankDetails: BankAccountDetails) => void;
@@ -29,6 +42,8 @@ export function PadBankConnection({
   
   const [mandateAccepted, setMandateAccepted] = useState(false);
   const [errors, setErrors] = useState<Partial<Record<keyof BankAccountDetails, string>>>({});
+  const [openBankSelect, setOpenBankSelect] = useState(false);
+  const [selectedBank, setSelectedBank] = useState<CanadianBank | null>(null);
 
   const validateField = (field: keyof BankAccountDetails, value: string): string | null => {
     switch (field) {
@@ -63,6 +78,23 @@ export function PadBankConnection({
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: undefined }));
     }
+  };
+
+  const handleBankSelect = (bank: CanadianBank) => {
+    setSelectedBank(bank);
+    setBankDetails(prev => ({
+      ...prev,
+      bankName: bank.name,
+      institutionNumber: bank.institutionNumber
+    }));
+    setOpenBankSelect(false);
+    
+    // Clear errors for bank-related fields
+    setErrors(prev => ({
+      ...prev,
+      bankName: undefined,
+      institutionNumber: undefined
+    }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -132,21 +164,63 @@ export function PadBankConnection({
             )}
           </div>
 
-          {/* Bank Name (Optional) */}
+          {/* Bank Name - Searchable Dropdown */}
           <div className="space-y-2">
             <Label htmlFor="bankName">
               Bank Name <span className="text-gray-500 text-sm">(Optional)</span>
             </Label>
-            <Input
-              id="bankName"
-              placeholder="e.g., RBC, TD, Scotiabank"
-              value={bankDetails.bankName}
-              onChange={(e) => handleInputChange('bankName', e.target.value)}
-              disabled={isLoading}
-            />
+            <Popover open={openBankSelect} onOpenChange={setOpenBankSelect}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={openBankSelect}
+                  className="w-full justify-between"
+                  disabled={isLoading}
+                >
+                  {selectedBank ? (
+                    <span className="flex items-center gap-2">
+                      <Building2 className="h-4 w-4 text-gray-500" />
+                      {selectedBank.name}
+                    </span>
+                  ) : (
+                    <span className="text-gray-500 flex items-center gap-2">
+                      <Search className="h-4 w-4" />
+                      Select your bank...
+                    </span>
+                  )}
+                  <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-full p-0" align="start">
+                <Command>
+                  <CommandInput placeholder="Search banks..." />
+                  <CommandEmpty>No bank found.</CommandEmpty>
+                  <CommandGroup className="max-h-64 overflow-auto">
+                    {CANADIAN_BANKS.map((bank) => (
+                      <CommandItem
+                        key={bank.institutionNumber + bank.name}
+                        value={bank.name}
+                        onSelect={() => handleBankSelect(bank)}
+                      >
+                        <div className="flex flex-col">
+                          <span className="font-medium">{bank.name}</span>
+                          <span className="text-xs text-gray-500">
+                            Institution #: {bank.institutionNumber}
+                          </span>
+                        </div>
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </Command>
+              </PopoverContent>
+            </Popover>
+            <p className="text-xs text-gray-500">
+              Select your bank to auto-fill the institution number
+            </p>
           </div>
 
-          {/* Institution Number */}
+          {/* Institution Number - Auto-filled or Manual */}
           <div className="space-y-2">
             <Label htmlFor="institutionNumber">
               Institution Number <span className="text-red-500">*</span>
@@ -158,8 +232,13 @@ export function PadBankConnection({
               value={bankDetails.institutionNumber}
               onChange={(e) => handleInputChange('institutionNumber', e.target.value.replace(/\D/g, ''))}
               disabled={isLoading}
+              className={selectedBank ? 'bg-gray-50' : ''}
             />
-            <p className="text-xs text-gray-500">3-digit bank code (e.g., 001 for BMO, 004 for TD)</p>
+            <p className="text-xs text-gray-500">
+              {selectedBank 
+                ? `Auto-filled from ${selectedBank.shortName}` 
+                : '3-digit bank code (e.g., 001 for BMO, 004 for TD)'}
+            </p>
             {errors.institutionNumber && (
               <p className="text-sm text-red-600">{errors.institutionNumber}</p>
             )}

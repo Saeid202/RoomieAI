@@ -349,7 +349,7 @@ export async function getLandlordApplications(): Promise<any[]> {
       .select(`
         *,
         property:properties!inner(
-          id, listing_title, address, city, state, monthly_rent, user_id, images
+          id, listing_title, address, city, state, monthly_rent, sales_price, user_id, images, listing_category
         ),
         lease_contract:lease_contracts(
           id, 
@@ -392,7 +392,7 @@ export async function getUserApplications(): Promise<any[]> {
       .from('rental_applications')
       .select(`
         *,
-        property:properties(listing_title, address, city, state, monthly_rent, property_type, user_id, images),
+        property:properties(listing_title, address, city, state, monthly_rent, sales_price, property_type, user_id, images, listing_category),
         lease_contract:lease_contracts(
           id, 
           status, 

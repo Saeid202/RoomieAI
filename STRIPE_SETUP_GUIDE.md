@@ -1,136 +1,302 @@
-# Stripe Integration Setup Guide
+# Stripe Setup Guide - Development vs Production
 
-## Environment Variables Required
+## 🚨 CRITICAL: Current Issue
 
-Add these to your `.env` file:
+Your `.env` file contains **LIVE Stripe keys** which should NEVER be used in development!
 
-```bash
-# Stripe API Keys (Get these from your Stripe Dashboard)
-REACT_APP_STRIPE_PUBLISHABLE_KEY=pk_test_your_publishable_key_here
-REACT_APP_STRIPE_SECRET_KEY=sk_test_your_secret_key_here
-
-# Stripe Connect (for landlord payouts)
-REACT_APP_STRIPE_CONNECT_CLIENT_ID=ca_your_connect_client_id_here
-
-# API Configuration
-REACT_APP_API_BASE_URL=http://localhost:8080
-
-# Stripe Webhook Secret (for webhook verification)
-STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret_here
-
-# Test Mode (set to true for development)
-REACT_APP_STRIPE_TEST_MODE=true
+```env
+# ❌ WRONG - These are LIVE keys
+VITE_STRIPE_PUBLISHABLE_KEY=pk_live_51SIhcgRkKDAtZpXY...
+STRIPE_SECRET_KEY=sk_live_51SIhcgRkKDAtZpXY...
 ```
 
-## Setup Instructions
+---
 
-### 1. Stripe Dashboard Setup
-1. Go to https://dashboard.stripe.com/
-2. Create an account or log in
-3. Get your API keys from the "Developers" > "API keys" section
-4. Replace the placeholder values above with your actual keys
+## ✅ Correct Setup
 
-### 2. Webhook Configuration
-1. Go to "Developers" > "Webhooks" in your Stripe dashboard
-2. Create a new endpoint with URL: `https://yourdomain.com/api/webhooks/stripe`
-3. Select these events:
-   - `payment_intent.succeeded`
-   - `payment_intent.payment_failed`
-   - `payment_intent.canceled`
-   - `payment_method.attached`
-   - `payment_method.detached`
-   - `customer.created`
-   - `customer.updated`
-   - `account.updated`
-   - `transfer.created`
-   - `transfer.failed`
-   - `charge.dispute.created`
-   - `charge.dispute.updated`
-4. Copy the webhook secret and add it to your environment variables
+### For Development (Localhost)
 
-### 3. Stripe Connect Setup (for Landlord Payouts)
-1. Go to "Connect" in your Stripe dashboard
-2. Create a new application
-3. Copy the Client ID and add it to your environment variables
-4. Configure the redirect URLs for your application
+1. **Get Test Keys from Stripe Dashboard:**
+   - Go to: https://dashboard.stripe.com/test/apikeys
+   - Copy your **Test** publishable key (starts with `pk_test_`)
+   - Copy your **Test** secret key (starts with `sk_test_`)
 
-## Test Card Numbers
+2. **Update `.env` file:**
+   ```env
+   # ✅ CORRECT - Test keys for development
+   VITE_STRIPE_PUBLISHABLE_KEY=pk_test_YOUR_TEST_KEY_HERE
+   STRIPE_SECRET_KEY=sk_test_YOUR_TEST_SECRET_HERE
+   ```
 
-For testing payments, use these test card numbers:
+3. **Test Bank Accounts (Stripe Test Mode):**
+   ```
+   Institution Number: 000
+   Transit Number: 00000
+   Account Number: 000123456789
+   
+   OR use any valid format:
+   Institution: 001-010 (any 3 digits)
+   Transit: 00000-99999 (any 5 digits)
+   Account: 0000000-999999999999 (7-12 digits)
+   ```
 
-- **Success**: `4242 4242 4242 4242`
-- **Decline**: `4000 0000 0000 0002`
-- **Insufficient funds**: `4000 0000 0000 9995`
-- **Expired card**: `4000 0000 0000 0069`
-- **Incorrect CVC**: `4000 0000 0000 0127`
+4. **What You Can Test:**
+   - ✅ Form validation
+   - ✅ Bank selection dropdown
+   - ✅ Stripe token creation
+   - ✅ Payment method creation
+   - ✅ Simulated payments
+   - ✅ Webhook testing (with Stripe CLI)
 
-Use any future expiry date and any 3-digit CVC.
+5. **What Won't Work:**
+   - ❌ Real bank verification
+   - ❌ Actual money transfers
+   - ❌ Real PAD setup
 
-## Test Bank Account
+---
 
-For testing bank account payments:
-- **Account number**: `000123456789`
-- **Routing number**: `110000000`
+### For Production (Deployed)
 
-## Features Implemented
+1. **Prerequisites:**
+   - ✅ Verified Stripe account
+   - ✅ Business verification completed
+   - ✅ Approved for ACH/PAD in Canada
+   - ✅ Terms of Service published
+   - ✅ Privacy Policy published
 
-### ✅ Completed Features
+2. **Get Live Keys:**
+   - Go to: https://dashboard.stripe.com/apikeys
+   - Copy your **Live** publishable key (starts with `pk_live_`)
+   - Copy your **Live** secret key (starts with `sk_live_`)
 
-1. **Payment Method Management**
-   - Add credit cards securely via Stripe Elements
-   - Save payment methods for future use
-   - Set default payment methods
-   - Remove payment methods
+3. **Production Environment Variables:**
+   ```env
+   # Production only - NEVER commit to Git!
+   VITE_STRIPE_PUBLISHABLE_KEY=pk_live_YOUR_LIVE_KEY
+   STRIPE_SECRET_KEY=sk_live_YOUR_LIVE_SECRET
+   ```
 
-2. **Payment Processing**
-   - Create payment intents for rent payments
-   - Process payments securely
-   - Handle payment failures gracefully
-   - Real-time payment status updates
+4. **Deployment Checklist:**
+   - [ ] Deploy frontend to production (Vercel/Netlify)
+   - [ ] Deploy Supabase Edge Functions
+   - [ ] Configure production webhook endpoints
+   - [ ] Test with real bank account (your own first!)
+   - [ ] Monitor Stripe dashboard for errors
 
-3. **Landlord Payouts**
-   - Automatic transfers to landlord accounts
-   - Platform fee calculation (2.5%)
-   - Transfer tracking and audit logs
+---
 
-4. **Webhook Handling**
-   - Real-time payment status updates
-   - Automatic rent payment completion
-   - Failed payment handling
-   - Dispute management
+## 🔐 Security Best Practices
 
-5. **User Interfaces**
-   - Tenant payment dashboard
-   - Landlord rent collection dashboard
-   - Payment method management
-   - Payment history and receipts
+### 1. Environment Separation
 
-### 🔄 Next Steps
+```
+Development:  pk_test_... / sk_test_...
+Staging:      pk_test_... / sk_test_...
+Production:   pk_live_... / sk_live_...
+```
 
-1. **Environment Setup**: Configure your Stripe API keys
-2. **Webhook Endpoints**: Set up webhook endpoints for production
-3. **Testing**: Test with real Stripe test cards
-4. **Production**: Switch to live Stripe keys for production
+### 2. Never Commit Live Keys
 
-## Security Features
+Add to `.gitignore`:
+```
+.env
+.env.local
+.env.production
+```
 
-- **PCI Compliance**: All card data handled by Stripe
-- **Tokenization**: Payment methods stored as tokens
-- **Webhook Verification**: All webhooks verified with signatures
-- **Error Handling**: Comprehensive error handling and logging
-- **Audit Trail**: Complete transaction logging
+### 3. Use Environment Variables
 
-## Revenue Model
+**Frontend (.env):**
+```env
+VITE_STRIPE_PUBLISHABLE_KEY=pk_test_...
+```
 
-- **Platform Fee**: 2.5% per transaction
-- **Landlord Fee**: 1% of collected rent
-- **Late Fees**: 5% of overdue amounts
-- **Premium Features**: Advanced analytics and reporting
+**Backend (Supabase Edge Functions):**
+```env
+STRIPE_SECRET_KEY=sk_test_...
+```
 
-## Support
+---
 
-For Stripe-related issues:
-- Stripe Documentation: https://stripe.com/docs
-- Stripe Support: https://support.stripe.com/
-- Test Mode: Use test keys for development
-- Live Mode: Use live keys for production
+## 🧪 Testing on Localhost
+
+### Step 1: Switch to Test Keys
+
+Update your `.env`:
+```env
+VITE_STRIPE_PUBLISHABLE_KEY=pk_test_YOUR_KEY
+STRIPE_SECRET_KEY=sk_test_YOUR_KEY
+```
+
+### Step 2: Restart Dev Server
+
+```bash
+npm run dev
+```
+
+### Step 3: Test Bank Connection
+
+1. Go to Digital Wallet page
+2. Click "Connect Bank Account"
+3. Select any bank from dropdown
+4. Enter test data:
+   ```
+   Account Holder: Test User
+   Bank: Royal Bank of Canada (RBC)
+   Institution: 003 (auto-filled)
+   Transit: 12345
+   Account: 1234567890
+   ```
+5. Accept PAD mandate
+6. Click "Connect Bank Account"
+
+### Step 4: Verify in Stripe Dashboard
+
+- Go to: https://dashboard.stripe.com/test/customers
+- Find your test customer
+- Check payment methods attached
+
+---
+
+## 🚀 Going Live Checklist
+
+### Before Accepting Real Payments:
+
+1. **Stripe Account Activation:**
+   - [ ] Complete business verification
+   - [ ] Provide business documents
+   - [ ] Add bank account for payouts
+   - [ ] Enable PAD payment method
+   - [ ] Set up webhook endpoints
+
+2. **Legal Requirements:**
+   - [ ] Terms of Service page
+   - [ ] Privacy Policy page
+   - [ ] PAD Agreement (already in form ✅)
+   - [ ] Refund policy
+   - [ ] Contact information
+
+3. **Technical Setup:**
+   - [ ] Switch to live Stripe keys
+   - [ ] Deploy to production
+   - [ ] Configure production webhooks
+   - [ ] Test with small real payment
+   - [ ] Set up error monitoring
+
+4. **Compliance:**
+   - [ ] PCI compliance (Stripe handles this)
+   - [ ] Data encryption (Stripe handles this)
+   - [ ] Secure storage (Supabase handles this)
+   - [ ] Audit logging enabled
+
+---
+
+## 🔍 How to Check Your Current Mode
+
+### In Code:
+
+```typescript
+// Check if using test or live keys
+const isTestMode = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY?.startsWith('pk_test_');
+console.log('Stripe Mode:', isTestMode ? 'TEST' : 'LIVE');
+```
+
+### In Stripe Dashboard:
+
+- Top left corner shows "Test mode" or "Live mode"
+- Test mode has orange banner
+- Live mode has no banner
+
+---
+
+## 📊 Test vs Live Comparison
+
+| Feature | Test Mode (Localhost) | Live Mode (Production) |
+|---------|----------------------|------------------------|
+| Bank Verification | ❌ Simulated | ✅ Real |
+| Money Transfer | ❌ Fake | ✅ Real |
+| Stripe Fees | ❌ None | ✅ 2.9% + $0.30 |
+| PAD Setup | ❌ Simulated | ✅ Real |
+| Webhooks | ✅ With Stripe CLI | ✅ Production URLs |
+| Dashboard | Test Dashboard | Live Dashboard |
+| Customer Data | Separate | Separate |
+
+---
+
+## 🛠️ Stripe CLI for Local Testing
+
+### Install Stripe CLI:
+
+**Windows:**
+```bash
+scoop install stripe
+```
+
+**Mac:**
+```bash
+brew install stripe/stripe-cli/stripe
+```
+
+### Login:
+```bash
+stripe login
+```
+
+### Forward Webhooks to Localhost:
+```bash
+stripe listen --forward-to localhost:54321/functions/v1/pad-payment-webhook
+```
+
+This allows you to test webhooks locally!
+
+---
+
+## 🆘 Troubleshooting
+
+### Issue: "Invalid API Key"
+**Solution:** Check that you're using the correct key format:
+- Test: `pk_test_...` or `sk_test_...`
+- Live: `pk_live_...` or `sk_live_...`
+
+### Issue: "Bank account verification failed"
+**Solution:** In test mode, use test account numbers. In live mode, use real accounts.
+
+### Issue: "PAD not available"
+**Solution:** Ensure your Stripe account is approved for Canadian PAD payments.
+
+### Issue: "Webhook not receiving events"
+**Solution:** 
+- Test mode: Use Stripe CLI
+- Live mode: Check webhook endpoint URL in Stripe dashboard
+
+---
+
+## 📞 Support
+
+- **Stripe Documentation:** https://stripe.com/docs/payments/acss-debit
+- **Stripe Support:** https://support.stripe.com
+- **Test Cards:** https://stripe.com/docs/testing
+
+---
+
+## ⚡ Quick Start Commands
+
+```bash
+# 1. Get test keys from Stripe
+# Visit: https://dashboard.stripe.com/test/apikeys
+
+# 2. Update .env file with test keys
+# VITE_STRIPE_PUBLISHABLE_KEY=pk_test_...
+# STRIPE_SECRET_KEY=sk_test_...
+
+# 3. Restart dev server
+npm run dev
+
+# 4. Test bank connection with test data
+# Institution: 000, Transit: 00000, Account: 000123456789
+```
+
+---
+
+**Last Updated:** March 6, 2026  
+**Status:** Development setup with test keys required

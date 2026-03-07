@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { User, Building, HardHat, Shield, Briefcase } from "lucide-react";
+import { User, Building, HardHat, Shield, Briefcase, Scale } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useRole, UserRole } from "@/contexts/RoleContext";
 import { useNavigate } from "react-router-dom";
@@ -97,6 +97,9 @@ export function RoleSelectionDialog({
       case 'mortgage_broker':
         navigate('/dashboard/mortgage-broker');
         break;
+      case 'lawyer':
+        navigate('/dashboard/lawyer');
+        break;
     }
   };
   
@@ -110,6 +113,8 @@ export function RoleSelectionDialog({
         return 'Administrator';
       case 'mortgage_broker':
         return 'Mortgage Broker';
+      case 'lawyer':
+        return 'Lawyer';
       default:
         return 'User';
     }
@@ -125,6 +130,8 @@ export function RoleSelectionDialog({
         return 'Manage the website content, user accounts, and system settings.';
       case 'mortgage_broker':
         return 'Help clients with mortgage applications and home financing.';
+      case 'lawyer':
+        return 'Provide legal services for real estate and property matters.';
       default:
         return '';
     }
@@ -178,6 +185,17 @@ export function RoleSelectionDialog({
               onClick={() => handleRoleSelect('mortgage_broker')}
               isLoading={loading && selectedRole === 'mortgage_broker'}
               isCurrent={currentRole === 'mortgage_broker'}
+            />
+            
+            <RoleCard
+              role="lawyer"
+              icon={<Scale size={24} />}
+              title="Lawyer"
+              description={getRoleDescription('lawyer')}
+              isSelected={selectedRole === 'lawyer'}
+              onClick={() => handleRoleSelect('lawyer')}
+              isLoading={loading && selectedRole === 'lawyer'}
+              isCurrent={currentRole === 'lawyer'}
             />
             
             {/* Only show admin option if user is verified admin */}

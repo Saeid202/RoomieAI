@@ -19,6 +19,8 @@ COMMENT ON COLUMN mortgage_profiles.broker_consent IS 'User consent to share pro
 COMMENT ON COLUMN mortgage_profiles.broker_consent_date IS 'Timestamp when consent was given or last updated';
 
 -- Create function to automatically update consent timestamp
+
+
 CREATE OR REPLACE FUNCTION update_broker_consent_timestamp()
 RETURNS TRIGGER AS $$
 BEGIN

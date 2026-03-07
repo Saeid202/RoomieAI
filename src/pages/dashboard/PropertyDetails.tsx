@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { fetchPropertyById, Property, updateProperty, fetchInvestorOffers, submitInvestorOffer, InvestorOffer, deleteInvestorOffer, updateInvestorOffer } from "@/services/propertyService";
 import { useRole } from "@/contexts/RoleContext";
-import { Calendar, DollarSign, MapPin, Volume2, Play, Square, Box, ChevronLeft, ChevronRight, User, Users, Pencil, Trash2, Check, X, MessageSquare, Reply, Zap } from "lucide-react";
+import { Calendar, DollarSign, MapPin, Volume2, Play, Square, Box, ChevronLeft, ChevronRight, User, Users, Pencil, Trash2, Check, X, MessageSquare, Reply, Zap, CalendarCheck } from "lucide-react";
 import { PropertyVideoPlayer } from "@/components/property/PropertyVideoPlayer";
 import { PropertyDocumentViewer } from "@/components/property/PropertyDocumentViewerSimplified";
 import { useAuth } from "@/hooks/useAuth";
@@ -17,6 +17,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { MessageButton } from "@/components/MessageButton";
 import { QuickApplyModal } from "@/components/application/QuickApplyModal";
+import { ScheduleViewingModal } from "@/components/property/ScheduleViewingModal";
+import { MakeOfferModal, OfferData } from "@/components/property/MakeOfferModal";
 import { checkProfileCompleteness, getTenantProfileForApplication } from "@/utils/profileCompleteness";
 import { submitQuickApplication, hasUserApplied } from "@/services/quickApplyService";
 
@@ -61,6 +63,13 @@ export default function PropertyDetailsPage() {
   const [isPlayingLocalAudio, setIsPlayingLocalAudio] = useState(false);
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
 
+  // Schedule Viewing states
+  const [showScheduleViewingModal, setShowScheduleViewingModal] = useState(false);
+
+  // Make an Offer states
+  const [showMakeOfferModal, setShowMakeOfferModal] = useState(false);
+  const [isSubmittingOffer, setIsSubmittingOffer] = useState(false);
+
   // Co-buy interest states
   const [contributionAmount, setContributionAmount] = useState("");
   const [intendedUse, setIntendedUse] = useState("Live-In");
@@ -88,7 +97,7 @@ export default function PropertyDetailsPage() {
         console.log("📦 Fetching from properties table...");
         const data = await fetchPropertyById(id);
         console.log("✅ Property data loaded:", data);
-        
+
         if (mounted) setProperty(data as any);
 
         // Load investor offers for sale/co-ownership properties
@@ -248,6 +257,16 @@ export default function PropertyDetailsPage() {
     return isNaN(d.getTime()) ? null : d.toLocaleDateString();
   }, [property?.available_date]);
 
+  // Calculate Days on Market for sales listings
+  const daysOnMarket = useMemo(() => {
+    if (!isSale || !property?.created_at) return null;
+    const createdDate = new Date(property.created_at);
+    const currentDate = new Date();
+    const diffTime = Math.abs(currentDate.getTime() - createdDate.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+  }, [isSale, property?.created_at]);
+
   // Quick Apply Handlers
   const handleQuickApplyClick = async () => {
     if (!user) {
@@ -327,6 +346,43 @@ export default function PropertyDetailsPage() {
       toast.error(`Failed to submit application: ${errorMessage}`);
     } finally {
       setIsSubmittingQuickApply(false);
+    }
+  };
+
+  const handleMakeOfferSubmit = async (offerData: OfferData) => {
+    if (!user || !property) return;
+
+    setIsSubmittingOffer(true);
+
+    try {
+      console.log("Starting offer submission...");
+      
+      // Create application with offer details
+      const applicationId = await submitQuickApplication({
+        user_id: user.id,
+        property_id: property.id,
+        message: `OFFER: $${offerData.offer_amount}\n\nBuyer: ${offerData.buyer_name}\nEmail: ${offerData.buyer_email}\nPhone: ${offerData.buyer_phone}\n\n${offerData.message}`,
+      });
+
+      if (!applicationId) {
+        throw new Error("Failed to submit offer - no ID returned");
+      }
+
+      console.log("Offer submitted successfully with ID:", applicationId);
+      toast.success("Offer submitted successfully! The seller will review your offer.");
+      setShowMakeOfferModal(false);
+      setHasApplied(true);
+
+      // Optionally navigate to applications page
+      setTimeout(() => {
+        navigate('/dashboard/applications');
+      }, 1500);
+    } catch (error) {
+      console.error("Error submitting offer:", error);
+      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+      toast.error(`Failed to submit offer: ${errorMessage}`);
+    } finally {
+      setIsSubmittingOffer(false);
     }
   };
 
@@ -600,11 +656,20 @@ export default function PropertyDetailsPage() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     {!isOwner || !editingPrice ? (
-                      <div className="flex items-center gap-1 font-semibold text-2xl text-primary">
-                        <DollarSign className="h-6 w-6" />
-                        <span>{isSale ? (property as any).sales_price : property.monthly_rent}</span>
-                        {!isSale && <span className="text-sm font-normal text-muted-foreground">/month</span>}
-                      </div>
+                      <>
+                        <div className="flex items-center gap-1 font-semibold text-2xl text-primary">
+                          <DollarSign className="h-6 w-6" />
+                          <span>{isSale ? (property as any).sales_price : property.monthly_rent}</span>
+                          {!isSale && <span className="text-sm font-normal text-muted-foreground">/month</span>}
+                        </div>
+                        <div className="mt-2 flex items-center gap-1 text-sm text-muted-foreground">
+                          <span className="font-medium text-gray-600">Listed by:</span>
+                          <span className="font-semibold text-gray-900">
+                            {property.landlord_name || 'Property Owner'}
+                            {property.listing_agent && ` (${property.listing_agent})`}
+                          </span>
+                        </div>
+                      </>
                     ) : (
                       <div className="flex items-center gap-2">
                         <Input value={priceDraft} onChange={(e) => setPriceDraft(e.target.value)} placeholder="Monthly rent" className="w-24" />
@@ -779,6 +844,22 @@ export default function PropertyDetailsPage() {
                       <Input value={furnishedDraft} onChange={(e) => setFurnishedDraft(e.target.value)} className="h-7 text-xs" />
                     )}
                   </div>
+                  {/* Days on Market - Only for sales listings */}
+                  {isSale && daysOnMarket !== null && (
+                    <div className="bg-slate-50 p-2 rounded border border-slate-100">
+                      <div className="text-muted-foreground text-xs">Days on Market</div>
+                      <div className="font-medium flex items-center gap-1">
+                        <span>{daysOnMarket}</span>
+                        <span className={`text-xs px-1.5 py-0.5 rounded ${
+                          daysOnMarket <= 7 ? 'bg-green-100 text-green-700' :
+                          daysOnMarket <= 30 ? 'bg-yellow-100 text-yellow-700' :
+                          'bg-red-100 text-red-700'
+                        }`}>
+                          {daysOnMarket <= 7 ? 'New' : daysOnMarket <= 30 ? 'Active' : 'Stale'}
+                        </span>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {isOwner && editingFacts && (
@@ -864,14 +945,16 @@ export default function PropertyDetailsPage() {
 
           <div className="space-y-2">
             {role !== 'landlord' && !isSale && !hasApplied && (
-              <Button
-                variant="default"
-                className="w-full bg-gradient-to-r from-purple-600 via-pink-600 to-indigo-600 hover:from-purple-700 hover:via-pink-700 hover:to-indigo-700 shadow-lg shadow-purple-200"
-                onClick={handleQuickApplyClick}
-              >
-                <Zap className="h-4 w-4 mr-2" />
-                Quick Apply
-              </Button>
+              <>
+                <Button
+                  variant="default"
+                  className="w-full bg-gradient-to-r from-purple-600 via-pink-600 to-indigo-600 hover:from-purple-700 hover:via-pink-700 hover:to-indigo-700 shadow-lg shadow-purple-200"
+                  onClick={handleQuickApplyClick}
+                >
+                  <Zap className="h-4 w-4 mr-2" />
+                  Quick Apply
+                </Button>
+              </>
             )}
             {hasApplied && (
               <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
@@ -880,14 +963,36 @@ export default function PropertyDetailsPage() {
               </div>
             )}
             {role !== 'landlord' && property && (
-              <MessageButton
-                propertyId={!isSale ? property.id : undefined}
-                salesListingId={isSale ? property.id : undefined}
-                landlordId={property.user_id}
-                className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white shadow-lg shadow-pink-200"
-              >
-                {isCoOwnership ? "Join Co-Ownership Group" : "Message"}
-              </MessageButton>
+              <>
+                {/* Schedule Viewing button - now first */}
+                <Button
+                  variant="default"
+                  className="w-full bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white font-semibold shadow-lg shadow-blue-200"
+                  onClick={() => setShowScheduleViewingModal(true)}
+                >
+                  <CalendarCheck className="h-4 w-4 mr-2" />
+                  Schedule Viewing
+                </Button>
+                {/* Make an Offer button - only for sales properties */}
+                {isSale && !hasApplied && (
+                  <Button
+                    variant="default"
+                    className="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-semibold shadow-lg shadow-amber-200"
+                    onClick={() => setShowMakeOfferModal(true)}
+                  >
+                    <DollarSign className="h-4 w-4 mr-2" />
+                    Make an Offer
+                  </Button>
+                )}
+                <MessageButton
+                  propertyId={!isSale ? property.id : undefined}
+                  salesListingId={isSale ? property.id : undefined}
+                  landlordId={property.user_id}
+                  className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white shadow-lg shadow-pink-200"
+                >
+                  {isCoOwnership ? "Join Co-Ownership Group" : "Message"}
+                </MessageButton>
+              </>
             )}
             <Button variant="outline" className="w-full border-2 border-purple-200 hover:bg-purple-50 text-purple-700 font-semibold" onClick={() => navigate(-1)}>
               {role === 'landlord' ? 'Back to properties' : (isSale ? 'Back to opportunities' : 'Back to results')}
@@ -905,6 +1010,30 @@ export default function PropertyDetailsPage() {
           profileData={profileData}
           onConfirm={handleQuickApplyConfirm}
           isSubmitting={isSubmittingQuickApply}
+        />
+      )}
+
+      {/* Schedule Viewing Modal */}
+      {property && (
+        <ScheduleViewingModal
+          isOpen={showScheduleViewingModal}
+          onClose={() => setShowScheduleViewingModal(false)}
+          property={property}
+          onSuccess={() => {
+            toast.success("Viewing request sent successfully!");
+            setShowScheduleViewingModal(false);
+          }}
+        />
+      )}
+
+      {/* Make an Offer Modal */}
+      {property && (
+        <MakeOfferModal
+          isOpen={showMakeOfferModal}
+          onClose={() => setShowMakeOfferModal(false)}
+          property={property}
+          onSubmit={handleMakeOfferSubmit}
+          isSubmitting={isSubmittingOffer}
         />
       )}
     </>

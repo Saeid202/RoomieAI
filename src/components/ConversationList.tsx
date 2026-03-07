@@ -129,7 +129,12 @@ export function ConversationList({
                   ? "bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 shadow-sm"
                   : "hover:bg-slate-50/50 dark:hover:bg-slate-900/30 border-transparent"
                   }`}
-                onClick={() => onSelectConversation(conversation)}
+                onClick={() => {
+                  onSelectConversation(conversation);
+                  if (conversation.unread_count && conversation.unread_count > 0) {
+                    MessagingService.markAsRead(conversation.id);
+                  }
+                }}
               >
                 <div className="relative shrink-0 mt-1">
                   <Avatar className="h-11 w-11 border border-slate-200 dark:border-slate-700 shadow-sm">
@@ -142,17 +147,22 @@ export function ConversationList({
 
                 <div className="flex-1 min-w-0">
                   <div className="flex justify-between items-center mb-1">
-                    <h4 className={`text-sm font-semibold truncate ${isSelected ? 'text-slate-900 dark:text-white' : 'text-slate-700 dark:text-slate-200 group-hover:text-slate-900'}`}>
+                    <h4 className={`text-sm font-semibold truncate ${isSelected ? 'text-slate-900 dark:text-white' : conversation.unread_count ? 'text-slate-900 dark:text-white' : 'text-slate-700 dark:text-slate-200 group-hover:text-slate-900'}`}>
                       {otherParticipantName}
                     </h4>
-                    {lastMessageTime && (
-                      <span className={`text-[10px] font-medium ${isSelected ? 'text-slate-600 dark:text-slate-400' : 'text-slate-400'}`}>
-                        {lastMessageTime.replace('about ', '')}
-                      </span>
-                    )}
+                    <div className="flex items-center gap-2">
+                      {conversation.unread_count ? (
+                        <div className="h-2 w-2 rounded-full bg-blue-600 shadow-[0_0_8px_rgba(37,99,235,0.6)]" />
+                      ) : null}
+                      {lastMessageTime && (
+                        <span className={`text-[10px] font-medium ${isSelected ? 'text-slate-600 dark:text-slate-400' : conversation.unread_count ? 'text-blue-600 font-bold' : 'text-slate-400'}`}>
+                          {lastMessageTime.replace('about ', '')}
+                        </span>
+                      )}
+                    </div>
                   </div>
 
-                  <p className={`text-[13px] truncate leading-snug mb-2 ${isSelected ? 'text-slate-600 dark:text-slate-300' : 'text-slate-500 dark:text-slate-500'}`}>
+                  <p className={`text-[13px] truncate leading-snug mb-2 ${isSelected ? 'text-slate-600 dark:text-slate-300' : conversation.unread_count ? 'text-slate-900 dark:text-slate-100 font-bold' : 'text-slate-500 dark:text-slate-500'}`}>
                     {isOwnMessage && <span className="text-slate-400 font-normal">You: </span>}{lastMessage}
                   </p>
 
@@ -169,10 +179,10 @@ export function ConversationList({
                   )}
                 </div>
               </div>
-            )
+            );
           })}
         </div>
       </ScrollArea>
-    </div>
+    </div >
   );
 }

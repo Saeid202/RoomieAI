@@ -297,21 +297,29 @@ export async function getPropertyAccessRequests(
 export async function respondToAccessRequest(
   requestId: string,
   status: 'approved' | 'denied',
-  responseMessage?: string
+  responseMessage?: string,
+  expiresAt?: string
 ): Promise<void> {
   try {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error("User not authenticated");
 
+    const updateData: any = {
+      status,
+      response_message: responseMessage,
+      reviewed_at: new Date().toISOString(),
+      reviewed_by: user.id,
+      updated_at: new Date().toISOString(),
+    };
+
+    // Add expiration date if provided (only for approved requests)
+    if (status === 'approved' && expiresAt) {
+      updateData.access_expires_at = expiresAt;
+    }
+
     const { error } = await supabase
       .from('document_access_requests')
-      .update({
-        status,
-        response_message: responseMessage,
-        reviewed_at: new Date().toISOString(),
-        reviewed_by: user.id,
-        updated_at: new Date().toISOString(),
-      })
+      .update(updateData)
       .eq('id', requestId);
 
     if (error) throw error;
@@ -341,6 +349,56 @@ export async function getListingStrength(
 }
 
 /**
+ * Check if user has valid (non-expired) access to a property's documents
+ */
+export async function checkDocumentAccess(
+  propertyId: string
+): Promise<{ hasAccess: boolean; expiresAt?: string | null }> {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { hasAccess: false };
+
+    // Check for approved access request
+    const { data, error } = await supabase
+      .from('document_access_requests')
+      .select('status, access_expires_at')
+      .eq('property_id', propertyId)
+      .eq('requester_id', user.id)
+      .eq('status', 'approved')
+      .maybeSingle();
+
+    if (error) throw error;
+    if (!data) return { hasAccess: false };
+
+    // Check if access has expired
+    if (data.access_expires_at) {
+      const expiresAt = new Date(data.access_expires_at);
+      const now = new Date();
+      
+      if (expiresAt < now) {
+        // Access has expired - update status
+        await supabase
+          .from('document_access_requests')
+          .update({ status: 'expired', updated_at: new Date().toISOString() })
+          .eq('property_id', propertyId)
+          .eq('requester_id', user.id)
+          .eq('status', 'approved');
+        
+        return { hasAccess: false };
+      }
+    }
+
+    return { 
+      hasAccess: true, 
+      expiresAt: data.access_expires_at 
+    };
+  } catch (error) {
+    console.error('Error checking document access:', error);
+    return { hasAccess: false };
+  }
+}
+
+/**
  * Download a document (for approved access or public documents)
  */
 export async function downloadDocument(
@@ -350,7 +408,7 @@ export async function downloadDocument(
     // Get document info
     const { data: doc, error: docError } = await supabase
       .from('property_documents')
-      .select('file_url, is_public')
+      .select('file_url, is_public, property_id')
       .eq('id', documentId)
       .single();
 
@@ -361,17 +419,35 @@ export async function downloadDocument(
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("User not authenticated");
 
-      // Check if user has approved access request
+      // Check if user has approved access request that hasn't expired
       const { data: request } = await supabase
         .from('document_access_requests')
-        .select('status')
-        .eq('document_id', documentId)
+        .select('status, access_expires_at')
+        .eq('property_id', doc.property_id)
         .eq('requester_id', user.id)
         .eq('status', 'approved')
-        .single();
+        .maybeSingle();
 
       if (!request) {
         throw new Error("Access denied. Please request access first.");
+      }
+
+      // Check expiration
+      if (request.access_expires_at) {
+        const expiresAt = new Date(request.access_expires_at);
+        const now = new Date();
+        
+        if (expiresAt < now) {
+          // Auto-expire the access
+          await supabase
+            .from('document_access_requests')
+            .update({ status: 'expired', updated_at: new Date().toISOString() })
+            .eq('property_id', doc.property_id)
+            .eq('requester_id', user.id)
+            .eq('status', 'approved');
+          
+          throw new Error("Your access has expired. Please request access again.");
+        }
       }
     }
 

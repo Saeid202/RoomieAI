@@ -1,0 +1,324 @@
+# Lawyer Dashboard UI Design Mockup
+
+## Design System
+Following the existing platform design with gradient backgrounds, animated cards, and modern UI elements.
+
+---
+
+## 1. LAWYER DASHBOARD (Main Page)
+
+### Welcome Banner
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  🎨 Gradient Background (pink/purple/indigo with animations)    │
+│                                                                   │
+│         Welcome back, [Lawyer Name]!                             │
+│         ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━                           │
+│    Your all-in-one platform for managing clients,                │
+│    cases, and growing your legal practice.                       │
+│                                                                   │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Stats Grid (3 columns)
+```
+┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐
+│ 👥 Total Clients │  │ 📋 Active Cases  │  │ 📅 Consultations │
+│                  │  │                  │  │                  │
+│       24         │  │       18         │  │        3         │
+│                  │  │                  │  │   This Week      │
+└──────────────────┘  └──────────────────┘  └──────────────────┘
+```
+
+### Quick Actions (3 columns)
+```
+┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐
+│ 👤 Update        │  │ 👥 View          │  │ 📄 Manage        │
+│    Profile       │  │    Clients       │  │    Cases         │
+│                  │  │                  │  │                  │
+│ Manage your      │  │ Review and       │  │ Track case       │
+│ professional     │  │ manage client    │  │ progress and     │
+│ information      │  │ cases            │  │ documents        │
+└──────────────────┘  └──────────────────┘  └──────────────────┘
+```
+
+### Recent Clients Section
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  Recent Clients                              [View All Clients] │
+├─────────────────────────────────────────────────────────────────┤
+│  ┌───────────────────────────────────────────────────────────┐  │
+│  │ 👤 John Smith                    📧 john@email.com        │  │
+│  │ 📞 (416) 555-0123                                         │  │
+│  │ Case: Landlord-Tenant Dispute    Status: 🟢 Active       │  │
+│  │ Consultation: Mar 10, 2026       Retainer: ✅ Paid       │  │
+│  │                                                           │  │
+│  │ [View Details] [Upload Document] [Send Message]          │  │
+│  └───────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+
+
+---
+
+## 2. LAWYER PROFILE PAGE
+
+### Profile Form Layout
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  Lawyer Profile                                                  │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                   │
+│  Personal Information                                            │
+│  ┌─────────────────┐  ┌─────────────────┐                      │
+│  │ Full Name       │  │ Email           │                      │
+│  └─────────────────┘  └─────────────────┘                      │
+│  ┌─────────────────┐  ┌─────────────────┐                      │
+│  │ Phone Number    │  │ Law Firm Name   │                      │
+│  └─────────────────┘  └─────────────────┘                      │
+│                                                                   │
+│  Professional Details                                            │
+│  ┌─────────────────┐  ┌─────────────────┐                      │
+│  │ Bar Number      │  │ Years Experience│                      │
+│  └─────────────────┘  └─────────────────┘                      │
+│                                                                   │
+│  Practice Areas (Multi-select)                                   │
+│  ☑ Landlord-Tenant Law    ☑ Real Estate Law                    │
+│  ☐ Property Disputes      ☐ Lease Agreements                   │
+│  ☑ Eviction Proceedings   ☐ Housing Rights                     │
+│                                                                   │
+│  Rates & Fees                                                    │
+│  ┌─────────────────┐  ┌─────────────────┐                      │
+│  │ Hourly Rate $   │  │ Consultation $  │                      │
+│  └─────────────────┘  └─────────────────┘                      │
+│                                                                   │
+│  Bio / Description                                               │
+│  ┌───────────────────────────────────────────────────────────┐  │
+│  │ [Text area for lawyer bio]                                │  │
+│  └───────────────────────────────────────────────────────────┘  │
+│                                                                   │
+│  Office Location                                                 │
+│  ┌─────────────────────────────────────────────────────────┐    │
+│  │ Address                                                   │    │
+│  └─────────────────────────────────────────────────────────┘    │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐                      │
+│  │ City     │  │ Province │  │ Postal   │                      │
+│  └──────────┘  └──────────┘  └──────────┘                      │
+│                                                                   │
+│  ☑ Currently accepting new clients                              │
+│                                                                   │
+│  [Save Profile]                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 3. CLIENTS PAGE
+
+### Client List with Filters
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  My Clients                                                      │
+├─────────────────────────────────────────────────────────────────┤
+│  [Search clients...]  [Status ▼]  [Case Type ▼]  [+ Add Client]│
+├─────────────────────────────────────────────────────────────────┤
+│                                                                   │
+│  ┌───────────────────────────────────────────────────────────┐  │
+│  │ 👤 Sarah Johnson                                          │  │
+│  │ ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  │  │
+│  │ 📧 sarah.j@email.com    📞 (416) 555-0199               │  │
+│  │                                                           │  │
+│  │ Case Type: Eviction Defense                              │  │
+│  │ Status: 🟢 Active                                        │  │
+│  │ Consultation: Mar 8, 2026                                │  │
+│  │ Retainer: ✅ Paid ($2,500)                               │  │
+│  │                                                           │  │
+│  │ Description: Tenant facing wrongful eviction notice...   │  │
+│  │                                                           │  │
+│  │ [View Details] [Upload Doc] [Message] [Schedule]        │  │
+│  └───────────────────────────────────────────────────────────┘  │
+│                                                                   │
+│  ┌───────────────────────────────────────────────────────────┐  │
+│  │ 👤 Michael Chen                                           │  │
+│  │ ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  │  │
+│  │ 📧 m.chen@email.com     📞 (647) 555-0234               │  │
+│  │                                                           │  │
+│  │ Case Type: Lease Review                                  │  │
+│  │ Status: 🟡 Pending                                       │  │
+│  │ Consultation: Mar 12, 2026                               │  │
+│  │ Retainer: ⏳ Pending                                     │  │
+│  │                                                           │  │
+│  │ Description: Commercial lease agreement review...        │  │
+│  │                                                           │  │
+│  │ [View Details] [Upload Doc] [Message] [Schedule]        │  │
+│  └───────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 4. SIDEBAR NAVIGATION
+
+### Lawyer Sidebar Menu
+```
+┌─────────────────┐
+│                 │
+│  🏠 Dashboard   │  ← Active
+│                 │
+│  👤 Profile     │
+│                 │
+│  👥 Clients     │
+│                 │
+│  📄 Documents   │
+│                 │
+│  📅 Calendar    │
+│                 │
+│  💬 Messenger   │
+│                 │
+│  ⚙️ Settings    │
+│                 │
+└─────────────────┘
+```
+
+---
+
+## 5. CASE DETAILS MODAL
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  Case Details                                            [✕]    │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                   │
+│  Client Information                                              │
+│  Name: Sarah Johnson                                             │
+│  Email: sarah.j@email.com                                        │
+│  Phone: (416) 555-0199                                          │
+│                                                                   │
+│  Case Information                                                │
+│  Type: Eviction Defense                                          │
+│  Status: 🟢 Active                                              │
+│  Started: Feb 15, 2026                                           │
+│                                                                   │
+│  Financial                                                       │
+│  Retainer: $2,500 (Paid ✅)                                     │
+│  Hourly Rate: $350/hour                                          │
+│  Hours Logged: 8.5 hours                                         │
+│                                                                   │
+│  Case Description                                                │
+│  ┌───────────────────────────────────────────────────────────┐  │
+│  │ Tenant facing wrongful eviction notice from landlord.     │  │
+│  │ Landlord claims non-payment but tenant has proof of       │  │
+│  │ payment. Need to file response with LTB.                  │  │
+│  └───────────────────────────────────────────────────────────┘  │
+│                                                                   │
+│  Documents (3)                                                   │
+│  📄 Eviction Notice.pdf                    Mar 1, 2026          │
+│  📄 Payment Receipts.pdf                   Mar 2, 2026          │
+│  📄 LTB Response Draft.docx                Mar 5, 2026          │
+│                                                                   │
+│  Notes                                                           │
+│  ┌───────────────────────────────────────────────────────────┐  │
+│  │ [Add case notes here...]                                  │  │
+│  └───────────────────────────────────────────────────────────┘  │
+│                                                                   │
+│  [Update Status] [Upload Document] [Schedule Meeting] [Close]   │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 6. FIND LAWYER PAGE (For Users)
+
+### Lawyer Directory
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  Find a Lawyer                                                   │
+├─────────────────────────────────────────────────────────────────┤
+│  [Search...]  [Practice Area ▼]  [City ▼]  [Rate Range ▼]      │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                   │
+│  ┌───────────────────────────────────────────────────────────┐  │
+│  │ 👤 [Photo]  Jennifer Martinez, LLB                        │  │
+│  │             Martinez & Associates                          │  │
+│  │             ⭐⭐⭐⭐⭐ (24 reviews)                         │  │
+│  │                                                           │  │
+│  │ Practice Areas:                                           │  │
+│  │ • Landlord-Tenant Law  • Real Estate Law                 │  │
+│  │ • Eviction Proceedings                                    │  │
+│  │                                                           │  │
+│  │ 📍 Toronto, ON          💰 $350/hour                     │  │
+│  │ 🗣️ English, Spanish     ✅ Accepting Clients             │  │
+│  │                                                           │  │
+│  │ "15 years of experience helping tenants and landlords    │  │
+│  │  resolve disputes fairly and efficiently."               │  │
+│  │                                                           │  │
+│  │ [View Profile] [Request Consultation]                    │  │
+│  └───────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## COLOR SCHEME
+
+### Primary Colors
+- **Pink**: #EC4899 (Accent, CTAs)
+- **Purple**: #8B5CF6 (Primary actions)
+- **Indigo**: #6366F1 (Secondary)
+
+### Status Colors
+- **Active**: 🟢 Green (#10B981)
+- **Pending**: 🟡 Yellow (#F59E0B)
+- **Completed**: 🔵 Blue (#3B82F6)
+- **Cancelled**: 🔴 Red (#EF4444)
+
+### Gradients
+- Background: `from-pink-500/20 via-purple-500/20 to-indigo-500/20`
+- Buttons: `from-purple-600 to-pink-600`
+- Cards: `from-white via-purple-50/30 to-pink-50/30`
+
+---
+
+## RESPONSIVE DESIGN
+
+### Desktop (1024px+)
+- 3-column grid for stats and actions
+- Full sidebar visible
+- Large cards with detailed information
+
+### Tablet (768px - 1023px)
+- 2-column grid
+- Collapsible sidebar
+- Medium-sized cards
+
+### Mobile (< 768px)
+- Single column layout
+- Bottom navigation bar
+- Compact cards
+- Swipeable client list
+
+---
+
+## ANIMATIONS
+
+1. **Card Hover**: Scale 1.02, shadow increase
+2. **Button Hover**: Gradient shift, shadow glow
+3. **Page Load**: Fade in with slide up
+4. **Status Change**: Color transition with pulse
+5. **Background**: Slow rotating gradient
+
+---
+
+## ACCESSIBILITY
+
+- ✅ ARIA labels on all interactive elements
+- ✅ Keyboard navigation support
+- ✅ High contrast mode compatible
+- ✅ Screen reader friendly
+- ✅ Focus indicators visible
+- ✅ Color-blind friendly status indicators (icons + colors)
+
+---
+
+**Design Status**: ✅ Complete - Ready for Development

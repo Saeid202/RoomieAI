@@ -38,14 +38,18 @@ export class MessagingService {
         { data: properties },
         { data: jobs },
         { data: sales },
-        { data: lastMessages }
+        { data: lastMessages },
+        { data: lawyerProfiles },
+        { data: unreadMessages }
       ] = await Promise.all([
         supabase.from("user_profiles").select("id, full_name, email").in("id", participantIds),
         supabase.from("renovation_partners" as any).select("user_id, company, name").in("user_id", participantIds),
         supabase.from("properties" as any).select("id, listing_title, address").in("id", propertyIds),
         supabase.from("emergency_jobs" as any).select("id, category, unit_address, status").in("id", jobIds),
         supabase.from("sales_listings" as any).select("id, listing_title, address").in("id", salesIds),
-        supabase.from("messages" as any).select("*").in("conversation_id", convData.map((c: any) => c.id)).order("created_at", { ascending: false })
+        supabase.from("messages" as any).select("*").in("conversation_id", convData.map((c: any) => c.id)).order("created_at", { ascending: false }),
+        supabase.from("lawyer_profiles" as any).select("id, user_id, full_name, law_firm_name").in("id", convData.map((c: any) => c.lawyer_profile_id).filter(Boolean)),
+        supabase.from("messages" as any).select("conversation_id, sender_id").in("conversation_id", convData.map((c: any) => c.id)).is("read_at", null).neq("sender_id", user.id)
       ]);
 
       // 4. Map the data for quick access
@@ -54,14 +58,30 @@ export class MessagingService {
       const propertyMap = new Map(properties?.map((p: any) => [p.id, p]) || []);
       const jobMap = new Map(jobs?.map((j: any) => [j.id, j]) || []);
       const salesMap = new Map(sales?.map((s: any) => [s.id, s]) || []);
+      const lawyerProfileMap = new Map(lawyerProfiles?.map((l: any) => [l.id, l]) || []);
 
       const lastMsgMap = new Map();
       lastMessages?.forEach((m: any) => {
         if (!lastMsgMap.has(m.conversation_id)) lastMsgMap.set(m.conversation_id, m);
       });
 
+      const unreadCountMap = new Map();
+      unreadMessages?.forEach((m: any) => {
+        unreadCountMap.set(m.conversation_id, (unreadCountMap.get(m.conversation_id) || 0) + 1);
+      });
+
       // Helper to resolve name
-      const resolveName = (uid: string) => {
+      const resolveName = (uid: string, isLawyer: boolean = false, lawyerProfileId?: string) => {
+        // Check if this is a lawyer conversation
+        if (isLawyer && lawyerProfileId) {
+          const lawyer = lawyerProfileMap.get(lawyerProfileId) as any;
+          if (lawyer) {
+            return lawyer.law_firm_name
+              ? `${lawyer.full_name} (${lawyer.law_firm_name})`
+              : lawyer.full_name;
+          }
+        }
+
         // Try renovator
         const r = renovatorMap.get(uid) as any;
         if (r) {
@@ -83,7 +103,15 @@ export class MessagingService {
         let propertyTitle = "Unknown Property";
         let emergencyJob = null;
 
-        if (conv.emergency_job_id) {
+        // Check if this is a lawyer consultation
+        if (conv.conversation_type === 'lawyer_consultation' && conv.lawyer_profile_id) {
+          const lawyer = lawyerProfileMap.get(conv.lawyer_profile_id) as any;
+          if (lawyer) {
+            propertyTitle = `⚖️ Legal Consultation${lawyer.law_firm_name ? ` - ${lawyer.law_firm_name}` : ''}`;
+          } else {
+            propertyTitle = "⚖️ Legal Consultation";
+          }
+        } else if (conv.emergency_job_id) {
           const job = jobMap.get(conv.emergency_job_id) as any;
           if (job) {
             propertyTitle = `🚨 Emergency: ${job.category}`;
@@ -107,9 +135,10 @@ export class MessagingService {
           ...conv,
           messages: lastMsg ? [lastMsg] : [],
           property_title: propertyTitle,
-          landlord_name: resolveName(conv.landlord_id),
+          landlord_name: resolveName(conv.landlord_id, conv.conversation_type === 'lawyer_consultation', conv.lawyer_profile_id),
           tenant_name: resolveName(conv.tenant_id),
           emergency_job: emergencyJob,
+          unread_count: unreadCountMap.get(conv.id) || 0,
           last_message_at: lastMsg?.created_at || conv.last_message_at || conv.created_at
         } as ConversationWithMessages;
       });
@@ -264,6 +293,25 @@ export class MessagingService {
       .eq("id", conversationId);
 
     return message as unknown as Message;
+  }
+
+  // Mark all messages in a conversation as read
+  static async markAsRead(conversationId: string): Promise<void> {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { error } = await supabase
+      .from("messages" as any)
+      .update({ read_at: new Date().toISOString() })
+      .eq("conversation_id", conversationId)
+      .is("read_at", null)
+      .neq("sender_id", user.id);
+
+    if (error) {
+      console.error("Failed to mark messages as read:", error);
+    }
   }
 
   // Create or get existing conversation
@@ -502,6 +550,42 @@ export class MessagingService {
         landlord_id: landlordId,
         tenant_id: renovatorUserId,
         property_id: null
+      })
+      .select("id")
+      .single();
+
+    if (error) throw error;
+    return (newConv as any).id;
+  }
+
+  // Start a lawyer consultation conversation
+  static async startLawyerConsultation(
+    lawyerUserId: string,
+    lawyerProfileId: string,
+    seekerId: string,
+    metadata?: { consultationType?: string; topic?: string }
+  ): Promise<string> {
+    // Check if conversation already exists between this lawyer and seeker
+    const { data: existingConv } = await supabase
+      .from("conversations" as any)
+      .select("id")
+      .eq("lawyer_profile_id", lawyerProfileId)
+      .or(`and(landlord_id.eq.${lawyerUserId},tenant_id.eq.${seekerId}),and(landlord_id.eq.${seekerId},tenant_id.eq.${lawyerUserId})`)
+      .maybeSingle();
+
+    if (existingConv) return (existingConv as any).id;
+
+    // Create new lawyer consultation conversation
+    const { data: newConv, error } = await supabase
+      .from("conversations" as any)
+      .insert({
+        landlord_id: lawyerUserId,
+        tenant_id: seekerId,
+        lawyer_profile_id: lawyerProfileId,
+        conversation_type: 'lawyer_consultation',
+        conversation_metadata: metadata || {},
+        property_id: null,
+        sales_listing_id: null
       })
       .select("id")
       .single();

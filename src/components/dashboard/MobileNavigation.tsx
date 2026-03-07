@@ -9,8 +9,21 @@ import { useRole } from "@/contexts/RoleContext";
 import { MobileSidebarSheet } from "./MobileSidebarSheet";
 
 export function MobileNavigation() {
+  const { role: baseRole } = useRole();
   const location = useLocation();
-  const { role } = useRole();
+
+  // Context-aware role detection
+  const isSeekerRoute =
+    location.pathname.startsWith('/dashboard/roommate-recommendations') ||
+    location.pathname.startsWith('/dashboard/matches') ||
+    location.pathname.startsWith('/dashboard/rental-options') ||
+    location.pathname.startsWith('/dashboard/buying-opportunities') ||
+    location.pathname.startsWith('/dashboard/buy/') ||
+    location.pathname.startsWith('/dashboard/rent/') ||
+    location.pathname.startsWith('/dashboard/co-ownership/') ||
+    location.pathname.startsWith('/dashboard/applications');
+
+  const role = (isSeekerRoute && baseRole !== 'landlord' && baseRole !== 'admin') ? 'seeker' : baseRole;
 
   const isActive = (path: string) => {
     return (
@@ -24,7 +37,13 @@ export function MobileNavigation() {
       case "landlord":
         return "/dashboard/landlord";
       case "developer":
-        return "/dashboard/developer";
+        return "/dashboard/landlord";
+      case "renovator":
+        return "/renovator/dashboard";
+      case "mortgage_broker":
+        return "/dashboard/mortgage-broker";
+      case "lawyer":
+        return "/dashboard/lawyer";
       default:
         return "/dashboard/roommate-recommendations";
     }
@@ -48,9 +67,9 @@ export function MobileNavigation() {
 
           <NavItem
             icon={<MessageSquare size={22} />}
-            label={role === "landlord" ? "Messages" : "Legal AI"}
-            to={role === "landlord" ? "/dashboard/chats" : "/dashboard/legal-assistant"}
-            isActive={role === "landlord" ? isActive("/dashboard/chats") : isActive("/dashboard/legal-assistant")}
+            label={role === "landlord" ? "Messages" : role === "lawyer" ? "Messenger" : role === "mortgage_broker" ? "Feedback" : "Legal AI"}
+            to={role === "landlord" || role === "lawyer" ? "/dashboard/chats" : "/dashboard/legal-assistant"}
+            isActive={role === "landlord" || role === "lawyer" ? isActive("/dashboard/chats") : isActive("/dashboard/legal-assistant")}
           />
 
 

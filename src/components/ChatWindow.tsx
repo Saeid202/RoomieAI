@@ -55,10 +55,22 @@ export function ChatWindow({
             const updated = [...prev, newMessage];
             // Scroll after state update
             setTimeout(() => scrollToBottom(), 50);
+
+            // Mark as read if this chat is active
+            if (newMessage.sender_id !== user?.id) {
+              MessagingService.markAsRead(conversation.id);
+            }
+
+            // Show notification
+            showBrowserNotification(newMessage);
+
             return updated;
           });
         }
       );
+
+      // Mark as read when opening
+      MessagingService.markAsRead(conversation.id);
     };
 
     setup();
@@ -137,6 +149,23 @@ export function ChatWindow({
       }
     });
   };
+
+  const showBrowserNotification = (message: Message) => {
+    if (document.visibilityState === 'visible' && message.conversation_id === conversation?.id) return;
+
+    if (Notification.permission === 'granted') {
+      new Notification(`New message from ${otherParticipantName}`, {
+        body: message.content,
+        icon: '/favicon.ico' // Adjust icon path if needed
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+  }, []);
 
   const getOtherParticipantName = () => {
     if (!conversation) return "User";
@@ -305,20 +334,23 @@ export function ChatWindow({
 
                         <div className={`flex flex-col ${isOwn ? 'items-end' : 'items-start'}`}>
                           <div
-                            className={`px-5 py-3 text-[15px] shadow-sm relative transition-all duration-300 leading-relaxed ${isOwn
-                              ? `bg-gradient-to-br from-slate-900 to-slate-800 text-white border-none ${isFirstInGroup ? 'rounded-t-[20px] rounded-l-[20px]' : 'rounded-l-[20px]'} ${isLastInGroup ? 'rounded-b-[20px]' : 'rounded-l-[20px]'}`
-                              : `bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border border-slate-100 dark:border-slate-700 ${isFirstInGroup ? 'rounded-t-[20px] rounded-r-[20px]' : 'rounded-r-[20px]'} ${isLastInGroup ? 'rounded-b-[20px]' : 'rounded-r-[20px]'}`
+                            className={`px-4 py-2 text-[15px] shadow-sm relative transition-all duration-300 leading-relaxed ${isOwn
+                              ? `bg-[#0084ff] text-white border-none ${isFirstInGroup ? 'rounded-t-[18px] rounded-l-[18px]' : 'rounded-l-[18px]'} ${isLastInGroup ? 'rounded-b-[18px]' : 'rounded-l-[18px]'}`
+                              : `bg-[#f0f0f0] dark:bg-slate-800 text-slate-900 dark:text-slate-100 border-none ${isFirstInGroup ? 'rounded-t-[18px] rounded-r-[18px]' : 'rounded-r-[18px]'} ${isLastInGroup ? 'rounded-b-[18px]' : 'rounded-r-[18px]'}`
                               }`}
                           >
-                            <p className="whitespace-pre-wrap font-medium tracking-tight">{message.content}</p>
+                            <p className="whitespace-pre-wrap font-normal tracking-tight">{message.content}</p>
                           </div>
 
                           {isLastInGroup && (
-                            <div className="flex items-center gap-1.5 mt-1.5 px-1">
-                              <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+                            <div className="flex items-center gap-1.5 mt-1 px-1">
+                              <span className="text-[10px] font-medium text-slate-400 uppercase tracking-tight">
                                 {formatDistanceToNow(new Date(message.created_at), { addSuffix: false }).replace('about ', '')}
                               </span>
-                              {isOwn && <CheckCircle className="h-3 w-3 text-blue-600" />}
+                              {isOwn && message.read_at && (
+                                <span className="text-[10px] font-bold text-blue-500 ml-1">Seen</span>
+                              )}
+                              {isOwn && !message.read_at && <CheckCircle className="h-3 w-3 text-slate-300" />}
                             </div>
                           )}
                         </div>

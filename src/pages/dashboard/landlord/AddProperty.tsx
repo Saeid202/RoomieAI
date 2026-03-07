@@ -7,10 +7,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, ArrowRight, Home, MapPin, DollarSign, Camera, FileText, CheckCircle, X, Upload, Train, ShoppingBag, GraduationCap, Coffee, Loader2, Sparkles, Volume2, Square, Box, Film } from "lucide-react";
+import { ArrowLeft, ArrowRight, Home, MapPin, DollarSign, Camera, FileText, CheckCircle, X, Upload, Train, ShoppingBag, GraduationCap, Coffee, Loader2, Sparkles, Volume2, Square, Box, Film, Calendar } from "lucide-react";
 import { ai3DService } from "@/services/ai3DService";
 import { PropertyCategorySelector } from "@/components/property/PropertyCategorySelector";
 import { DocumentVault } from "@/components/property/DocumentVault";
+import { PropertyAvailabilitySection } from "@/components/property/PropertyAvailabilitySection";
 import type { PropertyCategory, PropertyConfiguration } from "@/types/propertyCategories";
 
 import { useNavigate } from "react-router-dom";
@@ -29,6 +30,7 @@ import { ImageUpload } from "@/components/ui/image-upload";
 import { aiDescriptionService } from "@/services/aiDescriptionService";
 import { PropertyVideoPlayer } from "@/components/property/PropertyVideoPlayer";
 import { aiVideoService } from "@/services/aiVideoService";
+import { viewingAppointmentService } from "@/services/viewingAppointmentService";
 
 
 
@@ -197,7 +199,6 @@ export default function AddPropertyPage() {
   const [currentUserId, setCurrentUserId] = useState<string>('');
   const DRAFT_KEY = "add_property_draft_v1";
   const [editId, setEditId] = useState<string | null>(null);
-  const [existingImageUrls, setExistingImageUrls] = useState<string[]>([]);
   const [isGeneratingDescription, setIsGeneratingDescription] = useState(false);
   const [isGeneratingAudio, setIsGeneratingAudio] = useState(false);
   const [hasLocalAudioPreview, setHasLocalAudioPreview] = useState(false);
@@ -208,6 +209,20 @@ export default function AddPropertyPage() {
   const [videoScript, setVideoScript] = useState<string>("");
   const [includeVideo, setIncludeVideo] = useState(true);
   const [includeAudio, setIncludeAudio] = useState(true);
+
+  // Viewing Availability State
+  interface TimeSlot {
+    id?: string;
+    startTime: string;
+    endTime: string;
+  }
+  
+  interface DayAvailability {
+    [dayOfWeek: number]: TimeSlot[];
+  }
+  
+  const [viewingAvailability, setViewingAvailability] = useState<DayAvailability>({});
+  const [allDayChecked, setAllDayChecked] = useState<{ [key: number]: boolean }>({});
 
 
   // Load model-viewer script
@@ -231,14 +246,53 @@ export default function AddPropertyPage() {
     setErrors({});
     setSelectedFacility(null);
     setEditId(null);
-    setExistingImageUrls([]);
     setHasLocalAudioPreview(false);
+    setViewingAvailability({});
+    setAllDayChecked({});
     // Clear draft from localStorage
     try {
       localStorage.removeItem(DRAFT_KEY);
       console.log('🧹 Form reset and draft cleared');
     } catch (error) {
       console.error('Error clearing draft:', error);
+    }
+  };
+
+  // Load property availability when editing
+  const loadPropertyAvailability = async (propertyId: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const availabilityData = await viewingAppointmentService.getAvailabilityByProperty(user.id, propertyId);
+      
+      // Group by day of week
+      const grouped: DayAvailability = {};
+      const allDayStatus: { [key: number]: boolean } = {};
+      
+      availabilityData.forEach(slot => {
+        const day = slot.day_of_week;
+        if (!grouped[day]) {
+          grouped[day] = [];
+        }
+        
+        // Check if it's an "all day" slot
+        if (slot.start_time === '00:00:00' && slot.end_time === '23:59:00') {
+          allDayStatus[day] = true;
+        } else {
+          grouped[day].push({
+            id: slot.id,
+            startTime: slot.start_time.substring(0, 5), // HH:MM
+            endTime: slot.end_time.substring(0, 5),
+          });
+        }
+      });
+
+      setViewingAvailability(grouped);
+      setAllDayChecked(allDayStatus);
+      console.log('✅ Loaded viewing availability:', grouped);
+    } catch (error) {
+      console.error('Error loading availability:', error);
     }
   };
 
@@ -444,7 +498,12 @@ export default function AddPropertyPage() {
         });
 
         console.log("✅ Form state update scheduled with data for:", data.id);
-        setExistingImageUrls(Array.isArray(data.images) ? data.images : []);
+        
+        // Load viewing availability for this property
+        if (prefillId) {
+          loadPropertyAvailability(prefillId);
+        }
+        
         toast.success("Loaded listing for editing");
       } catch (e: any) {
         console.error("❌ Exception in load property effect:", e);
@@ -636,6 +695,63 @@ export default function AddPropertyPage() {
     return `${(meters / 1000).toFixed(1)} km`;
   };
 
+  // Save viewing availability for a property
+  const saveViewingAvailability = async (propertyId: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Check if there's any availability to save
+      const hasAvailability = Object.keys(viewingAvailability).length > 0 || Object.keys(allDayChecked).length > 0;
+      if (!hasAvailability) {
+        console.log('No availability to save');
+        return;
+      }
+
+      // Delete existing availability for this property
+      const existingData = await viewingAppointmentService.getAvailabilityByProperty(user.id, propertyId);
+      for (const slot of existingData) {
+        await viewingAppointmentService.deleteAvailability(slot.id);
+      }
+
+      // Save new availability
+      for (const [dayStr, slots] of Object.entries(viewingAvailability)) {
+        const day = parseInt(dayStr);
+        
+        for (const slot of slots) {
+          await viewingAppointmentService.setAvailability({
+            user_id: user.id,
+            property_id: propertyId,
+            day_of_week: day,
+            start_time: `${slot.startTime}:00`,
+            end_time: `${slot.endTime}:00`,
+            is_active: true
+          });
+        }
+      }
+
+      // Save "All Day" slots
+      for (const [dayStr, isAllDay] of Object.entries(allDayChecked)) {
+        if (isAllDay) {
+          const day = parseInt(dayStr);
+          await viewingAppointmentService.setAvailability({
+            user_id: user.id,
+            property_id: propertyId,
+            day_of_week: day,
+            start_time: '00:00:00',
+            end_time: '23:59:00',
+            is_active: true
+          });
+        }
+      }
+
+      console.log('✅ Viewing availability saved');
+    } catch (error) {
+      console.error('Error saving availability:', error);
+      // Don't throw - availability is optional
+    }
+  };
+
   const handleSubmit = async () => {
     console.log("🚀 Starting property submission...");
     console.log("📋 Form data:", formData);
@@ -680,6 +796,15 @@ export default function AddPropertyPage() {
       // Images are already uploaded and stored in formData.images as URLs
       const imageUrls = formData.images; // These are already URLs from the ImageUpload component
 
+      // Extract bedroom count from property_configuration (e.g., "1-Bedroom" -> 1)
+      const extractBedroomCount = (configuration: string | null): number => {
+        if (!configuration) return 0;
+        const match = configuration.match(/(\d+)-Bedroom/);
+        return match ? parseInt(match[1]) : 0;
+      };
+
+      const bedroomCount = extractBedroomCount(formData.propertyConfiguration);
+
       // Prepare property data for database
       const propertyData = {
         user_id: user.id,
@@ -719,6 +844,7 @@ export default function AddPropertyPage() {
         is_co_ownership: formData.isCoOwnership || false,
         downpayment_target: formData.downpaymentTarget ? parseFloat(String(formData.downpaymentTarget).replace(/[^0-9.]/g, '')) : null,
         // Property details
+        bedrooms: bedroomCount, // Extract from property_configuration
         bathrooms: formData.bathrooms ? parseFloat(formData.bathrooms) : null,
         square_footage: formData.squareFootage ? parseInt(formData.squareFootage) : null
       };
@@ -731,16 +857,16 @@ export default function AddPropertyPage() {
         const updates: any = {
           ...propertyData,
         };
-        if (imageUrls.length > 0) {
-          updates.images = [...existingImageUrls, ...imageUrls];
-        } else {
-          delete updates.images;
-        }
+        // Images are already in propertyData.images - no need to merge
         console.log("📝 Update payload:", updates);
 
         // Always update in properties table
         await updateProperty(editId, updates);
         console.log("✅ Property updated successfully!");
+        
+        // Update viewing availability
+        await saveViewingAvailability(editId);
+        
         toast.success("Property updated successfully!");
       } else {
         console.log("🆕 Creating new property...");
@@ -757,6 +883,11 @@ export default function AddPropertyPage() {
         }
         console.log("✅ Property created successfully!");
         toast.success("Property listed successfully!");
+        
+        // Save viewing availability if any is set
+        if (result && result.id) {
+          await saveViewingAvailability(result.id);
+        }
       }
       try { localStorage.removeItem(DRAFT_KEY); } catch { }
       navigate("/dashboard/landlord/properties");
@@ -1076,7 +1207,7 @@ export default function AddPropertyPage() {
                     <Label className="text-sm font-medium">Property Photos</Label>
                     {currentUserId && (
                       <ImageUpload
-                        propertyId="temp"
+                        propertyId={editId || 'temp'}
                         userId={currentUserId}
                         images={formData.images}
                         onImagesChange={(newImages) => {
@@ -1108,7 +1239,7 @@ export default function AddPropertyPage() {
                           onClick={async () => {
                             setIsGenerating3D(true);
                             try {
-                              const imagesFor3D = existingImageUrls.length > 0 ? existingImageUrls : (formData.images as string[]);
+                              const imagesFor3D = formData.images as string[];
                               const modelUrl = await ai3DService.generate3DModel(imagesFor3D, editId || 'new');
                               setFormData(prev => ({ ...prev, threeDModelUrl: modelUrl }));
                               toast.success("3D Model attached! (Simulated)");
@@ -1193,7 +1324,7 @@ export default function AddPropertyPage() {
                           {isVideoReady ? (
                             <div className="w-full">
                               <PropertyVideoPlayer
-                                images={existingImageUrls.length > 0 ? existingImageUrls : (formData.images as string[]) || []}
+                                images={(formData.images as string[]) || []}
                                 audioUrl={formData.descriptionAudioUrl || undefined}
                                 script={includeAudio ? videoScript : undefined} // Controlled by checkbox
                                 musicUrl={selectedMusic || undefined}
@@ -1268,16 +1399,25 @@ export default function AddPropertyPage() {
                               }
                               setIsGeneratingVideo(true);
                               try {
+                                // Extract bedroom count from property_configuration
+                                const extractBedroomCount = (configuration: string | null): number => {
+                                  if (!configuration) return 0;
+                                  const match = configuration.match(/(\d+)-Bedroom/);
+                                  return match ? parseInt(match[1]) : 0;
+                                };
+
+                                const bedroomCount = extractBedroomCount(formData.propertyConfiguration);
+
                                 // Generate conversational script locally
                                 const script = aiDescriptionService.generatePodcastScript({
                                   address: formData.propertyAddress,
                                   propertyType: formData.propertyType || "Property",
                                   monthlyRent: formData.monthlyRent,
-                                  bedrooms: "1",
-                                  bathrooms: "1",
+                                  bedrooms: bedroomCount.toString(),
+                                  bathrooms: formData.bathrooms || "1",
                                   amenities: formData.amenities,
                                   nearbyAmenities: formData.nearbyAmenities || [],
-                                  images: existingImageUrls,
+                                  images: formData.images,
                                   detailedDetection: detailedDetection?.detectedAmenities || undefined
                                 });
                                 setVideoScript(script);
@@ -1612,12 +1752,21 @@ export default function AddPropertyPage() {
                         onClick={async () => {
                           setIsGeneratingDescription(true);
                           try {
+                            // Extract bedroom count from property_configuration
+                            const extractBedroomCount = (configuration: string | null): number => {
+                              if (!configuration) return 0;
+                              const match = configuration.match(/(\d+)-Bedroom/);
+                              return match ? parseInt(match[1]) : 0;
+                            };
+
+                            const bedroomCount = extractBedroomCount(formData.propertyConfiguration);
+
                             const description = await aiDescriptionService.generateDescription({
                               address: formData.propertyAddress,
                               propertyType: formData.propertyType,
                               monthlyRent: formData.monthlyRent,
-                              bedrooms: '0',
-                              bathrooms: '0',
+                              bedrooms: bedroomCount.toString(),
+                              bathrooms: formData.bathrooms || '0',
                               amenities: formData.amenities,
                               nearbyAmenities: formData.nearbyAmenities || [],
                               detailedDetection: detailedDetection?.detectedAmenities,
@@ -1798,6 +1947,23 @@ export default function AddPropertyPage() {
                       className="min-h-[100px] text-base border-2 border-gray-200 focus:border-pink-500 focus:ring-2 focus:ring-pink-200"
                     />
                   </div>
+                </div>
+
+                {/* Viewing Availability Section */}
+                <div className="space-y-6 pt-4">
+                  <div className="flex items-center gap-3 pb-3 border-b-2 border-indigo-200">
+                    <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center shadow-md">
+                      <Calendar className="h-6 w-6 text-white" />
+                    </div>
+                    <h4 className="text-2xl font-bold text-gray-800">Viewing Availability</h4>
+                  </div>
+
+                  <PropertyAvailabilitySection
+                    availability={viewingAvailability}
+                    allDayChecked={allDayChecked}
+                    onAvailabilityChange={setViewingAvailability}
+                    onAllDayChange={setAllDayChecked}
+                  />
                 </div>
 
               </CardContent>

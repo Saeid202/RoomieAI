@@ -218,6 +218,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (error) {
       throw error;
     }
+    // Redirect to home page after successful logout
+    window.location.href = '/';
   };
 
   const signInWithGoogle = async () => {

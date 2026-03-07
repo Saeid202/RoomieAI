@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Test Supabase Connection</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <h1>Supabase Connection Test</h1>
+  <button onclick="testConnection()">Test Connection</button>
+  <button onclick="testLandlordAvailability()">Test Landlord Availability Table</button>
+  <button onclick="testProperties()">Test Properties Table</button>
+  <pre id="output"></pre>
+
+  <script>
+    const SUPABASE_URL = 'https://bjesofgfbuyzjamyliys.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJqZXNvZmdmYnV5emphbXlsaXlzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIyMDcxOTcsImV4cCI6MjA2Nzc4MzE5N30.V0RSLBpoCehRW_CjIwfOmIm0iJio3Y2auDBoFyjUfOs';
+    
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const output = document.getElementById('output');
+
+    async function testConnection() {
+      output.textContent = 'Testing connection...\n';
+      try {
+        const { data, error } = await supabase.from('properties').select('count');
+        if (error) {
+          output.textContent += 'ERROR: ' + JSON.stringify(error, null, 2);
+        } else {
+          output.textContent += 'SUCCESS: Connected to Supabase\n';
+          output.textContent += JSON.stringify(data, null, 2);
+        }
+      } catch (err) {
+        output.textContent += 'EXCEPTION: ' + err.message;
+      }
+    }
+
+    async function testLandlordAvailability() {
+      output.textContent = 'Testing landlord_availability table...\n';
+      try {
+        const { data, error } = await supabase
+          .from('landlord_availability')
+          .select('*')
+          .limit(1);
+        
+        if (error) {
+          output.textContent += 'ERROR: ' + JSON.stringify(error, null, 2);
+        } else {
+          output.textContent += 'SUCCESS: landlord_availability table exists!\n';
+          output.textContent += 'Sample data: ' + JSON.stringify(data, null, 2);
+        }
+      } catch (err) {
+        output.textContent += 'EXCEPTION: ' + err.message;
+      }
+    }
+
+    async function testProperties() {
+      output.textContent = 'Testing properties table...\n';
+      try {
+        // First check if user is logged in
+        const { data: { user } } = await supabase.auth.getUser();
+        output.textContent += 'Current user: ' + (user ? user.id : 'Not logged in') + '\n\n';
+
+        const { data, error } = await supabase
+          .from('properties')
+          .select('id, address, city, province, status')
+          .limit(5);
+        
+        if (error) {
+          output.textContent += 'ERROR: ' + JSON.stringify(error, null, 2);
+        } else {
+          output.textContent += 'SUCCESS: properties table accessible!\n';
+          output.textContent += 'Sample data: ' + JSON.stringify(data, null, 2);
+        }
+      } catch (err) {
+        output.textContent += 'EXCEPTION: ' + err.message;
+      }
+    }
+  </script>
+</body>
+</html>

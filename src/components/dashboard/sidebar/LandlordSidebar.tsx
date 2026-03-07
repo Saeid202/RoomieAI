@@ -46,6 +46,14 @@ export function LandlordSidebar({ isActive, showLabels }: LandlordSidebarProps) 
 
       <SidebarSimpleMenuItem
         showLabel={showLabels}
+        icon={<span className="text-lg">📅</span>}
+        label="Viewing Appointments"
+        to="/dashboard/landlord/viewing-appointments"
+        isActive={isActive('/dashboard/landlord/viewing-appointments')}
+      />
+
+      <SidebarSimpleMenuItem
+        showLabel={showLabels}
         icon={<span className="text-lg">💳</span>}
         label="Payments"
         to="/dashboard/landlord/payments"

@@ -53,31 +53,43 @@ export const LoginDialog = ({ isOpen, setIsOpen }: LoginDialogProps) => {
       console.log("Complete user data after login:", data);
       console.log("User metadata after login:", data.user?.user_metadata);
 
-      const userRole = data.user?.user_metadata?.role as UserRole | undefined;
-      console.log("User logged in with role:", userRole);
+      // CRITICAL FIX: Always fetch role from database, not metadata
+      // Metadata can be stale/cached, database is source of truth
+      console.log("🔍 LoginDialog - Fetching role from database...");
+      const { data: profile, error: profileError } = await supabase
+        .from('user_profiles')
+        .select('role')
+        .eq('id', data.user.id)
+        .single();
 
-      // Set role in context
-      if (userRole) {
-        setRole(userRole);
-        // Also update in localStorage
-        localStorage.setItem('userRole', userRole);
+      let userRole: UserRole;
+      
+      if (profileError || !profile?.role) {
+        console.error("❌ LoginDialog - Error fetching role from database:", profileError);
+        // Fallback to metadata only if database fails
+        userRole = (data.user?.user_metadata?.role as UserRole) || 'seeker';
+        console.warn("⚠️ LoginDialog - Using metadata fallback:", userRole);
       } else {
-        console.warn("No role found in user metadata after login, checking localStorage...");
-        const storedRole = localStorage.getItem('userRole') as UserRole | null;
-
-        if (storedRole) {
-          console.log("Using role from localStorage:", storedRole);
-          setRole(storedRole);
-        } else {
-          console.warn("No role found in localStorage either, defaulting to seeker");
-          setRole('seeker');
-          localStorage.setItem('userRole', 'seeker');
-        }
+        userRole = profile.role as UserRole;
+        console.log("✅ LoginDialog - Loaded role from database:", userRole);
       }
 
-      // Redirect based on user role
-      if (userRole === 'landlord' || localStorage.getItem('userRole') === 'landlord') {
+      // Set role in context
+      setRole(userRole);
+      localStorage.setItem('userRole', userRole);
+      console.log("🔄 LoginDialog - Set role to context:", userRole);
+
+      // Redirect based on user role from DATABASE
+      if (userRole === 'landlord') {
         navigate("/dashboard/landlord");
+      } else if (userRole === 'lawyer') {
+        navigate("/dashboard/lawyer");
+      } else if (userRole === 'mortgage_broker') {
+        navigate("/dashboard/mortgage-broker");
+      } else if (userRole === 'admin') {
+        navigate("/dashboard/admin");
+      } else if (userRole === 'renovator') {
+        navigate("/renovator/dashboard");
       } else {
         // Default to roommate recommendations for seekers
         navigate("/dashboard/roommate-recommendations");

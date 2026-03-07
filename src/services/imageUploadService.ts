@@ -221,32 +221,45 @@ export class ImageUploadService {
     userId: string
   ): Promise<boolean> {
     try {
+      console.log('🗑️ Delete attempt:', { imageUrl, userId });
+      
       // Extract file path from URL
       // URL format: https://.../storage/v1/object/public/property-images/{userId}/property-{id}/{filename}
       const urlParts = imageUrl.split('/property-images/');
       if (urlParts.length < 2) {
-        console.error('Invalid image URL format:', imageUrl);
+        console.error('❌ Invalid image URL format:', imageUrl);
+        console.error('❌ URL does not contain /property-images/ separator');
         return false;
       }
       
       // Get the path after 'property-images/'
       const filePath = urlParts[1];
+      
+      // Remove any query parameters or fragments
+      const cleanPath = filePath.split('?')[0].split('#')[0];
 
-      console.log('🗑️ Deleting property image:', filePath);
+      console.log('🗑️ Extracted file path:', cleanPath);
+      console.log('🗑️ User ID for verification:', userId);
 
-      const { error } = await supabase.storage
+      const { data, error } = await supabase.storage
         .from('property-images')
-        .remove([filePath]);
+        .remove([cleanPath]);
 
       if (error) {
-        console.error('Property image delete error:', error);
+        console.error('❌ Property image delete error:', error);
+        console.error('❌ Error details:', {
+          message: error.message,
+          statusCode: (error as any).statusCode,
+          error: (error as any).error
+        });
         return false;
       }
 
       console.log('✅ Property image deleted successfully');
+      console.log('✅ Delete response:', data);
       return true;
     } catch (error) {
-      console.error('Property image delete error:', error);
+      console.error('❌ Property image delete exception:', error);
       return false;
     }
   }

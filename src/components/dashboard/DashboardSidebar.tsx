@@ -20,6 +20,7 @@ import { DeveloperSidebar } from "./sidebar/DeveloperSidebar";
 import { AdminSidebar } from "./sidebar/AdminSidebar";
 import { RenovatorSidebar } from "./sidebar/RenovatorSidebar";
 import { MortgageBrokerSidebar } from "./sidebar/MortgageBrokerSidebar";
+import { LawyerSidebar } from "./sidebar/LawyerSidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/hooks/useAuth";
 import { ChevronUp, Settings, LogOut, Home } from "lucide-react";
@@ -61,17 +62,39 @@ export function DashboardSidebar() {
           <SidebarGroupLabel>Main</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {role === 'admin' ? (
-                <AdminSidebar isActive={isActive} />
-              ) : role === 'landlord' ? (
-                <LandlordSidebar isActive={isActive} />
-              ) : role === 'renovator' ? (
-                <RenovatorSidebar isActive={isActive} />
-              ) : role === 'mortgage_broker' ? (
-                <MortgageBrokerSidebar isActive={isActive} />
-              ) : (
-                <SeekerSidebar isActive={isActive} />
-              )}
+              {(() => {
+                // Determine which sidebar to show based on current path vs role
+                // If we're in a role-specific subpath, force that role's sidebar
+                if (location.pathname.includes('/dashboard/admin')) return <AdminSidebar isActive={isActive} />;
+                if (location.pathname.includes('/dashboard/landlord')) return <LandlordSidebar isActive={isActive} />;
+                if (location.pathname.includes('/renovator/')) return <RenovatorSidebar isActive={isActive} />;
+                if (location.pathname.includes('/dashboard/mortgage-broker')) return <MortgageBrokerSidebar isActive={isActive} />;
+                if (location.pathname.includes('/dashboard/lawyer')) return <LawyerSidebar isActive={isActive} />;
+
+                // If we're on a "Seeker" route (general dashboard routes), prefer SeekerSidebar
+                const isSeekerRoute =
+                  location.pathname.startsWith('/dashboard/roommate-recommendations') ||
+                  location.pathname.startsWith('/dashboard/matches') ||
+                  location.pathname.startsWith('/dashboard/rental-options') ||
+                  location.pathname.startsWith('/dashboard/buying-opportunities') ||
+                  location.pathname.startsWith('/dashboard/buy/') ||
+                  location.pathname.startsWith('/dashboard/rent/') ||
+                  location.pathname.startsWith('/dashboard/co-ownership/') ||
+                  location.pathname.startsWith('/dashboard/applications') ||
+                  location.pathname.startsWith('/dashboard/profile') && !location.pathname.includes('/landlord/') && !location.pathname.includes('/lawyer/');
+
+                if (isSeekerRoute) return <SeekerSidebar isActive={isActive} />;
+
+                // Fallback to role-based selection
+                if (role === 'admin') return <AdminSidebar isActive={isActive} />;
+                if (role === 'landlord') return <LandlordSidebar isActive={isActive} />;
+                if (role === 'renovator') return <RenovatorSidebar isActive={isActive} />;
+                if (role === 'mortgage_broker') return <MortgageBrokerSidebar isActive={isActive} />;
+                if (role === 'lawyer') return <LawyerSidebar isActive={isActive} />;
+                if (role === 'developer') return <LandlordSidebar isActive={isActive} />;
+
+                return <SeekerSidebar isActive={isActive} />;
+              })()}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

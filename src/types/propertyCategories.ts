@@ -127,11 +127,12 @@ export interface DocumentAccessRequest {
   requester_email?: string;
   requester_name?: string;
   request_message?: string;
-  status: 'pending' | 'approved' | 'denied';
+  status: 'pending' | 'approved' | 'denied' | 'expired';
   response_message?: string;
   reviewed_at?: string;
   reviewed_by?: string;
   requested_at: string;
+  access_expires_at?: string | null;
   created_at?: string;
   updated_at?: string;
 }

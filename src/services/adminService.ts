@@ -120,7 +120,10 @@ export async function getAvailableRoles(userId: string): Promise<string[]> {
       roles.push('admin');
     }
 
-    // 6. Support Mortgage Broker and Developer roles if they are in the DB
+    // 6. Support Lawyer, Mortgage Broker and Developer roles if they are in the DB
+    if (dbRole === 'lawyer') {
+      roles.push('lawyer');
+    }
     if (dbRole === 'mortgage_broker') {
       roles.push('mortgage_broker');
     }

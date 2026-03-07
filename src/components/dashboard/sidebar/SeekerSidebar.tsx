@@ -143,12 +143,27 @@ export function SeekerSidebar({ isActive, showLabels }: SeekerSidebarProps) {
 
 
 
-      <SidebarSimpleMenuItem
-        showLabel={showLabels}
-        icon={<span className="text-lg">⚖️</span>}
-        label="AI Legal Assistant"
-        to="/dashboard/tenancy-legal-ai"
-        isActive={isActive('/dashboard/tenancy-legal-ai')}
+      <SidebarMenuSection
+        showLabels={showLabels}
+        title="Legal"
+        icon={() => <span className="text-lg">⚖️</span>}
+        isActive={isActive}
+        defaultExpanded={
+          location.pathname.includes('/dashboard/tenancy-legal-ai') ||
+          location.pathname.includes('/dashboard/find-lawyer')
+        }
+        subItems={[
+          {
+            label: "AI Legal Assistant",
+            path: "/dashboard/tenancy-legal-ai",
+            icon: <span className="text-sm">🤖</span>
+          },
+          {
+            label: "Contact Lawyer",
+            path: "/dashboard/find-lawyer",
+            icon: <span className="text-sm">👨‍⚖️</span>
+          }
+        ]}
       />
 
       <SidebarSimpleMenuItem

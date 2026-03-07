@@ -24,6 +24,9 @@ import {
 import { fetchPublicPropertyById, PublicProperty } from "@/services/publicPropertyService";
 import { useAuth } from "@/hooks/useAuth";
 import { PropertyDocumentViewer } from "@/components/property/PropertyDocumentViewerSimplified";
+import { ScheduleViewingModal } from "@/components/property/ScheduleViewingModal";
+import { CalendarCheck } from "lucide-react";
+import { toast } from "sonner";
 
 export default function PublicPropertyDetailsPage() {
   const { id } = useParams<{ id: string }>();
@@ -31,6 +34,7 @@ export default function PublicPropertyDetailsPage() {
   const [property, setProperty] = useState<PublicProperty | null>(null);
   const [loading, setLoading] = useState(true);
   const [showContactForm, setShowContactForm] = useState(false);
+  const [showScheduleViewingModal, setShowScheduleViewingModal] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -77,6 +81,14 @@ export default function PublicPropertyDetailsPage() {
       }
     } else {
       // User is not logged in, show signup prompt
+      setShowContactForm(true);
+    }
+  };
+
+  const handleScheduleViewing = () => {
+    if (user) {
+      setShowScheduleViewingModal(true);
+    } else {
       setShowContactForm(true);
     }
   };
@@ -253,14 +265,17 @@ export default function PublicPropertyDetailsPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <User className="h-5 w-5" />
-                  Listed by {property.landlord_name || 'Property Owner'}
+                  Listed by {property.landlord_name || 'Property Owner'}{property.listing_agent && ` (${property.listing_agent})`}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-3">
                   <div>
                     <p className="text-sm text-gray-600 font-medium">Listed By</p>
-                    <p className="text-gray-900">{property.landlord_name || 'Property Owner'}</p>
+                    <p className="text-gray-900">
+                      {property.landlord_name || 'Property Owner'}
+                      {property.listing_agent && ` (${property.listing_agent})`}
+                    </p>
                   </div>
                   {property.property_owner && (
                     <div>
@@ -290,6 +305,18 @@ export default function PublicPropertyDetailsPage() {
                     'Sign Up to Apply'
                   )}
                 </Button>
+
+                {property.listing_type === 'rental' && (
+                  <Button
+                    onClick={handleScheduleViewing}
+                    variant="outline"
+                    className="w-full border-blue-200 text-blue-700 hover:bg-blue-50"
+                    size="lg"
+                  >
+                    <CalendarCheck className="h-4 w-4 mr-2" />
+                    Schedule Viewing
+                  </Button>
+                )}
 
                 {!user && (
                   <div className="text-center text-sm text-gray-600">
@@ -365,6 +392,19 @@ export default function PublicPropertyDetailsPage() {
             </CardContent>
           </Card>
         </div>
+      )}
+
+      {/* Schedule Viewing Modal */}
+      {property && (
+        <ScheduleViewingModal
+          isOpen={showScheduleViewingModal}
+          onClose={() => setShowScheduleViewingModal(false)}
+          property={property as any}
+          onSuccess={() => {
+            toast.success("Viewing request sent successfully!");
+            setShowScheduleViewingModal(false);
+          }}
+        />
       )}
     </div>
   );

@@ -264,7 +264,7 @@ export default function RentalOptionsPage() {
                 <Card
                   key={property.id}
                   className="group overflow-hidden border-2 border-slate-200/60 hover:border-orange-400 cursor-pointer hover:shadow-2xl transition-all duration-300 bg-white transform hover:-translate-y-1"
-                  onClick={() => window.open(`/dashboard/rental-options/${property.id}`, '_blank')}
+                  onClick={() => window.open(`/dashboard/rent/${property.id}`, '_blank')}
                 >
                   <div className="relative overflow-hidden" aria-label={`Listing image for ${property.listing_title}`}>
                     <img
@@ -280,35 +280,37 @@ export default function RentalOptionsPage() {
                   </div>
 
                   <CardContent className="p-4">
+                    {/* Property Type - Moved above title */}
+                    <div className="mb-2">
+                      <p className="text-sm font-bold text-slate-700">
+                        Type: {getPropertyTypeDisplay(property.property_type)}
+                      </p>
+                    </div>
+
                     <h3 className="text-sm font-bold text-slate-900 mb-3 line-clamp-1 group-hover:text-primary transition-colors">
                       {property.listing_title}
                     </h3>
 
                     {/* Property Details */}
                     <div className="bg-gradient-to-br from-slate-50 to-orange-50/30 rounded-lg p-3 space-y-2.5 text-sm border-2 border-slate-100 shadow-sm">
-                      {/* Price and Availability */}
-                      <div className="flex justify-between items-center">
+                      {/* Price, Availability, and Type in One Row */}
+                      <div className="flex items-center justify-between gap-2 pb-2 border-b border-slate-200">
                         <div>
-                          <p className="text-xs text-muted-foreground font-medium">Price</p>
                           <div className="flex items-baseline font-bold text-primary">
-                            <span className="text-base">${property.monthly_rent}</span>
-                            <span className="text-xs font-medium text-muted-foreground ml-1">/mo</span>
+                            <span className="text-xl">${property.monthly_rent}</span>
+                            <span className="text-sm font-medium text-muted-foreground ml-1">/mo</span>
                           </div>
                         </div>
                         {formatAvailableDate(property.available_date) && (
-                          <div className="text-right">
-                            <p className="text-xs text-muted-foreground font-medium">Available</p>
-                            <p className="text-xs font-bold text-slate-900">
+                          <div className="text-center">
+                            <p className="text-sm font-bold text-slate-900">
                               {formatAvailableDate(property.available_date)}
                             </p>
                           </div>
                         )}
-                      </div>
-
-                      {/* Type */}
-                      <div>
-                        <p className="text-xs text-muted-foreground font-medium">Type</p>
-                        <p className="text-xs font-bold text-slate-900">{getBedroomTypeDisplay(property)} • {getPropertyTypeDisplay(property.property_type)}</p>
+                        <div className="text-right">
+                          <p className="text-sm font-bold text-slate-900">{getBedroomTypeDisplay(property)}</p>
+                        </div>
                       </div>
 
                       {/* Location */}
@@ -353,7 +355,7 @@ export default function RentalOptionsPage() {
                       <Button
                         onClick={(e) => {
                           e.stopPropagation();
-                          window.open(`/dashboard/rental-options/${property.id}`, '_blank');
+                          window.open(`/dashboard/rent/${property.id}`, '_blank');
                         }}
                         variant="outline"
                         size="sm"

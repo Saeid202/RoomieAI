@@ -32,11 +32,13 @@ export const LoginForm = ({
         <Label htmlFor="email" className="font-medium">Email</Label>
         <Input 
           id="email" 
+          name="email"
           type="email" 
           placeholder="Enter your email" 
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
+          autoComplete="email"
           className="h-11"
         />
       </div>
@@ -54,12 +56,14 @@ export const LoginForm = ({
         </div>
         <div className="relative">
           <Input 
-            id="password" 
+            id="password"
+            name="password"
             type={showPassword ? "text" : "password"}
             placeholder="Enter your password" 
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            autoComplete="current-password"
             className="h-11 pr-10"
           />
           <Button

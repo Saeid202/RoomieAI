@@ -9,7 +9,8 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Lock, CheckCircle, XCircle, FileText, MapPin, User, Mail, MessageSquare } from "lucide-react";
+import { Lock, CheckCircle, XCircle, FileText, MapPin, User, Mail, MessageSquare, Clock } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { respondToAccessRequest } from "@/services/propertyDocumentService";
 import { toast } from "sonner";
 import type { DocumentAccessRequest } from "@/types/propertyCategories";
@@ -33,6 +34,7 @@ export function DocumentAccessRequestCard({
   onStatusUpdate,
 }: DocumentAccessRequestCardProps) {
   const [isProcessing, setIsProcessing] = useState(false);
+  const [accessDuration, setAccessDuration] = useState<string>('24'); // Default 24 hours
 
   const handleRespond = async (status: 'approved' | 'denied') => {
     setIsProcessing(true);
@@ -41,11 +43,20 @@ export function DocumentAccessRequestCard({
         ? 'Your request has been approved. You can now view the document.'
         : 'Your request has been declined by the property owner.';
 
-      await respondToAccessRequest(request.id, status, responseMessage);
+      // Calculate expiration date if approved
+      let expiresAt: string | undefined;
+      if (status === 'approved' && accessDuration !== 'permanent') {
+        const hours = parseInt(accessDuration);
+        const expirationDate = new Date();
+        expirationDate.setHours(expirationDate.getHours() + hours);
+        expiresAt = expirationDate.toISOString();
+      }
+
+      await respondToAccessRequest(request.id, status, responseMessage, expiresAt);
       
       toast.success(
         status === 'approved'
-          ? 'Access granted successfully'
+          ? `Access granted${expiresAt ? ` for ${accessDuration} hours` : ' permanently'}`
           : 'Request declined'
       );
       
@@ -64,9 +75,36 @@ export function DocumentAccessRequestCard({
         return <Badge className="bg-green-100 text-green-700 border-green-200">Approved</Badge>;
       case 'denied':
         return <Badge className="bg-red-100 text-red-700 border-red-200">Declined</Badge>;
+      case 'expired':
+        return <Badge className="bg-gray-100 text-gray-700 border-gray-200">Expired</Badge>;
       default:
         return <Badge className="bg-yellow-100 text-yellow-700 border-yellow-200">Pending</Badge>;
     }
+  };
+
+  const getExpirationInfo = () => {
+    if (request.status !== 'approved' || !request.access_expires_at) return null;
+    
+    const expiresAt = new Date(request.access_expires_at);
+    const now = new Date();
+    const isExpired = expiresAt < now;
+    
+    if (isExpired) {
+      return (
+        <div className="flex items-center gap-2 text-xs text-red-600 bg-red-50 px-2 py-1 rounded">
+          <Clock className="h-3 w-3" />
+          <span>Expired on {expiresAt.toLocaleDateString()}</span>
+        </div>
+      );
+    }
+    
+    const hoursLeft = Math.ceil((expiresAt.getTime() - now.getTime()) / (1000 * 60 * 60));
+    return (
+      <div className="flex items-center gap-2 text-xs text-orange-600 bg-orange-50 px-2 py-1 rounded">
+        <Clock className="h-3 w-3" />
+        <span>Expires in {hoursLeft}h ({expiresAt.toLocaleDateString()} {expiresAt.toLocaleTimeString()})</span>
+      </div>
+    );
   };
 
   return (
@@ -92,7 +130,10 @@ export function DocumentAccessRequestCard({
               </p>
             </div>
           </div>
-          {getStatusBadge()}
+          <div className="flex flex-col items-end gap-1">
+            {getStatusBadge()}
+            {getExpirationInfo()}
+          </div>
         </div>
       </CardHeader>
 
@@ -161,24 +202,56 @@ export function DocumentAccessRequestCard({
 
         {/* Action Buttons (only for pending requests) */}
         {request.status === 'pending' && (
-          <div className="flex gap-2 pt-2">
-            <Button
-              onClick={() => handleRespond('approved')}
-              disabled={isProcessing}
-              className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-            >
-              <CheckCircle className="h-4 w-4 mr-2" />
-              Approve
-            </Button>
-            <Button
-              onClick={() => handleRespond('denied')}
-              disabled={isProcessing}
-              variant="outline"
-              className="flex-1 text-red-600 border-red-300 hover:bg-red-50"
-            >
-              <XCircle className="h-4 w-4 mr-2" />
-              Decline
-            </Button>
+          <div className="space-y-3 pt-2">
+            {/* Access Duration Selector */}
+            <div className="bg-slate-50 rounded-lg p-3 border border-slate-200">
+              <label className="text-xs font-semibold text-slate-700 mb-2 flex items-center gap-2">
+                <Clock className="h-3 w-3" />
+                Grant Access For:
+              </label>
+              <Select value={accessDuration} onValueChange={setAccessDuration}>
+                <SelectTrigger className="w-full bg-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1">1 Hour</SelectItem>
+                  <SelectItem value="6">6 Hours</SelectItem>
+                  <SelectItem value="24">24 Hours (1 Day)</SelectItem>
+                  <SelectItem value="72">72 Hours (3 Days)</SelectItem>
+                  <SelectItem value="168">1 Week</SelectItem>
+                  <SelectItem value="336">2 Weeks</SelectItem>
+                  <SelectItem value="720">30 Days</SelectItem>
+                  <SelectItem value="permanent">Permanent Access</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-slate-500 mt-1.5">
+                {accessDuration === 'permanent' 
+                  ? 'Access will not expire automatically' 
+                  : `Access will expire after ${accessDuration} hour${accessDuration === '1' ? '' : 's'}`
+                }
+              </p>
+            </div>
+
+            {/* Approve/Decline Buttons */}
+            <div className="flex gap-2">
+              <Button
+                onClick={() => handleRespond('approved')}
+                disabled={isProcessing}
+                className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+              >
+                <CheckCircle className="h-4 w-4 mr-2" />
+                Approve
+              </Button>
+              <Button
+                onClick={() => handleRespond('denied')}
+                disabled={isProcessing}
+                variant="outline"
+                className="flex-1 text-red-600 border-red-300 hover:bg-red-50"
+              >
+                <XCircle className="h-4 w-4 mr-2" />
+                Decline
+              </Button>
+            </div>
           </div>
         )}
       </CardContent>

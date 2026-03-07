@@ -23,7 +23,8 @@ export function PropertyDocumentViewer({
 }: PropertyDocumentViewerProps) {
   const [documents, setDocuments] = useState<PropertyDocument[]>([]);
   const [loading, setLoading] = useState(true);
-  const [accessStatus, setAccessStatus] = useState<'none' | 'pending' | 'approved' | 'denied'>('none');
+  const [accessStatus, setAccessStatus] = useState<'none' | 'pending' | 'approved' | 'denied' | 'expired'>('none');
+  const [accessExpiresAt, setAccessExpiresAt] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [requestMessage, setRequestMessage] = useState("");
   const [showRequestForm, setShowRequestForm] = useState(false);
@@ -80,7 +81,24 @@ export function PropertyDocumentViewer({
             const accessRequest = accessRequests[0];
             console.log('✅ Access request found! Status:', accessRequest.status);
             console.log('✅ Full request object:', JSON.stringify(accessRequest, null, 2));
-            setAccessStatus(accessRequest.status as 'none' | 'pending' | 'approved' | 'denied');
+            
+            // Check if access has expired
+            if (accessRequest.status === 'approved' && accessRequest.access_expires_at) {
+              const expiresAt = new Date(accessRequest.access_expires_at);
+              const now = new Date();
+              
+              if (expiresAt < now) {
+                console.log('⏰ Access has expired');
+                setAccessStatus('expired');
+              } else {
+                console.log('✅ Access is still valid, expires at:', expiresAt);
+                setAccessStatus(accessRequest.status as 'none' | 'pending' | 'approved' | 'denied' | 'expired');
+                setAccessExpiresAt(accessRequest.access_expires_at);
+              }
+            } else {
+              setAccessStatus(accessRequest.status as 'none' | 'pending' | 'approved' | 'denied' | 'expired');
+              setAccessExpiresAt(accessRequest.access_expires_at || null);
+            }
           } else {
             console.log('ℹ️ No access request found, status: none');
             setAccessStatus('none');
@@ -156,9 +174,34 @@ export function PropertyDocumentViewer({
         return <Badge className="bg-yellow-100 text-yellow-700 border-yellow-200"><Clock className="h-3 w-3 mr-1" />Request Pending</Badge>;
       case 'denied':
         return <Badge className="bg-red-100 text-red-700 border-red-200"><XCircle className="h-3 w-3 mr-1" />Request Denied</Badge>;
+      case 'expired':
+        return <Badge className="bg-gray-100 text-gray-700 border-gray-200"><Clock className="h-3 w-3 mr-1" />Access Expired</Badge>;
       default:
         return <Badge className="bg-slate-100 text-slate-700 border-slate-200"><Lock className="h-3 w-3 mr-1" />Access Required</Badge>;
     }
+  };
+
+  const getExpirationWarning = () => {
+    if (accessStatus !== 'approved' || !accessExpiresAt) return null;
+    
+    const expiresAt = new Date(accessExpiresAt);
+    const now = new Date();
+    const hoursLeft = Math.ceil((expiresAt.getTime() - now.getTime()) / (1000 * 60 * 60));
+    
+    if (hoursLeft <= 0) return null;
+    
+    const isUrgent = hoursLeft <= 24;
+    
+    return (
+      <div className={`flex items-center gap-2 text-xs px-3 py-2 rounded-lg ${
+        isUrgent ? 'bg-orange-50 border border-orange-200 text-orange-700' : 'bg-blue-50 border border-blue-200 text-blue-700'
+      }`}>
+        <Clock className="h-3 w-3" />
+        <span>
+          {isUrgent ? '⚠️ ' : ''}Access expires in {hoursLeft}h ({expiresAt.toLocaleDateString()} at {expiresAt.toLocaleTimeString()})
+        </span>
+      </div>
+    );
   };
 
   if (loading) {
@@ -206,6 +249,9 @@ export function PropertyDocumentViewer({
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Expiration Warning */}
+        {getExpirationWarning()}
+
         {/* Document List with Lock Icons */}
         <div className="space-y-2">
           {documents.map((doc) => (
@@ -301,6 +347,26 @@ export function PropertyDocumentViewer({
                 size="sm"
               >
                 Request Again
+              </Button>
+            </div>
+          )}
+
+          {accessStatus === 'expired' && (
+            <div className="text-center p-4 bg-gray-50 border border-gray-200 rounded-lg">
+              <Clock className="h-8 w-8 mx-auto text-gray-600 mb-2" />
+              <p className="font-medium text-gray-900">Access Expired</p>
+              <p className="text-sm text-gray-700 mt-1">
+                Your time-limited access has expired
+              </p>
+              <Button
+                onClick={() => {
+                  setAccessStatus('none');
+                  setShowRequestForm(true);
+                }}
+                className="mt-3 bg-purple-600 hover:bg-purple-700"
+                size="sm"
+              >
+                Request Access Again
               </Button>
             </div>
           )}

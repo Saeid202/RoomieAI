@@ -29,6 +29,7 @@ import Callback from "@/pages/auth/Callback";
 import { ErrorBoundary } from "@/components/utility/ErrorBoundary";
 import { RenovatorLayout } from "@/components/renovator/RenovatorLayout";
 import PropertyDetailsPage from "@/pages/dashboard/PropertyDetails";
+import PropertyDocumentVault from "@/pages/dashboard/PropertyDocumentVault";
 import RentalApplicationPage from "@/pages/dashboard/RentalApplication";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { AdminRoute } from "@/components/AdminRoute";
@@ -83,15 +84,24 @@ import TenancyLegalAIPage from "@/pages/dashboard/forms/TenancyLegalAI";
 import RenovatorsPage from "@/pages/dashboard/Renovators";
 import CleanersPage from "@/pages/dashboard/Cleaners";
 import ShopPage from "@/pages/dashboard/Shop";
+import TenantPaymentsPage from "@/pages/dashboard/tenant/TenantPayments";
 import LandlordPaymentsPage from "@/pages/dashboard/landlord/LandlordPayments";
+import ViewingAppointmentsPage from "@/pages/dashboard/landlord/ViewingAppointments";
+import PADPaymentTest from "@/pages/dashboard/PADPaymentTest";
 import ListRoomPage from "@/pages/dashboard/ListRoom";
 import LeaseContractPage from "@/pages/dashboard/LeaseContract";
-import PropertyDocumentVault from "@/pages/dashboard/PropertyDocumentVault";
-import TenantPaymentsPage from "@/pages/dashboard/tenant/TenantPayments";
+import AIChat from "@/pages/dashboard/AIChat";
 import MortgageBrokerDashboard from "@/pages/dashboard/MortgageBrokerDashboard";
 import MortgageBrokerProfile from "@/pages/dashboard/MortgageBrokerProfile";
 import MortgageBrokerClients from "@/pages/dashboard/MortgageBrokerClients";
-
+import LawyerDashboard from "@/pages/dashboard/LawyerDashboard";
+import LawyerProfile from "@/pages/dashboard/LawyerProfile";
+import LawyerClients from "@/pages/dashboard/LawyerClients";
+import LawyerDocuments from "@/pages/dashboard/LawyerDocuments";
+import LawyerDocumentReviews from "@/pages/dashboard/LawyerDocumentReviews";
+import FindLawyer from "@/pages/dashboard/FindLawyer";
+import CoBuyingScenario from "@/pages/dashboard/CoBuyingScenario";
+import CoOwnershipProfile from "@/pages/dashboard/CoOwnershipProfile";
 
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect } from "react";
@@ -135,9 +145,11 @@ function AppRoutes() {
           <Route path="matches" element={<MatchesPage />} />
           <Route path="roommate-recommendations" element={<RoommateRecommendationsPage />} />
           <Route path="rental-options" element={<ErrorBoundary componentName="RentalOptionsPage"><RentalOptionsPage /></ErrorBoundary>} />
-          <Route path="rental-options/:id" element={<ErrorBoundary componentName="PropertyDetailsPage"><PropertyDetailsPage /></ErrorBoundary>} />
           <Route path="rent/:id" element={<ErrorBoundary componentName="PropertyDetailsPage"><PropertyDetailsPage /></ErrorBoundary>} />
           <Route path="buy/:id" element={<ErrorBoundary componentName="PropertyDetailsPage"><PropertyDetailsPage /></ErrorBoundary>} />
+          <Route path="co-ownership/:id" element={<ErrorBoundary componentName="PropertyDetailsPage"><PropertyDetailsPage /></ErrorBoundary>} />
+          <Route path="property/:id/documents" element={<ErrorBoundary componentName="PropertyDocumentVault"><PropertyDocumentVault /></ErrorBoundary>} />
+          <Route path="property-documents/:id" element={<ErrorBoundary componentName="PropertyDocumentVault"><PropertyDocumentVault /></ErrorBoundary>} />
           <Route path="rental-application/:id" element={<ErrorBoundary componentName="RentalApplicationPage"><RentalApplicationPage /></ErrorBoundary>} />
           <Route path="application-overview/:applicationId" element={<ApplicationOverviewPage />} />
           <Route path="plan-ahead-matching" element={<PlanAheadMatchingPage />} />
@@ -145,11 +157,15 @@ function AppRoutes() {
           <Route path="opposite-schedule" element={<OppositeSchedulePage />} />
           <Route path="work-exchange" element={<WorkExchangePage />} />
           <Route path="buying-opportunities" element={<BuyingOpportunitiesPage />} />
+          <Route path="co-buying-scenario" element={<CoBuyingScenario />} />
+          <Route path="co-ownership-profile" element={<CoOwnershipProfile />} />
           <Route path="lgbtq-matching" element={<LGBTQMatchingPage />} />
           <Route path="landlord" element={<LandlordDashboardPage />} />
           <Route path="landlord/properties" element={<PropertiesPage />} />
           <Route path="landlord/applications" element={<ApplicationsPage />} />
+          <Route path="landlord/viewing-appointments" element={<ViewingAppointmentsPage />} />
           <Route path="landlord/payments" element={<LandlordPaymentsPage />} />
+          <Route path="payments" element={<TenantPaymentsPage />} />
           <Route path="landlord/profile" element={<LandlordProfilePage />} />
           <Route path="landlord/add-property" element={<AddPropertyPage />} />
           <Route path="landlord/contracts" element={<ContractReviewPage />} />
@@ -157,7 +173,8 @@ function AppRoutes() {
           <Route path="find-property" element={<FindPropertyPage />} />
           <Route path="contracts/:applicationId" element={<LeaseContractPage />} />
           <Route path="chats" element={<ChatsPage />} />
-          <Route path="tailor-ai" element={<TailorAIPage />} />          <Route path="legal-assistant" element={<LegalAssistantPage />} />
+          <Route path="tailor-ai" element={<TailorAIPage />} />
+          <Route path="legal-assistant" element={<LegalAssistantPage />} />
           <Route path="legal-ai" element={<LegalAIPage />} />
           <Route path="property-compliance-ai" element={<ErrorBoundary componentName="PropertyCompliancePage"><PropertyCompliancePage /></ErrorBoundary>} />
           <Route path="eviction-assistant" element={<ErrorBoundary componentName="EvictionAssistantPage"><EvictionAssistantPage /></ErrorBoundary>} />
@@ -180,14 +197,26 @@ function AppRoutes() {
           <Route path="tax-intelligence" element={<ErrorBoundary componentName="TaxIntelligencePage"><TaxIntelligencePage /></ErrorBoundary>} />
           <Route path="cleaners" element={<CleanersPage />} />
           <Route path="shop" element={<ShopPage />} />
-          <Route path="digital-wallet" element={<TenantPaymentsPage />} />          <Route path="list-room" element={<ListRoomPage />} />
+          <Route path="digital-wallet" element={<TenantPaymentsPage />} />
+          <Route path="pad-test" element={<PADPaymentTest />} />
+          <Route path="list-room" element={<ListRoomPage />} />
+          <Route path="profile" element={<SeekerProfilePage />} />
+          <Route path="user/:userId" element={<PublicProfilePage />} />
+          <Route path="settings" element={<SettingsPage />} />
+          <Route path="ai-chat" element={<AIChat />} />
+
+          {/* Mortgage Broker routes */}
           <Route path="mortgage-broker" element={<MortgageBrokerDashboard />} />
           <Route path="mortgage-broker/profile" element={<MortgageBrokerProfile />} />
           <Route path="mortgage-broker/clients" element={<MortgageBrokerClients />} />
-          <Route path="profile" element={<SeekerProfilePage />} />
-          <Route path="property/:id/documents" element={<PropertyDocumentVault />} />
-          <Route path="user/:userId" element={<PublicProfilePage />} />
-          <Route path="settings" element={<SettingsPage />} />
+
+          {/* Lawyer routes */}
+          <Route path="lawyer" element={<LawyerDashboard />} />
+          <Route path="lawyer/profile" element={<LawyerProfile />} />
+          <Route path="lawyer/clients" element={<LawyerClients />} />
+          <Route path="lawyer/documents" element={<LawyerDocuments />} />
+          <Route path="lawyer-document-reviews" element={<LawyerDocumentReviews />} />
+          <Route path="find-lawyer" element={<FindLawyer />} />
 
           {/* Admin routes - protected with AdminRoute */}
           <Route path="admin" element={<AdminRoute><AdminHomePage /></AdminRoute>} />
@@ -244,9 +273,9 @@ function AppRoutes() {
         <Route path="matches" element={<MatchesPage />} />
         <Route path="roommate-recommendations" element={<RoommateRecommendationsPage />} />
         <Route path="rental-options" element={<ErrorBoundary componentName="RentalOptionsPage"><RentalOptionsPage /></ErrorBoundary>} />
-        <Route path="rental-options/:id" element={<ErrorBoundary componentName="PropertyDetailsPage"><PropertyDetailsPage /></ErrorBoundary>} />
         <Route path="rent/:id" element={<ErrorBoundary componentName="PropertyDetailsPage"><PropertyDetailsPage /></ErrorBoundary>} />
         <Route path="buy/:id" element={<ErrorBoundary componentName="PropertyDetailsPage"><PropertyDetailsPage /></ErrorBoundary>} />
+        <Route path="co-ownership/:id" element={<ErrorBoundary componentName="PropertyDetailsPage"><PropertyDetailsPage /></ErrorBoundary>} />
         <Route path="rental-application/:id" element={<ErrorBoundary componentName="RentalApplicationPage"><RentalApplicationPage /></ErrorBoundary>} />
         <Route path="application-overview/:applicationId" element={<ApplicationOverviewPage />} />
         <Route path="plan-ahead-matching" element={<PlanAheadMatchingPage />} />
@@ -254,6 +283,8 @@ function AppRoutes() {
         <Route path="opposite-schedule" element={<OppositeSchedulePage />} />
         <Route path="work-exchange" element={<WorkExchangePage />} />
         <Route path="buying-opportunities" element={<BuyingOpportunitiesPage />} />
+        <Route path="co-buying-scenario" element={<CoBuyingScenario />} />
+        <Route path="co-ownership-profile" element={<CoOwnershipProfile />} />
         <Route path="lgbtq-matching" element={<LGBTQMatchingPage />} />
         <Route path="landlord" element={<LandlordDashboardPage />} />
         <Route path="landlord/properties" element={<PropertiesPage />} />
@@ -265,7 +296,8 @@ function AppRoutes() {
         <Route path="find-property" element={<FindPropertyPage />} />
         <Route path="contracts/:applicationId" element={<LeaseContractPage />} />
         <Route path="chats" element={<ChatsPage />} />
-        <Route path="tailor-ai" element={<TailorAIPage />} />        <Route path="legal-assistant" element={<LegalAssistantPage />} />
+        <Route path="tailor-ai" element={<TailorAIPage />} />
+        <Route path="legal-assistant" element={<LegalAssistantPage />} />
         <Route path="legal-ai" element={<LegalAIPage />} />
         <Route path="property-compliance-ai" element={<ErrorBoundary componentName="PropertyCompliancePage"><PropertyCompliancePage /></ErrorBoundary>} />
         <Route path="eviction-assistant" element={<ErrorBoundary componentName="EvictionAssistantPage"><EvictionAssistantPage /></ErrorBoundary>} />
@@ -288,14 +320,24 @@ function AppRoutes() {
         <Route path="tax-intelligence" element={<ErrorBoundary componentName="TaxIntelligencePage"><TaxIntelligencePage /></ErrorBoundary>} />
         <Route path="cleaners" element={<CleanersPage />} />
         <Route path="shop" element={<ShopPage />} />
-        <Route path="digital-wallet" element={<TenantPaymentsPage />} />        <Route path="list-room" element={<ListRoomPage />} />
+        <Route path="digital-wallet" element={<TenantPaymentsPage />} />
+        <Route path="list-room" element={<ListRoomPage />} />
+        <Route path="profile" element={<SeekerProfilePage />} />
+        <Route path="user/:userId" element={<PublicProfilePage />} />
+        <Route path="settings" element={<SettingsPage />} />
+
+        {/* Mortgage Broker routes */}
         <Route path="mortgage-broker" element={<MortgageBrokerDashboard />} />
         <Route path="mortgage-broker/profile" element={<MortgageBrokerProfile />} />
         <Route path="mortgage-broker/clients" element={<MortgageBrokerClients />} />
-        <Route path="profile" element={<SeekerProfilePage />} />
-        <Route path="property/:id/documents" element={<PropertyDocumentVault />} />
-        <Route path="user/:userId" element={<PublicProfilePage />} />
-        <Route path="settings" element={<SettingsPage />} />
+
+        {/* Lawyer routes */}
+        <Route path="lawyer" element={<LawyerDashboard />} />
+        <Route path="lawyer/profile" element={<LawyerProfile />} />
+        <Route path="lawyer/clients" element={<LawyerClients />} />
+        <Route path="lawyer/documents" element={<LawyerDocuments />} />
+        <Route path="lawyer-document-reviews" element={<LawyerDocumentReviews />} />
+        <Route path="find-lawyer" element={<FindLawyer />} />
 
         {/* Admin routes - protected with AdminRoute */}
         <Route path="admin" element={<AdminRoute><AdminHomePage /></AdminRoute>} />
@@ -331,4 +373,3 @@ function App() {
 }
 
 export default App;
-

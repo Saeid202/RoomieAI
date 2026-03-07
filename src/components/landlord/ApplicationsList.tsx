@@ -133,14 +133,14 @@ export function ApplicationsList({
     }
   };
 
-  // Load documents for all applications when component mounts
+  // Load documents for all applications when component mounts or when application IDs change
   useEffect(() => {
     if (applications.length > 0) {
       applications.forEach(app => {
         loadApplicationDocuments(app.id);
       });
     }
-  }, [applications]);
+  }, [applications.map(app => app.id).join(',')]); // Use stable string of IDs instead of array reference
 
   // Handle document downloads
   const handleDownloadDocument = async (doc: RentalDocument) => {
@@ -428,17 +428,27 @@ export function ApplicationsList({
                       <MapPin className="h-4 w-4" />
                       Property Details
                     </h4>
-                    <div className="flex items-center gap-3">
+                    <div 
+                      className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors"
+                      onClick={() => {
+                        const isSalesProperty = application.property?.listing_category === 'sale';
+                        const route = isSalesProperty 
+                          ? `/dashboard/buy/${application.property_id}`
+                          : `/dashboard/property/${application.property_id}`;
+                        navigate(route);
+                      }}
+                      title="Click to view property details"
+                    >
                       <img
                         src={(application.property?.images && application.property.images[0]) ? application.property.images[0] : "/placeholder.svg"}
                         alt={`${application.property?.listing_title || 'Property'} photo`}
-                        className="h-16 w-24 object-cover rounded border"
+                        className="h-16 w-24 object-cover rounded border hover:opacity-80 transition-opacity"
                         loading="lazy"
                         onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/placeholder.svg"; }}
                       />
                       <div className="flex-1">
-                        <p className="font-medium text-sm">{application.property?.listing_title}</p>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="font-medium text-sm hover:text-primary transition-colors">{application.property?.listing_title}</p>
+                        <p className="text-xs text-muted-foreground hover:text-gray-700 transition-colors">
                           {application.property?.address}, {application.property?.city}
                         </p>
                         <p className="text-sm font-semibold text-green-600">

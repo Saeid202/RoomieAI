@@ -1,3 +1,4 @@
+import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -74,23 +75,51 @@ export default function MyApplicationsPage() {
   };
 
   const withdraw = async (appId: string) => {
-    if (!confirm("Are you sure you want to withdraw this application? This action cannot be undone.")) {
+    if (!confirm("Are you sure you want to withdraw this application? This will also remove any associated application fees and lease contracts. This action cannot be undone.")) {
       return;
     }
 
     try {
       console.log("🔄 Withdrawing application:", appId);
-      await updateApplicationStatus(appId, 'withdrawn');
-      console.log("✅ Database update successful");
+      
+      // First, delete any associated lease contracts (this will remove rent payment page)
+      const { error: leaseError } = await supabase
+        .from('lease_contracts')
+        .delete()
+        .eq('application_id', appId);
 
-      // Remove from list instead of updating status
+      if (leaseError) {
+        console.warn("⚠️ Could not delete lease contract:", leaseError);
+        // Continue anyway - lease might not exist
+      } else {
+        console.log("✅ Associated lease contract deleted");
+      }
+
+      // Second, delete any associated payments/fees
+      const { error: paymentError } = await supabase
+        .from('rental_payments')
+        .delete()
+        .eq('application_id', appId);
+
+      if (paymentError) {
+        console.warn("⚠️ Could not delete payments:", paymentError);
+        // Continue anyway - payments might not exist
+      } else {
+        console.log("✅ Associated payments deleted");
+      }
+
+      // Update application status to withdrawn
+      await updateApplicationStatus(appId, 'withdrawn');
+      console.log("✅ Application status updated to withdrawn");
+
+      // Remove from list
       setApplications(prev => {
         const filtered = prev.filter(a => a.id !== appId);
         console.log("🗑️ Removed from list. Remaining applications:", filtered.length);
         return filtered;
       });
 
-      toast.success("Application withdrawn successfully");
+      toast.success("Application withdrawn, fees and lease contract removed successfully");
 
       // Force reload to ensure consistency
       setTimeout(() => {
@@ -101,6 +130,61 @@ export default function MyApplicationsPage() {
     } catch (e) {
       console.error("❌ Withdraw failed:", e);
       toast.error("Failed to withdraw application. Please try again.");
+    }
+  };
+
+  const deleteApplication = async (appId: string) => {
+    if (!confirm("Are you sure you want to permanently delete this application? This will also remove all associated fees, lease contracts, and data. This action cannot be undone.")) {
+      return;
+    }
+
+    try {
+      console.log("🗑️ Deleting application:", appId);
+      
+      // First, delete any associated lease contracts
+      const { error: leaseError } = await supabase
+        .from('lease_contracts')
+        .delete()
+        .eq('application_id', appId);
+
+      if (leaseError) {
+        console.warn("⚠️ Could not delete lease contract:", leaseError);
+        // Continue anyway - lease might not exist
+      } else {
+        console.log("✅ Associated lease contract deleted");
+      }
+
+      // Second, delete any associated payments/fees
+      const { error: paymentError } = await supabase
+        .from('rental_payments')
+        .delete()
+        .eq('application_id', appId);
+
+      if (paymentError) {
+        console.warn("⚠️ Could not delete payments:", paymentError);
+        // Continue anyway - payments might not exist
+      } else {
+        console.log("✅ Associated payments deleted");
+      }
+
+      // Delete the application from database
+      const { error } = await supabase
+        .from('rental_applications')
+        .delete()
+        .eq('id', appId);
+
+      if (error) throw error;
+
+      console.log("✅ Application deleted from database");
+
+      // Remove from UI
+      setApplications(prev => prev.filter(a => a.id !== appId));
+
+      toast.success("Application and all associated data deleted successfully");
+
+    } catch (e) {
+      console.error("❌ Delete failed:", e);
+      toast.error("Failed to delete application. Please try again.");
     }
   };
 
@@ -361,6 +445,7 @@ export default function MyApplicationsPage() {
                         application={application}
                         onViewDetails={openApplicationDetails}
                         onWithdraw={withdraw}
+                        onDelete={deleteApplication}
                       />
                     ))
                   )}
@@ -410,11 +495,13 @@ export default function MyApplicationsPage() {
 function ProfessionalApplicationCard({
   application,
   onViewDetails,
-  onWithdraw
+  onWithdraw,
+  onDelete
 }: {
   application: any;
   onViewDetails: (app: any) => void;
   onWithdraw: (id: string) => void;
+  onDelete: (id: string) => void;
 }) {
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -520,32 +607,40 @@ function ProfessionalApplicationCard({
           </div>
         </div>
 
-        <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-          <div className="flex items-center gap-3">
+        <div className="flex items-center justify-end gap-2 pt-3 border-t border-gray-100">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onViewDetails(application)}
+            className="h-9 text-sm flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 border-0 rounded-lg px-4 shadow-sm"
+          >
+            <Eye className="h-4 w-4" />
+            View Details
+          </Button>
+
+          {application.status !== 'withdrawn' && application.status !== 'rejected' && (
             <Button
               variant="outline"
               size="sm"
-              onClick={() => onViewDetails(application)}
-              className="h-8 text-xs flex items-center gap-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 border-0 rounded px-3"
+              onClick={() => onWithdraw(application.id)}
+              className="h-9 text-sm flex items-center gap-2 bg-gradient-to-r from-amber-600 to-orange-600 text-white hover:from-amber-700 hover:to-orange-700 border-0 rounded-lg px-4 shadow-sm font-semibold"
             >
-              <Eye className="h-3.5 w-3.5" />
-              View
+              <AlertCircle className="h-4 w-4" />
+              Withdraw
             </Button>
-          </div>
-
-          <div className="flex items-center gap-3">
-            {application.status !== 'withdrawn' && application.status !== 'approved' && application.status !== 'rejected' && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onWithdraw(application.id)}
-                className="h-8 text-xs bg-gradient-to-r from-red-600 to-rose-600 text-white hover:from-red-700 hover:to-rose-700 border-0 rounded px-3"
-              >
-                <Trash2 className="h-3.5 w-3.5 mr-1" />
-                Withdraw
-              </Button>
-            )}
-          </div>
+          )}
+          
+          {(application.status === 'withdrawn' || application.status === 'rejected') && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onDelete(application.id)}
+              className="h-9 text-sm flex items-center gap-2 bg-gradient-to-r from-red-600 to-rose-600 text-white hover:from-red-700 hover:to-rose-700 border-0 rounded-lg px-4 shadow-sm font-semibold"
+            >
+              <Trash2 className="h-4 w-4" />
+              Delete
+            </Button>
+          )}
         </div>
       </CardContent>
     </Card>

@@ -70,14 +70,21 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
 
   const removeImage = async (index: number) => {
     const imageUrl = images[index];
+    console.log('🗑️ ImageUpload: Attempting to delete image at index', index);
+    console.log('🗑️ ImageUpload: Image URL:', imageUrl);
+    console.log('🗑️ ImageUpload: User ID:', userId);
+    
     const success = await ImageUploadService.deletePropertyImage(imageUrl, userId);
 
     if (success) {
       const newImages = images.filter((_, i) => i !== index);
+      console.log('✅ ImageUpload: Image deleted, updating state');
+      console.log('✅ ImageUpload: New images array:', newImages);
       onImagesChange(newImages);
       toast.success("Image has been successfully deleted.");
     } else {
-      toast.error("An error occurred while removing the image.");
+      console.error('❌ ImageUpload: Delete failed');
+      toast.error("Failed to delete image. Check console for details.");
     }
   };
 

@@ -70,7 +70,7 @@ export default function LandlordDashboardPage() {
     }
 
     fetchDashboardStats();
-  }, [user]);
+  }, [user?.id]); // Changed from [user] to [user?.id] to prevent infinite loop
 
   return (
     <div className="w-full max-w-screen-xl mx-auto px-4 space-y-10 pb-10">

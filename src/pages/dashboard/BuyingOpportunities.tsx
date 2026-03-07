@@ -2,8 +2,11 @@
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Search, MapPin, Loader2, Home, DollarSign, Users, Clock, AlertCircle, CheckCircle, XCircle, ArrowRight, MessageSquare, Edit2, Plus, Info, Scale, Pencil, PlusCircle, Handshake, HelpCircle, Image as ImageIcon, Eye, TrendingUp, Briefcase, Shield, Search as SearchIcon, Star, User, Calendar, Mail, Wallet, Globe, AlertTriangle, Building2 } from "lucide-react";
+import { Search, MapPin, Loader2, Home, DollarSign, Users, Clock, AlertCircle, CheckCircle, XCircle, ArrowRight, MessageSquare, Edit2, Plus, Info, Scale, Pencil, PlusCircle, Handshake, HelpCircle, Image as ImageIcon, Eye, TrendingUp, Briefcase, Shield, Search as SearchIcon, Star, User, Calendar, Mail, Wallet, Globe, AlertTriangle, Building2, FileText, UserPlus, RefreshCw } from "lucide-react";
+import { useRole } from "@/contexts/RoleContext";
 import { BrokerFeedbackTab } from "@/components/mortgage/BrokerFeedbackTab";
+import { MortgageDocumentsTab } from "@/components/mortgage/MortgageDocumentsTab";
+import { RefinanceApplicationTab } from "@/components/refinance/RefinanceApplicationTab";
 import { getUnreadCount } from "@/services/mortgageFeedbackService";
 import { CoOwnershipForecastModal } from "@/components/dashboard/CoOwnershipForecastModal";
 import { fetchAllSalesListings, SalesListing, CoOwnershipSignal, fetchCoOwnershipSignals, createCoOwnershipSignal, updateCoOwnershipSignal } from "@/services/propertyService";
@@ -127,6 +130,7 @@ const mortgageProfileSchema = z.object({
 export default function BuyingOpportunitiesPage() {
     const [searchParams, setSearchParams] = useSearchParams();
     const navigate = useNavigate();
+    const { role } = useRole();
     const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "co-ownership");
     const [salesListings, setSalesListings] = useState<SalesListing[]>([]);
     const [signals, setSignals] = useState<CoOwnershipSignal[]>([]);
@@ -619,7 +623,19 @@ export default function BuyingOpportunitiesPage() {
                                 </div>
                             </div>
                         </div>
-                        <div className="flex gap-3 w-full md:w-auto">
+                        <div className="flex gap-3 w-full md:w-auto flex-wrap">
+                            <Button
+                                onClick={() => navigate('/dashboard/co-ownership-profile')}
+                                className="bg-gradient-to-r from-orange-600 to-purple-600 text-white hover:from-orange-700 hover:to-purple-700 shadow-md font-bold whitespace-nowrap flex-1 md:flex-none"
+                            >
+                                <UserPlus className="h-4 w-4 mr-2" /> Co-Ownership Profile
+                            </Button>
+                            <Button
+                                onClick={() => navigate('/dashboard/co-buying-scenario')}
+                                className="bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 shadow-md font-bold whitespace-nowrap flex-1 md:flex-none"
+                            >
+                                <Users className="h-4 w-4 mr-2" /> Co-Buying Scenario
+                            </Button>
                             <Button
                                 onClick={() => setIsForecastModalOpen(true)}
                                 className="bg-white text-indigo-600 border-2 border-indigo-100 hover:bg-indigo-50 hover:border-indigo-200 shadow-sm font-black whitespace-nowrap flex-1 md:flex-none"
@@ -637,14 +653,28 @@ export default function BuyingOpportunitiesPage() {
                 )}
 
                 <Tabs value={activeTab} className="w-full" onValueChange={handleTabChange}>
-                    {(activeTab === 'mortgage-profile' || activeTab === 'broker-feedback') && (
-                        <TabsList className="grid w-full grid-cols-2 mb-8 bg-gradient-to-r from-purple-100 to-pink-100 p-2 rounded-xl">
+                    {(activeTab === 'mortgage-profile' || activeTab === 'documents' || activeTab === 'refinance-application' || activeTab === 'broker-feedback') && (
+                        <TabsList className="grid w-full grid-cols-4 mb-8 bg-gradient-to-r from-purple-100 to-pink-100 p-2 rounded-xl">
                             <TabsTrigger
                                 value="mortgage-profile"
                                 className="data-[state=active]:bg-white data-[state=active]:text-purple-600 font-bold"
                             >
                                 <User className="h-4 w-4 mr-2" />
-                                Mortgage Profile
+                                Profile
+                            </TabsTrigger>
+                            <TabsTrigger
+                                value="documents"
+                                className="data-[state=active]:bg-white data-[state=active]:text-purple-600 font-bold"
+                            >
+                                <FileText className="h-4 w-4 mr-2" />
+                                Documents
+                            </TabsTrigger>
+                            <TabsTrigger
+                                value="refinance-application"
+                                className="data-[state=active]:bg-white data-[state=active]:text-purple-600 font-bold"
+                            >
+                                <RefreshCw className="h-4 w-4 mr-2" />
+                                Re-finance
                             </TabsTrigger>
                             <TabsTrigger
                                 value="broker-feedback"
@@ -652,7 +682,7 @@ export default function BuyingOpportunitiesPage() {
                             >
                                 <MessageSquare className="h-4 w-4 mr-2" />
                                 Broker Feedback
-                                {unreadFeedbackCount > 0 && (activeTab === 'broker-feedback' || activeTab === 'mortgage-profile') && (
+                                {unreadFeedbackCount > 0 && (activeTab === 'broker-feedback' || activeTab === 'mortgage-profile' || activeTab === 'documents' || activeTab === 'refinance-application') && (
                                     <Badge className="ml-2 bg-red-500 text-white px-2 py-0.5 text-xs">
                                         {unreadFeedbackCount}
                                     </Badge>
@@ -998,7 +1028,22 @@ export default function BuyingOpportunitiesPage() {
                                 salesOnlyListings.map((listing) => (
                                     <EnhancedCard
                                         key={listing.id}
-                                        className="overflow-hidden"
+                                        className="overflow-hidden cursor-pointer hover:shadow-xl transition-shadow duration-300"
+                                        onClick={() => {
+                                            const propertyUrl = `/dashboard/buy/${listing.id}?type=sale`;
+                                            if (role === 'lawyer' || role === 'mortgage_broker') {
+                                                // If lawyer or broker, keep them in their respective dashboard context
+                                                // Assuming we want them to see the property details but stay 'them'
+                                                // Actually, property details are universal under /dashboard/buy/:id
+                                                // The issue reported was that clicking it opened in lawyer dashboard.
+                                                // If they ARE a lawyer, that's expected IF the route is /dashboard/lawyer/...
+                                                // But the route is /dashboard/buy/:id which is a seeker route.
+                                                // If they are redirected back to lawyer dashboard, it's because of RouteGuard or Dashboard redirection.
+                                                window.open(propertyUrl, '_blank');
+                                            } else {
+                                                window.open(propertyUrl, '_blank');
+                                            }
+                                        }}
                                     >
                                         <div className="aspect-video bg-slate-100 relative overflow-hidden">
                                             {listing.images && listing.images.length > 0 ? (
@@ -1036,11 +1081,14 @@ export default function BuyingOpportunitiesPage() {
                                             <div className="flex gap-4 text-sm text-slate-600 mb-4">
                                                 <span>{listing.bedrooms || 0} Bed</span>
                                                 <span>{listing.bathrooms || 0} Bath</span>
-                                                <span>{listing.square_feet || 0} sqft</span>
+                                                <span>{listing.square_footage || 0} sqft</span>
                                             </div>
                                             <div className="flex flex-col gap-2">
                                                 <Button
-                                                    onClick={() => window.open(`/dashboard/buy/${listing.id}?type=sale`, '_blank')}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        window.open(`/dashboard/buy/${listing.id}?type=sale`, '_blank');
+                                                    }}
                                                     variant="outline"
                                                     className="w-full"
                                                 >
@@ -1049,13 +1097,10 @@ export default function BuyingOpportunitiesPage() {
                                                 <MessageButton
                                                     salesListingId={listing.id}
                                                     landlordId={listing.user_id}
-                                                    className="w-full"
+                                                    className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
+                                                    variant="default"
                                                 >
-                                                    <Button
-                                                        className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
-                                                    >
-                                                        <MessageSquare className="h-4 w-4 mr-2" /> Message Seller
-                                                    </Button>
+                                                    Message Seller
                                                 </MessageButton>
                                             </div>
                                         </CardContent>
@@ -2585,6 +2630,44 @@ export default function BuyingOpportunitiesPage() {
                                         </form>
                                     </Form>
                                 )}
+                            </div>
+                        )}
+                    </TabsContent>
+
+                    <TabsContent value="documents">
+                        {activeTab === 'documents' && mortgageProfile?.id && (
+                            <MortgageDocumentsTab mortgageProfileId={mortgageProfile.id} />
+                        )}
+                        {activeTab === 'documents' && !mortgageProfile?.id && (
+                            <div className="max-w-4xl">
+                                <div className="text-center py-16 bg-white/50 rounded-3xl border-2 border-dashed border-slate-200">
+                                    <FileText className="mx-auto h-16 w-16 text-slate-300 mb-4" />
+                                    <p className="text-slate-600 font-medium text-lg mb-2">
+                                        Complete Your Profile First
+                                    </p>
+                                    <p className="text-slate-500 max-w-md mx-auto">
+                                        Please complete your mortgage profile before uploading documents.
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+                    </TabsContent>
+
+                    <TabsContent value="refinance-application">
+                        {activeTab === 'refinance-application' && mortgageProfile?.id && (
+                            <RefinanceApplicationTab mortgageProfileId={mortgageProfile.id} />
+                        )}
+                        {activeTab === 'refinance-application' && !mortgageProfile?.id && (
+                            <div className="max-w-4xl">
+                                <div className="text-center py-16 bg-white/50 rounded-3xl border-2 border-dashed border-slate-200">
+                                    <RefreshCw className="mx-auto h-16 w-16 text-slate-300 mb-4" />
+                                    <p className="text-slate-600 font-medium text-lg mb-2">
+                                        Complete Your Profile First
+                                    </p>
+                                    <p className="text-slate-500 max-w-md mx-auto">
+                                        Please complete your mortgage profile before uploading refinance documents.
+                                    </p>
+                                </div>
                             </div>
                         )}
                     </TabsContent>

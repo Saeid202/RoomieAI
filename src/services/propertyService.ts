@@ -826,116 +826,19 @@ export async function deleteProperty(id: string) {
   console.log("🗑️ Deleting property:", id);
 
   try {
-    // First, check if user is authenticated
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError) {
-      console.error("❌ Auth error:", authError);
-      throw new Error("Authentication error: Please try logging out and back in");
-    }
-
-    if (!user) {
-      console.error("❌ User not authenticated:", { user, authError });
-      throw new Error("User not authenticated: Please log in to delete properties");
-    }
-
-    console.log("🔍 Current user:", { id: user?.id, email: user?.email });
-
-    // Check if property exists and belongs to current user
-    const { data: property, error: checkError } = await supabase
-      .from('properties')
-      .select('id, user_id, listing_title')
-      .eq('id', id)
-      .single();
-
-    if (checkError) {
-      console.error("❌ Error checking property:", checkError);
-      throw new Error(`Property not found: ${checkError.message}`);
-    }
-
-    if (!property) {
-      throw new Error("Property not found");
-    }
-
-    if (property.user_id !== user?.id) {
-      console.error("❌ Permission denied: User", user?.id, "trying to delete property owned by", property.user_id);
-      throw new Error(`You don't have permission to delete this property. Property owner: ${property.user_id}, Current user: ${user?.id}`);
-    }
-
-    console.log("✅ Property verified, belongs to user:", property.listing_title);
-
-    // First, check if there are any rental applications for this property
-    const { data: applications, error: appsError } = await supabase
-      .from('rental_applications' as any)
-      .select('id, full_name, status')
-      .eq('property_id', id);
-
-    if (appsError) {
-      console.error("❌ Error checking rental applications:", appsError);
-      throw new Error(`Failed to check rental applications: ${appsError.message}`);
-    }
-
-    if (applications && applications.length > 0) {
-      console.log(`📋 Found ${applications.length} rental applications for this property:`, applications);
-
-      // Delete all rental applications first
-      const { error: deleteAppsError } = await supabase
-        .from('rental_applications' as any)
-        .delete()
-        .eq('property_id', id);
-
-      if (deleteAppsError) {
-        console.error("❌ Error deleting rental applications:", deleteAppsError);
-        throw new Error(`Failed to delete rental applications: ${deleteAppsError.message}`);
-      }
-
-      console.log(`✅ Successfully deleted ${applications.length} rental applications`);
-    }
-
-    // Check and delete lease contracts (this was causing the 409 error)
-    const { data: leaseContracts, error: leaseError } = await supabase
-      .from('lease_contracts' as any)
-      .select('id, tenant_id, status')
-      .eq('property_id', id);
-
-    if (leaseError) {
-      console.error("❌ Error checking lease contracts:", leaseError);
-      // Don't throw error here, continue with deletion
-    }
-
-    if (leaseContracts && leaseContracts.length > 0) {
-      console.log(`📋 Found ${leaseContracts.length} lease contracts for this property:`, leaseContracts);
-
-      // Delete all lease contracts first
-      const { error: deleteLeaseError } = await supabase
-        .from('lease_contracts' as any)
-        .delete()
-        .eq('property_id', id);
-
-      if (deleteLeaseError) {
-        console.error("❌ Error deleting lease contracts:", deleteLeaseError);
-        throw new Error(`Failed to delete lease contracts: ${deleteLeaseError.message}`);
-      }
-
-      console.log(`✅ Successfully deleted ${leaseContracts.length} lease contracts`);
-    }
-
-    // Check and delete property images (table doesn't exist - skip this check)
-    // Note: property_images table doesn't exist in the database, so we skip this step
-
-    // Now delete the property
-    const { error } = await supabase
-      .from('properties')
-      .delete()
-      .eq('id', id);
+    // Use database function to delete property with all relations
+    // This bypasses RLS policies and ensures proper deletion order
+    const { data, error } = await supabase.rpc('delete_property_with_relations', {
+      property_id_param: id
+    });
 
     if (error) {
       console.error("❌ Error deleting property:", error);
       throw new Error(`Failed to delete property: ${error.message}`);
     }
 
-    console.log("✅ Property deleted successfully");
-    return { success: true };
+    console.log("✅ Property deleted successfully:", data);
+    return { success: true, data };
   } catch (error) {
     console.error("❌ Error in deleteProperty:", error);
     throw error;

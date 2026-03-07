@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Building, MapPin, DollarSign, Pencil, Eye, Trash2, Image as ImageIcon, AlertTriangle, Home } from "lucide-react";
+import { Plus, Building, MapPin, DollarSign, Pencil, Eye, Trash2, Image as ImageIcon, AlertTriangle, Home, ShieldCheck, ExternalLink } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { getPropertiesByOwnerId, Property, deleteProperty, getSalesListingsByOwnerId, SalesListing, deleteSalesListing, claimProperties, getArchivedProperties, relistProperty } from "@/services/propertyService";
 import { toast } from "sonner";
@@ -110,7 +110,7 @@ export default function PropertiesPage() {
       </div>
 
       <Tabs defaultValue="rentals" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 mb-8 max-w-2xl">
+        <TabsList className="grid w-full grid-cols-4 mb-8 max-w-4xl">
           <TabsTrigger value="rentals" className="flex items-center gap-2">
             <Building className="h-4 w-4" />
             Rentals
@@ -122,6 +122,10 @@ export default function PropertiesPage() {
           <TabsTrigger value="archived" className="flex items-center gap-2">
             <Home className="h-4 w-4" />
             Archived ({archivedProperties.length})
+          </TabsTrigger>
+          <TabsTrigger value="screening" className="flex items-center gap-2">
+            <ShieldCheck className="h-4 w-4" />
+            Tenant Screening
           </TabsTrigger>
         </TabsList>
 
@@ -252,7 +256,7 @@ export default function PropertiesPage() {
                             <Button
                               variant="outline"
                               className="flex items-center justify-center gap-1"
-                              onClick={() => navigate(`/dashboard/rental-options/${p.id}`)}
+                              onClick={() => navigate(`/dashboard/rent/${p.id}`)}
                               title="View listing"
                             >
                               <Eye className="h-4 w-4" /> View
@@ -503,6 +507,128 @@ export default function PropertiesPage() {
               </CardContent>
             </Card>
           )}
+        </TabsContent>
+
+        <TabsContent value="screening" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ShieldCheck className="h-5 w-5 text-blue-600" />
+                Tenant Background Screening Services
+              </CardTitle>
+              <CardDescription>
+                Protect your investment with comprehensive tenant screening
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Introduction */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                <h3 className="text-lg font-semibold text-blue-900 mb-3">
+                  Professional Tenant Screening Made Easy
+                </h3>
+                <p className="text-blue-800 leading-relaxed">
+                  We've partnered with leading tenant screening providers to help you make informed decisions about your rental applications.
+                  These trusted services offer comprehensive background checks, credit reports, and rental history verification to ensure
+                  you find reliable tenants for your properties.
+                </p>
+              </div>
+
+              <Separator />
+
+              {/* Screening Partners */}
+              <div className="space-y-6">
+                <h3 className="text-xl font-bold text-gray-900">Our Screening Partners</h3>
+
+                {/* Openroom */}
+                <Card className="border-2 border-gray-200 hover:border-blue-400 transition-colors">
+                  <CardHeader>
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <CardTitle className="text-2xl text-blue-600 mb-2">Openroom</CardTitle>
+                        <CardDescription className="text-base">
+                          Canada's Leading Tenant Screening Platform
+                        </CardDescription>
+                      </div>
+                      <div className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-medium">
+                        Recommended
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <p className="text-gray-700 leading-relaxed">
+                      Openroom is a comprehensive tenant screening solution designed specifically for Canadian landlords.
+                      Their platform provides instant access to credit reports, criminal background checks, and rental history
+                      verification, helping you make confident leasing decisions while staying compliant with privacy regulations.
+                    </p>
+
+                    <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+                      <h4 className="font-semibold text-gray-900">Key Features:</h4>
+                      <ul className="space-y-2 text-sm text-gray-700">
+                        <li className="flex items-start gap-2">
+                          <ShieldCheck className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                          <span>Comprehensive credit reports from Equifax and TransUnion</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <ShieldCheck className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                          <span>Criminal background checks across Canada</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <ShieldCheck className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                          <span>Employment and income verification</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <ShieldCheck className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                          <span>Previous landlord references and rental history</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <ShieldCheck className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                          <span>Fast turnaround time with instant digital reports</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <ShieldCheck className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                          <span>Privacy-compliant and secure data handling</span>
+                        </li>
+                      </ul>
+                    </div>
+
+                    <div className="pt-4">
+                      <Button
+                        className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white"
+                        onClick={() => window.open('https://openroom.ca/login/', '_blank')}
+                      >
+                        <ExternalLink className="h-4 w-4 mr-2" />
+                        Visit Openroom
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Additional Information */}
+                <Card className="bg-amber-50 border-amber-200">
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <AlertTriangle className="h-5 w-5 text-amber-600" />
+                      Important Screening Guidelines
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3 text-sm text-gray-700">
+                    <p>
+                      <strong>Legal Compliance:</strong> Always ensure your tenant screening practices comply with federal and provincial
+                      privacy laws, human rights codes, and fair housing regulations.
+                    </p>
+                    <p>
+                      <strong>Applicant Consent:</strong> Obtain written consent from applicants before conducting any background checks
+                      or credit inquiries.
+                    </p>
+                    <p>
+                      <strong>Fair Assessment:</strong> Use screening results as one factor in your decision-making process, and apply
+                      consistent criteria to all applicants.
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div >

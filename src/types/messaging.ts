@@ -14,6 +14,7 @@ export interface Message {
   sender_id: string;
   content: string;
   created_at: string;
+  read_at?: string;
 }
 
 export interface ConversationWithMessages extends Conversation {
@@ -21,6 +22,7 @@ export interface ConversationWithMessages extends Conversation {
   property_title?: string;
   landlord_name?: string;
   tenant_name?: string;
+  unread_count?: number;
   emergency_job?: {
     category: string;
     unit_address: string;
