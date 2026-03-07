@@ -29,16 +29,27 @@ STRIPE_SECRET_KEY=sk_live_51SIhcgRkKDAtZpXY...
    ```
 
 3. **Test Bank Accounts (Stripe Test Mode):**
-   ```
-   Institution Number: 000
-   Transit Number: 00000
-   Account Number: 000123456789
    
-   OR use any valid format:
-   Institution: 001-010 (any 3 digits)
-   Transit: 00000-99999 (any 5 digits)
-   Account: 0000000-999999999999 (7-12 digits)
+   **IMPORTANT:** Stripe validates institution/transit numbers even in test mode. Use REAL Canadian bank numbers:
+   
    ```
+   # TD Bank (Recommended for testing)
+   Institution Number: 004
+   Transit Number: 10012
+   Account Number: 1234567
+   
+   # RBC (Alternative)
+   Institution Number: 003
+   Transit Number: 00102
+   Account Number: 1234567
+   
+   # Scotiabank (Alternative)
+   Institution Number: 002
+   Transit Number: 00102
+   Account Number: 1234567
+   ```
+   
+   **Note:** The account number can be any 7-12 digits in test mode, but institution and transit must be valid.
 
 4. **What You Can Test:**
    - ✅ Form validation
@@ -139,14 +150,16 @@ npm run dev
 1. Go to Digital Wallet page
 2. Click "Connect Bank Account"
 3. Select any bank from dropdown
-4. Enter test data:
+4. Enter test data (use REAL Canadian bank numbers):
    ```
    Account Holder: Test User
-   Bank: Royal Bank of Canada (RBC)
-   Institution: 003 (auto-filled)
-   Transit: 12345
-   Account: 1234567890
+   Bank: Toronto-Dominion Bank (TD)
+   Institution: 004 (auto-filled)
+   Transit: 10012
+   Account: 1234567
    ```
+   **Note:** Stripe validates institution/transit numbers even in test mode.
+   Other valid options: RBC (003/00102), Scotiabank (002/00102)
 5. Accept PAD mandate
 6. Click "Connect Bank Account"
 
@@ -292,8 +305,10 @@ This allows you to test webhooks locally!
 # 3. Restart dev server
 npm run dev
 
-# 4. Test bank connection with test data
-# Institution: 000, Transit: 00000, Account: 000123456789
+# 4. Test bank connection with REAL Canadian bank numbers
+# TD Bank: Institution 004, Transit 10012, Account 1234567
+# RBC: Institution 003, Transit 00102, Account 1234567
+# Scotiabank: Institution 002, Transit 00102, Account 1234567
 ```
 
 ---
