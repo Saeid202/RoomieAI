@@ -46,7 +46,7 @@ Dashboard → Tenant Payments → Digital Wallet
 │                                             │
 │ Account Number *                            │
 │ ┌─────────────────────────────────────────┐ │
-│ │ 1234567                                 │ │ ← Type this
+│ │ 000123456789                            │ │ ← Type this (Stripe test)
 │ └─────────────────────────────────────────┘ │
 │                                             │
 │ ☑ I authorize Pre-Authorized Debit         │ ← Check this
@@ -72,7 +72,7 @@ Just copy and paste these:
 Account Holder Name: Test User
 Institution Number: 004
 Transit Number: 10012
-Account Number: 1234567
+Account Number: 000123456789
 ```
 
 ---
@@ -85,21 +85,21 @@ If you want to try different banks:
 ```
 Institution: 003
 Transit: 00102
-Account: 1234567
+Account: 000123456789
 ```
 
 ### Scotiabank
 ```
 Institution: 002
 Transit: 00102
-Account: 1234567
+Account: 000123456789
 ```
 
 ### BMO (Bank of Montreal)
 ```
 Institution: 001
 Transit: 00102
-Account: 1234567
+Account: 000123456789
 ```
 
 ---
@@ -120,14 +120,14 @@ Account: 1234567
 2. Find your test customer
 3. Click on the customer
 4. Go to "Payment methods" tab
-5. You should see: "ACSS Debit •••• 4567"
+5. You should see: "ACSS Debit •••• 6789"
 
 ---
 
 ## ❌ If You Still Get Errors
 
 ### Error: "Invalid institution/transit numbers"
-**Solution**: Make sure you're using the exact numbers above (004/10012/1234567)
+**Solution**: Make sure you're using the exact numbers above (004/10012/000123456789)
 
 ### Error: "Function error" or 500
 **Solution**: Check Stripe secret key is set:
@@ -149,9 +149,9 @@ supabase functions logs create-pad-payment-method --project-ref bjesofgfbuyzjamy
 |--------|------|------------|
 | 004 | Institution | ✅ Real TD Bank code |
 | 10012 | Transit | ✅ Real TD branch code |
-| 1234567 | Account | ⚠️ Fake (OK in test mode) |
+| 000123456789 | Account | ✅ Stripe test account |
 
-Stripe checks institution/transit against Canadian bank database, but doesn't verify account numbers in test mode.
+Stripe checks institution/transit against Canadian bank database AND validates account number is a Stripe test number.
 
 ---
 
@@ -180,7 +180,7 @@ All guides now have correct test numbers:
 ### For Testing (Now)
 - ✅ Use TEST Stripe keys
 - ✅ Use REAL institution/transit
-- ✅ Use FAKE account number
+- ✅ Use STRIPE TEST account (000123456789)
 - ✅ No real money
 
 ### For Production (Later)
@@ -191,7 +191,7 @@ All guides now have correct test numbers:
 
 ---
 
-**Ready to test?** Just use: **004 / 10012 / 1234567** ✅
+**Ready to test?** Just use: **004 / 10012 / 000123456789** ✅
 
 ---
 

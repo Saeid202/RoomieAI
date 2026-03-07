@@ -30,26 +30,26 @@ STRIPE_SECRET_KEY=sk_live_51SIhcgRkKDAtZpXY...
 
 3. **Test Bank Accounts (Stripe Test Mode):**
    
-   **IMPORTANT:** Stripe validates institution/transit numbers even in test mode. Use REAL Canadian bank numbers:
+   **IMPORTANT:** Stripe validates BOTH institution/transit AND account numbers in test mode:
    
    ```
    # TD Bank (Recommended for testing)
-   Institution Number: 004
-   Transit Number: 10012
-   Account Number: 1234567
+   Institution Number: 004 (Real TD Bank code)
+   Transit Number: 10012 (Real TD branch code)
+   Account Number: 000123456789 (Stripe test account)
    
    # RBC (Alternative)
-   Institution Number: 003
-   Transit Number: 00102
-   Account Number: 1234567
+   Institution Number: 003 (Real RBC code)
+   Transit Number: 00102 (Real RBC branch)
+   Account Number: 000123456789 (Stripe test account)
    
    # Scotiabank (Alternative)
-   Institution Number: 002
-   Transit Number: 00102
-   Account Number: 1234567
+   Institution Number: 002 (Real Scotiabank code)
+   Transit Number: 00102 (Real Scotiabank branch)
+   Account Number: 000123456789 (Stripe test account)
    ```
    
-   **Note:** The account number can be any 7-12 digits in test mode, but institution and transit must be valid.
+   **Note:** Institution/transit must be real Canadian bank codes. Account must be a Stripe test number (000123456789).
 
 4. **What You Can Test:**
    - ✅ Form validation
@@ -150,16 +150,16 @@ npm run dev
 1. Go to Digital Wallet page
 2. Click "Connect Bank Account"
 3. Select any bank from dropdown
-4. Enter test data (use REAL Canadian bank numbers):
+4. Enter test data (use REAL bank codes + Stripe test account):
    ```
    Account Holder: Test User
    Bank: Toronto-Dominion Bank (TD)
    Institution: 004 (auto-filled)
    Transit: 10012
-   Account: 1234567
+   Account: 000123456789
    ```
-   **Note:** Stripe validates institution/transit numbers even in test mode.
-   Other valid options: RBC (003/00102), Scotiabank (002/00102)
+   **Note:** Institution/transit must be real Canadian bank codes. Account must be Stripe test number.
+   Other valid options: RBC (003/00102/000123456789), Scotiabank (002/00102/000123456789)
 5. Accept PAD mandate
 6. Click "Connect Bank Account"
 
@@ -305,10 +305,10 @@ This allows you to test webhooks locally!
 # 3. Restart dev server
 npm run dev
 
-# 4. Test bank connection with REAL Canadian bank numbers
-# TD Bank: Institution 004, Transit 10012, Account 1234567
-# RBC: Institution 003, Transit 00102, Account 1234567
-# Scotiabank: Institution 002, Transit 00102, Account 1234567
+# 4. Test bank connection with real bank codes + Stripe test account
+# TD Bank: Institution 004, Transit 10012, Account 000123456789
+# RBC: Institution 003, Transit 00102, Account 000123456789
+# Scotiabank: Institution 002, Transit 00102, Account 000123456789
 ```
 
 ---

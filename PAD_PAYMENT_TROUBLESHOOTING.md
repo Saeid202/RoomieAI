@@ -45,19 +45,19 @@ After setting the secret:
 1. Go to your app at http://localhost:3000
 2. Navigate to Tenant Payments
 3. Try connecting a bank account again
-4. Use REAL Canadian bank details (Stripe validates these even in test mode):
+4. Use real bank codes + Stripe test account:
    - **TD Bank (Recommended):**
      - Institution Number: 004
      - Transit Number: 10012
-     - Account Number: 1234567
+     - Account Number: 000123456789
    - **RBC (Alternative):**
      - Institution Number: 003
      - Transit Number: 00102
-     - Account Number: 1234567
+     - Account Number: 000123456789
    - **Scotiabank (Alternative):**
      - Institution Number: 002
      - Transit Number: 00102
-     - Account Number: 1234567
+     - Account Number: 000123456789
 
 ### Step 5: Monitor Logs (Optional)
 Watch the function logs in real-time to see if it's working:
@@ -141,9 +141,9 @@ supabase functions logs create-pad-payment-method --project-ref bjesofgfbuyzjamy
 ```
 
 ### Test Bank Account Numbers
-For Stripe test mode, use REAL Canadian bank numbers:
-- **TD Bank**: Institution 004, Transit 10012, Account 1234567
-- **RBC**: Institution 003, Transit 00102, Account 1234567
-- **Scotiabank**: Institution 002, Transit 00102, Account 1234567
+For Stripe test mode, use real bank codes + Stripe test account:
+- **TD Bank**: Institution 004, Transit 10012, Account 000123456789
+- **RBC**: Institution 003, Transit 00102, Account 000123456789
+- **Scotiabank**: Institution 002, Transit 00102, Account 000123456789
 
-**Important:** Stripe validates institution/transit numbers even in test mode. The account number can be any 7-12 digits.
+**Important:** Institution/transit must be real Canadian bank codes. Account must be Stripe test number (000123456789).
