@@ -32,7 +32,9 @@ interface RentPaymentFlowProps {
   rentAmount: number;
   dueDate: string;
   onPaymentComplete?: (paymentId: string) => void;
+  onBankConnected?: () => void;
   onCancel?: () => void;
+  connectOnly?: boolean; // New prop for Uber/Airbnb model
 }
 
 type PaymentStep = 'select-method' | 'connect-bank' | 'confirm' | 'processing' | 'complete';
@@ -44,10 +46,13 @@ export function RentPaymentFlow({
   rentAmount,
   dueDate,
   onPaymentComplete,
-  onCancel
+  onBankConnected,
+  onCancel,
+  connectOnly = false
 }: RentPaymentFlowProps) {
-  const [currentStep, setCurrentStep] = useState<PaymentStep>('select-method');
-  const [selectedMethod, setSelectedMethod] = useState<PaymentMethodType>('card');
+  // Start at 'connect-bank' step if connectOnly mode (Uber/Airbnb model)
+  const [currentStep, setCurrentStep] = useState<PaymentStep>(connectOnly ? 'connect-bank' : 'select-method');
+  const [selectedMethod, setSelectedMethod] = useState<PaymentMethodType>('acss_debit'); // Default to PAD
   const [bankDetails, setBankDetails] = useState<BankAccountDetails | null>(null);
   const [paymentMethodId, setPaymentMethodId] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -92,6 +97,15 @@ export function RentPaymentFlow({
       );
 
       setPaymentMethodId(dbPaymentMethodId);
+      
+      // If connectOnly mode (Uber/Airbnb model), close modal after connection
+      if (connectOnly && onBankConnected) {
+        toast.success('Bank account connected successfully!');
+        onBankConnected();
+        return;
+      }
+      
+      // Otherwise, continue to confirmation step
       setCurrentStep('confirm');
       toast.success('Bank account connected successfully!');
     } catch (err: any) {

@@ -1,4 +1,3 @@
-import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import Stripe from 'https://esm.sh/stripe@14.2.0?target=deno';
 
@@ -8,7 +7,7 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, {
@@ -28,6 +27,7 @@ serve(async (req) => {
     // Verify user authentication
     const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
     if (authError || !user) {
+      console.error('Auth error:', authError);
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 401,
@@ -47,8 +47,9 @@ serve(async (req) => {
 
     // Validate required fields
     if (!amount || amount <= 0) {
-      return new Response(JSON.stringify({ 
-        error: 'Invalid amount' 
+      console.error('Invalid amount:', amount);
+      return new Response(JSON.stringify({
+        error: 'Invalid amount'
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 400,
@@ -56,8 +57,9 @@ serve(async (req) => {
     }
 
     if (!payment_method) {
-      return new Response(JSON.stringify({ 
-        error: 'Payment method is required' 
+      console.error('Payment method missing');
+      return new Response(JSON.stringify({
+        error: 'Payment method is required'
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 400,
@@ -67,16 +69,15 @@ serve(async (req) => {
     // Initialize Stripe
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') ?? '', {
       apiVersion: '2023-10-16',
+      httpClient: Stripe.createFetchHttpClient(),
     });
 
-    console.log('Creating payment intent for user:', user.id);
-    console.log('Amount:', amount, 'Currency:', currency);
-    console.log('Payment method types:', payment_method_types);
+    console.log('--- START ---');
+    console.log('User:', user.id);
+    console.log('Amount:', amount);
 
     // Get or create Stripe customer
     let customerId: string;
-    
-    // Try to get existing customer from payment_accounts
     const { data: customerData } = await supabaseClient
       .from('payment_accounts')
       .select('stripe_account_id')
@@ -86,111 +87,118 @@ serve(async (req) => {
 
     if (customerData?.stripe_account_id) {
       customerId = customerData.stripe_account_id;
-      console.log('Using existing customer:', customerId);
+      console.log('Customer:', customerId);
     } else {
-      // Create new Stripe customer
-      console.log('Creating new Stripe customer for user:', user.id);
+      console.log('Creating Customer...');
       const customer = await stripe.customers.create({
         email: user.email,
-        metadata: {
-          supabase_user_id: user.id
-        }
+        metadata: { supabase_user_id: user.id }
       });
       customerId = customer.id;
-      console.log('Created new customer:', customerId);
-
-      // Save customer ID to database (best effort - don't fail if this errors)
-      try {
-        await supabaseClient
-          .from('payment_accounts')
-          .upsert({
-            user_id: user.id,
-            account_type: 'tenant',
-            stripe_account_id: customerId
-          });
-      } catch (dbError) {
-        console.warn('Failed to save customer to database:', dbError);
-        // Continue anyway - we have the customer ID
-      }
+      await supabaseClient.from('payment_accounts').upsert({
+        user_id: user.id,
+        account_type: 'tenant',
+        stripe_account_id: customerId
+      });
     }
 
-    // Prepare payment intent parameters
-    const paymentIntentParams: any = {
-      amount: Math.round(amount), // Ensure integer
+    // Attach/Verify
+    try {
+      console.log('Checking PM...');
+      const pm = await stripe.paymentMethods.retrieve(payment_method);
+      console.log('PM Status:', pm.type, pm.customer);
+
+      if (pm.type === 'acss_debit' && pm.customer !== customerId) {
+        if (pm.customer) {
+          console.error('PM already attached to another customer');
+          return new Response(JSON.stringify({ error: 'Linked account error' }), { status: 400, headers: corsHeaders });
+        }
+        console.log('Attaching...');
+        try {
+          await stripe.paymentMethods.attach(payment_method, { customer: customerId });
+          console.log('Attached.');
+        } catch (e: any) {
+          console.error('Attach Error:', e.message);
+          if (e.message.includes('must be verified')) {
+            const isTest = (Deno.env.get('STRIPE_SECRET_KEY') || '').startsWith('sk_test');
+            let message = 'Your bank account must be verified before it can be used for payments.';
+            if (isTest) {
+              message += ' In test mode, you can verify it by confirming the micro-deposits of $0.32 and $0.45 in the verification UI or Stripe Dashboard.';
+            } else {
+              message += ' If you used micro-deposits, check your bank statement in 1-2 days for two small deposits.';
+            }
+            return new Response(JSON.stringify({
+              error: 'Bank Account Unverified',
+              details: message,
+              requires_verification: true
+            }), {
+              status: 400,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            });
+          }
+          throw e;
+        }
+      } else if (pm.customer !== customerId) {
+        await stripe.paymentMethods.attach(payment_method, { customer: customerId });
+      }
+    } catch (e: any) {
+      console.error('PM Logic Error:', e.message);
+      return new Response(JSON.stringify({ error: 'PM Error', details: e.message }), { status: 400, headers: corsHeaders });
+    }
+
+    // Create PI  
+    const params: any = {
+      amount: Math.round(amount),
       currency: currency.toLowerCase(),
       customer: customerId,
       payment_method: payment_method,
       payment_method_types: payment_method_types || ['acss_debit'],
-      confirm: true, // Auto-confirm for PAD
-      metadata: {
-        ...metadata,
-        supabase_user_id: user.id,
-        created_at: new Date().toISOString()
-      }
+      confirm: true,
+      metadata: { ...metadata, user_id: user.id }
     };
 
-    // Add PAD-specific options if using acss_debit
-    if (payment_method_types?.includes('acss_debit') || payment_method_options?.acss_debit) {
-      paymentIntentParams.payment_method_options = {
+    if (params.payment_method_types.includes('acss_debit')) {
+      const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0].trim() || '127.0.0.1';
+      const userAgent = req.headers.get('user-agent') || 'Unknown';
+
+      console.log('Adding mandate_data for acss_debit...');
+      params.mandate_data = {
+        customer_acceptance: {
+          type: 'online',
+          online: {
+            ip_address: clientIp,
+            user_agent: userAgent,
+          },
+        },
+      };
+
+      params.payment_method_options = {
         acss_debit: {
           mandate_options: {
             payment_schedule: 'interval',
-            interval_description: 'Monthly rent payment',
+            interval_description: 'Rent',
             transaction_type: 'personal'
           },
-          verification_method: 'instant',
-          ...payment_method_options?.acss_debit
+          // For recurring or manual payments with saved PMs, 
+          // we don't necessarily need verification_method here if it's already verified.
         }
       };
     }
 
-    console.log('Creating PaymentIntent with params:', {
-      ...paymentIntentParams,
-      payment_method: '***' // Hide sensitive data in logs
-    });
+    console.log('Creating PI...');
+    const pi = await stripe.paymentIntents.create(params);
+    console.log('PI Created:', pi.id);
 
-    // Create Payment Intent
-    const paymentIntent = await stripe.paymentIntents.create(paymentIntentParams);
-
-    console.log('Created payment intent:', paymentIntent.id, 'Status:', paymentIntent.status);
-
-    // Return success response
     return new Response(JSON.stringify({
-      id: paymentIntent.id,
-      client_secret: paymentIntent.client_secret,
-      status: paymentIntent.status,
-      amount: paymentIntent.amount,
-      currency: paymentIntent.currency,
-      payment_method: paymentIntent.payment_method,
-      next_action: paymentIntent.next_action
+      id: pi.id,
+      client_secret: pi.client_secret
     }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
 
   } catch (error: any) {
-    console.error('Error creating payment intent:', error);
-    
-    // Handle specific Stripe errors
-    let errorMessage = 'Failed to create payment intent';
-    let statusCode = 500;
-
-    if (error.type === 'StripeCardError') {
-      errorMessage = error.message;
-      statusCode = 400;
-    } else if (error.type === 'StripeInvalidRequestError') {
-      errorMessage = error.message;
-      statusCode = 400;
-    }
-
-    return new Response(JSON.stringify({ 
-      error: errorMessage,
-      type: error.type,
-      code: error.code,
-      details: error.raw?.message || error.toString()
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: statusCode,
-    });
+    console.error('GLOBAL ERR:', error.message);
+    return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: corsHeaders });
   }
 });

@@ -105,20 +105,45 @@ export async function savePaymentMethod(
 }
 
 /**
- * Create a Payment Intent for rent payment
+ * Create a Payment Intent for any payment (independent of rent/lease)
  */
 export async function createRentPaymentIntent(
   amount: number,
   paymentMethodType: PaymentMethodType,
-  paymentMethodId: string,
-  metadata: {
-    tenantId: string;
-    landlordId: string;
-    propertyId: string;
-    dueDate: string;
+  paymentMethodDbId: string,
+  metadata?: {
+    tenantId?: string;
+    landlordId?: string;
+    propertyId?: string;
+    dueDate?: string;
   }
 ): Promise<{ paymentIntentId: string; clientSecret: string }> {
   try {
+    console.log('🔵 createRentPaymentIntent called', {
+      amount,
+      paymentMethodType,
+      paymentMethodDbId,
+      metadata
+    });
+
+    // First, get the Stripe payment method ID from database
+    const { data: paymentMethod, error: fetchError } = await supabase
+      .from('payment_methods')
+      .select('stripe_payment_method_id')
+      .eq('id', paymentMethodDbId)
+      .single();
+
+    if (fetchError) {
+      console.error('❌ Error fetching payment method:', fetchError);
+      throw new Error(`Failed to fetch payment method: ${fetchError.message}`);
+    }
+
+    if (!paymentMethod?.stripe_payment_method_id) {
+      throw new Error('Payment method not found or missing Stripe ID');
+    }
+
+    console.log('✅ Found Stripe payment method ID:', paymentMethod.stripe_payment_method_id);
+
     const fees = calculatePaymentFees(amount, paymentMethodType);
     const totalAmount = fees.total;
 
@@ -126,15 +151,15 @@ export async function createRentPaymentIntent(
       amount: Math.round(totalAmount * 100), // Convert to cents
       currency: 'cad',
       payment_method_types: [paymentMethodType === 'acss_debit' ? 'acss_debit' : 'card'],
-      payment_method: paymentMethodId,
+      payment_method: paymentMethod.stripe_payment_method_id, // Use Stripe payment method ID
       metadata: {
-        tenant_id: metadata.tenantId,
-        landlord_id: metadata.landlordId,
-        property_id: metadata.propertyId,
-        due_date: metadata.dueDate,
-        payment_type: 'rent',
+        payment_type: 'general',
         original_amount: amount.toString(),
-        transaction_fee: fees.fee.toString()
+        transaction_fee: fees.fee.toString(),
+        ...(metadata?.tenantId && { tenant_id: metadata.tenantId }),
+        ...(metadata?.landlordId && { landlord_id: metadata.landlordId }),
+        ...(metadata?.propertyId && { property_id: metadata.propertyId }),
+        ...(metadata?.dueDate && { due_date: metadata.dueDate })
       }
     };
 
@@ -144,7 +169,7 @@ export async function createRentPaymentIntent(
         acss_debit: {
           mandate_options: {
             payment_schedule: 'interval',
-            interval_description: 'Monthly rent payment',
+            interval_description: 'Payment',
             transaction_type: 'personal'
           },
           verification_method: 'instant'
@@ -152,36 +177,53 @@ export async function createRentPaymentIntent(
       };
     }
 
+    console.log('🔄 Invoking create-pad-payment-intent Edge Function...', requestBody);
+
     const { data, error } = await supabase.functions.invoke('create-pad-payment-intent', {
       body: requestBody
     });
 
-    if (error) throw error;
-    if (!data) throw new Error('No data returned from payment intent creation');
+    console.log('📊 Edge Function response:', { data, error });
+
+    if (error) {
+      console.error('❌ Edge Function error:', error);
+      throw new Error(`Edge Function error: ${JSON.stringify(error)}`);
+    }
+    
+    if (!data) {
+      throw new Error('No data returned from payment intent creation');
+    }
+
+    if (!data.id || !data.client_secret) {
+      console.error('❌ Invalid response data:', data);
+      throw new Error(`Invalid response from Edge Function: ${JSON.stringify(data)}`);
+    }
+
+    console.log('✅ Payment intent created successfully:', data.id);
 
     return {
       paymentIntentId: data.id,
       clientSecret: data.client_secret
     };
-  } catch (error) {
-    console.error('Error creating payment intent:', error);
-    throw error;
+  } catch (error: any) {
+    console.error('❌ Error creating payment intent:', error);
+    throw new Error(error.message || 'Failed to create payment intent');
   }
 }
 
 /**
- * Record rent payment in database
+ * Record payment in database (optional - only if you want to track in rental_payments table)
  */
 export async function recordRentPayment(
   paymentData: {
-    propertyId: string;
-    tenantId: string;
-    landlordId: string;
     amount: number;
-    dueDate: string;
     paymentMethodType: PaymentMethodType;
     paymentMethodId: string;
     stripePaymentIntentId: string;
+    propertyId?: string;
+    tenantId?: string;
+    landlordId?: string;
+    dueDate?: string;
     stripeMandateId?: string;
   }
 ): Promise<string> {
@@ -192,41 +234,42 @@ export async function recordRentPayment(
       ? calculateExpectedClearDate(processingDays)
       : null;
 
-    // Note: TypeScript types may not be updated yet after migration
-    // Casting to any to use new columns added by migration
+    // Build insert object with only provided fields
+    const insertData: any = {
+      amount: paymentData.amount,
+      currency: 'CAD',
+      status: 'initiated',
+      payment_method_id: paymentData.paymentMethodId,
+      payment_method_type: paymentData.paymentMethodType,
+      transaction_fee: fees.fee,
+      processing_days: processingDays,
+      expected_clear_date: expectedClearDate,
+      stripe_payment_intent_id: paymentData.stripePaymentIntentId,
+      stripe_mandate_id: paymentData.stripeMandateId,
+      payment_metadata: {
+        fee_breakdown: {
+          original_amount: paymentData.amount,
+          transaction_fee: fees.fee,
+          total: fees.total
+        },
+        payment_method: paymentData.paymentMethodType,
+        initiated_at: new Date().toISOString()
+      },
+      transaction_id: paymentData.stripePaymentIntentId,
+      description: `Payment of ${fees.total} CAD`,
+      payment_type: 'first_month_rent',
+      payment_method: paymentData.paymentMethodType === 'acss_debit' ? 'bank_transfer' : 'credit_card'
+    };
+
+    // Add optional fields only if provided
+    if (paymentData.propertyId) insertData.property_id = paymentData.propertyId;
+    if (paymentData.tenantId) insertData.tenant_id = paymentData.tenantId;
+    if (paymentData.landlordId) insertData.landlord_id = paymentData.landlordId;
+    if (paymentData.dueDate) insertData.due_date = paymentData.dueDate;
+
     const { data, error } = await supabase
       .from('rental_payments')
-      .insert({
-        property_id: paymentData.propertyId,
-        tenant_id: paymentData.tenantId,
-        landlord_id: paymentData.landlordId,
-        amount: paymentData.amount,
-        currency: 'CAD',
-        due_date: paymentData.dueDate,
-        status: 'initiated',
-        payment_method_id: paymentData.paymentMethodId,
-        payment_method_type: paymentData.paymentMethodType,
-        transaction_fee: fees.fee,
-        processing_days: processingDays,
-        expected_clear_date: expectedClearDate,
-        stripe_payment_intent_id: paymentData.stripePaymentIntentId,
-        stripe_mandate_id: paymentData.stripeMandateId,
-        payment_metadata: {
-          fee_breakdown: {
-            original_amount: paymentData.amount,
-            transaction_fee: fees.fee,
-            total: fees.total
-          },
-          payment_method: paymentData.paymentMethodType,
-          initiated_at: new Date().toISOString()
-        },
-        // Required fields from existing schema
-        transaction_id: paymentData.stripePaymentIntentId,
-        application_id: null, // Optional for rent payments
-        description: `Rent payment for ${paymentData.dueDate}`,
-        payment_type: 'first_month_rent', // Using existing enum value
-        payment_method: paymentData.paymentMethodType === 'acss_debit' ? 'bank_transfer' : 'credit_card'
-      } as any) // Cast to any since TypeScript types not regenerated yet
+      .insert(insertData as any)
       .select('id')
       .single();
 

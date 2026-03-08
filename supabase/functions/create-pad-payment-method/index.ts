@@ -1,4 +1,3 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import Stripe from 'https://esm.sh/stripe@13.11.0?target=deno';
 
@@ -8,7 +7,7 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, {
@@ -140,11 +139,46 @@ serve(async (req) => {
 
     console.log('Created payment method:', paymentMethod.id);
 
-    // Create SetupIntent without confirming (frontend will handle confirmation)
+    // Create SetupIntent for mandate acceptance and verification
+    // Using microdeposits verification method which allows backend confirmation
+    // This will verify the payment method AND attach it to the customer automatically
+    
+    // Get client IP address with proper validation
+    const getValidIpAddress = (): string => {
+      const forwardedFor = req.headers.get('x-forwarded-for')?.split(',')[0].trim();
+      const realIp = req.headers.get('x-real-ip');
+      
+      // Try forwarded-for first
+      if (forwardedFor && forwardedFor !== '0.0.0.0' && forwardedFor !== '::1') {
+        return forwardedFor;
+      }
+      
+      // Try real-ip
+      if (realIp && realIp !== '0.0.0.0' && realIp !== '::1') {
+        return realIp;
+      }
+      
+      // Fallback to a valid localhost IP for development/testing
+      return '127.0.0.1';
+    };
+    
+    const clientIp = getValidIpAddress();
+    console.log('Using IP address:', clientIp);
+    
     const setupIntent = await stripe.setupIntents.create({
       customer: customerId,
       payment_method: paymentMethod.id,
       payment_method_types: ['acss_debit'],
+      confirm: true, // Backend confirmation works with microdeposits
+      mandate_data: {
+        customer_acceptance: {
+          type: 'online',
+          online: {
+            ip_address: clientIp,
+            user_agent: req.headers.get('user-agent') || 'Mozilla/5.0'
+          }
+        }
+      },
       payment_method_options: {
         acss_debit: {
           currency: 'cad',
@@ -153,12 +187,14 @@ serve(async (req) => {
             interval_description: 'Monthly rent payment',
             transaction_type: 'personal',
           },
-          verification_method: 'instant',
+          verification_method: 'microdeposits', // Changed from 'instant' to 'microdeposits'
         },
       },
     });
 
-    console.log('Created setup intent:', setupIntent.id);
+    console.log('Created and confirmed setup intent:', setupIntent.id);
+    console.log('Status:', setupIntent.status);
+    console.log('Payment method will be attached after microdeposit verification');
 
     // Return the client secret for frontend confirmation
     return new Response(JSON.stringify({
