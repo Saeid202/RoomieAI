@@ -72,9 +72,9 @@ Deno.serve(async (req) => {
       });
     }
 
-    if (!/^\d{7,12}$/.test(accountNumber)) {
+    if (!/^\d+$/.test(accountNumber) || accountNumber.length > 12) {
       return new Response(JSON.stringify({ 
-        error: 'Account number must be 7-12 digits' 
+        error: 'Account number must be digits only (max 12)' 
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 400,

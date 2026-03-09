@@ -58,8 +58,8 @@ export function PadBankConnection({
         }
         break;
       case 'accountNumber':
-        if (!/^\d{7,12}$/.test(value)) {
-          return 'Account number must be 7-12 digits';
+        if (!/^\d+$/.test(value) || value.length > 12) {
+          return 'Account number must be digits only (max 12)';
         }
         break;
       case 'accountHolderName':
@@ -277,7 +277,7 @@ export function PadBankConnection({
               disabled={isLoading}
               type="password"
             />
-            <p className="text-xs text-gray-500">7-12 digits</p>
+            <p className="text-xs text-gray-500">Up to 12 digits</p>
             {errors.accountNumber && (
               <p className="text-sm text-red-600">{errors.accountNumber}</p>
             )}
