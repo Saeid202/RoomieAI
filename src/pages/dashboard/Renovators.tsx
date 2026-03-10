@@ -491,7 +491,7 @@ Email: ${contactForm.email}`;
                           <span className="flex items-center gap-1.5 px-3 py-1 bg-amber-400 text-white rounded-full text-[10px] font-black uppercase tracking-wider shadow-sm mb-1 self-start">
                             <Award className="h-3 w-3 fill-amber-200" /> Roomie Premium Partner
                           </span>
-                          <span className="text-[10px] font-bold text-amber-600/70 ml-1">Trusted by Roomie AI</span>
+                          <span className="text-[10px] font-bold text-amber-600/70 ml-1">Trusted by Homie AI</span>
                         </div>
                       </div>
 
@@ -589,7 +589,7 @@ Email: ${contactForm.email}`;
                       {/* Endorsement Footer */}
                       <div className="mt-6 pt-4 border-t border-amber-100/30">
                         <p className="text-[10px] text-slate-400 italic text-center leading-relaxed">
-                          "Recommended by Roomie AI based on reliability, response time, and user outcomes."
+                          "Recommended by Homie AI based on reliability, response time, and user outcomes."
                         </p>
                       </div>
                     </div>

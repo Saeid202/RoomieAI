@@ -13,7 +13,7 @@ export default function HomePage() {
   const location = useLocation();
 
   useEffect(() => {
-    document.title = "Roomie AI - Find Your Ideal Roommate";
+    document.title = "Homie AI - Find Your Ideal Roommate";
     console.log("Home page rendered");
   }, []);
 

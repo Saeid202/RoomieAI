@@ -62,11 +62,11 @@ const Footer = ({ className }: FooterProps) => {
                 />
               </svg>
               <h1 className="text-xl font-bold text-roomie-purple">
-                Roomie AI
+                Homie AI
               </h1>
             </div>
             <p className="text-gray-400 mb-6 max-w-md">
-              Roomie AI helps you find the ideal roommate based on your lifestyle, budget, and location preferences.
+              Homie AI helps you find the ideal roommate based on your lifestyle, budget, and location preferences.
             </p>
             <div className="flex space-x-4">
               <a href="#" className="text-gray-400 hover:text-roomie-purple transition-colors">
@@ -116,7 +116,7 @@ const Footer = ({ className }: FooterProps) => {
         </div>
 
         <div className="pt-8 mt-8 border-t border-gray-800 text-center text-gray-400 text-sm">
-          <p>© {new Date().getFullYear()} Roomie AI. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Homie AI. All rights reserved.</p>
         </div>
       </div>
     </footer>

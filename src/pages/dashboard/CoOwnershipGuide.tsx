@@ -37,7 +37,7 @@ export default function CoOwnershipGuidePage() {
                             <h2 className="text-3xl font-bold text-slate-900">Purpose of This Program</h2>
                             <div className="text-slate-700 leading-relaxed text-lg space-y-4">
                                 <p>
-                                    The Roomie AI Co-Ownership Program exists to solve a simple but widespread problem:
+                                    The Homie AI Co-Ownership Program exists to solve a simple but widespread problem:
                                 </p>
                                 <p className="text-xl md:text-2xl font-black text-slate-900 leading-tight">
                                     "Many people can afford part of a home—but the system requires them to afford all of it."
@@ -92,7 +92,7 @@ export default function CoOwnershipGuidePage() {
                                     <span className="font-black text-blue-500 text-xl">1</span>
                                     <div>
                                         <h4 className="font-bold text-slate-900">Match First</h4>
-                                        <p className="text-sm text-slate-600">Roomie AI helps you find a compatible co-buyer first, not just a property.</p>
+                                        <p className="text-sm text-slate-600">Homie AI helps you find a compatible co-buyer first, not just a property.</p>
                                     </div>
                                 </div>
                                 <div className="flex gap-4 p-4 bg-blue-50/50 rounded-2xl border border-blue-100">
@@ -121,7 +121,7 @@ export default function CoOwnershipGuidePage() {
                         <div>
                             <h2 className="text-3xl font-black mb-2">Find a Compatible Co-Buyer</h2>
                             <p className="text-slate-300 text-lg max-w-2xl">
-                                Inside the Roomie AI Co-Ownership Hub, you can see other individuals who are looking to co-buy.
+                                Inside the Homie AI Co-Ownership Hub, you can see other individuals who are looking to co-buy.
                             </p>
                         </div>
 
@@ -154,7 +154,7 @@ export default function CoOwnershipGuidePage() {
                         </CardHeader>
                         <CardContent className="p-8 space-y-4 text-slate-600 font-medium leading-relaxed">
                             <p>
-                                Roomie AI works with experienced real estate and co-ownership lawyers and stays involved throughout the purchase, living, and exit stages.
+                                Homie AI works with experienced real estate and co-ownership lawyers and stays involved throughout the purchase, living, and exit stages.
                             </p>
                             <p>
                                 Our role is to ensure everything follows a clear and reliable structure—from entering the agreement to exiting it smoothly if needed.
@@ -174,7 +174,7 @@ export default function CoOwnershipGuidePage() {
                                 <li className="flex items-center gap-3"><div className="w-2 h-2 rounded-full bg-orange-500 shrink-0" /> Inform your co-owner in advance</li>
                                 <li className="flex items-center gap-3"><div className="w-2 h-2 rounded-full bg-orange-500 shrink-0" /> Sell to other co-owner (Right of First Refusal)</li>
                                 <li className="flex items-center gap-3"><div className="w-2 h-2 rounded-full bg-orange-500 shrink-0" /> Offer your share in Co-ownership Hub</li>
-                                <li className="flex items-center gap-3"><div className="w-2 h-2 rounded-full bg-orange-500 shrink-0" /> Contact Roomie AI for assistance</li>
+                                <li className="flex items-center gap-3"><div className="w-2 h-2 rounded-full bg-orange-500 shrink-0" /> Contact Homie AI for assistance</li>
                             </ul>
                         </CardContent>
                     </Card>
@@ -193,7 +193,7 @@ export default function CoOwnershipGuidePage() {
                                 Ali and Mohamad both wanted to buy a home, but neither could afford a full down payment on their own. Each had some savings and was tired of renting, but buying alone was not an option.
                             </p>
                             <p>
-                                Through the Roomie AI Co-Ownership Hub, they found each other. They connected, talked about their goals, met in person, and realized they had similar plans—they both wanted to live in the home long term and gradually build ownership.
+                                Through the Homie AI Co-Ownership Hub, they found each other. They connected, talked about their goals, met in person, and realized they had similar plans—they both wanted to live in the home long term and gradually build ownership.
                             </p>
                             <p className="font-semibold text-emerald-950 p-4 bg-white/50 rounded-2xl border border-emerald-100/50">
                                 Today, Ali and Mohamad live in the home they co-own. Instead of continuing to rent and wait, they entered the market earlier—with clarity, structure, and shared confidence.

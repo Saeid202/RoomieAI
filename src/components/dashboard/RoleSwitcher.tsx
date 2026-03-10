@@ -84,7 +84,7 @@ export function RoleSwitcher({ variant = 'default' }: RoleSwitcherProps) {
 
       toast({
         title: "Role updated",
-        description: `You are now using Roomie AI as a ${getRoleDisplay(newRole)}`,
+        description: `You are now using Homie AI as a ${getRoleDisplay(newRole)}`,
       });
     } catch (error) {
       console.error("Error changing role:", error);

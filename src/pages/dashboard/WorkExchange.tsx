@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -828,7 +828,7 @@ export default function WorkExchangePage() {
                           </Badge>
                         </div>
                         <p className="text-xs text-muted-foreground">
-                          {offer.city}, {offer.state} • Created {new Date(offer.createdAt).toLocaleDateString()}
+                          {offer.city}, {offer.state} � Created {new Date(offer.createdAt).toLocaleDateString()}
                         </p>
                         <p className="text-sm text-slate-700">{offer.workRequested}</p>
                         <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
@@ -905,12 +905,12 @@ export default function WorkExchangePage() {
                       <h3 className="font-semibold">
                         {offer.spaceType.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())} in {offer.city}
                       </h3>
-                      <p className="text-sm text-muted-foreground">{offer.userName} • {offer.city}, {offer.state}</p>
+                      <p className="text-sm text-muted-foreground">{offer.userName} � {offer.city}, {offer.state}</p>
                       <p className="text-sm">{offer.workRequested}</p>
                       <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                        <span>📅 {offer.duration}</span>
-                        <span>⏰ {offer.workHoursPerWeek}</span>
-                        <span>📍 {offer.address}</span>
+                        <span>?? {offer.duration}</span>
+                        <span>? {offer.workHoursPerWeek}</span>
+                        <span>?? {offer.address}</span>
                       </div>
                       {offer.amenitiesProvided.length > 0 && (
                         <div className="flex flex-wrap gap-1 mt-2">

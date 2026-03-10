@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 
 export default function SettingsPage() {
   const [generalSettings, setGeneralSettings] = useState({
-    siteName: "Roomie AI",
+    siteName: "Homie AI",
     siteDescription: "Find your perfect roommate with AI matching",
     adminEmail: "admin@roomieai.com",
     showLandlordFeatures: true,

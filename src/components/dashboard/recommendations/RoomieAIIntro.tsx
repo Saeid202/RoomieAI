@@ -12,13 +12,13 @@ export function RoomieAIIntro() {
           <div className="p-2 bg-primary/10 rounded-xl">
             <Bot className="h-6 w-6 md:h-8 md:w-8 text-primary" />
           </div>
-          Welcome to Roomie AI
+          Welcome to Homie AI
         </CardTitle>
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="intro" className="w-full">
           <TabsList className="grid w-full grid-cols-2 h-12 rounded-xl bg-muted">
-            <TabsTrigger value="intro" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">About Roomie AI</TabsTrigger>
+            <TabsTrigger value="intro" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">About Homie AI</TabsTrigger>
             <TabsTrigger value="roadmap" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">Getting Started</TabsTrigger>
           </TabsList>
           

@@ -1,4 +1,4 @@
-﻿      rental_payments: {
+      rental_payments: {
         Row: {
           amount: number
           application_id: string | null

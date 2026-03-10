@@ -292,7 +292,7 @@ export function PadBankConnection({
             <div className="text-sm text-blue-800 space-y-2">
               <p>By providing your bank account information, you authorize:</p>
               <ul className="list-disc list-inside space-y-1 ml-2">
-                <li>Roomie AI to debit your account for rent payments</li>
+                <li>Homie AI to debit your account for rent payments</li>
                 <li>Payments to be processed on the agreed schedule</li>
                 <li>Your bank to honor these payment requests</li>
               </ul>

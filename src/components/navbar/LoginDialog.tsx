@@ -172,7 +172,7 @@ export const LoginDialog = ({ isOpen, setIsOpen }: LoginDialogProps) => {
           <DialogDescription className="text-center">
             {showForgotPassword
               ? "Enter your email to receive a password reset link"
-              : "Welcome back to Roomie AI! Enter your credentials to continue."}
+              : "Welcome back to Homie AI! Enter your credentials to continue."}
           </DialogDescription>
         </DialogHeader>
 

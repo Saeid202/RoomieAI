@@ -138,7 +138,7 @@ export const AssignLawyerModal: React.FC<AssignLawyerModalProps> = ({
           <div className="space-y-6">
             <div className="bg-gradient-to-br from-purple-50 to-indigo-50 border-2 border-purple-200 rounded-xl p-6">
               <p className="text-sm font-semibold text-purple-900 mb-4">
-                Roomie AI Partner Lawyer
+                Homie AI Partner Lawyer
               </p>
 
               {/* Lawyer Avatar */}
@@ -152,7 +152,7 @@ export const AssignLawyerModal: React.FC<AssignLawyerModalProps> = ({
                   </h3>
                   <p className="text-sm text-gray-600">Real Estate Lawyer</p>
                   <p className="text-sm font-medium text-purple-700 mt-1">
-                    {lawyer.law_firm_name || 'Roomie AI Legal Partners'}
+                    {lawyer.law_firm_name || 'Homie AI Legal Partners'}
                   </p>
                 </div>
               </div>

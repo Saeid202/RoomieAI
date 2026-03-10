@@ -89,7 +89,7 @@ export default function LandlordDashboardPage() {
         <div className="text-center mb-1 relative z-10">
           <div className="inline-block bg-white/80 backdrop-blur-md rounded-2xl p-2 border border-white/50 shadow-xl">
             <h1 className="text-3xl md:text-4xl font-black text-gray-900 mb-1 bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent animate-gradient">
-              Welcome to Roomie AI
+              Welcome to Homie AI
             </h1>
             <div className="h-2 w-32 bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 rounded-full mx-auto shadow-lg"></div>
             <p className="text-xl text-gray-800 max-w-2xl mx-auto font-bold leading-relaxed">
@@ -103,7 +103,7 @@ export default function LandlordDashboardPage() {
           <div className="bg-white/90 backdrop-blur-md rounded-2xl p-2 border-2 border-gradient-to-r from-pink-300 via-purple-300 to-indigo-300 shadow-xl relative overflow-hidden group">
             <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/10 via-pink-400/10 to-purple-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
             <p className="text-gray-800 text-lg leading-relaxed relative z-10 font-medium">
-              Roomie AI brings every step of property management into one secure platform — from listing properties and screening tenants, to collecting rent and handling legal compliance. The sections below guide you through each stage of your landlord journey.
+              Homie AI brings every step of property management into one secure platform — from listing properties and screening tenants, to collecting rent and handling legal compliance. The sections below guide you through each stage of your landlord journey.
             </p>
           </div>
         </div>

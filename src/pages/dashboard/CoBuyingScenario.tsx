@@ -96,7 +96,7 @@ export default function CoBuyingScenario() {
               </p>
               <p className="text-lg leading-relaxed text-slate-700 mt-4">
                 In the example below, we show how two buyers with similar situations can team up through 
-                <span className="font-bold text-roomie-purple"> Roomie AI</span> to make homeownership possible — 
+                <span className="font-bold text-roomie-purple"> Homie AI</span> to make homeownership possible — 
                 sharing costs, reducing risk, and opening up opportunities that would otherwise be out of reach.
               </p>
               <p className="text-lg leading-relaxed text-slate-700 mt-4">
@@ -299,13 +299,13 @@ export default function CoBuyingScenario() {
           <CardHeader className="bg-green-50 border-b border-green-200">
             <div className="flex items-center gap-3">
               <CheckCircle className="h-8 w-8 text-green-600" />
-              <CardTitle className="text-2xl text-slate-900">Scenario 2: Co-Buying via Roomie AI</CardTitle>
+              <CardTitle className="text-2xl text-slate-900">Scenario 2: Co-Buying via Homie AI</CardTitle>
             </div>
           </CardHeader>
           <CardContent className="pt-6">
             <div className="space-y-4">
               <div>
-                <p className="font-semibold text-slate-700 mb-2 text-lg">Michael meets Alex through Roomie AI:</p>
+                <p className="font-semibold text-slate-700 mb-2 text-lg">Michael meets Alex through Homie AI:</p>
                 <div className="bg-slate-50 p-4 rounded-lg space-y-2">
                   <p className="flex justify-between text-base">
                     <span className="text-slate-600">Both can contribute for downpayment:</span>
@@ -512,7 +512,7 @@ export default function CoBuyingScenario() {
                       N/A
                     </td>
                     <td className="border border-slate-300 p-4 text-center text-slate-800 bg-green-50 text-base">
-                      Structured via Roomie AI
+                      Structured via Homie AI
                     </td>
                   </tr>
                 </tbody>
@@ -651,7 +651,7 @@ export default function CoBuyingScenario() {
                       </p>
                       <div className="bg-white p-4 rounded-lg border border-blue-200">
                         <p className="text-base font-bold text-blue-900 mb-1">How to proceed:</p>
-                        <p className="text-base text-slate-700">You can resell it on Roomie AI platform or contact the team for assistance.</p>
+                        <p className="text-base text-slate-700">You can resell it on Homie AI platform or contact the team for assistance.</p>
                       </div>
                     </div>
 
@@ -787,7 +787,7 @@ export default function CoBuyingScenario() {
                     </div>
                     <div>
                       <h4 className="font-bold text-slate-900 text-xl mb-2">Mediation</h4>
-                      <p className="text-lg text-slate-700 leading-relaxed">Roomie AI offers premium, neutral mediation services to assist co-owners in resolving conflicts efficiently and fairly. Our expert-guided process helps parties find common ground, preserve relationships, and ensure smooth co-ownership management.</p>
+                      <p className="text-lg text-slate-700 leading-relaxed">Homie AI offers premium, neutral mediation services to assist co-owners in resolving conflicts efficiently and fairly. Our expert-guided process helps parties find common ground, preserve relationships, and ensure smooth co-ownership management.</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-5 p-6 bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl border-2 border-purple-200 hover:shadow-lg transition-all">
@@ -805,25 +805,25 @@ export default function CoBuyingScenario() {
                     </div>
                     <div>
                       <h4 className="font-bold text-slate-900 text-xl mb-2">Legal Action</h4>
-                      <p className="text-lg text-slate-700 leading-relaxed">As a last resort, co-ownership disputes can be resolved through the court system (partition action). Roomie AI provides access to a professional legal team available 24/7, guiding co-owners through legal processes and ensuring that all matters are handled efficiently and with expert support.</p>
+                      <p className="text-lg text-slate-700 leading-relaxed">As a last resort, co-ownership disputes can be resolved through the court system (partition action). Homie AI provides access to a professional legal team available 24/7, guiding co-owners through legal processes and ensuring that all matters are handled efficiently and with expert support.</p>
                     </div>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Roomie AI's Role Section */}
+            {/* Homie AI's Role Section */}
             <Card className="mb-10 border-2 border-slate-200 shadow-lg overflow-hidden">
               <CardHeader className="bg-gradient-to-r from-roomie-purple to-purple-700 border-b-0">
                 <CardTitle className="text-3xl text-white flex items-center gap-3">
                   <Users className="h-8 w-8" />
-                  How Roomie AI Helps
+                  How Homie AI Helps
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-8 px-8 pb-8">
                 <div className="space-y-6">
                   <p className="text-xl text-slate-700 leading-relaxed">
-                    Roomie AI provides comprehensive support throughout your co-buying journey:
+                    Homie AI provides comprehensive support throughout your co-buying journey:
                   </p>
                   <div className="space-y-5">
                     <div className="flex items-start gap-5 p-6 bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl border-2 border-purple-200 hover:shadow-lg transition-all">
@@ -933,12 +933,12 @@ export default function CoBuyingScenario() {
               </CardContent>
             </Card>
 
-            {/* Roomie AI Solution Section */}
+            {/* Homie AI Solution Section */}
             <Card className="mb-10 border-2 border-slate-200 shadow-lg overflow-hidden">
               <CardHeader className="bg-gradient-to-r from-roomie-purple to-purple-700 border-b-0">
                 <CardTitle className="text-3xl text-white flex items-center gap-3">
                   <Shield className="h-8 w-8" />
-                  Roomie AI Solution: Payment Default Management
+                  Homie AI Solution: Payment Default Management
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-8 px-8 pb-8">
@@ -956,7 +956,7 @@ export default function CoBuyingScenario() {
                       </div>
                       <div className="bg-white p-5 rounded-lg border border-blue-200">
                         <h4 className="font-bold text-slate-900 text-lg mb-2">Contingency Fund / Escrow</h4>
-                        <p className="text-lg text-slate-700">Require co-owners to deposit 1–2 months of payments into a Roomie AI managed escrow.</p>
+                        <p className="text-lg text-slate-700">Require co-owners to deposit 1–2 months of payments into a Homie AI managed escrow.</p>
                       </div>
                       <div className="bg-white p-5 rounded-lg border border-blue-200">
                         <h4 className="font-bold text-slate-900 text-lg mb-2">Payment Agreement</h4>
@@ -974,7 +974,7 @@ export default function CoBuyingScenario() {
                     <ul className="space-y-4">
                       <li className="flex items-start gap-3 bg-white p-5 rounded-lg border border-green-200">
                         <CheckCircle className="h-6 w-6 text-green-600 mt-1 flex-shrink-0" />
-                        <span className="text-lg text-slate-700">Roomie AI tracks each co-owner's contribution in real-time.</span>
+                        <span className="text-lg text-slate-700">Homie AI tracks each co-owner's contribution in real-time.</span>
                       </li>
                       <li className="flex items-start gap-3 bg-white p-5 rounded-lg border border-green-200">
                         <CheckCircle className="h-6 w-6 text-green-600 mt-1 flex-shrink-0" />
@@ -994,7 +994,7 @@ export default function CoBuyingScenario() {
                       Mediation & Early Intervention
                     </h3>
                     <p className="text-lg text-slate-700 mb-4 leading-relaxed">
-                      If a co-owner misses a payment, Roomie AI automatically triggers high-end mediation between co-owners.
+                      If a co-owner misses a payment, Homie AI automatically triggers high-end mediation between co-owners.
                     </p>
                     <div className="space-y-3">
                       <div className="bg-white p-5 rounded-lg border border-purple-200">
@@ -1020,8 +1020,8 @@ export default function CoBuyingScenario() {
                       <div className="bg-white p-5 rounded-lg border border-orange-200">
                         <h4 className="font-bold text-slate-900 text-lg mb-2">Escrow / Virtual Payment Hub</h4>
                         <ul className="space-y-2 ml-4">
-                          <li className="text-lg text-slate-700">• Co-owners deposit their share into Roomie AI's platform account.</li>
-                          <li className="text-lg text-slate-700">• Roomie AI makes the single bank payment.</li>
+                          <li className="text-lg text-slate-700">• Co-owners deposit their share into Homie AI's platform account.</li>
+                          <li className="text-lg text-slate-700">• Homie AI makes the single bank payment.</li>
                           <li className="text-lg text-slate-700">• Internal ledger keeps track of each co-owner's contribution.</li>
                         </ul>
                       </div>
@@ -1052,7 +1052,7 @@ export default function CoBuyingScenario() {
                       </div>
                       <div className="bg-white p-5 rounded-lg border border-red-200">
                         <h4 className="font-bold text-slate-900 text-lg mb-2">24/7 Legal Support</h4>
-                        <p className="text-lg text-slate-700">Roomie AI provides 24/7 legal support, ensuring all steps are compliant and fair.</p>
+                        <p className="text-lg text-slate-700">Homie AI provides 24/7 legal support, ensuring all steps are compliant and fair.</p>
                       </div>
                     </div>
                   </div>

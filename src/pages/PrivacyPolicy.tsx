@@ -14,7 +14,7 @@ const PrivacyPolicy = () => {
             <section>
               <h2 className="text-2xl font-semibold mb-4 text-roomie-purple">Introduction</h2>
               <p className="leading-relaxed">
-                At Roomie AI, we take your privacy seriously. This Privacy Policy explains how we collect, use,
+                At Homie AI, we take your privacy seriously. This Privacy Policy explains how we collect, use,
                 disclose, and safeguard your information when you use our service. Please read this policy carefully
                 to understand our practices regarding your personal data.
               </p>

@@ -88,7 +88,7 @@ export const SignupDialog = ({ isOpen, setIsOpen }: SignupDialogProps) => {
             Create an account
           </DialogTitle>
           <DialogDescription className="text-center">
-            Join Roomie AI to find your perfect roommate or property match!
+            Join Homie AI to find your perfect roommate or property match!
           </DialogDescription>
         </DialogHeader>
 

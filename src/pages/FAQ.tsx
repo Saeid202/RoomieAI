@@ -15,11 +15,11 @@ const FAQ = () => {
       category: "General Questions",
       questions: [
         {
-          question: "What is Roomie AI?",
-          answer: "Roomie AI is an AI-powered platform that connects people with compatible roommates or co-investors based on lifestyle, budget, and location preferences. We use advanced matching algorithms to suggest the most compatible matches for your specific needs."
+          question: "What is Homie AI?",
+          answer: "Homie AI is an AI-powered platform that connects people with compatible roommates or co-investors based on lifestyle, budget, and location preferences. We use advanced matching algorithms to suggest the most compatible matches for your specific needs."
         },
         {
-          question: "Is Roomie AI free to use?",
+          question: "Is Homie AI free to use?",
           answer: "We offer both free and premium tiers. The basic matching service is free, allowing you to create a profile and browse potential matches. Premium features, such as advanced filters, priority matching, and unlimited messaging, require a subscription."
         },
         {
@@ -27,8 +27,8 @@ const FAQ = () => {
           answer: "Our proprietary AI algorithm analyzes over 50 different compatibility factors, including lifestyle habits, sleeping patterns, cleanliness preferences, financial reliability, and location preferences. The system then generates compatibility scores to help you find your ideal roommate or co-investor."
         },
         {
-          question: "Where is Roomie AI available?",
-          answer: "Roomie AI is currently available in most major cities across the United States, Canada, and the United Kingdom. We're rapidly expanding to new locations, so check back regularly if your area isn't currently supported."
+          question: "Where is Homie AI available?",
+          answer: "Homie AI is currently available in most major cities across the United States, Canada, and the United Kingdom. We're rapidly expanding to new locations, so check back regularly if your area isn't currently supported."
         }
       ]
     },
@@ -40,7 +40,7 @@ const FAQ = () => {
           answer: "Click the 'Sign Up' button in the top right corner of the homepage, enter your email address and create a password, then follow the prompts to complete your profile. The more detailed your profile, the better matches we can provide."
         },
         {
-          question: "Can I use Roomie AI without creating a profile?",
+          question: "Can I use Homie AI without creating a profile?",
           answer: "No, a profile is required to use our matching services. This ensures all users are committed to finding a roommate or co-investor and provides the necessary information for our matching algorithm."
         },
         {

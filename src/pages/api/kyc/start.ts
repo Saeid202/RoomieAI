@@ -51,7 +51,7 @@ class ShuftiProvider implements KYCProvider {
       // Consent
       consent: {
         supported_types: ['written'],
-        text: 'I consent to verify my identity for Roomie AI platform.',
+        text: 'I consent to verify my identity for Homie AI platform.',
       },
       // Callback URLs
       callback_url: `${process.env.NEXT_PUBLIC_APP_URL}/api/kyc/webhook/shufti`,

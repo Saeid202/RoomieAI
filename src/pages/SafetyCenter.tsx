@@ -18,7 +18,7 @@ const SafetyCenter = () => {
               </div>
               <p className="text-xl text-gray-700 max-w-2xl mx-auto">
                 Your safety is our top priority. We've implemented various features and protocols
-                to ensure you have a secure experience while using Roomie AI.
+                to ensure you have a secure experience while using Homie AI.
               </p>
             </section>
 
@@ -118,7 +118,7 @@ const SafetyCenter = () => {
 
             <section className="text-center">
               <p className="text-lg text-gray-700 mb-4">
-                Have questions about safety on Roomie AI?
+                Have questions about safety on Homie AI?
               </p>
               <a
                 href="mailto:safety@roomieai.com"

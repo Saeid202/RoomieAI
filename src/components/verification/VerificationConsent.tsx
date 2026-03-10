@@ -83,7 +83,7 @@ export function VerificationConsent({ onConsentChange, disabled = false, classNa
                   <li>• Prevent fraud and protect all users</li>
                   <li>• Ensure secure payment processing</li>
                   <li>• Comply with financial regulations</li>
-                  <li>• Build trust in the Roomie AI community</li>
+                  <li>• Build trust in the Homie AI community</li>
                 </ul>
               </div>
             </div>

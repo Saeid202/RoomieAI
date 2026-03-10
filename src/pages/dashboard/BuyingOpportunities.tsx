@@ -1,4 +1,4 @@
-Ôªøimport { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -61,7 +61,7 @@ const createSignalSchema = z.object({
     capital_available: z.string().min(1, "Capital available is required"),
     household_type: z.enum(["Single", "Couple", "Family", "Investor group"]),
     intended_use: z.enum(["Live-in", "Investment", "Mixed"]),
-    time_horizon: z.enum(["1‚Äì2 years", "3‚Äì5 years", "Flexible"]),
+    time_horizon: z.enum(["1ñ2 years", "3ñ5 years", "Flexible"]),
     notes: z.string().optional(),
     disclaimer: z.boolean().refine(val => val === true, "You must agree to the non-binding confirmation"),
 });
@@ -987,7 +987,7 @@ export default function BuyingOpportunitiesPage() {
                         {/* Buy Unit Header */}
                         <div className="mb-6">
                             <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight flex items-center gap-3">
-                                <span className="text-4xl">üè†</span>
+                                <span className="text-4xl">??</span>
                                 Buy Unit
                             </h1>
                             <p className="text-slate-600 text-base md:text-lg font-medium">
@@ -1761,9 +1761,9 @@ export default function BuyingOpportunitiesPage() {
                                                                     </FormControl>
                                                                     <SelectContent>
                                                                         <SelectItem value="less_than_5">{"< 5% of purchase price"}</SelectItem>
-                                                                        <SelectItem value="5_to_9.99">5% ‚Äì 9.99%</SelectItem>
-                                                                        <SelectItem value="10_to_19.99">10% ‚Äì 19.99%</SelectItem>
-                                                                        <SelectItem value="20_to_34.99">20% ‚Äì 34.99%</SelectItem>
+                                                                        <SelectItem value="5_to_9.99">5% ñ 9.99%</SelectItem>
+                                                                        <SelectItem value="10_to_19.99">10% ñ 19.99%</SelectItem>
+                                                                        <SelectItem value="20_to_34.99">20% ñ 34.99%</SelectItem>
                                                                         <SelectItem value="35_or_more">35% or more</SelectItem>
                                                                     </SelectContent>
                                                                 </Select>
@@ -1890,9 +1890,9 @@ export default function BuyingOpportunitiesPage() {
                                                                     </FormControl>
                                                                     <SelectContent>
                                                                         <SelectItem value="under_10k">{"< $10,000"}</SelectItem>
-                                                                        <SelectItem value="10k_24.999">$10,000 ‚Äì $24,999</SelectItem>
-                                                                        <SelectItem value="25k_49.999">$25,000 ‚Äì $49,999</SelectItem>
-                                                                        <SelectItem value="50k_99.999">$50,000 ‚Äì $99,999</SelectItem>
+                                                                        <SelectItem value="10k_24.999">$10,000 ñ $24,999</SelectItem>
+                                                                        <SelectItem value="25k_49.999">$25,000 ñ $49,999</SelectItem>
+                                                                        <SelectItem value="50k_99.999">$50,000 ñ $99,999</SelectItem>
                                                                         <SelectItem value="100k_plus">$100,000+</SelectItem>
                                                                     </SelectContent>
                                                                 </Select>
@@ -1915,8 +1915,8 @@ export default function BuyingOpportunitiesPage() {
                                                                         </SelectTrigger>
                                                                     </FormControl>
                                                                     <SelectContent>
-                                                                        <SelectItem value="yes_liquid">Yes ‚Äì liquid investments</SelectItem>
-                                                                        <SelectItem value="yes_long_term">Yes ‚Äì long-term investments</SelectItem>
+                                                                        <SelectItem value="yes_liquid">Yes ñ liquid investments</SelectItem>
+                                                                        <SelectItem value="yes_long_term">Yes ñ long-term investments</SelectItem>
                                                                         <SelectItem value="no">No</SelectItem>
                                                                     </SelectContent>
                                                                 </Select>
@@ -2012,7 +2012,7 @@ export default function BuyingOpportunitiesPage() {
                                                                             </FormControl>
                                                                             <SelectContent>
                                                                                 <SelectItem value="minimal">Minimal ({"<5%"})</SelectItem>
-                                                                                <SelectItem value="moderate">Moderate (5‚Äì20%)</SelectItem>
+                                                                                <SelectItem value="moderate">Moderate (5ñ20%)</SelectItem>
                                                                                 <SelectItem value="significant">Significant ({">20%"})</SelectItem>
                                                                             </SelectContent>
                                                                         </Select>
@@ -2551,9 +2551,9 @@ export default function BuyingOpportunitiesPage() {
                                                                         </SelectTrigger>
                                                                     </FormControl>
                                                                     <SelectContent>
-                                                                        <SelectItem value="0_3_months">0‚Äì3 months</SelectItem>
-                                                                        <SelectItem value="3_6_months">3‚Äì6 months</SelectItem>
-                                                                        <SelectItem value="6_12_months">6‚Äì12 months</SelectItem>
+                                                                        <SelectItem value="0_3_months">0ñ3 months</SelectItem>
+                                                                        <SelectItem value="3_6_months">3ñ6 months</SelectItem>
+                                                                        <SelectItem value="6_12_months">6ñ12 months</SelectItem>
                                                                         <SelectItem value="over_12_months">Over 12 months</SelectItem>
                                                                     </SelectContent>
                                                                 </Select>
@@ -2591,7 +2591,7 @@ export default function BuyingOpportunitiesPage() {
                                                                 <span>Share with Mortgage Broker</span>
                                                             </label>
                                                             <p className="text-sm text-gray-900 leading-relaxed font-bold">
-                                                                I consent to share my mortgage profile with Roomie AI's trusted mortgage broker
+                                                                I consent to share my mortgage profile with Homie AI's trusted mortgage broker
                                                                 for the purpose of mortgage review and recommendations. You can revoke this
                                                                 consent at any time.
                                                             </p>
@@ -2601,7 +2601,7 @@ export default function BuyingOpportunitiesPage() {
                                                                     <span>Your profile will be visible to our mortgage broker</span>
                                                                     {mortgageProfile?.broker_consent_date && (
                                                                         <span className="text-gray-600">
-                                                                            ‚Ä¢ Consented on {new Date(mortgageProfile.broker_consent_date).toLocaleDateString()}
+                                                                            ï Consented on {new Date(mortgageProfile.broker_consent_date).toLocaleDateString()}
                                                                         </span>
                                                                     )}
                                                                 </div>
@@ -2737,7 +2737,7 @@ export default function BuyingOpportunitiesPage() {
                                     Post Your Co-ownership Signal
                                 </DialogTitle>
                                 <DialogDescription className="text-purple-100 text-lg font-medium leading-tight">
-                                    Let others quickly understand what you bring and what you‚Äôre looking for.
+                                    Let others quickly understand what you bring and what youíre looking for.
                                 </DialogDescription>
                             </DialogHeader>
                         </div>
@@ -2762,7 +2762,7 @@ export default function BuyingOpportunitiesPage() {
                                                     <FormLabel className="text-slate-700 font-bold">Capital Available</FormLabel>
                                                     <FormControl>
                                                         <Input
-                                                            placeholder="$30,000 ‚Äì $50,000"
+                                                            placeholder="$30,000 ñ $50,000"
                                                             className="bg-white border-slate-200 focus:ring-roomie-purple focus:border-roomie-purple h-12 rounded-xl font-medium"
                                                             {...field}
                                                         />
@@ -2847,8 +2847,8 @@ export default function BuyingOpportunitiesPage() {
                                                                 </SelectTrigger>
                                                             </FormControl>
                                                             <SelectContent className="rounded-xl border-slate-200">
-                                                                <SelectItem value="1‚Äì2 years">1‚Äì2 years</SelectItem>
-                                                                <SelectItem value="3‚Äì5 years">3‚Äì5 years</SelectItem>
+                                                                <SelectItem value="1ñ2 years">1ñ2 years</SelectItem>
+                                                                <SelectItem value="3ñ5 years">3ñ5 years</SelectItem>
                                                                 <SelectItem value="Flexible">Flexible</SelectItem>
                                                             </SelectContent>
                                                         </Select>

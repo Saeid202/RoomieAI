@@ -17,7 +17,7 @@ const CommunityGuidelines = () => {
                 <Users className="w-10 h-10 text-roomie-purple" />
               </div>
               <p className="text-xl text-gray-700 max-w-2xl mx-auto">
-                Our community guidelines help ensure that Roomie AI remains a safe, respectful,
+                Our community guidelines help ensure that Homie AI remains a safe, respectful,
                 and productive platform for everyone. By joining our community, you agree to follow these guidelines.
               </p>
             </section>
@@ -67,7 +67,7 @@ const CommunityGuidelines = () => {
               </h2>
               <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
                 <p className="text-gray-700 leading-relaxed mb-4">
-                  The following behaviors are not tolerated on Roomie AI:
+                  The following behaviors are not tolerated on Homie AI:
                 </p>
                 <ul className="list-disc pl-6 space-y-2 text-gray-700">
                   <li>Discrimination based on race, ethnicity, gender, sexual orientation, religion, or disability</li>

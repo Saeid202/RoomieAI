@@ -341,7 +341,7 @@ export function SeekerCommandCenter() {
                     <OpportunityCard
                         icon={<Briefcase className="h-8 w-8 text-blue-500" />}
                         title="Renovators"
-                        desc="Top-tier partners recommended by Roomie AI."
+                        desc="Top-tier partners recommended by Homie AI."
                         path="/dashboard/renovators"
                     />
                 </div>

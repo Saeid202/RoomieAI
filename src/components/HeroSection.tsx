@@ -119,7 +119,7 @@ const HeroSection = () => {
                 {/* Try to load the actual flowchart image */}
                 <img 
                   src="/roomie-ai-flowchart.png" 
-                  alt="Roomie AI Flowchart - Tenant, Landlord, and Renovation Companies Features"
+                  alt="Homie AI Flowchart - Tenant, Landlord, and Renovation Companies Features"
                   className="w-full h-full object-contain rounded-lg shadow-lg transition-opacity duration-300"
                   style={{ maxHeight: '100%', maxWidth: '100%', display: 'none' }} // Hide by default
                   loading="eager"
@@ -136,13 +136,13 @@ const HeroSection = () => {
                 {/* Detailed Flowchart Placeholder - show by default */}
                 <div className="flowchart-placeholder flex flex-col items-center justify-center text-center p-4 w-full h-full">
                   <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-lg max-w-full max-h-full overflow-auto">
-                    <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-4 text-center">Roomie AI Platform</h3>
+                    <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-4 text-center">Homie AI Platform</h3>
                     
                     {/* Flowchart Structure */}
                     <div className="space-y-4">
                       {/* Main Box */}
                       <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg p-4 text-center">
-                        <div className="font-bold text-lg">Roomie AI</div>
+                        <div className="font-bold text-lg">Homie AI</div>
                         <div className="text-sm opacity-90">AI-Powered Platform</div>
                       </div>
                       
@@ -242,7 +242,7 @@ const HeroSection = () => {
               {/* Try to load the image */}
               <img 
                 src="/roomie-ai-flowchart.png" 
-                alt="Roomie AI Flowchart - Tenant, Landlord, and Renovation Companies Features"
+                alt="Homie AI Flowchart - Tenant, Landlord, and Renovation Companies Features"
                 className="w-full h-auto max-h-[70vh] object-contain rounded-lg"
                 loading="eager"
                 style={{ display: 'none' }} // Hide by default since file doesn't exist
@@ -259,13 +259,13 @@ const HeroSection = () => {
               {/* Modal Flowchart Placeholder - show by default */}
               <div className="modal-flowchart-placeholder block">
                 <div className="bg-white dark:bg-slate-800 rounded-xl p-8 shadow-lg max-w-full mx-auto">
-                  <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-6 text-center">Roomie AI Platform</h3>
+                  <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-6 text-center">Homie AI Platform</h3>
                   
                   {/* Flowchart Structure */}
                   <div className="space-y-6">
                     {/* Main Box */}
                     <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl p-6 text-center">
-                      <div className="font-bold text-2xl mb-2">Roomie AI</div>
+                      <div className="font-bold text-2xl mb-2">Homie AI</div>
                       <div className="text-lg opacity-90">AI-Powered Platform</div>
                     </div>
                     

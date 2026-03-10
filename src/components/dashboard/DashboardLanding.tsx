@@ -14,7 +14,7 @@ export function DashboardLanding() {
     setShowVideo(true);
     toast({
       title: "Video playing",
-      description: "Enjoy our introduction to Roomie AI"
+      description: "Enjoy our introduction to Homie AI"
     });
   };
   
@@ -22,7 +22,7 @@ export function DashboardLanding() {
     <div className="space-y-6">
       <div className="flex justify-between items-start">
         <div>
-          <h1 className="text-3xl font-bold mb-2">Welcome to Roomie AI</h1>
+          <h1 className="text-3xl font-bold mb-2">Welcome to Homie AI</h1>
           <p className="text-muted-foreground">
             Your intelligent roommate and co-ownership matching platform powered by advanced AI
           </p>
@@ -34,7 +34,7 @@ export function DashboardLanding() {
           <CardHeader className="pb-2">
             <div className="flex items-center gap-3">
               <Bot className="h-6 w-6 text-primary" />
-              <CardTitle>Meet Roomie AI</CardTitle>
+              <CardTitle>Meet Homie AI</CardTitle>
             </div>
           </CardHeader>
           <CardContent>
@@ -63,11 +63,11 @@ export function DashboardLanding() {
                 
                 {activeTab === "about" && (
                   <div className="space-y-4">
-                    <h3 className="text-lg font-medium">About Roomie AI</h3>
+                    <h3 className="text-lg font-medium">About Homie AI</h3>
                     <p>
-                      Roomie AI is our advanced artificial intelligence system designed to revolutionize
+                      Homie AI is our advanced artificial intelligence system designed to revolutionize
                       how people find compatible roommates and co-ownership partners. Using sophisticated 
-                      algorithms and machine learning, Roomie AI analyzes over 20 compatibility factors 
+                      algorithms and machine learning, Homie AI analyzes over 20 compatibility factors 
                       including lifestyle habits, schedules, financial goals, and personal preferences.
                     </p>
                     <p>
@@ -78,7 +78,7 @@ export function DashboardLanding() {
                     <div className="flex items-center gap-2 bg-primary/5 rounded-lg p-3">
                       <LightbulbIcon className="h-5 w-5 text-primary" />
                       <p className="text-sm">
-                        Founded in 2023, Roomie AI has already facilitated over 5,000 successful matches 
+                        Founded in 2023, Homie AI has already facilitated over 5,000 successful matches 
                         across major metropolitan areas.
                       </p>
                     </div>
@@ -140,7 +140,7 @@ export function DashboardLanding() {
                 
                 {activeTab === "how-it-works" && (
                   <div className="space-y-4">
-                    <h3 className="text-lg font-medium">How Roomie AI Works</h3>
+                    <h3 className="text-lg font-medium">How Homie AI Works</h3>
                     <ol className="space-y-3 list-decimal pl-5">
                       <li>
                         <span className="font-medium">Complete Your Profile</span>
@@ -192,7 +192,7 @@ export function DashboardLanding() {
                     <iframe
                       className="w-full h-full"
                       src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1"
-                      title="Roomie AI Introduction"
+                      title="Homie AI Introduction"
                       frameBorder="0"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
@@ -208,7 +208,7 @@ export function DashboardLanding() {
                 )}
                 <div className="mt-4 text-sm text-muted-foreground">
                   <p>
-                    Learn how Roomie AI works and how it can help you find your perfect roommate or co-owner match. 
+                    Learn how Homie AI works and how it can help you find your perfect roommate or co-owner match. 
                     This short video explains our matching process and how to get the most out of our platform.
                   </p>
                 </div>
