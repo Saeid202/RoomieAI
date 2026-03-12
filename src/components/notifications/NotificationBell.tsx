@@ -117,6 +117,8 @@ export function NotificationBell() {
         return '✅';
       case 'application_rejected':
         return '❌';
+      case 'plan_ahead_match':
+        return '🏠';
       default:
         return '🔔';
     }
@@ -190,6 +192,21 @@ export function NotificationBell() {
                     <p className="text-xs text-gray-600 mt-1 line-clamp-2">
                       {notification.message}
                     </p>
+                    {notification.type === 'plan_ahead_match' && notification.property_link && (
+                      <div className="mt-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(notification.property_link || '/');
+                          }}
+                          className="w-full text-xs h-8"
+                        >
+                          View Property →
+                        </Button>
+                      </div>
+                    )}
                     <p className="text-xs text-gray-400 mt-1">
                       {formatTimeAgo(notification.created_at)}
                     </p>

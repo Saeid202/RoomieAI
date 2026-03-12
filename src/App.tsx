@@ -58,6 +58,8 @@ import ServiceArea from "@/pages/renovator/ServiceArea";
 import RenovatorSettings from "@/pages/renovator/RenovatorSettings";
 import EducationCentrePage from "@/pages/dashboard/EducationCentre";
 import BuyingOpportunitiesPage from "@/pages/dashboard/BuyingOpportunities";
+import MortgageConsentPage from "@/pages/dashboard/MortgageConsentPage";
+import MortgageSubmissionResults from "@/pages/dashboard/MortgageSubmissionResults";
 import CoOwnershipGuidePage from "@/pages/dashboard/CoOwnershipGuide";
 import TaxIntelligencePage from "@/pages/dashboard/TaxIntelligence";
 import SeekerProfilePage from "@/pages/dashboard/SeekerProfile";
@@ -157,6 +159,8 @@ function AppRoutes() {
           <Route path="opposite-schedule" element={<OppositeSchedulePage />} />
           <Route path="work-exchange" element={<WorkExchangePage />} />
           <Route path="buying-opportunities" element={<BuyingOpportunitiesPage />} />
+          <Route path="mortgage-consent" element={<MortgageConsentPage />} />
+          <Route path="mortgage-results" element={<MortgageSubmissionResults />} />
           <Route path="co-buying-scenario" element={<CoBuyingScenario />} />
           <Route path="co-ownership-profile" element={<CoOwnershipProfile />} />
           <Route path="lgbtq-matching" element={<LGBTQMatchingPage />} />

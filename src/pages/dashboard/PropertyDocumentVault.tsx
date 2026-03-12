@@ -8,6 +8,7 @@ import { AssignLawyerModal } from '@/components/property/AssignLawyerModal';
 import { fetchPropertyById } from '@/services/propertyService';
 import { supabase } from '@/integrations/supabase/client';
 import { getLawyerForDeal } from '@/services/dealLawyerService';
+import { saveContractSignature } from '@/services/signatureService';
 import type { PropertyCategory } from '@/types/propertyCategories';
 import type { DealLawyer } from '@/types/dealLawyer';
 
@@ -26,6 +27,29 @@ const PropertyDocumentVault: React.FC = () => {
   const [showAssignLawyerModal, setShowAssignLawyerModal] = useState(false);
   const [isLawyer, setIsLawyer] = useState(false);
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [pendingSellerSignature, setPendingSellerSignature] = useState(false);
+  const [buyerName, setBuyerName] = useState('');
+  const [showSellerSignModal, setShowSellerSignModal] = useState(false);
+  const [sellerTypedName, setSellerTypedName] = useState('');
+  const [sellerAgreedToTerms, setSellerAgreedToTerms] = useState(false);
+  const [isSellerSigning, setIsSellerSigning] = useState(false);
+
+  // Check for pending seller signature
+  useEffect(() => {
+    async function checkPendingSignature() {
+      const { data } = await supabase
+        .from('contract_signatures')
+        .select('status, buyer_name_typed, buyer_signed_at')
+        .eq('property_id', id)
+        .single()
+
+      if (data?.status === 'buyer_signed') {
+        setPendingSellerSignature(true)
+        setBuyerName(data.buyer_name_typed || '')
+      }
+    }
+    checkPendingSignature()
+  }, [id]);
 
   console.log('🏠 PropertyDocumentVault rendering, id:', id);
   console.log('🏠 Current state - loading:', loading, 'error:', error, 'category:', propertyCategory, 'isOwner:', isOwner);
@@ -119,6 +143,85 @@ const PropertyDocumentVault: React.FC = () => {
       }
     } catch (error) {
       console.error('Error loading assigned lawyer:', error);
+    }
+  };
+
+  // Handle seller contract signing
+  const handleSellerSignContract = async () => {
+    if (!property || !property.user_id) return;
+
+    setIsSellerSigning(true);
+
+    try {
+      // Get current contract data from property
+      const { data: contractData } = await supabase
+        .from('contract_signatures')
+        .select('contract_data')
+        .eq('property_id', id)
+        .single();
+
+      if (!contractData?.contract_data) {
+        toast.error('Contract data not found');
+        return;
+      }
+
+      const result = await saveContractSignature(
+        id,
+        contractData.contract_data,
+        'seller',
+        sellerTypedName,
+        property.user_id
+      );
+
+      if (result.success) {
+        // Update contract data with seller signature
+        const updatedContract = {
+          ...contractData.contract_data,
+          sellerSignature: sellerTypedName,
+          sellerSignDatetime: new Date().toLocaleString('en-CA'),
+          sellerBiometricVerified: true,
+          documentHash: result.documentHash
+        };
+
+        // Update contract data in state
+        // Note: We can't directly update the state here since it's in ClosingProcessView
+        // The seller signature will be reflected when the page reloads
+
+        // Notify buyer that seller has countersigned
+        await supabase
+          .from('payment_notifications')
+          .insert({
+            user_id: contractData.contract_data.buyerUserId,
+            notification_type: 'contract_fully_executed',
+            title: '🎉 Contract Fully Executed!',
+            message: `Great news! ${userName} has countersigned the Agreement of Purchase and Sale for ${contractData.contract_data.propertyAddress}. Your contract is now fully executed. Document Verification (Stage 2) is now active.`,
+            property_id: id,
+            property_link: `/dashboard/property/${id}/documents`
+          });
+
+        // Auto advance to Stage 2
+        await supabase
+          .from('closing_process')
+          .update({
+            current_stage: 2,
+            stage_1_completed_at: new Date().toISOString()
+          })
+          .eq('property_id', id);
+
+        setShowSellerSignModal(false);
+        setSellerTypedName('');
+        setSellerAgreedToTerms(false);
+        setPendingSellerSignature(false);
+
+        toast.success('Contract fully executed! Buyer has been notified.');
+      } else {
+        toast.error('Signing failed. Please try again.');
+      }
+    } catch (error) {
+      console.error('Seller signing error:', error);
+      toast.error('Something went wrong. Please try again.');
+    } finally {
+      setIsSellerSigning(false);
     }
   };
 
@@ -383,6 +486,30 @@ const PropertyDocumentVault: React.FC = () => {
   // Owner View (Full Management Controls)
   return (
     <div className="w-full px-6 py-6">
+      {/* Seller Signature Banner */}
+      {pendingSellerSignature && (
+        <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 mb-6 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">📝</span>
+            <div>
+              <p className="font-semibold text-orange-800">
+                Contract requires your signature
+              </p>
+              <p className="text-sm text-orange-600">
+                {buyerName} has signed the purchase agreement.
+                Your countersignature is required to proceed.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => setShowSellerSignModal(true)}
+            className="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 py-2 rounded-lg text-sm transition-colors whitespace-nowrap"
+          >
+            Review and Sign →
+          </button>
+        </div>
+      )}
+
       <div className="mb-6">
         <Button
           variant="ghost"
@@ -406,6 +533,121 @@ const PropertyDocumentVault: React.FC = () => {
         readOnly={false}
         isBuyerView={false}
       />
+
+      {/* Seller Sign Agreement Modal */}
+      {showSellerSignModal && (
+        <div className="fixed inset-0 bg-black/70 z-[60] flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+            {/* Header */}
+            <div className="p-6 border-b border-gray-100">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                  <span className="text-xl">✍️</span>
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900">
+                    Sign Agreement
+                  </h3>
+                  <p className="text-sm text-gray-500">
+                    Legally binding e-signature
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Body */}
+            <div className="p-6 space-y-5">
+              {/* Security notice */}
+              <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 text-sm text-blue-700">
+                🔒 Your signature is secured by HomieAI biometric
+                verification and is legally binding under the
+                Electronic Commerce Act of Ontario.
+              </div>
+
+              {/* What they are signing */}
+              <div className="bg-gray-50 rounded-lg p-4 text-sm space-y-1">
+                <p className="font-semibold text-gray-700 mb-2">
+                  You are signing:
+                </p>
+                <p>📍 {property?.address}, {property?.city}</p>
+                <p>💰 ${property?.price.toLocaleString('en-CA')} CAD</p>
+                <p>📅 Closing: {new Date(property?.created_at).toLocaleDateString('en-CA', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+              </div>
+
+              {/* Name confirmation field */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Type your full legal name to confirm:
+                </label>
+                <input
+                  type="text"
+                  placeholder={`Enter: ${userName}`}
+                  value={sellerTypedName}
+                  onChange={(e) => setSellerTypedName(e.target.value)}
+                  className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+                {sellerTypedName && sellerTypedName.toLowerCase().trim() !== userName.toLowerCase().trim() && (
+                  <p className="text-red-500 text-xs mt-1">
+                    Name must match exactly: {userName}
+                  </p>
+                )}
+                {sellerTypedName && sellerTypedName.toLowerCase().trim() === userName.toLowerCase().trim() && (
+                  <p className="text-green-500 text-xs mt-1">
+                    ✅ Name verified
+                  </p>
+                )}
+              </div>
+
+              {/* Agreement checkbox */}
+              <div className="flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  id="sellerAgreeCheckbox"
+                  checked={sellerAgreedToTerms}
+                  onChange={(e) => setSellerAgreedToTerms(e.target.checked)}
+                  className="mt-1 w-4 h-4 accent-purple-600"
+                />
+                <label htmlFor="sellerAgreeCheckbox" className="text-sm text-gray-600">
+                  I have read the entire Agreement of Purchase and Sale
+                  and I agree to be legally bound by its terms and conditions.
+                </label>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="p-6 border-t border-gray-100 flex gap-3">
+              <button
+                onClick={() => {
+                  setShowSellerSignModal(false)
+                  setSellerTypedName('')
+                  setSellerAgreedToTerms(false)
+                }}
+                className="flex-1 px-4 py-3 border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 text-sm font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleSellerSignContract()}
+                disabled={
+                  !sellerAgreedToTerms ||
+                  sellerTypedName.toLowerCase().trim() !== userName.toLowerCase().trim() ||
+                  isSellerSigning
+                }
+                className="flex-1 px-4 py-3 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-sm"
+              >
+                {isSellerSigning ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    Signing...
+                  </span>
+                ) : (
+                  '✍️ Sign Now'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -1,11 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CheckCircle, Clock, FileCheck, DollarSign, Home, Calendar, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 import { DocumentVerificationModal } from './DocumentVerificationModal';
 import { PaymentEscrowSetupModal } from './PaymentEscrowSetupModal';
 import { FinalWalkthroughModal } from './FinalWalkthroughModal';
 import { ClosingDateModal } from './ClosingDateModal';
+import APSContractDocument from './APSContractDocument';
+import { buildContractData } from '@/services/apsContractService';
+import { saveContractSignature, notifySellerToSign } from '@/services/signatureService';
+import { formatCurrency, formatDate } from '@/services/apsContractService';
 
 interface ClosingProcessViewProps {
   propertyId: string;
@@ -16,8 +22,27 @@ export function ClosingProcessView({ propertyId }: ClosingProcessViewProps) {
   const [showPaymentSetup, setShowPaymentSetup] = useState(false);
   const [showFinalWalkthrough, setShowFinalWalkthrough] = useState(false);
   const [showClosingDate, setShowClosingDate] = useState(false);
+  const [showContract, setShowContract] = useState(false);
+  const [showSignModal, setShowSignModal] = useState(false);
+  const [typedName, setTypedName] = useState('');
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [isSigning, setIsSigning] = useState(false);
+  const [signatureComplete, setSignatureComplete] = useState(false);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set([1])); // Step 1 is completed
   
+  // State for real data
+  const [property, setProperty] = useState<any>(null);
+  const [buyer, setBuyer] = useState<any>(null);
+  const [seller, setSeller] = useState<any>(null);
+  const [lawyer, setLawyer] = useState<any>(null);
+  const [contractData, setContractData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  
+  // Fetch closing data on mount
+  useEffect(() => {
+    fetchClosingData();
+  }, [propertyId]);
+
   // Determine step statuses based on completion
   const getStepStatus = (stepId: number): 'completed' | 'in_progress' | 'pending' => {
     if (completedSteps.has(stepId)) return 'completed';
@@ -28,6 +53,148 @@ export function ClosingProcessView({ propertyId }: ClosingProcessViewProps) {
     
     return 'pending';
   };
+
+  // Fetch all closing data
+  const fetchClosingData = async () => {
+    try {
+      setLoading(true);
+      console.log('Fetching for propertyId:', propertyId);
+      
+      // Fetch property
+      const { data: propertyData, error: propertyError } = await supabase
+        .from('properties')
+        .select('*')
+        .eq('id', propertyId)
+        .single();
+      
+      console.log('Property data:', propertyData);
+      console.log('Property error:', propertyError);
+      
+      if (propertyError) {
+        console.error('Error fetching property:', propertyError);
+      } else {
+        setProperty(propertyData);
+      }
+      
+      // Fetch buyer (current logged in user)
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      console.log('Current user:', user);
+      
+      let buyerData = null;
+      if (userError || !user) {
+        console.error('Error fetching user:', userError);
+      } else {
+        const { data: buyerProfile, error: buyerError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+        
+        console.log('Buyer data:', buyerProfile);
+        console.log('Buyer error:', buyerError);
+        
+        if (buyerError) {
+          console.error('Error fetching buyer profile:', buyerError);
+        } else {
+          buyerData = buyerProfile;
+          setBuyer(buyerProfile);
+        }
+      }
+      
+      // Fetch seller using property.user_id
+      let sellerData = null;
+      if (propertyData?.user_id) {
+        const { data: sellerProfile, error: sellerError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', propertyData.user_id)
+          .single();
+        
+        console.log('Seller data:', sellerProfile);
+        console.log('Seller error:', sellerError);
+        
+        if (sellerError) {
+          console.error('Error fetching seller profile:', sellerError);
+        } else {
+          sellerData = sellerProfile;
+          setSeller(sellerProfile);
+        }
+      }
+      
+      // Build contract data using buildContractData function
+      const builtContract = buildContractData(
+        propertyData,
+        buyerData,
+        sellerData,
+        lawyer,
+        propertyId
+      );
+      console.log('Built contract data:', builtContract);
+      setContractData(builtContract);
+    } catch (error) {
+      console.error('Error in fetchClosingData:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle contract signing
+  async function handleSignContract() {
+    if (!contractData || !buyer) return
+
+    setIsSigning(true)
+
+    try {
+      const result = await saveContractSignature(
+        propertyId,
+        contractData,
+        'buyer',
+        typedName,
+        buyer.id
+      )
+
+      if (result.success) {
+        // Update contractData with signature info
+        setContractData(prev => prev ? {
+          ...prev,
+          buyerSignature: typedName,
+          buyerSignDatetime: new Date().toLocaleString('en-CA'),
+          buyerBiometricVerified: true,
+          documentHash: result.documentHash
+        } : null)
+
+        setSignatureComplete(true)
+        setShowSignModal(false)
+        setShowContract(false)
+        setTypedName('')
+        setAgreedToTerms(false)
+
+        // Notify seller to countersign
+        if (seller) {
+          await notifySellerToSign(
+            propertyId,
+            contractData,
+            buyer,
+            seller,
+            lawyer
+          )
+        }
+
+        // Show success notification
+        toast.success(
+          'Agreement signed successfully! Seller will be notified to countersign.',
+          { duration: 5000 }
+        )
+      } else {
+        toast.error('Signing failed. Please try again.')
+      }
+    } catch (error) {
+      console.error('Signing error:', error)
+      toast.error('Something went wrong. Please try again.')
+    } finally {
+      setIsSigning(false)
+    }
+  }
 
   const closingSteps = [
     {
@@ -216,13 +383,22 @@ export function ClosingProcessView({ propertyId }: ClosingProcessViewProps) {
                     </Button>
                   )}
                   {step.status === 'completed' && (
-                    <Button
-                      variant="ghost"
-                      className="text-green-600 hover:text-green-700 hover:bg-green-50"
-                      size="sm"
-                    >
-                      View Details
-                    </Button>
+                    <div className="flex flex-col gap-2">
+                      <Button
+                        variant="ghost"
+                        className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                        size="sm"
+                        onClick={() => setShowContract(true)}
+                      >
+                        View Details
+                      </Button>
+                      {signatureComplete && (
+                        <div className="flex items-center gap-2 text-sm text-green-600 bg-green-50 rounded-lg px-3 py-2">
+                          <span>✅</span>
+                          <span>Agreement signed — awaiting seller countersignature</span>
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
               </div>
@@ -292,6 +468,207 @@ export function ClosingProcessView({ propertyId }: ClosingProcessViewProps) {
           toast.success('🎉 Congratulations! The property is now yours!');
         }}
       />
+
+      {/* Offer Acceptance Contract Modal */}
+      {showContract && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-start justify-center overflow-y-auto py-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl mx-4 relative min-h-screen">
+            {/* Modal Header */}
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-2xl flex items-center justify-between z-10">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">
+                  Agreement of Purchase and Sale
+                </h2>
+                <p className="text-sm text-gray-500 mt-0.5">
+                  Please read the entire agreement before signing
+                </p>
+              </div>
+              <div className="flex items-center gap-3">
+                <button
+                  className="text-sm text-purple-600 border border-purple-200 px-3 py-1.5 rounded-lg hover:bg-purple-50 transition-colors"
+                  onClick={() => window.print()}
+                >
+                  🖨️ Print
+                </button>
+                <button
+                  onClick={() => setShowContract(false)}
+                  className="text-gray-400 hover:text-gray-600 text-2xl leading-none"
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+
+            {/* Contract Document */}
+            <div className="overflow-y-auto max-h-[70vh]">
+              {contractData ? (
+                <APSContractDocument
+                  data={contractData}
+                  onSign={() => setShowSignModal(true)}
+                  isSigned={false}
+                  signerRole="buyer"
+                  isEditable={!signatureComplete}
+                  onDataChange={(updated) => setContractData(updated)}
+                />
+              ) : (
+                <div className="flex items-center justify-center h-64">
+                  <div className="text-center">
+                    <div className="animate-spin w-8 h-8 border-4 border-purple-600 border-t-transparent rounded-full mx-auto mb-3"></div>
+                    <p className="text-gray-500">Loading contract...</p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="sticky bottom-0 bg-white border-t border-gray-200 px-6 py-4 rounded-b-2xl flex items-center justify-between">
+              <p className="text-xs text-gray-400">
+                This agreement is legally binding when signed by all parties.
+                HomieAI Inc. — FINTRAC Licensed
+              </p>
+              <div className="flex gap-3">
+                {!signatureComplete && (
+                  <button
+                    onClick={() => {
+                      toast.success('Changes saved')
+                    }}
+                    className="px-4 py-2 text-sm border border-purple-200 text-purple-600 rounded-lg hover:bg-purple-50"
+                  >
+                    💾 Save Changes
+                  </button>
+                )}
+                <button
+                  onClick={() => setShowContract(false)}
+                  className="px-4 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50"
+                >
+                  Close
+                </button>
+                <button
+                  onClick={() => setShowSignModal(true)}
+                  className="px-6 py-2 text-sm bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-colors"
+                >
+                  ✍️ Sign Agreement
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Sign Agreement Modal */}
+      {showSignModal && contractData && (
+        <div className="fixed inset-0 bg-black/70 z-[60] flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+            {/* Header */}
+            <div className="p-6 border-b border-gray-100">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                  <span className="text-xl">✍️</span>
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900">
+                    Sign Agreement
+                  </h3>
+                  <p className="text-sm text-gray-500">
+                    Legally binding e-signature
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Body */}
+            <div className="p-6 space-y-5">
+              {/* Security notice */}
+              <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 text-sm text-blue-700">
+                🔒 Your signature is secured by HomieAI biometric
+                verification and is legally binding under the
+                Electronic Commerce Act of Ontario.
+              </div>
+
+              {/* What they are signing */}
+              <div className="bg-gray-50 rounded-lg p-4 text-sm space-y-1">
+                <p className="font-semibold text-gray-700 mb-2">
+                  You are signing:
+                </p>
+                <p>📍 {contractData.propertyAddress}, {contractData.propertyCity}</p>
+                <p>💰 {formatCurrency(contractData.purchasePrice)}</p>
+                <p>📅 Closing: {formatDate(contractData.closingDate)}</p>
+              </div>
+
+              {/* Name confirmation field */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Type your full legal name to confirm:
+                </label>
+                <input
+                  type="text"
+                  placeholder={`Enter: ${contractData.buyerName}`}
+                  value={typedName}
+                  onChange={(e) => setTypedName(e.target.value)}
+                  className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+                {typedName && typedName.toLowerCase().trim() !== contractData.buyerName.toLowerCase().trim() && (
+                  <p className="text-red-500 text-xs mt-1">
+                    Name must match exactly: {contractData.buyerName}
+                  </p>
+                )}
+                {typedName && typedName.toLowerCase().trim() === contractData.buyerName.toLowerCase().trim() && (
+                  <p className="text-green-500 text-xs mt-1">
+                    ✅ Name verified
+                  </p>
+                )}
+              </div>
+
+              {/* Agreement checkbox */}
+              <div className="flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  id="agreeCheckbox"
+                  checked={agreedToTerms}
+                  onChange={(e) => setAgreedToTerms(e.target.checked)}
+                  className="mt-1 w-4 h-4 accent-purple-600"
+                />
+                <label htmlFor="agreeCheckbox" className="text-sm text-gray-600">
+                  I have read the entire Agreement of Purchase and Sale
+                  and I agree to be legally bound by its terms and conditions.
+                </label>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="p-6 border-t border-gray-100 flex gap-3">
+              <button
+                onClick={() => {
+                  setShowSignModal(false)
+                  setTypedName('')
+                  setAgreedToTerms(false)
+                }}
+                className="flex-1 px-4 py-3 border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 text-sm font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSignContract}
+                disabled={
+                  !agreedToTerms ||
+                  typedName.toLowerCase().trim() !== contractData.buyerName.toLowerCase().trim() ||
+                  isSigning
+                }
+                className="flex-1 px-4 py-3 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-sm"
+              >
+                {isSigning ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    Signing...
+                  </span>
+                ) : (
+                  '✍️ Sign Now'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

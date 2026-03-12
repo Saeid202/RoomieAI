@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams, useLocation } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { fetchPropertyById, Property, updateProperty, fetchInvestorOffers, submitInvestorOffer, InvestorOffer, deleteInvestorOffer, updateInvestorOffer } from "@/services/propertyService";
 import { useRole } from "@/contexts/RoleContext";
-import { Calendar, DollarSign, MapPin, Volume2, Play, Square, Box, ChevronLeft, ChevronRight, User, Users, Pencil, Trash2, Check, X, MessageSquare, Reply, Zap, CalendarCheck, Link as LinkIcon, Bookmark } from "lucide-react";
+import { Calendar, DollarSign, MapPin, Volume2, Play, Square, Box, ChevronLeft, ChevronRight, User, Users, Pencil, Trash2, Check, X, MessageSquare, Reply, Zap, CalendarCheck } from "lucide-react";
 import { PropertyVideoPlayer } from "@/components/property/PropertyVideoPlayer";
 import { PropertyDocumentViewer } from "@/components/property/PropertyDocumentViewerSimplified";
 import { useAuth } from "@/hooks/useAuth";
@@ -21,16 +21,13 @@ import { ScheduleViewingModal } from "@/components/property/ScheduleViewingModal
 import { MakeOfferModal, OfferData } from "@/components/property/MakeOfferModal";
 import { checkProfileCompleteness, getTenantProfileForApplication } from "@/utils/profileCompleteness";
 import { submitQuickApplication, hasUserApplied } from "@/services/quickApplyService";
-import { fetchMLSListingById, MLSListing } from "@/services/repliersService";
 
+import { useLocation } from "react-router-dom";
+import { fetchMLSListingById, MLSListing } from "@/services/repliersService";
 export default function PropertyDetailsPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const location = useLocation();
   const [property, setProperty] = useState<Property | null>(null);
-  const [mlsListing, setMlsListing] = useState<MLSListing | null>(null);
-  const [isMLS, setIsMLS] = useState(false);
-  const [savedProperties, setSavedProperties] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { role } = useRole();
@@ -98,51 +95,20 @@ export default function PropertyDetailsPage() {
           throw new Error("Missing property id");
         }
 
-        // Detect if this is an MLS listing
-        const routeState = location.state as any;
-        const isMLSRoute = id.startsWith('mls-');
-        const sourceFromState = routeState?.source;
+        // All properties (rental, sale, co-ownership) are in properties table
+        console.log("📦 Fetching from properties table...");
+        const data = await fetchPropertyById(id);
+        console.log("✅ Property data loaded:", data);
 
-        console.log("🔍 Detection:", { isMLSRoute, sourceFromState, routeState });
+        if (mounted) setProperty(data as any);
 
-        if (sourceFromState === 'mls' || isMLSRoute) {
-          // MLS Listing
-          console.log("� Loading MLS listing...");
-          setIsMLS(true);
-
-          // Try to get listing from route state first
-          if (routeState?.listing) {
-            console.log("✅ MLS listing loaded from route state");
-            if (mounted) setMlsListing(routeState.listing);
-          } else {
-            // Extract MLS number from ID
-            const mlsNumber = id.replace('mls-', '');
-            console.log("📦 Fetching MLS listing by ID:", mlsNumber);
-            const mlsData = await fetchMLSListingById(mlsNumber);
-            if (mlsData && mounted) {
-              setMlsListing(mlsData);
-              console.log("✅ MLS listing loaded:", mlsData);
-            } else {
-              throw new Error("MLS listing not found");
-            }
-          }
-        } else {
-          // HomieAI Listing
-          console.log("📦 Fetching HomieAI property from Supabase...");
-          setIsMLS(false);
-          const data = await fetchPropertyById(id);
-          console.log("✅ Property data loaded:", data);
-
-          if (mounted) setProperty(data as any);
-
-          // Load investor offers for sale/co-ownership properties
-          const isSaleProperty = data.listing_category === 'sale' || data.listing_category === 'co-ownership';
-          if (isSaleProperty && id) {
-            console.log("📊 Loading investor offers...");
-            const offersData = await fetchInvestorOffers(id);
-            if (mounted) setOffers(offersData);
-            console.log("✅ Investor offers loaded:", offersData.length);
-          }
+        // Load investor offers for sale/co-ownership properties
+        const isSaleProperty = data.listing_category === 'sale' || data.listing_category === 'co-ownership';
+        if (isSaleProperty && id) {
+          console.log("📊 Loading investor offers...");
+          const offersData = await fetchInvestorOffers(id);
+          if (mounted) setOffers(offersData);
+          console.log("✅ Investor offers loaded:", offersData.length);
         }
       } catch (e: any) {
         console.error("❌ Failed to load property", e);
@@ -162,7 +128,7 @@ export default function PropertyDetailsPage() {
     };
     load();
     return () => { mounted = false; };
-  }, [id, location.state]);
+  }, [id]);
 
   useEffect(() => {
     if (property) {
@@ -422,50 +388,6 @@ export default function PropertyDetailsPage() {
     }
   };
 
-  // MLS-specific handlers
-  const handleSaveProperty = () => {
-    if (!mlsListing) return;
-    
-    const saved = JSON.parse(localStorage.getItem('savedProperties') || '[]');
-    const mlsId = mlsListing.mlsNumber;
-    
-    if (saved.includes(mlsId)) {
-      // Remove from saved
-      const updated = saved.filter((id: string) => id !== mlsId);
-      localStorage.setItem('savedProperties', JSON.stringify(updated));
-      setSavedProperties(updated);
-      toast.success("Property removed from saved list");
-    } else {
-      // Add to saved
-      const updated = [...saved, mlsId];
-      localStorage.setItem('savedProperties', JSON.stringify(updated));
-      setSavedProperties(updated);
-      toast.success("Property saved successfully!");
-    }
-  };
-
-  const handleApplyWithHomieAI = () => {
-    toast.info("Apply with HomieAI coming soon!", { duration: 3000 });
-  };
-
-  const handleBookViewing = () => {
-    toast.info("Book Viewing coming soon!", { duration: 3000 });
-  };
-
-  const handleInviteAgent = () => {
-    toast.info("Invite Agent to HomieAI coming soon!", { duration: 3000 });
-  };
-
-  // Load saved properties on mount
-  useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem('savedProperties') || '[]');
-    setSavedProperties(saved);
-  }, []);
-
-  // Get current listing data (either HomieAI or MLS)
-  const currentListing = isMLS ? mlsListing : property;
-  const isPropertySaved = mlsListing ? savedProperties.includes(mlsListing.mlsNumber) : false;
-
   if (loading) {
     return (
       <div className="space-y-6">
@@ -486,7 +408,7 @@ export default function PropertyDetailsPage() {
     );
   }
 
-  if (error || (!property && !mlsListing)) {
+  if (error || !property) {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
@@ -517,42 +439,10 @@ export default function PropertyDetailsPage() {
 
   return (
     <>
-      {/* MLS Banner - Only for MLS listings */}
-      {isMLS && mlsListing && (
-        <Card className="mb-6 border-l-4 border-l-gray-500 bg-gray-50">
-          <CardContent className="p-4">
-            <div className="flex items-start justify-between">
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <LinkIcon className="h-4 w-4 text-gray-600" />
-                  <span className="text-sm font-semibold text-gray-900">MLS Listing · MLS# {mlsListing.mlsNumber}</span>
-                </div>
-                <p className="text-sm text-gray-700">
-                  Listed by: <span className="font-semibold">{mlsListing.agentName}</span> — {mlsListing.brokerageName}
-                </p>
-                <div className="pt-2">
-                  <p className="text-xs text-gray-600 mb-2">Want Quick Apply on this property?</p>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="text-xs"
-                    onClick={handleInviteAgent}
-                  >
-                    Invite Agent to HomieAI
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       <header className="mb-6">
         <div className="flex items-center gap-3">
-          {!isMLS && (!isOwner || !editingTitle) ? (
-            <h1 className="text-3xl font-bold tracking-tight">{property?.listing_title}</h1>
-          ) : isMLS ? (
-            <h1 className="text-3xl font-bold tracking-tight">{mlsListing?.address}</h1>
+          {!isOwner || !editingTitle ? (
+            <h1 className="text-3xl font-bold tracking-tight">{property.listing_title}</h1>
           ) : (
             <Input
               value={titleDraft}
@@ -560,7 +450,7 @@ export default function PropertyDetailsPage() {
               className="max-w-lg text-3xl font-bold tracking-tight"
             />
           )}
-          {!isMLS && isOwner && (
+          {isOwner && (
             !editingTitle ? (
               <Button variant="outline" size="sm" onClick={() => setEditingTitle(true)}>Edit</Button>
             ) : (
@@ -572,13 +462,8 @@ export default function PropertyDetailsPage() {
           )}
         </div>
         <p className="text-muted-foreground mt-1 flex items-center gap-1">
-          <MapPin className="h-4 w-4" /> {isMLS ? `${mlsListing?.city}, ${mlsListing?.province}` : `${property?.city}, ${property?.state}`}
+          <MapPin className="h-4 w-4" /> {property.city}, {property.state}
         </p>
-        {isMLS && (
-          <p className="text-xs text-gray-500 mt-1">
-            Source: MLS · Data provided by Repliers
-          </p>
-        )}
       </header>
 
       <main className="grid gap-6 lg:grid-cols-3">
@@ -586,12 +471,11 @@ export default function PropertyDetailsPage() {
           <Card>
             <div className="relative w-full aspect-video bg-black rounded-t-lg overflow-hidden group">
               {(() => {
-                const images = isMLS ? mlsListing?.images : property?.images;
-                const showVideo = !isMLS && property?.video_enabled !== false && images && images.length > 0;
-                const totalSlides = (showVideo ? 1 : 0) + (images?.length || 0);
+                const showVideo = property.video_enabled !== false && property.images && property.images.length > 0;
+                const totalSlides = (showVideo ? 1 : 0) + (property.images?.length || 0);
 
                 const SlideContent = () => {
-                  // Video Slide (HomieAI only)
+                  // Video Slide
                   if (showVideo && activeSlideIndex === 0) {
                     return (
                       <PropertyVideoPlayer
@@ -609,13 +493,13 @@ export default function PropertyDetailsPage() {
 
                   // Image Slide
                   const imageIndex = showVideo ? activeSlideIndex - 1 : activeSlideIndex;
-                  const imageUrl = images?.[imageIndex];
+                  const imageUrl = property.images?.[imageIndex];
 
                   if (imageUrl) {
                     return (
                       <img
                         src={imageUrl}
-                        alt={`${isMLS ? mlsListing?.address : property?.listing_title} - view ${imageIndex + 1}`}
+                        alt={`${property.listing_title} - view ${imageIndex + 1}`}
                         className="w-full h-full object-cover"
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
@@ -777,41 +661,16 @@ export default function PropertyDetailsPage() {
                       <>
                         <div className="flex items-center gap-1 font-semibold text-2xl text-primary">
                           <DollarSign className="h-6 w-6" />
-                          <span>{isMLS ? mlsListing?.price : (isSale ? (property as any).sales_price : property?.monthly_rent)}</span>
+                          <span>{isSale ? (property as any).sales_price : property.monthly_rent}</span>
                           {!isSale && <span className="text-sm font-normal text-muted-foreground">/month</span>}
                         </div>
-                        {isMLS && mlsListing ? (
-                          <div className="mt-2 space-y-1 text-sm">
-                            <div className="flex items-center gap-1 text-muted-foreground">
-                              <span className="font-medium text-gray-600">Agent:</span>
-                              <span className="font-semibold text-gray-900">{mlsListing.agentName}</span>
-                            </div>
-                            <div className="flex items-center gap-1 text-muted-foreground">
-                              <span className="font-medium text-gray-600">Brokerage:</span>
-                              <span className="font-semibold text-gray-900">{mlsListing.brokerageName}</span>
-                            </div>
-                            <div className="flex items-center gap-1 text-muted-foreground">
-                              <span className="font-medium text-gray-600">Phone:</span>
-                              <span className="font-semibold text-gray-900">{mlsListing.agentPhone}</span>
-                            </div>
-                            <div className="flex items-center gap-1 text-muted-foreground">
-                              <span className="font-medium text-gray-600">Email:</span>
-                              <span className="font-semibold text-gray-900">{mlsListing.agentEmail}</span>
-                            </div>
-                            <div className="flex items-center gap-1 text-muted-foreground">
-                              <span className="font-medium text-gray-600">MLS#:</span>
-                              <span className="font-semibold text-gray-900">{mlsListing.mlsNumber}</span>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="mt-2 flex items-center gap-1 text-sm text-muted-foreground">
-                            <span className="font-medium text-gray-600">Listed by:</span>
-                            <span className="font-semibold text-gray-900">
-                              {property?.landlord_name || 'Property Owner'}
-                              {property?.listing_agent && ` (${property.listing_agent})`}
-                            </span>
-                          </div>
-                        )}
+                        <div className="mt-2 flex items-center gap-1 text-sm text-muted-foreground">
+                          <span className="font-medium text-gray-600">Listed by:</span>
+                          <span className="font-semibold text-gray-900">
+                            {property.landlord_name || 'Property Owner'}
+                            {property.listing_agent && ` (${property.listing_agent})`}
+                          </span>
+                        </div>
                       </>
                     ) : (
                       <div className="flex items-center gap-2">
@@ -903,7 +762,7 @@ export default function PropertyDetailsPage() {
               <article className="prose prose-sm max-w-none">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="font-semibold text-base">About this place</h3>
-                  {!isMLS && isOwner && (
+                  {isOwner && (
                     !editingDesc ? (
                       <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => setEditingDesc(true)}>Edit</Button>
                     ) : (
@@ -914,10 +773,8 @@ export default function PropertyDetailsPage() {
                     )
                   )}
                 </div>
-                {!isMLS && (!isOwner || !editingDesc) ? (
-                  <p className="text-muted-foreground whitespace-pre-line text-sm leading-relaxed">{property?.description}</p>
-                ) : isMLS ? (
-                  <p className="text-muted-foreground whitespace-pre-line text-sm leading-relaxed">{mlsListing?.description}</p>
+                {!isOwner || !editingDesc ? (
+                  <p className="text-muted-foreground whitespace-pre-line text-sm leading-relaxed">{property.description}</p>
                 ) : (
                   <Textarea className="w-full text-sm" value={descDraft} onChange={(e) => setDescDraft(e.target.value)} />
                 )}
@@ -929,7 +786,7 @@ export default function PropertyDetailsPage() {
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <h3 className="font-semibold text-base">Key Details</h3>
-                  {!isMLS && isOwner && !editingFacts && (
+                  {isOwner && !editingFacts && (
                     <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => setEditingFacts(true)}>Edit</Button>
                   )}
                 </div>
@@ -938,10 +795,8 @@ export default function PropertyDetailsPage() {
                   {/* Bedrooms */}
                   <div className="bg-slate-50 p-2 rounded border border-slate-100">
                     <div className="text-muted-foreground text-xs">Bedrooms</div>
-                    {!isMLS && (!isOwner || !editingFacts) ? (
-                      <div className="font-medium">{property?.bedrooms ?? '—'}</div>
-                    ) : isMLS ? (
-                      <div className="font-medium">{mlsListing?.bedrooms ?? '—'}</div>
+                    {!isOwner || !editingFacts ? (
+                      <div className="font-medium">{property.bedrooms ?? '—'}</div>
                     ) : (
                       <Input value={bedroomsDraft} onChange={(e) => setBedroomsDraft(e.target.value)} className="h-7 text-xs" />
                     )}
@@ -949,10 +804,8 @@ export default function PropertyDetailsPage() {
                   {/* Bathrooms */}
                   <div className="bg-slate-50 p-2 rounded border border-slate-100">
                     <div className="text-muted-foreground text-xs">Bathrooms</div>
-                    {!isMLS && (!isOwner || !editingFacts) ? (
-                      <div className="font-medium">{property?.bathrooms ?? '—'}</div>
-                    ) : isMLS ? (
-                      <div className="font-medium">{mlsListing?.bathrooms ?? '—'}</div>
+                    {!isOwner || !editingFacts ? (
+                      <div className="font-medium">{property.bathrooms ?? '—'}</div>
                     ) : (
                       <Input value={bathroomsDraft} onChange={(e) => setBathroomsDraft(e.target.value)} className="h-7 text-xs" />
                     )}
@@ -960,10 +813,8 @@ export default function PropertyDetailsPage() {
                   {/* Sqft */}
                   <div className="bg-slate-50 p-2 rounded border border-slate-100">
                     <div className="text-muted-foreground text-xs">Sqft</div>
-                    {!isMLS && (!isOwner || !editingFacts) ? (
-                      <div className="font-medium">{property?.square_footage ?? '—'}</div>
-                    ) : isMLS ? (
-                      <div className="font-medium">—</div>
+                    {!isOwner || !editingFacts ? (
+                      <div className="font-medium">{property.square_footage ?? '—'}</div>
                     ) : (
                       <Input value={sqftDraft} onChange={(e) => setSqftDraft(e.target.value)} className="h-7 text-xs" />
                     )}
@@ -971,38 +822,32 @@ export default function PropertyDetailsPage() {
                   {/* Parking */}
                   <div className="bg-slate-50 p-2 rounded border border-slate-100">
                     <div className="text-muted-foreground text-xs">Parking</div>
-                    {!isMLS && (!isOwner || !editingFacts) ? (
-                      <div className="font-medium truncate" title={property?.parking}>{property?.parking || '—'}</div>
-                    ) : isMLS ? (
-                      <div className="font-medium truncate" title={mlsListing?.parking}>{mlsListing?.parking || '—'}</div>
+                    {!isOwner || !editingFacts ? (
+                      <div className="font-medium truncate" title={property.parking}>{property.parking || '—'}</div>
                     ) : (
                       <Input value={parkingDraft} onChange={(e) => setParkingDraft(e.target.value)} className="h-7 text-xs" />
                     )}
                   </div>
-                  {/* Pet Policy - HomieAI only */}
-                  {!isMLS && (
-                    <div className="bg-slate-50 p-2 rounded border border-slate-100">
-                      <div className="text-muted-foreground text-xs">Pet Policy</div>
-                      {!isOwner || !editingFacts ? (
-                        <div className="font-medium truncate" title={property?.pet_policy}>{property?.pet_policy || '—'}</div>
-                      ) : (
-                        <Input value={petPolicyDraft} onChange={(e) => setPetPolicyDraft(e.target.value)} className="h-7 text-xs" />
-                      )}
-                    </div>
-                  )}
-                  {/* Furnished - HomieAI only */}
-                  {!isMLS && (
-                    <div className="bg-slate-50 p-2 rounded border border-slate-100">
-                      <div className="text-muted-foreground text-xs">Furnished</div>
-                      {!isOwner || !editingFacts ? (
-                        <div className="font-medium">{property?.furnished ? 'Yes' : 'No'}</div>
-                      ) : (
-                        <Input value={furnishedDraft} onChange={(e) => setFurnishedDraft(e.target.value)} className="h-7 text-xs" />
-                      )}
-                    </div>
-                  )}
+                  {/* Pet Policy */}
+                  <div className="bg-slate-50 p-2 rounded border border-slate-100">
+                    <div className="text-muted-foreground text-xs">Pet Policy</div>
+                    {!isOwner || !editingFacts ? (
+                      <div className="font-medium truncate" title={property.pet_policy}>{property.pet_policy || '—'}</div>
+                    ) : (
+                      <Input value={petPolicyDraft} onChange={(e) => setPetPolicyDraft(e.target.value)} className="h-7 text-xs" />
+                    )}
+                  </div>
+                  {/* Furnished */}
+                  <div className="bg-slate-50 p-2 rounded border border-slate-100">
+                    <div className="text-muted-foreground text-xs">Furnished</div>
+                    {!isOwner || !editingFacts ? (
+                      <div className="font-medium">{property.furnished ? 'Yes' : 'No'}</div>
+                    ) : (
+                      <Input value={furnishedDraft} onChange={(e) => setFurnishedDraft(e.target.value)} className="h-7 text-xs" />
+                    )}
+                  </div>
                   {/* Days on Market - Only for sales listings */}
-                  {!isMLS && isSale && daysOnMarket !== null && (
+                  {isSale && daysOnMarket !== null && (
                     <div className="bg-slate-50 p-2 rounded border border-slate-100">
                       <div className="text-muted-foreground text-xs">Days on Market</div>
                       <div className="font-medium flex items-center gap-1">
@@ -1049,7 +894,7 @@ export default function PropertyDetailsPage() {
 
               {/* Utilities & Amenities */}
               <div className="space-y-4">
-                {!isMLS && Array.isArray(property?.utilities_included) && property.utilities_included.length > 0 && (
+                {Array.isArray(property.utilities_included) && property.utilities_included.length > 0 && (
                   <div className="space-y-2">
                     <h3 className="font-semibold text-sm">Utilities Included</h3>
                     <div className="flex flex-wrap gap-1.5">
@@ -1060,12 +905,11 @@ export default function PropertyDetailsPage() {
                   </div>
                 )}
 
-                {((!isMLS && Array.isArray(property?.amenities) && property.amenities.length > 0) || 
-                  (isMLS && Array.isArray(mlsListing?.amenities) && mlsListing.amenities.length > 0)) && (
+                {Array.isArray(property.amenities) && property.amenities.length > 0 && (
                   <div className="space-y-2">
                     <h3 className="font-semibold text-sm">Amenities</h3>
                     <div className="flex flex-wrap gap-1.5">
-                      {(isMLS ? mlsListing?.amenities : property?.amenities)?.map((a) => (
+                      {property.amenities.map((a) => (
                         <Badge key={a} variant="outline" className="font-normal text-xs bg-white">{a}</Badge>
                       ))}
                     </div>
@@ -1102,88 +946,54 @@ export default function PropertyDetailsPage() {
           })()}
 
           <div className="space-y-2">
-            {/* Action Buttons - Different for MLS vs HomieAI */}
-            {isMLS ? (
+            {role !== 'landlord' && !isSale && !hasApplied && (
               <>
-                {/* MLS Listing Buttons */}
                 <Button
                   variant="default"
                   className="w-full bg-gradient-to-r from-purple-600 via-pink-600 to-indigo-600 hover:from-purple-700 hover:via-pink-700 hover:to-indigo-700 shadow-lg shadow-purple-200"
-                  onClick={handleApplyWithHomieAI}
+                  onClick={handleQuickApplyClick}
                 >
                   <Zap className="h-4 w-4 mr-2" />
-                  Apply with HomieAI
+                  Quick Apply
                 </Button>
+              </>
+            )}
+            {hasApplied && (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+                <p className="text-green-800 font-semibold">✓ Application Submitted</p>
+                <p className="text-green-600 text-sm mt-1">The landlord will review your application</p>
+              </div>
+            )}
+            {role !== 'landlord' && property && (
+              <>
+                {/* Schedule Viewing button - now first */}
                 <Button
                   variant="default"
                   className="w-full bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white font-semibold shadow-lg shadow-blue-200"
-                  onClick={handleBookViewing}
+                  onClick={() => setShowScheduleViewingModal(true)}
                 >
                   <CalendarCheck className="h-4 w-4 mr-2" />
-                  Book Viewing
+                  Schedule Viewing
                 </Button>
-                <Button
-                  variant="default"
+                {/* Make an Offer button - only for sales properties */}
+                {isSale && !hasApplied && (
+                  <Button
+                    variant="default"
+                    className="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-semibold shadow-lg shadow-amber-200"
+                    onClick={() => setShowMakeOfferModal(true)}
+                  >
+                    <DollarSign className="h-4 w-4 mr-2" />
+                    Make an Offer
+                  </Button>
+                )}
+                <MessageButton
+                  propertyId={!isSale ? property.id : undefined}
+                  salesListingId={isSale ? property.id : undefined}
+                  landlordId={property.user_id}
                   className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white shadow-lg shadow-pink-200"
-                  onClick={handleSaveProperty}
                 >
-                  <Bookmark className={`h-4 w-4 mr-2 ${isPropertySaved ? 'fill-current' : ''}`} />
-                  {isPropertySaved ? 'Saved' : 'Save Property'}
-                </Button>
-              </>
-            ) : (
-              <>
-                {/* HomieAI Listing Buttons */}
-                {role !== 'landlord' && !isSale && !hasApplied && (
-                  <>
-                    <Button
-                      variant="default"
-                      className="w-full bg-gradient-to-r from-purple-600 via-pink-600 to-indigo-600 hover:from-purple-700 hover:via-pink-700 hover:to-indigo-700 shadow-lg shadow-purple-200"
-                      onClick={handleQuickApplyClick}
-                    >
-                      <Zap className="h-4 w-4 mr-2" />
-                      Quick Apply
-                    </Button>
-                  </>
-                )}
-                {hasApplied && (
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
-                    <p className="text-green-800 font-semibold">✓ Application Submitted</p>
-                    <p className="text-green-600 text-sm mt-1">The landlord will review your application</p>
-                  </div>
-                )}
-                {role !== 'landlord' && property && (
-                  <>
-                    {/* Schedule Viewing button - now first */}
-                    <Button
-                      variant="default"
-                      className="w-full bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white font-semibold shadow-lg shadow-blue-200"
-                      onClick={() => setShowScheduleViewingModal(true)}
-                    >
-                      <CalendarCheck className="h-4 w-4 mr-2" />
-                      Schedule Viewing
-                    </Button>
-                    {/* Make an Offer button - only for sales properties */}
-                    {isSale && !hasApplied && (
-                      <Button
-                        variant="default"
-                        className="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-semibold shadow-lg shadow-amber-200"
-                        onClick={() => setShowMakeOfferModal(true)}
-                      >
-                        <DollarSign className="h-4 w-4 mr-2" />
-                        Make an Offer
-                      </Button>
-                    )}
-                    <MessageButton
-                      propertyId={!isSale ? property.id : undefined}
-                      salesListingId={isSale ? property.id : undefined}
-                      landlordId={property.user_id}
-                      className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white shadow-lg shadow-pink-200"
-                    >
-                      {isCoOwnership ? "Join Co-Ownership Group" : "Message"}
-                    </MessageButton>
-                  </>
-                )}
+                  {isCoOwnership ? "Join Co-Ownership Group" : "Message"}
+                </MessageButton>
               </>
             )}
             <Button variant="outline" className="w-full border-2 border-purple-200 hover:bg-purple-50 text-purple-700 font-semibold" onClick={() => navigate(-1)}>

@@ -368,6 +368,13 @@ export async function createProperty(propertyData: any): Promise<Property | null
     }
 
     console.log("✅ Property created successfully:", data);
+    
+    // After successful property creation, check for Plan Ahead matches
+    // Run in background — do not await so it doesn't slow down listing creation
+    checkPlanAheadMatches(data).catch(
+      err => console.error('Plan ahead check failed:', err)
+    );
+    
     return data as any as Property;
   } catch (error) {
     console.error("❌ Error in createProperty:", error);
@@ -1271,5 +1278,168 @@ export async function updatePropertyStatus(
   } catch (error) {
     console.error("Error in updatePropertyStatus:", error);
     throw error;
+  }
+}
+import { supabase } from "@/integrations/supabase/client";
+import { getPlanAheadMatches } from "@/services/planAheadService";
+/**
+ * Check Plan Ahead profiles for matches with newly listed property
+ */
+export async function checkPlanAheadMatches(newProperty: any) {
+  console.log("🔍 Checking Plan Ahead matches for property:", newProperty.id);
+
+  try {
+    // Fetch all plan_ahead_profiles from database
+    const { data: plans, error } = await supabase
+      .from('plan_ahead_profiles')
+      .select('*');
+
+    if (error) {
+      console.error("Error fetching plan ahead profiles:", error);
+      return;
+    }
+
+    if (!plans || plans.length === 0) {
+      console.log("No plan ahead profiles found");
+      return;
+    }
+
+    console.log(`Found ${plans.length} plan ahead profiles to check`);
+
+    // For each plan check if new property matches
+    for (const plan of plans) {
+      const matches = [];
+
+      // Check location match
+      // property city must be in user's target_locations array
+      const locationMatch = plan.target_locations?.some(
+        (loc: string) =>
+          newProperty.city?.toLowerCase().includes(loc.toLowerCase()) ||
+          newProperty.address?.toLowerCase().includes(loc.toLowerCase())
+      );
+
+      // Check property type match
+      const typeMatch = !plan.property_type ||
+        newProperty.property_type?.toLowerCase().includes(
+          plan.property_type.toLowerCase()
+        );
+
+      // Check move date match
+      // Property available date must be on or before user's move date
+      const dateMatch = !plan.move_date ||
+        !newProperty.available_date ||
+        new Date(newProperty.available_date) <= new Date(plan.move_date);
+
+      // If all conditions match send notification
+      if (locationMatch && typeMatch && dateMatch) {
+        console.log(`✅ Match found for user ${plan.user_id}`);
+        await sendPlanAheadNotification(
+          plan.user_id,
+          newProperty
+        );
+      }
+    }
+  } catch (error) {
+    console.error("Error in checkPlanAheadMatches:", error);
+  }
+}
+
+/**
+ * Send notification to user when a Plan Ahead match is found
+ */
+async function sendPlanAheadNotification(
+  userId: string,
+  property: any
+) {
+  console.log(`📧 Sending Plan Ahead notification to user ${userId}`);
+
+  try {
+    // Save to notifications table
+    const { error } = await supabase
+      .from('payment_notifications')
+      .insert({
+        user_id: userId,
+        notification_type: 'plan_ahead_match',
+        title: '🏠 New Property Match Found!',
+        message: `A property matching your Plan Ahead preferences was just listed at ${property.address}, ${property.city}. Available: ${property.available_date}. Price: $${property.monthly_rent || property.price}/month.`,
+        property_id: property.id,
+        property_link: `/dashboard/rent/${property.id}`
+      });
+
+    if (error) {
+      console.error("Error saving notification:", error);
+      throw error;
+    }
+
+    console.log("✅ Plan Ahead notification saved successfully");
+
+    // Send email notification
+    await sendPlanAheadEmail(userId, property);
+  } catch (error) {
+    console.error("Error in sendPlanAheadNotification:", error);
+  }
+}
+
+/**
+ * Send email notification for Plan Ahead match
+ */
+async function sendPlanAheadEmail(
+  userId: string,
+  property: any
+) {
+  console.log(`📧 Sending email to user ${userId}`);
+
+  try {
+    // Fetch user profile to get email and name
+    const { data: profile, error: profileError } = await supabase
+      .from('user_profiles')
+      .select('full_name, email')
+      .eq('id', userId)
+      .maybeSingle();
+
+    if (profileError || !profile) {
+      console.error("Error fetching user profile:", profileError);
+      return;
+    }
+
+    const userName = profile.full_name || 'User';
+    const userEmail = profile.email;
+
+    // Prepare email content
+    const subject = "🏠 New property match found — HomieAI";
+    const body = `
+Hi ${userName},
+
+Good news! A property matching your Plan Ahead preferences was just listed on HomieAI.
+
+Property: ${property.address}
+Price: $${property.monthly_rent || property.price}/month
+Available: ${property.available_date}
+Type: ${property.property_type}
+
+[View Property Now](https://homieai.ca/dashboard/rent/${property.id})
+
+If you want to update your preferences, visit your Plan Ahead settings.
+
+HomieAI Team
+    `.trim();
+
+    // Send email using Supabase email function
+    const { error: emailError } = await supabase.functions.invoke('send-email', {
+      body: {
+        to: userEmail,
+        subject: subject,
+        html: body.replace(/\n/g, '<br>')
+      }
+    });
+
+    if (emailError) {
+      console.error("Error sending email:", emailError);
+      // Don't throw - email is optional
+    } else {
+      console.log("✅ Email sent successfully");
+    }
+  } catch (error) {
+    console.error("Error in sendPlanAheadEmail:", error);
   }
 }
