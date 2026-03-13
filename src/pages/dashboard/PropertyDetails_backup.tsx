@@ -40,29 +40,6 @@ export default function PropertyDetailsPage() {
   const isSale = property ? !!(property as any).sales_price : false;
   const isCoOwnership = property ? !!(property as any).is_co_ownership : false;
 
-  // Helper variables for current listing data
-  const currentListing = isMLS ? mlsListing : property;
-  const currentTitle = isMLS ? mlsListing?.address : property?.listing_title;
-  const currentDescription = isMLS ? mlsListing?.description : property?.description;
-  const currentPrice = isMLS ? mlsListing?.price : property?.monthly_rent;
-  const currentBedrooms = isMLS ? mlsListing?.bedrooms : property?.bedrooms;
-  const currentBathrooms = isMLS ? mlsListing?.bathrooms : property?.bathrooms;
-  const currentSquareFootage = isMLS ? undefined : property?.square_footage;
-  const currentParking = isMLS ? mlsListing?.parking : property?.parking;
-  const currentPetPolicy = isMLS ? undefined : property?.pet_policy;
-  const currentFurnished = isMLS ? undefined : property?.furnished;
-  const currentAmenities = isMLS ? mlsListing?.amenities : property?.amenities;
-  const currentUtilities = isMLS ? undefined : property?.utilities_included;
-  const currentNearbyAmenities = isMLS ? undefined : property?.nearby_amenities;
-  const currentNeighborhood = isMLS ? undefined : property?.neighborhood;
-  const currentPublicTransport = isMLS ? undefined : property?.public_transport_access;
-  const currentImages = isMLS ? mlsListing?.images : property?.images;
-  const currentAudioUrl = isMLS ? undefined : property?.description_audio_url;
-  const currentVideoScript = isMLS ? undefined : property?.video_script;
-  const currentBackgroundMusic = isMLS ? undefined : property?.background_music_url;
-  const currentAudioEnabled = isMLS ? false : property?.audio_enabled !== false;
-  const currentVideoEnabled = isMLS ? false : property?.video_enabled !== false;
-
   // Inline edit states
   const [editingTitle, setEditingTitle] = useState(false);
   const [titleDraft, setTitleDraft] = useState("");
@@ -485,6 +462,8 @@ export default function PropertyDetailsPage() {
     setSavedProperties(saved);
   }, []);
 
+  // Get current listing data (either HomieAI or MLS)
+  const currentListing = isMLS ? mlsListing : property;
   const isPropertySaved = mlsListing ? savedProperties.includes(mlsListing.mlsNumber) : false;
 
   if (loading) {
@@ -616,13 +595,13 @@ export default function PropertyDetailsPage() {
                   if (showVideo && activeSlideIndex === 0) {
                     return (
                       <PropertyVideoPlayer
-                        images={currentImages || []}
-                        audioUrl={currentAudioEnabled ? currentAudioUrl : undefined}
-                        script={currentAudioEnabled ? currentVideoScript : undefined}
-                        musicUrl={currentAudioEnabled ? currentBackgroundMusic : undefined}
-                        address={currentListing?.address || (isMLS ? mlsListing?.address : property?.address) || ''}
-                        price={String(currentPrice || '')}
-                        amenities={currentAmenities || []}
+                        images={property.images || []}
+                        audioUrl={property.audio_enabled !== false ? property.description_audio_url : undefined}
+                        script={property.audio_enabled !== false ? property.video_script : undefined}
+                        musicUrl={property.audio_enabled !== false ? property.background_music_url : undefined}
+                        address={property.address}
+                        price={String(property.monthly_rent)}
+                        amenities={property.amenities || []}
                         autoPlay={false}
                       />
                     );
@@ -695,9 +674,9 @@ export default function PropertyDetailsPage() {
             </div>
             <CardContent className="p-6">
               {/* Sales Voice Agent Player - Top Position */}
-              {!isMLS && (currentAudioUrl || currentDescription) && (
+              {(property.description_audio_url || property.description) && (
                 <div className="mb-6">
-                  {currentAudioUrl ? (
+                  {property.description_audio_url ? (
                     <div className="bg-slate-50 border rounded-xl p-3">
                       <div className="flex items-center gap-3 mb-2">
                         <div className="h-6 w-6 rounded-full bg-purple-100 flex items-center justify-center text-purple-600">
@@ -708,7 +687,7 @@ export default function PropertyDetailsPage() {
                         </div>
                       </div>
                       <audio controls className="w-full h-8">
-                        <source src={currentAudioUrl} type="audio/mpeg" />
+                        <source src={property.description_audio_url} type="audio/mpeg" />
                         Your browser does not support the audio element.
                       </audio>
                     </div>
@@ -730,7 +709,7 @@ export default function PropertyDetailsPage() {
                             size="sm"
                             className="bg-white hover:bg-indigo-50 text-indigo-700 border-indigo-200"
                             onClick={() => {
-                              const utterance = new SpeechSynthesisUtterance(currentDescription || '');
+                              const utterance = new SpeechSynthesisUtterance(property.description);
                               const voices = window.speechSynthesis.getVoices();
                               const preferredVoice = voices.find(v => v.name.includes('Google US English')) || voices[0];
                               if (preferredVoice) utterance.voice = preferredVoice;
@@ -884,22 +863,22 @@ export default function PropertyDetailsPage() {
                   <div className="flex items-center gap-2 text-sm">
                     <span className="text-muted-foreground font-medium">Type:</span>
                     <span className="font-semibold bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-xs uppercase tracking-wide">
-                      {!isMLS ? property?.property_type : mlsListing?.propertyType || 'Not specified'}
+                      {property.property_type || 'Not specified'}
                     </span>
                   </div>
 
                   <div className="flex items-start gap-2 text-sm">
                     <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
                     <span className="text-gray-700 font-medium">
-                      {!isMLS ? `${property?.address}, ${property?.city}, ${property?.state} ${property?.zip_code}` : `${mlsListing?.address}, ${mlsListing?.city}, ${mlsListing?.province}`}
+                      {property.address}, {property.city}, {property.state} {property.zip_code}
                     </span>
                   </div>
 
-                  {currentNearbyAmenities && currentNearbyAmenities.length > 0 && (
+                  {property.nearby_amenities && property.nearby_amenities.length > 0 && (
                     <div className="space-y-1">
                       <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Nearby:</span>
                       <div className="flex flex-wrap gap-1.5">
-                        {currentNearbyAmenities.slice(0, 4).map((amenity, index) => (
+                        {property.nearby_amenities.slice(0, 4).map((amenity, index) => (
                           <span
                             key={index}
                             className="bg-green-50 text-green-700 border border-green-100 px-2 py-0.5 rounded text-[10px] font-medium"
@@ -907,9 +886,9 @@ export default function PropertyDetailsPage() {
                             {amenity}
                           </span>
                         ))}
-                        {currentNearbyAmenities.length > 4 && (
+                        {property.nearby_amenities.length > 4 && (
                           <span className="bg-gray-50 text-gray-500 border border-gray-100 px-2 py-0.5 rounded text-[10px]">
-                            +{currentNearbyAmenities.length - 4}
+                            +{property.nearby_amenities.length - 4}
                           </span>
                         )}
                       </div>
@@ -930,15 +909,15 @@ export default function PropertyDetailsPage() {
                     ) : (
                       <div className="flex items-center gap-1">
                         <Button size="sm" className="h-6 text-xs" disabled={saving} onClick={async () => { await savePartial({ description: descDraft }); setEditingDesc(false); }}>Save</Button>
-                        <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => { setDescDraft(currentDescription || ""); setEditingDesc(false); }}>Cancel</Button>
+                        <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => { setDescDraft(property.description || ""); setEditingDesc(false); }}>Cancel</Button>
                       </div>
                     )
                   )}
                 </div>
                 {!isMLS && (!isOwner || !editingDesc) ? (
-                  <p className="text-muted-foreground whitespace-pre-line text-sm leading-relaxed">{currentDescription}</p>
+                  <p className="text-muted-foreground whitespace-pre-line text-sm leading-relaxed">{property?.description}</p>
                 ) : isMLS ? (
-                  <p className="text-muted-foreground whitespace-pre-line text-sm leading-relaxed">{currentDescription}</p>
+                  <p className="text-muted-foreground whitespace-pre-line text-sm leading-relaxed">{mlsListing?.description}</p>
                 ) : (
                   <Textarea className="w-full text-sm" value={descDraft} onChange={(e) => setDescDraft(e.target.value)} />
                 )}
@@ -960,9 +939,9 @@ export default function PropertyDetailsPage() {
                   <div className="bg-slate-50 p-2 rounded border border-slate-100">
                     <div className="text-muted-foreground text-xs">Bedrooms</div>
                     {!isMLS && (!isOwner || !editingFacts) ? (
-                      <div className="font-medium">{currentBedrooms ?? '—'}</div>
+                      <div className="font-medium">{property?.bedrooms ?? '—'}</div>
                     ) : isMLS ? (
-                      <div className="font-medium">{currentBedrooms ?? '—'}</div>
+                      <div className="font-medium">{mlsListing?.bedrooms ?? '—'}</div>
                     ) : (
                       <Input value={bedroomsDraft} onChange={(e) => setBedroomsDraft(e.target.value)} className="h-7 text-xs" />
                     )}
@@ -971,9 +950,9 @@ export default function PropertyDetailsPage() {
                   <div className="bg-slate-50 p-2 rounded border border-slate-100">
                     <div className="text-muted-foreground text-xs">Bathrooms</div>
                     {!isMLS && (!isOwner || !editingFacts) ? (
-                      <div className="font-medium">{currentBathrooms ?? '—'}</div>
+                      <div className="font-medium">{property?.bathrooms ?? '—'}</div>
                     ) : isMLS ? (
-                      <div className="font-medium">{currentBathrooms ?? '—'}</div>
+                      <div className="font-medium">{mlsListing?.bathrooms ?? '—'}</div>
                     ) : (
                       <Input value={bathroomsDraft} onChange={(e) => setBathroomsDraft(e.target.value)} className="h-7 text-xs" />
                     )}
@@ -982,7 +961,7 @@ export default function PropertyDetailsPage() {
                   <div className="bg-slate-50 p-2 rounded border border-slate-100">
                     <div className="text-muted-foreground text-xs">Sqft</div>
                     {!isMLS && (!isOwner || !editingFacts) ? (
-                      <div className="font-medium">{currentSquareFootage ?? '—'}</div>
+                      <div className="font-medium">{property?.square_footage ?? '—'}</div>
                     ) : isMLS ? (
                       <div className="font-medium">—</div>
                     ) : (
@@ -993,9 +972,9 @@ export default function PropertyDetailsPage() {
                   <div className="bg-slate-50 p-2 rounded border border-slate-100">
                     <div className="text-muted-foreground text-xs">Parking</div>
                     {!isMLS && (!isOwner || !editingFacts) ? (
-                      <div className="font-medium truncate" title={currentParking}>{currentParking || '—'}</div>
+                      <div className="font-medium truncate" title={property?.parking}>{property?.parking || '—'}</div>
                     ) : isMLS ? (
-                      <div className="font-medium truncate" title={currentParking}>{currentParking || '—'}</div>
+                      <div className="font-medium truncate" title={mlsListing?.parking}>{mlsListing?.parking || '—'}</div>
                     ) : (
                       <Input value={parkingDraft} onChange={(e) => setParkingDraft(e.target.value)} className="h-7 text-xs" />
                     )}
@@ -1005,7 +984,7 @@ export default function PropertyDetailsPage() {
                     <div className="bg-slate-50 p-2 rounded border border-slate-100">
                       <div className="text-muted-foreground text-xs">Pet Policy</div>
                       {!isOwner || !editingFacts ? (
-                        <div className="font-medium truncate" title={currentPetPolicy}>{currentPetPolicy || '—'}</div>
+                        <div className="font-medium truncate" title={property?.pet_policy}>{property?.pet_policy || '—'}</div>
                       ) : (
                         <Input value={petPolicyDraft} onChange={(e) => setPetPolicyDraft(e.target.value)} className="h-7 text-xs" />
                       )}
@@ -1016,7 +995,7 @@ export default function PropertyDetailsPage() {
                     <div className="bg-slate-50 p-2 rounded border border-slate-100">
                       <div className="text-muted-foreground text-xs">Furnished</div>
                       {!isOwner || !editingFacts ? (
-                        <div className="font-medium">{currentFurnished ? 'Yes' : 'No'}</div>
+                        <div className="font-medium">{property?.furnished ? 'Yes' : 'No'}</div>
                       ) : (
                         <Input value={furnishedDraft} onChange={(e) => setFurnishedDraft(e.target.value)} className="h-7 text-xs" />
                       )}
@@ -1070,23 +1049,23 @@ export default function PropertyDetailsPage() {
 
               {/* Utilities & Amenities */}
               <div className="space-y-4">
-                {!isMLS && Array.isArray(currentUtilities) && currentUtilities.length > 0 && (
+                {!isMLS && Array.isArray(property?.utilities_included) && property.utilities_included.length > 0 && (
                   <div className="space-y-2">
                     <h3 className="font-semibold text-sm">Utilities Included</h3>
                     <div className="flex flex-wrap gap-1.5">
-                      {currentUtilities.map((u) => (
+                      {property.utilities_included.map((u) => (
                         <Badge key={u} variant="secondary" className="font-normal text-xs">{u}</Badge>
                       ))}
                     </div>
                   </div>
                 )}
 
-                {((!isMLS && Array.isArray(currentAmenities) && currentAmenities.length > 0) || 
-                  (isMLS && Array.isArray(currentAmenities) && currentAmenities.length > 0)) && (
+                {((!isMLS && Array.isArray(property?.amenities) && property.amenities.length > 0) || 
+                  (isMLS && Array.isArray(mlsListing?.amenities) && mlsListing.amenities.length > 0)) && (
                   <div className="space-y-2">
                     <h3 className="font-semibold text-sm">Amenities</h3>
                     <div className="flex flex-wrap gap-1.5">
-                      {currentAmenities?.map((a) => (
+                      {(isMLS ? mlsListing?.amenities : property?.amenities)?.map((a) => (
                         <Badge key={a} variant="outline" className="font-normal text-xs bg-white">{a}</Badge>
                       ))}
                     </div>
@@ -1100,9 +1079,9 @@ export default function PropertyDetailsPage() {
               <div className="space-y-2">
                 <h3 className="font-semibold text-sm">Location Details</h3>
                 <div className="text-xs text-muted-foreground space-y-1">
-                  {currentNeighborhood && <div><span className="font-medium">Neighborhood:</span> {currentNeighborhood}</div>}
-                  {currentPublicTransport && (
-                    <div><span className="font-medium">Transit:</span> {currentPublicTransport}</div>
+                  {property.neighborhood && <div><span className="font-medium">Neighborhood:</span> {property.neighborhood}</div>}
+                  {property.public_transport_access && (
+                    <div><span className="font-medium">Transit:</span> {property.public_transport_access}</div>
                   )}
                 </div>
               </div>
@@ -1113,11 +1092,11 @@ export default function PropertyDetailsPage() {
 
           {/* Property Documents (for sales listings, non-owners) */}
           {(() => {
-            const shouldShow = isSale && !isOwner && property;
+            const shouldShow = isSale && !isOwner;
             return shouldShow ? (
               <PropertyDocumentViewer
-                propertyId={property!.id}
-                propertyAddress={`${property!.address}, ${property!.city}, ${property!.state}`}
+                propertyId={property.id}
+                propertyAddress={`${property.address}, ${property.city}, ${property.state}`}
               />
             ) : null;
           })()}

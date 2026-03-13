@@ -289,6 +289,11 @@ const MOCK_LISTINGS: MLSListing[] = [
  * Format raw Repliers API response to HomieAI format
  */
 function formatRepliersListing(raw: any): MLSListing {
+  // Add CDN prefix to images
+  const imagesWithCDN = (raw.images || []).map((img: string) => 
+    `https://cdn.repliers.io/${img}?class=medium`
+  );
+  
   return {
     id: raw.id || `mls-${Date.now()}`,
     source: 'mls' as const,
@@ -301,7 +306,7 @@ function formatRepliersListing(raw: any): MLSListing {
     bedrooms: raw.bedrooms || 0,
     bathrooms: raw.bathrooms || 0,
     parking: raw.parking || '',
-    images: raw.images || ['https://placehold.co/800x500'],
+    images: imagesWithCDN.length > 0 ? imagesWithCDN : ['https://placehold.co/800x500'],
     description: raw.description || '',
     amenities: raw.amenities || [],
     availableDate: raw.available_date || '',
@@ -318,12 +323,14 @@ function formatRepliersListing(raw: any): MLSListing {
  * Get Repliers API configuration
  */
 function getRepliersConfig() {
-  const apiKey = import.meta.env.VITE_REPLIERS_API_KEY || process.env.REPLIERS_API_KEY;
-  const baseUrl = import.meta.env.VITE_REPLIERS_BASE_URL || process.env.REPLIERS_BASE_URL || 'https://api.repliers.io';
-  const isSandbox = true;
+  const apiKey = import.meta.env.VITE_REPLIERS_API_KEY || '';
+  const baseUrl = 'https://api.repliers.io';
+  const isSandbox = import.meta.env.VITE_REPLIERS_SANDBOX === 'true';
 
-  console.log('Sandbox mode value:', import.meta.env.VITE_REPLIERS_SANDBOX);
-  console.log('Is sandbox:', isSandbox);
+  console.log('Repliers API Key present:', !!apiKey);
+  console.log('Using base URL:', baseUrl);
+  console.log('Sandbox mode:', isSandbox);
+
   return { apiKey, baseUrl, isSandbox };
 }
 
@@ -341,46 +348,10 @@ export async function fetchMLSListings(filters?: {
   const { apiKey, baseUrl, isSandbox } = getRepliersConfig();
   console.log('fetchMLSListings called with filters:', filters);
 
-  // Return mock data in sandbox mode
+  // Sandbox mode - return mock data
   if (isSandbox) {
-    console.log('Sandbox mode: Returning mock MLS listings');
-    console.log('Returning mock listings:', MOCK_LISTINGS.length);
-    
-    // Filter mock data based on request filters
-    let filtered = [...MOCK_LISTINGS];
-
-    if (filters?.location) {
-      const locationLower = filters.location.toLowerCase();
-      filtered = filtered.filter(
-        listing => 
-          listing.city.toLowerCase().includes(locationLower) ||
-          listing.address.toLowerCase().includes(locationLower)
-      );
-    }
-
-    if (filters?.minPrice !== undefined) {
-      filtered = filtered.filter(listing => listing.price >= filters.minPrice!);
-    }
-
-    if (filters?.maxPrice !== undefined) {
-      filtered = filtered.filter(listing => listing.price <= filters.maxPrice!);
-    }
-
-    if (filters?.bedrooms) {
-      filtered = filtered.filter(listing => listing.bedrooms >= parseInt(filters.bedrooms!));
-    }
-
-    if (filters?.propertyType) {
-      filtered = filtered.filter(listing => 
-        listing.propertyType.toLowerCase() === filters.propertyType!.toLowerCase()
-      );
-    }
-
-    if (filters?.listingType) {
-      filtered = filtered.filter(listing => listing.listingType === filters.listingType);
-    }
-
-    return filtered;
+    console.log('Sandbox mode: returning mock MLS listings');
+    return MOCK_LISTINGS;
   }
 
   // Production mode - call Repliers API
@@ -397,7 +368,7 @@ export async function fetchMLSListings(filters?: {
 
     const response = await fetch(url, {
       headers: {
-        'Authorization': `Bearer ${apiKey}`,
+        'REPLIERS-API-KEY': apiKey,
         'Content-Type': 'application/json'
       }
     });
@@ -429,11 +400,10 @@ export async function fetchMLSListings(filters?: {
 export async function fetchMLSListingById(mlsId: string): Promise<MLSListing | null> {
   const { apiKey, baseUrl, isSandbox } = getRepliersConfig();
 
-  // Return mock data in sandbox mode
+  // Sandbox mode - return mock data
   if (isSandbox) {
-    console.log('Sandbox mode: Returning mock MLS listing by ID');
-    const listing = MOCK_LISTINGS.find(l => l.id === mlsId);
-    return listing || null;
+    console.log('Sandbox mode: returning mock MLS listing');
+    return MOCK_LISTINGS.find(listing => listing.mlsNumber === mlsId) || null;
   }
 
   // Production mode - call Repliers API
@@ -442,7 +412,7 @@ export async function fetchMLSListingById(mlsId: string): Promise<MLSListing | n
 
     const response = await fetch(url, {
       headers: {
-        'Authorization': `Bearer ${apiKey}`,
+        'REPLIERS-API-KEY': apiKey,
         'Content-Type': 'application/json'
       }
     });
@@ -458,6 +428,7 @@ export async function fetchMLSListingById(mlsId: string): Promise<MLSListing | n
     return null;
   }
 }
+
 /**
  * Poll for new MLS listings from Repliers API
  * TODO: When Repliers account is live, poll their API every 30 minutes
