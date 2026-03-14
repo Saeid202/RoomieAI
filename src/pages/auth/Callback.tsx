@@ -1,7 +1,7 @@
 
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client-simple';
 import { useRole, UserRole } from '@/contexts/RoleContext';
 import { toast } from '@/hooks/use-toast';
 
@@ -18,7 +18,10 @@ export default function Callback() {
   useEffect(() => {
     // Handle the OAuth callback
     supabase.auth.getSession().then(async ({ data: { session } }) => {
+      console.log("🔍 Callback page - Session retrieved:", session ? "YES" : "NO");
       if (session) {
+        console.log("🔍 Callback page - User email:", session.user.email);
+        console.log("🔍 Callback page - User metadata:", session.user.user_metadata);
         console.log("Auth callback - session exists:", session.user.email);
 
         // Ensure profile exists for the user

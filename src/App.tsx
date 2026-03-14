@@ -104,6 +104,20 @@ import LawyerDocumentReviews from "@/pages/dashboard/LawyerDocumentReviews";
 import FindLawyer from "@/pages/dashboard/FindLawyer";
 import CoBuyingScenario from "@/pages/dashboard/CoBuyingScenario";
 import CoOwnershipProfile from "@/pages/dashboard/CoOwnershipProfile";
+import ConstructionLogin from "@/construction/pages/ConstructionLogin";
+import ConstructionSignup from "@/construction/pages/ConstructionSignup";
+import ConstructionDashboardHome from "@/construction/pages/dashboard/ConstructionDashboardHome";
+import ConstructionProducts from "@/construction/pages/dashboard/ConstructionProducts";
+import ConstructionProductNew from "@/construction/pages/dashboard/ConstructionProductNew";
+import ConstructionProductEdit from "@/construction/pages/dashboard/ConstructionProductEdit";
+import ConstructionProfile from "@/construction/pages/dashboard/ConstructionProfile";
+import ConstructionQuotes from "@/construction/pages/dashboard/ConstructionQuotes";
+import ConstructionQuoteDetail from "@/construction/pages/dashboard/ConstructionQuoteDetail";
+import ConstructionMessages from "@/construction/pages/dashboard/ConstructionMessages";
+import ConstructionMessageDetail from "@/construction/pages/dashboard/ConstructionMessageDetail";
+import ConstructionProductDetail from "@/construction/pages/ConstructionProductDetail";
+import ConstructionPublicProducts from "@/construction/pages/ConstructionPublicProducts";
+import ConstructionCustomOrder from "@/construction/pages/ConstructionCustomOrder"
 
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect } from "react";
@@ -251,6 +265,22 @@ function AppRoutes() {
           <Route path="tax-intelligence" element={<ErrorBoundary componentName="TaxIntelligencePage"><TaxIntelligencePage /></ErrorBoundary>} />
           <Route path="settings" element={<RenovatorSettings />} />
         </Route>
+
+        {/* Construction Routes — accessible regardless of HomieAI auth state */}
+        <Route path="/construction" element={<ConstructionPublicProducts />} />
+        <Route path="/construction/custom" element={<ConstructionCustomOrder />} />
+        <Route path="/construction/login" element={<ConstructionLogin />} />
+        <Route path="/construction/signup" element={<ConstructionSignup />} />
+        <Route path="/construction/dashboard" element={<ConstructionDashboardHome />} />
+        <Route path="/construction/dashboard/products" element={<ConstructionProducts />} />
+        <Route path="/construction/dashboard/products/new" element={<ConstructionProductNew />} />
+        <Route path="/construction/dashboard/products/:id/edit" element={<ConstructionProductEdit />} />
+        <Route path="/construction/dashboard/profile" element={<ConstructionProfile />} />
+        <Route path="/construction/dashboard/quotes" element={<ConstructionQuotes />} />
+        <Route path="/construction/dashboard/quotes/:id" element={<ConstructionQuoteDetail />} />
+        <Route path="/construction/dashboard/messages" element={<ConstructionMessages />} />
+        <Route path="/construction/dashboard/messages/:id" element={<ConstructionMessageDetail />} />
+        <Route path="/construction/:slug" element={<ConstructionProductDetail />} />
       </Routes>
     );
   }
@@ -268,6 +298,22 @@ function AppRoutes() {
       <Route path="/admin/login" element={<AdminLoginPage />} />
       <Route path="/auth" element={<AuthPage />} />
       <Route path="/auth/callback" element={<Callback />} />
+      <Route path="/auth" element={<AuthPage />} />
+      <Route path="/auth/callback" element={<Callback />} />
+      <Route path="/construction" element={<ConstructionPublicProducts />} />
+      <Route path="/construction/custom" element={<ConstructionCustomOrder />} />
+      <Route path="/construction/login" element={<ConstructionLogin />} />
+      <Route path="/construction/signup" element={<ConstructionSignup />} />
+      <Route path="/construction/dashboard" element={<ConstructionDashboardHome />} />
+      <Route path="/construction/dashboard/products" element={<ConstructionProducts />} />
+      <Route path="/construction/dashboard/products/new" element={<ConstructionProductNew />} />
+      <Route path="/construction/dashboard/products/:id/edit" element={<ConstructionProductEdit />} />
+      <Route path="/construction/dashboard/profile" element={<ConstructionProfile />} />
+      <Route path="/construction/dashboard/messages" element={<ConstructionMessages />} />
+      <Route path="/construction/dashboard/messages/:id" element={<ConstructionMessageDetail />} />
+      <Route path="/construction/dashboard/quotes" element={<ConstructionQuotes />} />
+      <Route path="/construction/dashboard/quotes/:id" element={<ConstructionQuoteDetail />} />
+      <Route path="/construction/:slug" element={<ConstructionProductDetail />} />
       <Route path="/emergency/accept/:token" element={<EmergencyAccept />} />
       <Route path="/dashboard" element={
         <ProtectedRoute>
@@ -353,6 +399,7 @@ function AppRoutes() {
         <Route path="admin/reporting-batches" element={<AdminRoute><ReportingBatchesPage /></AdminRoute>} />
         <Route path="admin/settings" element={<AdminRoute><SettingsPage /></AdminRoute>} />
       </Route>
+
     </Routes>
   );
 }

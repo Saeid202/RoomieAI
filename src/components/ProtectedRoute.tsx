@@ -1,39 +1,38 @@
-
-import { ReactNode, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { toast } from "@/hooks/use-toast";
 
 interface ProtectedRouteProps {
-  children: ReactNode;
+  children: React.ReactNode;
+  requiredRole?: string;
 }
 
-export default function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { user, loading } = useAuth();
-  const navigate = useNavigate();
+export default function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
+  const { user, loading: authLoading } = useAuth();
 
-  useEffect(() => {
-    if (!loading && !user) {
-      toast({
-        title: "Authentication required",
-        description: "Please log in to access this page",
-        variant: "destructive",
-      });
-      navigate("/", { replace: true });
-    }
-  }, [user, loading, navigate]);
-
-  if (loading) {
+  // Show loading state while checking
+  if (authLoading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="flex flex-col items-center">
-          <div className="w-12 h-12 border-4 border-roomie-purple border-t-transparent rounded-full animate-spin mb-4"></div>
-          <p className="text-lg font-medium text-gray-700">Verifying authentication...</p>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+          <p className="text-slate-600">Checking access...</p>
         </div>
       </div>
     );
   }
 
-  // Only render children if user is authenticated
-  return user ? <>{children}</> : null;
+  // If not authenticated, redirect to login
+  if (!user) {
+    return <Navigate to="/auth" replace />;
+  }
+
+  // If required role is specified and doesn't match, redirect to login
+  // Check both user_metadata and raw_user_meta_data for role
+  const userRole = user.user_metadata?.role || user.raw_user_meta_data?.role;
+  if (requiredRole && userRole !== requiredRole) {
+    return <Navigate to="/auth" replace />;
+  }
+
+  return <>{children}</>;
 }
