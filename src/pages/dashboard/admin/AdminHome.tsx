@@ -7,7 +7,8 @@ import {
   Sparkles,
   BarChart3,
   Database,
-  Settings
+  Settings,
+  Package
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "react-router-dom";
@@ -32,7 +33,7 @@ export default function AdminHomePage() {
         <StatCard title="Total Users" value={0} icon={Users} gradient="from-blue-500 to-blue-600" />
         <StatCard title="Active Pages" value={0} icon={FileText} gradient="from-green-500 to-emerald-500" />
         <StatCard title="Renovation Partners" value={0} icon={Hammer} gradient="from-orange-500 to-red-500" />
-        <StatCard title="AI Features" value={0} icon={Sparkles} gradient="from-purple-500 to-pink-500" />
+        <StatCard title="Construction Products" value={0} icon={Package} gradient="from-indigo-500 to-purple-500" />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -87,6 +88,20 @@ export default function AdminHomePage() {
             <CardContent>
               <p className="text-sm text-muted-foreground">
                 Manage cleaning service providers
+              </p>
+            </CardContent>
+          </EnhancedCard>
+        </Link>
+
+        <Link to="/dashboard/admin/construction" className="block">
+          <EnhancedCard className="h-full">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-lg font-medium">Construction</CardTitle>
+              <Package className="h-5 w-5 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                Manage construction products, suppliers, and marketplace
               </p>
             </CardContent>
           </EnhancedCard>

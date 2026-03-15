@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/integrations/supabase/client-simple'
 import { Link, useParams, useNavigate } from 'react-router-dom'
+import ConstructionHeader from '@/construction/components/ConstructionHeader'
+
+const COLORS = { dark: '#1a2332', green: '#63c18a', lightGreen: '#e8f5ee', background: '#f5f3ef', border: '#e8e4dc', grey: '#666', white: '#ffffff' }
 
 interface Product {
   id: string
@@ -31,31 +34,18 @@ export default function ConstructionProductDetail() {
   const [showQuoteForm, setShowQuoteForm] = useState(false)
   const [quoteMessage, setQuoteMessage] = useState('')
   const [submittingQuote, setSubmittingQuote] = useState(false)
+const [activeFilter, setActiveFilter] = useState('all')
 
   useEffect(() => {
     const loadProduct = async () => {
       setLoading(true)
       setError('')
 
-      console.log('=== PRODUCT DETAIL DEBUG ===')
-      console.log('Slug from URL:', slug)
-
-      // First test: can we query the table at all?
-      const { data: allProducts, error: listError } = await supabase
-        .from('construction_products')
-        .select('id, slug, status, title')
-
-      console.log('All products:', allProducts)
-      console.log('List error:', listError)
-
       const { data: productData, error: productError } = await supabase
         .from('construction_products')
         .select('id, title, slug, description, price_cad, product_type, size_ft, bedrooms, bathrooms, area_sqm, lead_time, frame_type, shipping_port, supplier_id, created_at')
         .eq('slug', slug)
         .single()
-
-      console.log('Product data:', productData)
-      console.log('Product error:', productError)
 
       if (productError || !productData) {
         setError('Product not found')
@@ -75,9 +65,6 @@ export default function ConstructionProductDetail() {
         .select('company_name, shipping_port')
         .eq('id', productData.supplier_id)
         .single()
-
-      console.log('Images:', images)
-      console.log('Supplier:', supplier)
 
       setProduct({
         ...productData,
@@ -170,59 +157,94 @@ export default function ConstructionProductDetail() {
   return (
     <div style={{ fontFamily: "'DM Sans', sans-serif", minHeight: '100vh', background: '#f5f3ef' }}>
       <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet" />
+      
+      {/* Header */}
+      <ConstructionHeader />
 
-      {/* Navigation */}
-      <nav style={{
-        background: '#1a2332',
-        padding: '0 40px',
-        height: 64,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+      {/* Hero Section - Product Specific */}
+      <section style={{
+        background: 'linear-gradient(135deg, #1a2332 0%, #2d1b4e 100%)',
+        padding: '100px 24px 80px',
+        textAlign: 'center',
+        position: 'relative',
+        overflow: 'hidden'
       }}>
-        <Link to="/construction" style={{
-          textDecoration: 'none',
-          color: 'white',
-          fontWeight: 700,
-          fontSize: 20,
-          fontFamily: "'Sora', sans-serif"
-        }}>
-          HomieAI <span style={{ color: '#63c18a' }}>AI</span>
-        </Link>
-        <Link to="/construction" style={{
-          color: 'white',
-          textDecoration: 'none',
-          fontSize: 14,
-          fontWeight: 500,
-          padding: '8px 16px',
-          border: '1px solid rgba(255,255,255,0.3)',
-          borderRadius: 6,
-          transition: 'all 0.2s'
-        }} onMouseEnter={(e) => {
-          e.currentTarget.style.borderColor = '#63c18a'
-          e.currentTarget.style.color = '#63c18a'
-        }} onMouseLeave={(e) => {
-          e.currentTarget.style.borderColor = 'rgba(255,255,255,0.3)'
-          e.currentTarget.style.color = 'white'
-        }}>
-          ← Back to Products
-        </Link>
-      </nav>
+        <div style={{ position: 'absolute', top: '-100px', right: '-100px', width: '400px', height: '400px', background: `radial-gradient(circle, #63c18a22 0%, transparent 70%)`, pointerEvents: 'none' }} />
+        <div style={{ maxWidth: '800px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
+          <div style={{ display: 'inline-block', background: '#e8f5ee', color: '#1a2332', padding: '4px 12px', borderRadius: '100px', fontSize: '12px', fontWeight: 600, marginBottom: '24px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            {product.product_type}
+          </div>
+          <h1 style={{ color: '#ffffff', fontSize: 'clamp(32px, 5vw, 48px)', fontWeight: 700, fontFamily: "'Sora', sans-serif", lineHeight: 1.2, marginBottom: '20px' }}>
+            {product.title}
+          </h1>
+          <p style={{ color: '#94a3b8', fontSize: '18px', lineHeight: 1.6, maxWidth: '600px', margin: '0 auto' }}>
+            {product.description?.substring(0, 200)}{product.description && product.description.length > 200 ? '...' : ''}
+          </p>
+          <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', marginTop: '32px' }}>
+            <Link to="/construction" style={{
+              background: '#63c18a',
+              color: '#1a2332',
+              textDecoration: 'none',
+              padding: '12px 32px',
+              borderRadius: 8,
+              fontWeight: 600,
+              fontSize: 16
+            }}>
+              ← Back to Products
+            </Link>
+            <button
+              onClick={() => setShowQuoteForm(!showQuoteForm)}
+              style={{
+                background: 'linear-gradient(135deg, #FF6B35 0%, #8B5CF6 100%)',
+                color: 'white',
+                border: 'none',
+                padding: '12px 32px',
+                borderRadius: 8,
+                fontWeight: 600,
+                fontSize: 16,
+                cursor: 'pointer'
+              }}
+            >
+              {showQuoteForm ? 'Cancel' : 'Request Quote'}
+            </button>
+          </div>
+        </div>
+      </section>
 
-      {/* Main Content */}
-      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '40px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 40, background: 'white', borderRadius: 16, overflow: 'hidden', boxShadow: '0 4px 16px rgba(0,0,0,0.08)' }}>
+      {/* Filter Bar */}
+      <div style={{ background: COLORS.white, borderBottom: '1px solid ' + COLORS.border, position: 'sticky', top: '72px', zIndex: 900 }}>
+        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '16px 24px', display: 'flex', gap: '12px', overflowX: 'auto' }}>
+          {['all', 'expandable', 'foldable', 'flatpack', 'capsule', 'modular'].map(f => (
+            <Link key={f} to="/construction" style={{
+              padding: '10px 20px',
+              borderRadius: '8px',
+              fontSize: '14px',
+              fontWeight: 600,
+              textDecoration: 'none',
+              whiteSpace: 'nowrap',
+              background: activeFilter === f ? COLORS.dark : 'transparent',
+              color: activeFilter === f ? COLORS.white : COLORS.grey,
+              border: '1px solid ' + (activeFilter === f ? COLORS.dark : COLORS.border)
+            }}>
+              {f === 'all' ? 'All Types' : f.charAt(0).toUpperCase() + f.slice(1)}
+            </Link>
+          ))}
+        </div>
+      </div>
+
+      {/* Product Details Section */}
+      <main style={{ maxWidth: '1280px', margin: '0 auto', padding: '60px 24px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px', background: 'white', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 16px rgba(0,0,0,0.08)' }}>
           
           {/* Left: Images */}
-          <div style={{ padding: '40px' }}>
+          <div style={{ padding: '40px', background: '#f5f3ef' }}>
             {/* Main Image */}
             <div style={{
               height: 400,
               background: '#f5f3ef',
-              borderRadius: 12,
+              borderRadius: '12px',
               overflow: 'hidden',
-              marginBottom: 20,
+              marginBottom: '20px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center'
@@ -240,7 +262,7 @@ export default function ConstructionProductDetail() {
 
             {/* Thumbnail Gallery */}
             {images.length > 1 && (
-              <div style={{ display: 'flex', gap: 12, overflowX: 'auto' }}>
+              <div style={{ display: 'flex', gap: '12px', overflowX: 'auto' }}>
                 {images.map(img => (
                   <img
                     key={img.id}
@@ -264,21 +286,7 @@ export default function ConstructionProductDetail() {
 
           {/* Right: Details */}
           <div style={{ padding: '40px', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ marginBottom: 24 }}>
-              <div style={{
-                display: 'inline-block',
-                background: '#e8f5ee',
-                color: '#1a2332',
-                padding: '4px 12px',
-                borderRadius: 4,
-                fontSize: 11,
-                fontWeight: 700,
-                textTransform: 'uppercase',
-                marginBottom: 12
-              }}>
-                {product.product_type}
-              </div>
-
+            <div style={{ marginBottom: '24px' }}>
               <h1 style={{
                 margin: '0 0 12px 0',
                 fontSize: 32,
@@ -288,12 +296,7 @@ export default function ConstructionProductDetail() {
               }}>
                 {product.title}
               </h1>
-
-              <p style={{
-                margin: 0,
-                fontSize: 14,
-                color: '#64748b'
-              }}>
+              <p style={{ margin: 0, fontSize: 14, color: '#64748b' }}>
                 by {product.construction_supplier_profiles?.company_name}
                 {product.construction_supplier_profiles?.shipping_port && (
                   <> • Ships from {product.construction_supplier_profiles.shipping_port}</>
@@ -306,46 +309,46 @@ export default function ConstructionProductDetail() {
               fontSize: 28,
               fontWeight: 800,
               color: '#1a2332',
-              marginBottom: 24,
+              marginBottom: '24px',
               fontFamily: "'Sora', sans-serif"
             }}>
               ${product.price_cad.toLocaleString()} <span style={{ fontSize: 16, fontWeight: 400, color: '#64748b' }}>CAD</span>
             </div>
 
             {/* Specs */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 24 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '24px' }}>
               {product.size_ft && (
-                <div style={{ background: '#f5f3ef', padding: 12, borderRadius: 8 }}>
+                <div style={{ background: '#f5f3ef', padding: '12px', borderRadius: 8 }}>
                   <div style={{ fontSize: 12, color: '#64748b', marginBottom: 4 }}>Size</div>
                   <div style={{ fontWeight: 600, color: '#1a2332' }}>{product.size_ft}</div>
                 </div>
               )}
               {product.bedrooms && (
-                <div style={{ background: '#f5f3ef', padding: 12, borderRadius: 8 }}>
+                <div style={{ background: '#f5f3ef', padding: '12px', borderRadius: 8 }}>
                   <div style={{ fontSize: 12, color: '#64748b', marginBottom: 4 }}>Bedrooms</div>
                   <div style={{ fontWeight: 600, color: '#1a2332' }}>{product.bedrooms}</div>
                 </div>
               )}
               {product.bathrooms && (
-                <div style={{ background: '#f5f3ef', padding: 12, borderRadius: 8 }}>
+                <div style={{ background: '#f5f3ef', padding: '12px', borderRadius: 8 }}>
                   <div style={{ fontSize: 12, color: '#64748b', marginBottom: 4 }}>Bathrooms</div>
                   <div style={{ fontWeight: 600, color: '#1a2332' }}>{product.bathrooms}</div>
                 </div>
               )}
               {product.lead_time && (
-                <div style={{ background: '#f5f3ef', padding: 12, borderRadius: 8 }}>
+                <div style={{ background: '#f5f3ef', padding: '12px', borderRadius: 8 }}>
                   <div style={{ fontSize: 12, color: '#64748b', marginBottom: 4 }}>Lead Time</div>
                   <div style={{ fontWeight: 600, color: '#1a2332' }}>{product.lead_time}</div>
                 </div>
               )}
               {product.area_sqm && (
-                <div style={{ background: '#f5f3ef', padding: 12, borderRadius: 8 }}>
+                <div style={{ background: '#f5f3ef', padding: '12px', borderRadius: 8 }}>
                   <div style={{ fontSize: 12, color: '#64748b', marginBottom: 4 }}>Area</div>
                   <div style={{ fontWeight: 600, color: '#1a2332' }}>{product.area_sqm} sqm</div>
                 </div>
               )}
               {product.frame_type && (
-                <div style={{ background: '#f5f3ef', padding: 12, borderRadius: 8 }}>
+                <div style={{ background: '#f5f3ef', padding: '12px', borderRadius: 8 }}>
                   <div style={{ fontSize: 12, color: '#64748b', marginBottom: 4 }}>Frame</div>
                   <div style={{ fontWeight: 600, color: '#1a2332' }}>{product.frame_type}</div>
                 </div>
@@ -353,13 +356,13 @@ export default function ConstructionProductDetail() {
             </div>
 
             {/* Description */}
-            <div style={{ marginBottom: 24 }}>
+            <div style={{ marginBottom: '24px' }}>
               <h3 style={{ margin: '0 0 12px 0', color: '#1a2332', fontFamily: "'Sora', sans-serif" }}>About this product</h3>
               <p style={{ margin: 0, color: '#64748b', lineHeight: 1.6 }}>{product.description}</p>
             </div>
 
             {/* CTA Buttons */}
-            <div style={{ display: 'flex', gap: 12, marginTop: 'auto' }}>
+            <div style={{ display: 'flex', gap: '12px', marginTop: 'auto' }}>
               <button
                 onClick={() => setShowQuoteForm(!showQuoteForm)}
                 style={{
@@ -374,12 +377,8 @@ export default function ConstructionProductDetail() {
                   cursor: 'pointer',
                   transition: 'all 0.2s'
                 }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = '#52b373'
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = '#63c18a'
-                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = '#52b373' }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = '#63c18a' }}
               >
                 {showQuoteForm ? 'Cancel' : 'Request Quote'}
               </button>
@@ -396,11 +395,7 @@ export default function ConstructionProductDetail() {
                 textAlign: 'center',
                 transition: 'all 0.2s',
                 cursor: 'pointer'
-              }} onMouseEnter={(e) => {
-                e.currentTarget.style.background = '#2d3a4a'
-              }} onMouseLeave={(e) => {
-                e.currentTarget.style.background = '#1a2332'
-              }}>
+              }} onMouseEnter={(e) => { e.currentTarget.style.background = '#2d3a4a' }} onMouseLeave={(e) => { e.currentTarget.style.background = '#1a2332' }}>
                 Custom Build
               </Link>
             </div>
@@ -409,19 +404,9 @@ export default function ConstructionProductDetail() {
 
         {/* Quote Form Modal */}
         {showQuoteForm && (
-          <div style={{
-            marginTop: 40,
-            padding: 40,
-            background: 'white',
-            borderRadius: 16,
-            boxShadow: '0 4px 16px rgba(0,0,0,0.08)'
-          }}>
-            <h3 style={{ margin: '0 0 16px 0', color: '#1a2332', fontFamily: "'Sora', sans-serif" }}>
-              Request a Custom Quote
-            </h3>
-            <p style={{ color: '#64748b', marginBottom: 20 }}>
-              Tell the supplier about your specific needs and they'll get back to you with a custom quote.
-            </p>
+          <div style={{ marginTop: '40px', padding: '40px', background: 'white', borderRadius: '16px', boxShadow: '0 4px 16px rgba(0,0,0,0.08)' }}>
+            <h3 style={{ margin: '0 0 16px 0', color: '#1a2332', fontFamily: "'Sora', sans-serif" }}>Request a Custom Quote</h3>
+            <p style={{ color: '#64748b', marginBottom: '20px' }}>Tell the supplier about your specific needs and they'll get back to you with a custom quote.</p>
             <textarea
               value={quoteMessage}
               onChange={(e) => setQuoteMessage(e.target.value)}
@@ -429,16 +414,16 @@ export default function ConstructionProductDetail() {
               style={{
                 width: '100%',
                 minHeight: 120,
-                padding: 12,
+                padding: '12px',
                 border: '1px solid #e8e4dc',
                 borderRadius: 8,
                 fontFamily: "'DM Sans', sans-serif",
                 fontSize: 14,
-                marginBottom: 16,
+                marginBottom: '16px',
                 resize: 'vertical'
               }}
             />
-            <div style={{ display: 'flex', gap: 12 }}>
+            <div style={{ display: 'flex', gap: '12px' }}>
               <button
                 onClick={handleRequestQuote}
                 disabled={submittingQuote || !quoteMessage.trim()}
@@ -457,10 +442,7 @@ export default function ConstructionProductDetail() {
                 {submittingQuote ? 'Sending...' : 'Send Quote Request'}
               </button>
               <button
-                onClick={() => {
-                  setShowQuoteForm(false)
-                  setQuoteMessage('')
-                }}
+                onClick={() => { setShowQuoteForm(false); setQuoteMessage('') }}
                 style={{
                   background: '#f5f3ef',
                   color: '#1a2332',
@@ -476,7 +458,7 @@ export default function ConstructionProductDetail() {
             </div>
           </div>
         )}
-      </div>
+      </main>
     </div>
   )
 }

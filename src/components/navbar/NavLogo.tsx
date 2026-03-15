@@ -1,5 +1,5 @@
-
 import { Link } from "react-router-dom";
+import { Building2 } from "lucide-react";
 
 export const NavLogo = () => {
   return (

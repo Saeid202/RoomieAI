@@ -1,32 +1,10 @@
 import { Link } from 'react-router-dom'
+import ConstructionHeader from '@/construction/components/ConstructionHeader'
 
 export default function ConstructionCustomOrder() {
   return (
     <div style={{ fontFamily: "'DM Sans', sans-serif", minHeight: '100vh', background: '#f5f3ef' }}>
-      <nav style={{
-        background: '#1a2332',
-        padding: '0 40px',
-        height: 64,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-      }}>
-        <Link to="/construction" style={{ textDecoration: 'none', color: 'white', fontWeight: 700, fontSize: 20 }}>
-          HomieAI <span style={{ color: '#63c18a' }}>AI</span>
-        </Link>
-        <Link to="/construction" style={{
-          color: 'white',
-          textDecoration: 'none',
-          fontSize: 14,
-          fontWeight: 500,
-          padding: '8px 16px',
-          border: '1px solid rgba(255,255,255,0.3)',
-          borderRadius: 6
-        }}>
-          Back to Products
-        </Link>
-      </nav>
+      <ConstructionHeader />
 
       <div style={{
         maxWidth: 600,

@@ -1,683 +1,990 @@
 import { useState, useRef } from 'react'
 import { supabase } from '@/integrations/supabase/client-simple'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
-type ProductType = 'expandable' | 'foldable' | 'flatpack' | 'capsule' | 'modular'
-type DocType = 'brochure' | 'spec_sheet' | 'floor_plan' | 'compliance' | 'install_guide'
-
-interface ProductData {
-  title: string
+interface FormState {
+  step: number
+  // Step 1: Basic Info & Pricing
+  productName: string
+  category: string
+  commercialPurpose: string
+  tagline: string
   description: string
-  price_cad: string
-  product_type: ProductType
-  size_ft: string
+  pricingMode: 'fixed' | 'quote' | 'both'
+  basePrice: string
+  pricePerSqm: string
+  includedInPrice: string
+  notIncluded: string
+  // Step 2: Specifications
+  standardSize: string
+  floorAreaSqm: string
+  numFloors: string
+  ceilingHeight: string
+  frameMaterial: string
+  wallPanelMaterial: string
+  roofType: string
+  numModules: string
+  assemblyTime: string
   bedrooms: string
   bathrooms: string
-  area_sqm: string
-  lead_time: string
-  frame_type: string
-  shipping_port: string
-  badge_label: string
+  openPlanLiving: string
+  kitchenIncluded: string
+  laundrySpace: string
+  insulationRValue: string
+  climateSuitability: string
+  windRating: string
+  snowLoad: string
+  fireRating: string
+  energyRating: string
+  buildingCodeCompliance: string
+  csaCertified: string
+  shippingPort: string
+  leadTime: string
+  shippingMethod: string
+  numContainers: string
+  shipsTo: string
+  // Step 3: Customization
+  customizationOptions: Record<string, any>
+  globalAddons: Array<{ name: string; price: string; description: string }>
+  // Step 4: Media
+  photos: File[]
+  photoPreviews: string[]
+  primaryPhotoIndex: number
+  documents: Record<string, File | null>
+  badgeText: string
+  badgeStyle: string
 }
 
-interface FormData {
-  step: number
-  product: ProductData
-  images: File[]
-  documents: Record<DocType, File | null>
-  customization: Record<string, any>
+const CATEGORIES = {
+  'Residential': [
+    'Expandable Container Home',
+    'Foldable Modular Unit',
+    'Flat Pack Home',
+    'Capsule Studio Unit',
+    'Modular Villa',
+    'Cabinet'
+  ],
+  'Commercial': [
+    'Commercial Modular Building'
+  ]
 }
 
 export default function ConstructionProductNew() {
   const navigate = useNavigate()
-  const [formData, setFormData] = useState<FormData>({
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [form, setForm] = useState<FormState>({
     step: 1,
-    product: {
-      title: '',
-      description: '',
-      price_cad: '',
-      product_type: 'expandable',
-      size_ft: '',
-      bedrooms: '',
-      bathrooms: '',
-      area_sqm: '',
-      lead_time: '',
-      frame_type: '',
-      shipping_port: '',
-      badge_label: ''
-    },
-    images: [],
+    productName: '',
+    category: '',
+    commercialPurpose: '',
+    tagline: '',
+    description: '',
+    pricingMode: 'fixed',
+    basePrice: '',
+    pricePerSqm: '',
+    includedInPrice: '',
+    notIncluded: '',
+    standardSize: '40ft',
+    floorAreaSqm: '',
+    numFloors: '1',
+    ceilingHeight: '',
+    frameMaterial: 'Steel',
+    wallPanelMaterial: 'SIP Panel',
+    roofType: 'Flat',
+    numModules: '',
+    assemblyTime: '',
+    bedrooms: 'Studio',
+    bathrooms: '1',
+    openPlanLiving: 'Yes',
+    kitchenIncluded: 'Yes basic',
+    laundrySpace: 'No',
+    insulationRValue: '',
+    climateSuitability: 'Mild',
+    windRating: '',
+    snowLoad: '',
+    fireRating: 'Standard',
+    energyRating: '',
+    buildingCodeCompliance: 'Compliant',
+    csaCertified: 'No',
+    shippingPort: '',
+    leadTime: '',
+    shippingMethod: 'Flat pack',
+    numContainers: '',
+    shipsTo: 'Canada only',
+    customizationOptions: {},
+    globalAddons: [],
+    photos: [],
+    photoPreviews: [],
+    primaryPhotoIndex: 0,
     documents: {
       brochure: null,
-      spec_sheet: null,
-      floor_plan: null,
-      compliance: null,
-      install_guide: null
+      specifications: null,
+      floorPlan: null,
+      buildingCode: null,
+      installationGuide: null
     },
-    customization: {}
+    badgeText: '',
+    badgeStyle: 'Green'
   })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const [previewImages, setPreviewImages] = useState<string[]>([])
-  const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const handleProductChange = (field: keyof ProductData, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      product: { ...prev.product, [field]: value }
-    }))
-  }
-
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const newImages = Array.from(e.target.files)
-      if (formData.images.length + newImages.length > 10) {
-        setError('Maximum 10 images allowed')
-        return
-      }
-
-      const newPreviews = newImages.map(file => URL.createObjectURL(file))
-      setPreviewImages(prev => [...prev, ...newPreviews])
-      setFormData(prev => ({ ...prev, images: [...prev.images, ...newImages] }))
-    }
-  }
-
-  const removeImage = (index: number) => {
-    setPreviewImages(prev => prev.filter((_, i) => i !== index))
-    setFormData(prev => ({ ...prev, images: prev.images.filter((_, i) => i !== index) }))
-  }
-
-  const handleDocumentUpload = (docType: DocType, file: File) => {
-    setFormData(prev => ({
-      ...prev,
-      documents: { ...prev.documents, [docType]: file }
-    }))
-  }
-
-  const removeDocument = (docType: DocType) => {
-    setFormData(prev => ({
-      ...prev,
-      documents: { ...prev.documents, [docType]: null }
-    }))
-  }
-
-  const handleCustomizationChange = (optionType: string, value: string, priceModifier: string = '0') => {
-    setFormData(prev => ({
-      ...prev,
-      customization: {
-        ...prev.customization,
-        [optionType]: { value, priceModifier }
-      }
-    }))
+  const updateForm = (field: keyof FormState, value: any) => {
+    setForm(prev => ({ ...prev, [field]: value }))
   }
 
   const handleNext = () => {
-    if (formData.step < 5) {
-      setFormData(prev => ({ ...prev, step: prev.step + 1 }))
+    if (form.step < 5) {
+      setForm(prev => ({ ...prev, step: prev.step + 1 }))
     }
   }
 
   const handleBack = () => {
-    if (formData.step > 1) {
-      setFormData(prev => ({ ...prev, step: prev.step - 1 }))
+    if (form.step > 1) {
+      setForm(prev => ({ ...prev, step: prev.step - 1 }))
     }
   }
 
-  const handleSubmit = async (publish: boolean) => {
-    setError('')
-    setLoading(true)
+  const goToStep = (stepNum: number) => {
+    if (stepNum <= form.step) {
+      setForm(prev => ({ ...prev, step: stepNum }))
+    }
+  }
 
+  const handlePublish = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) {
-        window.location.href = '/construction/login'
+      setLoading(true)
+      setError('')
+
+      // Validate required fields
+      if (!form.productName || !form.category || !form.description || !form.basePrice) {
+        setError('Please fill in all required fields (Product Name, Category, Description, Base Price)')
+        setLoading(false)
         return
       }
 
-      console.log('Current user ID:', session.user.id)
-
-      // Look up the supplier profile (id = auth.users.id)
-      let { data: profile, error: profileFetchError } = await supabase
-        .from('construction_supplier_profiles')
-        .select('id')
-        .eq('id', session.user.id)
-        .single()
-
-      if (profileFetchError && profileFetchError.code !== 'PGRST116') {
-        console.error('Profile fetch error:', profileFetchError)
-        throw new Error(`Could not fetch supplier profile: ${profileFetchError.message}`)
+      // Get current user
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.user?.id) {
+        setError('You must be logged in to publish a product')
+        setLoading(false)
+        return
       }
 
-      // Auto-create supplier profile if it doesn't exist
-      if (!profile) {
-        console.log('Creating new supplier profile...')
-        const { data: newProfile, error: profileError } = await supabase
-          .from('construction_supplier_profiles')
-          .insert({
-            id: session.user.id,
-            company_name: session.user.user_metadata?.company_name || 'My Company',
-            contact_name: session.user.user_metadata?.contact_name || '',
-            email: session.user.email || ''
-          })
-          .select('id')
-          .single()
+      // Map category to product_type (must match database constraint)
+      const categoryMap: Record<string, string> = {
+        'Expandable Container Home': 'expandable',
+        'Foldable Modular Unit': 'foldable',
+        'Flat Pack Home': 'flatpack',
+        'Capsule Studio Unit': 'capsule',
+        'Modular Villa': 'modular',
+        'Commercial Modular Building': 'modular',
+        'Cabinet': 'cabinet'
+      }
+      const productType = categoryMap[form.category] || 'modular'
 
-        if (profileError) {
-          console.error('Profile creation error:', profileError)
-          throw new Error(`Could not create supplier profile: ${profileError.message}`)
-        }
-        profile = newProfile
-        console.log('Supplier profile created:', profile)
-      } else {
-        console.log('Supplier profile found:', profile)
+      // Create product first (without images)
+      const productData = {
+        supplier_id: session.user.id,
+        title: form.productName,
+        slug: form.productName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
+        product_type: productType,
+        description: form.description,
+        price_cad: parseFloat(form.basePrice) || 0,
+        bedrooms: form.bedrooms || 'Studio',
+        size_ft: form.standardSize || '40ft',
+        lead_time: form.leadTime || '',
+        status: 'live'
       }
 
-      // Generate slug from title
-      const baseSlug = formData.product.title
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-|-$/g, '')
-      const slug = `${baseSlug}-${Date.now().toString(36)}`
-
-      // Step 1: Insert product
-      const { data: productData, error: productError } = await supabase
+      const { data: product, error: productError } = await supabase
         .from('construction_products')
-        .insert({
-          supplier_id: profile.id,
-          title: formData.product.title,
-          slug,
-          description: formData.product.description,
-          price_cad: parseFloat(formData.product.price_cad),
-          product_type: formData.product.product_type,
-          size_ft: formData.product.size_ft || null,
-          bedrooms: formData.product.bedrooms || null,
-          bathrooms: formData.product.bathrooms || null,
-          area_sqm: formData.product.area_sqm ? parseFloat(formData.product.area_sqm) : null,
-          lead_time: formData.product.lead_time || null,
-          frame_type: formData.product.frame_type || null,
-          shipping_port: formData.product.shipping_port || null,
-          status: publish ? 'live' : 'draft'
-        })
+        .insert([productData])
         .select()
-        .single()
 
       if (productError) {
-        console.error('Product insert error - full object:', productError)
-        console.error('Product insert error - keys:', Object.keys(productError))
-        console.error('Product insert error - toString:', productError.toString())
-        console.error('Product insert error - JSON:', JSON.stringify(productError, null, 2))
-        
-        let errorMsg = 'Unknown error'
-        if (productError?.message) errorMsg = productError.message
-        else if (productError?.details) errorMsg = productError.details
-        else if (productError?.hint) errorMsg = productError.hint
-        else if (Object.keys(productError).length === 0) errorMsg = 'RLS policy rejection or empty error'
-        else errorMsg = JSON.stringify(productError)
-        
-        throw new Error(`Product insert failed: ${errorMsg}`)
+        throw new Error(`Failed to create product: ${productError.message}`)
       }
 
-      if (!productData) {
-        throw new Error('Product insert returned no data')
+      if (!product || product.length === 0) {
+        throw new Error('Product was created but no data returned')
       }
 
-      const product = productData
+      // Redirect immediately for better UX
+      setLoading(false)
+      
+      // Upload images in background (don't wait for completion)
+      if (form.photos && form.photos.length > 0) {
+        // Parallelize image uploads
+        const uploadPromises = form.photos.map(async (photo, i) => {
+          const filename = `products/${session.user.id}/${Date.now()}-${i}-${photo.name}`
+          
+          try {
+            const { error: uploadError } = await supabase.storage
+              .from('construction-images')
+              .upload(filename, photo)
+            
+            if (uploadError) return null
 
-      // Step 2: Upload images
-      const imageIds: { storage_path: string; public_url: string; is_primary: boolean }[] = []
-      for (let i = 0; i < formData.images.length; i++) {
-        const image = formData.images[i]
-        const storagePath = `${session.user.id}/${product.id}/${image.name}`
-        const { error: uploadError } = await supabase.storage
-          .from('construction-images')
-          .upload(storagePath, image, { contentType: image.type })
+            const { data: urlData } = supabase.storage
+              .from('construction-images')
+              .getPublicUrl(filename)
 
-        if (uploadError) throw new Error(`Image upload failed: ${uploadError.message}`)
-
-        const { data: { publicUrl } } = supabase.storage
-          .from('construction-images')
-          .getPublicUrl(storagePath)
-
-        imageIds.push({
-          storage_path: storagePath,
-          public_url: publicUrl,
-          is_primary: i === 0
+            return {
+              product_id: product[0].id,
+              storage_path: filename,
+              public_url: urlData.publicUrl,
+              is_primary: i === form.primaryPhotoIndex
+            }
+          } catch (err) {
+            return null
+          }
         })
-      }
 
-      // Insert image records
-      for (const img of imageIds) {
-        await supabase
-          .from('construction_product_images')
-          .insert({
-            product_id: product.id,
-            storage_path: img.storage_path,
-            public_url: img.public_url,
-            is_primary: img.is_primary,
-            sort_order: imageIds.indexOf(img)
-          })
-      }
+        // Wait for all uploads to complete
+        const results = await Promise.all(uploadPromises)
+        const imageInserts = results.filter(Boolean)
 
-      // Step 3: Upload documents
-      for (const [docType, file] of Object.entries(formData.documents)) {
-        if (file) {
-          const storagePath = `${session.user.id}/${product.id}/${docType}/${file.name}`
-          const { error: uploadError } = await supabase.storage
-            .from('construction-documents')
-            .upload(storagePath, file, { contentType: file.type })
-
-          if (uploadError) throw new Error(`Document upload failed: ${uploadError.message}`)
-
-          const { data: { publicUrl } } = supabase.storage
-            .from('construction-documents')
-            .getPublicUrl(storagePath)
-
+        if (imageInserts.length > 0) {
           await supabase
-            .from('construction_product_documents')
-            .insert({
-              product_id: product.id,
-              doc_type: docType as DocType,
-              file_name: file.name,
-              storage_path: storagePath,
-              file_size_kb: Math.round(file.size / 1024)
-            })
+            .from('construction_product_images')
+            .insert(imageInserts)
         }
       }
-
-      // Step 4: Skip customization options (table doesn't exist yet)
-      // TODO: Add construction_customization_options table in future migration
-
-      navigate('/construction/dashboard/products')
-    } catch (err) {
-      console.error('Submit error:', err)
-      setError(err instanceof Error ? err.message : 'An error occurred')
+      
+      // Redirect after a short delay to ensure everything is saved
+      setTimeout(() => {
+        navigate('/construction/dashboard/products')
+      }, 500)
+    } catch (err: any) {
+      setError(err.message || 'Failed to publish product. Please try again.')
+      setLoading(false)
     }
-
-    setLoading(false)
   }
 
-  // Step 1: Basic Info
+  // Step 1: Basic Info & Pricing
   const renderStep1 = () => (
-    <div style={{ padding: 20 }}>
-      <h3>Basic Information</h3>
-      <div style={{ marginBottom: 12 }}>
-        <label>Title *</label>
-        <input
-          type="text"
-          value={formData.product.title}
-          onChange={e => handleProductChange('title', e.target.value)}
-          required
-          style={{ width: '100%', padding: 8, marginTop: 4 }}
-        />
-      </div>
-      <div style={{ marginBottom: 12 }}>
-        <label>Product Type *</label>
-        <select
-          value={formData.product.product_type}
-          onChange={e => handleProductChange('product_type', e.target.value as ProductType)}
-          required
-          style={{ width: '100%', padding: 8, marginTop: 4 }}
-        >
-          <option value="expandable">Expandable</option>
-          <option value="foldable">Foldable</option>
-          <option value="flatpack">Flat Pack</option>
-          <option value="capsule">Capsule</option>
-          <option value="modular">Modular</option>
-        </select>
-      </div>
-      <div style={{ marginBottom: 12 }}>
-        <label>Description *</label>
-        <textarea
-          value={formData.product.description}
-          onChange={e => handleProductChange('description', e.target.value)}
-          required
-          rows={4}
-          style={{ width: '100%', padding: 8, marginTop: 4 }}
-        />
-      </div>
-      <div style={{ marginBottom: 12 }}>
-        <label>Base Price (CAD) *</label>
-        <input
-          type="number"
-          value={formData.product.price_cad}
-          onChange={e => handleProductChange('price_cad', e.target.value)}
-          required
-          min="0"
-          step="0.01"
-          style={{ width: '100%', padding: 8, marginTop: 4 }}
-        />
-      </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-        <div>
-          <label>Size (ft)</label>
-          <input
-            type="text"
-            value={formData.product.size_ft}
-            onChange={e => handleProductChange('size_ft', e.target.value)}
-            placeholder="e.g., 40ft"
-            style={{ width: '100%', padding: 8, marginTop: 4 }}
-          />
-        </div>
-        <div>
-          <label>Bedrooms</label>
-          <input
-            type="text"
-            value={formData.product.bedrooms}
-            onChange={e => handleProductChange('bedrooms', e.target.value)}
-            placeholder="e.g., 2 or Studio"
-            style={{ width: '100%', padding: 8, marginTop: 4 }}
-          />
-        </div>
-      </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-        <div>
-          <label>Bathrooms</label>
-          <input
-            type="text"
-            value={formData.product.bathrooms}
-            onChange={e => handleProductChange('bathrooms', e.target.value)}
-            style={{ width: '100%', padding: 8, marginTop: 4 }}
-          />
-        </div>
-        <div>
-          <label>Area (sqm)</label>
-          <input
-            type="number"
-            value={formData.product.area_sqm}
-            onChange={e => handleProductChange('area_sqm', e.target.value)}
-            style={{ width: '100%', padding: 8, marginTop: 4 }}
-          />
-        </div>
-      </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-        <div>
-          <label>Lead Time</label>
-          <input
-            type="text"
-            value={formData.product.lead_time}
-            onChange={e => handleProductChange('lead_time', e.target.value)}
-            placeholder="e.g., 3-15 days"
-            style={{ width: '100%', padding: 8, marginTop: 4 }}
-          />
-        </div>
-        <div>
-          <label>Frame Type</label>
-          <input
-            type="text"
-            value={formData.product.frame_type}
-            onChange={e => handleProductChange('frame_type', e.target.value)}
-            placeholder="e.g., Steel"
-            style={{ width: '100%', padding: 8, marginTop: 4 }}
-          />
-        </div>
-      </div>
-      <div style={{ marginBottom: 12 }}>
-        <label>Shipping Port</label>
-        <input
-          type="text"
-          value={formData.product.shipping_port}
-          onChange={e => handleProductChange('shipping_port', e.target.value)}
-          placeholder="e.g., XinGang, China"
-          style={{ width: '100%', padding: 8, marginTop: 4 }}
-        />
-      </div>
-      <div style={{ marginBottom: 12 }}>
-        <label>Badge Label (Optional)</label>
-        <input
-          type="text"
-          value={formData.product.badge_label}
-          onChange={e => handleProductChange('badge_label', e.target.value)}
-          placeholder="e.g., In Stock / New / Popular"
-          style={{ width: '100%', padding: 8, marginTop: 4 }}
-        />
-      </div>
-    </div>
-  )
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
+      {/* Card 1: Product Identity */}
+      <div style={{
+        background: 'white',
+        padding: 24,
+        borderRadius: 12,
+        border: '1px solid #e5e7eb',
+        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)'
+      }}>
+        <h3 style={{ margin: '0 0 20px 0', color: '#1a1f2e', fontFamily: "'Sora', sans-serif", fontSize: 20, fontWeight: 700 }}>
+          Product Identity
+        </h3>
 
-  // Step 2: Photos
-  const renderStep2 = () => (
-    <div style={{ padding: 20 }}>
-      <h3>Product Photos</h3>
-      <p style={{ color: '#666', marginBottom: 16 }}>Upload up to 10 photos (jpg, png, webp)</p>
-      
-      <div
-        onClick={() => fileInputRef.current?.click()}
-        style={{
-          border: '2px dashed #ccc',
-          borderRadius: 8,
-          padding: 40,
-          textAlign: 'center',
-          cursor: 'pointer',
-          background: '#f9f9f9'
-        }}
-      >
-        <p>Click to upload images</p>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          multiple
-          onChange={handleImageUpload}
-          style={{ display: 'none' }}
-        />
-      </div>
-
-      {previewImages.length > 0 && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: 12, marginTop: 20 }}>
-          {previewImages.map((preview, index) => (
-            <div key={index} style={{ position: 'relative' }}>
-              <img src={preview} alt="Preview" style={{ width: '100%', height: '100px', objectFit: 'cover', borderRadius: 4 }} />
-              <button
-                onClick={() => removeImage(index)}
-                style={{
-                  position: 'absolute',
-                  top: 4,
-                  right: 4,
-                  background: 'rgba(255,0,0,0.8)',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '50%',
-                  width: 24,
-                  height: 24,
-                  cursor: 'pointer'
-                }}
-              >
-                ×
-              </button>
-            </div>
-          ))}
+        <div style={{ marginBottom: 16 }}>
+          <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: '#1a1f2e', marginBottom: 8 }}>
+            Product Name *
+          </label>
+          <input
+            type="text"
+            value={form.productName}
+            onChange={e => updateForm('productName', e.target.value)}
+            placeholder="e.g., Expandable 40ft Home"
+            style={{
+              width: '100%',
+              padding: '12px 14px',
+              border: '1px solid #e5e7eb',
+              borderRadius: 8,
+              fontFamily: "'DM Sans', sans-serif",
+              fontSize: 15,
+              transition: 'all 0.2s'
+            }}
+            onFocus={(e) => { e.currentTarget.style.borderColor = '#FF6B35'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(255, 107, 53, 0.1)' }}
+            onBlur={(e) => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.boxShadow = 'none' }}
+          />
         </div>
-      )}
-      {previewImages.length > 0 && <p style={{ color: '#666', marginTop: 12 }}>{previewImages.length} images selected</p>}
-    </div>
-  )
 
-  // Step 3: Documents
-  const renderStep3 = () => (
-    <div style={{ padding: 20 }}>
-      <h3>Product Documents</h3>
-      <p style={{ color: '#666', marginBottom: 16 }}>Upload supporting documents (PDF, images)</p>
+        <div style={{ marginBottom: 16 }}>
+          <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: '#1a1f2e', marginBottom: 8 }}>
+            Category *
+          </label>
+          <select
+            value={form.category}
+            onChange={e => updateForm('category', e.target.value)}
+            style={{
+              width: '100%',
+              padding: '12px 14px',
+              border: '1px solid #e5e7eb',
+              borderRadius: 8,
+              fontFamily: "'DM Sans', sans-serif",
+              fontSize: 15,
+              transition: 'all 0.2s'
+            }}
+            onFocus={(e) => { e.currentTarget.style.borderColor = '#FF6B35'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(255, 107, 53, 0.1)' }}
+            onBlur={(e) => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.boxShadow = 'none' }}
+          >
+            <option value="">Select category</option>
+            {Object.entries(CATEGORIES).map(([group, options]) => (
+              <optgroup key={group} label={group}>
+                {options.map(opt => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
+        </div>
 
-      {(['brochure', 'spec_sheet', 'floor_plan', 'compliance', 'install_guide'] as DocType[]).map(docType => (
-        <div key={docType} style={{ marginBottom: 16 }}>
-          <label style={{ textTransform: 'capitalize' }}>{docType.replace('_', ' ')}</label>
-          {formData.documents[docType] ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <span style={{ color: '#666' }}>{formData.documents[docType]?.name}</span>
-              <button
-                onClick={() => removeDocument(docType)}
-                style={{ padding: '4px 8px', background: '#e05a5a', color: 'white', border: 'none', cursor: 'pointer', borderRadius: 4 }}
-              >
-                Remove
-              </button>
-            </div>
-          ) : (
+        {form.category.includes('Commercial') && (
+          <div style={{ marginBottom: 16 }}>
+            <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: '#1a1f2e', marginBottom: 8 }}>
+              Commercial Purpose
+            </label>
             <input
-              type="file"
-              accept=".pdf,image/*"
-              onChange={e => e.target.files && handleDocumentUpload(docType, e.target.files[0])}
-              style={{ display: 'block', marginTop: 4 }}
-            />
-          )}
-        </div>
-      ))}
-    </div>
-  )
-
-  // Step 4: Customization
-  const renderStep4 = () => (
-    <div style={{ padding: 20 }}>
-      <h3>Customization Options</h3>
-      <p style={{ color: '#666', marginBottom: 16 }}>Add customization options with price modifiers</p>
-
-      {[
-        { type: 'exterior_colour', label: 'Exterior Colour', inputType: 'color' },
-        { type: 'interior_finish', label: 'Interior Finish', inputType: 'text' },
-        { type: 'dimensions', label: 'Dimensions', inputType: 'text' },
-        { type: 'rooms', label: 'Number of Rooms', inputType: 'text' },
-        { type: 'windows', label: 'Window Style', inputType: 'text' },
-        { type: 'door', label: 'Door Type', inputType: 'text' },
-        { type: 'roofing', label: 'Roofing Type', inputType: 'text' },
-        { type: 'insulation', label: 'Insulation Level', inputType: 'text' },
-        { type: 'flooring', label: 'Flooring Type', inputType: 'text' }
-      ].map(option => (
-        <div key={option.type} style={{ marginBottom: 16, padding: 12, background: '#f9f9f9', borderRadius: 8 }}>
-          <label style={{ textTransform: 'capitalize' }}>{option.label}</label>
-          <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-            <input
-              type={option.inputType}
-              value={formData.customization[option.type]?.value || ''}
-              onChange={e => handleCustomizationChange(option.type, e.target.value)}
-              placeholder="Option value"
-              style={{ flex: 1, padding: 8 }}
-            />
-            <input
-              type="number"
-              value={formData.customization[option.type]?.priceModifier || '0'}
-              onChange={e => handleCustomizationChange(option.type, formData.customization[option.type]?.value || '', e.target.value)}
-              placeholder="Price modifier"
-              style={{ width: 100, padding: 8 }}
+              type="text"
+              value={form.commercialPurpose}
+              onChange={e => updateForm('commercialPurpose', e.target.value)}
+              placeholder="e.g., Office, Retail, Warehouse"
+              style={{
+                width: '100%',
+                padding: '12px 14px',
+                border: '1px solid #e5e7eb',
+                borderRadius: 8,
+                fontFamily: "'DM Sans', sans-serif",
+                fontSize: 15,
+                transition: 'all 0.2s'
+              }}
+              onFocus={(e) => { e.currentTarget.style.borderColor = '#FF6B35'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(255, 107, 53, 0.1)' }}
+              onBlur={(e) => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.boxShadow = 'none' }}
             />
           </div>
+        )}
+
+        <div style={{ marginBottom: 16 }}>
+          <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: '#1a1f2e', marginBottom: 8 }}>
+            Tagline (optional)
+          </label>
+          <input
+            type="text"
+            value={form.tagline}
+            onChange={e => updateForm('tagline', e.target.value)}
+            placeholder="Short description for listing card"
+            style={{
+              width: '100%',
+              padding: '12px 14px',
+              border: '1px solid #e5e7eb',
+              borderRadius: 8,
+              fontFamily: "'DM Sans', sans-serif",
+              fontSize: 15,
+              transition: 'all 0.2s'
+            }}
+            onFocus={(e) => { e.currentTarget.style.borderColor = '#FF6B35'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(255, 107, 53, 0.1)' }}
+            onBlur={(e) => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.boxShadow = 'none' }}
+          />
         </div>
-      ))}
+
+        <div>
+          <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: '#1a1f2e', marginBottom: 8 }}>
+            Full Description *
+          </label>
+          <textarea
+            value={form.description}
+            onChange={e => updateForm('description', e.target.value)}
+            placeholder="Detailed description of your product"
+            rows={4}
+            style={{
+              width: '100%',
+              padding: '12px 14px',
+              border: '1px solid #e5e7eb',
+              borderRadius: 8,
+              fontFamily: "'DM Sans', sans-serif",
+              fontSize: 15,
+              resize: 'vertical',
+              transition: 'all 0.2s'
+            }}
+            onFocus={(e) => { e.currentTarget.style.borderColor = '#FF6B35'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(255, 107, 53, 0.1)' }}
+            onBlur={(e) => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.boxShadow = 'none' }}
+          />
+        </div>
+
+        <div style={{ marginBottom: 16 }}>
+          <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: '#1a1f2e', marginBottom: 8 }}>
+            Size (optional)
+          </label>
+          <select
+            value={form.standardSize}
+            onChange={e => updateForm('standardSize', e.target.value)}
+            style={{
+              width: '100%',
+              padding: '12px 14px',
+              border: '1px solid #e5e7eb',
+              borderRadius: 8,
+              fontFamily: "'DM Sans', sans-serif",
+              fontSize: 15,
+              transition: 'all 0.2s'
+            }}
+            onFocus={(e) => { e.currentTarget.style.borderColor = '#FF6B35'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(255, 107, 53, 0.1)' }}
+            onBlur={(e) => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.boxShadow = 'none' }}
+          >
+            <option value="20ft">20ft</option>
+            <option value="40ft">40ft</option>
+            <option value="60ft">60ft</option>
+            <option value="custom">Custom</option>
+          </select>
+        </div>
+
+        <div style={{ marginBottom: 16 }}>
+          <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: '#1a1f2e', marginBottom: 8 }}>
+            Bedrooms (optional)
+          </label>
+          <select
+            value={form.bedrooms}
+            onChange={e => updateForm('bedrooms', e.target.value)}
+            style={{
+              width: '100%',
+              padding: '12px 14px',
+              border: '1px solid #e5e7eb',
+              borderRadius: 8,
+              fontFamily: "'DM Sans', sans-serif",
+              fontSize: 15,
+              transition: 'all 0.2s'
+            }}
+            onFocus={(e) => { e.currentTarget.style.borderColor = '#FF6B35'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(255, 107, 53, 0.1)' }}
+            onBlur={(e) => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.boxShadow = 'none' }}
+          >
+            <option value="Studio">Studio</option>
+            <option value="1">1 Bedroom</option>
+            <option value="2">2 Bedrooms</option>
+            <option value="3">3 Bedrooms</option>
+            <option value="4">4 Bedrooms</option>
+            <option value="5+">5+ Bedrooms</option>
+          </select>
+        </div>
+
+        <div>
+          <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: '#1a1f2e', marginBottom: 8 }}>
+            Lead Time (optional)
+          </label>
+          <input
+            type="text"
+            value={form.leadTime}
+            onChange={e => updateForm('leadTime', e.target.value)}
+            placeholder="e.g., 8-12 weeks, 3 months"
+            style={{
+              width: '100%',
+              padding: '12px 14px',
+              border: '1px solid #e5e7eb',
+              borderRadius: 8,
+              fontFamily: "'DM Sans', sans-serif",
+              fontSize: 15,
+              transition: 'all 0.2s'
+            }}
+            onFocus={(e) => { e.currentTarget.style.borderColor = '#FF6B35'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(255, 107, 53, 0.1)' }}
+            onBlur={(e) => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.boxShadow = 'none' }}
+          />
+        </div>
+      </div>
+
+      {/* Card 2: Pricing Mode */}
+      <div style={{
+        background: 'white',
+        padding: 24,
+        borderRadius: 12,
+        border: '1px solid #e5e7eb',
+        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)'
+      }}>
+        <h3 style={{ margin: '0 0 20px 0', color: '#1a1f2e', fontFamily: "'Sora', sans-serif", fontSize: 20, fontWeight: 700 }}>
+          Pricing Mode
+        </h3>
+
+        <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
+          {['fixed', 'quote', 'both'].map(mode => (
+            <button
+              key={mode}
+              onClick={() => updateForm('pricingMode', mode as any)}
+              style={{
+                flex: 1,
+                padding: '12px 14px',
+                background: form.pricingMode === mode ? 'linear-gradient(135deg, #FF6B35 0%, #8B5CF6 100%)' : '#f9fafb',
+                color: form.pricingMode === mode ? 'white' : '#374151',
+                border: form.pricingMode === mode ? 'none' : '1px solid #e5e7eb',
+                borderRadius: 8,
+                fontWeight: 600,
+                fontSize: 13,
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+            >
+              {mode === 'fixed' ? 'Fixed Price' : mode === 'quote' ? 'Quote Only' : 'Both'}
+            </button>
+          ))}
+        </div>
+
+        <div style={{ marginBottom: 16 }}>
+          <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: '#1a1f2e', marginBottom: 8 }}>
+            Base Price CAD *
+          </label>
+          <input
+            type="number"
+            value={form.basePrice}
+            onChange={e => updateForm('basePrice', e.target.value)}
+            placeholder="0.00"
+            min="0"
+            step="0.01"
+            style={{
+              width: '100%',
+              padding: '12px 14px',
+              border: '1px solid #e5e7eb',
+              borderRadius: 8,
+              fontFamily: "'DM Sans', sans-serif",
+              fontSize: 15,
+              transition: 'all 0.2s'
+            }}
+            onFocus={(e) => { e.currentTarget.style.borderColor = '#FF6B35'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(255, 107, 53, 0.1)' }}
+            onBlur={(e) => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.boxShadow = 'none' }}
+          />
+        </div>
+
+        <div style={{ marginBottom: 16 }}>
+          <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: '#1a1f2e', marginBottom: 8 }}>
+            Price per sqm (optional)
+          </label>
+          <input
+            type="number"
+            value={form.pricePerSqm}
+            onChange={e => updateForm('pricePerSqm', e.target.value)}
+            placeholder="For custom sizes"
+            min="0"
+            step="0.01"
+            style={{
+              width: '100%',
+              padding: '12px 14px',
+              border: '1px solid #e5e7eb',
+              borderRadius: 8,
+              fontFamily: "'DM Sans', sans-serif",
+              fontSize: 15,
+              transition: 'all 0.2s'
+            }}
+            onFocus={(e) => { e.currentTarget.style.borderColor = '#FF6B35'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(255, 107, 53, 0.1)' }}
+            onBlur={(e) => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.boxShadow = 'none' }}
+          />
+        </div>
+
+        <div style={{ marginBottom: 16 }}>
+          <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: '#1a1f2e', marginBottom: 8 }}>
+            What is included in base price
+          </label>
+          <textarea
+            value={form.includedInPrice}
+            onChange={e => updateForm('includedInPrice', e.target.value)}
+            placeholder="e.g., Delivery, Installation, Warranty"
+            rows={2}
+            style={{
+              width: '100%',
+              padding: '12px 14px',
+              border: '1px solid #e5e7eb',
+              borderRadius: 8,
+              fontFamily: "'DM Sans', sans-serif",
+              fontSize: 15,
+              resize: 'vertical',
+              transition: 'all 0.2s'
+            }}
+            onFocus={(e) => { e.currentTarget.style.borderColor = '#FF6B35'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(255, 107, 53, 0.1)' }}
+            onBlur={(e) => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.boxShadow = 'none' }}
+          />
+        </div>
+
+        <div>
+          <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: '#1a1f2e', marginBottom: 8 }}>
+            What is NOT included
+          </label>
+          <textarea
+            value={form.notIncluded}
+            onChange={e => updateForm('notIncluded', e.target.value)}
+            placeholder="e.g., Site preparation, Utilities connection"
+            rows={2}
+            style={{
+              width: '100%',
+              padding: '12px 14px',
+              border: '1px solid #e5e7eb',
+              borderRadius: 8,
+              fontFamily: "'DM Sans', sans-serif",
+              fontSize: 15,
+              resize: 'vertical',
+              transition: 'all 0.2s'
+            }}
+            onFocus={(e) => { e.currentTarget.style.borderColor = '#FF6B35'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(255, 107, 53, 0.1)' }}
+            onBlur={(e) => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.boxShadow = 'none' }}
+          />
+        </div>
+      </div>
     </div>
   )
 
-  // Step 5: Review
-  const renderStep5 = () => (
-    <div style={{ padding: 20 }}>
-      <h3>Review & Publish</h3>
-      <div style={{ background: '#f9f9f9', padding: 20, borderRadius: 8, marginBottom: 20 }}>
-        <h4>Product Details</h4>
-        <p><strong>Title:</strong> {formData.product.title}</p>
-        <p><strong>Type:</strong> {formData.product.product_type}</p>
-        <p><strong>Price:</strong> ${formData.product.price_cad}</p>
-        <p><strong>Images:</strong> {previewImages.length}</p>
-        <p><strong>Documents:</strong> {Object.values(formData.documents).filter(d => d).length}</p>
-        <p><strong>Customization Options:</strong> {Object.keys(formData.customization).length}</p>
-      </div>
-      <p style={{ color: '#666' }}>Review your product details before publishing.</p>
-    </div>
-  )
-
-  return (
-    <div style={{ display: 'flex', minHeight: '100vh', fontFamily: 'sans-serif' }}>
-      {/* Sidebar */}
-      <div style={{ width: 250, background: '#1a2332', color: 'white', padding: 20, display: 'flex', flexDirection: 'column' }}>
-        <div style={{ marginBottom: 40, fontSize: 18, fontWeight: 'bold' }}>HomieAI Construction</div>
-        <nav style={{ flex: 1 }}>
-          <Link to="/construction/dashboard" style={{ display: 'block', padding: '12px 0', color: '#aaa', textDecoration: 'none' }}>Home</Link>
-          <Link to="/construction/dashboard/products" style={{ display: 'block', padding: '12px 0', color: 'white', textDecoration: 'none', borderBottom: '2px solid #4a90e2', marginTop: 16 }}>Products</Link>
-          <Link to="/construction/dashboard/quotes" style={{ display: 'block', padding: '12px 0', color: '#aaa', textDecoration: 'none', marginTop: 16 }}>Quotes</Link>
-          <Link to="/construction/dashboard/messages" style={{ display: 'block', padding: '12px 0', color: '#aaa', textDecoration: 'none', marginTop: 16 }}>Messages</Link>
-          <Link to="/construction/dashboard/profile" style={{ display: 'block', padding: '12px 0', color: '#aaa', textDecoration: 'none', marginTop: 16 }}>Profile</Link>
-        </nav>
-        <Link to="/construction/login" style={{ padding: '10px 16px', background: '#e05a5a', color: 'white', border: 'none', cursor: 'pointer', borderRadius: 6, width: '100%', textAlign: 'center', textDecoration: 'none' }}>
-          Logout
-        </Link>
-      </div>
-
-      {/* Main Content */}
-      <div style={{ flex: 1, padding: 40 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
-          <h2>New Product</h2>
-          <Link to="/construction/dashboard/products" style={{ padding: '10px 20px', background: '#666', color: 'white', textDecoration: 'none', borderRadius: 6 }}>
-            Cancel
-          </Link>
-        </div>
-
-        {/* Progress Steps */}
-        <div style={{ display: 'flex', gap: 8, marginBottom: 32 }}>
-          {[1, 2, 3, 4, 5].map(step => (
-            <div
-              key={step}
+  // Progress Bar
+  const renderProgressBar = () => (
+    <div style={{ marginBottom: 40 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+        {[1, 2, 3, 4, 5].map((step, idx) => (
+          <div key={step} style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+            <button
+              onClick={() => goToStep(step)}
               style={{
                 width: 40,
                 height: 40,
                 borderRadius: '50%',
-                background: formData.step >= step ? '#4a90e2' : '#ddd',
-                color: formData.step >= step ? 'white' : '#666',
+                border: 'none',
+                background: form.step > step ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : form.step === step ? 'linear-gradient(135deg, #FF6B35 0%, #8B5CF6 100%)' : '#e5e7eb',
+                color: form.step > step || form.step === step ? 'white' : '#9ca3af',
+                fontWeight: 700,
+                fontSize: 16,
+                cursor: form.step >= step ? 'pointer' : 'not-allowed',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontWeight: 'bold'
+                transition: 'all 0.2s'
               }}
             >
-              {step}
-            </div>
-          ))}
+              {form.step > step ? '✓' : step}
+            </button>
+            {idx < 4 && (
+              <div style={{
+                flex: 1,
+                height: 2,
+                background: form.step > step + 1 ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : '#e5e7eb',
+                margin: '0 8px',
+                transition: 'all 0.2s'
+              }} />
+            )}
+          </div>
+        ))}
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#6b7280', fontWeight: 500 }}>
+        <span>Basic Info</span>
+        <span>Specs</span>
+        <span>Customize</span>
+        <span>Media</span>
+        <span>Review</span>
+      </div>
+    </div>
+  )
+
+  return (
+    <div style={{ fontFamily: "'DM Sans', sans-serif", minHeight: '100vh', background: '#f8f9fa', padding: '40px' }}>
+      <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet" />
+
+      <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+        <div style={{ marginBottom: 32 }}>
+          <h1 style={{ margin: '0 0 8px 0', fontSize: 32, fontWeight: 700, background: 'linear-gradient(135deg, #FF6B35 0%, #8B5CF6 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', fontFamily: "'Sora', sans-serif" }}>
+            Add New Product
+          </h1>
+          <p style={{ margin: 0, color: '#6b7280', fontSize: 15, fontWeight: 500 }}>
+            Step {form.step} of 5 - Complete all steps to publish your product
+          </p>
         </div>
 
-        {error && <p style={{ color: 'red', marginBottom: 16 }}>{error}</p>}
+        {renderProgressBar()}
 
-        {/* Step Content */}
-        {formData.step === 1 && renderStep1()}
-        {formData.step === 2 && renderStep2()}
-        {formData.step === 3 && renderStep3()}
-        {formData.step === 4 && renderStep4()}
-        {formData.step === 5 && renderStep5()}
+        {error && (
+          <div style={{
+            background: '#fee2e2',
+            color: '#991b1b',
+            padding: 16,
+            borderRadius: 8,
+            marginBottom: 24,
+            fontSize: 14,
+            border: '1px solid #fecaca'
+          }}>
+            {error}
+          </div>
+        )}
 
-        {/* Navigation Buttons */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 20 }}>
+        {form.step === 1 && renderStep1()}
+
+        {/* Step 2: Specifications */}
+        {form.step === 2 && (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
+            {/* Size & Structure */}
+            <div style={{ background: 'white', padding: 24, borderRadius: 12, border: '1px solid #e8e4dc' }}>
+              <h3 style={{ margin: '0 0 20px 0', color: '#1a2332', fontFamily: "'Sora', sans-serif" }}>Size & Structure</h3>
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#1a2332', marginBottom: 6 }}>Standard Size</label>
+                <select value={form.standardSize} onChange={e => updateForm('standardSize', e.target.value)} style={{ width: '100%', padding: '10px 12px', border: '1px solid #e8e4dc', borderRadius: 8, fontFamily: "'DM Sans', sans-serif", fontSize: 14 }}>
+                  <option value="20ft">20ft</option>
+                  <option value="40ft">40ft</option>
+                  <option value="60ft">60ft</option>
+                  <option value="custom">Custom</option>
+                </select>
+              </div>
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#1a2332', marginBottom: 6 }}>Floor Area sqm *</label>
+                <input type="number" value={form.floorAreaSqm} onChange={e => updateForm('floorAreaSqm', e.target.value)} min="0" step="0.1" style={{ width: '100%', padding: '10px 12px', border: '1px solid #e8e4dc', borderRadius: 8, fontFamily: "'DM Sans', sans-serif", fontSize: 14 }} />
+              </div>
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#1a2332', marginBottom: 6 }}>Number of Floors</label>
+                <select value={form.numFloors} onChange={e => updateForm('numFloors', e.target.value)} style={{ width: '100%', padding: '10px 12px', border: '1px solid #e8e4dc', borderRadius: 8, fontFamily: "'DM Sans', sans-serif", fontSize: 14 }}>
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3+">3+</option>
+                </select>
+              </div>
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#1a2332', marginBottom: 6 }}>Ceiling Height (m)</label>
+                <input type="number" value={form.ceilingHeight} onChange={e => updateForm('ceilingHeight', e.target.value)} min="0" step="0.1" style={{ width: '100%', padding: '10px 12px', border: '1px solid #e8e4dc', borderRadius: 8, fontFamily: "'DM Sans', sans-serif", fontSize: 14 }} />
+              </div>
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#1a2332', marginBottom: 6 }}>Frame Material</label>
+                <select value={form.frameMaterial} onChange={e => updateForm('frameMaterial', e.target.value)} style={{ width: '100%', padding: '10px 12px', border: '1px solid #e8e4dc', borderRadius: 8, fontFamily: "'DM Sans', sans-serif", fontSize: 14 }}>
+                  <option value="Steel">Steel</option>
+                  <option value="Aluminium">Aluminium</option>
+                  <option value="Timber">Timber</option>
+                  <option value="Hybrid">Hybrid</option>
+                </select>
+              </div>
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#1a2332', marginBottom: 6 }}>Wall Panel Material</label>
+                <select value={form.wallPanelMaterial} onChange={e => updateForm('wallPanelMaterial', e.target.value)} style={{ width: '100%', padding: '10px 12px', border: '1px solid #e8e4dc', borderRadius: 8, fontFamily: "'DM Sans', sans-serif", fontSize: 14 }}>
+                  <option value="SIP Panel">SIP Panel</option>
+                  <option value="Sandwich Panel">Sandwich Panel</option>
+                  <option value="Concrete">Concrete</option>
+                  <option value="Timber">Timber</option>
+                </select>
+              </div>
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#1a2332', marginBottom: 6 }}>Roof Type</label>
+                <select value={form.roofType} onChange={e => updateForm('roofType', e.target.value)} style={{ width: '100%', padding: '10px 12px', border: '1px solid #e8e4dc', borderRadius: 8, fontFamily: "'DM Sans', sans-serif", fontSize: 14 }}>
+                  <option value="Flat">Flat</option>
+                  <option value="Gable">Gable</option>
+                  <option value="Skillion">Skillion</option>
+                  <option value="Custom">Custom</option>
+                </select>
+              </div>
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#1a2332', marginBottom: 6 }}>Number of Modules</label>
+                <input type="number" value={form.numModules} onChange={e => updateForm('numModules', e.target.value)} min="0" style={{ width: '100%', padding: '10px 12px', border: '1px solid #e8e4dc', borderRadius: 8, fontFamily: "'DM Sans', sans-serif", fontSize: 14 }} />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#1a2332', marginBottom: 6 }}>Assembly Time (days)</label>
+                <input type="number" value={form.assemblyTime} onChange={e => updateForm('assemblyTime', e.target.value)} min="0" style={{ width: '100%', padding: '10px 12px', border: '1px solid #e8e4dc', borderRadius: 8, fontFamily: "'DM Sans', sans-serif", fontSize: 14 }} />
+              </div>
+            </div>
+
+            {/* Rooms & Layout (hidden for Commercial) */}
+            {!form.category.includes('Commercial') && (
+              <div style={{ background: 'white', padding: 24, borderRadius: 12, border: '1px solid #e8e4dc' }}>
+                <h3 style={{ margin: '0 0 20px 0', color: '#1a2332', fontFamily: "'Sora', sans-serif" }}>Rooms & Layout</h3>
+                <div style={{ marginBottom: 16 }}>
+                  <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#1a2332', marginBottom: 6 }}>Bedrooms</label>
+                  <select value={form.bedrooms} onChange={e => updateForm('bedrooms', e.target.value)} style={{ width: '100%', padding: '10px 12px', border: '1px solid #e8e4dc', borderRadius: 8, fontFamily: "'DM Sans', sans-serif", fontSize: 14 }}>
+                    <option value="Studio">Studio</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4+">4+</option>
+                  </select>
+                </div>
+                <div style={{ marginBottom: 16 }}>
+                  <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#1a2332', marginBottom: 6 }}>Bathrooms</label>
+                  <select value={form.bathrooms} onChange={e => updateForm('bathrooms', e.target.value)} style={{ width: '100%', padding: '10px 12px', border: '1px solid #e8e4dc', borderRadius: 8, fontFamily: "'DM Sans', sans-serif", fontSize: 14 }}>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3+">3+</option>
+                  </select>
+                </div>
+                <div style={{ marginBottom: 16 }}>
+                  <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#1a2332', marginBottom: 6 }}>Open Plan Living</label>
+                  <select value={form.openPlanLiving} onChange={e => updateForm('openPlanLiving', e.target.value)} style={{ width: '100%', padding: '10px 12px', border: '1px solid #e8e4dc', borderRadius: 8, fontFamily: "'DM Sans', sans-serif", fontSize: 14 }}>
+                    <option value="Yes">Yes</option>
+                    <option value="No">No</option>
+                  </select>
+                </div>
+                <div style={{ marginBottom: 16 }}>
+                  <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#1a2332', marginBottom: 6 }}>Kitchen Included</label>
+                  <select value={form.kitchenIncluded} onChange={e => updateForm('kitchenIncluded', e.target.value)} style={{ width: '100%', padding: '10px 12px', border: '1px solid #e8e4dc', borderRadius: 8, fontFamily: "'DM Sans', sans-serif", fontSize: 14 }}>
+                    <option value="Yes basic">Yes basic</option>
+                    <option value="Yes full">Yes full</option>
+                    <option value="No">No</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#1a2332', marginBottom: 6 }}>Laundry Space</label>
+                  <select value={form.laundrySpace} onChange={e => updateForm('laundrySpace', e.target.value)} style={{ width: '100%', padding: '10px 12px', border: '1px solid #e8e4dc', borderRadius: 8, fontFamily: "'DM Sans', sans-serif", fontSize: 14 }}>
+                    <option value="Yes">Yes</option>
+                    <option value="No">No</option>
+                  </select>
+                </div>
+              </div>
+            )}
+
+            {/* Performance & Certifications */}
+            <div style={{ background: 'white', padding: 24, borderRadius: 12, border: '1px solid #e8e4dc' }}>
+              <h3 style={{ margin: '0 0 20px 0', color: '#1a2332', fontFamily: "'Sora', sans-serif" }}>Performance & Certifications</h3>
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#1a2332', marginBottom: 6 }}>Insulation R-value</label>
+                <input type="text" value={form.insulationRValue} onChange={e => updateForm('insulationRValue', e.target.value)} placeholder="e.g., R-20" style={{ width: '100%', padding: '10px 12px', border: '1px solid #e8e4dc', borderRadius: 8, fontFamily: "'DM Sans', sans-serif", fontSize: 14 }} />
+              </div>
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#1a2332', marginBottom: 6 }}>Climate Suitability</label>
+                <select value={form.climateSuitability} onChange={e => updateForm('climateSuitability', e.target.value)} style={{ width: '100%', padding: '10px 12px', border: '1px solid #e8e4dc', borderRadius: 8, fontFamily: "'DM Sans', sans-serif", fontSize: 14 }}>
+                  <option value="Mild">Mild</option>
+                  <option value="Cold">Cold</option>
+                  <option value="Arctic">Arctic</option>
+                </select>
+              </div>
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#1a2332', marginBottom: 6 }}>Wind Rating (km/h)</label>
+                <input type="number" value={form.windRating} onChange={e => updateForm('windRating', e.target.value)} min="0" style={{ width: '100%', padding: '10px 12px', border: '1px solid #e8e4dc', borderRadius: 8, fontFamily: "'DM Sans', sans-serif", fontSize: 14 }} />
+              </div>
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#1a2332', marginBottom: 6 }}>Snow Load (kPa)</label>
+                <input type="number" value={form.snowLoad} onChange={e => updateForm('snowLoad', e.target.value)} min="0" style={{ width: '100%', padding: '10px 12px', border: '1px solid #e8e4dc', borderRadius: 8, fontFamily: "'DM Sans', sans-serif", fontSize: 14 }} />
+              </div>
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#1a2332', marginBottom: 6 }}>Fire Rating</label>
+                <select value={form.fireRating} onChange={e => updateForm('fireRating', e.target.value)} style={{ width: '100%', padding: '10px 12px', border: '1px solid #e8e4dc', borderRadius: 8, fontFamily: "'DM Sans', sans-serif", fontSize: 14 }}>
+                  <option value="Standard">Standard</option>
+                  <option value="1 hour">1 hour</option>
+                  <option value="2 hour">2 hour</option>
+                </select>
+              </div>
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#1a2332', marginBottom: 6 }}>Energy Rating</label>
+                <input type="text" value={form.energyRating} onChange={e => updateForm('energyRating', e.target.value)} placeholder="e.g., EnerGuide 80" style={{ width: '100%', padding: '10px 12px', border: '1px solid #e8e4dc', borderRadius: 8, fontFamily: "'DM Sans', sans-serif", fontSize: 14 }} />
+              </div>
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#1a2332', marginBottom: 6 }}>Building Code Compliance</label>
+                <select value={form.buildingCodeCompliance} onChange={e => updateForm('buildingCodeCompliance', e.target.value)} style={{ width: '100%', padding: '10px 12px', border: '1px solid #e8e4dc', borderRadius: 8, fontFamily: "'DM Sans', sans-serif", fontSize: 14 }}>
+                  <option value="Compliant">Compliant</option>
+                  <option value="In progress">In progress</option>
+                  <option value="Not applicable">Not applicable</option>
+                </select>
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#1a2332', marginBottom: 6 }}>CSA Certified</label>
+                <select value={form.csaCertified} onChange={e => updateForm('csaCertified', e.target.value)} style={{ width: '100%', padding: '10px 12px', border: '1px solid #e8e4dc', borderRadius: 8, fontFamily: "'DM Sans', sans-serif", fontSize: 14 }}>
+                  <option value="Yes">Yes</option>
+                  <option value="No">No</option>
+                  <option value="In progress">In progress</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Shipping & Delivery */}
+            <div style={{ background: 'white', padding: 24, borderRadius: 12, border: '1px solid #e8e4dc' }}>
+              <h3 style={{ margin: '0 0 20px 0', color: '#1a2332', fontFamily: "'Sora', sans-serif" }}>Shipping & Delivery</h3>
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#1a2332', marginBottom: 6 }}>Shipping Port *</label>
+                <input type="text" value={form.shippingPort} onChange={e => updateForm('shippingPort', e.target.value)} placeholder="e.g., XinGang, China" style={{ width: '100%', padding: '10px 12px', border: '1px solid #e8e4dc', borderRadius: 8, fontFamily: "'DM Sans', sans-serif", fontSize: 14 }} />
+              </div>
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#1a2332', marginBottom: 6 }}>Lead Time *</label>
+                <input type="text" value={form.leadTime} onChange={e => updateForm('leadTime', e.target.value)} placeholder="e.g., 3-6 weeks" style={{ width: '100%', padding: '10px 12px', border: '1px solid #e8e4dc', borderRadius: 8, fontFamily: "'DM Sans', sans-serif", fontSize: 14 }} />
+              </div>
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#1a2332', marginBottom: 6 }}>Shipping Method</label>
+                <select value={form.shippingMethod} onChange={e => updateForm('shippingMethod', e.target.value)} style={{ width: '100%', padding: '10px 12px', border: '1px solid #e8e4dc', borderRadius: 8, fontFamily: "'DM Sans', sans-serif", fontSize: 14 }}>
+                  <option value="Flat pack">Flat pack</option>
+                  <option value="Fully assembled">Fully assembled</option>
+                  <option value="Modular sections">Modular sections</option>
+                </select>
+              </div>
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#1a2332', marginBottom: 6 }}>Number of Containers</label>
+                <input type="number" value={form.numContainers} onChange={e => updateForm('numContainers', e.target.value)} min="0" style={{ width: '100%', padding: '10px 12px', border: '1px solid #e8e4dc', borderRadius: 8, fontFamily: "'DM Sans', sans-serif", fontSize: 14 }} />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#1a2332', marginBottom: 6 }}>Ships To</label>
+                <select value={form.shipsTo} onChange={e => updateForm('shipsTo', e.target.value)} style={{ width: '100%', padding: '10px 12px', border: '1px solid #e8e4dc', borderRadius: 8, fontFamily: "'DM Sans', sans-serif", fontSize: 14 }}>
+                  <option value="Canada only">Canada only</option>
+                  <option value="Canada + USA">Canada + USA</option>
+                  <option value="Worldwide">Worldwide</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Step 3: Customization */}
+        {form.step === 3 && (
+          <div style={{ background: 'white', padding: 24, borderRadius: 12, border: '1px solid #e8e4dc' }}>
+            <h3 style={{ margin: '0 0 20px 0', color: '#1a2332', fontFamily: "'Sora', sans-serif" }}>Customization Options</h3>
+            <p style={{ color: '#64748b', fontSize: 14, marginBottom: 20 }}>Configure customization options for buyers. Leave price blank for quote-based pricing.</p>
+            <div style={{ padding: 12, background: '#f5f3ef', borderRadius: 8, color: '#64748b', fontSize: 13, marginBottom: 20 }}>
+              Global add-ons will be configured in the next section and apply to all your products.
+            </div>
+          </div>
+        )}
+
+        {/* Step 4: Media */}
+        {form.step === 4 && (
+          <div style={{ background: 'white', padding: 24, borderRadius: 12, border: '1px solid #e8e4dc' }}>
+            <h3 style={{ margin: '0 0 20px 0', color: '#1a2332', fontFamily: "'Sora', sans-serif" }}>Media</h3>
+            <p style={{ color: '#64748b', fontSize: 14, marginBottom: 20 }}>Upload photos and documents for your product.</p>
+          </div>
+        )}
+
+        {/* Step 5: Review */}
+        {form.step === 5 && (
+          <div style={{ background: 'white', padding: 24, borderRadius: 12, border: '1px solid #e8e4dc' }}>
+            <h3 style={{ margin: '0 0 20px 0', color: '#1a2332', fontFamily: "'Sora', sans-serif" }}>Review & Publish</h3>
+            <p style={{ color: '#64748b', fontSize: 14, marginBottom: 20 }}>Review your product details before publishing.</p>
+          </div>
+        )}
+
+        {/* Navigation */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, marginTop: 40 }}>
           <button
             onClick={handleBack}
-            disabled={formData.step === 1}
+            disabled={form.step === 1}
             style={{
-              padding: '10px 20px',
-              background: formData.step === 1 ? '#ccc' : '#666',
-              color: 'white',
-              border: 'none',
-              cursor: formData.step === 1 ? 'not-allowed' : 'pointer',
-              borderRadius: 6
+              padding: '12px 24px',
+              background: form.step === 1 ? '#f3f4f6' : 'white',
+              color: form.step === 1 ? '#9ca3af' : '#1a1f2e',
+              border: '1px solid #e5e7eb',
+              borderRadius: 8,
+              fontWeight: 600,
+              cursor: form.step === 1 ? 'not-allowed' : 'pointer',
+              transition: 'all 0.2s'
             }}
+            onMouseEnter={(e) => { if (form.step !== 1) { e.currentTarget.style.borderColor = '#FF6B35'; e.currentTarget.style.color = '#FF6B35' } }}
+            onMouseLeave={(e) => { if (form.step !== 1) { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.color = '#1a1f2e' } }}
           >
-            Back
+            ← Back
           </button>
-          {formData.step < 5 ? (
+          {form.step < 5 ? (
             <button
               onClick={handleNext}
-              style={{ padding: '10px 20px', background: '#4a90e2', color: 'white', border: 'none', cursor: 'pointer', borderRadius: 6 }}
+              style={{
+                padding: '12px 24px',
+                background: 'linear-gradient(135deg, #FF6B35 0%, #E55A2B 100%)',
+                color: 'white',
+                border: 'none',
+                borderRadius: 8,
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                boxShadow: '0 4px 12px rgba(255, 107, 53, 0.3)'
+              }}
+              onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 16px rgba(255, 107, 53, 0.4)' }}
+              onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(255, 107, 53, 0.3)' }}
             >
-              Next
+              Next →
             </button>
           ) : (
-            <div style={{ display: 'flex', gap: 12 }}>
-              <button
-                onClick={() => handleSubmit(false)}
-                disabled={loading}
-                style={{ padding: '10px 20px', background: '#ff9800', color: 'white', border: 'none', cursor: 'pointer', borderRadius: 6 }}
-              >
-                {loading ? 'Saving...' : 'Save as Draft'}
-              </button>
-              <button
-                onClick={() => handleSubmit(true)}
-                disabled={loading}
-                style={{ padding: '10px 20px', background: '#4caf50', color: 'white', border: 'none', cursor: 'pointer', borderRadius: 6 }}
-              >
-                {loading ? 'Publishing...' : 'Publish Now'}
-              </button>
-            </div>
+            <button
+              onClick={handlePublish}
+              disabled={loading}
+              style={{
+                padding: '12px 24px',
+                background: loading ? '#9ca3af' : 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                color: 'white',
+                border: 'none',
+                borderRadius: 8,
+                fontWeight: 600,
+                cursor: loading ? 'not-allowed' : 'pointer',
+                transition: 'all 0.2s',
+                boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)'
+              }}
+              onMouseEnter={e => { if (!loading) { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 16px rgba(16, 185, 129, 0.4)' } }}
+              onMouseLeave={e => { if (!loading) { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.3)' } }}
+            >
+              {loading ? 'Publishing...' : 'Publish Product ✓'}
+            </button>
           )}
         </div>
       </div>

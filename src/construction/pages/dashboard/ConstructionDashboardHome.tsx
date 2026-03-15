@@ -98,53 +98,113 @@ export default function ConstructionDashboardHome() {
   }
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', fontFamily: 'sans-serif' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', fontFamily: 'Inter, sans-serif', background: '#f8f9fa' }}>
       {/* Sidebar */}
-      <div style={{ width: 250, background: '#1a2332', color: 'white', padding: 20, display: 'flex', flexDirection: 'column' }}>
-        <div style={{ marginBottom: 40, fontSize: 18, fontWeight: 'bold' }}>HomieAI Construction</div>
+      <div style={{ 
+        width: 250, 
+        background: 'linear-gradient(135deg, #1a1f2e 0%, #2d1b4e 100%)',
+        color: 'white', 
+        padding: 24, 
+        display: 'flex', 
+        flexDirection: 'column',
+        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)'
+      }}>
+        <div style={{ marginBottom: 40, fontSize: 18, fontWeight: 'bold', background: 'linear-gradient(135deg, #FF6B35 0%, #8B5CF6 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>HomieAI Construction</div>
         <nav style={{ flex: 1 }}>
-          <Link to="/construction/dashboard" style={{ display: 'block', padding: '12px 0', color: 'white', textDecoration: 'none', borderBottom: '2px solid #4a90e2' }}>Home</Link>
-          <Link to="/construction/dashboard/products" style={{ display: 'block', padding: '12px 0', color: '#aaa', textDecoration: 'none', marginTop: 16 }}>Products</Link>
-          <Link to="/construction/dashboard/quotes" style={{ display: 'block', padding: '12px 0', color: '#aaa', textDecoration: 'none', marginTop: 16 }}>Quotes</Link>
-          <Link to="/construction/dashboard/messages" style={{ display: 'block', padding: '12px 0', color: '#aaa', textDecoration: 'none', marginTop: 16 }}>Messages</Link>
-          <Link to="/construction/dashboard/profile" style={{ display: 'block', padding: '12px 0', color: '#aaa', textDecoration: 'none', marginTop: 16 }}>Profile</Link>
+          <Link to="/construction/dashboard" style={{ display: 'block', padding: '12px 16px', color: 'white', textDecoration: 'none', borderLeft: '3px solid #FF6B35', paddingLeft: '13px', background: 'rgba(255, 107, 53, 0.1)', borderRadius: '0 8px 8px 0', marginBottom: 8, transition: 'all 0.3s ease' }}>Home</Link>
+          <Link to="/construction/dashboard/products" style={{ display: 'block', padding: '12px 16px', color: '#b0b8c1', textDecoration: 'none', marginTop: 8, borderRadius: 8, transition: 'all 0.3s ease', cursor: 'pointer' }} onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(139, 92, 246, 0.1)'; e.currentTarget.style.color = 'white' }} onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#b0b8c1' }}>Products</Link>
+          <Link to="/construction/dashboard/quotes" style={{ display: 'block', padding: '12px 16px', color: '#b0b8c1', textDecoration: 'none', marginTop: 8, borderRadius: 8, transition: 'all 0.3s ease', cursor: 'pointer' }} onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(139, 92, 246, 0.1)'; e.currentTarget.style.color = 'white' }} onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#b0b8c1' }}>Quotes</Link>
+          <Link to="/construction/dashboard/messages" style={{ display: 'block', padding: '12px 16px', color: '#b0b8c1', textDecoration: 'none', marginTop: 8, borderRadius: 8, transition: 'all 0.3s ease', cursor: 'pointer' }} onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(139, 92, 246, 0.1)'; e.currentTarget.style.color = 'white' }} onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#b0b8c1' }}>Messages</Link>
+          <Link to="/construction/dashboard/profile" style={{ display: 'block', padding: '12px 16px', color: '#b0b8c1', textDecoration: 'none', marginTop: 8, borderRadius: 8, transition: 'all 0.3s ease', cursor: 'pointer' }} onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(139, 92, 246, 0.1)'; e.currentTarget.style.color = 'white' }} onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#b0b8c1' }}>Profile</Link>
         </nav>
         <button
           onClick={handleLogout}
-          style={{ padding: '10px 16px', background: '#e05a5a', color: 'white', border: 'none', cursor: 'pointer', borderRadius: 6, width: '100%' }}
+          style={{ 
+            padding: '12px 16px', 
+            background: 'linear-gradient(135deg, #FF6B35 0%, #E55A2B 100%)',
+            color: 'white', 
+            border: 'none', 
+            cursor: 'pointer', 
+            borderRadius: 8, 
+            width: '100%',
+            fontWeight: 600,
+            transition: 'all 0.3s ease',
+            boxShadow: '0 4px 12px rgba(255, 107, 53, 0.3)'
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 16px rgba(255, 107, 53, 0.4)' }}
+          onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(255, 107, 53, 0.3)' }}
         >
           Logout
         </button>
       </div>
 
       {/* Main Content */}
-      <div style={{ flex: 1, padding: 40 }}>
-        <h2>Welcome, {companyName}</h2>
+      <div style={{ flex: 1, padding: 40, overflowY: 'auto' }}>
+        <div style={{ marginBottom: 32 }}>
+          <h2 style={{ fontSize: 32, fontWeight: 700, color: '#1a1f2e', marginBottom: 8 }}>Welcome, {companyName}</h2>
+          <p style={{ color: '#6b7280', fontSize: 16 }}>Manage your products, quotes, and customer interactions</p>
+        </div>
 
         {/* Stats Row */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 20, marginBottom: 40 }}>
-          <div style={{ background: '#f5f5f5', padding: 20, borderRadius: 8 }}>
-            <div style={{ fontSize: 12, color: '#666', marginBottom: 8 }}>Total Products</div>
-            <div style={{ fontSize: 28, fontWeight: 'bold' }}>{stats.totalProducts}</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 24, marginBottom: 40 }}>
+          <div style={{ 
+            background: 'white', 
+            padding: 24, 
+            borderRadius: 12,
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+            border: '1px solid rgba(255, 107, 53, 0.1)',
+            transition: 'all 0.3s ease'
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.boxShadow = '0 8px 24px rgba(255, 107, 53, 0.15)'; e.currentTarget.style.transform = 'translateY(-4px)' }}
+          onMouseLeave={(e) => { e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.06)'; e.currentTarget.style.transform = 'translateY(0)' }}>
+            <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total Products</div>
+            <div style={{ fontSize: 32, fontWeight: 700, background: 'linear-gradient(135deg, #FF6B35 0%, #8B5CF6 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>{stats.totalProducts}</div>
           </div>
-          <div style={{ background: '#f5f5f5', padding: 20, borderRadius: 8 }}>
-            <div style={{ fontSize: 12, color: '#666', marginBottom: 8 }}>Live Products</div>
-            <div style={{ fontSize: 28, fontWeight: 'bold', color: '#4caf50' }}>{stats.liveProducts}</div>
+          <div style={{ 
+            background: 'white', 
+            padding: 24, 
+            borderRadius: 12,
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+            border: '1px solid rgba(139, 92, 246, 0.1)',
+            transition: 'all 0.3s ease'
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.boxShadow = '0 8px 24px rgba(139, 92, 246, 0.15)'; e.currentTarget.style.transform = 'translateY(-4px)' }}
+          onMouseLeave={(e) => { e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.06)'; e.currentTarget.style.transform = 'translateY(0)' }}>
+            <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Live Products</div>
+            <div style={{ fontSize: 32, fontWeight: 700, color: '#10b981' }}>{stats.liveProducts}</div>
           </div>
-          <div style={{ background: '#f5f5f5', padding: 20, borderRadius: 8 }}>
-            <div style={{ fontSize: 12, color: '#666', marginBottom: 8 }}>Pending Quotes</div>
-            <div style={{ fontSize: 28, fontWeight: 'bold', color: '#ff9800' }}>{stats.pendingQuotes}</div>
+          <div style={{ 
+            background: 'white', 
+            padding: 24, 
+            borderRadius: 12,
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+            border: '1px solid rgba(255, 107, 53, 0.1)',
+            transition: 'all 0.3s ease'
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.boxShadow = '0 8px 24px rgba(255, 107, 53, 0.15)'; e.currentTarget.style.transform = 'translateY(-4px)' }}
+          onMouseLeave={(e) => { e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.06)'; e.currentTarget.style.transform = 'translateY(0)' }}>
+            <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Pending Quotes</div>
+            <div style={{ fontSize: 32, fontWeight: 700, color: '#f59e0b' }}>{stats.pendingQuotes}</div>
           </div>
-          <div style={{ background: '#f5f5f5', padding: 20, borderRadius: 8 }}>
-            <div style={{ fontSize: 12, color: '#666', marginBottom: 8 }}>Messages</div>
-            <div style={{ fontSize: 28, fontWeight: 'bold' }}>{stats.totalMessages}</div>
+          <div style={{ 
+            background: 'white', 
+            padding: 24, 
+            borderRadius: 12,
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+            border: '1px solid rgba(139, 92, 246, 0.1)',
+            transition: 'all 0.3s ease'
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.boxShadow = '0 8px 24px rgba(139, 92, 246, 0.15)'; e.currentTarget.style.transform = 'translateY(-4px)' }}
+          onMouseLeave={(e) => { e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.06)'; e.currentTarget.style.transform = 'translateY(0)' }}>
+            <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Messages</div>
+            <div style={{ fontSize: 32, fontWeight: 700, color: '#3b82f6' }}>{stats.totalMessages}</div>
           </div>
         </div>
 
         {/* Recent Products */}
-        <div>
-          <h3>Recent Products</h3>
-          <p style={{ color: '#666' }}>No products yet. <Link to="/construction/dashboard/products/new" style={{ color: '#4a90e2' }}>Add your first product</Link></p>
+        <div style={{ background: 'white', padding: 32, borderRadius: 12, boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)', border: '1px solid #e5e7eb' }}>
+          <h3 style={{ fontSize: 20, fontWeight: 700, color: '#1a1f2e', marginBottom: 16 }}>Recent Products</h3>
+          <p style={{ color: '#6b7280', fontSize: 15 }}>No products yet. <Link to="/construction/dashboard/products/new" style={{ color: '#FF6B35', fontWeight: 600, textDecoration: 'none', transition: 'all 0.3s ease' }} onMouseEnter={(e) => { e.currentTarget.style.color = '#8B5CF6' }} onMouseLeave={(e) => { e.currentTarget.style.color = '#FF6B35' }}>Add your first product</Link></p>
         </div>
       </div>
     </div>

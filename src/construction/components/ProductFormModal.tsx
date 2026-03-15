@@ -1,0 +1,1044 @@
+import { useState, useRef, useEffect } from 'react'
+import { supabase } from '@/integrations/supabase/client-simple'
+
+interface ProductImage {
+  id: string
+  product_id: string
+  storage_path: string
+  public_url: string
+  is_primary: boolean
+  uploaded_at: string
+}
+
+interface Product {
+  id: string
+  title: string
+  product_type: string
+  category?: string
+  status: string
+  price_cad: number
+  created_at: string
+  description?: string
+  bedrooms?: string
+  size_ft?: string
+  lead_time?: string
+  bathrooms?: string
+  area_sqm?: number
+  frame_type?: string
+  shipping_port?: string
+  construction_product_images?: ProductImage[]
+}
+
+interface FormState {
+  step: number
+  productName: string
+  category: string
+  commercialPurpose: string
+  tagline: string
+  description: string
+  pricingMode: 'fixed' | 'quote' | 'both'
+  basePrice: string
+  pricePerSqm: string
+  includedInPrice: string
+  notIncluded: string
+  standardSize: string
+  floorAreaSqm: string
+  numFloors: string
+  ceilingHeight: string
+  frameMaterial: string
+  wallPanelMaterial: string
+  roofType: string
+  numModules: string
+  assemblyTime: string
+  bedrooms: string
+  bathrooms: string
+  openPlanLiving: string
+  kitchenIncluded: string
+  laundrySpace: string
+  insulationRValue: string
+  climateSuitability: string
+  windRating: string
+  snowLoad: string
+  fireRating: string
+  energyRating: string
+  buildingCodeCompliance: string
+  csaCertified: string
+  shippingPort: string
+  leadTime: string
+  shippingMethod: string
+  numContainers: string
+  shipsTo: string
+  customizationOptions: Record<string, any>
+  globalAddons: Array<{ name: string; price: string; description: string }>
+  photos: File[]
+  photoPreviews: string[]
+  primaryPhotoIndex: number
+  documents: Record<string, File | null>
+  badgeText: string
+  badgeStyle: string
+}
+
+const CATEGORIES = {
+  'Residential': [
+    'Expandable Container Home',
+    'Foldable Modular Unit',
+    'Flat Pack Home',
+    'Capsule Studio Unit',
+    'Modular Villa',
+    'Cabinet'
+  ],
+  'Commercial': [
+    'Commercial Modular Building'
+  ]
+}
+
+interface ProductFormModalProps {
+  isOpen: boolean
+  onClose: () => void
+  onSuccess?: () => void
+  editingProduct?: Product
+}
+
+export default function ProductFormModal({ isOpen, onClose, onSuccess, editingProduct }: ProductFormModalProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [form, setForm] = useState<FormState>({
+    step: 1,
+    productName: '',
+    category: '',
+    commercialPurpose: '',
+    tagline: '',
+    description: '',
+    pricingMode: 'fixed',
+    basePrice: '',
+    pricePerSqm: '',
+    includedInPrice: '',
+    notIncluded: '',
+    standardSize: '40ft',
+    floorAreaSqm: '',
+    numFloors: '1',
+    ceilingHeight: '',
+    frameMaterial: 'Steel',
+    wallPanelMaterial: 'SIP Panel',
+    roofType: 'Flat',
+    numModules: '',
+    assemblyTime: '',
+    bedrooms: 'Studio',
+    bathrooms: '1',
+    openPlanLiving: 'Yes',
+    kitchenIncluded: 'Yes basic',
+    laundrySpace: 'No',
+    insulationRValue: '',
+    climateSuitability: 'Mild',
+    windRating: '',
+    snowLoad: '',
+    fireRating: 'Standard',
+    energyRating: '',
+    buildingCodeCompliance: 'Compliant',
+    csaCertified: 'No',
+    shippingPort: '',
+    leadTime: '',
+    shippingMethod: 'Flat pack',
+    numContainers: '',
+    shipsTo: 'Canada only',
+    customizationOptions: {},
+    globalAddons: [],
+    photos: [],
+    photoPreviews: [],
+    primaryPhotoIndex: 0,
+    documents: {
+      brochure: null,
+      specifications: null,
+      floorPlan: null,
+      buildingCode: null,
+      installationGuide: null
+    },
+    badgeText: '',
+    badgeStyle: 'Green'
+  })
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  // Populate form with editing product data
+  useEffect(() => {
+    if (editingProduct && isOpen) {
+      // Reverse map product_type back to display category
+      const productTypeToCategory: Record<string, string> = {
+        'expandable': 'Expandable Container Home',
+        'foldable': 'Foldable Modular Unit',
+        'flatpack': 'Flat Pack Home',
+        'capsule': 'Capsule Studio Unit',
+        'modular': 'Modular Villa',
+        'cabinet': 'Cabinet'
+      }
+      const resolvedCategory = editingProduct.category || productTypeToCategory[editingProduct.product_type] || ''
+      // Load existing images for this product
+      const loadImages = async () => {
+        const { data: images } = await supabase
+          .from('construction_product_images')
+          .select('*')
+          .eq('product_id', editingProduct.id)
+          .order('is_primary', { ascending: false })
+          .order('sort_order', { ascending: true })
+        
+        if (images && images.length > 0) {
+          const photoPreviews = images.map(img => img.public_url)
+          const primaryIndex = images.findIndex(img => img.is_primary)
+          setForm(prev => ({
+            ...prev,
+            productName: editingProduct.title,
+            category: resolvedCategory,
+            description: editingProduct.description || '',
+            basePrice: editingProduct.price_cad.toString(),
+            standardSize: editingProduct.size_ft || '40ft',
+            bedrooms: editingProduct.bedrooms || 'Studio',
+            leadTime: editingProduct.lead_time || '',
+            shippingPort: editingProduct.shipping_port || '',
+            photoPreviews: photoPreviews,
+            primaryPhotoIndex: primaryIndex >= 0 ? primaryIndex : 0,
+            step: 1
+          }))
+        } else {
+          setForm(prev => ({
+            ...prev,
+            productName: editingProduct.title,
+            category: resolvedCategory,
+            description: editingProduct.description || '',
+            basePrice: editingProduct.price_cad.toString(),
+            standardSize: editingProduct.size_ft || '40ft',
+            bedrooms: editingProduct.bedrooms || 'Studio',
+            leadTime: editingProduct.lead_time || '',
+            shippingPort: editingProduct.shipping_port || '',
+            step: 1
+          }))
+        }
+      }
+      loadImages()
+    }
+  }, [editingProduct, isOpen])
+
+  const updateForm = (field: keyof FormState, value: any) => {
+    setForm(prev => ({ ...prev, [field]: value }))
+  }
+
+  const handleNext = () => {
+    if (form.step < 5) {
+      setForm(prev => ({ ...prev, step: prev.step + 1 }))
+    }
+  }
+
+  const handleBack = () => {
+    if (form.step > 1) {
+      setForm(prev => ({ ...prev, step: prev.step - 1 }))
+    }
+  }
+
+  const goToStep = (stepNum: number) => {
+    if (stepNum <= form.step) {
+      setForm(prev => ({ ...prev, step: stepNum }))
+    }
+  }
+
+  const handleClose = () => {
+    setForm(prev => ({ ...prev, step: 1 }))
+    setError('')
+    onClose()
+  }
+
+  const handlePublish = async () => {
+    try {
+      setLoading(true)
+      setError('')
+
+      // Validate required fields
+      if (!form.productName || !form.category || !form.description || !form.basePrice) {
+        setError('Please fill in all required fields (Product Name, Category, Description, Base Price)')
+        setLoading(false)
+        return
+      }
+
+      // Get current user
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.user?.id) {
+        setError('You must be logged in to publish a product')
+        setLoading(false)
+        return
+      }
+
+      // Map category to product_type (must match database constraint)
+      const categoryMap: Record<string, string> = {
+        'Expandable Container Home': 'expandable',
+        'Foldable Modular Unit': 'foldable',
+        'Flat Pack Home': 'flatpack',
+        'Capsule Studio Unit': 'capsule',
+        'Modular Villa': 'modular',
+        'Commercial Modular Building': 'modular',
+        'Cabinet': 'cabinet'
+      }
+      const productType = categoryMap[form.category] || 'modular'
+
+      // Create or update product
+      const productData = {
+        title: form.productName,
+        slug: form.productName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
+        product_type: productType,
+        description: form.description,
+        price_cad: parseFloat(form.basePrice) || 0,
+        bedrooms: form.bedrooms || 'Studio',
+        size_ft: form.standardSize || '40ft',
+        lead_time: form.leadTime || '',
+        status: 'live',
+        supplier_id: session.user.id
+      }
+
+      let product: any
+      let productError: any
+
+      if (editingProduct) {
+        // Update existing product
+        const { data: updatedProduct, error: updateError } = await supabase
+          .from('construction_products')
+          .update(productData)
+          .eq('id', editingProduct.id)
+          .select()
+
+        product = updatedProduct
+        productError = updateError
+      } else {
+        // Insert new product
+        const { data: newProduct, error: insertError } = await supabase
+          .from('construction_products')
+          .insert([productData])
+          .select()
+
+        product = newProduct
+        productError = insertError
+      }
+
+      if (productError) {
+        console.error('Product operation error:', productError)
+        throw new Error(`Failed to ${editingProduct ? 'update' : 'create'} product: ${productError.message}`)
+      }
+
+      if (!product || (Array.isArray(product) && product.length === 0)) {
+        throw new Error(`Product was ${editingProduct ? 'updated but' : 'created but'} no data returned`)
+      }
+
+      // Close modal immediately for better UX
+      setLoading(false)
+      handleClose()
+
+      // Upload images in background (don't wait for completion)
+      if (form.photos && form.photos.length > 0) {
+        // Parallelize image uploads
+        const uploadPromises = form.photos.map(async (photo, i) => {
+          const filename = `products/${session.user?.id}/${Date.now()}-${i}-${photo.name}`
+          
+          try {
+            const { error: uploadError } = await supabase.storage
+              .from('construction-images')
+              .upload(filename, photo)
+            
+            if (uploadError) return null
+
+            const { data: urlData } = supabase.storage
+              .from('construction-images')
+              .getPublicUrl(filename)
+
+            return {
+              product_id: product[0]?.id,
+              storage_path: filename,
+              public_url: urlData?.publicUrl,
+              is_primary: i === form.primaryPhotoIndex
+            }
+          } catch (err) {
+            return null
+          }
+        })
+
+        // Wait for all uploads to complete
+        const results = await Promise.all(uploadPromises)
+        const imageInserts = results.filter(Boolean)
+
+        if (imageInserts.length > 0) {
+          // If editing, delete existing images first
+          if (editingProduct) {
+            await supabase
+              .from('construction_product_images')
+              .delete()
+              .eq('product_id', editingProduct.id)
+          }
+
+          await supabase
+            .from('construction_product_images')
+            .insert(imageInserts)
+        }
+      } else if (editingProduct && (!form.photos || form.photos.length === 0)) {
+        // If editing and no new photos, keep existing images
+      }
+      
+      // Call success callback to refresh products list
+      if (onSuccess) {
+        onSuccess()
+      }
+    } catch (err: any) {
+      console.error('Publish error:', err)
+      setError(err.message || 'Failed to publish product. Please try again.')
+      setLoading(false)
+    }
+  }
+
+  // Shared input style - LARGER AND MORE VISIBLE
+  const inputStyle: React.CSSProperties = {
+    width: '100%',
+    padding: '18px 20px',
+    border: '3px solid #cbd5e1',
+    borderRadius: 12,
+    fontFamily: 'Inter, sans-serif',
+    fontSize: 17,
+    fontWeight: 500,
+    color: '#0f172a',
+    background: '#ffffff',
+    boxSizing: 'border-box',
+    outline: 'none',
+    transition: 'all 0.2s'
+  }
+
+  const labelStyle: React.CSSProperties = {
+    display: 'block',
+    fontSize: 18,
+    fontWeight: 800,
+    color: '#0f172a',
+    marginBottom: 12,
+    letterSpacing: '-0.01em'
+  }
+
+  const cardStyle: React.CSSProperties = {
+    background: '#f8fafc',
+    padding: 40,
+    borderRadius: 18,
+    border: '3px solid #e2e8f0',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.08)'
+  }
+
+  const sectionTitleStyle: React.CSSProperties = {
+    margin: '0 0 32px 0',
+    fontSize: 28,
+    fontWeight: 900,
+    color: '#0f172a',
+    fontFamily: 'Inter, sans-serif',
+    letterSpacing: '-0.02em'
+  }
+
+  // Step 1: Basic Info & Pricing
+  const renderStep1 = () => (
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 36 }}>
+      {/* Card 1: Product Identity & Photos */}
+      <div style={cardStyle}>
+        <h3 style={sectionTitleStyle}>Product Identity</h3>
+
+        <div style={{ marginBottom: 32 }}>
+          <label style={labelStyle}>Product Name *</label>
+          <input
+            type="text"
+            value={form.productName}
+            onChange={e => updateForm('productName', e.target.value)}
+            placeholder="e.g., Expandable 40ft Home"
+            style={inputStyle}
+            onFocus={(e) => { e.currentTarget.style.borderColor = '#FF6B35'; e.currentTarget.style.boxShadow = '0 0 0 6px rgba(255,107,53,0.15)' }}
+            onBlur={(e) => { e.currentTarget.style.borderColor = '#cbd5e1'; e.currentTarget.style.boxShadow = 'none' }}
+          />
+        </div>
+
+        {/* Product Photos - NEW */}
+        <div style={{ marginBottom: 32 }}>
+          <label style={labelStyle}>Product Photos *</label>
+          <div style={{
+            border: '3px dashed #cbd5e1',
+            borderRadius: 12,
+            padding: 24,
+            textAlign: 'center',
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+            background: '#f8fafc'
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#FF6B35'; e.currentTarget.style.background = '#fff5f0' }}
+          onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#cbd5e1'; e.currentTarget.style.background = '#f8fafc' }}
+          onClick={() => fileInputRef.current?.click()}
+          >
+            <div style={{ fontSize: 32, marginBottom: 12 }}>📸</div>
+            <p style={{ margin: '0 0 8px 0', fontSize: 16, fontWeight: 600, color: '#0f172a' }}>
+              Click to upload photos
+            </p>
+            <p style={{ margin: 0, fontSize: 14, color: '#64748b' }}>
+              or drag and drop (JPG, PNG, WebP)
+            </p>
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={(e) => {
+                const files = Array.from(e.target.files || [])
+                const newPhotos = [...form.photos, ...files]
+                const newPreviews = files.map(f => URL.createObjectURL(f))
+                updateForm('photos', newPhotos)
+                updateForm('photoPreviews', [...form.photoPreviews, ...newPreviews])
+              }}
+            />
+          </div>
+          
+          {/* Photo Preview */}
+          {form.photoPreviews.length > 0 && (
+            <div style={{ marginTop: 20 }}>
+              <p style={{ fontSize: 14, fontWeight: 600, color: '#0f172a', marginBottom: 12 }}>
+                {form.photoPreviews.length} photo{form.photoPreviews.length !== 1 ? 's' : ''} uploaded
+              </p>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))', gap: 12 }}>
+                {form.photoPreviews.map((preview, idx) => (
+                  <div key={idx} style={{ position: 'relative' }}>
+                    <img
+                      src={preview}
+                      alt={`Preview ${idx}`}
+                      style={{
+                        width: '100%',
+                        height: 80,
+                        objectFit: 'cover',
+                        borderRadius: 8,
+                        border: form.primaryPhotoIndex === idx ? '3px solid #FF6B35' : '1px solid #e2e8f0',
+                        cursor: 'pointer'
+                      }}
+                      onClick={() => updateForm('primaryPhotoIndex', idx)}
+                    />
+                    <button
+                      onClick={() => {
+                        const newPhotos = form.photos.filter((_, i) => i !== idx)
+                        const newPreviews = form.photoPreviews.filter((_, i) => i !== idx)
+                        updateForm('photos', newPhotos)
+                        updateForm('photoPreviews', newPreviews)
+                        if (form.primaryPhotoIndex === idx) {
+                          updateForm('primaryPhotoIndex', 0)
+                        }
+                      }}
+                      style={{
+                        position: 'absolute',
+                        top: -8,
+                        right: -8,
+                        width: 24,
+                        height: 24,
+                        borderRadius: '50%',
+                        background: '#FF6B35',
+                        color: 'white',
+                        border: 'none',
+                        cursor: 'pointer',
+                        fontSize: 14,
+                        fontWeight: 700,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}>
+                        ✕
+                      </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div style={{ marginBottom: 32 }}>
+          <label style={labelStyle}>Category *</label>
+          <select
+            value={form.category}
+            onChange={e => updateForm('category', e.target.value)}
+            style={inputStyle}
+            onFocus={(e) => { e.currentTarget.style.borderColor = '#FF6B35'; e.currentTarget.style.boxShadow = '0 0 0 6px rgba(255,107,53,0.15)' }}
+            onBlur={(e) => { e.currentTarget.style.borderColor = '#cbd5e1'; e.currentTarget.style.boxShadow = 'none' }}
+          >
+            <option value="">Select category</option>
+            {Object.entries(CATEGORIES).map(([group, options]) => (
+              <optgroup key={group} label={group}>
+                {options.map(opt => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
+        </div>
+
+        {form.category.includes('Commercial') && (
+          <div style={{ marginBottom: 32 }}>
+            <label style={labelStyle}>Commercial Purpose</label>
+            <input
+              type="text"
+              value={form.commercialPurpose}
+              onChange={e => updateForm('commercialPurpose', e.target.value)}
+              placeholder="e.g., Office, Retail, Warehouse"
+              style={inputStyle}
+              onFocus={(e) => { e.currentTarget.style.borderColor = '#FF6B35'; e.currentTarget.style.boxShadow = '0 0 0 6px rgba(255,107,53,0.15)' }}
+              onBlur={(e) => { e.currentTarget.style.borderColor = '#cbd5e1'; e.currentTarget.style.boxShadow = 'none' }}
+            />
+          </div>
+        )}
+
+        <div style={{ marginBottom: 32 }}>
+          <label style={labelStyle}>Tagline <span style={{ fontWeight: 500, color: '#64748b', fontSize: 16 }}>(optional)</span></label>
+          <input
+            type="text"
+            value={form.tagline}
+            onChange={e => updateForm('tagline', e.target.value)}
+            placeholder="Short catchy description for listing card"
+            style={inputStyle}
+            onFocus={(e) => { e.currentTarget.style.borderColor = '#FF6B35'; e.currentTarget.style.boxShadow = '0 0 0 6px rgba(255,107,53,0.15)' }}
+            onBlur={(e) => { e.currentTarget.style.borderColor = '#cbd5e1'; e.currentTarget.style.boxShadow = 'none' }}
+          />
+        </div>
+
+        <div>
+          <label style={labelStyle}>Full Description *</label>
+          <textarea
+            value={form.description}
+            onChange={e => updateForm('description', e.target.value)}
+            placeholder="Describe your product in detail — features, materials, use cases..."
+            rows={7}
+            style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.6, fontFamily: 'Inter, sans-serif' }}
+            onFocus={(e) => { e.currentTarget.style.borderColor = '#FF6B35'; e.currentTarget.style.boxShadow = '0 0 0 6px rgba(255,107,53,0.15)' }}
+            onBlur={(e) => { e.currentTarget.style.borderColor = '#cbd5e1'; e.currentTarget.style.boxShadow = 'none' }}
+          />
+        </div>
+
+        <div style={{ marginBottom: 32 }}>
+          <label style={labelStyle}>Size <span style={{ fontWeight: 500, color: '#64748b', fontSize: 16 }}>(optional)</span></label>
+          <select
+            value={form.standardSize}
+            onChange={e => updateForm('standardSize', e.target.value)}
+            style={inputStyle}
+            onFocus={(e) => { e.currentTarget.style.borderColor = '#FF6B35'; e.currentTarget.style.boxShadow = '0 0 0 6px rgba(255,107,53,0.15)' }}
+            onBlur={(e) => { e.currentTarget.style.borderColor = '#cbd5e1'; e.currentTarget.style.boxShadow = 'none' }}
+          >
+            <option value="20ft">20ft</option>
+            <option value="40ft">40ft</option>
+            <option value="60ft">60ft</option>
+            <option value="custom">Custom</option>
+          </select>
+        </div>
+
+        <div style={{ marginBottom: 32 }}>
+          <label style={labelStyle}>Bedrooms <span style={{ fontWeight: 500, color: '#64748b', fontSize: 16 }}>(optional)</span></label>
+          <select
+            value={form.bedrooms}
+            onChange={e => updateForm('bedrooms', e.target.value)}
+            style={inputStyle}
+            onFocus={(e) => { e.currentTarget.style.borderColor = '#FF6B35'; e.currentTarget.style.boxShadow = '0 0 0 6px rgba(255,107,53,0.15)' }}
+            onBlur={(e) => { e.currentTarget.style.borderColor = '#cbd5e1'; e.currentTarget.style.boxShadow = 'none' }}
+          >
+            <option value="Studio">Studio</option>
+            <option value="1">1 Bedroom</option>
+            <option value="2">2 Bedrooms</option>
+            <option value="3">3 Bedrooms</option>
+            <option value="4">4 Bedrooms</option>
+            <option value="5+">5+ Bedrooms</option>
+          </select>
+        </div>
+
+        <div>
+          <label style={labelStyle}>Lead Time <span style={{ fontWeight: 500, color: '#64748b', fontSize: 16 }}>(optional)</span></label>
+          <input
+            type="text"
+            value={form.leadTime}
+            onChange={e => updateForm('leadTime', e.target.value)}
+            placeholder="e.g., 8-12 weeks, 3 months"
+            style={inputStyle}
+            onFocus={(e) => { e.currentTarget.style.borderColor = '#FF6B35'; e.currentTarget.style.boxShadow = '0 0 0 6px rgba(255,107,53,0.15)' }}
+            onBlur={(e) => { e.currentTarget.style.borderColor = '#cbd5e1'; e.currentTarget.style.boxShadow = 'none' }}
+          />
+        </div>
+      </div>
+
+      {/* Card 2: Pricing Mode */}
+      <div style={cardStyle}>
+        <h3 style={sectionTitleStyle}>Pricing Mode</h3>
+
+        <div style={{ display: 'flex', gap: 14, marginBottom: 36 }}>
+          {(['fixed', 'quote', 'both'] as const).map(mode => (
+            <button
+              key={mode}
+              onClick={() => updateForm('pricingMode', mode)}
+              style={{
+                flex: 1,
+                padding: '18px 14px',
+                background: form.pricingMode === mode ? 'linear-gradient(135deg, #FF6B35 0%, #8B5CF6 100%)' : '#f1f5f9',
+                color: form.pricingMode === mode ? 'white' : '#475569',
+                border: form.pricingMode === mode ? 'none' : '3px solid #cbd5e1',
+                borderRadius: 12,
+                fontWeight: 800,
+                fontSize: 16,
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                boxShadow: form.pricingMode === mode ? '0 4px 12px rgba(255,107,53,0.3)' : 'none'
+              }}
+            >
+              {mode === 'fixed' ? 'Fixed Price' : mode === 'quote' ? 'Quote Only' : 'Both'}
+            </button>
+          ))}
+        </div>
+
+        <div style={{ marginBottom: 32 }}>
+          <label style={labelStyle}>Base Price CAD *</label>
+          <input
+            type="number"
+            value={form.basePrice}
+            onChange={e => updateForm('basePrice', e.target.value)}
+            placeholder="0.00"
+            min="0"
+            step="0.01"
+            style={inputStyle}
+            onFocus={(e) => { e.currentTarget.style.borderColor = '#FF6B35'; e.currentTarget.style.boxShadow = '0 0 0 6px rgba(255,107,53,0.15)' }}
+            onBlur={(e) => { e.currentTarget.style.borderColor = '#cbd5e1'; e.currentTarget.style.boxShadow = 'none' }}
+          />
+        </div>
+
+        <div style={{ marginBottom: 32 }}>
+          <label style={labelStyle}>Price per sqm <span style={{ fontWeight: 500, color: '#64748b', fontSize: 16 }}>(optional)</span></label>
+          <input
+            type="number"
+            value={form.pricePerSqm}
+            onChange={e => updateForm('pricePerSqm', e.target.value)}
+            placeholder="For custom sizes"
+            min="0"
+            step="0.01"
+            style={inputStyle}
+            onFocus={(e) => { e.currentTarget.style.borderColor = '#FF6B35'; e.currentTarget.style.boxShadow = '0 0 0 6px rgba(255,107,53,0.15)' }}
+            onBlur={(e) => { e.currentTarget.style.borderColor = '#cbd5e1'; e.currentTarget.style.boxShadow = 'none' }}
+          />
+        </div>
+
+        <div style={{ marginBottom: 32 }}>
+          <label style={labelStyle}>What's included in base price</label>
+          <textarea
+            value={form.includedInPrice}
+            onChange={e => updateForm('includedInPrice', e.target.value)}
+            placeholder="e.g., Delivery, Installation, 1-year Warranty"
+            rows={4}
+            style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.6, fontFamily: 'Inter, sans-serif' }}
+            onFocus={(e) => { e.currentTarget.style.borderColor = '#FF6B35'; e.currentTarget.style.boxShadow = '0 0 0 6px rgba(255,107,53,0.15)' }}
+            onBlur={(e) => { e.currentTarget.style.borderColor = '#cbd5e1'; e.currentTarget.style.boxShadow = 'none' }}
+          />
+        </div>
+
+        <div>
+          <label style={labelStyle}>What is NOT included</label>
+          <textarea
+            value={form.notIncluded}
+            onChange={e => updateForm('notIncluded', e.target.value)}
+            placeholder="e.g., Site preparation, Utilities connection"
+            rows={4}
+            style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.6, fontFamily: 'Inter, sans-serif' }}
+            onFocus={(e) => { e.currentTarget.style.borderColor = '#FF6B35'; e.currentTarget.style.boxShadow = '0 0 0 6px rgba(255,107,53,0.15)' }}
+            onBlur={(e) => { e.currentTarget.style.borderColor = '#cbd5e1'; e.currentTarget.style.boxShadow = 'none' }}
+          />
+        </div>
+      </div>
+    </div>
+  )
+
+  // Progress Bar
+  const renderProgressBar = () => {
+    const steps = ['Basic Info', 'Specs', 'Customize', 'Media', 'Review']
+    return (
+      <div style={{ marginBottom: 50 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 24 }}>
+          {steps.map((label, idx) => {
+            const stepNum = idx + 1
+            const isCompleted = form.step > stepNum
+            const isActive = form.step === stepNum
+            return (
+              <div key={stepNum} style={{ display: 'flex', alignItems: 'center', flex: 1, gap: 20 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, minWidth: 'fit-content' }}>
+                  <button
+                    onClick={() => goToStep(stepNum)}
+                    style={{
+                      width: 72,
+                      height: 72,
+                      borderRadius: '50%',
+                      border: 'none',
+                      background: isCompleted
+                        ? 'linear-gradient(135deg, #10b981, #059669)'
+                        : isActive
+                        ? 'linear-gradient(135deg, #FF6B35, #8B5CF6)'
+                        : '#e2e8f0',
+                      color: isCompleted || isActive ? 'white' : '#64748b',
+                      fontWeight: 900,
+                      fontSize: 28,
+                      cursor: form.step >= stepNum ? 'pointer' : 'not-allowed',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      transition: 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                      boxShadow: isActive 
+                        ? '0 8px 24px rgba(255,107,53,0.4), 0 0 0 8px rgba(255,107,53,0.1)' 
+                        : isCompleted 
+                        ? '0 8px 24px rgba(16,185,129,0.3)' 
+                        : 'none',
+                      transform: isActive ? 'scale(1.1)' : 'scale(1)'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (form.step >= stepNum) {
+                        e.currentTarget.style.transform = 'scale(1.15)'
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = isActive ? 'scale(1.1)' : 'scale(1)'
+                    }}
+                  >
+                    {isCompleted ? '✓' : stepNum}
+                  </button>
+                  <span style={{
+                    fontSize: 16,
+                    fontWeight: isActive ? 800 : 600,
+                    color: isActive ? '#FF6B35' : isCompleted ? '#10b981' : '#64748b',
+                    whiteSpace: 'nowrap',
+                    textAlign: 'center',
+                    transition: 'all 0.3s'
+                  }}>
+                    {label}
+                  </span>
+                </div>
+                {idx < 4 && (
+                  <div style={{
+                    flex: 1,
+                    height: 6,
+                    background: isCompleted ? 'linear-gradient(90deg, #10b981, #059669)' : '#e2e8f0',
+                    borderRadius: 3,
+                    transition: 'all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                    boxShadow: isCompleted ? '0 4px 12px rgba(16,185,129,0.3)' : 'none'
+                  }} />
+                )}
+              </div>
+            )
+          })}
+        </div>
+        
+        {/* Progress percentage bar */}
+        <div style={{
+          width: '100%',
+          height: 8,
+          background: '#e2e8f0',
+          borderRadius: 4,
+          overflow: 'hidden',
+          boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.06)'
+        }}>
+          <div style={{
+            height: '100%',
+            width: `${(form.step / 5) * 100}%`,
+            background: 'linear-gradient(90deg, #FF6B35, #8B5CF6, #10b981)',
+            borderRadius: 4,
+            transition: 'width 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)',
+            boxShadow: '0 0 12px rgba(255,107,53,0.5)'
+          }} />
+        </div>
+      </div>
+    )
+  }
+
+  if (!isOpen) return null
+
+  return (
+    <div style={{
+      position: 'fixed',
+      top: 0, left: 0, right: 0, bottom: 0,
+      background: 'transparent',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 1000,
+      fontFamily: 'Inter, sans-serif',
+      backdropFilter: 'none',
+      padding: '20px'
+    }}>
+      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+      <div style={{
+        background: '#ffffff',
+        borderRadius: 24,
+        width: '100%',
+        maxWidth: 1200,
+        maxHeight: '95vh',
+        overflow: 'auto',
+        padding: '50px 70px',
+        boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+        border: '4px solid #e2e8f0'
+      }}>
+        {/* Header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 40 }}>
+          <div>
+            <h2 style={{
+              margin: '0 0 10px 0',
+              fontSize: 42,
+              fontWeight: 900,
+              background: 'linear-gradient(135deg, #FF6B35 0%, #8B5CF6 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+              letterSpacing: '-0.03em',
+              lineHeight: 1.1
+            }}>
+              Add New Product
+            </h2>
+            <p style={{ margin: 0, color: '#475569', fontSize: 20, fontWeight: 600 }}>
+              Step {form.step} of 5 — Fill in the details to list your product
+            </p>
+          </div>
+          <button
+            onClick={handleClose}
+            style={{
+              background: '#f1f5f9',
+              border: '3px solid #cbd5e1',
+              fontSize: 28,
+              color: '#475569',
+              cursor: 'pointer',
+              width: 56,
+              height: 56,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderRadius: 14,
+              transition: 'all 0.2s',
+              flexShrink: 0
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#FF6B35'; e.currentTarget.style.color = '#FF6B35'; e.currentTarget.style.background = '#fff5f0' }}
+            onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#cbd5e1'; e.currentTarget.style.color = '#475569'; e.currentTarget.style.background = '#f1f5f9' }}
+          >
+            ✕
+          </button>
+        </div>
+
+        {renderProgressBar()}
+
+        {error && (
+          <div style={{
+            background: '#fee2e2',
+            color: '#7f1d1d',
+            padding: '28px 32px',
+            borderRadius: 14,
+            marginBottom: 40,
+            fontSize: 19,
+            fontWeight: 600,
+            border: '3px solid #fca5a5'
+          }}>
+            {error}
+          </div>
+        )}
+
+        {form.step === 1 && renderStep1()}
+
+        {form.step === 2 && (
+          <div style={{ background: '#ffffff', padding: 50, borderRadius: 16, border: 'none', textAlign: 'center', color: '#6b7280', fontSize: 20, fontWeight: 500 }}>
+            Specifications step coming soon
+          </div>
+        )}
+        {form.step === 3 && (
+          <div style={{ background: '#ffffff', padding: 50, borderRadius: 16, border: 'none', textAlign: 'center', color: '#6b7280', fontSize: 20, fontWeight: 500 }}>
+            Customization step coming soon
+          </div>
+        )}
+        {form.step === 4 && (
+          <div style={{ background: '#ffffff', padding: 50, borderRadius: 16, border: 'none', textAlign: 'center', color: '#6b7280', fontSize: 20, fontWeight: 500 }}>
+            Media step coming soon
+          </div>
+        )}
+        {form.step === 5 && (
+          <div style={{ background: '#ffffff', padding: 50, borderRadius: 16, border: 'none', textAlign: 'center', color: '#6b7280', fontSize: 20, fontWeight: 500 }}>
+            Review step coming soon
+          </div>
+        )}
+
+        {/* Navigation */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 50, paddingTop: 36, borderTop: '4px solid #e2e8f0' }}>
+          <button
+            onClick={handleBack}
+            disabled={form.step === 1}
+            style={{
+              padding: '18px 36px',
+              background: form.step === 1 ? '#f1f5f9' : '#ffffff',
+              color: form.step === 1 ? '#cbd5e1' : '#475569',
+              border: `3px solid ${form.step === 1 ? '#e2e8f0' : '#cbd5e1'}`,
+              borderRadius: 12,
+              fontWeight: 800,
+              fontSize: 18,
+              cursor: form.step === 1 ? 'not-allowed' : 'pointer',
+              transition: 'all 0.2s'
+            }}
+            onMouseEnter={(e) => { if (form.step !== 1) { e.currentTarget.style.borderColor = '#FF6B35'; e.currentTarget.style.color = '#FF6B35' } }}
+            onMouseLeave={(e) => { if (form.step !== 1) { e.currentTarget.style.borderColor = '#cbd5e1'; e.currentTarget.style.color = '#475569' } }}
+          >
+            ← Back
+          </button>
+
+          <div style={{ display: 'flex', gap: 18 }}>
+            <button
+              onClick={handleClose}
+              style={{
+                padding: '18px 36px',
+                background: '#ffffff',
+                color: '#475569',
+                border: '3px solid #cbd5e1',
+                borderRadius: 12,
+                fontWeight: 800,
+                fontSize: 18,
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#94a3b8'; e.currentTarget.style.color = '#0f172a' }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#cbd5e1'; e.currentTarget.style.color = '#475569' }}
+            >
+              Cancel
+            </button>
+            {form.step < 5 ? (
+              <button
+                onClick={handleNext}
+                style={{
+                  padding: '18px 44px',
+                  background: 'linear-gradient(135deg, #FF6B35 0%, #8B5CF6 100%)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: 12,
+                  fontWeight: 800,
+                  fontSize: 18,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  boxShadow: '0 4px 16px rgba(255,107,53,0.35)'
+                }}
+                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(255,107,53,0.45)' }}
+                onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(255,107,53,0.35)' }}
+              >
+                Next Step →
+              </button>
+            ) : (
+              <button
+                onClick={handlePublish}
+                disabled={loading}
+                style={{
+                  padding: '18px 44px',
+                  background: loading ? '#9ca3af' : 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: 12,
+                  fontWeight: 800,
+                  fontSize: 18,
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  transition: 'all 0.2s',
+                  boxShadow: '0 4px 16px rgba(16,185,129,0.35)'
+                }}
+                onMouseEnter={e => { if (!loading) { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(16,185,129,0.45)' } }}
+                onMouseLeave={e => { if (!loading) { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(16,185,129,0.35)' } }}
+              >
+                {loading ? 'Publishing...' : 'Publish Now ✓'}
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}

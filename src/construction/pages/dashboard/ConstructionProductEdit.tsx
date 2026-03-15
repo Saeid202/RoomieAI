@@ -17,7 +17,6 @@ interface ProductData {
   lead_time: string
   frame_type: string
   shipping_port: string
-  badge_label: string
   status: string
 }
 
@@ -48,7 +47,6 @@ export default function ConstructionProductEdit() {
       lead_time: '',
       frame_type: '',
       shipping_port: '',
-      badge_label: '',
       status: 'draft'
     },
     images: [],
@@ -121,7 +119,6 @@ export default function ConstructionProductEdit() {
           lead_time: product.lead_time || '',
           frame_type: product.frame_type || '',
           shipping_port: product.shipping_port || '',
-          badge_label: product.badge_label || '',
           status: product.status
         },
         existingImages: images || [],
@@ -231,7 +228,6 @@ export default function ConstructionProductEdit() {
           lead_time: formData.product.lead_time,
           frame_type: formData.product.frame_type,
           shipping_port: formData.product.shipping_port,
-          badge_label: formData.product.badge_label,
           status: publish ? 'live' : formData.product.status
         })
         .eq('id', id)
@@ -441,16 +437,6 @@ export default function ConstructionProductEdit() {
           value={formData.product.shipping_port}
           onChange={e => handleProductChange('shipping_port', e.target.value)}
           placeholder="e.g., XinGang, China"
-          style={{ width: '100%', padding: 8, marginTop: 4 }}
-        />
-      </div>
-      <div style={{ marginBottom: 12 }}>
-        <label>Badge Label (Optional)</label>
-        <input
-          type="text"
-          value={formData.product.badge_label}
-          onChange={e => handleProductChange('badge_label', e.target.value)}
-          placeholder="e.g., In Stock / New / Popular"
           style={{ width: '100%', padding: 8, marginTop: 4 }}
         />
       </div>

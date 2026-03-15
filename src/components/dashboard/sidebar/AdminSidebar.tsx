@@ -5,7 +5,8 @@ import {
   FileText,
   Hammer,
   Sparkles,
-  Cog
+  Cog,
+  Package
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { SidebarSimpleMenuItem } from "./SidebarSimpleMenuItem";
@@ -61,6 +62,27 @@ export function AdminSidebar({ isActive, showLabels }: AdminSidebarProps) {
         icon={<Sparkles size={20} />}
         label="Cleaners"
         isActive={isActive('/dashboard/admin/cleaners')}
+      />
+      <SidebarSimpleMenuItem
+        showLabel={showLabels}
+        to="/dashboard/admin/construction"
+        icon={<Package size={20} />}
+        label="Construction Products"
+        isActive={isActive('/dashboard/admin/construction') && !isActive('/dashboard/admin/construction/content') && !isActive('/dashboard/admin/construction/suppliers')}
+      />
+      <SidebarSimpleMenuItem
+        showLabel={showLabels}
+        to="/dashboard/admin/construction/suppliers"
+        icon={<Users size={20} />}
+        label="Construction Suppliers"
+        isActive={isActive('/dashboard/admin/construction/suppliers')}
+      />
+      <SidebarSimpleMenuItem
+        showLabel={showLabels}
+        to="/dashboard/admin/construction/content"
+        icon={<FileText size={20} />}
+        label="Construction Page"
+        isActive={isActive('/dashboard/admin/construction/content')}
       />
       <SidebarSimpleMenuItem
         showLabel={showLabels}

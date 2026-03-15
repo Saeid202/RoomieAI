@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/integrations/supabase/client-simple'
 import { Link } from 'react-router-dom'
+import ConstructionHeader from '@/construction/components/ConstructionHeader'
 
 // Import fonts at the components top
 const FONT_IMPORT = "https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=DM+Sans:wght@400;500&display=swap";
@@ -136,56 +137,7 @@ export default function ConstructionPublicProducts() {
       margin: 0,
       padding: 0
     }}>
-      {/* Top Navigation Bar */}
-      <nav style={{
-        background: COLORS.dark,
-        height: '72px',
-        width: '100%',
-        position: 'fixed',
-        top: 0,
-        zIndex: 1000,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '0 24px'
-      }}>
-        <div style={{
-          width: '100%',
-          maxWidth: '1280px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center'
-        }}>
-          <Link to="/construction" style={{ textDecoration: 'none', color: COLORS.white, fontSize: '24px', fontWeight: 700, fontFamily: "'Sora', sans-serif" }}>
-            Homie<span style={{ color: COLORS.green }}>AI</span>
-          </Link>
-          <div style={{ display: 'flex', gap: '16px' }}>
-            <Link to="/construction/login" style={{
-              padding: '10px 20px',
-              borderRadius: '8px',
-              border: `1px solid ${COLORS.white}`,
-              color: COLORS.white,
-              textDecoration: 'none',
-              fontSize: '14px',
-              fontWeight: 500
-            }}>
-              Supplier Login
-            </Link>
-            <Link to="/construction/signup" style={{
-              padding: '10px 20px',
-              borderRadius: '8px',
-              background: COLORS.dark, // Filled dark button, though already on dark nav
-              border: `1px solid ${COLORS.white}`, // Making it stand out
-              color: COLORS.white,
-              textDecoration: 'none',
-              fontSize: '14px',
-              fontWeight: 500
-            }}>
-              List Your Products
-            </Link>
-          </div>
-        </div>
-      </nav>
+      <ConstructionHeader />
 
       {/* Hero Section */}
       <section style={{

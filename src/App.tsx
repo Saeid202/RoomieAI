@@ -39,6 +39,9 @@ import PagesPage from "@/pages/dashboard/admin/Pages";
 import UsersPage from "@/pages/dashboard/admin/Users";
 import RenovationPartnersPage from "@/pages/dashboard/admin/RenovationPartners";
 import AdminCleanersPage from "@/pages/dashboard/admin/Cleaners";
+import AdminConstructionProducts from "@/pages/dashboard/admin/AdminConstructionProducts";
+import AdminConstructionSuppliers from "@/pages/dashboard/admin/AdminConstructionSuppliers";
+import AdminConstructionContent from "@/pages/dashboard/admin/AdminConstructionContent";
 import ReportingPreviewPage from "@/pages/dashboard/admin/ReportingPreview";
 import ReportingBatchesPage from "@/pages/dashboard/admin/ReportingBatches";
 import SettingsPage from "@/pages/dashboard/Settings";
@@ -124,6 +127,29 @@ import { useEffect } from "react";
 
 function AppRoutes() {
   const { user, loading } = useAuth();
+
+  // Construction routes render immediately — no auth gate
+  const isConstructionRoute = window.location.pathname.startsWith('/construction');
+  if (loading && isConstructionRoute) {
+    return (
+      <Routes>
+        <Route path="/construction" element={<ConstructionPublicProducts />} />
+        <Route path="/construction/custom" element={<ConstructionCustomOrder />} />
+        <Route path="/construction/login" element={<ConstructionLogin />} />
+        <Route path="/construction/signup" element={<ConstructionSignup />} />
+        <Route path="/construction/dashboard" element={<ConstructionDashboardHome />} />
+        <Route path="/construction/dashboard/products" element={<ConstructionProducts />} />
+        <Route path="/construction/dashboard/products/new" element={<ConstructionProductNew />} />
+        <Route path="/construction/dashboard/products/:id/edit" element={<ConstructionProductEdit />} />
+        <Route path="/construction/dashboard/profile" element={<ConstructionProfile />} />
+        <Route path="/construction/dashboard/quotes" element={<ConstructionQuotes />} />
+        <Route path="/construction/dashboard/quotes/:id" element={<ConstructionQuoteDetail />} />
+        <Route path="/construction/dashboard/messages" element={<ConstructionMessages />} />
+        <Route path="/construction/dashboard/messages/:id" element={<ConstructionMessageDetail />} />
+        <Route path="/construction/:slug" element={<ConstructionProductDetail />} />
+      </Routes>
+    );
+  }
 
   // Show loading state while checking authentication
   if (loading) {
@@ -242,6 +268,9 @@ function AppRoutes() {
           <Route path="admin/users" element={<AdminRoute><UsersPage /></AdminRoute>} />
           <Route path="admin/renovation-partners" element={<AdminRoute><RenovationPartnersPage /></AdminRoute>} />
           <Route path="admin/cleaners" element={<AdminRoute><AdminCleanersPage /></AdminRoute>} />
+          <Route path="admin/construction" element={<AdminRoute><AdminConstructionProducts /></AdminRoute>} />
+          <Route path="admin/construction/suppliers" element={<AdminRoute><AdminConstructionSuppliers /></AdminRoute>} />
+          <Route path="admin/construction/content" element={<AdminRoute><AdminConstructionContent /></AdminRoute>} />
           <Route path="admin/reporting" element={<AdminRoute><ReportingPreviewPage /></AdminRoute>} />
           <Route path="admin/reporting-batches" element={<AdminRoute><ReportingBatchesPage /></AdminRoute>} />
           <Route path="admin/settings" element={<AdminRoute><SettingsPage /></AdminRoute>} />
@@ -395,6 +424,9 @@ function AppRoutes() {
         <Route path="admin/users" element={<AdminRoute><UsersPage /></AdminRoute>} />
         <Route path="admin/renovation-partners" element={<AdminRoute><RenovationPartnersPage /></AdminRoute>} />
         <Route path="admin/cleaners" element={<AdminRoute><AdminCleanersPage /></AdminRoute>} />
+        <Route path="admin/construction" element={<AdminRoute><AdminConstructionProducts /></AdminRoute>} />
+        <Route path="admin/construction/suppliers" element={<AdminRoute><AdminConstructionSuppliers /></AdminRoute>} />
+        <Route path="admin/construction/content" element={<AdminRoute><AdminConstructionContent /></AdminRoute>} />
         <Route path="admin/reporting" element={<AdminRoute><ReportingPreviewPage /></AdminRoute>} />
         <Route path="admin/reporting-batches" element={<AdminRoute><ReportingBatchesPage /></AdminRoute>} />
         <Route path="admin/settings" element={<AdminRoute><SettingsPage /></AdminRoute>} />

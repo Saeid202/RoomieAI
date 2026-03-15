@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/integrations/supabase/client-simple'
 import { Link, useNavigate } from 'react-router-dom'
+import ConstructionHeader from '@/construction/components/ConstructionHeader'
 
 export default function ConstructionSignup() {
   const navigate = useNavigate()
@@ -35,15 +36,29 @@ export default function ConstructionSignup() {
     setLoading(true)
 
     try {
+      // Validate inputs
+      if (!companyName.trim() || !contactName.trim() || !email.trim() || !password.trim()) {
+        setError('All fields are required.')
+        setLoading(false)
+        return
+      }
+
+      if (password.length < 6) {
+        setError('Password must be at least 6 characters.')
+        setLoading(false)
+        return
+      }
+
       const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
             role: 'construction_supplier',
-            company_name: companyName,
-            contact_name: contactName
-          }
+            company_name: companyName.trim(),
+            contact_name: contactName.trim()
+          },
+          emailRedirectTo: `${window.location.origin}/construction/login`
         }
       })
 
@@ -51,6 +66,23 @@ export default function ConstructionSignup() {
         setError(signUpError.message)
         setLoading(false)
         return
+      }
+
+      if (!data.user) {
+        setError('Signup failed. Please try again.')
+        setLoading(false)
+        return
+      }
+
+      // Verify the role was set
+      if (data.user.user_metadata?.role !== 'construction_supplier') {
+        console.warn('Role not set during signup, attempting to update...')
+        const { error: updateError } = await supabase.auth.updateUser({
+          data: { role: 'construction_supplier' }
+        })
+        if (updateError) {
+          console.error('Failed to set role:', updateError)
+        }
       }
 
       setSuccess(true)
@@ -107,7 +139,9 @@ export default function ConstructionSignup() {
   }
 
   return (
-    <div style={{ maxWidth: 400, margin: '100px auto', fontFamily: 'sans-serif' }}>
+    <>
+      <ConstructionHeader />
+      <div style={{ maxWidth: 400, margin: '100px auto', fontFamily: 'sans-serif' }}>
       <h2>Construction Supplier Sign Up</h2>
       <form onSubmit={handleSignup}>
         <div style={{ marginBottom: 12 }}>
@@ -163,5 +197,6 @@ export default function ConstructionSignup() {
         Already have an account? <Link to="/construction/login">Log in</Link>
       </p>
     </div>
+    </>
   )
 }
