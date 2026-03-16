@@ -10,6 +10,11 @@ interface ProductImage {
   uploaded_at: string
 }
 
+interface ColorOption {
+  name: string
+  hex: string
+}
+
 interface Product {
   id: string
   title: string
@@ -26,6 +31,8 @@ interface Product {
   area_sqm?: number
   frame_type?: string
   shipping_port?: string
+  badge_label?: string | null
+  available_colors?: ColorOption[]
   construction_product_images?: ProductImage[]
 }
 
@@ -76,21 +83,35 @@ interface FormState {
   documents: Record<string, File | null>
   badgeText: string
   badgeStyle: string
+  availableColors: ColorOption[]
+  customColorHex: string
+  customColorName: string
 }
 
 const CATEGORIES = {
-  'Residential': [
-    'Expandable Container Home',
-    'Foldable Modular Unit',
-    'Flat Pack Home',
-    'Capsule Studio Unit',
-    'Modular Villa',
-    'Cabinet'
-  ],
-  'Commercial': [
-    'Commercial Modular Building'
+  'Categories': [
+    'Pre-fabricated Houses',
+    'Cabinets'
   ]
 }
+
+const PREDEFINED_COLORS: ColorOption[] = [
+  { name: 'Matte White', hex: '#F5F5F3' },
+  { name: 'Warm Oak', hex: '#C4956A' },
+  { name: 'Matte Black', hex: '#1C1C1E' },
+  { name: 'Stone Grey', hex: '#8E8E93' },
+  { name: 'Natural Walnut', hex: '#7B5E3A' },
+  { name: 'Soft Cream', hex: '#FAF9F6' },
+  { name: 'Charcoal', hex: '#2C2C2E' },
+  { name: 'Navy Blue', hex: '#1E3A5F' },
+  { name: 'Sage Green', hex: '#7A9E7E' },
+  { name: 'Terracotta', hex: '#D97B48' },
+  { name: 'Mustard', hex: '#D4B04C' },
+  { name: 'Dusty Rose', hex: '#D4A5A5' },
+  { name: 'Slate Blue', hex: '#5E7A8A' },
+  { name: 'Emerald', hex: '#2E5D3E' },
+  { name: 'Coffee', hex: '#6F4E37' },
+]
 
 interface ProductFormModalProps {
   isOpen: boolean
@@ -113,7 +134,7 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, editingPr
     pricePerSqm: '',
     includedInPrice: '',
     notIncluded: '',
-    standardSize: '40ft',
+    standardSize: '',
     floorAreaSqm: '',
     numFloors: '1',
     ceilingHeight: '',
@@ -122,8 +143,8 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, editingPr
     roofType: 'Flat',
     numModules: '',
     assemblyTime: '',
-    bedrooms: 'Studio',
-    bathrooms: '1',
+    bedrooms: '',
+    bathrooms: '',
     openPlanLiving: 'Yes',
     kitchenIncluded: 'Yes basic',
     laundrySpace: 'No',
@@ -153,7 +174,10 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, editingPr
       installationGuide: null
     },
     badgeText: '',
-    badgeStyle: 'Green'
+    badgeStyle: 'Green',
+    availableColors: [],
+    customColorHex: '#000000',
+    customColorName: ''
   })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -163,12 +187,8 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, editingPr
     if (editingProduct && isOpen) {
       // Reverse map product_type back to display category
       const productTypeToCategory: Record<string, string> = {
-        'expandable': 'Expandable Container Home',
-        'foldable': 'Foldable Modular Unit',
-        'flatpack': 'Flat Pack Home',
-        'capsule': 'Capsule Studio Unit',
-        'modular': 'Modular Villa',
-        'cabinet': 'Cabinet'
+        'house': 'Pre-fabricated Houses',
+        'cabinet': 'Cabinets'
       }
       const resolvedCategory = editingProduct.category || productTypeToCategory[editingProduct.product_type] || ''
       // Load existing images for this product
@@ -189,10 +209,12 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, editingPr
             category: resolvedCategory,
             description: editingProduct.description || '',
             basePrice: editingProduct.price_cad.toString(),
-            standardSize: editingProduct.size_ft || '40ft',
-            bedrooms: editingProduct.bedrooms || 'Studio',
+            standardSize: editingProduct.size_ft || '',
+            bedrooms: editingProduct.bedrooms || '',
             leadTime: editingProduct.lead_time || '',
             shippingPort: editingProduct.shipping_port || '',
+            badgeText: editingProduct.badge_label || '',
+            availableColors: editingProduct.available_colors || [],
             photoPreviews: photoPreviews,
             primaryPhotoIndex: primaryIndex >= 0 ? primaryIndex : 0,
             step: 1
@@ -204,10 +226,12 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, editingPr
             category: resolvedCategory,
             description: editingProduct.description || '',
             basePrice: editingProduct.price_cad.toString(),
-            standardSize: editingProduct.size_ft || '40ft',
-            bedrooms: editingProduct.bedrooms || 'Studio',
+            standardSize: editingProduct.size_ft || '',
+            bedrooms: editingProduct.bedrooms || '',
             leadTime: editingProduct.lead_time || '',
             shippingPort: editingProduct.shipping_port || '',
+            badgeText: editingProduct.badge_label || '',
+            availableColors: editingProduct.available_colors || [],
             step: 1
           }))
         }
@@ -266,26 +290,24 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, editingPr
 
       // Map category to product_type (must match database constraint)
       const categoryMap: Record<string, string> = {
-        'Expandable Container Home': 'expandable',
-        'Foldable Modular Unit': 'foldable',
-        'Flat Pack Home': 'flatpack',
-        'Capsule Studio Unit': 'capsule',
-        'Modular Villa': 'modular',
-        'Commercial Modular Building': 'modular',
-        'Cabinet': 'cabinet'
+        'Pre-fabricated Houses': 'house',
+        'Cabinets': 'cabinet'
       }
       const productType = categoryMap[form.category] || 'modular'
 
       // Create or update product
       const productData = {
         title: form.productName,
-        slug: form.productName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
+        slug: form.productName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') + (editingProduct ? '' : '-' + Date.now()),
         product_type: productType,
         description: form.description,
         price_cad: parseFloat(form.basePrice) || 0,
-        bedrooms: form.bedrooms || 'Studio',
-        size_ft: form.standardSize || '40ft',
-        lead_time: form.leadTime || '',
+        bedrooms: form.bedrooms || null,
+        size_ft: form.standardSize || null,
+        lead_time: form.leadTime || null,
+        shipping_port: form.shippingPort || null,
+        badge_label: form.badgeText || null,
+        available_colors: form.availableColors.length > 0 ? form.availableColors : null,
         status: 'live',
         supplier_id: session.user.id
       }
@@ -582,6 +604,110 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, editingPr
         )}
 
         <div style={{ marginBottom: 32 }}>
+          <label style={labelStyle}>Available Colors <span style={{ fontWeight: 500, color: '#64748b', fontSize: 16 }}>(optional)</span></label>
+
+          {/* Predefined swatches */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: 16 }}>
+            {PREDEFINED_COLORS.map(color => {
+              const isSelected = form.availableColors.some(c => c.hex === color.hex)
+              return (
+                <div
+                  key={color.hex}
+                  title={color.name}
+                  onClick={() => {
+                    if (isSelected) {
+                      updateForm('availableColors', form.availableColors.filter(c => c.hex !== color.hex))
+                    } else {
+                      updateForm('availableColors', [...form.availableColors, color])
+                    }
+                  }}
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: 8,
+                    background: color.hex,
+                    border: isSelected ? '3px solid #FF6B35' : '2px solid #cbd5e1',
+                    cursor: 'pointer',
+                    boxShadow: isSelected ? '0 0 0 3px rgba(255,107,53,0.25)' : 'none',
+                    transition: 'all 0.15s',
+                    position: 'relative'
+                  }}
+                >
+                  {isSelected && (
+                    <div style={{
+                      position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: 16, color: color.hex === '#F5F5F3' || color.hex === '#FAF9F6' ? '#333' : '#fff',
+                      fontWeight: 900
+                    }}>✓</div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+
+          {/* Custom color picker */}
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 16 }}>
+            <input
+              type="color"
+              value={form.customColorHex}
+              onChange={e => updateForm('customColorHex', e.target.value)}
+              style={{ width: 48, height: 48, border: '2px solid #cbd5e1', borderRadius: 8, cursor: 'pointer', padding: 2 }}
+            />
+            <input
+              type="text"
+              value={form.customColorName}
+              onChange={e => updateForm('customColorName', e.target.value)}
+              placeholder="Color name (e.g. Ocean Blue)"
+              style={{ ...inputStyle, flex: 1 }}
+              onFocus={(e) => { e.currentTarget.style.borderColor = '#FF6B35'; e.currentTarget.style.boxShadow = '0 0 0 6px rgba(255,107,53,0.15)' }}
+              onBlur={(e) => { e.currentTarget.style.borderColor = '#cbd5e1'; e.currentTarget.style.boxShadow = 'none' }}
+            />
+            <button
+              type="button"
+              onClick={() => {
+                if (!form.customColorName.trim()) return
+                const newColor: ColorOption = { name: form.customColorName.trim(), hex: form.customColorHex }
+                if (!form.availableColors.some(c => c.hex === newColor.hex)) {
+                  updateForm('availableColors', [...form.availableColors, newColor])
+                }
+                updateForm('customColorName', '')
+                updateForm('customColorHex', '#000000')
+              }}
+              style={{
+                padding: '14px 20px', background: '#FF6B35', color: '#fff', border: 'none',
+                borderRadius: 10, fontWeight: 700, fontSize: 15, cursor: 'pointer', whiteSpace: 'nowrap'
+              }}
+            >
+              + Add
+            </button>
+          </div>
+
+          {/* Selected colors chips */}
+          {form.availableColors.length > 0 && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {form.availableColors.map(color => (
+                <div
+                  key={color.hex}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 6,
+                    background: '#f1f5f9', border: '2px solid #e2e8f0',
+                    borderRadius: 100, padding: '6px 12px', fontSize: 13, fontWeight: 600
+                  }}
+                >
+                  <div style={{ width: 14, height: 14, borderRadius: '50%', background: color.hex, border: '1px solid #cbd5e1', flexShrink: 0 }} />
+                  {color.name}
+                  <button
+                    type="button"
+                    onClick={() => updateForm('availableColors', form.availableColors.filter(c => c.hex !== color.hex))}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: 14, padding: 0, lineHeight: 1 }}
+                  >✕</button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div style={{ marginBottom: 32 }}>
           <label style={labelStyle}>Tagline <span style={{ fontWeight: 500, color: '#64748b', fontSize: 16 }}>(optional)</span></label>
           <input
             type="text"
@@ -616,6 +742,7 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, editingPr
             onFocus={(e) => { e.currentTarget.style.borderColor = '#FF6B35'; e.currentTarget.style.boxShadow = '0 0 0 6px rgba(255,107,53,0.15)' }}
             onBlur={(e) => { e.currentTarget.style.borderColor = '#cbd5e1'; e.currentTarget.style.boxShadow = 'none' }}
           >
+            <option value="">Not specified</option>
             <option value="20ft">20ft</option>
             <option value="40ft">40ft</option>
             <option value="60ft">60ft</option>
@@ -632,6 +759,7 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, editingPr
             onFocus={(e) => { e.currentTarget.style.borderColor = '#FF6B35'; e.currentTarget.style.boxShadow = '0 0 0 6px rgba(255,107,53,0.15)' }}
             onBlur={(e) => { e.currentTarget.style.borderColor = '#cbd5e1'; e.currentTarget.style.boxShadow = 'none' }}
           >
+            <option value="">Not specified</option>
             <option value="Studio">Studio</option>
             <option value="1">1 Bedroom</option>
             <option value="2">2 Bedrooms</option>
@@ -652,6 +780,22 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, editingPr
             onFocus={(e) => { e.currentTarget.style.borderColor = '#FF6B35'; e.currentTarget.style.boxShadow = '0 0 0 6px rgba(255,107,53,0.15)' }}
             onBlur={(e) => { e.currentTarget.style.borderColor = '#cbd5e1'; e.currentTarget.style.boxShadow = 'none' }}
           />
+        </div>
+
+        <div style={{ marginBottom: 32 }}>
+          <label style={labelStyle}>Badge Label <span style={{ fontWeight: 500, color: '#64748b', fontSize: 16 }}>(optional)</span></label>
+          <input
+            type="text"
+            value={form.badgeText}
+            onChange={e => updateForm('badgeText', e.target.value)}
+            placeholder="e.g., In Stock, New Arrival, Limited Edition"
+            style={inputStyle}
+            onFocus={(e) => { e.currentTarget.style.borderColor = '#FF6B35'; e.currentTarget.style.boxShadow = '0 0 0 6px rgba(255,107,53,0.15)' }}
+            onBlur={(e) => { e.currentTarget.style.borderColor = '#cbd5e1'; e.currentTarget.style.boxShadow = 'none' }}
+          />
+          <p style={{ fontSize: 14, color: '#64748b', marginTop: 8 }}>
+            Shows on product card (e.g., "In Stock", "New")
+          </p>
         </div>
       </div>
 
@@ -994,7 +1138,27 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, editingPr
             >
               Cancel
             </button>
-            {form.step < 5 ? (
+            <button
+              onClick={handlePublish}
+              disabled={loading}
+              style={{
+                padding: '18px 44px',
+                background: loading ? '#9ca3af' : 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                color: 'white',
+                border: 'none',
+                borderRadius: 12,
+                fontWeight: 800,
+                fontSize: 18,
+                cursor: loading ? 'not-allowed' : 'pointer',
+                transition: 'all 0.2s',
+                boxShadow: '0 4px 16px rgba(16,185,129,0.35)'
+              }}
+              onMouseEnter={e => { if (!loading) { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(16,185,129,0.45)' } }}
+              onMouseLeave={e => { if (!loading) { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(16,185,129,0.35)' } }}
+            >
+              {loading ? 'Publishing...' : 'Publish Now ✓'}
+            </button>
+            {form.step < 5 && (
               <button
                 onClick={handleNext}
                 style={{
@@ -1013,27 +1177,6 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, editingPr
                 onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(255,107,53,0.35)' }}
               >
                 Next Step →
-              </button>
-            ) : (
-              <button
-                onClick={handlePublish}
-                disabled={loading}
-                style={{
-                  padding: '18px 44px',
-                  background: loading ? '#9ca3af' : 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: 12,
-                  fontWeight: 800,
-                  fontSize: 18,
-                  cursor: loading ? 'not-allowed' : 'pointer',
-                  transition: 'all 0.2s',
-                  boxShadow: '0 4px 16px rgba(16,185,129,0.35)'
-                }}
-                onMouseEnter={e => { if (!loading) { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(16,185,129,0.45)' } }}
-                onMouseLeave={e => { if (!loading) { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(16,185,129,0.35)' } }}
-              >
-                {loading ? 'Publishing...' : 'Publish Now ✓'}
               </button>
             )}
           </div>

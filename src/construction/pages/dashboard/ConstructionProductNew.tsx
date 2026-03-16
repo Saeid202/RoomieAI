@@ -56,16 +56,9 @@ interface FormState {
 }
 
 const CATEGORIES = {
-  'Residential': [
-    'Expandable Container Home',
-    'Foldable Modular Unit',
-    'Flat Pack Home',
-    'Capsule Studio Unit',
-    'Modular Villa',
-    'Cabinet'
-  ],
-  'Commercial': [
-    'Commercial Modular Building'
+  'Categories': [
+    'Pre-fabricated Houses',
+    'Cabinets'
   ]
 }
 
@@ -173,13 +166,8 @@ export default function ConstructionProductNew() {
 
       // Map category to product_type (must match database constraint)
       const categoryMap: Record<string, string> = {
-        'Expandable Container Home': 'expandable',
-        'Foldable Modular Unit': 'foldable',
-        'Flat Pack Home': 'flatpack',
-        'Capsule Studio Unit': 'capsule',
-        'Modular Villa': 'modular',
-        'Commercial Modular Building': 'modular',
-        'Cabinet': 'cabinet'
+        'Pre-fabricated Houses': 'house',
+        'Cabinets': 'cabinet'
       }
       const productType = categoryMap[form.category] || 'modular'
 
@@ -187,13 +175,14 @@ export default function ConstructionProductNew() {
       const productData = {
         supplier_id: session.user.id,
         title: form.productName,
-        slug: form.productName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
+        slug: form.productName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') + '-' + Date.now(),
         product_type: productType,
         description: form.description,
         price_cad: parseFloat(form.basePrice) || 0,
         bedrooms: form.bedrooms || 'Studio',
         size_ft: form.standardSize || '40ft',
         lead_time: form.leadTime || '',
+        badge_label: form.badgeText || null,
         status: 'live'
       }
 
@@ -477,6 +466,32 @@ export default function ConstructionProductNew() {
             onFocus={(e) => { e.currentTarget.style.borderColor = '#FF6B35'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(255, 107, 53, 0.1)' }}
             onBlur={(e) => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.boxShadow = 'none' }}
           />
+        </div>
+
+        <div style={{ marginBottom: 16 }}>
+          <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: '#1a1f2e', marginBottom: 8 }}>
+            Badge Label (optional)
+          </label>
+          <input
+            type="text"
+            value={form.badgeText}
+            onChange={e => updateForm('badgeText', e.target.value)}
+            placeholder="e.g., In Stock, New Arrival"
+            style={{
+              width: '100%',
+              padding: '12px 14px',
+              border: '1px solid #e5e7eb',
+              borderRadius: 8,
+              fontFamily: "'DM Sans', sans-serif",
+              fontSize: 15,
+              transition: 'all 0.2s'
+            }}
+            onFocus={(e) => { e.currentTarget.style.borderColor = '#FF6B35'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(255, 107, 53, 0.1)' }}
+            onBlur={(e) => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.boxShadow = 'none' }}
+          />
+          <p style={{ fontSize: 13, color: '#6b7280', marginTop: 6 }}>
+            Shows on product card (e.g., "In Stock", "New")
+          </p>
         </div>
       </div>
 

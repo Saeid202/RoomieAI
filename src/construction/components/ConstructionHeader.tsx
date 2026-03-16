@@ -1,7 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Menu, X, LogOut, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import {
   DropdownMenu,
@@ -9,14 +8,28 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { supabase } from "@/integrations/supabase/client-simple";
+import AuthModal from "./AuthModal";
 
 const ConstructionHeader = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { user, signOut } = useAuth();
+  const [user, setUser] = useState<any>(null);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [authModalTab, setAuthModalTab] = useState<'login' | 'signup'>('login');
   const navigate = useNavigate();
 
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
   const handleSignOut = async () => {
-    await signOut();
+    await supabase.auth.signOut();
     navigate("/");
   };
 
@@ -96,12 +109,12 @@ const ConstructionHeader = () => {
             </div>
           ) : (
             <>
-              <Button variant="outline" onClick={() => navigate("/construction/login")}>
+              <Button variant="outline" onClick={() => { setAuthModalTab('login'); setAuthModalOpen(true); }}>
                 Log in
               </Button>
               <Button 
                 className="bg-roomie-purple hover:bg-roomie-dark text-white"
-                onClick={() => navigate("/construction/signup")}
+                onClick={() => { setAuthModalTab('signup'); setAuthModalOpen(true); }}
               >
                 Sign up
               </Button>
@@ -165,12 +178,16 @@ const ConstructionHeader = () => {
                 </>
               ) : (
                 <>
-                  <Button variant="outline" className="w-full" onClick={() => navigate("/construction/login")}>
+                  <Button 
+                    variant="outline" 
+                    className="w-full" 
+                    onClick={() => { setAuthModalTab('login'); setAuthModalOpen(true); setIsMenuOpen(false); }}
+                  >
                     Log in
                   </Button>
                   <Button 
                     className="w-full bg-roomie-purple hover:bg-roomie-dark text-white"
-                    onClick={() => navigate("/construction/signup")}
+                    onClick={() => { setAuthModalTab('signup'); setAuthModalOpen(true); setIsMenuOpen(false); }}
                   >
                     Sign up
                   </Button>
@@ -180,6 +197,12 @@ const ConstructionHeader = () => {
           </div>
         </div>
       )}
+      {/* Auth Modal */}
+      <AuthModal 
+        isOpen={authModalOpen} 
+        onClose={() => setAuthModalOpen(false)} 
+        defaultTab={authModalTab}
+      />
     </nav>
   );
 };

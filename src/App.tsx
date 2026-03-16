@@ -179,6 +179,23 @@ function AppRoutes() {
         <Route path="/auth/callback" element={<Callback />} />
         <Route path="/emergency/accept/:token" element={<EmergencyAccept />} />
         <Route path="/property/:id" element={<PublicPropertyDetails />} />
+
+        {/* Construction Routes — accessible regardless of HomieAI auth state */}
+        <Route path="/construction" element={<ConstructionPublicProducts />} />
+        <Route path="/construction/custom" element={<ConstructionCustomOrder />} />
+        <Route path="/construction/login" element={<ConstructionLogin />} />
+        <Route path="/construction/signup" element={<ConstructionSignup />} />
+        <Route path="/construction/dashboard" element={<ConstructionDashboardHome />} />
+        <Route path="/construction/dashboard/products" element={<ConstructionProducts />} />
+        <Route path="/construction/dashboard/products/new" element={<ConstructionProductNew />} />
+        <Route path="/construction/dashboard/products/:id/edit" element={<ConstructionProductEdit />} />
+        <Route path="/construction/dashboard/profile" element={<ConstructionProfile />} />
+        <Route path="/construction/dashboard/quotes" element={<ConstructionQuotes />} />
+        <Route path="/construction/dashboard/quotes/:id" element={<ConstructionQuoteDetail />} />
+        <Route path="/construction/dashboard/messages" element={<ConstructionMessages />} />
+        <Route path="/construction/dashboard/messages/:id" element={<ConstructionMessageDetail />} />
+        <Route path="/construction/:slug" element={<ConstructionProductDetail />} />
+
         <Route path="/dashboard" element={
           <ProtectedRoute>
             <Dashboard />

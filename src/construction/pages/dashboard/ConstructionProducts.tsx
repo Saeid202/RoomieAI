@@ -31,11 +31,7 @@ interface ProductImage {
 }
 
 const productTypeColors: Record<string, string> = {
-  expandable: '#2196F3',
-  foldable: '#4CAF50',
-  flatpack: '#FF9800',
-  capsule: '#9C27B0',
-  modular: '#F44336',
+  house: '#2196F3',
   cabinet: '#795548'
 }
 
@@ -106,6 +102,18 @@ export default function ConstructionProducts() {
       .eq('id', productId)
 
     setProducts(products.map(p => p.id === productId ? { ...p, status: 'archived' } : p))
+  }
+
+  const handleDelete = async (productId: string) => {
+    if (!window.confirm('Are you sure you want to delete this listing? This action cannot be undone.')) {
+      return
+    }
+    await supabase
+      .from('construction_products')
+      .delete()
+      .eq('id', productId)
+
+    setProducts(products.filter(p => p.id !== productId))
   }
 
   const handlePreviewClick = async (product: Product) => {
@@ -288,7 +296,7 @@ export default function ConstructionProducts() {
                         <button onClick={() => handlePreviewClick(product)} style={{ padding: '6px 12px', background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', color: 'white', border: 'none', cursor: 'pointer', textDecoration: 'none', borderRadius: 6, fontSize: 12, fontWeight: 600, transition: 'all 0.3s ease', boxShadow: '0 2px 6px rgba(16, 185, 129, 0.2)' }} onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-1px)'; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 10px rgba(16, 185, 129, 0.3)' }} onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 2px 6px rgba(16, 185, 129, 0.2)' }}>
                           👁 View
                         </button>
-                        <button onClick={() => handleEditClick(product)} style={{ padding: '6px 12px', background: 'linear-gradient(135deg, #FF6B35 0%, #E55A2B 100%)', color: 'white', textDecoration: 'none', borderRadius: 6, fontSize: 12, fontWeight: 600, transition: 'all 0.3s ease', boxShadow: '0 2px 6px rgba(255, 107, 53, 0.2)' }} onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-1px)'; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 10px rgba(255, 107, 53, 0.3)' }} onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 2px 6px rgba(255, 107, 53, 0.2)' }}>
+                        <button onClick={() => handleEditClick(product)} style={{ padding: '6px 12px', background: 'linear-gradient(135deg, #FF6B35 0%, #E55A2B 100%)', color: 'white', border: 'none', cursor: 'pointer', textDecoration: 'none', borderRadius: 6, fontSize: 12, fontWeight: 600, transition: 'all 0.3s ease', boxShadow: '0 2px 6px rgba(255, 107, 53, 0.2)' }} onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-1px)'; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 10px rgba(255, 107, 53, 0.3)' }} onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 2px 6px rgba(255, 107, 53, 0.2)' }}>
                           Edit
                         </button>
                         <button
@@ -306,6 +314,14 @@ export default function ConstructionProducts() {
                           onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = '#d1d5db'; (e.currentTarget as HTMLButtonElement).style.color = '#1a1f2e' }}
                         >
                           Archive
+                        </button>
+                        <button
+                          onClick={() => handleDelete(product.id)}
+                          style={{ padding: '6px 12px', background: '#ef4444', color: 'white', border: 'none', cursor: 'pointer', borderRadius: 6, fontSize: 12, fontWeight: 600, transition: 'all 0.3s ease' }}
+                          onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = '#dc2626'; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 2px 6px rgba(239, 68, 68, 0.3)' }}
+                          onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = '#ef4444'; (e.currentTarget as HTMLButtonElement).style.boxShadow = 'none' }}
+                        >
+                          Delete
                         </button>
                       </div>
                     </td>

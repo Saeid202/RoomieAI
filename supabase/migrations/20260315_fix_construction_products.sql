@@ -15,10 +15,15 @@ UPDATE public.construction_products
   SET status = 'live'
   WHERE status = 'draft';
 
--- Fix 4: Ensure RLS is disabled on construction tables (for testing)
+-- Fix 4: Add badge labels for common product types (optional but recommended)
+UPDATE public.construction_products
+  SET badge_label = 'In Stock'
+  WHERE badge_label IS NULL;
+
+-- Fix 5: Ensure RLS is disabled on construction tables (for testing)
 ALTER TABLE public.construction_products DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.construction_product_images DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.construction_supplier_profiles DISABLE ROW LEVEL SECURITY;
 
 -- Verify
-SELECT id, title, slug, status, product_type FROM public.construction_products;
+SELECT id, title, slug, status, product_type, badge_label FROM public.construction_products;
