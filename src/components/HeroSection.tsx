@@ -1,5 +1,4 @@
 
-import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
@@ -22,9 +21,7 @@ const HeroSection = () => {
       navigate("/dashboard");
       return;
     }
-    // This will be replaced with signup dialog opening
-    const signupButton = document.querySelector('[data-signup-button="true"]') as HTMLButtonElement;
-    if (signupButton) signupButton.click();
+    navigate("/login");
   };
 
   const openModal = () => {
@@ -54,38 +51,19 @@ const HeroSection = () => {
               </span>
             </div>
             
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-tight animate-slide-up">
-              <span className="block">Find Your</span>
-              <span className="block text-gradient">Perfect Roommate Match</span>
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight leading-tight animate-slide-up">
+              <span className="block">Welcome to HomieAI City.</span>
+              <span className="block text-gradient">Everything Real Estate Needs</span>
+              <span className="block text-2xl md:text-3xl lg:text-4xl font-bold text-primary animate-slide-up" style={{animationDelay: '0.3s'}}>Finally Under One Roof.</span>
             </h1>
             
-            <p className="text-xl md:text-2xl text-primary/80 font-medium animate-slide-up" style={{animationDelay: '0.2s'}}>
-              AI-Powered Compatibility Matching
+            <p className="text-xl md:text-2xl text-primary/80 font-medium animate-slide-up" style={{animationDelay: '0.4s'}}>
+              We Didn't Improve Real Estate. We Rebuilt It!
             </p>
             
-            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto lg:mx-0 leading-relaxed animate-slide-up" style={{animationDelay: '0.4s'}}>
-              Our AI-powered platform connects you with compatible roommates or co-investors to buy a house based on your lifestyle, budget, and location preferences.
+            <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto lg:mx-0 leading-relaxed animate-slide-up" style={{animationDelay: '0.2s'}}>
+              HomieAI is the only platform where Seekers find homes and match roommates, Landlords manage portfolios, Brokers assess mortgages, Lawyers close deals inside secure document rooms, users manage rent payments, and Renovators deliver — all connected, all intelligent, all in real time.
             </p>
-            
-            {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 animate-slide-up" style={{animationDelay: '0.6s'}}>
-              <div className="text-center lg:text-left">
-                <div className="text-2xl md:text-3xl font-bold text-primary">5,000+</div>
-                <p className="text-sm text-muted-foreground">Matches</p>
-              </div>
-              <div className="text-center lg:text-left">
-                <div className="text-2xl md:text-3xl font-bold text-primary">95%</div>
-                <p className="text-sm text-muted-foreground">Success Rate</p>
-              </div>
-              <div className="text-center lg:text-left">
-                <div className="text-2xl md:text-3xl font-bold text-primary">24h</div>
-                <p className="text-sm text-muted-foreground">Avg. Match</p>
-              </div>
-              <div className="text-center lg:text-left">
-                <div className="text-2xl md:text-3xl font-bold text-primary">AI</div>
-                <p className="text-sm text-muted-foreground">Powered</p>
-              </div>
-            </div>
             
             {/* CTAs */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start animate-slide-up" style={{animationDelay: '0.8s'}}>

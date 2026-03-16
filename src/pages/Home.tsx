@@ -7,7 +7,7 @@ import HowItWorks from "@/components/HowItWorks";
 import Footer from "@/components/Footer";
 import { PublicPropertyListings } from "@/components/public/PublicPropertyListings";
 import { useLocation } from "react-router-dom";
-import { set } from "date-fns";
+import { Home } from "lucide-react";
 
 export default function HomePage() {
   const location = useLocation();
@@ -41,16 +41,24 @@ export default function HomePage() {
         <HowItWorks />
         
         {/* Public Property Listings */}
-        <section className="py-16 bg-gray-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                Available Properties
-              </h2>
-              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                Browse our latest rental and sales listings. No account required to view - sign up when you're ready to apply!
-              </p>
-            </div>
+        <section className="py-16 bg-gradient-to-br from-slate-50 via-orange-50/20 to-purple-50/20">
+          <div className="max-w-7xl mx-auto px-4 md:px-6">
+            {/* Section Header */}
+            <header className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-xl orange-purple-gradient shadow-lg">
+                  <Home className="h-6 w-6 text-white" aria-hidden="true" />
+                </div>
+                <div>
+                  <h2 className="text-2xl md:text-3xl font-extrabold text-gradient tracking-tight">
+                    Available Properties
+                  </h2>
+                  <p className="text-sm font-medium text-slate-500 mt-0.5">
+                    Browse our latest rental and sales listings
+                  </p>
+                </div>
+              </div>
+            </header>
             <PublicPropertyListings limit={6} showFilters={true} showSearch={true} />
           </div>
         </section>

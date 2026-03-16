@@ -1,5 +1,4 @@
-
-import { Check, UserCircle, Users, Building } from "lucide-react";
+import { Home, DollarSign, Wrench } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const HowItWorks = () => {
@@ -10,28 +9,58 @@ const HowItWorks = () => {
     if (signupButton) signupButton.click();
   };
 
-  const steps = [
+  const journeys = [
     {
-      icon: <UserCircle className="w-10 h-10 text-roomie-purple" />,
-      title: "Create Your Profile",
-      description: "Fill out your preferences, budget, and lifestyle details to help us find your ideal match.",
-      action: handleSignupClick
+      icon: <Home className="w-8 h-8 text-blue-600" />,
+      bg: "bg-blue-50 dark:bg-blue-900/20",
+      border: "border-blue-200 dark:border-blue-800",
+      badge: "bg-blue-100 text-blue-700",
+      dot: "bg-blue-500",
+      title: "Find & Apply",
+      subtitle: "Seekers & Landlords",
+      features: [
+        "Search thousands of rental & sale listings",
+        "AI-powered roommate matching",
+        "Submit rental applications online",
+        "Schedule property viewings",
+        "Manage rent payments digitally",
+        "Landlord portfolio management",
+      ],
     },
     {
-      icon: <Check className="w-10 h-10 text-roomie-purple" />,
-      title: "Get AI-Powered Matches",
-      description: "Our algorithm analyzes compatibility factors to suggest roommates you'll actually get along with."
+      icon: <DollarSign className="w-8 h-8 text-purple-600" />,
+      bg: "bg-purple-50 dark:bg-purple-900/20",
+      border: "border-purple-200 dark:border-purple-800",
+      badge: "bg-purple-100 text-purple-700",
+      dot: "bg-purple-500",
+      title: "Buy & Invest",
+      subtitle: "Buyers, Brokers & Lawyers",
+      features: [
+        "Mortgage pre-approval & profile",
+        "Co-ownership planning & matching",
+        "Secure document rooms for deals",
+        "Lawyer-assisted closing process",
+        "Legal compliance & form generation",
+        "AI-powered legal assistant",
+      ],
     },
     {
-      icon: <Users className="w-10 h-10 text-roomie-purple" />,
-      title: "Connect & Chat",
-      description: "Message potential roommates directly through our platform to see if you're a good fit."
+      icon: <Wrench className="w-8 h-8 text-green-600" />,
+      bg: "bg-green-50 dark:bg-green-900/20",
+      border: "border-green-200 dark:border-green-800",
+      badge: "bg-green-100 text-green-700",
+      dot: "bg-green-500",
+      title: "Renovate & Improve",
+      subtitle: "Renovators & Property Owners",
+      features: [
+        "Get free renovation quotes",
+        "Browse verified renovators",
+        "Project timeline & management",
+        "Quality assurance tracking",
+        "Integrated payment processing",
+        "Construction product marketplace",
+      ],
     },
-    {
-      icon: <Building className="w-10 h-10 text-roomie-purple" />,
-      title: "Find Your New Home",
-      description: "Once you've found your match, start planning your move and future living arrangement."
-    }
   ];
 
   return (
@@ -45,34 +74,48 @@ const HowItWorks = () => {
           </div>
           <h2 className="text-3xl md:text-4xl font-bold mb-4 animate-slide-up">How Homie AI Works</h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto animate-slide-up" style={{ animationDelay: '0.2s' }}>
-            Finding the perfect roommate is just a few simple steps away.
+            One platform, three powerful journeys — all connected, all intelligent.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {steps.map((step, index) => (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {journeys.map((journey, index) => (
             <div
               key={index}
-              className={`card p-6 relative animate-fade-in ${step.action ? 'cursor-pointer' : ''}`}
-              style={{ animationDelay: `${index * 0.1}s` }}
-              onClick={step.action}
+              className={`rounded-2xl border-2 ${journey.border} ${journey.bg} p-6 animate-fade-in`}
+              style={{ animationDelay: `${index * 0.15}s` }}
             >
-              <div className="absolute -top-4 -left-4 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold shadow-glow">
-                {index + 1}
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 bg-white dark:bg-slate-800 rounded-xl shadow-sm">
+                  {journey.icon}
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold">{journey.title}</h3>
+                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${journey.badge}`}>
+                    {journey.subtitle}
+                  </span>
+                </div>
               </div>
-              <div className="mb-4">{step.icon}</div>
-              <h3 className="text-xl font-semibold mb-2">{step.title}</h3>
-              <p className="text-muted-foreground">{step.description}</p>
+
+              <ul className="mt-4 space-y-2">
+                {journey.features.map((feature, i) => (
+                  <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
+                    <span className={`mt-1.5 w-2 h-2 rounded-full flex-shrink-0 ${journey.dot}`} />
+                    {feature}
+                  </li>
+                ))}
+              </ul>
             </div>
           ))}
         </div>
 
-        <div className="mt-16 text-center animate-slide-up" style={{ animationDelay: '0.6s' }}>
-          <div className="inline-block bg-background/90 backdrop-blur-sm rounded-full px-6 py-3 shadow-lg border border-primary/20">
-            <p className="text-foreground">
-              <span className="font-medium text-primary">92% of users</span> find a compatible roommate within 2 weeks!
-            </p>
-          </div>
+        <div className="mt-14 text-center animate-slide-up" style={{ animationDelay: '0.6s' }}>
+          <button
+            className="btn-primary text-lg h-14 px-10 shadow-glow hover:shadow-glow-lg transition-all duration-300"
+            onClick={handleSignupClick}
+          >
+            Start Your Journey →
+          </button>
         </div>
       </div>
     </section>

@@ -361,6 +361,7 @@ function AppRoutes() {
       <Route path="/construction/dashboard/quotes/:id" element={<ConstructionQuoteDetail />} />
       <Route path="/construction/:slug" element={<ConstructionProductDetail />} />
       <Route path="/emergency/accept/:token" element={<EmergencyAccept />} />
+      <Route path="/property/:id" element={<PublicPropertyDetails />} />
       <Route path="/dashboard" element={
         <ProtectedRoute>
           <Dashboard />
