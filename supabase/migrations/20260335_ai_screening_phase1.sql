@@ -190,12 +190,12 @@ CREATE INDEX idx_ai_screening_logs_created ON ai_screening_logs(created_at DESC)
 -- =====================================================
 
 CREATE OR REPLACE FUNCTION update_ai_screening_timestamps()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER AS
 BEGIN
   NEW.updated_at = NOW();
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+LANGUAGE plpgsql;
 
 -- Triggers for auto-updating timestamps
 CREATE TRIGGER update_ai_screening_rules_timestamp
