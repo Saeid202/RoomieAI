@@ -90,6 +90,8 @@ export const LoginDialog = ({ isOpen, setIsOpen }: LoginDialogProps) => {
         navigate("/dashboard/admin");
       } else if (userRole === 'renovator') {
         navigate("/renovator/dashboard");
+      } else if (userRole === 'lender') {
+        navigate("/dashboard/lender");
       } else {
         // Default to roommate recommendations for seekers
         navigate("/dashboard/roommate-recommendations");

@@ -26,8 +26,8 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { RentalApplication } from '@/services/rentalApplicationService';
 import { getApplicationDocuments, RentalDocument } from '@/services/rentalDocumentService';
-import { downloadContractPdf, getSignedContractPdfUrl } from '@/services/leaseContractService';
 import { toast } from 'sonner';
+import { printOntarioLease } from '@/utils/printLease';
 
 interface ApplicationsListProps {
   applications: any[];
@@ -520,14 +520,10 @@ export function ApplicationsList({
                           ? (Array.isArray(application.lease_contract) ? application.lease_contract[0] : application.lease_contract)
                           : (Array.isArray(application.contract) ? application.contract[0] : application.contract);
 
-                        // Check for stored contract in new structure
-                        const storedContract = contract?.stored_contracts
-                          ? (Array.isArray(contract.stored_contracts) ? contract.stored_contracts[0] : contract.stored_contracts)
-                          : null;
 
                         return (
                           <div className="flex items-center gap-2">
-                            {(storedContract || contract) && (
+                            {contract && (
                               <Button
                                 variant="outline"
                                 size="sm"
@@ -535,18 +531,9 @@ export function ApplicationsList({
                                 onClick={async (e) => {
                                   e.stopPropagation();
                                   try {
-                                    toast.info("Downloading contract...");
-
-                                    if (storedContract?.id) {
-                                      // Use new stored contract
-                                      toast.info("Fetching signed document...");
-                                      const url = await getSignedContractPdfUrl(contract.id);
-                                      window.open(url, '_blank');
-                                    } else {
-                                      // Fallback to dynamic generation
-                                      await downloadContractPdf(application.id, `Lease_Contract_${application.full_name.replace(/\s+/g, '_')}.pdf`);
-                                    }
-                                    toast.success("Download started!");
+                                    toast.info("Generating PDF...");
+                                    await printOntarioLease(contract);
+                                    toast.success("PDF downloaded!");
                                   } catch (err) {
                                     console.error("Download failed:", err);
                                     toast.error("Failed to download contract");

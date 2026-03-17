@@ -13,6 +13,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { CheckCircle2, AlertCircle, Upload, ShieldCheck, CreditCard } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { LandlordContactInfoCard } from "@/components/landlord/LandlordContactInfoCard";
+import { validateContactInfo } from "@/services/landlordService";
+import { LandlordContactInfo } from "@/types/landlord";
 
 // Schema for the form
 const profileSchema = z.object({
@@ -22,6 +25,13 @@ const profileSchema = z.object({
         required_error: "Please select your role type",
     }),
     licenseNumber: z.string().optional(),
+    contactUnit: z.string().optional(),
+    contactStreetNumber: z.string().min(1, "Street number is required"),
+    contactStreetName: z.string().min(1, "Street name is required"),
+    contactPoBox: z.string().optional(),
+    contactCityTown: z.string().min(1, "City/Town is required"),
+    contactProvince: z.string().min(1, "Province is required"),
+    contactPostalCode: z.string().min(1, "Postal code is required"),
 });
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
@@ -34,6 +44,7 @@ export default function LandlordProfilePage() {
     const [existingData, setExistingData] = useState<any>(null);
     const [systemRole, setSystemRole] = useState<string>("");
     const [joinedDate, setJoinedDate] = useState<string>("");
+    const [contactErrors, setContactErrors] = useState<Record<string, string>>({});
 
     // Separate states for file uploads
     const [licenseFile, setLicenseFile] = useState<File | null>(null);
@@ -46,10 +57,24 @@ export default function LandlordProfilePage() {
             email: "",
             userType: undefined,
             licenseNumber: "",
+            contactUnit: "",
+            contactStreetNumber: "",
+            contactStreetName: "",
+            contactPoBox: "",
+            contactCityTown: "",
+            contactProvince: "",
+            contactPostalCode: "",
         },
     });
 
     const userType = form.watch("userType");
+    const contactUnit = form.watch("contactUnit");
+    const contactStreetNumber = form.watch("contactStreetNumber");
+    const contactStreetName = form.watch("contactStreetName");
+    const contactPoBox = form.watch("contactPoBox");
+    const contactCityTown = form.watch("contactCityTown");
+    const contactProvince = form.watch("contactProvince");
+    const contactPostalCode = form.watch("contactPostalCode");
 
     useEffect(() => {
         if (user) {
@@ -77,7 +102,7 @@ export default function LandlordProfilePage() {
         }
 
         try {
-            // 2. Try to fetch from basic profile for additional details like full name
+            // 2. Try to fetch from basic profile for additional details like full name and contact info
             const { data: profile } = await (supabase as any)
                 .from("user_profiles")
                 .select("*")
@@ -91,6 +116,15 @@ export default function LandlordProfilePage() {
                 if ((profile as any).created_at) {
                     setJoinedDate(new Date((profile as any).created_at).toLocaleDateString());
                 }
+
+                // Load contact information
+                if ((profile as any).contact_unit) form.setValue("contactUnit", (profile as any).contact_unit);
+                if ((profile as any).contact_street_number) form.setValue("contactStreetNumber", (profile as any).contact_street_number);
+                if ((profile as any).contact_street_name) form.setValue("contactStreetName", (profile as any).contact_street_name);
+                if ((profile as any).contact_po_box) form.setValue("contactPoBox", (profile as any).contact_po_box);
+                if ((profile as any).contact_city_town) form.setValue("contactCityTown", (profile as any).contact_city_town);
+                if ((profile as any).contact_province) form.setValue("contactProvince", (profile as any).contact_province);
+                if ((profile as any).contact_postal_code) form.setValue("contactPostalCode", (profile as any).contact_postal_code);
             }
 
             // 3. Fetch verification data
@@ -134,15 +168,44 @@ export default function LandlordProfilePage() {
 
     const onSubmit = async (data: ProfileFormValues) => {
         if (!user) return;
+
+        // Validate contact information
+        const contactValidation = validateContactInfo({
+            contactUnit: data.contactUnit,
+            contactStreetNumber: data.contactStreetNumber,
+            contactStreetName: data.contactStreetName,
+            contactPoBox: data.contactPoBox,
+            contactCityTown: data.contactCityTown,
+            contactProvince: data.contactProvince,
+            contactPostalCode: data.contactPostalCode,
+        });
+
+        if (!contactValidation.valid) {
+            setContactErrors(contactValidation.errors);
+            toast({
+                title: "Validation Error",
+                description: "Please fill in all required contact information fields.",
+                variant: "destructive",
+            });
+            return;
+        }
+
         setLoading(true);
 
         try {
-            // 1. Update Profile (Name/Email)
+            // 1. Update Profile (Name/Email/Contact Info)
             await (supabase as any)
                 .from("user_profiles")
                 .update({
                     full_name: data.fullName,
-                    email: data.email
+                    email: data.email,
+                    contact_unit: data.contactUnit || null,
+                    contact_street_number: data.contactStreetNumber,
+                    contact_street_name: data.contactStreetName,
+                    contact_po_box: data.contactPoBox || null,
+                    contact_city_town: data.contactCityTown,
+                    contact_province: data.contactProvince,
+                    contact_postal_code: data.contactPostalCode,
                 })
                 .eq("id", user.id);
 
@@ -174,6 +237,9 @@ export default function LandlordProfilePage() {
                 title: "Profile Updated",
                 description: "Your information has been saved and submitted for verification.",
             });
+
+            // Clear contact errors on success
+            setContactErrors({});
 
             // Reload to show status
             loadProfileData();
@@ -247,6 +313,45 @@ export default function LandlordProfilePage() {
                                 </div>
                             </CardContent>
                         </Card>
+
+                        <LandlordContactInfoCard
+                            data={{
+                                contactUnit: contactUnit,
+                                contactStreetNumber: contactStreetNumber,
+                                contactStreetName: contactStreetName,
+                                contactPoBox: contactPoBox,
+                                contactCityTown: contactCityTown,
+                                contactProvince: contactProvince,
+                                contactPostalCode: contactPostalCode,
+                            }}
+                            errors={contactErrors}
+                            onChange={(field, value) => {
+                                // Map field names to form field names
+                                const fieldMap: Record<string, any> = {
+                                    'contactUnit': 'contactUnit',
+                                    'contactStreetNumber': 'contactStreetNumber',
+                                    'contactStreetName': 'contactStreetName',
+                                    'contactPoBox': 'contactPoBox',
+                                    'contactCityTown': 'contactCityTown',
+                                    'contactProvince': 'contactProvince',
+                                    'contactPostalCode': 'contactPostalCode',
+                                };
+                                
+                                const formField = fieldMap[field] as any;
+                                if (formField) {
+                                    form.setValue(formField, value);
+                                    // Clear error for this field when user starts typing
+                                    if (contactErrors[field]) {
+                                        setContactErrors(prev => {
+                                            const newErrors = { ...prev };
+                                            delete newErrors[field];
+                                            return newErrors;
+                                        });
+                                    }
+                                }
+                            }}
+                            isLoading={loading}
+                        />
 
                         <Card className="mt-6">
                             <CardHeader>

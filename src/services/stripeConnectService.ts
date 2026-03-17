@@ -1,67 +1,57 @@
 import { supabase } from '@/integrations/supabase/client';
 
-/**
- * Create or retrieve Stripe Connect account and get onboarding URL
- */
-export async function createStripeConnectAccount(): Promise<{ accountId: string; url: string }> {
-  try {
-    const { data, error } = await supabase.functions.invoke('create-stripe-connect-account', {
-      body: {
-        refresh_url: `${window.location.origin}/dashboard/landlord/payments`,
-        return_url: `${window.location.origin}/dashboard/landlord/payments?onboarding=complete`
-      }
-    });
+export type StripeOnboardingStatus = 'not_started' | 'in_progress' | 'restricted' | 'ready';
 
-    if (error) {
-      console.error('Supabase function error:', error);
-      throw new Error(`Function error: ${JSON.stringify(error)}`);
-    }
-    
-    if (!data) {
-      throw new Error('No data returned from Stripe Connect account creation');
-    }
-
-    if (!data.accountId || !data.url) {
-      console.error('Invalid response data:', data);
-      throw new Error(`Invalid response: ${JSON.stringify(data)}`);
-    }
-
-    return {
-      accountId: data.accountId,
-      url: data.url
-    };
-  } catch (error: any) {
-    console.error('Error creating Stripe Connect account:', error);
-    const errorMessage = error?.message || error?.toString() || 'Unknown error';
-    throw new Error(`Failed to create Stripe Connect account: ${errorMessage}`);
-  }
+export interface StripeConnectStatus {
+  onboarding_status: StripeOnboardingStatus;
+  stripe_account_id: string | null;
+  charges_enabled?: boolean;
+  payouts_enabled?: boolean;
+  details_submitted?: boolean;
 }
 
 /**
- * Check Stripe Connect account status
+ * Get current Stripe Connect status from DB (fast, no Stripe API call)
  */
-export async function getStripeConnectStatus(userId: string): Promise<{
-  hasAccount: boolean;
-  accountId: string | null;
-  status: string | null;
-}> {
-  try {
-    const { data, error } = await supabase
-      .from('payment_accounts')
-      .select('stripe_account_id, stripe_account_status')
-      .eq('user_id', userId)
-      .eq('account_type', 'landlord')
-      .maybeSingle();
+export async function getStripeConnectStatus(): Promise<StripeConnectStatus> {
+  const { data, error } = await supabase.functions.invoke('stripe-connect', {
+    body: { action: 'status' }
+  });
+  if (error) throw new Error(`Failed to get status: ${JSON.stringify(error)}`);
+  return data as StripeConnectStatus;
+}
 
-    if (error) throw error;
+/**
+ * Refresh status from Stripe API and sync to DB
+ */
+export async function refreshStripeConnectStatus(): Promise<StripeConnectStatus> {
+  const { data, error } = await supabase.functions.invoke('stripe-connect', {
+    body: { action: 'refresh-status' }
+  });
+  if (error) throw new Error(`Failed to refresh status: ${JSON.stringify(error)}`);
+  return data as StripeConnectStatus;
+}
 
-    return {
-      hasAccount: !!data?.stripe_account_id,
-      accountId: data?.stripe_account_id || null,
-      status: data?.stripe_account_status || null
-    };
-  } catch (error) {
-    console.error('Error checking Stripe Connect status:', error);
-    throw error;
-  }
+/**
+ * Get Stripe onboarding link (creates account if needed)
+ */
+export async function getStripeOnboardingLink(): Promise<string> {
+  const { data, error } = await supabase.functions.invoke('stripe-connect', {
+    body: { action: 'onboarding-link' }
+  });
+  if (error) throw new Error(`Failed to get onboarding link: ${JSON.stringify(error)}`);
+  if (!data?.url) throw new Error('No onboarding URL returned');
+  return data.url;
+}
+
+/**
+ * Get Stripe dashboard login link (for already-onboarded accounts)
+ */
+export async function getStripeLoginLink(): Promise<string> {
+  const { data, error } = await supabase.functions.invoke('stripe-connect', {
+    body: { action: 'login-link' }
+  });
+  if (error) throw new Error(`Failed to get login link: ${JSON.stringify(error)}`);
+  if (!data?.url) throw new Error('No login URL returned');
+  return data.url;
 }

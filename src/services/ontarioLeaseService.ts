@@ -265,8 +265,8 @@ export async function signOntarioLeaseAsTenant(
       .update({
         tenant_signature: signature,
         terms_acceptance_tenant: true,
-        status: 'fully_signed', // Tenant is usually final sign? Or landlord? Assuming Tenant is finalizing here
-        terms_acceptance_landlord: true // Ensure this is true if landlord initiated
+        status: 'fully_signed',
+        terms_acceptance_landlord: true
       })
       .eq('id', contractId)
       .select()
@@ -277,7 +277,19 @@ export async function signOntarioLeaseAsTenant(
       throw new Error(`Failed to add tenant signature: ${error.message}`);
     }
 
-    // Create notification for landlord
+    // Create notification for landlord that tenant signed
+    try {
+      await createContractNotification(
+        data.landlord_id,
+        data.tenant_id,
+        data.id,
+        'tenant_signed'
+      );
+    } catch (e) {
+      console.error("Notification error:", e);
+    }
+
+    // Also notify tenant that contract is fully executed
     try {
       await createContractNotification(
         data.landlord_id,
@@ -349,10 +361,10 @@ export async function signOntarioLeaseAsLandlord(
     };
 
     // Update contract with landlord signature. 
-    // If tenant hasn't signed, status is 'pending_tenant_signature'.
+    // If tenant hasn't signed, status is 'pending'.
     // If tenant HAS signed (unlikely flow), status is 'fully_signed'.
 
-    const newStatus = contract.tenant_signature ? 'fully_signed' : 'pending_tenant_signature';
+    const newStatus = contract.tenant_signature ? 'fully_signed' : 'pending';
 
     const { data, error } = await sb
       .from('lease_contracts')

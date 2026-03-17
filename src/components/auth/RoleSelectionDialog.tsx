@@ -100,6 +100,12 @@ export function RoleSelectionDialog({
       case 'lawyer':
         navigate('/dashboard/lawyer');
         break;
+      case 'lender':
+        navigate('/dashboard/lender');
+        break;
+      case 'renovator':
+        navigate('/renovator/dashboard');
+        break;
     }
   };
   

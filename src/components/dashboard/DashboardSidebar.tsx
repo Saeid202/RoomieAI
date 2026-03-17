@@ -21,6 +21,7 @@ import { AdminSidebar } from "./sidebar/AdminSidebar";
 import { RenovatorSidebar } from "./sidebar/RenovatorSidebar";
 import { MortgageBrokerSidebar } from "./sidebar/MortgageBrokerSidebar";
 import { LawyerSidebar } from "./sidebar/LawyerSidebar";
+import { LenderSidebar } from "./sidebar/LenderSidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/hooks/useAuth";
 import { ChevronUp, Settings, LogOut, Home } from "lucide-react";
@@ -70,6 +71,7 @@ export function DashboardSidebar() {
                 if (location.pathname.includes('/renovator/')) return <RenovatorSidebar isActive={isActive} />;
                 if (location.pathname.includes('/dashboard/mortgage-broker')) return <MortgageBrokerSidebar isActive={isActive} />;
                 if (location.pathname.includes('/dashboard/lawyer')) return <LawyerSidebar isActive={isActive} />;
+                if (location.pathname.includes('/dashboard/lender')) return <LenderSidebar isActive={isActive} />;
 
                 // If we're on a "Seeker" route (general dashboard routes), prefer SeekerSidebar
                 const isSeekerRoute =
@@ -91,6 +93,7 @@ export function DashboardSidebar() {
                 if (role === 'renovator') return <RenovatorSidebar isActive={isActive} />;
                 if (role === 'mortgage_broker') return <MortgageBrokerSidebar isActive={isActive} />;
                 if (role === 'lawyer') return <LawyerSidebar isActive={isActive} />;
+                if (role === 'lender') return <LenderSidebar isActive={isActive} />;
                 if (role === 'developer') return <LandlordSidebar isActive={isActive} />;
 
                 return <SeekerSidebar isActive={isActive} />;

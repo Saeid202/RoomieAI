@@ -105,6 +105,10 @@ import LawyerClients from "@/pages/dashboard/LawyerClients";
 import LawyerDocuments from "@/pages/dashboard/LawyerDocuments";
 import LawyerDocumentReviews from "@/pages/dashboard/LawyerDocumentReviews";
 import FindLawyer from "@/pages/dashboard/FindLawyer";
+import LenderDashboard from "@/pages/dashboard/lender/LenderDashboard";
+import LenderProfile from "@/pages/dashboard/lender/LenderProfile";
+import LenderRates from "@/pages/dashboard/lender/LenderRates";
+import LenderRequests from "@/pages/dashboard/lender/LenderRequests";
 import CoBuyingScenario from "@/pages/dashboard/CoBuyingScenario";
 import CoOwnershipProfile from "@/pages/dashboard/CoOwnershipProfile";
 import ConstructionLogin from "@/construction/pages/ConstructionLogin";
@@ -279,6 +283,12 @@ function AppRoutes() {
           <Route path="lawyer-document-reviews" element={<LawyerDocumentReviews />} />
           <Route path="find-lawyer" element={<FindLawyer />} />
 
+          {/* Lender routes */}
+          <Route path="lender" element={<ErrorBoundary componentName="LenderDashboard"><LenderDashboard /></ErrorBoundary>} />
+          <Route path="lender/profile" element={<ErrorBoundary componentName="LenderProfile"><LenderProfile /></ErrorBoundary>} />
+          <Route path="lender/rates" element={<ErrorBoundary componentName="LenderRates"><LenderRates /></ErrorBoundary>} />
+          <Route path="lender/requests" element={<ErrorBoundary componentName="LenderRequests"><LenderRequests /></ErrorBoundary>} />
+
           {/* Admin routes - protected with AdminRoute */}
           <Route path="admin" element={<AdminRoute><AdminHomePage /></AdminRoute>} />
           <Route path="admin/pages" element={<AdminRoute><PagesPage /></AdminRoute>} />
@@ -434,6 +444,8 @@ function AppRoutes() {
         <Route path="lawyer/clients" element={<LawyerClients />} />
         <Route path="lawyer/documents" element={<LawyerDocuments />} />
         <Route path="lawyer-document-reviews" element={<LawyerDocumentReviews />} />
+        <Route path="find-lawyer" element={<FindLawyer />} />
+
         <Route path="find-lawyer" element={<FindLawyer />} />
 
         {/* Admin routes - protected with AdminRoute */}

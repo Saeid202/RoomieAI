@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, ReactNode } from 'react';
 
 // Define possible user roles
-export type UserRole = 'seeker' | 'landlord' | 'admin' | 'developer' | 'renovator' | 'mortgage_broker' | 'lawyer';
+export type UserRole = 'seeker' | 'landlord' | 'admin' | 'developer' | 'renovator' | 'mortgage_broker' | 'lawyer' | 'lender';
 
 type RoleContextType = {
   role: UserRole | null;
@@ -25,7 +25,8 @@ export function RoleProvider({ children }: { children: ReactNode }) {
         case 'developer': return 'renovator';
         case 'renovator': return 'mortgage_broker';
         case 'mortgage_broker': return 'lawyer';
-        case 'lawyer': return 'seeker';
+        case 'lawyer': return 'lender';
+        case 'lender': return 'seeker';
         default: return 'seeker';
       }
     });

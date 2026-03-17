@@ -30,9 +30,11 @@ export const SignupDialog = ({ isOpen, setIsOpen }: SignupDialogProps) => {
   const handleSignupSubmit = async (values: SignupFormValues) => {
     setIsLoading(true);
     try {
-      // Simple signup - just email and password
-      // Role and metadata will be handled after email verification
-      const result = await signUp(values.email, values.password);
+      // Pass role and full_name as metadata during signup
+      const result = await signUp(values.email, values.password, {
+        role: values.role,
+        full_name: values.fullName,
+      });
 
       console.log("Signup successful, user data:", result.user);
       console.log("Selected role:", values.role);

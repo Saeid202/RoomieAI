@@ -11,7 +11,7 @@ export default function Callback() {
 
   // Helper function to validate if a role is one of the expected values
   function isValidRole(role: any): boolean {
-    const validRoles: UserRole[] = ['seeker', 'landlord', 'renovator', 'mortgage_broker', 'lawyer', 'admin', 'developer'];
+    const validRoles: UserRole[] = ['seeker', 'landlord', 'renovator', 'mortgage_broker', 'lawyer', 'admin', 'developer', 'lender'];
     return validRoles.includes(role as UserRole);
   }
 
@@ -149,6 +149,8 @@ export default function Callback() {
           navigate('/dashboard/mortgage-broker');
         } else if (effectiveRole === 'lawyer') {
           navigate('/dashboard/lawyer');
+        } else if (effectiveRole === 'lender') {
+          navigate('/dashboard/lender');
         } else if (effectiveRole === 'admin') {
           navigate('/dashboard/admin');
         } else if (effectiveRole === 'developer') {

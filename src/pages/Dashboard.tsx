@@ -100,6 +100,8 @@ function DashboardContent({ role, assignedRole, location, showRoleDialog }: any)
       return <Navigate to="/dashboard/mortgage-broker" replace />;
     } else if (effectiveRole === 'lawyer') {
       return <Navigate to="/dashboard/lawyer" replace />;
+    } else if (effectiveRole === 'lender') {
+      return <Navigate to="/dashboard/lender" replace />;
     } else if (effectiveRole === 'seeker') {
       return (
         <DashboardLayout>

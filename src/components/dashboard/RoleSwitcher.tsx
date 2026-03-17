@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Building, User, Shield, ChevronDown, Hammer, Briefcase, Scale } from "lucide-react";
+import { Building, User, Shield, ChevronDown, Hammer, Briefcase, Scale, DollarSign } from "lucide-react";
 import { useRole, UserRole } from "@/contexts/RoleContext";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/hooks/use-toast";
@@ -22,7 +22,7 @@ export function RoleSwitcher({ variant = 'default' }: RoleSwitcherProps) {
   const { updateMetadata, user } = useAuth();
   const navigate = useNavigate();
   const [isRoleSwitching, setIsRoleSwitching] = useState(false);
-  const [availableRoles, setAvailableRoles] = useState<UserRole[]>(['seeker', 'landlord', 'renovator', 'mortgage_broker', 'lawyer']);
+  const [availableRoles, setAvailableRoles] = useState<UserRole[]>(['seeker', 'landlord', 'renovator', 'mortgage_broker', 'lawyer', 'lender']);
   const isNavigatingRef = useRef(false);
 
   // Load available roles on mount
@@ -32,16 +32,13 @@ export function RoleSwitcher({ variant = 'default' }: RoleSwitcherProps) {
 
       try {
         const roles = await getAvailableRoles(user.id) as UserRole[];
+        console.log("🔄 RoleSwitcher - Available roles:", roles, "Current role:", role);
         setAvailableRoles(roles);
-        
-        // If current role is not in available roles, reset to seeker
-        if (role && !roles.includes(role as UserRole)) {
-          console.log(`Current role '${role}' is not available, resetting to seeker`);
-          setRole('seeker');
-          await updateMetadata({ role: 'seeker' });
-        }
+        // Never reset the role here - RoleInitializer already set it from DB
+        // This list is only used to show what roles the user can switch TO
       } catch (error) {
         console.error('Error loading available roles:', error);
+        // On error, keep current role - don't reset to seeker
       }
     }
 
@@ -77,6 +74,9 @@ export function RoleSwitcher({ variant = 'default' }: RoleSwitcherProps) {
         case 'lawyer':
           navigate('/dashboard/lawyer', { replace: true });
           break;
+        case 'lender':
+          navigate('/dashboard/lender', { replace: true });
+          break;
         case 'developer':
           navigate('/dashboard/landlord', { replace: true }); // Developers can access landlord features
           break;
@@ -109,6 +109,7 @@ export function RoleSwitcher({ variant = 'default' }: RoleSwitcherProps) {
       case 'renovator': return 'Renovator';
       case 'mortgage_broker': return 'Mortgage Broker';
       case 'lawyer': return 'Lawyer';
+      case 'lender': return 'Lender';
       case 'developer': return 'Developer';
       default: return 'User';
     }
@@ -122,6 +123,7 @@ export function RoleSwitcher({ variant = 'default' }: RoleSwitcherProps) {
       case 'renovator': return <Hammer className="h-4 w-4" />;
       case 'mortgage_broker': return <Briefcase className="h-4 w-4" />;
       case 'lawyer': return <Scale className="h-4 w-4" />;
+      case 'lender': return <DollarSign className="h-4 w-4" />;
       case 'developer': return <User className="h-4 w-4" />;
       default: return <User className="h-4 w-4" />;
     }

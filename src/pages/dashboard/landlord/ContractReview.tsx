@@ -11,7 +11,9 @@ import {
   DollarSign,
   MapPin,
   AlertCircle,
-  Download
+  Download,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
@@ -19,12 +21,14 @@ import { ContractSigningForm } from '@/components/landlord/ContractSigningForm';
 import { getLandlordContracts } from '@/services/ontarioLeaseService';
 import { printOntarioLease } from '@/utils/printLease';
 import { OntarioLeaseContract } from '@/types/ontarioLease';
+import { OntarioLeasePreview } from '@/components/lease/OntarioLeasePreview';
 
 export default function ContractReviewPage() {
   const [contracts, setContracts] = useState<OntarioLeaseContract[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedContract, setSelectedContract] = useState<OntarioLeaseContract | null>(null);
   const [showSigningForm, setShowSigningForm] = useState(false);
+  const [previewContractId, setPreviewContractId] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -64,8 +68,9 @@ export default function ContractReviewPage() {
 
   const handleDownloadPdf = async (contract: OntarioLeaseContract) => {
     try {
-      printOntarioLease(contract);
-      toast.success('Preparing document for print/download...');
+      toast.info('Generating PDF...');
+      await printOntarioLease(contract);
+      toast.success('PDF downloaded successfully!');
     } catch (error) {
       console.error('Failed to download PDF:', error);
       toast.error('Failed to download PDF');
@@ -76,7 +81,7 @@ export default function ContractReviewPage() {
     switch (status) {
       case 'pending_landlord_signature':
         return <Badge variant="outline" className="text-orange-600 border-orange-200">Awaiting Your Signature</Badge>;
-      case 'pending_tenant_signature':
+      case 'pending':
         return <Badge variant="outline" className="text-blue-600 border-blue-200">Waiting for Tenant</Badge>;
       case 'fully_signed':
         return <Badge variant="default" className="text-green-600 bg-green-50">Fully Executed</Badge>;
@@ -194,7 +199,8 @@ export default function ContractReviewPage() {
       ) : (
         <div className="space-y-4">
           {contracts.map((contract) => (
-            <Card key={contract.id} className="hover:shadow-md transition-shadow">
+            <React.Fragment key={contract.id}>
+            <Card className="hover:shadow-md transition-shadow">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
@@ -306,6 +312,16 @@ export default function ContractReviewPage() {
                     <div className="flex gap-2">
                       <Button
                         variant="outline"
+                        onClick={() => setPreviewContractId(previewContractId === contract.id ? null : contract.id)}
+                      >
+                        {previewContractId === contract.id
+                          ? <><EyeOff className="h-4 w-4 mr-2" />Hide Contract</>
+                          : <><Eye className="h-4 w-4 mr-2" />View Full Contract</>
+                        }
+                      </Button>
+
+                      <Button
+                        variant="outline"
                         onClick={() => handleDownloadPdf(contract)}
                       >
                         <Download className="h-4 w-4 mr-2" />
@@ -323,6 +339,26 @@ export default function ContractReviewPage() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Inline contract preview */}
+            {previewContractId === contract.id && (
+              <div className="border rounded-lg overflow-hidden shadow-inner bg-gray-50">
+                <div className="flex items-center justify-between px-4 py-2 bg-gray-100 border-b">
+                  <span className="text-sm font-medium text-gray-700">Full Contract Preview</span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setPreviewContractId(null)}
+                  >
+                    <EyeOff className="h-4 w-4 mr-1" /> Close
+                  </Button>
+                </div>
+                <div className="max-h-[80vh] overflow-y-auto">
+                  <OntarioLeasePreview contract={contract} />
+                </div>
+              </div>
+            )}
+            </React.Fragment>
           ))}
         </div>
       )}

@@ -17,6 +17,31 @@ import {
   PenTool
 } from 'lucide-react';
 import { OntarioLeaseFormData } from '@/types/ontarioLease';
+import { useAuth } from '@/hooks/useAuth';
+import { getLandlordContactInfo } from '@/services/landlordService';
+
+// Custom RequiredLabel component for better visibility of required fields
+const RequiredLabel: React.FC<{ children: React.ReactNode; htmlFor?: string; className?: string }> = ({ 
+  children, 
+  htmlFor, 
+  className = '' 
+}) => {
+  const text = typeof children === 'string' ? children : '';
+  const hasAsterisk = text.includes('*');
+  
+  if (!hasAsterisk) {
+    return <Label htmlFor={htmlFor} className={className}>{children}</Label>;
+  }
+  
+  const parts = text.split('*');
+  return (
+    <Label htmlFor={htmlFor} className={`font-medium ${className}`}>
+      {parts[0]}
+      <span className="text-red-600 font-bold text-lg">*</span>
+      {parts[1]}
+    </Label>
+  );
+};
 
 interface OntarioLeaseForm2229EProps {
   initialData: Partial<OntarioLeaseFormData>;
@@ -60,11 +85,11 @@ const Section: React.FC<SectionProps> = ({
   };
 
   return (
-    <div className="border-2 border-slate-200 rounded-xl overflow-hidden shadow-lg mb-6">
+    <div className="bg-gradient-to-br from-slate-50 via-white to-blue-50 p-4 md:p-8 min-h-screen">
       <div className={`bg-gradient-to-r ${gradientClasses[color as keyof typeof gradientClasses]} px-6 py-4`}>
         <div className="flex items-center gap-3">
           <Icon className="h-6 w-6 text-white" />
-          <h2 className="text-2xl font-bold text-white">{title}</h2>
+          <h2 className="text-2xl md:text-3xl font-black text-white tracking-tight">{title}</h2>
         </div>
       </div>
       <div className="p-8 bg-white">
@@ -80,6 +105,7 @@ const OntarioLeaseForm2229E: React.FC<OntarioLeaseForm2229EProps> = ({
   onCancel,
   isLandlord = false,
 }): JSX.Element => {
+  const { user } = useAuth();
   const [formData, setFormData] = useState<OntarioLeaseFormData>({
     tenancyType: 'fixed',
     rentPaymentPeriod: 'monthly',
@@ -92,6 +118,33 @@ const OntarioLeaseForm2229E: React.FC<OntarioLeaseForm2229EProps> = ({
     ...initialData
   } as OntarioLeaseFormData);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Fetch landlord contact info on component mount
+  React.useEffect(() => {
+    const fetchLandlordContactInfo = async () => {
+      if (isLandlord && user?.id) {
+        try {
+          const contactInfo = await getLandlordContactInfo(user.id);
+          if (contactInfo) {
+            setFormData(prev => ({
+              ...prev,
+              landlordNoticeUnit: contactInfo.contactUnit,
+              landlordNoticeStreetNumber: contactInfo.contactStreetNumber,
+              landlordNoticeStreetName: contactInfo.contactStreetName,
+              landlordNoticePOBox: contactInfo.contactPoBox,
+              landlordNoticeCityTown: contactInfo.contactCityTown,
+              landlordNoticeProvince: contactInfo.contactProvince,
+              landlordNoticePostalCode: contactInfo.contactPostalCode,
+            }));
+          }
+        } catch (error) {
+          console.error('Error fetching landlord contact info:', error);
+        }
+      }
+    };
+
+    fetchLandlordContactInfo();
+  }, [isLandlord, user?.id]);
 
   const handleInputChange = (field: keyof OntarioLeaseFormData, value: any) => {
     setFormData(prev => ({
@@ -253,13 +306,13 @@ const OntarioLeaseForm2229E: React.FC<OntarioLeaseForm2229EProps> = ({
               <div className="space-y-10">
                 {/* Section 1 */}
                 <div className="space-y-4">
-                  <h3 className="text-xl font-bold text-slate-900 border-b-2 border-blue-200 pb-2">1. Parties to the Agreement</h3>
-                  <p className="text-gray-700">Residential Tenancy Agreement between:</p>
+                  <h3 className="text-2xl md:text-3xl font-black text-slate-900 border-b-3 border-blue-200 pb-2 tracking-tight">1. Parties to the Agreement</h3>
+                  <p className="text-base md:text-lg text-gray-700 font-medium">Residential Tenancy Agreement between:</p>
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div className="space-y-3">
                       <h4 className="font-semibold text-blue-600">Landlord(s):</h4>
                       <div>
-                        <Label htmlFor="landlordLegalName">Legal Name *</Label>
+                        <RequiredLabel htmlFor="landlordLegalName">Legal Name *</RequiredLabel>
                         <Input id="landlordLegalName" value={formData.landlordLegalName || ''} onChange={(e) => handleInputChange('landlordLegalName', e.target.value)} placeholder="Enter landlord legal name" />
                         {errors.landlordLegalName && <p className="text-red-500 text-sm">{errors.landlordLegalName}</p>}
                       </div>
@@ -267,12 +320,12 @@ const OntarioLeaseForm2229E: React.FC<OntarioLeaseForm2229EProps> = ({
                     <div className="space-y-3">
                       <h4 className="font-semibold text-blue-600">Tenant(s):</h4>
                       <div>
-                        <Label htmlFor="tenantFirstName">First Name *</Label>
+                        <RequiredLabel htmlFor="tenantFirstName">First Name *</RequiredLabel>
                         <Input id="tenantFirstName" value={formData.tenantFirstName || ''} onChange={(e) => handleInputChange('tenantFirstName', e.target.value)} placeholder="Enter tenant first name" />
                         {errors.tenantFirstName && <p className="text-red-500 text-sm">{errors.tenantFirstName}</p>}
                       </div>
                       <div>
-                        <Label htmlFor="tenantLastName">Last Name *</Label>
+                        <RequiredLabel htmlFor="tenantLastName">Last Name *</RequiredLabel>
                         <Input id="tenantLastName" value={formData.tenantLastName || ''} onChange={(e) => handleInputChange('tenantLastName', e.target.value)} placeholder="Enter tenant last name" />
                         {errors.tenantLastName && <p className="text-red-500 text-sm">{errors.tenantLastName}</p>}
                       </div>
@@ -282,32 +335,32 @@ const OntarioLeaseForm2229E: React.FC<OntarioLeaseForm2229EProps> = ({
 
                 {/* Section 2 */}
                 <div className="space-y-4">
-                  <h3 className="text-xl font-bold text-slate-900 border-b-2 border-purple-200 pb-2">2. Rental Unit</h3>
-                  <p className="text-gray-700">The rental unit is located at:</p>
+                  <h3 className="text-2xl md:text-3xl font-black text-slate-900 border-b-3 border-purple-200 pb-2 tracking-tight">2. Rental Unit</h3>
+                  <p className="text-base md:text-lg text-gray-700 font-medium">The rental unit is located at:</p>
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                     <div><Label htmlFor="unitNumber">Unit Number (if applicable)</Label><Input id="unitNumber" value={formData.unitNumber || ''} onChange={(e) => handleInputChange('unitNumber', e.target.value)} placeholder="e.g., Apt 101" /></div>
-                    <div><Label htmlFor="streetNumber">Street Number *</Label><Input id="streetNumber" value={formData.streetNumber || ''} onChange={(e) => handleInputChange('streetNumber', e.target.value)} placeholder="e.g., 123" />{errors.streetNumber && <p className="text-red-500 text-sm">{errors.streetNumber}</p>}</div>
-                    <div><Label htmlFor="streetName">Street Name *</Label><Input id="streetName" value={formData.streetName || ''} onChange={(e) => handleInputChange('streetName', e.target.value)} placeholder="e.g., Main Street" />{errors.streetName && <p className="text-red-500 text-sm">{errors.streetName}</p>}</div>
-                    <div><Label htmlFor="cityTown">City/Town *</Label><Input id="cityTown" value={formData.cityTown || ''} onChange={(e) => handleInputChange('cityTown', e.target.value)} placeholder="e.g., Toronto" />{errors.cityTown && <p className="text-red-500 text-sm">{errors.cityTown}</p>}</div>
-                    <div><Label htmlFor="province">Province *</Label><Input id="province" value="Ontario" disabled className="bg-gray-100" /></div>
-                    <div><Label htmlFor="postalCode">Postal Code *</Label><Input id="postalCode" value={formData.postalCode || ''} onChange={(e) => handleInputChange('postalCode', e.target.value)} placeholder="e.g., M5V 3A8" />{errors.postalCode && <p className="text-red-500 text-sm">{errors.postalCode}</p>}</div>
+                    <div><RequiredLabel htmlFor="streetNumber">Street Number *</RequiredLabel><Input id="streetNumber" value={formData.streetNumber || ''} onChange={(e) => handleInputChange('streetNumber', e.target.value)} placeholder="e.g., 123" />{errors.streetNumber && <p className="text-red-500 text-sm">{errors.streetNumber}</p>}</div>
+                    <div><RequiredLabel htmlFor="streetName">Street Name *</RequiredLabel><Input id="streetName" value={formData.streetName || ''} onChange={(e) => handleInputChange('streetName', e.target.value)} placeholder="e.g., Main Street" />{errors.streetName && <p className="text-red-500 text-sm">{errors.streetName}</p>}</div>
+                    <div><RequiredLabel htmlFor="cityTown">City/Town *</RequiredLabel><Input id="cityTown" value={formData.cityTown || ''} onChange={(e) => handleInputChange('cityTown', e.target.value)} placeholder="e.g., Toronto" />{errors.cityTown && <p className="text-red-500 text-sm">{errors.cityTown}</p>}</div>
+                    <div><RequiredLabel htmlFor="province">Province *</RequiredLabel><Input id="province" value="Ontario" disabled className="bg-gray-100" /></div>
+                    <div><RequiredLabel htmlFor="postalCode">Postal Code *</RequiredLabel><Input id="postalCode" value={formData.postalCode || ''} onChange={(e) => handleInputChange('postalCode', e.target.value)} placeholder="e.g., M5V 3A8" />{errors.postalCode && <p className="text-red-500 text-sm">{errors.postalCode}</p>}</div>
                   </div>
                   <div className="flex items-center space-x-2"><Checkbox id="isCondominium" checked={formData.isCondominium || false} onCheckedChange={(checked) => handleInputChange('isCondominium', checked)} /><Label htmlFor="isCondominium">This rental unit is in a condominium</Label></div>
                 </div>
 
                 {/* Section 3 */}
                 <div className="space-y-4">
-                  <h3 className="text-xl font-bold text-slate-900 border-b-2 border-orange-200 pb-2">3. Contact Information</h3>
-                  <p className="text-gray-700">Contact information for giving notices and other documents:</p>
+                  <h3 className="text-2xl md:text-3xl font-black text-slate-900 border-b-3 border-orange-200 pb-2 tracking-tight">3. Contact Information</h3>
+                  <p className="text-base md:text-lg text-gray-700 font-medium">Contact information for giving notices and other documents:</p>
                   <h4 className="font-semibold text-orange-600">Landlord Contact Information</h4>
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                     <div><Label htmlFor="landlordNoticeUnit">Unit (if applicable)</Label><Input id="landlordNoticeUnit" value={formData.landlordNoticeUnit || ''} onChange={(e) => handleInputChange('landlordNoticeUnit', e.target.value)} placeholder="e.g., Suite 200" /></div>
-                    <div><Label htmlFor="landlordNoticeStreetNumber">Street Number *</Label><Input id="landlordNoticeStreetNumber" value={formData.landlordNoticeStreetNumber || ''} onChange={(e) => handleInputChange('landlordNoticeStreetNumber', e.target.value)} placeholder="e.g., 456" />{errors.landlordNoticeStreetNumber && <p className="text-red-500 text-sm">{errors.landlordNoticeStreetNumber}</p>}</div>
-                    <div><Label htmlFor="landlordNoticeStreetName">Street Name *</Label><Input id="landlordNoticeStreetName" value={formData.landlordNoticeStreetName || ''} onChange={(e) => handleInputChange('landlordNoticeStreetName', e.target.value)} placeholder="e.g., Business Ave" />{errors.landlordNoticeStreetName && <p className="text-red-500 text-sm">{errors.landlordNoticeStreetName}</p>}</div>
+                    <div><RequiredLabel htmlFor="landlordNoticeStreetNumber">Street Number *</RequiredLabel><Input id="landlordNoticeStreetNumber" value={formData.landlordNoticeStreetNumber || ''} onChange={(e) => handleInputChange('landlordNoticeStreetNumber', e.target.value)} placeholder="e.g., 456" />{errors.landlordNoticeStreetNumber && <p className="text-red-500 text-sm">{errors.landlordNoticeStreetNumber}</p>}</div>
+                    <div><RequiredLabel htmlFor="landlordNoticeStreetName">Street Name *</RequiredLabel><Input id="landlordNoticeStreetName" value={formData.landlordNoticeStreetName || ''} onChange={(e) => handleInputChange('landlordNoticeStreetName', e.target.value)} placeholder="e.g., Business Ave" />{errors.landlordNoticeStreetName && <p className="text-red-500 text-sm">{errors.landlordNoticeStreetName}</p>}</div>
                     <div><Label htmlFor="landlordNoticePOBox">PO Box (if applicable)</Label><Input id="landlordNoticePOBox" value={formData.landlordNoticePOBox || ''} onChange={(e) => handleInputChange('landlordNoticePOBox', e.target.value)} placeholder="e.g., PO Box 123" /></div>
-                    <div><Label htmlFor="landlordNoticeCityTown">City/Town *</Label><Input id="landlordNoticeCityTown" value={formData.landlordNoticeCityTown || ''} onChange={(e) => handleInputChange('landlordNoticeCityTown', e.target.value)} placeholder="e.g., Toronto" />{errors.landlordNoticeCityTown && <p className="text-red-500 text-sm">{errors.landlordNoticeCityTown}</p>}</div>
-                    <div><Label htmlFor="landlordNoticeProvince">Province *</Label><Input id="landlordNoticeProvince" value={formData.landlordNoticeProvince || ''} onChange={(e) => handleInputChange('landlordNoticeProvince', e.target.value)} placeholder="e.g., Ontario" />{errors.landlordNoticeProvince && <p className="text-red-500 text-sm">{errors.landlordNoticeProvince}</p>}</div>
-                    <div><Label htmlFor="landlordNoticePostalCode">Postal Code *</Label><Input id="landlordNoticePostalCode" value={formData.landlordNoticePostalCode || ''} onChange={(e) => handleInputChange('landlordNoticePostalCode', e.target.value)} placeholder="e.g., M5V 3A8" />{errors.landlordNoticePostalCode && <p className="text-red-500 text-sm">{errors.landlordNoticePostalCode}</p>}</div>
+                    <div><RequiredLabel htmlFor="landlordNoticeCityTown">City/Town *</RequiredLabel><Input id="landlordNoticeCityTown" value={formData.landlordNoticeCityTown || ''} onChange={(e) => handleInputChange('landlordNoticeCityTown', e.target.value)} placeholder="e.g., Toronto" />{errors.landlordNoticeCityTown && <p className="text-red-500 text-sm">{errors.landlordNoticeCityTown}</p>}</div>
+                    <div><RequiredLabel htmlFor="landlordNoticeProvince">Province *</RequiredLabel><Input id="landlordNoticeProvince" value={formData.landlordNoticeProvince || ''} onChange={(e) => handleInputChange('landlordNoticeProvince', e.target.value)} placeholder="e.g., Ontario" />{errors.landlordNoticeProvince && <p className="text-red-500 text-sm">{errors.landlordNoticeProvince}</p>}</div>
+                    <div><RequiredLabel htmlFor="landlordNoticePostalCode">Postal Code *</RequiredLabel><Input id="landlordNoticePostalCode" value={formData.landlordNoticePostalCode || ''} onChange={(e) => handleInputChange('landlordNoticePostalCode', e.target.value)} placeholder="e.g., M5V 3A8" />{errors.landlordNoticePostalCode && <p className="text-red-500 text-sm">{errors.landlordNoticePostalCode}</p>}</div>
                   </div>
                   <h4 className="font-semibold text-orange-600 mt-4">Email Consent</h4>
                   <div className="flex items-center space-x-2"><Checkbox id="emailConsent" checked={formData.emailConsent || false} onCheckedChange={(checked) => handleInputChange('emailConsent', checked)} /><Label htmlFor="emailConsent">The landlord and tenant agree to communicate by email</Label></div>
@@ -319,14 +372,14 @@ const OntarioLeaseForm2229E: React.FC<OntarioLeaseForm2229EProps> = ({
 
                 {/* Section 4 */}
                 <div className="space-y-4">
-                  <h3 className="text-xl font-bold text-slate-900 border-b-2 border-indigo-200 pb-2">4. Term of Tenancy</h3>
+                  <h3 className="text-2xl md:text-3xl font-black text-slate-900 border-b-3 border-indigo-200 pb-2 tracking-tight">4. Term of Tenancy</h3>
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                    <div><Label htmlFor="tenancyStartDate">Start Date *</Label><Input id="tenancyStartDate" type="date" value={formData.startDate || ''} onChange={(e) => handleInputChange('startDate', e.target.value)} />{errors.startDate && <p className="text-red-500 text-sm">{errors.startDate}</p>}</div>
-                    <div><Label htmlFor="tenancyType">Type of Tenancy *</Label><Select value={formData.tenancyType} onValueChange={(value) => handleInputChange('tenancyType', value)}><SelectTrigger><SelectValue placeholder="Select tenancy type" /></SelectTrigger><SelectContent><SelectItem value="fixed">Fixed Term</SelectItem><SelectItem value="periodic">Periodic</SelectItem><SelectItem value="monthly">Monthly</SelectItem><SelectItem value="other">Other</SelectItem></SelectContent></Select></div>
+                    <div><RequiredLabel htmlFor="tenancyStartDate">Start Date *</RequiredLabel><Input id="tenancyStartDate" type="date" value={formData.startDate || ''} onChange={(e) => handleInputChange('startDate', e.target.value)} />{errors.startDate && <p className="text-red-500 text-sm">{errors.startDate}</p>}</div>
+                    <div><RequiredLabel htmlFor="tenancyType">Type of Tenancy *</RequiredLabel><Select value={formData.tenancyType} onValueChange={(value) => handleInputChange('tenancyType', value)}><SelectTrigger><SelectValue placeholder="Select tenancy type" /></SelectTrigger><SelectContent><SelectItem value="fixed">Fixed Term</SelectItem><SelectItem value="periodic">Periodic</SelectItem><SelectItem value="monthly">Monthly</SelectItem><SelectItem value="other">Other</SelectItem></SelectContent></Select></div>
                   </div>
-                  {formData.tenancyType === 'fixed' && (<div><Label htmlFor="tenancyEndDate">End Date *</Label><Input id="tenancyEndDate" type="date" value={formData.endDate || ''} onChange={(e) => handleInputChange('endDate', e.target.value)} />{errors.endDate && <p className="text-red-500 text-sm">{errors.endDate}</p>}</div>)}
-                  {formData.tenancyType === 'periodic' && (<div><Label htmlFor="periodicType">Periodic Type *</Label><Select value={formData.periodicType || ''} onValueChange={(value) => handleInputChange('periodicType', value)}><SelectTrigger><SelectValue placeholder="Select periodic type" /></SelectTrigger><SelectContent><SelectItem value="weekly">Weekly</SelectItem><SelectItem value="monthly">Monthly</SelectItem><SelectItem value="yearly">Yearly</SelectItem></SelectContent></Select></div>)}
-                  {formData.tenancyType === 'other' && (<div><Label htmlFor="otherTenancyType">Other Tenancy Type *</Label><Input id="otherTenancyType" value={formData.otherTenancyType || ''} onChange={(e) => handleInputChange('otherTenancyType', e.target.value)} placeholder="Describe the tenancy type" />{errors.otherTenancyType && <p className="text-red-500 text-sm">{errors.otherTenancyType}</p>}</div>)}
+                  {formData.tenancyType === 'fixed' && (<div><RequiredLabel htmlFor="tenancyEndDate">End Date *</RequiredLabel><Input id="tenancyEndDate" type="date" value={formData.endDate || ''} onChange={(e) => handleInputChange('endDate', e.target.value)} />{errors.endDate && <p className="text-red-500 text-sm">{errors.endDate}</p>}</div>)}
+                  {formData.tenancyType === 'periodic' && (<div><RequiredLabel htmlFor="periodicType">Periodic Type *</RequiredLabel><Select value={formData.periodicType || ''} onValueChange={(value) => handleInputChange('periodicType', value)}><SelectTrigger><SelectValue placeholder="Select periodic type" /></SelectTrigger><SelectContent><SelectItem value="weekly">Weekly</SelectItem><SelectItem value="monthly">Monthly</SelectItem><SelectItem value="yearly">Yearly</SelectItem></SelectContent></Select></div>)}
+                  {formData.tenancyType === 'other' && (<div><RequiredLabel htmlFor="otherTenancyType">Other Tenancy Type *</RequiredLabel><Input id="otherTenancyType" value={formData.otherTenancyType || ''} onChange={(e) => handleInputChange('otherTenancyType', e.target.value)} placeholder="Describe the tenancy type" />{errors.otherTenancyType && <p className="text-red-500 text-sm">{errors.otherTenancyType}</p>}</div>)}
                 </div>
               </div>
             </Section>
@@ -340,7 +393,7 @@ const OntarioLeaseForm2229E: React.FC<OntarioLeaseForm2229EProps> = ({
               <div className="space-y-10">
                 {/* Section 5: Rent */}
                 <div className="space-y-6">
-                  <h3 className="text-xl font-bold text-slate-900 border-b-2 border-emerald-200 pb-2">5. Rent</h3>
+                  <h3 className="text-2xl md:text-3xl font-black text-slate-900 border-b-3 border-emerald-200 pb-2 tracking-tight">5. Rent</h3>
                 {/* a) Rent Payment Schedule */}
                 <div className="space-y-4">
                   <p className="text-gray-700">
@@ -442,7 +495,7 @@ const OntarioLeaseForm2229E: React.FC<OntarioLeaseForm2229EProps> = ({
                     </div>
 
                     <div>
-                      <Label htmlFor="totalRent">Total Rent (Lawful Rent)</Label>
+                      <RequiredLabel htmlFor="totalRent">Total Rent (Lawful Rent)</RequiredLabel>
                       <Input
                         id="totalRent"
                         type="number"
@@ -554,8 +607,8 @@ const OntarioLeaseForm2229E: React.FC<OntarioLeaseForm2229EProps> = ({
 
                 {/* Section 6: Services and Utilities */}
                 <div className="space-y-6">
-                  <h3 className="text-xl font-bold text-slate-900 border-b-2 border-teal-200 pb-2">6. Services and Utilities</h3>
-                <p className="text-gray-700">The following services are included in the lawful rent for the rental unit, as specified:</p>
+                  <h3 className="text-2xl md:text-3xl font-black text-slate-900 border-b-3 border-teal-200 pb-2 tracking-tight">6. Services and Utilities</h3>
+                <p className="text-base md:text-lg text-gray-700 font-medium">The following services are included in the lawful rent for the rental unit, as specified:</p>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <div className="space-y-4">
@@ -899,8 +952,8 @@ const OntarioLeaseForm2229E: React.FC<OntarioLeaseForm2229EProps> = ({
 
                 {/* Section 7: Rent Discounts */}
                 <div className="space-y-6">
-                  <h3 className="text-xl font-bold text-slate-900 border-b-2 border-amber-200 pb-2">7. Rent Discounts</h3>
-                <p className="text-gray-700">Select one:</p>
+                  <h3 className="text-2xl md:text-3xl font-black text-slate-900 border-b-3 border-amber-200 pb-2 tracking-tight">7. Rent Discounts</h3>
+                <p className="text-base md:text-lg text-gray-700 font-medium">Select one:</p>
 
                 <div className="space-y-4">
                   <div className="flex items-center space-x-4">
@@ -957,8 +1010,8 @@ const OntarioLeaseForm2229E: React.FC<OntarioLeaseForm2229EProps> = ({
               <div className="space-y-10">
                 {/* Section 8: Rent Deposit */}
                 <div className="space-y-6">
-                  <h3 className="text-xl font-bold text-slate-900 border-b-2 border-rose-200 pb-2">8. Rent Deposit</h3>
-                <p className="text-gray-700">Select one:</p>
+                  <h3 className="text-2xl md:text-3xl font-black text-slate-900 border-b-3 border-rose-200 pb-2 tracking-tight">8. Rent Deposit</h3>
+                <p className="text-base md:text-lg text-gray-700 font-medium">Select one:</p>
 
                 <div className="space-y-4">
                   <div className="flex items-center space-x-4">
@@ -1008,8 +1061,8 @@ const OntarioLeaseForm2229E: React.FC<OntarioLeaseForm2229EProps> = ({
 
                 {/* Section 9: Key Deposit */}
                 <div className="space-y-6">
-                  <h3 className="text-xl font-bold text-slate-900 border-b-2 border-cyan-200 pb-2">9. Key Deposit</h3>
-                <p className="text-gray-700">Select one:</p>
+                  <h3 className="text-2xl md:text-3xl font-black text-slate-900 border-b-3 border-cyan-200 pb-2 tracking-tight">9. Key Deposit</h3>
+                <p className="text-base md:text-lg text-gray-700 font-medium">Select one:</p>
 
                 <div className="space-y-4">
                   <div className="flex items-center space-x-4">
@@ -1070,8 +1123,8 @@ const OntarioLeaseForm2229E: React.FC<OntarioLeaseForm2229EProps> = ({
 
                 {/* Section 10: Smoking */}
                 <div className="space-y-6">
-                  <h3 className="text-xl font-bold text-slate-900 border-b-2 border-lime-200 pb-2">10. Smoking</h3>
-                <p className="text-gray-700">
+                  <h3 className="text-2xl md:text-3xl font-black text-slate-900 border-b-3 border-lime-200 pb-2 tracking-tight">10. Smoking</h3>
+                <p className="text-base md:text-lg text-gray-700 font-medium">
                   Under provincial law, smoking is not allowed in any indoor common areas of the building. The tenant agrees to these additional rules on smoking:
                 </p>
 
@@ -1133,8 +1186,8 @@ const OntarioLeaseForm2229E: React.FC<OntarioLeaseForm2229EProps> = ({
               <div className="space-y-10">
                 {/* Section 11: Tenant's Insurance */}
                 <div className="space-y-6">
-                  <h3 className="text-xl font-bold text-slate-900 border-b-2 border-violet-200 pb-2">11. Tenant's Insurance</h3>
-                <p className="text-gray-700">Select one:</p>
+                  <h3 className="text-2xl md:text-3xl font-black text-slate-900 border-b-3 border-violet-200 pb-2 tracking-tight">11. Tenant's Insurance</h3>
+                <p className="text-base md:text-lg text-gray-700 font-medium">Select one:</p>
 
                 <div className="space-y-4">
                   <div className="flex items-center space-x-4">
@@ -1165,8 +1218,8 @@ const OntarioLeaseForm2229E: React.FC<OntarioLeaseForm2229EProps> = ({
 
                 {/* Section 12: Changes to the Rental Unit */}
                 <div className="space-y-6">
-                  <h3 className="text-xl font-bold text-slate-900 border-b-2 border-slate-200 pb-2">12. Changes to the Rental Unit</h3>
-                <p className="text-gray-700">
+                  <h3 className="text-2xl md:text-3xl font-black text-slate-900 border-b-3 border-slate-200 pb-2 tracking-tight">12. Changes to the Rental Unit</h3>
+                <p className="text-base md:text-lg text-gray-700 font-medium">
                   The tenant may install decorative items, such as pictures or window coverings. This is subject to any reasonable restrictions set out in the additional terms under Section 15.
                 </p>
                 <p className="text-gray-700">
@@ -1176,8 +1229,8 @@ const OntarioLeaseForm2229E: React.FC<OntarioLeaseForm2229EProps> = ({
 
                 {/* Section 13: Maintenance and Repairs */}
                 <div className="space-y-6">
-                  <h3 className="text-xl font-bold text-slate-900 border-b-2 border-slate-300 pb-2">13. Maintenance and Repairs</h3>
-                <p className="text-gray-700">
+                  <h3 className="text-2xl md:text-3xl font-black text-slate-900 border-b-3 border-slate-300 pb-2 tracking-tight">13. Maintenance and Repairs</h3>
+                <p className="text-base md:text-lg text-gray-700 font-medium">
                   The landlord must keep the rental unit and property in good repair and comply with all health, safety and maintenance standards.
                 </p>
                 <p className="text-gray-700">
@@ -1196,8 +1249,8 @@ const OntarioLeaseForm2229E: React.FC<OntarioLeaseForm2229EProps> = ({
 
                 {/* Section 14: Assignment and Subletting */}
                 <div className="space-y-6">
-                  <h3 className="text-xl font-bold text-slate-900 border-b-2 border-red-200 pb-2">14. Assignment and Subletting</h3>
-                <p className="text-gray-700">
+                  <h3 className="text-2xl md:text-3xl font-black text-slate-900 border-b-3 border-red-200 pb-2 tracking-tight">14. Assignment and Subletting</h3>
+                <p className="text-base md:text-lg text-gray-700 font-medium">
                   The tenant may assign or sublet the rental unit to another person only with the consent of the landlord. The landlord cannot arbitrarily or unreasonably withhold consent to a sublet or potential assignee.
                 </p>
 
@@ -1210,8 +1263,8 @@ const OntarioLeaseForm2229E: React.FC<OntarioLeaseForm2229EProps> = ({
 
                 {/* Section 15: Additional Terms */}
                 <div className="space-y-6">
-                  <h3 className="text-xl font-bold text-slate-900 border-b-2 border-yellow-200 pb-2">15. Additional Terms</h3>
-                <p className="text-gray-700">
+                  <h3 className="text-2xl md:text-3xl font-black text-slate-900 border-b-3 border-yellow-200 pb-2 tracking-tight">15. Additional Terms</h3>
+                <p className="text-base md:text-lg text-gray-700 font-medium">
                   Landlords and tenants can agree to additional terms. Examples may include terms that:
                 </p>
 
@@ -1279,8 +1332,8 @@ const OntarioLeaseForm2229E: React.FC<OntarioLeaseForm2229EProps> = ({
 
                 {/* Section 16: Changes to this Agreement */}
                 <div className="space-y-6">
-                  <h3 className="text-xl font-bold text-slate-900 border-b-2 border-pink-200 pb-2">16. Changes to this Agreement</h3>
-                <p className="text-gray-700">
+                  <h3 className="text-2xl md:text-3xl font-black text-slate-900 border-b-3 border-pink-200 pb-2 tracking-tight">16. Changes to this Agreement</h3>
+                <p className="text-base md:text-lg text-gray-700 font-medium">
                   After this agreement is signed, it can be changed only if the landlord and tenant agree to the changes in writing.
                 </p>
 
@@ -1429,11 +1482,11 @@ const OntarioLeaseForm2229E: React.FC<OntarioLeaseForm2229EProps> = ({
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 p-4 md:p-8">
-      <div className="max-w-7xl ml-12 md:ml-24 lg:ml-40 xl:ml-48 space-y-8">
+      <div className="max-w-full ml-4 md:ml-8 lg:ml-12 xl:ml-16 mr-4 md:mr-8 lg:mr-12 xl:mr-16 space-y-8">
         {/* Header */}
         <div className="space-y-3">
-          <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight">Ontario Standard Lease</h1>
-          <p className="text-lg text-slate-600">Form 2229E - Residential Tenancies Act, 2006</p>
+          <h1 className="text-5xl md:text-6xl font-black text-slate-900 tracking-tight">Ontario Standard Lease</h1>
+          <p className="text-xl md:text-2xl font-semibold text-slate-700">Form 2229E - Residential Tenancies Act, 2006</p>
         </div>
 
         {/* Section Content */}

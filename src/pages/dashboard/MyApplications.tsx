@@ -991,14 +991,21 @@ function ContractCard({ contract, onDownload, onSign }: ContractCardProps) {
         return (
           <Badge className="bg-amber-100 text-amber-800 border-amber-200">
             <Clock className="h-3 w-3 mr-1" />
-            Action Required: Sign
+            Landlord Signed — Your Signature Required
           </Badge>
         );
       case 'pending_landlord_signature':
         return (
           <Badge className="bg-blue-100 text-blue-800 border-blue-200">
             <Clock className="h-3 w-3 mr-1" />
-            Waiting for Landlord
+            Waiting for Landlord to Sign
+          </Badge>
+        );
+      case 'landlord_signed':
+        return (
+          <Badge className="bg-amber-100 text-amber-800 border-amber-200">
+            <Clock className="h-3 w-3 mr-1" />
+            Landlord Signed — Your Signature Required
           </Badge>
         );
       default:

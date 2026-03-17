@@ -16,7 +16,7 @@ export default function AuthPage() {
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState<'seeker' | 'landlord' | 'renovator' | 'mortgage_broker'>('seeker');
+  const [role, setRole] = useState<'seeker' | 'landlord' | 'renovator' | 'mortgage_broker' | 'lawyer' | 'lender'>('seeker');
   const [loading, setLoading] = useState(false);
 
   // If already logged in, redirect to dashboard
@@ -27,6 +27,10 @@ export default function AuthPage() {
       navigate('/dashboard/landlord');
     } else if (user.user_metadata?.role === 'mortgage_broker') {
       navigate('/dashboard/mortgage-broker');
+    } else if (user.user_metadata?.role === 'lawyer') {
+      navigate('/dashboard/lawyer');
+    } else if (user.user_metadata?.role === 'lender') {
+      navigate('/dashboard/lender');
     } else {
       navigate('/dashboard/roommate-recommendations');
     }
@@ -58,6 +62,10 @@ export default function AuthPage() {
           navigate('/dashboard/landlord');
         } else if (user?.user_metadata?.role === 'mortgage_broker') {
           navigate('/dashboard/mortgage-broker');
+        } else if (user?.user_metadata?.role === 'lawyer') {
+          navigate('/dashboard/lawyer');
+        } else if (user?.user_metadata?.role === 'lender') {
+          navigate('/dashboard/lender');
         } else {
           navigate('/dashboard/roommate-recommendations');
         }

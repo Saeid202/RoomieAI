@@ -54,23 +54,22 @@ export function RoleInitializer({ children }: RoleInitializerProps) {
         } else if (profile?.role) {
           userRole = profile.role;
           console.log("✅ RoleInitializer - Loaded role from database:", userRole);
-
-          // Check if metadata has a role switch override
-          // We prioritize metadata for session-level switching (RoleSwitcher)
-          const metadataRole = user.user_metadata?.role;
-          if (metadataRole && metadataRole !== userRole) {
-            // Security: Only allow 'admin' if DB role is already 'admin'
-            if (metadataRole === 'admin' && userRole !== 'admin') {
-              console.warn("🚫 RoleInitializer - Unauthorized attempt to switch to admin via metadata");
-            } else {
-              console.log("🔄 RoleInitializer - Metadata role override:", metadataRole);
-              userRole = metadataRole;
-            }
-          }
         } else {
-          // No role in database, use metadata or default
+          // profile.role is null — fall back to auth metadata, then default
           userRole = user.user_metadata?.role || 'seeker';
-          console.warn("⚠️ RoleInitializer - No role in database, using metadata or default:", userRole);
+          console.warn("⚠️ RoleInitializer - profile.role is null, using metadata:", userRole);
+
+          // Also patch the DB so this doesn't happen again
+          if (userRole !== 'seeker') {
+            supabase
+              .from('user_profiles')
+              .update({ role: userRole })
+              .eq('id', user.id)
+              .then(({ error: updateError }) => {
+                if (updateError) console.error("❌ RoleInitializer - Failed to patch null role:", updateError);
+                else console.log("✅ RoleInitializer - Patched null role in DB to:", userRole);
+              });
+          }
         }
 
         // CRITICAL: Always update role context with database value

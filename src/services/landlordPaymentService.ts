@@ -68,22 +68,24 @@ export async function getLandlordPayments(landlordId: string): Promise<LandlordP
     const tenantMap = new Map(tenantsData?.map(t => [t.id, t.full_name]) || []);
     const propertyMap = new Map(propertiesData?.map(p => [p.id, p.address || p.title]) || []);
 
-    // Transform the data
-    return paymentsData.map(payment => ({
-      id: payment.id,
-      tenant_id: payment.tenant_id,
-      tenant_name: tenantMap.get(payment.tenant_id) || 'Unknown Tenant',
-      property_id: payment.property_id,
-      property_address: propertyMap.get(payment.property_id) || 'Unknown Property',
-      amount: payment.amount,
-      transaction_fee: payment.transaction_fee || 0,
-      net_amount: payment.amount - (payment.transaction_fee || 0),
-      status: payment.status,
-      payment_method_type: payment.payment_method_type || 'card',
-      created_at: payment.created_at,
-      expected_clear_date: payment.expected_clear_date,
-      payment_cleared_at: payment.payment_cleared_at
-    }));
+    // Transform the data and filter out payments with missing tenant/property data
+    return paymentsData
+      .filter(payment => tenantMap.has(payment.tenant_id) && propertyMap.has(payment.property_id))
+      .map(payment => ({
+        id: payment.id,
+        tenant_id: payment.tenant_id,
+        tenant_name: tenantMap.get(payment.tenant_id)!,
+        property_id: payment.property_id,
+        property_address: propertyMap.get(payment.property_id)!,
+        amount: payment.amount,
+        transaction_fee: payment.transaction_fee || 0,
+        net_amount: payment.amount - (payment.transaction_fee || 0),
+        status: payment.status,
+        payment_method_type: payment.payment_method_type || 'card',
+        created_at: payment.created_at,
+        expected_clear_date: payment.expected_clear_date,
+        payment_cleared_at: payment.payment_cleared_at
+      }));
   } catch (error) {
     console.error('Error fetching landlord payments:', error);
     throw error;

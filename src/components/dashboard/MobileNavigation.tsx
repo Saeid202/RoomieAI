@@ -44,6 +44,8 @@ export function MobileNavigation() {
         return "/dashboard/mortgage-broker";
       case "lawyer":
         return "/dashboard/lawyer";
+      case "lender":
+        return "/dashboard/lender";
       default:
         return "/dashboard/roommate-recommendations";
     }

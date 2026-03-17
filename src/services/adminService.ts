@@ -130,11 +130,14 @@ export async function getAvailableRoles(userId: string): Promise<string[]> {
     if (dbRole === 'developer') {
       roles.push('developer');
     }
+    if (dbRole === 'lender') {
+      roles.push('lender');
+    }
 
     // Return unique roles
     return Array.from(new Set(roles));
   } catch (error) {
     console.error('Error fetching available roles:', error);
-    return ['seeker', 'landlord'];
+    return ['seeker', 'landlord', 'renovator', 'mortgage_broker', 'lawyer', 'lender'];
   }
 }

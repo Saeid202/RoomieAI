@@ -213,7 +213,7 @@ export interface OntarioLeaseContract {
   emergency_contact?: string;
   
   // Contract Status
-  status: 'draft' | 'pending_landlord_signature' | 'pending_tenant_signature' | 'fully_signed' | 'executed' | 'cancelled';
+  status: 'draft' | 'pending_landlord_signature' | 'pending' | 'fully_signed' | 'executed' | 'cancelled';
   
   // Digital Signatures
   landlord_signature?: {

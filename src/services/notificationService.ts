@@ -14,7 +14,7 @@ export interface Notification {
 
 export interface CreateNotificationInput {
   user_id: string;
-  type: 'contract_ready' | 'contract_signed' | 'application_approved' | 'application_rejected' | 'general';
+  type: 'contract_ready' | 'contract_signed' | 'tenant_signed' | 'application_approved' | 'application_rejected' | 'general';
   title: string;
   message: string;
   link?: string;
@@ -192,18 +192,27 @@ export async function createContractNotification(
   landlordId: string,
   tenantId: string,
   contractId: string,
-  type: 'contract_ready' | 'contract_signed'
+  type: 'contract_ready' | 'contract_signed' | 'tenant_signed'
 ): Promise<void> {
   console.log("Creating contract notification:", { landlordId, tenantId, contractId, type });
   
   try {
     if (type === 'contract_ready') {
-      // Notify landlord that contract is ready for signature
+      // Notify tenant that landlord signed, waiting for tenant signature
+      await createNotification({
+        user_id: tenantId,
+        type: 'contract_ready',
+        title: 'Contract Ready for Your Signature',
+        message: 'The landlord has signed the lease contract. Please review and sign.',
+        link: `/dashboard/contracts/${contractId}`
+      });
+    } else if (type === 'tenant_signed') {
+      // Notify landlord that tenant has signed
       await createNotification({
         user_id: landlordId,
-        type: 'contract_ready',
-        title: 'New Lease Contract Ready',
-        message: 'A tenant has signed a lease contract that requires your signature.',
+        type: 'tenant_signed',
+        title: 'Tenant Has Signed the Contract',
+        message: 'The tenant has signed the lease contract. The contract is now fully executed.',
         link: `/dashboard/landlord/contracts/${contractId}`
       });
     } else if (type === 'contract_signed') {
@@ -211,7 +220,7 @@ export async function createContractNotification(
       await createNotification({
         user_id: tenantId,
         type: 'contract_signed',
-        title: 'Lease Contract Fully Executed',
+        title: 'Contract Fully Executed',
         message: 'Your lease contract has been fully executed by both parties.',
         link: `/dashboard/contracts/${contractId}`
       });

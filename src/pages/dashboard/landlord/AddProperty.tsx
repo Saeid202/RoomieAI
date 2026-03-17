@@ -1010,15 +1010,17 @@ export default function AddPropertyPage() {
                     </div>
                   </div>
 
-                  {/* Document Vault Section */}
-                  <DocumentVault
-                    propertyId={editId}
-                    propertyCategory={formData.propertyCategory}
-                    onStrengthChange={(score) => {
-                      console.log('Listing strength updated:', score);
-                    }}
-                    className="mt-6"
-                  />
+                  {/* Document Vault Section - Only for Sales Listings */}
+                  {formData.listingCategory === 'sale' && (
+                    <DocumentVault
+                      propertyId={editId}
+                      propertyCategory={formData.propertyCategory}
+                      onStrengthChange={(score) => {
+                        console.log('Listing strength updated:', score);
+                      }}
+                      className="mt-6"
+                    />
+                  )}
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">

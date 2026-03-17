@@ -20,9 +20,12 @@ export function RouteGuard({ children }: RouteGuardProps) {
   useEffect(() => {
     if (loading || !user) return;
 
-    // Use role from context (initialized from DB) as primary authority
-    // Fallback to metadata role if context role is not yet available
-    const currentRole = role || assignedRole;
+    // Only use role from context (set by RoleInitializer from DB)
+    // Do NOT fall back to metadata - it can be stale
+    // If role is null, RoleInitializer is still loading - wait
+    if (!role) return;
+
+    const currentRole = role;
 
     // Only block access to role-specific dashboard sections
     if (location.pathname.startsWith('/dashboard/landlord') && currentRole !== 'landlord') {
@@ -52,6 +55,28 @@ export function RouteGuard({ children }: RouteGuardProps) {
       toast({
         title: "Access restricted",
         description: "You need to be a Lawyer to access this section",
+        variant: "destructive",
+      });
+      navigate('/dashboard', { replace: true });
+      return;
+    }
+
+    if (location.pathname.startsWith('/dashboard/mortgage-broker') && currentRole !== 'mortgage_broker') {
+      console.warn("🚫 RouteGuard - Access denied for mortgage broker route. Role:", currentRole);
+      toast({
+        title: "Access restricted",
+        description: "You need to be a Mortgage Broker to access this section",
+        variant: "destructive",
+      });
+      navigate('/dashboard', { replace: true });
+      return;
+    }
+
+    if (location.pathname.startsWith('/dashboard/lender') && currentRole !== 'lender') {
+      console.warn("🚫 RouteGuard - Access denied for lender route. Role:", currentRole);
+      toast({
+        title: "Access restricted",
+        description: "You need to be a Lender to access this section",
         variant: "destructive",
       });
       navigate('/dashboard', { replace: true });

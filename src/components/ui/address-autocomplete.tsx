@@ -91,7 +91,7 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
       } finally {
         setIsLoading(false);
       }
-    }, 150); // Reduced from 300ms to 150ms for faster response
+    }, 100); // Fast debounce — Photon API responds quickly
 
     // Debounce reset
     return () => {

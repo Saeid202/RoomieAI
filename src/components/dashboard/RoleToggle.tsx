@@ -22,12 +22,9 @@ export function RoleToggle() {
   // Get the user's assigned role from metadata
   const assignedRole = user?.user_metadata?.role as UserRole | undefined;
 
-  useEffect(() => {
-    // Ensure the user's role matches their assigned role if they have one
-    if (assignedRole && role !== assignedRole) {
-      setRole(assignedRole);
-    }
-  }, [role, assignedRole, setRole]);
+  // NOTE: Do NOT reset role from metadata here.
+  // RoleInitializer already sets role from the database (source of truth).
+  // Metadata can be stale (e.g., user role changed in DB but session not refreshed).
 
   const handleRoleChange = async (newRole: UserRole) => {
     if (newRole === role) return;
