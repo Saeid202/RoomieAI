@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client-simple";
 import { getLenderProfile, getLenderRates, createLenderRate, updateLenderRate, deleteLenderRate, getLenderRateHistory } from "@/services/lenderService";
-import { LenderProfile, LenderRate, LenderRateHistory, CreateLenderRateInput, LOAN_TYPE_LABELS, TERM_YEARS_OPTIONS } from "@/types/lender";
+import { LenderProfile, LenderRate, LenderRateHistory, CreateLenderRateInput, LoanType, LOAN_TYPE_LABELS, TERM_YEARS_OPTIONS } from "@/types/lender";
 import { Plus, Edit2, Trash2, History, Percent, DollarSign, Calendar } from "lucide-react";
 
 export default function LenderRates() {
@@ -177,7 +177,7 @@ export default function LenderRates() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="space-y-2">
                 <Label>Loan Type *</Label>
-                <Select value={formData.loan_type} onValueChange={(value) => setFormData({ ...formData, loan_type: value })}>
+                <Select value={formData.loan_type} onValueChange={(value) => setFormData({ ...formData, loan_type: value as LoanType })}>
                   <SelectTrigger className="border-2 border-purple-200"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {Object.entries(LOAN_TYPE_LABELS).map(([key, label]) => (

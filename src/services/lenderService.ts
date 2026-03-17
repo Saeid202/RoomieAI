@@ -42,21 +42,6 @@ export async function getLenderProfile(userId: string): Promise<LenderProfile | 
   return data;
 }
 
-export async function getLenderProfileById(profileId: string): Promise<LenderProfile | null> {
-  const { data, error } = await supabase
-    .from("lender_profiles")
-    .select("*")
-    .eq("id", profileId)
-    .maybeSingle();
-
-  if (error) {
-    console.error("Error fetching lender profile:", error);
-    throw error;
-  }
-
-  return data;
-}
-
 export async function createLenderProfile(
   userId: string,
   input: CreateLenderProfileInput
@@ -112,38 +97,6 @@ export async function getLenderRates(lenderId: string): Promise<LenderRate[]> {
   }
 
   return data || [];
-}
-
-export async function getActiveRates(): Promise<LenderRate[]> {
-  const { data, error } = await supabase
-    .from("lender_rates")
-    .select("*, lender:lender_profiles!inner(company_name, company_logo_url, is_verified, is_active)")
-    .eq("is_active", true)
-    .eq("lender.is_active", true)
-    .eq("lender.is_verified", true)
-    .order("interest_rate", { ascending: true });
-
-  if (error) {
-    console.error("Error fetching active rates:", error);
-    throw error;
-  }
-
-  return data || [];
-}
-
-export async function getLenderRateById(rateId: string): Promise<LenderRate | null> {
-  const { data, error } = await supabase
-    .from("lender_rates")
-    .select("*")
-    .eq("id", rateId)
-    .maybeSingle();
-
-  if (error) {
-    console.error("Error fetching lender rate:", error);
-    throw error;
-  }
-
-  return data;
 }
 
 export async function createLenderRate(input: CreateLenderRateInput): Promise<LenderRate> {
@@ -204,51 +157,3 @@ export async function getLenderRateHistory(lenderId: string): Promise<LenderRate
   return data || [];
 }
 
-export async function getActiveLenders(): Promise<LenderWithRates[]> {
-  const { data, error } = await supabase
-    .from("lender_profiles")
-    .select("*, rates:lender_rates!inner(*)")
-    .eq("is_active", true)
-    .eq("is_verified", true)
-    .eq("rates.is_active", true);
-
-  if (error) {
-    console.error("Error fetching active lenders:", error);
-    throw error;
-  }
-
-  return data || [];
-}
-
-export async function getLenderWithRates(lenderId: string): Promise<LenderWithRates | null> {
-  const { data: profile, error: profileError } = await supabase
-    .from("lender_profiles")
-    .select("*")
-    .eq("id", lenderId)
-    .maybeSingle();
-
-  if (profileError) {
-    console.error("Error fetching lender profile:", profileError);
-    throw profileError;
-  }
-
-  if (!profile) {
-    return null;
-  }
-
-  const { data: rates, error: ratesError } = await supabase
-    .from("lender_rates")
-    .select("*")
-    .eq("lender_id", lenderId)
-    .eq("is_active", true);
-
-  if (ratesError) {
-    console.error("Error fetching lender rates:", ratesError);
-    throw ratesError;
-  }
-
-  return {
-    ...profile,
-    rates: rates || [],
-  };
-}
