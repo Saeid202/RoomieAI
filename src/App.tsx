@@ -92,6 +92,7 @@ import ShopPage from "@/pages/dashboard/Shop";
 import TenantPaymentsPage from "@/pages/dashboard/tenant/TenantPayments";
 import LandlordPaymentsPage from "@/pages/dashboard/landlord/LandlordPayments";
 import ViewingAppointmentsPage from "@/pages/dashboard/landlord/ViewingAppointments";
+import AIScreeningSettingsPage from "@/pages/dashboard/landlord/AIScreeningSettingsPage";
 import PADPaymentTest from "@/pages/dashboard/PADPaymentTest";
 import ListRoomPage from "@/pages/dashboard/ListRoom";
 import LeaseContractPage from "@/pages/dashboard/LeaseContract";
@@ -234,6 +235,7 @@ function AppRoutes() {
           <Route path="landlord/profile" element={<LandlordProfilePage />} />
           <Route path="landlord/add-property" element={<AddPropertyPage />} />
           <Route path="landlord/contracts" element={<ContractReviewPage />} />
+          <Route path="landlord/ai-screening" element={<AIScreeningSettingsPage />} />
           <Route path="rent-opportunities" element={<RentOpportunitiesPage />} />
           <Route path="find-property" element={<FindPropertyPage />} />
           <Route path="contracts/:applicationId" element={<LeaseContractPage />} />
