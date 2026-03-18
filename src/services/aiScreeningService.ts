@@ -12,6 +12,7 @@ import {
   logScreeningAction,
   getScreeningResult,
 } from "./rulesEngine";
+import { extractDocumentData, validateRequiredDocuments } from "./documentProcessor";
 import {
   AIScreeningRules,
   AIScreeningResult,
@@ -246,22 +247,23 @@ async function processDocuments(
   landlordId: string,
   tenantId: string
 ): Promise<ExtractedDocumentData[]> {
+  // Map tenant profile fields to document types
+  const documentFieldMap: Record<ScreeningDocumentType, keyof typeof tenantProfile> = {
+    credit_report: 'credit_score_report',
+    payroll: 'additional_documents',
+    employment_letter: 'employment_letter',
+    reference_letter: 'reference_letters',
+  };
+
   const results: ExtractedDocumentData[] = [];
 
-  // Map tenant profile fields to document types
-  const documentMap: { field: keyof typeof tenantProfile; type: ScreeningDocumentType }[] = [
-    { field: 'credit_score_report', type: 'credit_report' },
-    { field: 'additional_documents', type: 'payroll' }, // payroll might be stored here
-    { field: 'employment_letter', type: 'employment_letter' },
-    { field: 'reference_letters', type: 'reference_letter' },
-  ];
-
-  for (const { field, type } of documentMap) {
-    const filePath = tenantProfile[field] as string | null | undefined;
+  for (const [docType, fieldName] of Object.entries(documentFieldMap)) {
+    const filePath = tenantProfile[fieldName] as string | null | undefined;
+    
     if (!filePath) {
       // Document not uploaded
       results.push({
-        document_type: type,
+        document_type: docType as ScreeningDocumentType,
         file_name: '',
         confidence_score: 0,
         data_points: {},
@@ -271,40 +273,28 @@ async function processDocuments(
     }
 
     try {
-      // Get signed URL for download
-      const signedUrl = await getDocumentSignedUrl(filePath);
-      if (!signedUrl) {
-        results.push({
-          document_type: type,
-          file_name: filePath,
-          confidence_score: 0,
-          data_points: {},
-          errors: ['Could not access document'],
-        });
-        continue;
-      }
-
-      // Download document
-      const blob = await downloadTenantDocument(filePath);
-      if (!blob) {
-        results.push({
-          document_type: type,
-          file_name: filePath,
-          confidence_score: 0,
-          data_points: {},
-          errors: ['Download failed'],
-        });
-        continue;
-      }
-
-      // Extract data from document (Phase 2 - OCR + LLM)
-      // For Phase 1, we'll use placeholder extraction
-      const extracted = await extractDataFromDocument(blob, type, filePath);
+      // Use the document processor to extract data
+      const extracted = await extractDocumentData(filePath, docType as ScreeningDocumentType);
       results.push(extracted);
+
+      // Log each document processed
+      await logScreeningAction({
+        application_id: applicationId,
+        landlord_id: landlordId,
+        tenant_id: tenantId,
+        action_type: 'data_extracted',
+        action_details: {
+          document_type: docType,
+          confidence: extracted.confidence_score,
+          data_points: extracted.data_points,
+        },
+        document_type: docType as ScreeningDocumentType,
+        document_path: extracted.file_name,
+      });
     } catch (error) {
-      console.error(`❌ Error processing ${type}:`, error);
+      console.error(`❌ Error processing ${docType}:`, error);
       results.push({
-        document_type: type,
+        document_type: docType as ScreeningDocumentType,
         file_name: filePath,
         confidence_score: 0,
         data_points: {},
@@ -317,27 +307,10 @@ async function processDocuments(
 }
 
 // =====================================================
-// Data Extraction (Placeholder for Phase 2)
+// Data Extraction (Now handled by documentProcessor)
 // =====================================================
 
-async function extractDataFromDocument(
-  blob: Blob,
-  documentType: ScreeningDocumentType,
-  fileName: string
-): Promise<ExtractedDocumentData> {
-  // Phase 1: Placeholder - return empty extraction
-  // Phase 2 will implement actual OCR + LLM extraction
-  
-  console.log(`📄 Extracting data from ${documentType}: ${fileName}`);
-
-  return {
-    document_type: documentType,
-    file_name: fileName,
-    confidence_score: 0.5, // Low confidence in Phase 1
-    data_points: {},
-    errors: ['Phase 1: OCR/LLM extraction not yet implemented'],
-  };
-}
+// Removed - now using extractDocumentData from documentProcessor.ts
 
 // =====================================================
 // Notifications
