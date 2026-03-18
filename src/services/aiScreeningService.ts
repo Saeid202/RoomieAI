@@ -14,6 +14,11 @@ import {
 } from "./rulesEngine";
 import { extractDocumentData, validateRequiredDocuments } from "./documentProcessor";
 import {
+  notifyLandlordApplication,
+  notifyTenantApplicationStatus,
+  notifyMissingDocuments,
+} from "./screeningNotificationService";
+import {
   AIScreeningRules,
   AIScreeningResult,
   CreateScreeningLogInput,
@@ -22,7 +27,6 @@ import {
   ScreeningDocumentType,
 } from "@/types/aiScreening";
 import { getTenantProfileForApplication } from "@/utils/profileCompleteness";
-import { toast } from "sonner";
 
 // =====================================================
 // Main Screening Function
@@ -40,27 +44,25 @@ export async function runAIScreening(applicationId: string): Promise<AIScreening
     console.log('🔍 Starting AI screening for application:', applicationId);
     
     const { data: application, error: appError } = await supabase
-      .from('applications')
-      .select('*, properties!inner(monthly_rent)')
+      .from('rental_applications')
+      .select('*, properties!inner(id, user_id, monthly_rent)')
       .eq('id', applicationId)
       .maybeSingle();
 
     if (appError || !application) {
       console.error('❌ Application not found:', appError);
-      await logScreeningAction({
-        application_id: applicationId,
-        landlord_id: '',
-        tenant_id: '',
-        action_type: 'error_occurred',
-        action_details: { error: 'Application not found' },
-      });
       return null;
     }
 
     tenantId = application.tenant_id;
-    landlordId = application.landlord_id;
+    landlordId = application.properties?.user_id;
     propertyId = application.property_id;
     monthlyRent = application.properties?.monthly_rent || 0;
+
+    if (!landlordId) {
+      console.error('❌ No landlord found for property');
+      return null;
+    }
 
     // Log screening start
     await logScreeningAction({
@@ -324,31 +326,23 @@ async function handleNotifications(
   overallResult: string,
   missingDocuments: ScreeningDocumentType[]
 ): Promise<void> {
-  // Notify landlord of new screening result
-  await logScreeningAction({
-    application_id: applicationId,
-    landlord_id: landlordId,
-    tenant_id: tenantId,
-    action_type: 'notification_sent',
-    action_details: {
-      type: 'screening_complete',
-      behaviour_mode: behaviourMode,
-      result: overallResult,
-    },
-  });
+  // Get the screening result for notification
+  const screeningResult = await getScreeningResult(applicationId);
+  
+  if (screeningResult) {
+    // Notify landlord of screening result
+    await notifyLandlordApplication(landlordId, applicationId, screeningResult);
+  }
 
   // If documents are missing, notify tenant
   if (missingDocuments.length > 0) {
-    await logScreeningAction({
-      application_id: applicationId,
-      landlord_id: landlordId,
-      tenant_id: tenantId,
-      action_type: 'notification_sent',
-      action_details: {
-        type: 'missing_documents',
-        documents: missingDocuments,
-      },
-    });
+    await notifyMissingDocuments(tenantId, applicationId, missingDocuments);
+  } else if (overallResult === 'declined') {
+    // Notify tenant of decline
+    await notifyTenantApplicationStatus(tenantId, applicationId, 'declined');
+  } else if (overallResult === 'approved') {
+    // Notify tenant of approval
+    await notifyTenantApplicationStatus(tenantId, applicationId, 'approved');
   }
 }
 

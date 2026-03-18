@@ -17,6 +17,51 @@ const getGeminiApiKey = (): string => {
   return key;
 };
 
+/**
+ * Simple text generation with Gemini for general queries
+ */
+export async function generateText(prompt: string): Promise<string> {
+  const apiKey = getGeminiApiKey();
+  
+  if (!apiKey) {
+    throw new Error('Gemini API key not configured');
+  }
+
+  try {
+    const response = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        contents: [{
+          parts: [{ text: prompt }],
+        }],
+        generationConfig: {
+          temperature: 0.1,
+          maxOutputTokens: 500,
+        },
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error?.message || 'Gemini API error');
+    }
+
+    const data = await response.json();
+    const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    
+    return generatedText
+      .replace(/```json/g, '')
+      .replace(/```/g, '')
+      .trim();
+  } catch (error) {
+    console.error('Gemini generation error:', error);
+    throw error;
+  }
+}
+
 export interface GeminiExtractionResult {
   success: boolean;
   data?: ExtractedDocumentData['data_points'];

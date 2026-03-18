@@ -22,6 +22,7 @@ import { MakeOfferModal, OfferData } from "@/components/property/MakeOfferModal"
 import { checkProfileCompleteness, getTenantProfileForApplication } from "@/utils/profileCompleteness";
 import { submitQuickApplication, hasUserApplied } from "@/services/quickApplyService";
 import { fetchMLSListingById, MLSListing } from "@/services/repliersService";
+import { updateOGMetaTags, generatePropertyOGTags, generateMLSPropertyOGTags, resetOGMetaTags } from "@/services/ogMetaService";
 
 export default function PropertyDetailsPage() {
   const { id } = useParams<{ id: string }>();
@@ -246,19 +247,20 @@ export default function PropertyDetailsPage() {
     }
   };
 
-  // SEO: title, meta description, canonical
+  // SEO: title, meta description, canonical, and Open Graph tags
   useEffect(() => {
-    const title = property ? `${property.listing_title} – ${isSale ? 'Property' : 'Rental Property'} Details` : "Property Details";
-    document.title = title;
-
-    const descText = property?.description || `${property?.listing_title || "Property"} in ${property?.city || ""} ${property?.state || ""}`;
-    let meta = document.querySelector('meta[name="description"]');
-    if (!meta) {
-      meta = document.createElement('meta');
-      meta.setAttribute('name', 'description');
-      document.head.appendChild(meta);
+    if (property) {
+      // Update Open Graph meta tags for social media sharing
+      const ogTags = generatePropertyOGTags(property);
+      updateOGMetaTags(ogTags);
+    } else if (mlsListing) {
+      // Update OG tags for MLS listings
+      const ogTags = generateMLSPropertyOGTags(mlsListing);
+      updateOGMetaTags(ogTags);
+    } else {
+      // Reset to default landing page tags if no property loaded
+      resetOGMetaTags();
     }
-    meta.setAttribute('content', descText.slice(0, 155));
 
     // Determine the correct route based on property type
     const routePrefix = isSale ? 'buy' : 'rental-options';
@@ -308,7 +310,14 @@ export default function PropertyDetailsPage() {
       document.head.appendChild(script);
     }
     script.text = JSON.stringify(jsonLd);
-  }, [property, id]);
+  }, [property, mlsListing, id, isSale]);
+
+  // Cleanup: Reset OG tags when component unmounts
+  useEffect(() => {
+    return () => {
+      resetOGMetaTags();
+    };
+  }, []);
 
   const availableDate = useMemo(() => {
     if (!property?.available_date) return null;

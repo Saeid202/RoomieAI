@@ -277,6 +277,27 @@ export function ApplicationsList({
     }
   };
 
+  // Handle AI screening
+  const handleAIScreening = async (application: any) => {
+    try {
+      setScreeningLoading(application.id);
+      toast.info('Running AI screening...');
+      
+      const result = await runAIScreening(application.id);
+      
+      if (result) {
+        toast.success(`AI Screening: ${result.overall_result}`);
+      } else {
+        toast.error('Screening failed: No result received');
+      }
+    } catch (error) {
+      console.error('AI screening error:', error);
+      toast.error('Failed to run AI screening');
+    } finally {
+      setScreeningLoading(null);
+    }
+  };
+
   if (loading) {
     return (
       <div className="space-y-4">

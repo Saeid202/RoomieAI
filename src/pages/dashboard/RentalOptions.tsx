@@ -9,7 +9,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { MapPin, Search, Home, Filter } from "lucide-react";
+import { MapPin, Search, Home, Filter, Sparkles } from "lucide-react";
 import { fetchProperties, Property } from "@/services/propertyService";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -31,6 +31,8 @@ export default function RentalOptionsPage() {
   });
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [isMapModalOpen, setMapModalOpen] = useState(false);
+  const [naturalQuery, setNaturalQuery] = useState("");
+  const [aiProcessing, setAiProcessing] = useState(false);
 
   useEffect(() => {
     loadProperties();
@@ -67,6 +69,37 @@ export default function RentalOptionsPage() {
     setMapModalOpen(true);
   };
 
+
+  // AI Natural Language Search
+  const handleNaturalSearch = async () => {
+    if (!naturalQuery.trim()) return;
+    try {
+      setAiProcessing(true);
+      toast.info("Analyzing your request...");
+      const prompt = `Parse this rental search query and extract the filters. Return ONLY a JSON object with these fields: location (city/area or empty string), minPrice (number or empty string), maxPrice (number or empty string), bedrooms ("0" for studio, "1","2","3","4" or empty string), property_type (or empty string). Query: "${naturalQuery}". Example: {"location":"downtown","minPrice":"","maxPrice":"1500","bedrooms":"2","property_type":"apartment"}`;
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${import.meta.env.VITE_GEMINI_API_KEY || ""}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { temperature: 0.1, maxOutputTokens: 300 } }),
+        }
+      );
+      if (!response.ok) throw new Error("AI search failed");
+      const data = await response.json();
+      const resultText = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+      const cleaned = resultText.replace(/```json/g, "").replace(/```/g, "").trim();
+      const parsed = JSON.parse(cleaned);
+      setFilters({ location: parsed.location || "", minPrice: parsed.minPrice || "", maxPrice: parsed.maxPrice || "", bedrooms: parsed.bedrooms || "", property_type: parsed.property_type || "" });
+      toast.success("Filters updated! Searching...");
+      loadProperties();
+    } catch (error) {
+      console.error("AI search error:", error);
+      toast.error("Failed to process search. Try using the filters below.");
+    } finally {
+      setAiProcessing(false);
+    }
+  };
   const applyFilters = () => {
     loadProperties();
   };
@@ -133,7 +166,35 @@ export default function RentalOptionsPage() {
               <p className="text-sm text-muted-foreground">Find your perfect rental property</p>
             </div>
           </div>
-        </header>
+        </header>        {/* AI Natural Language Search */}
+        <section className="mb-6">
+          <Card className="border-2 border-purple-300 bg-gradient-to-br from-purple-50 via-white to-orange-50 shadow-lg">
+            <CardContent className="p-5">
+              <div className="flex items-center gap-2 mb-3">
+                <Sparkles className="h-5 w-5 text-purple-600" />
+                <label className="text-sm font-semibold text-purple-900">AI Smart Search</label>
+              </div>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Describe what you are looking for, e.g. 2BR under $1500 near subway"
+                  value={naturalQuery}
+                  onChange={(e) => setNaturalQuery(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleNaturalSearch()}
+                  className="h-12 text-sm border-purple-200 focus:border-purple-500"
+                />
+                <Button
+                  onClick={handleNaturalSearch}
+                  disabled={!naturalQuery.trim() || aiProcessing}
+                  className="h-12 bg-gradient-to-r from-purple-500 to-orange-500 text-white font-bold px-6"
+                >
+                  <Sparkles className={`h-4 w-4 mr-2 ${aiProcessing ? "animate-spin" : ""}`} />
+                  {aiProcessing ? "AI..." : "Search"}
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">Describe what you are looking for in plain language</p>
+            </CardContent>
+          </Card>
+        </section>
 
         {/* Search Filters */}
         <section className="mb-6">

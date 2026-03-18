@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, FileText, Clock, CheckCircle, XCircle, RefreshCw, FileSignature, Lock } from "lucide-react";
+import { Users, FileText, Clock, CheckCircle, XCircle, RefreshCw, FileSignature, Lock, Sparkles, Settings } from "lucide-react";
 import { getLandlordApplications, updateApplicationStatus } from "@/services/rentalApplicationService";
 import { ApplicationsList } from "@/components/landlord/ApplicationsList";
 import { ApplicationDetailModal } from "@/components/landlord/ApplicationDetailModal";
@@ -224,14 +224,24 @@ export default function ApplicationsPage() {
         </div>
         <div className="flex space-x-2">
           {activeTab === 'rental' && (
-            <Button
-              onClick={() => navigate('/dashboard/landlord/contracts')}
-              variant="outline"
-              className="flex items-center"
-            >
-              <FileSignature className="h-4 w-4 mr-2" />
-              View Contracts
-            </Button>
+            <>
+              <Button
+                onClick={() => navigate('/dashboard/landlord/ai-screening')}
+                variant="outline"
+                className="flex items-center text-purple-600 border-purple-200 hover:bg-purple-50"
+              >
+                <Settings className="h-4 w-4 mr-2" />
+                AI Settings
+              </Button>
+              <Button
+                onClick={() => navigate('/dashboard/landlord/contracts')}
+                variant="outline"
+                className="flex items-center"
+              >
+                <FileSignature className="h-4 w-4 mr-2" />
+                View Contracts
+              </Button>
+            </>
           )}
           <Button
             variant="outline"
