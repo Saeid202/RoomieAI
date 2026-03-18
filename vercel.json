@@ -1,8 +1,16 @@
 {
-    "rewrites": [
-        {
-            "source": "/(.*)",
-            "destination": "/index.html"
-        }
-    ]
+  "rewrites": [
+    {
+      "source": "/dashboard/rental-options/:id",
+      "destination": "/api/og?path=/dashboard/rental-options/:id&origin=https://www.homieai.ca"
+    },
+    {
+      "source": "/dashboard/buy/:id",
+      "destination": "/api/og?path=/dashboard/buy/:id&origin=https://www.homieai.ca"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
 }
