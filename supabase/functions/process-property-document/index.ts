@@ -8,6 +8,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
+import { logger } from "../_shared/logger.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -35,11 +36,11 @@ interface ProcessDocumentRequest {
 }
 
 serve(async (req) => {
-  console.log(`📥 Incoming request: ${req.method} ${new URL(req.url).pathname}`);
+  logger.info('Incoming request', { method: req.method, path: new URL(req.url).pathname });
 
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
-    console.log("🚩 Handling CORS preflight");
+    logger.debug('Handling CORS preflight');
     return new Response("ok", { headers: corsHeaders });
   }
 
@@ -53,11 +54,31 @@ serve(async (req) => {
     const geminiApiKey = Deno.env.get("GEMINI_API_KEY");
 
     if (!geminiApiKey) {
-      console.error("❌ GEMINI_API_KEY is not set in environment variables");
+      logger.error('GEMINI_API_KEY is not configured');
       throw new Error("GEMINI_API_KEY not configured");
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Get authenticated user from JWT
+    const authHeader = req.headers.get("authorization");
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ success: false, error: "Missing authorization header" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 401 }
+      );
+    }
+
+    // Create auth client to verify user
+    const authClient = createClient(supabaseUrl, authHeader.replace("Bearer ", ""));
+    const { data: { user }, error: authError } = await authClient.auth.getUser();
+
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ success: false, error: "Unauthorized" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 401 }
+      );
+    }
 
     // Parse request
     const body = await req.json();
@@ -68,7 +89,24 @@ serve(async (req) => {
       throw new Error("Missing documentUrl in request");
     }
 
-    console.log("📄 Processing document:", { documentId, propertyId, documentType, documentUrl });
+    // Check rate limit (5 docs per hour per user)
+    const { data: rateLimit } = await supabase
+      .rpc("check_document_rate_limit", { p_user_id: user.id });
+
+    if (rateLimit && !rateLimit.allowed) {
+      logger.warn('Rate limit exceeded', { userId: user.id, count: rateLimit.count, limit: rateLimit.limit });
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: "Rate limit exceeded. Maximum 5 documents per hour.",
+          limit: rateLimit.limit,
+          current: rateLimit.count
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 429 }
+      );
+    }
+
+    logger.info('Processing document', { documentId, propertyId, documentType, userId: user.id });
 
     // Create or update processing status
     await supabase
@@ -81,9 +119,18 @@ serve(async (req) => {
         error_message: null,
       });
 
+    // Record this request for rate limiting
+    await supabase
+      .rpc("record_document_request", {
+        p_user_id: user.id,
+        p_document_id: documentId,
+        p_property_id: propertyId,
+        p_ip_address: req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || null
+      });
+
     // Step 1: Download document from storage
     const filePath = extractPathFromUrl(documentUrl, STORAGE_BUCKET);
-    console.log(`⬇️ Downloading document. Bucket: ${STORAGE_BUCKET}, Path: ${filePath}`);
+    logger.debug('Downloading document', { bucket: STORAGE_BUCKET, path: filePath });
 
     let fileBuffer: ArrayBuffer;
 
@@ -92,8 +139,7 @@ serve(async (req) => {
       .download(filePath);
 
     if (downloadError) {
-      console.warn("⚠️ Storage download error, attempting direct fetch fallback:", downloadError);
-      console.log("🔄 Fetch URL:", documentUrl);
+      logger.warn('Storage download failed, attempting direct fetch fallback', { error: downloadError.message });
 
       const fileResponse = await fetch(documentUrl);
       if (!fileResponse.ok) {
@@ -102,7 +148,7 @@ serve(async (req) => {
       const fetchBlob = await fileResponse.blob();
       fileBuffer = await fetchBlob.arrayBuffer();
     } else {
-      console.log("✅ Storage download successful");
+      logger.debug('Storage download successful');
       fileBuffer = await storageBlob.arrayBuffer();
     }
 
@@ -110,22 +156,22 @@ serve(async (req) => {
 
     async function processFile(fileBuffer: ArrayBuffer): Promise<number> {
       // Step 2: Extract text from document (PDF or Image)
-      console.log("📖 Extracting text from document...");
+      logger.debug('Extracting text from document');
       const extractedText = await extractTextFromPDF(fileBuffer, documentUrl, geminiApiKey);
 
       if (!extractedText || extractedText.trim().length === 0) {
         throw new Error("No text could be extracted from the document");
       }
 
-      console.log(`✅ Extracted ${extractedText.length} characters`);
+      logger.info('Text extraction complete', { charCount: extractedText.length });
 
       // Step 3: Split text into chunks
-      console.log("✂️ Splitting text into chunks...");
-      const chunks = splitTextIntoChunks(extractedText, 1000, 200); // 1000 chars, 200 overlap
-      console.log(`✅ Created ${chunks.length} chunks`);
+      logger.debug('Splitting text into chunks');
+      const chunks = splitTextIntoChunks(extractedText, 1000, 200);
+      logger.info('Chunks created', { chunkCount: chunks.length });
 
       // Step 4: Generate embeddings for each chunk
-      console.log("🧠 Generating embeddings...");
+      logger.debug('Generating embeddings');
       const documentCategory = DOCUMENT_CATEGORY_MAP[documentType] || "Property Condition";
 
       let processedChunks = 0;
@@ -150,7 +196,7 @@ serve(async (req) => {
               embedding: JSON.stringify(embedding), // Explicitly stringify for pgvector
             };
           } catch (e) {
-            console.error(`❌ Failed to generate embedding for chunk ${chunkIndex}:`, e);
+            logger.error('Failed to generate embedding for chunk', { chunkIndex });
             throw e;
           }
         });
@@ -163,12 +209,12 @@ serve(async (req) => {
           .insert(embeddingData);
 
         if (insertError) {
-          console.error("❌ Error inserting embeddings batch:", insertError);
+          logger.error('Error inserting embeddings batch', { error: insertError.message });
           throw insertError;
         }
 
         processedChunks += batch.length;
-        console.log(`✅ Processed ${processedChunks}/${chunks.length} chunks`);
+        logger.debug('Chunks processed', { processed: processedChunks, total: chunks.length });
 
         // Update progress
         await supabase
@@ -194,7 +240,7 @@ serve(async (req) => {
       })
       .eq("document_id", documentId);
 
-    console.log("✅ Document processing completed successfully");
+    logger.info('Document processing completed', { documentId, chunksTotal: chunkCount });
 
     return new Response(
       JSON.stringify({
@@ -209,7 +255,7 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error("❌ Error processing document:", error);
+    logger.error('Error processing document', { message: (error as any).message });
 
     // Update status to failed
     if (currentDocumentId) {
@@ -237,7 +283,7 @@ serve(async (req) => {
           })
           .eq("document_id", currentDocumentId);
       } catch (updateError) {
-        console.error("Failed to update error status in DB:", updateError);
+        logger.error('Failed to update error status in DB', { message: (updateError as any).message });
       }
     }
 
@@ -270,7 +316,7 @@ async function extractTextFromPDF(buffer: ArrayBuffer, documentUrl: string, gemi
 
     if (isImage || isPDF) {
       // Use Gemini Vision API for both images and PDFs
-      console.log(`🔍 Using Gemini Vision API for ${isImage ? 'image' : 'PDF'}`);
+      logger.debug('Using Gemini Vision API', { type: isImage ? 'image' : 'pdf' });
 
       // Convert buffer to base64
       const base64Data = btoa(
@@ -326,7 +372,7 @@ async function extractTextFromPDF(buffer: ArrayBuffer, documentUrl: string, gemi
     }
 
     // Fallback: Try simple text extraction for text-based PDFs
-    console.log("📄 Attempting simple text extraction...");
+    logger.debug('Attempting simple text extraction');
     const decoder = new TextDecoder("utf-8");
     const text = decoder.decode(buffer);
 
@@ -342,7 +388,7 @@ async function extractTextFromPDF(buffer: ArrayBuffer, documentUrl: string, gemi
     throw new Error("Could not extract text from document");
 
   } catch (error) {
-    console.error("Error extracting text:", error);
+    logger.error('Error extracting text from document', { message: (error as any).message });
     throw error;
   }
 }
@@ -435,7 +481,7 @@ function extractPathFromUrl(url: string, bucketName: string): string {
     // Remove any query parameters
     return path.split('?')[0];
   } catch (error) {
-    console.error("Error extracting path from URL:", error);
+    logger.error('Error extracting path from URL', { message: (error as any).message });
     return url;
   }
 }

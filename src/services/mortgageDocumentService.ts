@@ -6,6 +6,7 @@ import type {
   DocumentCompletionStats
 } from '@/types/mortgageDocument';
 import { DOCUMENT_TYPES } from '@/types/mortgageDocument';
+import { validateFileWithMagicNumber } from '@/utils/fileMagicNumbers';
 
 /**
  * Upload a document to storage and create database record
@@ -286,13 +287,13 @@ function isDocumentRequired(
 }
 
 /**
- * Validate file before upload
+ * Validate file before upload – size check + MIME allowlist + magic number verification.
  */
-export function validateFile(
+export async function validateFile(
   file: File,
   category: MortgageDocumentCategory,
   documentType: string
-): { valid: boolean; error?: string } {
+): Promise<{ valid: boolean; error?: string }> {
   const categoryTypes = DOCUMENT_TYPES[category];
   const docConfig = categoryTypes.find(dt => dt.type === documentType);
 
@@ -306,9 +307,10 @@ export function validateFile(
     return { valid: false, error: `File size exceeds ${maxSizeMB}MB limit` };
   }
 
-  // Check file type
-  if (!docConfig.acceptedFormats.includes(file.type)) {
-    return { valid: false, error: 'Invalid file format' };
+  // MIME allowlist + magic number check
+  const typeCheck = await validateFileWithMagicNumber(file, docConfig.acceptedFormats);
+  if (!typeCheck.valid) {
+    return { valid: false, error: typeCheck.error ?? 'Invalid file format' };
   }
 
   return { valid: true };

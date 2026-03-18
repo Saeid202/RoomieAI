@@ -212,22 +212,43 @@ export class SecurityUtils {
     return sanitized;
   }
 
-  // Validate file upload
-  static validateFile(file: File): { valid: boolean; errors: string[] } {
+  // Validate file upload (size + MIME allowlist only – synchronous fast-path)
+  static validateFileSync(file: File): { valid: boolean; errors: string[] } {
     const errors: string[] = [];
-    
+
     if (file.size > SECURITY_CONFIG.validation.maxFileSize) {
       errors.push(`File size must be less than ${SECURITY_CONFIG.validation.maxFileSize / (1024 * 1024)}MB`);
     }
-    
+
     if (!SECURITY_CONFIG.validation.allowedFileTypes.includes(file.type)) {
       errors.push('File type not allowed');
     }
-    
-    return {
-      valid: errors.length === 0,
-      errors
-    };
+
+    return { valid: errors.length === 0, errors };
+  }
+
+  /**
+   * Full file validation: size check + MIME allowlist + magic number verification.
+   * Async because reading the file header requires FileReader.
+   */
+  static async validateFile(file: File): Promise<{ valid: boolean; errors: string[] }> {
+    const errors: string[] = [];
+
+    if (file.size > SECURITY_CONFIG.validation.maxFileSize) {
+      errors.push(`File size must be less than ${SECURITY_CONFIG.validation.maxFileSize / (1024 * 1024)}MB`);
+    }
+
+    // Import lazily to avoid circular deps
+    const { validateFileWithMagicNumber } = await import('./fileMagicNumbers');
+    const typeCheck = await validateFileWithMagicNumber(
+      file,
+      SECURITY_CONFIG.validation.allowedFileTypes
+    );
+    if (!typeCheck.valid) {
+      errors.push(typeCheck.error ?? 'File type not allowed');
+    }
+
+    return { valid: errors.length === 0, errors };
   }
 
   // Generate CSRF token

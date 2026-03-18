@@ -8,7 +8,8 @@ import {
   BarChart3,
   Database,
   Settings,
-  Package
+  Package,
+  Shield
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "react-router-dom";
@@ -144,6 +145,20 @@ export default function AdminHomePage() {
             <CardContent>
               <p className="text-sm text-muted-foreground">
                 Configure website settings and preferences
+              </p>
+            </CardContent>
+          </EnhancedCard>
+        </Link>
+
+        <Link to="/dashboard/admin/rate-limits" className="block">
+          <EnhancedCard className="h-full">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-lg font-medium">Rate Limits</CardTitle>
+              <Shield className="h-5 w-5 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                Manage document processing rate limits and view audit logs
               </p>
             </CardContent>
           </EnhancedCard>

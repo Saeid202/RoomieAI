@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import Stripe from 'https://esm.sh/stripe@14.2.0?target=deno'
+import { logger } from '../_shared/logger.ts'
 
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
@@ -30,7 +31,7 @@ serve(async (req) => {
         try {
             event = stripe.webhooks.constructEvent(body, signature, endpointSecret)
         } catch (err: any) {
-            console.error(`Webhook signature verification failed: ${err.message}`)
+            logger.error('Webhook signature verification failed', { message: err.message })
             return jsonResponse({ error: 'Invalid signature' }, 400)
         }
 
@@ -47,11 +48,11 @@ serve(async (req) => {
             .maybeSingle()
 
         if (existingEvent) {
-            console.log(`⚠️ Event ${event.id} already processed. Skipping.`)
+            logger.info('Duplicate webhook event skipped', { eventId: event.id })
             return jsonResponse({ received: true, duplicate: true })
         }
 
-        console.log(`🔔 Processing Webhook: ${event.type} (${event.id})`)
+        logger.info('Processing webhook event', { eventType: event.type, eventId: event.id })
 
         // 2. Handle Events
         switch (event.type) {
@@ -59,7 +60,7 @@ serve(async (req) => {
                 const pi = event.data.object as Stripe.PaymentIntent
                 const { rent_ledger_id } = pi.metadata
 
-                console.log(`⏳ Payment processing: ${pi.id}`)
+                logger.info('Payment processing', { paymentIntentId: pi.id })
 
                 // Update payment record to processing
                 await supabaseAdmin
@@ -87,7 +88,7 @@ serve(async (req) => {
                 const pi = event.data.object as Stripe.PaymentIntent
                 const { landlord_id, rent_ledger_id } = pi.metadata
 
-                console.log(`✅ Payment succeeded: ${pi.id}`)
+                logger.info('Payment succeeded', { paymentIntentId: pi.id })
 
                 // Update payment status to paid
                 await supabaseAdmin
@@ -120,7 +121,7 @@ serve(async (req) => {
                         const diffInMs = Math.max(0, paidDateOnly.getTime() - dueDateOnly.getTime())
                         const daysLate = Math.floor(diffInMs / (1000 * 60 * 60 * 24))
 
-                        console.log(`📊 Reporting Metrics: OnTime=${onTime}, DaysLate=${daysLate}, Method=${pi.metadata.payment_method_type}`)
+                        logger.info('Payment reporting metrics', { onTime, daysLate, paymentMethod: pi.metadata.payment_method_type })
 
                         await supabaseAdmin
                             .from('rent_ledgers')
@@ -148,8 +149,8 @@ serve(async (req) => {
 
                 // Trigger balance update ONLY on success
                 if (landlord_id) {
-                    const amount = (pi.amount_received / 100) // Convert from cents
-                    console.log(`💰 Adding ${amount} to pending balance for landlord ${landlord_id}`)
+                    const amount = (pi.amount_received / 100)
+                    logger.info('Updating landlord wallet balance', { landlordId: landlord_id })
                     await supabaseAdmin.rpc('update_landlord_wallet_balances', {
                         p_user_id: landlord_id,
                         p_pending_delta: amount,
@@ -167,7 +168,7 @@ serve(async (req) => {
                 const metadata = obj.metadata || {}
                 const { rent_ledger_id } = metadata
 
-                console.log(`❌ Payment failed: ${pi_id}`)
+                logger.warn('Payment failed', { paymentIntentId: pi_id })
 
                 // Update payment record to failed
                 await supabaseAdmin
@@ -195,7 +196,7 @@ serve(async (req) => {
                 const charge = event.data.object as Stripe.Charge
                 // For PAD, charge.succeeded means it's initiated
                 if (charge.payment_method_details?.type === 'acss_debit') {
-                    console.log(`🏦 PAD Charge initiated: ${charge.id}`)
+                    logger.info('PAD charge initiated', { chargeId: charge.id })
                     await supabaseAdmin
                         .from('rental_payments')
                         .update({
@@ -221,7 +222,7 @@ serve(async (req) => {
 
                     if (account) {
                         const amount = (payout.amount / 100)
-                        console.log(`Recording payout of ${amount} for user ${account.user_id}`)
+                        logger.info('Recording payout', { userId: account.user_id })
 
                         await supabaseAdmin.rpc('update_landlord_wallet_balances', {
                             p_user_id: account.user_id,
@@ -270,7 +271,7 @@ serve(async (req) => {
         return jsonResponse({ received: true })
 
     } catch (err: any) {
-        console.error('Critical Webhook Error:', err)
+        logger.error('Critical webhook error', { message: err.message })
         return jsonResponse({ error: err.message }, 500)
     }
 })

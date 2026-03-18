@@ -44,6 +44,7 @@ import AdminConstructionSuppliers from "@/pages/dashboard/admin/AdminConstructio
 import AdminConstructionContent from "@/pages/dashboard/admin/AdminConstructionContent";
 import ReportingPreviewPage from "@/pages/dashboard/admin/ReportingPreview";
 import ReportingBatchesPage from "@/pages/dashboard/admin/ReportingBatches";
+import RateLimitManagementPage from "@/pages/dashboard/admin/RateLimitManagement";
 import SettingsPage from "@/pages/dashboard/Settings";
 import MatchesPage from "@/pages/dashboard/Matches";
 import MyApplicationsPage from "@/pages/dashboard/MyApplications";
@@ -303,6 +304,7 @@ function AppRoutes() {
           <Route path="admin/reporting" element={<AdminRoute><ReportingPreviewPage /></AdminRoute>} />
           <Route path="admin/reporting-batches" element={<AdminRoute><ReportingBatchesPage /></AdminRoute>} />
           <Route path="admin/settings" element={<AdminRoute><SettingsPage /></AdminRoute>} />
+          <Route path="admin/rate-limits" element={<AdminRoute><RateLimitManagementPage /></AdminRoute>} />
         </Route>
 
         {/* Renovator Portal Routes */}
@@ -462,6 +464,7 @@ function AppRoutes() {
         <Route path="admin/reporting" element={<AdminRoute><ReportingPreviewPage /></AdminRoute>} />
         <Route path="admin/reporting-batches" element={<AdminRoute><ReportingBatchesPage /></AdminRoute>} />
         <Route path="admin/settings" element={<AdminRoute><SettingsPage /></AdminRoute>} />
+          <Route path="admin/rate-limits" element={<AdminRoute><RateLimitManagementPage /></AdminRoute>} />
       </Route>
 
     </Routes>

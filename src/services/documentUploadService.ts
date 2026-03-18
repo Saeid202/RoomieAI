@@ -1,5 +1,6 @@
 // Service for handling tenant document uploads to Supabase Storage
 import { supabase } from "@/integrations/supabase/client";
+import { validateFileWithMagicNumber } from "@/utils/fileMagicNumbers";
 
 export type DocumentType = 
   | "reference_letters"
@@ -35,7 +36,7 @@ export async function uploadTenantDocument(
       };
     }
 
-    // Validate file type
+    // Validate file type – MIME allowlist + magic number verification
     const allowedTypes = [
       'application/pdf',
       'image/jpeg',
@@ -45,10 +46,11 @@ export async function uploadTenantDocument(
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
     ];
 
-    if (!allowedTypes.includes(file.type)) {
+    const typeCheck = await validateFileWithMagicNumber(file, allowedTypes);
+    if (!typeCheck.valid) {
       return {
         success: false,
-        error: "Invalid file type. Please upload PDF, JPG, PNG, or DOC files."
+        error: typeCheck.error ?? "Invalid file type. Please upload PDF, JPG, PNG, or DOC files."
       };
     }
 
@@ -93,12 +95,41 @@ export async function uploadTenantDocument(
 }
 
 /**
+ * Extract the owner user ID from a tenant-documents storage path.
+ * Paths are structured as: {userId}/{documentType}/{fileName}
+ */
+function extractOwnerFromPath(filePath: string): string | null {
+  const segment = filePath.split('/')[0];
+  return segment || null;
+}
+
+/**
+ * Verify the authenticated user owns the given storage path.
+ * Returns the authenticated user's ID on success, or throws on failure.
+ */
+async function assertOwnership(filePath: string): Promise<string> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    throw new Error('Authentication required');
+  }
+
+  const owner = extractOwnerFromPath(filePath);
+  if (!owner || owner !== user.id) {
+    throw new Error('Access denied: you do not own this document');
+  }
+
+  return user.id;
+}
+
+/**
  * Delete a document from Supabase Storage
  * @param filePath - The path to the file in storage
  * @returns Success status
  */
 export async function deleteTenantDocument(filePath: string): Promise<boolean> {
   try {
+    await assertOwnership(filePath);
+
     const { error } = await supabase.storage
       .from('tenant-documents')
       .remove([filePath]);
@@ -126,6 +157,8 @@ export async function getDocumentSignedUrl(
   expiresIn: number = 3600
 ): Promise<string | null> {
   try {
+    await assertOwnership(filePath);
+
     const { data, error } = await supabase.storage
       .from('tenant-documents')
       .createSignedUrl(filePath, expiresIn);
@@ -144,11 +177,14 @@ export async function getDocumentSignedUrl(
 
 /**
  * Download a document
+ * Verifies the authenticated user owns the file before downloading.
  * @param filePath - The path to the file in storage
  * @returns Blob or null
  */
 export async function downloadTenantDocument(filePath: string): Promise<Blob | null> {
   try {
+    await assertOwnership(filePath);
+
     const { data, error } = await supabase.storage
       .from('tenant-documents')
       .download(filePath);

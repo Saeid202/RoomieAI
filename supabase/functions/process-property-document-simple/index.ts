@@ -8,6 +8,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { logger } from "../_shared/logger.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -54,16 +55,54 @@ serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+    // Get authenticated user from JWT
+    const authHeader = req.headers.get("authorization");
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ success: false, error: "Missing authorization header" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 401 }
+      );
+    }
+
+    // Create auth client to verify user
+    const authClient = createClient(supabaseUrl, authHeader.replace("Bearer ", ""));
+    const { data: { user }, error: authError } = await authClient.auth.getUser();
+
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ success: false, error: "Unauthorized" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 401 }
+      );
+    }
+
     // Parse request
     const { documentId, propertyId, documentUrl, documentType }: ProcessDocumentRequest = 
       await req.json();
 
     currentDocumentId = documentId;
-    console.log("📄 Processing document:", { documentId, propertyId, documentType });
+
+    // Check rate limit (5 docs per hour per user)
+    const { data: rateLimit } = await supabase
+      .rpc("check_document_rate_limit", { p_user_id: user.id });
+
+    if (rateLimit && !rateLimit.allowed) {
+      logger.warn('Rate limit exceeded', { userId: user.id, count: rateLimit.count, limit: rateLimit.limit });
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: "Rate limit exceeded. Maximum 5 documents per hour.",
+          limit: rateLimit.limit,
+          current: rateLimit.count
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 429 }
+      );
+    }
+
+    logger.info('Processing document', { documentId, propertyId, documentType, userId: user.id });
 
     // Check if it's an image file - mark as failed
     if (documentUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
-      console.log("⚠️ Skipping image file - not supported yet");
+      logger.warn('Skipping image file - not supported', { documentId });
       await supabase
         .from("property_document_processing_status")
         .upsert({
@@ -98,8 +137,17 @@ serve(async (req) => {
         updated_at: new Date().toISOString(),
       });
 
+    // Record this request for rate limiting
+    await supabase
+      .rpc("record_document_request", {
+        p_user_id: user.id,
+        p_document_id: documentId,
+        p_property_id: propertyId,
+        p_ip_address: req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || null
+      });
+
     // Step 1: Download document from storage
-    console.log("⬇️ Downloading document from:", documentUrl);
+    logger.debug('Downloading document', { documentId });
     const fileResponse = await fetch(documentUrl);
     if (!fileResponse.ok) {
       throw new Error(`Failed to download document: ${fileResponse.statusText}`);
@@ -108,22 +156,22 @@ serve(async (req) => {
     const fileBuffer = await fileBlob.arrayBuffer();
 
     // Step 2: Extract text from PDF
-    console.log("📖 Extracting text from PDF...");
+    logger.debug('Extracting text from PDF');
     const extractedText = await extractTextFromPDF(fileBuffer);
     
     if (!extractedText || extractedText.trim().length === 0) {
       throw new Error("No text could be extracted from the document");
     }
 
-    console.log(`✅ Extracted ${extractedText.length} characters`);
+    logger.info('Text extraction complete', { charCount: extractedText.length });
 
     // Step 3: Split text into chunks
-    console.log("✂️ Splitting text into chunks...");
+    logger.debug('Splitting text into chunks');
     const chunks = splitTextIntoChunks(extractedText, 1000, 200);
-    console.log(`✅ Created ${chunks.length} chunks`);
+    logger.info('Chunks created', { chunkCount: chunks.length });
 
     // Step 4: Generate embeddings for each chunk
-    console.log("🧠 Generating embeddings...");
+    logger.debug('Generating embeddings');
     const documentCategory = DOCUMENT_CATEGORY_MAP[documentType] || "Property Condition";
     
     let processedChunks = 0;
@@ -156,12 +204,12 @@ serve(async (req) => {
         .insert(embeddingData);
 
       if (insertError) {
-        console.error("❌ Error inserting embeddings:", insertError);
+        logger.error('Error inserting embeddings', { error: insertError.message });
         throw insertError;
       }
 
       processedChunks += batch.length;
-      console.log(`✅ Processed ${processedChunks}/${chunks.length} chunks`);
+      logger.debug('Chunks processed', { processed: processedChunks, total: chunks.length });
 
       // Update progress
       await supabase
@@ -186,7 +234,7 @@ serve(async (req) => {
       })
       .eq("document_id", documentId);
 
-    console.log("✅ Document processing completed successfully");
+    logger.info('Document processing completed', { documentId, chunksProcessed: chunks.length });
 
     return new Response(
       JSON.stringify({
@@ -202,7 +250,7 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error("❌ Error processing document:", error);
+    logger.error('Error processing document', { message: (error as any).message });
 
     // Update status to failed
     if (currentDocumentId) {
@@ -229,7 +277,7 @@ serve(async (req) => {
           })
           .eq("document_id", currentDocumentId);
       } catch (updateError) {
-        console.error("Failed to update error status:", updateError);
+        logger.error('Failed to update error status', { message: (updateError as any).message });
       }
     }
 
@@ -256,7 +304,7 @@ serve(async (req) => {
  */
 async function extractTextFromPDF(buffer: ArrayBuffer): Promise<string> {
   try {
-    console.log("📄 Extracting text from PDF...");
+    logger.debug('Extracting text from PDF');
     
     // Convert buffer to text
     const decoder = new TextDecoder("utf-8");
@@ -290,11 +338,11 @@ async function extractTextFromPDF(buffer: ArrayBuffer): Promise<string> {
       throw new Error("Extracted text contains too many non-readable characters");
     }
     
-    console.log(`✅ Extracted ${cleaned.length} characters of text`);
+    logger.debug('Text extraction complete', { charCount: cleaned.length });
     return cleaned;
     
   } catch (error) {
-    console.error("❌ Error extracting text:", error);
+    logger.error('Error extracting text from PDF', { message: (error as any).message });
     throw new Error(`Failed to extract text from PDF: ${(error as any).message}`);
   }
 }
@@ -361,7 +409,7 @@ async function generateEmbedding(
   // Truncate to 2000 dimensions (keeps most important features)
   const truncatedEmbedding = fullEmbedding.slice(0, 2000);
   
-  console.log(`📊 Embedding: ${fullEmbedding.length} dims → ${truncatedEmbedding.length} dims`);
+  logger.debug('Embedding generated', { originalDims: fullEmbedding.length, truncatedDims: truncatedEmbedding.length });
   
   return truncatedEmbedding;
 }

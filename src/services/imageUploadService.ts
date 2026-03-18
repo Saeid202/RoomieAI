@@ -88,24 +88,24 @@ export class ImageUploadService {
   }
 
   /**
-   * Validate image file
+   * Validate image file – MIME allowlist + magic number verification.
    */
-  static validateImage(file: File): { valid: boolean; error?: string } {
-    // Check file type
+  static async validateImage(file: File): Promise<{ valid: boolean; error?: string }> {
     const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-    if (!allowedTypes.includes(file.type)) {
-      return {
-        valid: false,
-        error: 'Please upload a valid image file (JPEG, PNG, WebP, or GIF)'
-      };
-    }
 
     // Check file size (5MB limit)
     const maxSize = 5 * 1024 * 1024; // 5MB
     if (file.size > maxSize) {
+      return { valid: false, error: 'Image size must be less than 5MB' };
+    }
+
+    // MIME allowlist + magic number check
+    const { validateFileWithMagicNumber } = await import('@/utils/fileMagicNumbers');
+    const typeCheck = await validateFileWithMagicNumber(file, allowedTypes);
+    if (!typeCheck.valid) {
       return {
         valid: false,
-        error: 'Image size must be less than 5MB'
+        error: typeCheck.error ?? 'Please upload a valid image file (JPEG, PNG, WebP, or GIF)',
       };
     }
 
@@ -155,7 +155,7 @@ export class ImageUploadService {
       });
 
       // Validate the image first
-      const validation = this.validateImage(file);
+      const validation = await this.validateImage(file);
       if (!validation.valid) {
         console.error('❌ Validation failed:', validation.error);
         return {

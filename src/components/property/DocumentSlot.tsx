@@ -27,6 +27,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { SecureDocumentViewer } from "./SecureDocumentViewer";
 import { DocumentProcessingBadge } from "./DocumentProcessingBadge";
+import { validateFileWithMagicNumber } from "@/utils/fileMagicNumbers";
 
 // Pending document type
 interface PendingDocument {
@@ -86,7 +87,7 @@ export function DocumentSlot({
       return;
     }
 
-    // Validate file type
+    // Validate file type – MIME allowlist + magic number verification
     const allowedTypes = [
       'application/pdf',
       'image/jpeg',
@@ -96,8 +97,9 @@ export function DocumentSlot({
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
     ];
 
-    if (!allowedTypes.includes(file.type)) {
-      toast.error("Please upload PDF, JPG, PNG, or DOC files only");
+    const typeCheck = await validateFileWithMagicNumber(file, allowedTypes);
+    if (!typeCheck.valid) {
+      toast.error(typeCheck.error ?? "Please upload PDF, JPG, PNG, or DOC files only");
       return;
     }
 
