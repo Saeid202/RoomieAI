@@ -8,6 +8,13 @@ interface ProductImage {
   public_url: string
   is_primary: boolean
   uploaded_at: string
+  image_order?: number
+}
+
+interface ExistingImage {
+  id: string
+  public_url: string
+  image_order: number
 }
 
 interface ColorOption {
@@ -33,6 +40,9 @@ interface Product {
   shipping_port?: string
   badge_label?: string | null
   available_colors?: ColorOption[]
+  custom_build_enabled?: boolean
+  product_specs?: string | null
+  weight_kg?: string | null
   construction_product_images?: ProductImage[]
 }
 
@@ -86,6 +96,10 @@ interface FormState {
   availableColors: ColorOption[]
   customColorHex: string
   customColorName: string
+  customBuildEnabled: boolean
+  productSpecs: string
+  weight: string
+  existingImages: ExistingImage[]
 }
 
 const CATEGORIES = {
@@ -177,10 +191,18 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, editingPr
     badgeStyle: 'Green',
     availableColors: [],
     customColorHex: '#000000',
-    customColorName: ''
+    customColorName: '',
+    customBuildEnabled: false,
+    productSpecs: '',
+    weight: '',
+    existingImages: []
   })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [productDocuments, setProductDocuments] = useState<Array<{ id: string; file_name: string; file_size: number | null }>>([])
+  const [uploadingDocuments, setUploadingDocuments] = useState(false)
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
 
   // Populate form with editing product data
   useEffect(() => {
@@ -197,12 +219,21 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, editingPr
           .from('construction_product_images')
           .select('*')
           .eq('product_id', editingProduct.id)
-          .order('is_primary', { ascending: false })
-          .order('sort_order', { ascending: true })
+          .order('image_order', { ascending: true })
+        
+        // Load existing documents
+        const { data: docs } = await supabase
+          .from('construction_product_documents')
+          .select('id, file_name, file_size')
+          .eq('product_id', editingProduct.id)
         
         if (images && images.length > 0) {
           const photoPreviews = images.map(img => img.public_url)
-          const primaryIndex = images.findIndex(img => img.is_primary)
+          const existingImages = images.map(img => ({
+            id: img.id,
+            public_url: img.public_url,
+            image_order: img.image_order
+          }))
           setForm(prev => ({
             ...prev,
             productName: editingProduct.title,
@@ -211,12 +242,16 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, editingPr
             basePrice: editingProduct.price_cad.toString(),
             standardSize: editingProduct.size_ft || '',
             bedrooms: editingProduct.bedrooms || '',
+            weight: editingProduct.weight_kg || '',
             leadTime: editingProduct.lead_time || '',
             shippingPort: editingProduct.shipping_port || '',
             badgeText: editingProduct.badge_label || '',
             availableColors: editingProduct.available_colors || [],
+            customBuildEnabled: editingProduct.custom_build_enabled || false,
+            productSpecs: editingProduct.product_specs || '',
             photoPreviews: photoPreviews,
-            primaryPhotoIndex: primaryIndex >= 0 ? primaryIndex : 0,
+            existingImages: existingImages,
+            primaryPhotoIndex: 0,
             step: 1
           }))
         } else {
@@ -228,12 +263,19 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, editingPr
             basePrice: editingProduct.price_cad.toString(),
             standardSize: editingProduct.size_ft || '',
             bedrooms: editingProduct.bedrooms || '',
+            weight: editingProduct.weight_kg || '',
             leadTime: editingProduct.lead_time || '',
             shippingPort: editingProduct.shipping_port || '',
             badgeText: editingProduct.badge_label || '',
             availableColors: editingProduct.available_colors || [],
+            customBuildEnabled: editingProduct.custom_build_enabled || false,
+            productSpecs: editingProduct.product_specs || '',
             step: 1
           }))
+        }
+        
+        if (docs && docs.length > 0) {
+          setProductDocuments(docs)
         }
       }
       loadImages()
@@ -288,6 +330,19 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, editingPr
         return
       }
 
+      // Get supplier profile for this user
+      const { data: supplierProfile, error: profileError } = await supabase
+        .from('construction_supplier_profiles')
+        .select('id')
+        .eq('id', session.user.id)
+        .single()
+
+      if (profileError || !supplierProfile) {
+        setError('Supplier profile not found. Please complete your profile setup.')
+        setLoading(false)
+        return
+      }
+
       // Map category to product_type (must match database constraint)
       const categoryMap: Record<string, string> = {
         'Pre-fabricated Houses': 'house',
@@ -304,12 +359,15 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, editingPr
         price_cad: parseFloat(form.basePrice) || 0,
         bedrooms: form.bedrooms || null,
         size_ft: form.standardSize || null,
+        weight_kg: form.weight || null,
         lead_time: form.leadTime || null,
         shipping_port: form.shippingPort || null,
         badge_label: form.badgeText || null,
         available_colors: form.availableColors.length > 0 ? form.availableColors : null,
+        custom_build_enabled: form.customBuildEnabled,
+        product_specs: form.productSpecs || null,
         status: 'live',
-        supplier_id: session.user.id
+        supplier_id: supplierProfile.id
       }
 
       let product: any
@@ -345,54 +403,72 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, editingPr
         throw new Error(`Product was ${editingProduct ? 'updated but' : 'created but'} no data returned`)
       }
 
+      // Update existing images' image_order if they were reordered
+      if (editingProduct && form.existingImages.length > 0) {
+        const updatePromises = form.existingImages.map((img, idx) => {
+          return supabase
+            .from('construction_product_images')
+            .update({ 
+              image_order: idx,
+              is_primary: idx === 0  // First image is always primary
+            })
+            .eq('id', img.id)
+        })
+
+        await Promise.all(updatePromises)
+      }
+
       // Close modal immediately for better UX
       setLoading(false)
       handleClose()
 
       // Upload images in background (don't wait for completion)
       if (form.photos && form.photos.length > 0) {
-        // Parallelize image uploads
-        const uploadPromises = form.photos.map(async (photo, i) => {
-          const filename = `products/${session.user?.id}/${Date.now()}-${i}-${photo.name}`
-          
-          try {
-            const { error: uploadError } = await supabase.storage
-              .from('construction-images')
-              .upload(filename, photo)
+        // Only upload File objects (new photos), not URLs (existing photos)
+        const newPhotos = form.photos.filter(photo => photo instanceof File)
+        
+        if (newPhotos.length > 0) {
+          // Parallelize image uploads
+          const uploadPromises = newPhotos.map(async (photo, i) => {
+            const filename = `products/${session.user?.id}/${Date.now()}-${i}-${photo.name}`
             
-            if (uploadError) return null
+            try {
+              const { error: uploadError } = await supabase.storage
+                .from('construction-images')
+                .upload(filename, photo)
+              
+              if (uploadError) return null
 
-            const { data: urlData } = supabase.storage
-              .from('construction-images')
-              .getPublicUrl(filename)
+              const { data: urlData } = supabase.storage
+                .from('construction-images')
+                .getPublicUrl(filename)
 
-            return {
-              product_id: product[0]?.id,
-              storage_path: filename,
-              public_url: urlData?.publicUrl,
-              is_primary: i === form.primaryPhotoIndex
+              return {
+                product_id: product[0]?.id,
+                storage_path: filename,
+                public_url: urlData?.publicUrl,
+                is_primary: false,
+                image_order: form.existingImages.length + i
+              }
+            } catch (err) {
+              return null
             }
-          } catch (err) {
-            return null
-          }
-        })
+          })
 
-        // Wait for all uploads to complete
-        const results = await Promise.all(uploadPromises)
-        const imageInserts = results.filter(Boolean)
+          // Wait for all uploads to complete
+          const results = await Promise.all(uploadPromises)
+          const imageInserts = results.filter(Boolean)
 
-        if (imageInserts.length > 0) {
-          // If editing, delete existing images first
-          if (editingProduct) {
+          if (imageInserts.length > 0) {
+            // New images are never primary (existing images are already ordered with first as primary)
+            imageInserts.forEach((img) => {
+              img.is_primary = false
+            })
+
             await supabase
               .from('construction_product_images')
-              .delete()
-              .eq('product_id', editingProduct.id)
+              .insert(imageInserts)
           }
-
-          await supabase
-            .from('construction_product_images')
-            .insert(imageInserts)
         }
       } else if (editingProduct && (!form.photos || form.photos.length === 0)) {
         // If editing and no new photos, keep existing images
@@ -406,6 +482,47 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, editingPr
       console.error('Publish error:', err)
       setError(err.message || 'Failed to publish product. Please try again.')
       setLoading(false)
+    }
+  }
+
+  const handleUploadDocuments = async (files: File[]) => {
+    if (!editingProduct) {
+      setError('Please save the product first before uploading documents')
+      return
+    }
+
+    setUploadingDocuments(true)
+    try {
+      const { uploadProductDocument } = await import('@/services/productDocumentService')
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      if (!session?.user?.id) {
+        throw new Error('You must be logged in to upload documents')
+      }
+
+      const uploadPromises = files.map(file => 
+        uploadProductDocument(editingProduct.id, file, session.user.id)
+      )
+
+      const results = await Promise.all(uploadPromises)
+      setProductDocuments(prev => [...prev, ...results.map(r => ({ id: r.id, file_name: r.file_name, file_size: r.file_size }))])
+      setError('')
+    } catch (err: any) {
+      console.error('Document upload error:', err)
+      setError(err.message || 'Failed to upload documents')
+    } finally {
+      setUploadingDocuments(false)
+    }
+  }
+
+  const handleDeleteDocument = async (documentId: string, filePath: string) => {
+    try {
+      const { deleteProductDocument } = await import('@/services/productDocumentService')
+      await deleteProductDocument(documentId, filePath)
+      setProductDocuments(prev => prev.filter(d => d.id !== documentId))
+    } catch (err: any) {
+      console.error('Document delete error:', err)
+      setError(err.message || 'Failed to delete document')
     }
   }
 
@@ -510,59 +627,209 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, editingPr
             />
           </div>
           
-          {/* Photo Preview */}
+          {/* Photo Preview with Drag-and-Drop Reordering */}
           {form.photoPreviews.length > 0 && (
             <div style={{ marginTop: 20 }}>
-              <p style={{ fontSize: 14, fontWeight: 600, color: '#0f172a', marginBottom: 12 }}>
-                {form.photoPreviews.length} photo{form.photoPreviews.length !== 1 ? 's' : ''} uploaded
-              </p>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                <p style={{ fontSize: 14, fontWeight: 600, color: '#0f172a', margin: 0 }}>
+                  {form.photoPreviews.length} photo{form.photoPreviews.length !== 1 ? 's' : ''} uploaded — Drag to reorder
+                </p>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  style={{
+                    padding: '8px 16px',
+                    background: '#FF6B35',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: 8,
+                    fontWeight: 600,
+                    fontSize: 13,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = '#E67E22' }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = '#FF6B35' }}
+                >
+                  + Add More Photos
+                </button>
+              </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))', gap: 12 }}>
-                {form.photoPreviews.map((preview, idx) => (
-                  <div key={idx} style={{ position: 'relative' }}>
-                    <img
-                      src={preview}
-                      alt={`Preview ${idx}`}
-                      style={{
-                        width: '100%',
-                        height: 80,
-                        objectFit: 'cover',
-                        borderRadius: 8,
-                        border: form.primaryPhotoIndex === idx ? '3px solid #FF6B35' : '1px solid #e2e8f0',
-                        cursor: 'pointer'
+                {form.photoPreviews.map((preview, idx) => {
+                  const isExisting = idx < form.existingImages.length
+                  const existingImage = isExisting ? form.existingImages[idx] : null
+                  
+                  return (
+                    <div 
+                      key={idx} 
+                      style={{ position: 'relative', cursor: 'grab' }}
+                      draggable
+                      onDragStart={(e) => {
+                        setDraggedIndex(idx)
+                        e.dataTransfer.effectAllowed = 'move'
+                        e.dataTransfer.setData('text/plain', idx.toString())
                       }}
-                      onClick={() => updateForm('primaryPhotoIndex', idx)}
-                    />
-                    <button
-                      onClick={() => {
-                        const newPhotos = form.photos.filter((_, i) => i !== idx)
-                        const newPreviews = form.photoPreviews.filter((_, i) => i !== idx)
-                        updateForm('photos', newPhotos)
-                        updateForm('photoPreviews', newPreviews)
-                        if (form.primaryPhotoIndex === idx) {
-                          updateForm('primaryPhotoIndex', 0)
+                      onDragEnd={() => {
+                        setDraggedIndex(null)
+                        setDragOverIndex(null)
+                      }}
+                      onDragOver={(e) => {
+                        e.preventDefault()
+                        e.dataTransfer.dropEffect = 'move'
+                        setDragOverIndex(idx)
+                      }}
+                      onDragLeave={() => {
+                        setDragOverIndex(null)
+                      }}
+                      onDrop={(e) => {
+                        e.preventDefault()
+                        const sourceIdx = parseInt(e.dataTransfer.getData('text/plain'))
+                        if (sourceIdx !== idx) {
+                          const newPhotos = [...form.photos]
+                          const newPreviews = [...form.photoPreviews]
+                          const newExistingImages = [...form.existingImages]
+                          
+                          // Swap photos
+                          ;[newPhotos[sourceIdx], newPhotos[idx]] = [newPhotos[idx], newPhotos[sourceIdx]]
+                          ;[newPreviews[sourceIdx], newPreviews[idx]] = [newPreviews[idx], newPreviews[sourceIdx]]
+                          
+                          // Swap existing images if both are existing
+                          if (sourceIdx < form.existingImages.length && idx < form.existingImages.length) {
+                            ;[newExistingImages[sourceIdx], newExistingImages[idx]] = [newExistingImages[idx], newExistingImages[sourceIdx]]
+                          }
+                          
+                          updateForm('photos', newPhotos)
+                          updateForm('photoPreviews', newPreviews)
+                          updateForm('existingImages', newExistingImages)
                         }
+                        setDraggedIndex(null)
+                        setDragOverIndex(null)
                       }}
-                      style={{
-                        position: 'absolute',
-                        top: -8,
-                        right: -8,
-                        width: 24,
-                        height: 24,
-                        borderRadius: '50%',
-                        background: '#FF6B35',
-                        color: 'white',
-                        border: 'none',
-                        cursor: 'pointer',
-                        fontSize: 14,
-                        fontWeight: 700,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }}>
+                    >
+                      <img
+                        src={preview}
+                        alt={`Preview ${idx}`}
+                        style={{
+                          width: '100%',
+                          height: 80,
+                          objectFit: 'cover',
+                          borderRadius: 8,
+                          border: idx === 0 ? '3px solid #FF6B35' : dragOverIndex === idx ? '3px dashed #FF6B35' : '1px solid #e2e8f0',
+                          cursor: 'grab',
+                          opacity: draggedIndex === idx ? 0.5 : 1,
+                          transition: 'all 0.2s ease',
+                          transform: draggedIndex === idx ? 'scale(0.95)' : dragOverIndex === idx ? 'scale(1.05)' : 'scale(1)',
+                          boxShadow: draggedIndex === idx ? '0 8px 16px rgba(0,0,0,0.2)' : dragOverIndex === idx ? '0 4px 12px rgba(255,107,53,0.3)' : 'none',
+                        }}
+                        onMouseEnter={(e) => {
+                          if (draggedIndex === null) {
+                            e.currentTarget.style.transform = 'scale(1.08)'
+                            e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)'
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (draggedIndex === null && dragOverIndex !== idx) {
+                            e.currentTarget.style.transform = 'scale(1)'
+                            e.currentTarget.style.boxShadow = 'none'
+                          }
+                        }}
+                      />
+                      {idx === 0 && (
+                        <div style={{
+                          position: 'absolute',
+                          bottom: 4,
+                          left: 4,
+                          background: '#FF6B35',
+                          color: 'white',
+                          fontSize: 10,
+                          fontWeight: 700,
+                          padding: '2px 6px',
+                          borderRadius: 4,
+                          animation: 'pulse 2s infinite',
+                        }}>
+                          PRIMARY
+                        </div>
+                      )}
+                      {draggedIndex === null && (
+                        <div style={{
+                          position: 'absolute',
+                          top: '50%',
+                          left: '50%',
+                          transform: 'translate(-50%, -50%)',
+                          fontSize: 20,
+                          opacity: 0,
+                          transition: 'opacity 0.2s',
+                          pointerEvents: 'none',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.opacity = '1'
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.opacity = '0'
+                        }}
+                        >
+                          ⋮⋮
+                        </div>
+                      )}
+                      <button
+                        onClick={async () => {
+                          // Check if this is an existing image from database
+                          if (existingImage && editingProduct) {
+                            // Delete from database
+                            try {
+                              const { error: deleteError } = await supabase
+                                .from('construction_product_images')
+                                .delete()
+                                .eq('id', existingImage.id)
+                              
+                              if (deleteError) {
+                                console.error('Delete error:', deleteError)
+                                setError('Failed to delete image from database')
+                                return
+                              }
+                            } catch (err) {
+                              console.error('Delete exception:', err)
+                              setError('Error deleting image')
+                              return
+                            }
+                          }
+                          
+                          // Remove from form state
+                          const newPhotos = form.photos.filter((_, i) => i !== idx)
+                          const newPreviews = form.photoPreviews.filter((_, i) => i !== idx)
+                          const newExistingImages = form.existingImages.filter((_, i) => i !== idx)
+                          
+                          updateForm('photos', newPhotos)
+                          updateForm('photoPreviews', newPreviews)
+                          updateForm('existingImages', newExistingImages)
+                          
+                          if (form.primaryPhotoIndex === idx) {
+                            updateForm('primaryPhotoIndex', 0)
+                          }
+                        }}
+                        style={{
+                          position: 'absolute',
+                          top: -8,
+                          right: -8,
+                          width: 24,
+                          height: 24,
+                          borderRadius: '50%',
+                          background: '#FF6B35',
+                          color: 'white',
+                          border: 'none',
+                          cursor: 'pointer',
+                          fontSize: 14,
+                          fontWeight: 700,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          transition: 'all 0.2s',
+                        }}>
                         ✕
                       </button>
-                  </div>
-                ))}
+                    </div>
+                  )
+                })}
               </div>
             </div>
           )}
@@ -609,14 +876,14 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, editingPr
           {/* Predefined swatches */}
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: 16 }}>
             {PREDEFINED_COLORS.map(color => {
-              const isSelected = form.availableColors.some(c => c.hex === color.hex)
+              const isSelected = form.availableColors.some(c => c.hex?.toLowerCase() === color.hex?.toLowerCase())
               return (
                 <div
                   key={color.hex}
                   title={color.name}
                   onClick={() => {
                     if (isSelected) {
-                      updateForm('availableColors', form.availableColors.filter(c => c.hex !== color.hex))
+                      updateForm('availableColors', form.availableColors.filter(c => c.hex?.toLowerCase() !== color.hex?.toLowerCase()))
                     } else {
                       updateForm('availableColors', [...form.availableColors, color])
                     }
@@ -667,7 +934,7 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, editingPr
               onClick={() => {
                 if (!form.customColorName.trim()) return
                 const newColor: ColorOption = { name: form.customColorName.trim(), hex: form.customColorHex }
-                if (!form.availableColors.some(c => c.hex === newColor.hex)) {
+                if (!form.availableColors.some(c => c.hex?.toLowerCase() === newColor.hex?.toLowerCase())) {
                   updateForm('availableColors', [...form.availableColors, newColor])
                 }
                 updateForm('customColorName', '')
@@ -684,25 +951,31 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, editingPr
 
           {/* Selected colors chips */}
           {form.availableColors.length > 0 && (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {form.availableColors.map(color => (
-                <div
-                  key={color.hex}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: 6,
-                    background: '#f1f5f9', border: '2px solid #e2e8f0',
-                    borderRadius: 100, padding: '6px 12px', fontSize: 13, fontWeight: 600
-                  }}
-                >
-                  <div style={{ width: 14, height: 14, borderRadius: '50%', background: color.hex, border: '1px solid #cbd5e1', flexShrink: 0 }} />
-                  {color.name}
-                  <button
-                    type="button"
-                    onClick={() => updateForm('availableColors', form.availableColors.filter(c => c.hex !== color.hex))}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: 14, padding: 0, lineHeight: 1 }}
-                  >✕</button>
-                </div>
-              ))}
+            <div style={{ background: '#f8fafc', border: '2px solid #e2e8f0', borderRadius: 12, padding: '14px 16px', marginTop: 4 }}>
+              <p style={{ margin: '0 0 10px 0', fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                {form.availableColors.length} color{form.availableColors.length !== 1 ? 's' : ''} selected
+              </p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                {form.availableColors.map(color => (
+                  <div
+                    key={color.hex}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 8,
+                      background: '#ffffff', border: '2px solid #e2e8f0',
+                      borderRadius: 100, padding: '6px 14px 6px 8px', fontSize: 13, fontWeight: 600,
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.06)'
+                    }}
+                  >
+                    <div style={{ width: 22, height: 22, borderRadius: '50%', background: color.hex, border: '2px solid rgba(0,0,0,0.1)', flexShrink: 0 }} />
+                    <span style={{ color: '#0f172a' }}>{color.name}</span>
+                    <button
+                      type="button"
+                      onClick={() => updateForm('availableColors', form.availableColors.filter(c => c.hex?.toLowerCase() !== color.hex?.toLowerCase()))}
+                      style={{ background: '#fee2e2', border: 'none', cursor: 'pointer', color: '#ef4444', fontSize: 13, padding: '2px 5px', lineHeight: 1, borderRadius: '50%', fontWeight: 700 }}
+                    >✕</button>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>
@@ -718,6 +991,31 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, editingPr
             onFocus={(e) => { e.currentTarget.style.borderColor = '#FF6B35'; e.currentTarget.style.boxShadow = '0 0 0 6px rgba(255,107,53,0.15)' }}
             onBlur={(e) => { e.currentTarget.style.borderColor = '#cbd5e1'; e.currentTarget.style.boxShadow = 'none' }}
           />
+        </div>
+
+        <div style={{ marginBottom: 32 }}>
+          <label style={labelStyle}>Product Specs / Trust Line <span style={{ fontWeight: 500, color: '#64748b', fontSize: 16 }}>(optional)</span></label>
+          <input
+            type="text"
+            value={form.productSpecs}
+            onChange={e => updateForm('productSpecs', e.target.value)}
+            placeholder="e.g., German-inspired precision • FSC-certified • Lifetime warranty"
+            style={inputStyle}
+            onFocus={(e) => { e.currentTarget.style.borderColor = '#FF6B35'; e.currentTarget.style.boxShadow = '0 0 0 6px rgba(255,107,53,0.15)' }}
+            onBlur={(e) => { e.currentTarget.style.borderColor = '#cbd5e1'; e.currentTarget.style.boxShadow = 'none' }}
+          />
+        </div>
+
+        <div style={{ marginBottom: 32, display: 'flex', alignItems: 'center', gap: 12, background: '#f8fafc', border: '2px solid #e2e8f0', borderRadius: 12, padding: '16px 14px' }}>
+          <input
+            type="checkbox"
+            checked={form.customBuildEnabled}
+            onChange={e => updateForm('customBuildEnabled', e.target.checked)}
+            style={{ width: 20, height: 20, cursor: 'pointer', accentColor: '#FF6B35' }}
+          />
+          <label style={{ margin: 0, cursor: 'pointer', fontSize: 15, fontWeight: 600, color: '#0f172a', flex: 1 }}>
+            ▶ Begin Live Factory Custom Build
+          </label>
         </div>
 
         <div>
@@ -743,6 +1041,7 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, editingPr
             onBlur={(e) => { e.currentTarget.style.borderColor = '#cbd5e1'; e.currentTarget.style.boxShadow = 'none' }}
           >
             <option value="">Not specified</option>
+            <option value="10ft">10ft</option>
             <option value="20ft">20ft</option>
             <option value="40ft">40ft</option>
             <option value="60ft">60ft</option>
@@ -769,7 +1068,20 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, editingPr
           </select>
         </div>
 
-        <div>
+        <div style={{ marginBottom: 32 }}>
+          <label style={labelStyle}>Weight <span style={{ fontWeight: 500, color: '#64748b', fontSize: 16 }}>(optional)</span></label>
+          <input
+            type="text"
+            value={form.weight}
+            onChange={e => updateForm('weight', e.target.value)}
+            placeholder="e.g., 2500 kg, 3 tons"
+            style={inputStyle}
+            onFocus={(e) => { e.currentTarget.style.borderColor = '#FF6B35'; e.currentTarget.style.boxShadow = '0 0 0 6px rgba(255,107,53,0.15)' }}
+            onBlur={(e) => { e.currentTarget.style.borderColor = '#cbd5e1'; e.currentTarget.style.boxShadow = 'none' }}
+          />
+        </div>
+
+        <div style={{ marginBottom: 32 }}>
           <label style={labelStyle}>Lead Time <span style={{ fontWeight: 500, color: '#64748b', fontSize: 16 }}>(optional)</span></label>
           <input
             type="text"
@@ -780,6 +1092,82 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, editingPr
             onFocus={(e) => { e.currentTarget.style.borderColor = '#FF6B35'; e.currentTarget.style.boxShadow = '0 0 0 6px rgba(255,107,53,0.15)' }}
             onBlur={(e) => { e.currentTarget.style.borderColor = '#cbd5e1'; e.currentTarget.style.boxShadow = 'none' }}
           />
+        </div>
+
+        <div>
+          <label style={labelStyle}>Product Documents <span style={{ fontWeight: 500, color: '#64748b', fontSize: 16 }}>(optional)</span></label>
+          <p style={{ fontSize: 13, color: '#64748b', marginBottom: 16, margin: '0 0 16px 0' }}>
+            Upload PDFs, images, specifications, or any files buyers can download
+          </p>
+          <div style={{
+            border: '3px dashed #cbd5e1',
+            borderRadius: 12,
+            padding: 24,
+            textAlign: 'center',
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+            background: '#f8fafc'
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#FF6B35'; e.currentTarget.style.background = '#fff5f0' }}
+          onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#cbd5e1'; e.currentTarget.style.background = '#f8fafc' }}
+          onClick={() => {
+            const input = document.createElement('input')
+            input.type = 'file'
+            input.multiple = true
+            input.onchange = (e) => {
+              const files = Array.from((e.target as HTMLInputElement).files || [])
+              if (files.length > 0) {
+                handleUploadDocuments(files)
+              }
+            }
+            input.click()
+          }}
+          >
+            <div style={{ fontSize: 32, marginBottom: 12 }}>📄</div>
+            <p style={{ margin: '0 0 8px 0', fontSize: 16, fontWeight: 600, color: '#0f172a' }}>
+              Click to upload documents
+            </p>
+            <p style={{ margin: 0, fontSize: 14, color: '#64748b' }}>
+              or drag and drop (PDF, images, Excel, Word, etc.)
+            </p>
+          </div>
+
+          {/* Uploaded documents list */}
+          {productDocuments.length > 0 && (
+            <div style={{ marginTop: 20, background: '#f8fafc', border: '2px solid #e2e8f0', borderRadius: 12, padding: '14px 16px' }}>
+              <p style={{ margin: '0 0 10px 0', fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                {productDocuments.length} document{productDocuments.length !== 1 ? 's' : ''} uploaded
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {productDocuments.map(doc => (
+                  <div
+                    key={doc.id}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 10,
+                      background: '#ffffff', border: '1px solid #e2e8f0',
+                      borderRadius: 8, padding: '10px 12px', fontSize: 13, fontWeight: 500,
+                      boxShadow: '0 1px 2px rgba(0,0,0,0.04)'
+                    }}
+                  >
+                    <span style={{ fontSize: 14 }}>📎</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ color: '#0f172a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{doc.file_name}</div>
+                      {doc.file_size && <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>({(doc.file_size / 1024 / 1024).toFixed(2)} MB)</div>}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteDocument(doc.id, `products/${editingProduct?.id}/${doc.file_name}`)}
+                      style={{ background: '#fee2e2', border: 'none', cursor: 'pointer', color: '#ef4444', fontSize: 12, padding: '4px 8px', lineHeight: 1, borderRadius: '4px', fontWeight: 700 }}
+                    >✕</button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {uploadingDocuments && (
+            <p style={{ fontSize: 13, color: '#FF6B35', marginTop: 12, fontWeight: 500 }}>Uploading documents...</p>
+          )}
         </div>
 
         <div style={{ marginBottom: 32 }}>
@@ -1000,6 +1388,12 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, editingPr
       backdropFilter: 'none',
       padding: '20px'
     }}>
+      <style>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.6; }
+        }
+      `}</style>
       <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 
       <div style={{

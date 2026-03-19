@@ -52,11 +52,23 @@ export default function ConstructionDashboardHome() {
 
       setCompanyName(session.user.user_metadata?.company_name || 'Supplier')
 
+      // Get supplier profile for this user
+      const { data: supplierProfile } = await supabase
+        .from('construction_supplier_profiles')
+        .select('id')
+        .eq('id', session.user.id)
+        .single()
+
+      if (!supplierProfile) {
+        setLoading(false)
+        return
+      }
+
       // Load stats
       const { data: products } = await supabase
         .from('construction_products')
         .select('id, status')
-        .eq('supplier_id', session.user.id)
+        .eq('supplier_id', supplierProfile.id)
 
       if (products) {
         const total = products.length
@@ -67,7 +79,7 @@ export default function ConstructionDashboardHome() {
       const { data: quotes } = await supabase
         .from('construction_quotes')
         .select('id, status')
-        .eq('supplier_id', session.user.id)
+        .eq('supplier_id', supplierProfile.id)
 
       if (quotes) {
         const pending = quotes.filter(q => q.status === 'pending').length

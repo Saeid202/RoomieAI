@@ -63,20 +63,46 @@ export default function ConstructionProducts() {
         return
       }
 
+      // First get the supplier profile for this user
+      const { data: supplierProfile, error: profileError } = await supabase
+        .from('construction_supplier_profiles')
+        .select('id')
+        .eq('id', session.user.id)
+        .single()
+
+      if (profileError) {
+        console.error('Error fetching supplier profile:', profileError)
+        setLoading(false)
+        return
+      }
+
+      if (!supplierProfile) {
+        console.warn('No supplier profile found for user:', session.user.id)
+        setLoading(false)
+        return
+      }
+
       let query = supabase
         .from('construction_products')
-        .select('id, title, product_type, status, price_cad, created_at, description, bedrooms, size_ft, lead_time, bathrooms, area_sqm, frame_type, shipping_port, construction_product_images (id, product_id, storage_path, public_url, is_primary, uploaded_at)')
-        .eq('supplier_id', session.user.id)
+        .select('id, title, product_type, status, price_cad, created_at, description, bedrooms, size_ft, lead_time, bathrooms, area_sqm, frame_type, shipping_port, available_colors, badge_label, custom_build_enabled, construction_product_images (id, product_id, storage_path, public_url, is_primary, uploaded_at)')
+        .eq('supplier_id', supplierProfile.id)
         .order('created_at', { ascending: false })
 
       if (filter !== 'all') {
         query = query.eq('status', filter)
       }
 
-      const { data } = await query
+      const { data, error } = await query
+
+      if (error) {
+        console.error('Error fetching products:', error)
+      }
 
       if (data) {
+        console.log('Products loaded:', data.length)
         setProducts(data)
+      } else {
+        console.log('No products data returned')
       }
 
       setLoading(false)

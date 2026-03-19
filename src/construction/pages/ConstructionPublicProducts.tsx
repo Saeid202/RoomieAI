@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { supabase } from '@/integrations/supabase/client-simple'
 import { Link } from 'react-router-dom'
 import ConstructionHeader from '@/construction/components/ConstructionHeader'
 
-const FONT_IMPORT = "https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=DM+Sans:wght@400;500&display=swap"
+const FONT_IMPORT = "https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=DM+Sans:wght@400;500;600&family=Cormorant+Garamond:wght@300;400;500;600&display=swap"
 
 interface Product {
   id: string
@@ -14,14 +14,22 @@ interface Product {
   construction_product_images: { public_url: string; is_primary: boolean }[]
 }
 
-const COLORS = {
-  dark: '#1a2332',
-  green: '#63c18a',
-  lightGreen: '#e8f5ee',
-  background: '#f5f3ef',
-  border: '#e8e4dc',
-  grey: '#666',
-  white: '#ffffff'
+const C = {
+  bg: '#F8F5F0',
+  white: '#ffffff',
+  charcoal: '#1C1C1E',
+  teal: '#0F766E',
+  tealDark: '#0D6460',
+  gold: '#B8965A',
+  goldLight: '#D4AF72',
+  goldBorder: '#C9A96E',
+  orange: '#E67E22',
+  orangeDark: '#D35400',
+  grey: '#8a8a8e',
+  greyLight: '#f0ede8',
+  border: '#E8E2D9',
+  text: '#2c2c2e',
+  subtext: '#6c6c70',
 }
 
 export default function ConstructionPublicProducts() {
@@ -80,33 +88,36 @@ export default function ConstructionPublicProducts() {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: COLORS.background, fontFamily: "'DM Sans', sans-serif" }}>
-        <div style={{ color: COLORS.dark, fontSize: '1.2rem' }}>Loading marketplace...</div>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: C.bg, fontFamily: "'DM Sans', sans-serif" }}>
+        <div style={{ color: C.charcoal, fontSize: '1.2rem', fontWeight: 500 }}>Loading marketplace...</div>
       </div>
     )
   }
 
   return (
-    <div style={{ background: COLORS.background, minHeight: '100vh', fontFamily: "'DM Sans', sans-serif", color: COLORS.dark }}>
+    <div style={{ background: C.bg, minHeight: '100vh', fontFamily: "'DM Sans', sans-serif", color: C.text }}>
       <ConstructionHeader />
 
-      <section style={{ background: COLORS.dark, padding: '140px 24px 80px', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', top: '-100px', right: '-100px', width: '400px', height: '400px', background: `radial-gradient(circle, ${COLORS.green}22 0%, transparent 70%)`, pointerEvents: 'none' }} />
+      {/* Hero */}
+      <section style={{ background: C.teal, padding: '140px 24px 80px', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', top: '-80px', right: '-80px', width: '420px', height: '420px', background: 'radial-gradient(circle, rgba(184,150,90,0.2) 0%, transparent 70%)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', bottom: '-60px', left: '-60px', width: '300px', height: '300px', background: 'radial-gradient(circle, rgba(230,126,34,0.15) 0%, transparent 70%)', pointerEvents: 'none' }} />
         <div style={{ maxWidth: '800px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
-          <div style={{ display: 'inline-block', background: COLORS.lightGreen, color: COLORS.green, padding: '4px 12px', borderRadius: '100px', fontSize: '12px', fontWeight: 600, marginBottom: '24px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+          <div style={{ display: 'inline-block', background: 'rgba(184,150,90,0.2)', color: C.goldLight, padding: '5px 14px', borderRadius: '100px', fontSize: '11px', fontWeight: 600, marginBottom: '24px', textTransform: 'uppercase', letterSpacing: '0.1em', border: '1px solid rgba(184,150,90,0.4)' }}>
             HomieAI Construction
           </div>
-          <h1 style={{ color: COLORS.white, fontSize: 'clamp(32px, 5vw, 48px)', fontWeight: 700, fontFamily: "'Sora', sans-serif", lineHeight: 1.2, marginBottom: '20px' }}>
-            Prefab Homes <span style={{ color: COLORS.green }}>Direct</span> from Manufacturer
+          <h1 style={{ color: C.white, fontSize: 'clamp(32px, 5vw, 52px)', fontWeight: 300, fontFamily: "'Cormorant Garamond', Georgia, serif", lineHeight: 1.15, marginBottom: '20px', letterSpacing: '-0.01em' }}>
+            Prefab Homes <span style={{ color: C.goldLight, fontStyle: 'italic' }}>Direct</span> from Manufacturer
           </h1>
-          <p style={{ color: '#94a3b8', fontSize: '18px', lineHeight: 1.6, maxWidth: '600px', margin: '0 auto' }}>
+          <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '17px', lineHeight: 1.7, maxWidth: '560px', margin: '0 auto' }}>
             Verified prefabricated homes shipped directly to Canada. Factory prices, Canadian-certified.
           </p>
         </div>
       </section>
 
-      <div style={{ background: COLORS.white, borderBottom: `1px solid ${COLORS.border}`, position: 'sticky', top: '72px', zIndex: 900 }}>
-        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '16px 24px', display: 'flex', gap: '12px', overflowX: 'auto', scrollbarWidth: 'none' }}>
+      {/* Filter bar */}
+      <div style={{ background: C.white, borderBottom: `1px solid ${C.border}`, position: 'sticky', top: '72px', zIndex: 900 }}>
+        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '14px 32px', display: 'flex', gap: '10px', overflowX: 'auto', scrollbarWidth: 'none' }}>
           {[
             { value: 'all', label: 'All Types' },
             { value: 'house', label: 'Pre-fabricated Houses' },
@@ -116,11 +127,11 @@ export default function ConstructionPublicProducts() {
               key={filter.value}
               onClick={() => setActiveFilter(filter.value)}
               style={{
-                padding: '10px 20px', borderRadius: '8px', fontSize: '14px', fontWeight: 600,
+                padding: '8px 20px', borderRadius: '8px', fontSize: '13px', fontWeight: 600,
                 cursor: 'pointer', transition: 'all 0.2s', whiteSpace: 'nowrap',
-                background: activeFilter === filter.value ? COLORS.dark : 'transparent',
-                color: activeFilter === filter.value ? COLORS.white : COLORS.grey,
-                border: `1px solid ${activeFilter === filter.value ? COLORS.dark : COLORS.border}`
+                background: activeFilter === filter.value ? C.teal : 'transparent',
+                color: activeFilter === filter.value ? C.white : C.grey,
+                border: `1px solid ${activeFilter === filter.value ? C.teal : C.border}`
               }}
             >
               {filter.label}
@@ -129,39 +140,95 @@ export default function ConstructionPublicProducts() {
         </div>
       </div>
 
-      <main style={{ maxWidth: '1280px', margin: '0 auto', padding: '60px 24px 80px' }}>
+      {/* Product grid */}
+      <main style={{ maxWidth: '1280px', margin: '0 auto', padding: '60px 32px 80px' }}>
         {filteredProducts.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '100px 0' }}>
-            <h3 style={{ fontSize: '24px', fontWeight: 600, color: COLORS.grey }}>No products listed yet. Check back soon.</h3>
+            <h3 style={{ fontSize: '24px', fontWeight: 400, color: C.subtext, fontFamily: "'Cormorant Garamond', serif" }}>No products listed yet. Check back soon.</h3>
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '32px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))', gap: '28px' }}>
             {filteredProducts.map(product => {
               const primaryImage = product.construction_product_images?.find(img => img.is_primary) || product.construction_product_images?.[0]
               return (
                 <div
                   key={product.id}
-                  style={{ background: COLORS.white, borderRadius: '16px', border: `1px solid ${COLORS.border}`, overflow: 'hidden', transition: 'all 0.3s ease', cursor: 'pointer' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-8px)'; e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(0,0,0,0.1)' }}
-                  onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none' }}
+                  style={{
+                    background: C.white,
+                    borderRadius: '16px',
+                    border: `1px solid ${C.border}`,
+                    overflow: 'hidden',
+                    transition: 'transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease',
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.transform = 'translateY(-6px)'
+                    e.currentTarget.style.boxShadow = '0 20px 48px rgba(0,0,0,0.12)'
+                    e.currentTarget.style.borderColor = C.goldBorder
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.transform = 'translateY(0)'
+                    e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.05)'
+                    e.currentTarget.style.borderColor = C.border
+                  }}
                 >
-                  <Link to={`/construction/${product.slug}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                    <div style={{ height: '240px', background: '#f1f5f9', overflow: 'hidden' }}>
+                  <Link to={`/construction/${product.slug}`} style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}>
+
+                    {/* Image */}
+                    <div style={{ position: 'relative', height: '280px', background: C.greyLight, overflow: 'hidden' }}>
                       {primaryImage ? (
-                        <img src={primaryImage.public_url} alt={product.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <img
+                          src={primaryImage.public_url}
+                          alt={product.title}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s ease' }}
+                          onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.04)' }}
+                          onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)' }}
+                        />
                       ) : (
-                        <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>No image available</div>
+                        <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: C.grey, fontSize: '48px' }}>🏠</div>
                       )}
                     </div>
-                    <div style={{ padding: '24px' }}>
-                      <h3 style={{ fontSize: '20px', fontWeight: 700, fontFamily: "'Sora', sans-serif", marginBottom: '20px' }}>
+
+                    {/* Card body */}
+                    <div style={{ padding: '24px 24px 20px' }}>
+                      {/* Gold divider line */}
+                      <div style={{ height: '2px', background: `linear-gradient(90deg, ${C.gold}, ${C.goldLight}, transparent)`, marginBottom: '16px', borderRadius: '2px' }} />
+
+                      <h3 style={{
+                        fontSize: '20px', fontWeight: 400, margin: '0 0 8px 0',
+                        fontFamily: "'Cormorant Garamond', Georgia, serif",
+                        color: C.charcoal, lineHeight: 1.3, letterSpacing: '-0.01em',
+                      }}>
                         {product.title}
                       </h3>
+
+                      <p style={{ fontSize: '12px', color: C.subtext, margin: '0 0 20px 0', letterSpacing: '0.03em' }}>
+                        Factory-direct&nbsp;&nbsp;•&nbsp;&nbsp;Canadian-certified
+                      </p>
+
+                      {/* Price + CTA row */}
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div style={{ fontSize: '24px', fontWeight: 700, color: COLORS.dark }}>
-                          ${product.price_cad.toLocaleString()} <span style={{ fontSize: '14px', fontWeight: 500, color: COLORS.grey }}>CAD</span>
+                        <div>
+                          <span style={{ fontSize: '22px', fontWeight: 600, color: C.charcoal }}>
+                            ${product.price_cad.toLocaleString()}
+                          </span>
+                          <span style={{ fontSize: '12px', color: C.subtext, marginLeft: '5px' }}>CAD</span>
                         </div>
-                        <div style={{ background: COLORS.dark, color: COLORS.white, padding: '10px 20px', borderRadius: '8px', fontSize: '14px', fontWeight: 600 }}>
+                        <div
+                          style={{
+                            background: C.orange,
+                            color: C.white,
+                            padding: '10px 22px',
+                            borderRadius: '100px',
+                            fontSize: '13px',
+                            fontWeight: 600,
+                            letterSpacing: '0.02em',
+                            transition: 'background 0.2s',
+                          }}
+                          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = C.orangeDark }}
+                          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = C.orange }}
+                        >
                           View Details
                         </div>
                       </div>
@@ -173,28 +240,30 @@ export default function ConstructionPublicProducts() {
           </div>
         )}
 
-        <div style={{ marginTop: '80px', background: COLORS.dark, borderRadius: '24px', padding: '48px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '32px', position: 'relative', overflow: 'hidden' }}>
-          <div style={{ position: 'absolute', bottom: '-50px', right: '-50px', width: '200px', height: '200px', background: `${COLORS.green}11`, borderRadius: '50%' }} />
-          <div style={{ textAlign: 'left', flex: 1 }}>
-            <h2 style={{ color: COLORS.white, fontSize: '32px', fontWeight: 700, fontFamily: "'Sora', sans-serif", marginBottom: '12px' }}>
+        {/* CTA banner */}
+        <div style={{ marginTop: '80px', background: C.teal, borderRadius: '20px', padding: '52px 48px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '32px', flexWrap: 'wrap', position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', top: '-60px', right: '-60px', width: '240px', height: '240px', background: 'radial-gradient(circle, rgba(184,150,90,0.15) 0%, transparent 70%)' }} />
+          <div style={{ position: 'relative', zIndex: 1 }}>
+            <h2 style={{ color: C.white, fontSize: '28px', fontWeight: 300, fontFamily: "'Cormorant Garamond', serif", marginBottom: '10px', letterSpacing: '-0.01em' }}>
               Have your own design? Build it custom.
             </h2>
-            <p style={{ color: '#94a3b8', fontSize: '18px' }}>Upload your floor plan and our supplier will build it to your vision.</p>
+            <p style={{ color: 'rgba(255,255,255,0.75)', fontSize: '16px', margin: 0 }}>Upload your floor plan and our supplier will build it to your vision.</p>
           </div>
-          <Link to="/construction/custom" style={{ background: COLORS.green, color: COLORS.dark, padding: '16px 32px', borderRadius: '12px', fontSize: '18px', fontWeight: 700, textDecoration: 'none', whiteSpace: 'nowrap' }}>
+          <Link
+            to="/construction/custom"
+            style={{ background: C.orange, color: C.white, padding: '14px 32px', borderRadius: '100px', fontSize: '15px', fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap', letterSpacing: '0.02em', position: 'relative', zIndex: 1 }}
+          >
             Start Custom Order
           </Link>
         </div>
       </main>
 
-      <footer style={{ background: COLORS.dark, padding: '60px 24px', borderTop: `1px solid rgba(255,255,255,0.1)` }}>
+      <footer style={{ background: C.charcoal, padding: '48px 32px', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
         <div style={{ maxWidth: '1280px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '24px' }}>
-          <div style={{ color: '#94a3b8', fontSize: '14px' }}>HomieAI Construction 2026</div>
-          <div style={{ display: 'flex', gap: '32px' }}>
-            <Link to="/construction/signup" style={{ color: COLORS.white, fontSize: '14px', textDecoration: 'none', fontWeight: 500 }}>
-              Supplier? Sign up here
-            </Link>
-          </div>
+          <div style={{ color: '#6c6c70', fontSize: '13px' }}>HomieAI Construction 2026</div>
+          <Link to="/construction/signup" style={{ color: C.goldLight, fontSize: '13px', textDecoration: 'none', fontWeight: 500 }}>
+            Supplier? Sign up here
+          </Link>
         </div>
       </footer>
     </div>

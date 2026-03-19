@@ -34,7 +34,7 @@ const ConstructionHeader = () => {
   };
 
   return (
-    <nav className="w-full py-4 bg-white/90 backdrop-blur-sm fixed top-0 left-0 z-[9999] shadow-lg">
+    <nav className="w-full py-4 bg-white fixed top-0 left-0 z-[9999] shadow-sm" style={{ backgroundColor: '#ffffff' }}>
       <div className="container mx-auto px-4 flex justify-between items-center">
         {/* Logo */}
         <a href="/construction" className="flex items-center space-x-2">

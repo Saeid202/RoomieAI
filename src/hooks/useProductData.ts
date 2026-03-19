@@ -15,7 +15,10 @@ export interface Product {
   lead_time: string | null;
   frame_type: string | null;
   shipping_port: string | null;
+  weight_kg: string | null;
   available_colors: Array<{ name: string; hex: string }> | null;
+  custom_build_enabled: boolean;
+  product_specs: string | null;
   created_at: string;
   supplier_id: string;
   status: string;
@@ -23,6 +26,14 @@ export interface Product {
     id: string;
     public_url: string;
     is_primary: boolean;
+    image_order: number;
+  }>;
+  construction_product_documents: Array<{
+    id: string;
+    file_name: string;
+    file_path: string;
+    file_size: number | null;
+    uploaded_at: string;
   }>;
   construction_supplier_profiles: {
     company_name: string;
@@ -33,7 +44,7 @@ export interface Product {
 async function fetchProductWithRelations(slug: string): Promise<Product> {
   const { data: productData, error: productError } = await supabase
     .from('construction_products')
-    .select('id, title, slug, description, price_cad, product_type, size_ft, bedrooms, bathrooms, area_sqm, lead_time, frame_type, shipping_port, available_colors, supplier_id, created_at, status')
+    .select('id, title, slug, description, price_cad, product_type, size_ft, bedrooms, bathrooms, area_sqm, lead_time, frame_type, shipping_port, weight_kg, available_colors, custom_build_enabled, product_specs, supplier_id, created_at, status, construction_product_documents (id, file_name, file_path, file_size, uploaded_at)')
     .eq('slug', slug)
     .single();
 
@@ -43,8 +54,10 @@ async function fetchProductWithRelations(slug: string): Promise<Product> {
   const [imagesResult, supplierResult] = await Promise.all([
     supabase
       .from('construction_product_images')
-      .select('id, public_url, is_primary')
-      .eq('product_id', productData.id),
+      .select('id, public_url, is_primary, image_order')
+      .eq('product_id', productData.id)
+      .order('is_primary', { ascending: false })
+      .order('image_order', { ascending: true }),
     supabase
       .from('construction_supplier_profiles')
       .select('company_name, shipping_port')
@@ -65,7 +78,7 @@ export const useProducts = (filter: string = 'all') => {
     queryFn: async () => {
       let query = supabase
         .from('construction_products')
-        .select('id, title, product_type, price_cad, slug, supplier_id, status, created_at, description, size_ft, bedrooms, bathrooms, area_sqm, lead_time, frame_type, shipping_port, available_colors')
+        .select('id, title, product_type, price_cad, slug, supplier_id, status, created_at, description, size_ft, bedrooms, bathrooms, area_sqm, lead_time, frame_type, shipping_port, weight_kg, available_colors, custom_build_enabled, product_specs')
         .eq('status', 'live')
         .order('created_at', { ascending: false });
 
@@ -80,13 +93,15 @@ export const useProducts = (filter: string = 'all') => {
       const productIds = productsData.map(p => p.id);
       const { data: imagesData } = await supabase
         .from('construction_product_images')
-        .select('id, product_id, public_url, is_primary')
-        .in('product_id', productIds);
+        .select('id, product_id, public_url, is_primary, image_order')
+        .in('product_id', productIds)
+        .order('is_primary', { ascending: false })
+        .order('image_order', { ascending: true });
 
       const imagesByProduct: Record<string, Product['construction_product_images']> = {};
       for (const img of (imagesData ?? [])) {
         if (!imagesByProduct[img.product_id]) imagesByProduct[img.product_id] = [];
-        imagesByProduct[img.product_id].push({ id: img.id, public_url: img.public_url, is_primary: img.is_primary });
+        imagesByProduct[img.product_id].push({ id: img.id, public_url: img.public_url, is_primary: img.is_primary, image_order: img.image_order });
       }
 
       return productsData.map(p => ({

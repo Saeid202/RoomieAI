@@ -1,3 +1,4 @@
+// v2
 import { useEffect, useState } from 'react'
 import { supabase } from '@/integrations/supabase/client-simple'
 import { Link, useParams, useNavigate } from 'react-router-dom'
@@ -13,8 +14,8 @@ const C = {
   gold: '#B8965A',
   goldLight: '#D4AF72',
   goldBorder: '#C9A96E',
-  sage: '#7A9E7E',
-  sageDark: '#5E8262',
+  sage: '#DC2626',
+  sageDark: '#B91C1C',
   grey: '#8a8a8e',
   greyLight: '#f0ede8',
   border: '#E8E2D9',
@@ -22,7 +23,7 @@ const C = {
   subtext: '#6c6c70',
 }
 
-const DETAIL_TABS = ['Ready to Install', 'Customize Features', 'Dimensions', 'Specifications']
+const DETAIL_TABS = ['Ready to Install', 'Customize Features', 'Configuration']
 
 // Default finishes for backward compatibility
 const DEFAULT_FINISHES = [
@@ -43,6 +44,8 @@ export default function ConstructionProductDetail() {
   const [showQuoteForm, setShowQuoteForm] = useState(false)
   const [quoteMessage, setQuoteMessage] = useState('')
   const [submittingQuote, setSubmittingQuote] = useState(false)
+  const [downloadingDocs, setDownloadingDocs] = useState(false)
+  const [enlargedImage, setEnlargedImage] = useState<string | null>(null)
 
   // Get finishes from product or use defaults
   const getFinishes = () => {
@@ -53,13 +56,14 @@ export default function ConstructionProductDetail() {
         border: color.hex === '#F5F5F3' || color.hex === '#FAF9F6' ? '#ddd' : '#333'
       }))
     }
-    return DEFAULT_FINISHES
+    return []
   }
 
   const finishes = getFinishes()
 
   useEffect(() => {
     if (product?.construction_product_images) {
+      // Prioritize primary image, fallback to first image
       const primaryImg = product.construction_product_images.find(img => img.is_primary)
       setSelectedImage(primaryImg?.public_url || product.construction_product_images[0]?.public_url || null)
     }
@@ -85,6 +89,18 @@ export default function ConstructionProductDetail() {
       alert('Failed to send quote request')
     }
     setSubmittingQuote(false)
+  }
+
+  const handleDownloadDocuments = async () => {
+    if (!product) return
+    setDownloadingDocs(true)
+    try {
+      const { downloadProductDocuments } = await import('@/services/productDocumentService')
+      await downloadProductDocuments(product.id, product.title)
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to download documents')
+    }
+    setDownloadingDocs(false)
   }
 
   if (isLoading) return <ProductDetailSkeleton />
@@ -144,62 +160,170 @@ export default function ConstructionProductDetail() {
           borderRadius: 20,
           overflow: 'hidden',
           boxShadow: '0 8px 48px rgba(0,0,0,0.07)',
+          height: 550,
         }}>
 
-          {/* ── LEFT: Image panel ── */}
-          <div style={{ position: 'relative', overflow: 'hidden', background: C.greyLight }}>
-            {/* Gold border frame — fills entire left column */}
-            <div style={{
-              position: 'absolute',
-              inset: 16,
-              borderRadius: 12,
-              padding: 5,
-              background: `linear-gradient(135deg, ${C.goldBorder} 0%, ${C.goldLight} 50%, ${C.goldBorder} 100%)`,
-              boxShadow: '0 12px 40px rgba(0,0,0,0.12)',
-            }}>
-              <div style={{ borderRadius: 8, overflow: 'hidden', background: '#e8e4dc', width: '100%', height: '100%' }}>
-                {displayImage ? (
+          {/* ── LEFT: Image Gallery Panel (Alibaba Style) ── */}
+          <div style={{ display: 'flex', gap: 12, padding: 16, background: C.greyLight, overflow: 'hidden', height: '100%' }}>
+            {/* Thumbnail Strip - Left Side */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, overflowY: 'auto', width: 80, flexShrink: 0, height: '100%' }}>
+              {images.map((img, idx) => (
+                <div
+                  key={img.id}
+                  onClick={() => setSelectedImage(img.public_url)}
+                  style={{
+                    width: 70,
+                    height: 70,
+                    borderRadius: 8,
+                    overflow: 'hidden',
+                    cursor: 'pointer',
+                    border: displayImage === img.public_url ? `3px solid ${C.gold}` : `2px solid ${C.border}`,
+                    boxShadow: displayImage === img.public_url ? `0 0 0 2px ${C.goldLight}` : 'none',
+                    transition: 'all 0.2s',
+                    position: 'relative',
+                    background: '#e8e4dc',
+                    flexShrink: 0,
+                  }}
+                  onMouseEnter={(e) => {
+                    if (displayImage !== img.public_url) {
+                      e.currentTarget.style.borderColor = C.goldLight
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (displayImage !== img.public_url) {
+                      e.currentTarget.style.borderColor = C.border
+                    }
+                  }}
+                >
                   <img
-                    src={displayImage}
-                    alt={product.title}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-                    loading="eager"
+                    src={img.public_url}
+                    alt={`${product.title} - ${idx + 1}`}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                   />
-                ) : (
-                  <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: C.grey, fontSize: 48 }}>🏠</div>
-                )}
-              </div>
+                  {displayImage === img.public_url && (
+                    <div style={{
+                      position: 'absolute',
+                      bottom: 4,
+                      right: 4,
+                      background: C.gold,
+                      color: C.white,
+                      fontSize: 10,
+                      fontWeight: 700,
+                      padding: '2px 4px',
+                      borderRadius: 3,
+                    }}>
+                      {idx + 1}/{images.length}
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
 
-            {/* "See in Your Space" floating pill */}
-            <div style={{
-              position: 'absolute',
-              bottom: 32,
-              right: 32,
-              background: 'rgba(28,28,30,0.88)',
-              backdropFilter: 'blur(8px)',
-              color: C.white,
-              padding: '8px 16px',
-              borderRadius: 100,
-              fontSize: 12,
-              fontWeight: 500,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              cursor: 'pointer',
-              letterSpacing: '0.02em',
-              zIndex: 2,
-            }}>
-              <span style={{ fontSize: 14 }}>⬡</span>
-              See in Your Space
+            {/* Main Image Display - Center */}
+            <div style={{ flex: 1, position: 'relative', display: 'flex', flexDirection: 'column', height: '100%' }}>
+              {/* Gold border frame */}
+              <div style={{
+                position: 'relative',
+                flex: 1,
+                borderRadius: 12,
+                padding: 3,
+                background: `linear-gradient(135deg, ${C.goldBorder} 0%, ${C.goldLight} 50%, ${C.goldBorder} 100%)`,
+                boxShadow: '0 12px 40px rgba(0,0,0,0.12)',
+                minHeight: 0,
+              }}>
+                <div style={{ borderRadius: 8, overflow: 'hidden', background: '#e8e4dc', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: displayImage ? 'none' : 'default', position: 'relative' }} onClick={() => displayImage && setEnlargedImage(displayImage)} onMouseEnter={(e) => { if (displayImage) { const div = document.createElement('div'); div.textContent = '👷'; div.style.position = 'fixed'; div.style.pointerEvents = 'none'; div.style.fontSize = '48px'; div.style.zIndex = '10000'; div.id = 'emoji-cursor'; document.body.appendChild(div); const moveCursor = (ev: MouseEvent) => { const el = document.getElementById('emoji-cursor'); if (el) { el.style.left = (ev.clientX - 24) + 'px'; el.style.top = (ev.clientY - 24) + 'px'; } }; e.currentTarget.addEventListener('mousemove', moveCursor as any); e.currentTarget.addEventListener('mouseleave', () => { const el = document.getElementById('emoji-cursor'); if (el) el.remove(); e.currentTarget.removeEventListener('mousemove', moveCursor as any); }); } }}>
+                  {displayImage ? (
+                    <img
+                      src={displayImage}
+                      alt={product.title}
+                      style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
+                      loading="eager"
+                    />
+                  ) : (
+                    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#e8e4dc', color: C.subtext, fontSize: 14, fontWeight: 500 }}>
+                      No image available
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Navigation Buttons */}
+              {images.length > 1 && (
+                <div style={{ display: 'flex', gap: 8, marginTop: 12, justifyContent: 'center', flexShrink: 0 }}>
+                  <button
+                    onClick={() => {
+                      const currentIdx = images.findIndex(img => img.public_url === displayImage)
+                      const prevIdx = currentIdx === 0 ? images.length - 1 : currentIdx - 1
+                      setSelectedImage(images[prevIdx].public_url)
+                    }}
+                    style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: 8,
+                      background: C.gold,
+                      color: C.white,
+                      border: 'none',
+                      cursor: 'pointer',
+                      fontWeight: 700,
+                      fontSize: 18,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      transition: 'all 0.2s',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = C.goldLight
+                      e.currentTarget.style.transform = 'scale(1.1)'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = C.gold
+                      e.currentTarget.style.transform = 'scale(1)'
+                    }}
+                  >
+                    ←
+                  </button>
+                  <button
+                    onClick={() => {
+                      const currentIdx = images.findIndex(img => img.public_url === displayImage)
+                      const nextIdx = currentIdx === images.length - 1 ? 0 : currentIdx + 1
+                      setSelectedImage(images[nextIdx].public_url)
+                    }}
+                    style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: 8,
+                      background: C.gold,
+                      color: C.white,
+                      border: 'none',
+                      cursor: 'pointer',
+                      fontWeight: 700,
+                      fontSize: 18,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      transition: 'all 0.2s',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = C.goldLight
+                      e.currentTarget.style.transform = 'scale(1.1)'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = C.gold
+                      e.currentTarget.style.transform = 'scale(1)'
+                    }}
+                  >
+                    →
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
           {/* ── RIGHT: Details panel ── */}
-          <div style={{ padding: '48px 44px', display: 'flex', flexDirection: 'column', borderLeft: `1px solid ${C.border}` }}>
+          <div style={{ padding: '48px 44px', display: 'flex', flexDirection: 'column', borderLeft: `1px solid ${C.border}`, height: '100%', overflow: 'hidden' }}>
 
             {/* Title + Price on one line */}
-            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 16, marginBottom: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 16, marginBottom: 8, flexShrink: 0 }}>
               <h1 style={{
                 margin: 0,
                 fontSize: 34,
@@ -219,12 +343,12 @@ export default function ConstructionProductDetail() {
               </div>
             </div>
 
-            <p style={{ margin: '0 0 24px 0', fontSize: 12, color: C.subtext, letterSpacing: '0.03em' }}>
+            <p style={{ margin: '0 0 24px 0', fontSize: 12, color: C.subtext, letterSpacing: '0.03em', flexShrink: 0 }}>
               Factory-direct&nbsp;&nbsp;•&nbsp;&nbsp;{product.lead_time || '4–6 weeks'}
             </p>
 
             {/* Elegant tabs */}
-            <div style={{ display: 'flex', gap: 0, borderBottom: `1px solid ${C.border}`, marginBottom: 28 }}>
+            <div style={{ display: 'flex', gap: 0, borderBottom: `1px solid ${C.border}`, marginBottom: 28, flexShrink: 0 }}>
               {DETAIL_TABS.map((tab, i) => (
                 <button
                   key={tab}
@@ -251,81 +375,113 @@ export default function ConstructionProductDetail() {
 
             {/* Tab content */}
             {activeTab === 0 && (
-              <div style={{ flex: 1 }}>
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'auto' }}>
                 {/* Finish swatches */}
-                <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
-                  {finishes.map((finish, i) => (
-                    <div
-                      key={finish.label}
-                      onClick={() => setSelectedFinish(i)}
-                      style={{ cursor: 'pointer', textAlign: 'center' }}
-                    >
-                      <div style={{
-                        width: 56,
-                        height: 56,
-                        borderRadius: 8,
-                        background: finish.color,
-                        border: selectedFinish === i ? `2px solid ${C.gold}` : `1px solid ${finish.border}`,
-                        boxShadow: selectedFinish === i ? `0 0 0 3px ${C.goldLight}44` : 'none',
-                        transition: 'all 0.2s',
-                        marginBottom: 6,
-                      }} />
-                      <div style={{ fontSize: 10, color: C.charcoal, fontWeight: 500, lineHeight: 1.3, maxWidth: 56 }}>{finish.label}</div>
-                      <div style={{ fontSize: 9, color: C.sage, fontWeight: 500, marginTop: 2 }}>In Stock</div>
+                {finishes.length > 0 ? (
+                  <>
+                    <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 12 }}>
+                      {finishes.map((finish, i) => (
+                        <div
+                          key={finish.label}
+                          onClick={() => setSelectedFinish(i)}
+                          style={{ cursor: 'pointer', textAlign: 'center' }}
+                        >
+                          <div style={{
+                            width: 56,
+                            height: 56,
+                            borderRadius: 8,
+                            background: finish.color,
+                            border: selectedFinish === i ? `2px solid ${C.gold}` : `1px solid ${finish.border}`,
+                            boxShadow: selectedFinish === i ? `0 0 0 3px ${C.goldLight}44` : 'none',
+                            transition: 'all 0.2s',
+                            marginBottom: 6,
+                          }} />
+                          <div style={{ fontSize: 10, color: C.charcoal, fontWeight: 500, lineHeight: 1.3, maxWidth: 56 }}>{finish.label}</div>
+                          <div style={{ fontSize: 9, color: C.sage, fontWeight: 500, marginTop: 2 }}>In Stock</div>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-                <p style={{ fontSize: 11, color: C.subtext, margin: '0 0 20px 0', letterSpacing: '0.02em' }}>
-                  {finishes.length} finish{finishes.length !== 1 ? 'es' : ''} available&nbsp;&nbsp;•&nbsp;&nbsp;Live preview updates on main image
-                </p>
+                    <p style={{ fontSize: 11, color: C.subtext, margin: '0 0 20px 0', letterSpacing: '0.02em' }}>
+                      {finishes.length} finish{finishes.length !== 1 ? 'es' : ''} available&nbsp;&nbsp;•&nbsp;&nbsp;Live preview updates on main image
+                    </p>
+                  </>
+                ) : (
+                  <p style={{ fontSize: 13, color: C.subtext, margin: '0 0 20px 0', fontStyle: 'italic' }}>
+                    Contact supplier for available color options.
+                  </p>
+                )}
 
                 {/* Trust line */}
-                <p style={{ fontSize: 12, color: C.subtext, fontStyle: 'italic', margin: '0 0 28px 0', letterSpacing: '0.02em' }}>
-                  German-inspired precision&nbsp;&nbsp;•&nbsp;&nbsp;FSC-certified&nbsp;&nbsp;•&nbsp;&nbsp;Lifetime mechanism warranty
-                </p>
+                {product.product_specs && (
+                  <p style={{ fontSize: 12, color: C.subtext, fontStyle: 'italic', margin: '0 0 28px 0', letterSpacing: '0.02em' }}>
+                    {product.product_specs}
+                  </p>
+                )}
               </div>
             )}
 
             {activeTab === 1 && (
-              <div style={{ flex: 1, paddingBottom: 28 }}>
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'auto', paddingBottom: 28 }}>
                 <p style={{ color: C.subtext, fontSize: 13, lineHeight: 1.7 }}>{product.description || 'Custom configuration options available. Contact us for personalized specifications.'}</p>
               </div>
             )}
 
             {activeTab === 2 && (
-              <div style={{ flex: 1, paddingBottom: 28 }}>
-                {[
-                  ['Width', product.size_ft || 'Custom'],
-                  ['Bedrooms', product.bedrooms || '—'],
-                  ['Bathrooms', product.bathrooms || '—'],
-                  ['Area', product.area_sqm ? `${product.area_sqm} m²` : '—'],
-                ].map(([k, v]) => (
-                  <div key={k} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: `1px solid ${C.border}`, fontSize: 13 }}>
-                    <span style={{ color: C.subtext }}>{k}</span>
-                    <span style={{ color: C.charcoal, fontWeight: 500 }}>{v}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {activeTab === 3 && (
-              <div style={{ flex: 1, paddingBottom: 28 }}>
-                {[
-                  ['Frame Type', product.frame_type || '—'],
-                  ['Lead Time', product.lead_time || '4–6 weeks'],
-                  ['Shipping Port', product.shipping_port || '—'],
-                  ['Supplier', product.construction_supplier_profiles?.company_name || '—'],
-                ].map(([k, v]) => (
-                  <div key={k} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: `1px solid ${C.border}`, fontSize: 13 }}>
-                    <span style={{ color: C.subtext }}>{k}</span>
-                    <span style={{ color: C.charcoal, fontWeight: 500 }}>{v}</span>
-                  </div>
-                ))}
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', paddingBottom: 28 }}>
+                <div>
+                  {[
+                    ['Size', product.size_ft || 'Custom'],
+                    ['Bedrooms', product.bedrooms || '—'],
+                    ['Frame Type', product.frame_type || '—'],
+                    ['Weight', product.weight_kg || '—'],
+                  ].map(([k, v]) => (
+                    <div key={k} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: `1px solid ${C.border}`, fontSize: 13 }}>
+                      <span style={{ color: C.subtext }}>{k}</span>
+                      <span style={{ color: C.charcoal, fontWeight: 500 }}>{v}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 
             {/* CTA Buttons */}
-            <div style={{ display: 'flex', gap: 12, marginTop: 'auto' }}>
+            <div style={{ display: 'flex', gap: 12, marginTop: 'auto', flexShrink: 0 }}>
+              {/* Download button - only in Configuration tab */}
+              {activeTab === 2 && product.construction_product_documents && product.construction_product_documents.length > 0 && (
+                <button
+                  onClick={handleDownloadDocuments}
+                  disabled={downloadingDocs}
+                  style={{
+                    flex: 1,
+                    padding: '14px 20px',
+                    background: '#E67E22',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: 100,
+                    fontWeight: 600,
+                    fontSize: 13,
+                    cursor: downloadingDocs ? 'not-allowed' : 'pointer',
+                    opacity: downloadingDocs ? 0.6 : 1,
+                    transition: 'all 0.2s',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                    letterSpacing: '0.02em',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!downloadingDocs) {
+                      e.currentTarget.style.background = '#D35400'
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = '#E67E22'
+                  }}
+                >
+                  <span style={{ fontSize: 14 }}>📥</span>
+                  {downloadingDocs ? 'Downloading...' : 'Download Details'}
+                </button>
+              )}
               <button
                 onClick={() => setShowQuoteForm(!showQuoteForm)}
                 style={{
@@ -346,35 +502,45 @@ export default function ConstructionProductDetail() {
               >
                 Request Private Consultation
               </button>
-              <Link
-                to="/construction/custom"
-                style={{
-                  flex: 1,
-                  background: C.charcoal,
-                  color: C.white,
-                  border: 'none',
-                  padding: '14px 20px',
-                  borderRadius: 100,
-                  fontWeight: 600,
-                  fontSize: 13,
-                  textDecoration: 'none',
-                  textAlign: 'center',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 6,
-                  letterSpacing: '0.02em',
-                  transition: 'background 0.2s',
-                }}
-                onMouseEnter={e => (e.currentTarget.style.background = C.charcoalLight)}
-                onMouseLeave={e => (e.currentTarget.style.background = C.charcoal)}
-              >
-                <span style={{ fontSize: 14 }}>▶</span>
-                Begin Live Factory Custom Build →
-              </Link>
+              {product?.custom_build_enabled && (
+                <Link
+                  to="/construction/custom"
+                  style={{
+                    flex: 1,
+                    background: '#E67E22',
+                    color: C.white,
+                    border: 'none',
+                    padding: '14px 20px',
+                    borderRadius: 100,
+                    fontWeight: 600,
+                    fontSize: 13,
+                    textDecoration: 'none',
+                    textAlign: 'center',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 6,
+                    letterSpacing: '0.02em',
+                    transition: 'background 0.2s',
+                  }}
+                  onMouseEnter={e => (e.currentTarget.style.background = '#D35400')}
+                  onMouseLeave={e => (e.currentTarget.style.background = '#E67E22')}
+                >
+                  <span style={{ fontSize: 14 }}>▶</span>
+                  Begin Live Factory Custom Build →
+                </Link>
+              )}
             </div>
           </div>
         </div>
+
+        {/* Product Description Section */}
+        {product.description && (
+          <div style={{ width: '55%', marginTop: 24, padding: '32px 40px', background: C.white, borderRadius: 20, border: `1px solid ${C.border}`, boxShadow: '0 8px 48px rgba(0,0,0,0.07)' }}>
+            <h3 style={{ margin: '0 0 16px 0', fontSize: 18, fontWeight: 600, color: C.charcoal, letterSpacing: '-0.01em' }}>Product Description</h3>
+            <p style={{ margin: 0, color: C.subtext, fontSize: 13, lineHeight: 1.8 }}>{product.description}</p>
+          </div>
+        )}
 
         {/* Quote form */}
         {showQuoteForm && (
@@ -405,6 +571,72 @@ export default function ConstructionProductDetail() {
           </div>
         )}
       </main>
+
+      {/* Enlarged Image Modal */}
+      {enlargedImage && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.95)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+            padding: '20px',
+            cursor: 'pointer',
+          }}
+          onClick={() => setEnlargedImage(null)}
+        >
+          <div
+            style={{
+              position: 'relative',
+              maxWidth: '90vw',
+              maxHeight: '90vh',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={enlargedImage}
+              alt="Enlarged view"
+              style={{
+                maxWidth: '100%',
+                maxHeight: '100%',
+                objectFit: 'contain',
+                borderRadius: 8,
+                cursor: 'pointer',
+              }}
+              onClick={() => setEnlargedImage(null)}
+            />
+            <div
+              style={{
+                position: 'absolute',
+                top: '-50px',
+                right: 0,
+                fontSize: 28,
+                cursor: 'pointer',
+                transition: 'transform 0.2s',
+              }}
+              onClick={() => setEnlargedImage(null)}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'scale(1.2) rotate(10deg)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'scale(1) rotate(0deg)'
+              }}
+              title="Click to close"
+            >
+              👷
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
