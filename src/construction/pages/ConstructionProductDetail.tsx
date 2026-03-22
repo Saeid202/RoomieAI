@@ -125,6 +125,21 @@ export default function ConstructionProductDetail() {
   return (
     <div style={{ fontFamily: "'DM Sans', 'Inter', system-ui, sans-serif", minHeight: '100vh', background: C.bg }}>
       <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Cormorant+Garamond:wght@300;400;500;600&display=swap" rel="stylesheet" />
+      <style>{`
+        .thumbnail-scroll::-webkit-scrollbar {
+          width: 6px;
+        }
+        .thumbnail-scroll::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .thumbnail-scroll::-webkit-scrollbar-thumb {
+          background: ${C.gold};
+          border-radius: 3px;
+        }
+        .thumbnail-scroll::-webkit-scrollbar-thumb:hover {
+          background: ${C.goldLight};
+        }
+      `}</style>
 
       <ConstructionHeader />
 
@@ -166,14 +181,25 @@ export default function ConstructionProductDetail() {
           {/* ── LEFT: Image Gallery Panel (Alibaba Style) ── */}
           <div style={{ display: 'flex', gap: 12, padding: 16, background: C.greyLight, overflow: 'hidden', height: '100%' }}>
             {/* Thumbnail Strip - Left Side */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, overflowY: 'auto', width: 80, flexShrink: 0, height: '100%' }}>
+            <div style={{ 
+              display: 'flex', 
+              flexDirection: 'column', 
+              gap: 8, 
+              overflowY: 'auto',
+              overflowX: 'hidden',
+              width: 120, 
+              flexShrink: 0, 
+              height: '100%',
+              paddingRight: 4,
+              scrollBehavior: 'smooth',
+            }} className="thumbnail-scroll">
               {images.map((img, idx) => (
                 <div
                   key={img.id}
                   onClick={() => setSelectedImage(img.public_url)}
                   style={{
-                    width: 70,
-                    height: 70,
+                    width: 100,
+                    height: 100,
                     borderRadius: 8,
                     overflow: 'hidden',
                     cursor: 'pointer',
@@ -187,11 +213,13 @@ export default function ConstructionProductDetail() {
                   onMouseEnter={(e) => {
                     if (displayImage !== img.public_url) {
                       e.currentTarget.style.borderColor = C.goldLight
+                      e.currentTarget.style.transform = 'scale(1.05)'
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (displayImage !== img.public_url) {
                       e.currentTarget.style.borderColor = C.border
+                      e.currentTarget.style.transform = 'scale(1)'
                     }
                   }}
                 >
@@ -207,9 +235,9 @@ export default function ConstructionProductDetail() {
                       right: 4,
                       background: C.gold,
                       color: C.white,
-                      fontSize: 10,
+                      fontSize: 11,
                       fontWeight: 700,
-                      padding: '2px 4px',
+                      padding: '3px 6px',
                       borderRadius: 3,
                     }}>
                       {idx + 1}/{images.length}
@@ -541,6 +569,31 @@ export default function ConstructionProductDetail() {
             <p style={{ margin: 0, color: C.subtext, fontSize: 13, lineHeight: 1.8 }}>{product.description}</p>
           </div>
         )}
+
+        {/* Configuration Details Section */}
+        <div style={{ width: '55%', marginTop: 24, padding: '32px 40px', background: C.white, borderRadius: 20, border: `1px solid ${C.border}`, boxShadow: '0 8px 48px rgba(0,0,0,0.07)' }}>
+          <h3 style={{ margin: '0 0 24px 0', fontSize: 18, fontWeight: 600, color: C.charcoal, letterSpacing: '-0.01em' }}>Configuration Details</h3>
+          
+          {/* Top 4 Fields Grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: 32, paddingBottom: 32, borderBottom: `1px solid ${C.border}` }}>
+            {[
+              ['Size', product.size_ft || '—'],
+              ['Bedrooms', product.bedrooms || '—'],
+              ['Frame Type', product.frame_type || '—'],
+              ['Weight', product.weight_kg || '—'],
+            ].map(([k, v]) => (
+              <div key={k}>
+                <div style={{ fontSize: 12, color: C.subtext, fontWeight: 500, marginBottom: 6, letterSpacing: '0.02em', textTransform: 'uppercase' }}>{k}</div>
+                <div style={{ fontSize: 16, color: C.charcoal, fontWeight: 600 }}>{v}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Additional Details Placeholder */}
+          <div style={{ color: C.subtext, fontSize: 13, fontStyle: 'italic', lineHeight: 1.6 }}>
+            Additional configuration details will appear here.
+          </div>
+        </div>
 
         {/* Quote form */}
         {showQuoteForm && (

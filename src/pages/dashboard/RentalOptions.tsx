@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { MapPin, Search, Home, Filter, Sparkles } from "lucide-react";
 import { fetchProperties, Property } from "@/services/propertyService";
+import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
@@ -69,7 +70,6 @@ export default function RentalOptionsPage() {
     setMapModalOpen(true);
   };
 
-
   // AI Natural Language Search
   const handleNaturalSearch = async () => {
     if (!naturalQuery.trim()) return;
@@ -77,17 +77,11 @@ export default function RentalOptionsPage() {
       setAiProcessing(true);
       toast.info("Analyzing your request...");
       const prompt = `Parse this rental search query and extract the filters. Return ONLY a JSON object with these fields: location (city/area or empty string), minPrice (number or empty string), maxPrice (number or empty string), bedrooms ("0" for studio, "1","2","3","4" or empty string), property_type (or empty string). Query: "${naturalQuery}". Example: {"location":"downtown","minPrice":"","maxPrice":"1500","bedrooms":"2","property_type":"apartment"}`;
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${import.meta.env.VITE_GEMINI_API_KEY || ""}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { temperature: 0.1, maxOutputTokens: 300 } }),
-        }
-      );
-      if (!response.ok) throw new Error("AI search failed");
-      const data = await response.json();
-      const resultText = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+      const { data, error } = await supabase.functions.invoke('gemini-chat', {
+        body: { prompt },
+      });
+      if (error) throw new Error("AI search failed");
+      const resultText = data.text || "";
       const cleaned = resultText.replace(/```json/g, "").replace(/```/g, "").trim();
       const parsed = JSON.parse(cleaned);
       setFilters({ location: parsed.location || "", minPrice: parsed.minPrice || "", maxPrice: parsed.maxPrice || "", bedrooms: parsed.bedrooms || "", property_type: parsed.property_type || "" });
@@ -100,6 +94,7 @@ export default function RentalOptionsPage() {
       setAiProcessing(false);
     }
   };
+
   const applyFilters = () => {
     loadProperties();
   };
@@ -118,7 +113,6 @@ export default function RentalOptionsPage() {
   };
 
   const getBedroomTypeDisplay = (property: Property) => {
-    // If bedrooms is available, use that
     if (property.bedrooms !== undefined && property.bedrooms !== null) {
       if (property.bedrooms === 0) return "Studio";
       if (property.bedrooms === 1) return "1 Bed";
@@ -126,19 +120,14 @@ export default function RentalOptionsPage() {
       if (property.bedrooms === 3) return "3 Bed";
       if (property.bedrooms >= 4) return `${property.bedrooms} Bed`;
     }
-
-    // Fallback to property type parsing
     const type = property.property_type?.toLowerCase() || '';
     if (type.includes('studio')) return "Studio";
     if (type.includes('one-bed') || type.includes('single-one-bed')) return "1 Bed";
     if (type.includes('two-bed')) return "2 Bed";
     if (type.includes('three-bed')) return "3 Bed";
-
-    // Default fallback
     return property.bedrooms ? `${property.bedrooms} Bed` : "Apartment";
   };
 
-  // Safely format available dates to avoid runtime errors
   const formatAvailableDate = (dateStr?: string | null) => {
     if (!dateStr) return null;
     const d = new Date(dateStr);
@@ -153,7 +142,6 @@ export default function RentalOptionsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-orange-50/20 to-purple-50/20">
       <div className="max-w-7xl mx-auto px-4 md:px-6 py-6">
-        {/* Header */}
         <header className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-lg orange-purple-gradient shadow-md">
@@ -166,7 +154,7 @@ export default function RentalOptionsPage() {
               <p className="text-sm text-muted-foreground">Find your perfect rental property</p>
             </div>
           </div>
-        </header>        {/* AI Natural Language Search */}
+        </header>
         <section className="mb-6">
           <Card className="border-2 border-purple-300 bg-gradient-to-br from-purple-50 via-white to-orange-50 shadow-lg">
             <CardContent className="p-5">
@@ -195,13 +183,9 @@ export default function RentalOptionsPage() {
             </CardContent>
           </Card>
         </section>
-
-        {/* Search Filters */}
         <section className="mb-6">
           <Card className="border-2 border-transparent bg-gradient-to-br from-orange-100/80 via-purple-100/60 to-pink-100/70 shadow-2xl backdrop-blur-sm overflow-hidden relative">
-            {/* Animated background effect */}
             <div className="absolute inset-0 bg-gradient-to-r from-orange-400/10 via-purple-400/10 to-pink-400/10 animate-pulse"></div>
-
             <CardHeader className="relative bg-gradient-to-r from-orange-500/90 via-purple-500/90 to-pink-500/90 pb-4 border-b-2 border-white/30">
               <CardTitle className="text-white flex items-center gap-2 text-lg font-bold drop-shadow-md">
                 <div className="p-1.5 bg-white/20 rounded-lg backdrop-blur-sm">
@@ -213,7 +197,6 @@ export default function RentalOptionsPage() {
             </CardHeader>
             <CardContent className="p-5 relative bg-white/95 backdrop-blur-sm">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {/* Location */}
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-800 flex items-center gap-1">
                     <span className="text-orange-500">📍</span> Location
@@ -225,8 +208,6 @@ export default function RentalOptionsPage() {
                     className="h-10 text-sm border-2 border-slate-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all"
                   />
                 </div>
-
-                {/* Min Price */}
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-800 flex items-center gap-1">
                     <span className="text-green-500">💰</span> Min Price
@@ -238,8 +219,6 @@ export default function RentalOptionsPage() {
                     className="h-10 text-sm border-2 border-slate-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
                   />
                 </div>
-
-                {/* Max Price */}
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-800 flex items-center gap-1">
                     <span className="text-purple-500">💵</span> Max Price
@@ -251,8 +230,6 @@ export default function RentalOptionsPage() {
                     className="h-10 text-sm border-2 border-slate-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all"
                   />
                 </div>
-
-                {/* Bedrooms */}
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-800 flex items-center gap-1">
                     <span className="text-blue-500">🛏️</span> Bedrooms
@@ -271,8 +248,6 @@ export default function RentalOptionsPage() {
                   </select>
                 </div>
               </div>
-
-              {/* Search Button - Full Width Below */}
               <div className="mt-5">
                 <Button
                   onClick={applyFilters}
@@ -285,8 +260,6 @@ export default function RentalOptionsPage() {
             </CardContent>
           </Card>
         </section>
-
-        {/* Properties Grid */}
         <main>
           {loading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -339,22 +312,16 @@ export default function RentalOptionsPage() {
                       {getPropertyTypeDisplay(property.property_type)}
                     </Badge>
                   </div>
-
                   <CardContent className="p-4">
-                    {/* Property Type - Moved above title */}
                     <div className="mb-2">
                       <p className="text-sm font-bold text-slate-700">
                         Type: {getPropertyTypeDisplay(property.property_type)}
                       </p>
                     </div>
-
                     <h3 className="text-sm font-bold text-slate-900 mb-3 line-clamp-1 group-hover:text-primary transition-colors">
                       {property.listing_title}
                     </h3>
-
-                    {/* Property Details */}
                     <div className="bg-gradient-to-br from-slate-50 to-orange-50/30 rounded-lg p-3 space-y-2.5 text-sm border-2 border-slate-100 shadow-sm">
-                      {/* Price, Availability, and Type in One Row */}
                       <div className="flex items-center justify-between gap-2 pb-2 border-b border-slate-200">
                         <div>
                           <div className="flex items-baseline font-bold text-primary">
@@ -373,8 +340,6 @@ export default function RentalOptionsPage() {
                           <p className="text-sm font-bold text-slate-900">{getBedroomTypeDisplay(property)}</p>
                         </div>
                       </div>
-
-                      {/* Location */}
                       <div
                         onClick={(e) => {
                           e.stopPropagation();
@@ -390,8 +355,6 @@ export default function RentalOptionsPage() {
                           </span>
                         </div>
                       </div>
-
-                      {/* Nearby Amenities */}
                       {property.nearby_amenities && property.nearby_amenities.length > 0 && (
                         <div>
                           <p className="text-xs text-muted-foreground font-medium">Nearby</p>
@@ -410,8 +373,6 @@ export default function RentalOptionsPage() {
                         </div>
                       )}
                     </div>
-
-                    {/* Action Buttons */}
                     <div className="grid grid-cols-2 gap-2 mt-3">
                       <Button
                         onClick={(e) => {
