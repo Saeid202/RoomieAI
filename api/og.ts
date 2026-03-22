@@ -23,7 +23,7 @@ const DEFAULT = {
   title: 'HomieAI - Smart Roommate & Co-Buying Platform for Canada',
   description:
     'Find your perfect roommate or co-buy investment partner. AI-powered matching, verified profiles, and seamless communication for renters, landlords, and investors.',
-  image: `${SITE_URL}/og.png`,
+  image: `${SITE_URL}/api/og-image`,
 };
 
 function isCrawler(ua: string): boolean {
