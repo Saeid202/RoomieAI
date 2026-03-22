@@ -1,17 +1,24 @@
 # Dependencies
 node_modules/
-**/node_modules/
-package-lock.json
-yarn.lock
-pnpm-lock.yaml
+.pnp
+.pnp.js
 
-# Build outputs
+# Testing
+coverage/
+.nyc_output/
+
+# Production
 dist/
-dist-ssr/
 build/
 .next/
 out/
-*.local
+
+# Misc
+.DS_Store
+*.pem
+.env
+.env.local
+.env.*.local
 
 # Logs
 logs/
@@ -19,51 +26,56 @@ logs/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
 
 # Editor directories and files
-.vscode/*
-!.vscode/extensions.json
+.vscode/
 .idea/
-.DS_Store
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
 *.swp
-*.swo
 *~
 
-# Environment variables
-.env
-.env.local
-.env.*.local
-.env.production.local
+# Root-level temporary files
+*.sql
+*.md
+!README.md
+*.html
+!index.html
+*.ps1
+*.bat
+*.sh
+*.txt
+*.example
+*.trigger
+*.windsurf_refresh
 
-# OS files
-Thumbs.db
-.DS_Store
-.AppleDouble
-.LSOverride
+# Build artifacts
+.turbo/
+.vercel/
 
 # IDE
 .vscode/
 .idea/
-*.iml
-*.iws
-*.ipr
+*.swp
+*.swo
 
-# Temporary files
-tmp/
-temp/
-*.tmp
-
-# Test coverage
-coverage/
-.nyc_output/
+# OS
+.DS_Store
+Thumbs.db
 
 # Supabase
-supabase/.branches/
-supabase/.temp/
+.supabase/
+
+# Temporary scripts
+*-debug.js
+*-test.js
+test-*.js
+debug-*.js
