@@ -126,7 +126,7 @@ const LawyerDocumentReviews: React.FC = () => {
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-3xl font-bold bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
-          Document Reviews
+          Document Review Requests
         </h1>
         <p className="text-gray-600 mt-2">
           Properties assigned to you for legal document review
@@ -141,7 +141,7 @@ const LawyerDocumentReviews: React.FC = () => {
           </div>
           <div>
             <p className="text-3xl font-bold text-purple-900">{deals.length}</p>
-            <p className="text-sm text-purple-700 font-medium">Active Document Reviews</p>
+            <p className="text-sm text-purple-700 font-medium">Active Document Review Requests</p>
           </div>
         </div>
       </div>

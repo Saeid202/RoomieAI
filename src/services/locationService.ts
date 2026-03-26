@@ -46,6 +46,29 @@ function formatPostalCode(raw: string): string {
 }
 
 export class LocationService implements LocationServiceType {
+  private deduplicateResults(results: AddressSuggestion[]): AddressSuggestion[] {
+    // Group by city + province to identify duplicates
+    const seen = new Map<string, AddressSuggestion>();
+    
+    for (const result of results) {
+      // Extract city and province from the text
+      const parts = result.text.split(', ');
+      const city = parts[1] || '';
+      const province = parts[2] || '';
+      const street = parts[0] || '';
+      
+      // Create a key for deduplication: "street|city|province"
+      const key = `${street.toLowerCase()}|${city.toLowerCase()}|${province.toLowerCase()}`;
+      
+      // Keep first occurrence of each unique street in each city/province
+      if (!seen.has(key)) {
+        seen.set(key, result);
+      }
+    }
+    
+    return Array.from(seen.values());
+  }
+
   async searchAddress(query: string): Promise<AddressSuggestion[]> {
     if (!query || query.trim().length < 2) return [];
 
@@ -59,7 +82,7 @@ export class LocationService implements LocationServiceType {
       // Photon API — fast, free, no key, Canada-biased via bbox
       const url = new URL(PHOTON_URL);
       url.searchParams.set('q', query.trim() + ' Canada');
-      url.searchParams.set('limit', '8');
+      url.searchParams.set('limit', '20'); // Increased from 8 to 20 for better coverage
       url.searchParams.set('lang', 'en');
       // Bias toward Canada bounding box
       url.searchParams.set('bbox', '-141,41,-52,84');
@@ -73,7 +96,7 @@ export class LocationService implements LocationServiceType {
       const data = await res.json();
       const features: any[] = data.features || [];
 
-      const results: AddressSuggestion[] = features
+      let results: AddressSuggestion[] = features
         .filter((f: any) => {
           const p = f.properties;
           // Only Canadian results
@@ -108,6 +131,9 @@ export class LocationService implements LocationServiceType {
           };
         })
         .filter(s => s.text.length > 0);
+
+      // Apply deduplication to remove duplicate streets in same city
+      results = this.deduplicateResults(results);
 
       searchCache.set(cacheKey, { results, ts: Date.now() });
       return results;

@@ -100,9 +100,14 @@ export async function getLenderRates(lenderId: string): Promise<LenderRate[]> {
 }
 
 export async function createLenderRate(input: CreateLenderRateInput): Promise<LenderRate> {
+  // Clean up the input - remove null/undefined values
+  const cleanedInput = Object.fromEntries(
+    Object.entries(input).filter(([_, v]) => v !== null && v !== undefined && v !== "")
+  );
+
   const { data, error } = await supabase
     .from("lender_rates")
-    .insert(input)
+    .insert(cleanedInput)
     .select()
     .single();
 
@@ -118,9 +123,14 @@ export async function updateLenderRate(
   rateId: string,
   updates: UpdateLenderRateInput
 ): Promise<LenderRate> {
+  // Clean up the updates - remove null/undefined values
+  const cleanedUpdates = Object.fromEntries(
+    Object.entries(updates).filter(([_, v]) => v !== null && v !== undefined && v !== "")
+  );
+
   const { data, error } = await supabase
     .from("lender_rates")
-    .update(updates)
+    .update(cleanedUpdates)
     .eq("id", rateId)
     .select()
     .single();

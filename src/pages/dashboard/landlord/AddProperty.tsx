@@ -31,6 +31,8 @@ import { aiDescriptionService } from "@/services/aiDescriptionService";
 import { PropertyVideoPlayer } from "@/components/property/PropertyVideoPlayer";
 import { aiVideoService } from "@/services/aiVideoService";
 import { viewingAppointmentService } from "@/services/viewingAppointmentService";
+import { useAmenitiesDetection } from "@/hooks/useAmenitiesDetection";
+import { AmenitiesLoading } from "@/components/ui/amenities-loading";
 
 
 
@@ -209,6 +211,9 @@ export default function AddPropertyPage() {
   const [videoScript, setVideoScript] = useState<string>("");
   const [includeVideo, setIncludeVideo] = useState(true);
   const [includeAudio, setIncludeAudio] = useState(true);
+
+  // Progressive amenities detection hook
+  const amenitiesDetection = useAmenitiesDetection();
 
   // Viewing Availability State
   interface TimeSlot {
@@ -542,8 +547,8 @@ export default function AddPropertyPage() {
           console.log('🔄 Auto-checking for existing location amenities ...');
           toast.info("🔍 Auto-detecting amenities...");
 
-          // Try real-time amenities detection first
-          const detailedResult = await detailedAmenitiesService.getDetailedPropertyIntelligence(
+          // Use progressive detection hook
+          const detailedResult = await amenitiesDetection.detectAmenities(
             { lat: formData.latitude!, lng: formData.longitude! },
             formData.address || formData.propertyAddress,
             formData.propertyType || ""
@@ -943,7 +948,18 @@ export default function AddPropertyPage() {
                 </div>
               </div>
 
-              <CardContent className="p-10 space-y-10 bg-gradient-to-br from-white via-blue-50/20 to-purple-50/20">
+              {/* Progressive Amenities Loading Indicator */}
+              {(amenitiesDetection.isLoading || amenitiesDetection.progress > 0 || amenitiesDetection.error) && (
+                <div className="px-8 pt-6">
+                  <AmenitiesLoading
+                    isLoading={amenitiesDetection.isLoading}
+                    progress={amenitiesDetection.progress}
+                    progressMessage={amenitiesDetection.progressMessage}
+                    error={amenitiesDetection.error}
+                    onCancel={() => amenitiesDetection.reset()}
+                  />
+                </div>
+              )}              <CardContent className="p-10 space-y-10 bg-gradient-to-br from-white via-blue-50/20 to-purple-50/20">
 
                 {/* Property Information Section */}
                 <div className="space-y-6">
@@ -1011,7 +1027,7 @@ export default function AddPropertyPage() {
                   </div>
 
                   {/* Document Vault Section - Only for Sales Listings */}
-                  {formData.listingCategory === 'sale' && (
+                  {formData.listingCategory === 'sale' && editId && (
                     <DocumentVault
                       propertyId={editId}
                       propertyCategory={formData.propertyCategory}
@@ -1055,11 +1071,29 @@ export default function AddPropertyPage() {
                         }}
                         onInputChange={(value) => {
                           try {
-                            setFormData((prev) => ({
-                              ...prev,
-                              propertyAddress: value,
-                              listingTitle: value // Sync listing title
-                            }));
+                            // If address is cleared, also clear amenities
+                            if (!value || value.trim() === "") {
+                              setFormData((prev) => ({
+                                ...prev,
+                                propertyAddress: value,
+                                listingTitle: value,
+                                nearbyAmenities: [], // Clear amenities when address is deleted
+                                latitude: undefined,
+                                longitude: undefined,
+                                address: "",
+                                city: "",
+                                state: "",
+                                zipCode: ""
+                              }));
+                              amenitiesDetection.reset(); // Reset amenities detection state
+                              console.log('🗑️ Address cleared - amenities removed');
+                            } else {
+                              setFormData((prev) => ({
+                                ...prev,
+                                propertyAddress: value,
+                                listingTitle: value // Sync listing title
+                              }));
+                            }
                           } catch {
                             // ignore input errors
                           }

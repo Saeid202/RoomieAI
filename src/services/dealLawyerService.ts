@@ -43,6 +43,19 @@ export async function assignLawyerToDeal(
   buyerId: string
 ): Promise<DealLawyer> {
   try {
+    // Check if already assigned (avoid duplicate)
+    const { data: existing } = await supabase
+      .from('deal_lawyers')
+      .select('id')
+      .eq('deal_id', dealId)
+      .eq('lawyer_id', lawyerId)
+      .eq('status', 'active')
+      .maybeSingle();
+
+    if (existing) {
+      return existing as DealLawyer;
+    }
+
     const { data, error } = await supabase
       .from('deal_lawyers')
       .insert({
@@ -55,9 +68,12 @@ export async function assignLawyerToDeal(
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error assigning lawyer to deal:', error);
+      throw new Error(error.message || 'Failed to assign lawyer');
+    }
 
-    // Create notification for lawyer
+    // Create notification - non-fatal if it fails
     await createLawyerNotification(lawyerId, dealId, buyerId);
 
     return data as DealLawyer;
@@ -136,26 +152,26 @@ export async function createLawyerNotification(
   lawyerId: string,
   dealId: string,
   buyerId: string
-): Promise<LawyerNotification> {
+): Promise<void> {
   try {
-    // Get buyer info
+    // Get buyer info - use profiles table
     const { data: buyer } = await supabase
       .from('user_profiles')
       .select('full_name')
       .eq('id', buyerId)
-      .single();
+      .maybeSingle();
 
-    // Get property info
+    // Get property info - try properties table
     const { data: property } = await supabase
       .from('properties')
       .select('address, city')
       .eq('id', dealId)
-      .single();
+      .maybeSingle();
 
     const buyerName = buyer?.full_name || 'A buyer';
     const propertyAddress = property ? `${property.address}, ${property.city}` : 'a property';
 
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('lawyer_notifications')
       .insert({
         lawyer_id: lawyerId,
@@ -165,16 +181,15 @@ export async function createLawyerNotification(
         title: 'New Property Document Review',
         message: `${buyerName} has assigned you to review documents for ${propertyAddress}`,
         read: false,
-      })
-      .select()
-      .single();
+      });
 
-    if (error) throw error;
-
-    return data as LawyerNotification;
+    if (error) {
+      // Log but don't throw - notification failure shouldn't block assignment
+      console.error('Error creating lawyer notification (non-fatal):', error);
+    }
   } catch (error) {
-    console.error('Error creating lawyer notification:', error);
-    throw error;
+    // Non-fatal - log and continue
+    console.error('Error creating lawyer notification (non-fatal):', error);
   }
 }
 

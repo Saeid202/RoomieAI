@@ -31,3 +31,9 @@ export interface MapCoordinates {
   lng: number;
   zoom?: number;
 }
+
+// Search mode for address autocomplete
+export enum AddressSearchMode {
+  ADDRESS = 'address',
+  POSTAL_CODE = 'postal_code',
+}

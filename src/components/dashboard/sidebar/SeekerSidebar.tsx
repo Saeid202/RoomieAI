@@ -104,18 +104,13 @@ export function SeekerSidebar({ isActive, showLabels }: SeekerSidebarProps) {
         isActive={isActive}
         defaultExpanded={
           location.pathname.includes('/dashboard/buying-opportunities') ||
-          location.pathname.includes('/dashboard/co-ownership-matches')
+          location.pathname.includes('/dashboard/co-ownership-profile')
         }
         subItems={[
           {
             label: "Co-ownership",
             path: "/dashboard/buying-opportunities?tab=co-ownership",
             icon: <span className="text-sm">🤝</span>
-          },
-          {
-            label: "Matches",
-            path: "/dashboard/co-ownership-matches",
-            icon: <span className="text-sm">👥</span>
           },
           {
             label: "Buy Unit",

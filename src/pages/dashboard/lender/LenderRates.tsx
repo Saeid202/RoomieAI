@@ -28,6 +28,7 @@ export default function LenderRates() {
     max_loan_amount: 0,
     min_credit_score: 0,
     effective_date: new Date().toISOString().split('T')[0],
+    terms_and_conditions: "",
   });
 
   useEffect(() => { loadData(); }, []);
@@ -59,12 +60,25 @@ export default function LenderRates() {
   const handleSubmit = async () => {
     try {
       if (!formData.interest_rate || !formData.loan_type) { toast.error("Please fill in required fields"); return; }
+      
+      // Clean up the data - convert 0 values to null for optional fields
+      const cleanedData = {
+        ...formData,
+        apr: formData.apr || null,
+        points: formData.points || 0,
+        min_loan_amount: formData.min_loan_amount || null,
+        max_loan_amount: formData.max_loan_amount || null,
+        min_credit_score: formData.min_credit_score || null,
+        notes: formData.notes || null,
+        expiration_date: formData.expiration_date || null,
+      };
+
       if (editingRate) {
-        await updateLenderRate(editingRate.id, formData);
+        await updateLenderRate(editingRate.id, cleanedData);
         toast.success("Rate updated successfully");
         setEditingRate(null);
       } else {
-        await createLenderRate(formData);
+        await createLenderRate(cleanedData);
         toast.success("Rate created successfully");
         setShowAddForm(false);
       }
@@ -79,6 +93,7 @@ export default function LenderRates() {
         max_loan_amount: 0,
         min_credit_score: 0,
         effective_date: new Date().toISOString().split('T')[0],
+        terms_and_conditions: "",
       });
       await loadData();
     } catch (error) {
@@ -114,6 +129,7 @@ export default function LenderRates() {
       effective_date: rate.effective_date.split('T')[0],
       expiration_date: rate.expiration_date?.split('T')[0],
       notes: rate.notes,
+      terms_and_conditions: rate.terms_and_conditions || "",
     });
     setShowAddForm(true);
   };
@@ -261,6 +277,20 @@ export default function LenderRates() {
               <textarea value={formData.notes || ""}
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                 rows={2} className="w-full p-3 border-2 border-purple-200 rounded-md resize-none" />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                Terms & Conditions
+                <span className="text-xs text-gray-500 font-normal">(shown to buyers in Mortgage Hub)</span>
+              </Label>
+              <textarea
+                value={formData.terms_and_conditions || ""}
+                onChange={(e) => setFormData({ ...formData, terms_and_conditions: e.target.value })}
+                rows={4}
+                placeholder="Enter the terms and conditions for this rate (e.g. eligibility requirements, prepayment penalties, rate lock period, required documentation...)"
+                className="w-full p-3 border-2 border-purple-200 rounded-md resize-none text-sm"
+              />
             </div>
 
             <div className="flex gap-3 pt-4">

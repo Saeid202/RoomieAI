@@ -168,10 +168,10 @@ export function DocumentSlot({
 
         // Get user profile for watermark
         const { data: profile } = await supabase
-          .from("profiles")
+          .from("user_profiles")
           .select("full_name, email")
           .eq("id", user.id)
-          .single();
+          .maybeSingle();
 
         setViewerInfo({
           name: profile?.full_name || user.email || "Unknown User",
@@ -184,7 +184,7 @@ export function DocumentSlot({
         toast.error("Failed to open document");
       }
     } else {
-      // Regular view for property owners
+      // For property owners, open in new tab (they can download/print)
       try {
         const urlParts = document.file_url.split('/storage/v1/object/public/');
         if (urlParts.length > 1) {

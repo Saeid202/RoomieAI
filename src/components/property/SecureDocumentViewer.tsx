@@ -8,9 +8,10 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { X, Shield, AlertTriangle, Clock } from "lucide-react";
+import { X, Shield, AlertTriangle, Clock, ZoomIn, ZoomOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { EmbeddedDocumentViewer } from "./EmbeddedDocumentViewer";
 
 interface SecureDocumentViewerProps {
   isOpen: boolean;
@@ -33,13 +34,12 @@ export function SecureDocumentViewer({
   viewerName,
   viewerEmail,
 }: SecureDocumentViewerProps) {
-  const [isLoading, setIsLoading] = useState(true);
-  const [loadError, setLoadError] = useState(false);
   const [showInactivityWarning, setShowInactivityWarning] = useState(false);
   const [secondsRemaining, setSecondsRemaining] = useState(30);
+  const [zoom, setZoom] = useState(100);
   
-  const iframeRef = useRef<HTMLIFrameElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
+  const pdfScrollRef = useRef<HTMLDivElement>(null);
   const inactivityTimerRef = useRef<NodeJS.Timeout | null>(null);
   const warningTimerRef = useRef<NodeJS.Timeout | null>(null);
   const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -155,6 +155,18 @@ export function SecureDocumentViewer({
       handleInactivityTimeout();
     }, INACTIVITY_TIMEOUT);
   }, [INACTIVITY_TIMEOUT, WARNING_BEFORE_CLOSE, startCountdown, handleInactivityTimeout]);
+
+  // Lock body scroll when viewer is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
 
   // Log document access
   useEffect(() => {
@@ -289,37 +301,10 @@ export function SecureDocumentViewer({
     return false;
   };
 
-  const handleIframeLoad = () => {
-    setIsLoading(false);
-    setLoadError(false);
-    console.log("✅ PDF loaded successfully");
-  };
-
-  const handleIframeError = () => {
-    console.error("❌ Failed to load PDF");
-    setIsLoading(false);
-    setLoadError(true);
-  };
-
-  const handleOpenInNewTab = () => {
-    window.open(documentUrl, '_blank');
-    toast.info("Opening document in new tab");
-  };
-
-  // Format PDF URL for iframe display
-  const getPdfUrl = () => {
-    console.log("📄 Original document URL:", documentUrl);
-    
-    try {
-      // Add #toolbar=0 to hide PDF toolbar and #view=FitH for better display
-      const url = new URL(documentUrl);
-      const formattedUrl = `${url.href}#toolbar=0&navpanes=0&scrollbar=1`;
-      console.log("📄 Formatted PDF URL:", formattedUrl);
-      return formattedUrl;
-    } catch (error) {
-      console.error("❌ Error formatting URL:", error);
-      // If URL parsing fails, return original
-      return documentUrl;
+  // Forward wheel events from overlay to the PDF scroll container
+  const handleOverlayWheel = (e: React.WheelEvent) => {
+    if (pdfScrollRef.current) {
+      pdfScrollRef.current.scrollTop += e.deltaY;
     }
   };
 
@@ -390,7 +375,7 @@ export function SecureDocumentViewer({
       `}</style>
 
       <div 
-        className="fixed inset-0 z-50 bg-slate-900 secure-viewer-container"
+        className="fixed inset-0 z-50 bg-slate-900 secure-viewer-container overflow-hidden flex flex-col"
         onContextMenu={(e) => {
           e.preventDefault();
           return false;
@@ -399,27 +384,49 @@ export function SecureDocumentViewer({
         onCut={(e) => e.preventDefault()}
         onDragStart={(e) => e.preventDefault()}
       >
-        {/* Header */}
-        <div className="h-16 border-b border-slate-700 bg-gradient-to-r from-indigo-900 to-purple-900 flex items-center justify-between px-6">
+        {/* Header - Purple bar with zoom controls */}
+        <div className="h-16 border-b border-slate-700 bg-gradient-to-r from-indigo-900 to-purple-900 flex items-center justify-between px-6 flex-shrink-0">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
               <Shield className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-white">
-                Secure Document Viewer
-              </h2>
+              <h2 className="text-lg font-bold text-white">Secure Document Viewer</h2>
               <p className="text-sm text-indigo-200">{documentName}</p>
             </div>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onClose}
-            className="shrink-0 text-white hover:bg-white/10"
-          >
-            <X className="h-5 w-5" />
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setZoom(z => Math.max(z - 25, 50))}
+              disabled={zoom <= 50}
+              className="text-white hover:bg-white/10 h-8 w-8 p-0"
+              title="Zoom Out"
+            >
+              <ZoomOut className="h-4 w-4" />
+            </Button>
+            <span className="text-xs text-indigo-200 min-w-10 text-center">{zoom}%</span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setZoom(z => Math.min(z + 25, 300))}
+              disabled={zoom >= 300}
+              className="text-white hover:bg-white/10 h-8 w-8 p-0"
+              title="Zoom In"
+            >
+              <ZoomIn className="h-4 w-4" />
+            </Button>
+            <div className="w-px h-6 bg-white/20 mx-1" />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onClose}
+              className="shrink-0 text-white hover:bg-white/10"
+            >
+              <X className="h-5 w-5" />
+            </Button>
+          </div>
         </div>
 
         {/* Security Notice */}
@@ -432,110 +439,42 @@ export function SecureDocumentViewer({
           </div>
         </div>
 
-        {/* Inactivity Warning Banner */}
-        {showInactivityWarning && (
-          <div className="h-12 bg-amber-400 flex items-center justify-center px-6 border-b border-amber-500">
-            <div className="flex items-center gap-2 text-amber-950">
-              <Clock className="h-4 w-4 shrink-0 animate-pulse" />
-              <p className="text-sm font-semibold">
-                For your security, this session will expire in {secondsRemaining} seconds due to inactivity.
-              </p>
-            </div>
-          </div>
-        )}
+        {/* Document Viewer Container */}
+        <div className="relative flex-1 min-h-0 w-full flex flex-col">
+          {/* Embedded Document Viewer */}
+          <EmbeddedDocumentViewer
+            documentUrl={documentUrl}
+            documentName={documentName}
+            onClose={onClose}
+            scrollRef={pdfScrollRef}
+            zoom={zoom}
+          />
 
-        {/* PDF Viewer with Overlay Protection */}
-        <div className={`relative overflow-hidden bg-slate-800 ${
-          showInactivityWarning ? 'h-[calc(100vh-8rem)]' : 'h-[calc(100vh-7rem)]'
-        }`}>
-          {/* Loading Indicator */}
-          {isLoading && !loadError && (
-            <div className="absolute inset-0 flex items-center justify-center bg-slate-800 z-30">
-              <div className="text-center">
-                <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-indigo-400 mx-auto mb-4"></div>
-                <p className="text-lg font-semibold text-slate-300">Loading secure document...</p>
-                <p className="text-sm text-slate-400 mt-2">Please wait...</p>
-              </div>
-            </div>
-          )}
+          {/* Transparent Overlay - Blocks right-click/drag but forwards scroll */}
+          <div
+            ref={overlayRef}
+            className="iframe-overlay"
+            onContextMenu={handleOverlayContextMenu}
+            onMouseDown={handleOverlayMouseDown}
+            onDragStart={handleOverlayDragStart}
+            onWheel={handleOverlayWheel}
+          />
 
-          {/* Error State */}
-          {loadError && (
-            <div className="absolute inset-0 flex items-center justify-center bg-slate-800 z-30">
-              <div className="text-center max-w-md px-6">
-                <AlertTriangle className="h-16 w-16 text-amber-400 mx-auto mb-4" />
-                <p className="text-lg font-semibold text-slate-300 mb-2">Unable to display document</p>
-                <p className="text-sm text-slate-400 mb-6">
-                  The document couldn't be loaded in the secure viewer. You can open it in a new tab instead.
-                </p>
-                <Button
-                  onClick={handleOpenInNewTab}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white"
-                >
-                  Open in New Tab
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {/* PDF Object - Better compatibility than iframe */}
-          {!loadError && (
-            <>
-              <object
-                ref={iframeRef as any}
-                data={getPdfUrl()}
-                type="application/pdf"
-                className="pdf-iframe"
-                title={documentName}
-                onLoad={handleIframeLoad}
-                onError={handleIframeError}
-              >
-                {/* Fallback for browsers that don't support object tag */}
-                <iframe
-                  src={getPdfUrl()}
-                  className="pdf-iframe"
-                  title={documentName}
-                  onLoad={handleIframeLoad}
-                  sandbox="allow-same-origin allow-scripts"
-                  allow="fullscreen"
-                />
-              </object>
-
-              {/* Transparent Overlay - Blocks all mouse interactions */}
+          {/* Watermark Overlay - On top of everything */}
+          <div className="watermark-overlay">
+            {[...Array(12)].map((_, i) => (
               <div
-                ref={overlayRef}
-                className="iframe-overlay"
-                onContextMenu={handleOverlayContextMenu}
-                onMouseDown={handleOverlayMouseDown}
-                onDragStart={handleOverlayDragStart}
-              />
-
-              {/* Watermark Overlay - On top of everything */}
-              <div className="watermark-overlay">
-                {[...Array(12)].map((_, i) => (
-                  <div
-                    key={i}
-                    className="watermark-text"
-                    style={{
-                      top: `${(i * 15) % 100}%`,
-                      left: `${(i * 25) % 100}%`,
-                    }}
-                  >
-                    {watermarkText}
-                  </div>
-                ))}
+                key={i}
+                className="watermark-text"
+                style={{
+                  top: `${(i * 15) % 100}%`,
+                  left: `${(i * 25) % 100}%`,
+                }}
+              >
+                {watermarkText}
               </div>
-            </>
-          )}
-        </div>
-
-        {/* Footer */}
-        <div className="h-16 border-t border-slate-700 bg-slate-800 flex items-center justify-between px-6">
-          <div className="flex items-center gap-2 text-sm text-slate-300">
-            <Shield className="h-4 w-4 text-indigo-400" />
-            <span>Protected by Roomi AI Secure Viewer</span>
+            ))}
           </div>
-          <span className="text-sm text-slate-400">Viewing as: {viewerEmail}</span>
         </div>
       </div>
     </>

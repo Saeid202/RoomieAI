@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { X, Upload, Image as ImageIcon } from 'lucide-react';
 import { ImageUploadService } from '@/services/imageUploadService';
+import { ImageReorder } from '@/components/ui/image-reorder';
 import { toast } from 'sonner';
 
 interface ImageUploadProps {
@@ -89,7 +90,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* Upload Area */}
       {images.length < maxImages && (
         <div
@@ -119,35 +120,24 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
         </div>
       )}
 
-      {/* Image Gallery */}
+      {/* Image Reorder Section */}
       {images.length > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-          {images.map((imageUrl, index) => (
-            <div key={index} className="relative group aspect-square rounded-md overflow-hidden border bg-slate-100">
-              <img
-                src={imageUrl}
-                alt={`Property image ${index + 1}`}
-                className="w-full h-full object-cover"
-                loading="lazy"
-              />
-              <Button
-                variant="destructive"
-                size="icon"
-                className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  removeImage(index);
-                }}
-              >
-                <X className="h-3 w-3" />
-              </Button>
-              {index === 0 && (
-                <div className="absolute bottom-1 left-1 bg-black/60 text-white px-1.5 py-0.5 rounded text-[10px] font-medium backdrop-blur-sm">
-                  Main
-                </div>
-              )}
-            </div>
-          ))}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-gray-900">Arrange Your Images</h3>
+            <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">
+              {images.length} image{images.length !== 1 ? 's' : ''}
+            </span>
+          </div>
+          <ImageReorder
+            images={images}
+            onImagesChange={onImagesChange}
+            onDeleteImage={async (index) => {
+              const imageUrl = images[index];
+              const success = await ImageUploadService.deletePropertyImage(imageUrl, userId);
+              return success;
+            }}
+          />
         </div>
       )}
     </div>

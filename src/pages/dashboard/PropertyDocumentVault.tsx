@@ -329,7 +329,7 @@ const PropertyDocumentVault: React.FC = () => {
           propertyId={id} 
           propertyCategory={propertyCategory}
           readOnly={true}
-          isBuyerView={false}
+          isBuyerView={true}
         />
       </div>
     );

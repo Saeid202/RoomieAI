@@ -7,6 +7,7 @@ import { useRole } from "@/contexts/RoleContext";
 import { BrokerFeedbackTab } from "@/components/mortgage/BrokerFeedbackTab";
 import { MortgageDocumentsTab } from "@/components/mortgage/MortgageDocumentsTab";
 import { RefinanceApplicationTab } from "@/components/refinance/RefinanceApplicationTab";
+import { MortgageHubTab } from "@/components/mortgage/MortgageHubTab";
 import { getUnreadCount } from "@/services/mortgageFeedbackService";
 import { CoOwnershipForecastModal } from "@/components/dashboard/CoOwnershipForecastModal";
 import { fetchAllSalesListings, SalesListing, CoOwnershipSignal, fetchCoOwnershipSignals, createCoOwnershipSignal, updateCoOwnershipSignal } from "@/services/propertyService";
@@ -653,8 +654,8 @@ export default function BuyingOpportunitiesPage() {
                 )}
 
                 <Tabs value={activeTab} className="w-full" onValueChange={handleTabChange}>
-                    {(activeTab === 'mortgage-profile' || activeTab === 'documents' || activeTab === 'refinance-application' || activeTab === 'broker-feedback') && (
-                        <TabsList className="grid w-full grid-cols-4 mb-8 bg-gradient-to-r from-purple-100 to-pink-100 p-2 rounded-xl">
+                    {(activeTab === 'mortgage-profile' || activeTab === 'documents' || activeTab === 'refinance-application' || activeTab === 'broker-feedback' || activeTab === 'mortgage-hub') && (
+                        <TabsList className="grid w-full grid-cols-5 mb-8 bg-gradient-to-r from-purple-100 to-pink-100 p-2 rounded-xl">
                             <TabsTrigger
                                 value="mortgage-profile"
                                 className="data-[state=active]:bg-white data-[state=active]:text-purple-600 font-bold"
@@ -682,11 +683,18 @@ export default function BuyingOpportunitiesPage() {
                             >
                                 <MessageSquare className="h-4 w-4 mr-2" />
                                 Broker Feedback
-                                {unreadFeedbackCount > 0 && (activeTab === 'broker-feedback' || activeTab === 'mortgage-profile' || activeTab === 'documents' || activeTab === 'refinance-application') && (
+                                {unreadFeedbackCount > 0 && (activeTab === 'broker-feedback' || activeTab === 'mortgage-profile' || activeTab === 'documents' || activeTab === 'refinance-application' || activeTab === 'mortgage-hub') && (
                                     <Badge className="ml-2 bg-red-500 text-white px-2 py-0.5 text-xs">
                                         {unreadFeedbackCount}
                                     </Badge>
                                 )}
+                            </TabsTrigger>
+                            <TabsTrigger
+                                value="mortgage-hub"
+                                className="data-[state=active]:bg-white data-[state=active]:text-purple-600 font-bold"
+                            >
+                                <DollarSign className="h-4 w-4 mr-2" />
+                                Mortgage Hub
                             </TabsTrigger>
                         </TabsList>
                     )}
@@ -2731,6 +2739,10 @@ export default function BuyingOpportunitiesPage() {
                                 )}
                             </div>
                         )}
+                    </TabsContent>
+
+                    <TabsContent value="mortgage-hub">
+                        {activeTab === 'mortgage-hub' && <MortgageHubTab />}
                     </TabsContent>
                 </Tabs>
 

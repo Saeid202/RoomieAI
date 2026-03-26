@@ -113,7 +113,6 @@ import LenderRates from "@/pages/dashboard/lender/LenderRates";
 import LenderRequests from "@/pages/dashboard/lender/LenderRequests";
 import CoBuyingScenario from "@/pages/dashboard/CoBuyingScenario";
 import CoOwnershipProfile from "@/pages/dashboard/CoOwnershipProfile";
-import CoOwnershipMatches from "@/pages/dashboard/CoOwnershipMatches";
 import ConstructionLogin from "@/construction/pages/ConstructionLogin";
 import ConstructionSignup from "@/construction/pages/ConstructionSignup";
 import ConstructionDashboardHome from "@/construction/pages/dashboard/ConstructionDashboardHome";
@@ -227,7 +226,6 @@ function AppRoutes() {
           <Route path="mortgage-results" element={<MortgageSubmissionResults />} />
           <Route path="co-buying-scenario" element={<CoBuyingScenario />} />
           <Route path="co-ownership-profile" element={<CoOwnershipProfile />} />
-          <Route path="co-ownership-matches" element={<CoOwnershipMatches />} />
           <Route path="lgbtq-matching" element={<LGBTQMatchingPage />} />
           <Route path="landlord" element={<LandlordDashboardPage />} />
           <Route path="landlord/properties" element={<PropertiesPage />} />
@@ -398,7 +396,6 @@ function AppRoutes() {
         <Route path="buying-opportunities" element={<BuyingOpportunitiesPage />} />
         <Route path="co-buying-scenario" element={<CoBuyingScenario />} />
         <Route path="co-ownership-profile" element={<CoOwnershipProfile />} />
-        <Route path="co-ownership-matches" element={<CoOwnershipMatches />} />
         <Route path="lgbtq-matching" element={<LGBTQMatchingPage />} />
         <Route path="landlord" element={<LandlordDashboardPage />} />
         <Route path="landlord/properties" element={<PropertiesPage />} />

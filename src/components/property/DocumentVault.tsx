@@ -68,8 +68,17 @@ export function DocumentVault({
 
   // Load documents when property ID is available
   useEffect(() => {
+    console.log('📄 DocumentVault useEffect triggered', {
+      propertyId,
+      hasPropertyId: !!propertyId,
+      timestamp: new Date().toISOString()
+    });
+
     if (propertyId) {
+      console.log('📄 Loading documents for propertyId:', propertyId);
       loadDocuments();
+    } else {
+      console.log('⚠️ propertyId is null, skipping document load');
     }
   }, [propertyId]);
 
@@ -97,15 +106,20 @@ export function DocumentVault({
   }, [documents, pendingDocuments, propertyCategory, onStrengthChange, propertyId]);
 
   const loadDocuments = async () => {
-    if (!propertyId) return;
+    if (!propertyId) {
+      console.log('⚠️ loadDocuments called but propertyId is null');
+      return;
+    }
 
     setLoading(true);
     try {
+      console.log('🔄 Fetching documents for propertyId:', propertyId);
       const docs = await getPropertyDocuments(propertyId);
-      console.log('📄 DocumentVault: Loaded documents:', docs);
+      console.log('✅ DocumentVault: Loaded documents:', docs);
+      console.log('📊 Document count:', docs.length);
       setDocuments(docs);
     } catch (error) {
-      console.error('Failed to load documents:', error);
+      console.error('❌ Failed to load documents:', error);
       toast.error('Failed to load documents');
     } finally {
       setLoading(false);

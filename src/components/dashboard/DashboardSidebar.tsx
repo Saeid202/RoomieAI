@@ -82,7 +82,7 @@ export function DashboardSidebar() {
                   location.pathname.startsWith('/dashboard/buy/') ||
                   location.pathname.startsWith('/dashboard/rent/') ||
                   location.pathname.startsWith('/dashboard/co-ownership/') ||
-                  location.pathname.startsWith('/dashboard/co-ownership-matches') ||
+                  location.pathname.startsWith('/dashboard/co-ownership-profile') ||
                   location.pathname.startsWith('/dashboard/applications') ||
                   location.pathname.startsWith('/dashboard/profile') && !location.pathname.includes('/landlord/') && !location.pathname.includes('/lawyer/');
 

@@ -45,6 +45,7 @@ export interface LenderRate {
   effective_date: string;
   expiration_date: string | null;
   notes: string | null;
+  terms_and_conditions: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -95,6 +96,7 @@ export interface CreateLenderRateInput {
   effective_date?: string;
   expiration_date?: string;
   notes?: string;
+  terms_and_conditions?: string;
 }
 
 export interface UpdateLenderRateInput extends Partial<CreateLenderRateInput> {

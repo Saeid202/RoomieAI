@@ -163,7 +163,8 @@ export class DetailedAmenitiesService {
   }
 
   /**
-   * Get detailed amenities information with retry mechanism
+   * Get detailed amenities information with parallel query execution
+   * Splits queries into 3 parallel requests for better performance
    */
   private async getDetailedAmenitiesInfo(coordinates: { lat: number; lng: number }, retryCount = 0): Promise<DetailedAmenitiesInfo> {
     const result: DetailedAmenitiesInfo = {
@@ -181,67 +182,42 @@ export class DetailedAmenitiesService {
     };
 
     try {
-      // Cache key per rounded coords and radius with timestamp for cache busting
+      // Cache key per rounded coords
       const key = `${Math.round(coordinates.lat * 1000) / 1000},${Math.round(coordinates.lng * 1000) / 1000}`;
       const now = Date.now();
 
-      // Force cache refresh every 5 minutes to ensure fresh data
-      const cacheBustKey = `${key}_${Math.floor(now / 300000)}`; // 5-minute intervals
+      // Check cache first
       const hit = this.cache.get(key);
       if (hit && (now - hit.ts) < this.CACHE_TTL_MS) {
         try {
           const cached = hit.data as DetailedAmenitiesInfo;
+          console.log('✅ Cache hit for amenities');
           return { ...cached, condoAmenities: cached.condoAmenities || [] };
         } catch { }
       }
 
-      // Enhanced query to get more specific amenity types
-      const query = this.buildEnhancedDetectQuery(coordinates);
-      console.log('🔍 Overpass query:', query);
+      console.log('🌐 Starting parallel amenities queries...');
+      
+      // Execute 3 queries in parallel for better performance
+      const [transportResults, financialResults, healthRecResults] = await Promise.all([
+        this.queryTransportAmenities(coordinates),
+        this.queryFinancialAndShopping(coordinates),
+        this.queryHealthRecreationEducation(coordinates)
+      ]);
 
-      // Add request timeout to avoid hanging/overload
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), 20000); // Increased to 20s
+      // Merge results
+      result.metro = transportResults.metro;
+      result.buses = transportResults.buses;
+      result.banks = financialResults.banks;
+      result.plazas = financialResults.plazas;
+      result.shoppingMalls = financialResults.shoppingMalls;
+      result.hospitals = healthRecResults.hospitals;
+      result.schools = healthRecResults.schools;
+      result.restaurants = healthRecResults.restaurants;
+      result.gyms = healthRecResults.gyms;
+      result.parks = healthRecResults.parks;
 
-      console.log('🌐 Making Overpass API request...');
-      const response = await fetch(this.BASE_OVERPASS_URL, {
-        method: 'POST',
-        mode: 'cors',
-        headers: { 'Content-Type': 'text/plain' },
-        body: query,
-        signal: controller.signal
-      }).catch((e) => {
-        if ((e as any).name === 'AbortError') {
-          throw new Error('Overpass request timed out after 20 seconds');
-        }
-        throw e;
-      });
-      clearTimeout(timer);
-
-      console.log('📡 Overpass API response status:', response?.status);
-      if (!response || !response.ok) {
-        throw new Error(`Overpass API failed with status: ${response?.status} ${response?.statusText}`);
-      }
-
-      const data = await response.json();
-      console.log('📊 Raw Overpass data:', data);
-      const rawElements: any[] = Array.isArray(data?.elements) ? data.elements : [];
-      console.log('🔢 Raw elements count:', rawElements.length);
-
-      // Hard cap results to avoid memory spikes in dense areas
-      const elements = rawElements.slice(0, 400);
-      console.log('✂️ Processed elements count:', elements.length);
-
-      // Process elements and categorize based on detailed patterns
-      for (const element of elements) {
-        const amenity = this.processDetailedAmenityElement(element, coordinates);
-        if (amenity) {
-          console.log('🏢 Processing amenity:', amenity);
-          this.categorizeDetailedAmenity(amenity, result);
-        }
-      }
-
-      console.log('📋 Final categorized result:', result);
+      console.log('📋 Final merged result:', result);
 
       // Save to cache
       this.cache.set(key, { ts: now, data: result });
@@ -260,12 +236,10 @@ export class DetailedAmenitiesService {
       if (retryCount === 0 && error instanceof Error &&
         (error.message.includes('timeout') || error.message.includes('504'))) {
         console.log('Retrying amenities detection after timeout...');
-        await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds
+        await new Promise(resolve => setTimeout(resolve, 2000));
         return this.getDetailedAmenitiesInfo(coordinates, 1);
       }
 
-      // Return empty result instead of mock data
-      // This ensures users see real-time data or nothing, not fake data
       return result;
     }
 
@@ -273,70 +247,176 @@ export class DetailedAmenitiesService {
   }
 
   /**
-   * Build enhanced overpass query for detailed detection
+   * Query transportation amenities (metro, buses)
    */
-  private buildEnhancedDetectQuery(center: { lat: number; lng: number }): string {
-    const radiusMeters = 2000; // 2km radius for better coverage
+  private async queryTransportAmenities(coordinates: { lat: number; lng: number }): Promise<Partial<DetailedAmenitiesInfo>> {
+    const result: Partial<DetailedAmenitiesInfo> = { metro: [], buses: [] };
+    
+    try {
+      const query = this.buildTransportQuery(coordinates);
+      const elements = await this.executeOverpassQuery(query, 'transport');
+      
+      for (const element of elements) {
+        const amenity = this.processDetailedAmenityElement(element, coordinates);
+        if (amenity) {
+          this.categorizeDetailedAmenity(amenity, result as DetailedAmenitiesInfo);
+        }
+      }
+    } catch (error) {
+      console.warn('Transport query failed:', error);
+    }
+    
+    return result;
+  }
+
+  /**
+   * Query financial and shopping amenities
+   */
+  private async queryFinancialAndShopping(coordinates: { lat: number; lng: number }): Promise<Partial<DetailedAmenitiesInfo>> {
+    const result: Partial<DetailedAmenitiesInfo> = { banks: [], plazas: [], shoppingMalls: [] };
+    
+    try {
+      const query = this.buildFinancialShoppingQuery(coordinates);
+      const elements = await this.executeOverpassQuery(query, 'financial');
+      
+      for (const element of elements) {
+        const amenity = this.processDetailedAmenityElement(element, coordinates);
+        if (amenity) {
+          this.categorizeDetailedAmenity(amenity, result as DetailedAmenitiesInfo);
+        }
+      }
+    } catch (error) {
+      console.warn('Financial/Shopping query failed:', error);
+    }
+    
+    return result;
+  }
+
+  /**
+   * Query health, recreation, and education amenities
+   */
+  private async queryHealthRecreationEducation(coordinates: { lat: number; lng: number }): Promise<Partial<DetailedAmenitiesInfo>> {
+    const result: Partial<DetailedAmenitiesInfo> = { 
+      hospitals: [], 
+      schools: [], 
+      restaurants: [], 
+      gyms: [], 
+      parks: [] 
+    };
+    
+    try {
+      const query = this.buildHealthRecEducationQuery(coordinates);
+      const elements = await this.executeOverpassQuery(query, 'health');
+      
+      for (const element of elements) {
+        const amenity = this.processDetailedAmenityElement(element, coordinates);
+        if (amenity) {
+          this.categorizeDetailedAmenity(amenity, result as DetailedAmenitiesInfo);
+        }
+      }
+    } catch (error) {
+      console.warn('Health/Recreation query failed:', error);
+    }
+    
+    return result;
+  }
+
+  /**
+   * Execute Overpass query with timeout and error handling
+   */
+  private async executeOverpassQuery(query: string, queryType: string): Promise<any[]> {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 10000); // 10 second timeout per query
+
+    try {
+      console.log(`🔍 Executing ${queryType} query...`);
+      const response = await fetch(this.BASE_OVERPASS_URL, {
+        method: 'POST',
+        mode: 'cors',
+        headers: { 'Content-Type': 'text/plain' },
+        body: query,
+        signal: controller.signal
+      });
+
+      clearTimeout(timer);
+
+      if (!response.ok) {
+        throw new Error(`Overpass API failed with status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const elements: any[] = Array.isArray(data?.elements) ? data.elements : [];
+      
+      console.log(`✅ ${queryType} query returned ${elements.length} elements`);
+      return elements;
+    } catch (error) {
+      clearTimeout(timer);
+      if ((error as any).name === 'AbortError') {
+        throw new Error(`${queryType} query timed out after 10 seconds`);
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Build transport query (metro, buses)
+   */
+  private buildTransportQuery(center: { lat: number; lng: number }): string {
+    const radiusMeters = 2000;
     const { lat, lng } = center;
 
-    // Enhanced query with more comprehensive facility types
     return `
-[out:json][timeout:25];
+[out:json][timeout:10];
 (
-  // Transportation - Metro/Subway stations
   node["railway"="station"]["station"~"subway|metro"](around:${radiusMeters},${lat},${lng});
   node["public_transport"="station"]["station"~"subway|metro"](around:${radiusMeters},${lat},${lng});
-  node["railway"="station"]["name"~"station|metro|subway"](around:${radiusMeters},${lat},${lng});
-  
-  // Transportation - Bus stops and stations
   node["highway"="bus_stop"](around:${radiusMeters},${lat},${lng});
-  node["public_transport"="stop_position"](around:${radiusMeters},${lat},${lng});
   node["amenity"="bus_station"](around:${radiusMeters},${lat},${lng});
-
-  // Banking services
-  node["amenity"="bank"](around:${radiusMeters},${lat},${lng});
-  node["amenity"="atm"](around:${radiusMeters},${lat},${lng});
-
-  // Shopping - Malls, plazas, and major stores
-  node["shop"="mall"](around:${radiusMeters},${lat},${lng});
-  node["shop"="department_store"](around:${radiusMeters},${lat},${lng});
-  node["amenity"="marketplace"](around:${radiusMeters},${lat},${lng});
-  node["shop"="supermarket"](around:${radiusMeters},${lat},${lng});
-  way["shop"="mall"](around:${radiusMeters},${lat},${lng});
-  way["amenity"="marketplace"](around:${radiusMeters},${lat},${lng});
-
-  // Healthcare
-  node["amenity"="hospital"](around:${radiusMeters},${lat},${lng});
-  node["amenity"="clinic"](around:${radiusMeters},${lat},${lng});
-  node["amenity"="pharmacy"](around:${radiusMeters},${lat},${lng});
-
-  // Education
-  node["amenity"="school"](around:${radiusMeters},${lat},${lng});
-  node["amenity"="university"](around:${radiusMeters},${lat},${lng});
-  node["amenity"="college"](around:${radiusMeters},${lat},${lng});
-
-  // Dining
-  node["amenity"="restaurant"](around:${radiusMeters},${lat},${lng});
-  node["amenity"="fast_food"](around:${radiusMeters},${lat},${lng});
-  node["amenity"="cafe"](around:${radiusMeters},${lat},${lng});
-
-  // Recreation and Fitness
-  node["leisure"="fitness_centre"](around:${radiusMeters},${lat},${lng});
-  node["sport"="fitness"](around:${radiusMeters},${lat},${lng});
-  node["leisure"="park"](around:${radiusMeters},${lat},${lng});
-  node["leisure"="playground"](around:${radiusMeters},${lat},${lng});
-
-  // Entertainment
-  node["amenity"="cinema"](around:${radiusMeters},${lat},${lng});
-  node["amenity"="theatre"](around:${radiusMeters},${lat},${lng});
-  node["amenity"="library"](around:${radiusMeters},${lat},${lng});
 );
 out center qt;`;
   }
 
   /**
-   * Process detailed amenity from overpass element  
+   * Build financial and shopping query
    */
+  private buildFinancialShoppingQuery(center: { lat: number; lng: number }): string {
+    const radiusMeters = 2000;
+    const { lat, lng } = center;
+
+    return `
+[out:json][timeout:10];
+(
+  node["amenity"="bank"](around:${radiusMeters},${lat},${lng});
+  node["shop"="mall"](around:${radiusMeters},${lat},${lng});
+  node["amenity"="marketplace"](around:${radiusMeters},${lat},${lng});
+  node["shop"="supermarket"](around:${radiusMeters},${lat},${lng});
+  way["shop"="mall"](around:${radiusMeters},${lat},${lng});
+);
+out center qt;`;
+  }
+
+  /**
+   * Build health, recreation, and education query
+   */
+  private buildHealthRecEducationQuery(center: { lat: number; lng: number }): string {
+    const radiusMeters = 2000;
+    const { lat, lng } = center;
+
+    return `
+[out:json][timeout:10];
+(
+  node["amenity"="hospital"](around:${radiusMeters},${lat},${lng});
+  node["amenity"="clinic"](around:${radiusMeters},${lat},${lng});
+  node["amenity"="school"](around:${radiusMeters},${lat},${lng});
+  node["amenity"="university"](around:${radiusMeters},${lat},${lng});
+  node["leisure"="fitness_centre"](around:${radiusMeters},${lat},${lng});
+  node["amenity"="restaurant"](around:${radiusMeters},${lat},${lng});
+  node["leisure"="park"](around:${radiusMeters},${lat},${lng});
+);
+out center qt;`;
+  }
+
+
   private processDetailedAmenityElement(element: any, searchCenter: { lat: number; lng: number }) {
     const coords = element.lat && element.lon ?
       { lat: parseFloat(element.lat), lng: parseFloat(element.lon) } :
@@ -358,144 +438,193 @@ out center qt;`;
 
   /**
    * Categorize amenity based on type and characteristics
+   * Now with intelligent result limiting per category
    */
   private categorizeDetailedAmenity(amenity: any, result: DetailedAmenitiesInfo) {
     const { name, type, distance, coordinates } = amenity;
 
+    // Intelligent result limiting per category
+    const LIMITS = {
+      metro: 3,
+      buses: 5,
+      banks: 3,
+      plazas: 4,
+      shoppingMalls: 3,
+      gyms: 3,
+      hospitals: 3,
+      schools: 3,
+      restaurants: 5,
+      parks: 3
+    };
+
     // Transportation detection
     if ((type === 'railway_station' || name.toLowerCase().includes('metro') || name.toLowerCase().includes('subway')) &&
       type !== 'fast_food' && type !== 'restaurant') {
-      result.metro.push({
-        name,
-        distance,
-        line: this.extractMetroLine(name),
-        coordinates
-      });
+      if (result.metro.length < LIMITS.metro) {
+        result.metro.push({
+          name,
+          distance,
+          line: this.extractMetroLine(name),
+          coordinates
+        });
+      }
     } else if (type === 'bus_stop' || type === 'bus_station' || name.toLowerCase().includes('bus')) {
-      result.buses.push({
-        name,
-        distance,
-        routeNumber: this.extractBusRoute(name) || 'Transit',
-        coordinates
-      });
+      if (result.buses.length < LIMITS.buses) {
+        result.buses.push({
+          name,
+          distance,
+          routeNumber: this.extractBusRoute(name) || 'Transit',
+          coordinates
+        });
+      }
     }
 
     // Banking services  
     else if (type === 'bank' || type === 'atm') {
-      result.banks.push({
-        name,
-        distance,
-        branchType: type === 'atm' ? 'atm' : 'branch',
-        coordinates
-      });
+      if (result.banks.length < LIMITS.banks) {
+        result.banks.push({
+          name,
+          distance,
+          branchType: type === 'atm' ? 'atm' : 'branch',
+          coordinates
+        });
+      }
     }
 
     // Shopping facilities
     else if (type === 'shop' || type === 'marketplace') {
       if (name.toLowerCase().includes('mall') || name.toLowerCase().includes('shopping') || type === 'mall') {
-        result.shoppingMalls.push({ name, distance, coordinates });
+        if (result.shoppingMalls.length < LIMITS.shoppingMalls) {
+          result.shoppingMalls.push({ name, distance, coordinates });
+        }
       } else if (name.toLowerCase().includes('plaza') || name.toLowerCase().includes('market')) {
-        result.plazas.push({ name, distance, coordinates });
+        if (result.plazas.length < LIMITS.plazas) {
+          result.plazas.push({ name, distance, coordinates });
+        }
       }
     }
 
     // Fitness and recreation
     else if (type === 'fitness_centre' || type === 'fitness' || name.toLowerCase().includes('gym')) {
-      result.gyms.push({
-        name,
-        distance,
-        facilityType: this.classifyGymType(name),
-        coordinates
-      });
+      if (result.gyms.length < LIMITS.gyms) {
+        result.gyms.push({
+          name,
+          distance,
+          facilityType: this.classifyGymType(name),
+          coordinates
+        });
+      }
     }
 
     // Healthcare facilities
     else if (type === 'hospital') {
-      result.hospitals.push({
-        name,
-        distance,
-        type: 'hospital',
-        coordinates
-      });
+      if (result.hospitals.length < LIMITS.hospitals) {
+        result.hospitals.push({
+          name,
+          distance,
+          type: 'hospital',
+          coordinates
+        });
+      }
     } else if (type === 'clinic') {
-      result.hospitals.push({
-        name,
-        distance,
-        type: 'clinic',
-        coordinates
-      });
+      if (result.hospitals.length < LIMITS.hospitals) {
+        result.hospitals.push({
+          name,
+          distance,
+          type: 'clinic',
+          coordinates
+        });
+      }
     } else if (type === 'pharmacy') {
-      result.hospitals.push({
-        name,
-        distance,
-        type: 'pharmacy',
-        coordinates
-      });
+      if (result.hospitals.length < LIMITS.hospitals) {
+        result.hospitals.push({
+          name,
+          distance,
+          type: 'pharmacy',
+          coordinates
+        });
+      }
     }
 
     // Education facilities
     else if (type === 'school') {
-      result.schools.push({
-        name,
-        distance,
-        level: 'school',
-        coordinates
-      });
+      if (result.schools.length < LIMITS.schools) {
+        result.schools.push({
+          name,
+          distance,
+          level: 'school',
+          coordinates
+        });
+      }
     } else if (type === 'university') {
-      result.schools.push({
-        name,
-        distance,
-        level: 'university',
-        coordinates
-      });
+      if (result.schools.length < LIMITS.schools) {
+        result.schools.push({
+          name,
+          distance,
+          level: 'university',
+          coordinates
+        });
+      }
     } else if (type === 'college') {
-      result.schools.push({
-        name,
-        distance,
-        level: 'college',
-        coordinates
-      });
+      if (result.schools.length < LIMITS.schools) {
+        result.schools.push({
+          name,
+          distance,
+          level: 'college',
+          coordinates
+        });
+      }
     }
 
     // Dining facilities
     else if (type === 'restaurant') {
-      result.restaurants.push({
-        name,
-        distance,
-        cuisine: 'restaurant',
-        coordinates
-      });
+      if (result.restaurants.length < LIMITS.restaurants) {
+        result.restaurants.push({
+          name,
+          distance,
+          cuisine: 'restaurant',
+          coordinates
+        });
+      }
     } else if (type === 'fast_food') {
-      result.restaurants.push({
-        name,
-        distance,
-        cuisine: 'fast_food',
-        coordinates
-      });
+      if (result.restaurants.length < LIMITS.restaurants) {
+        result.restaurants.push({
+          name,
+          distance,
+          cuisine: 'fast_food',
+          coordinates
+        });
+      }
     } else if (type === 'cafe') {
-      result.restaurants.push({
-        name,
-        distance,
-        cuisine: 'cafe',
-        coordinates
-      });
+      if (result.restaurants.length < LIMITS.restaurants) {
+        result.restaurants.push({
+          name,
+          distance,
+          cuisine: 'cafe',
+          coordinates
+        });
+      }
     }
 
     // Recreation facilities
     else if (type === 'park') {
-      result.parks.push({
-        name,
-        distance,
-        type: 'park',
-        coordinates
-      });
+      if (result.parks.length < LIMITS.parks) {
+        result.parks.push({
+          name,
+          distance,
+          type: 'park',
+          coordinates
+        });
+      }
     } else if (type === 'playground') {
-      result.parks.push({
-        name,
-        distance,
-        type: 'playground',
-        coordinates
-      });
+      if (result.parks.length < LIMITS.parks) {
+        result.parks.push({
+          name,
+          distance,
+          type: 'playground',
+          coordinates
+        });
+      }
     }
   }
 

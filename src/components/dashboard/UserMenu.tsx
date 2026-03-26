@@ -15,6 +15,7 @@ import { useRole } from "@/contexts/RoleContext";
 import { useSidebar } from "@/components/ui/sidebar";
 import { RoleSwitcher } from "./RoleSwitcher";
 import { NotificationBell } from "../notifications/NotificationBell";
+import { LawyerNotificationBell } from "../lawyer/LawyerNotificationBell";
 
 export function UserMenu() {
   const { user, signOut, updateMetadata } = useAuth();
@@ -33,8 +34,8 @@ export function UserMenu() {
           <Menu className="h-5 w-5" />
         </Button>
 
-        {/* Notifications */}
-        <NotificationBell />
+        {/* Notifications - lawyer gets dedicated bell */}
+        {role === 'lawyer' ? <LawyerNotificationBell /> : <NotificationBell />}
 
         <div className="block md:hidden">
           <h2 className="text-xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">

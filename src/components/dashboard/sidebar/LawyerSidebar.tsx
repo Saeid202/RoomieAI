@@ -43,7 +43,7 @@ export function LawyerSidebar({ isActive, showLabels }: LawyerSidebarProps) {
       <SidebarSimpleMenuItem
         showLabel={showLabels}
         icon={<span className="text-lg">⚖️</span>}
-        label="Document Reviews"
+        label="Document Review Requests"
         to="/dashboard/lawyer-document-reviews"
         isActive={isActive('/dashboard/lawyer-document-reviews')}
       />
