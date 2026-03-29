@@ -1,8 +1,10 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Info, DollarSign, TrendingUp, Wallet, Clock, Building2, CheckCircle2, AlertTriangle, ExternalLink, RefreshCw, ArrowRight } from "lucide-react";
+import { Info, DollarSign, TrendingUp, Wallet, Clock, Building2, CheckCircle2, AlertTriangle, ExternalLink, RefreshCw, ArrowRight, X, Landmark } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect, useCallback } from "react";
 import {
@@ -17,8 +19,8 @@ import { formatCurrency } from "@/services/feeCalculationService";
 import {
   getStripeConnectStatus,
   refreshStripeConnectStatus,
-  getStripeOnboardingLink,
   getStripeLoginLink,
+  attachBankAccount,
   type StripeConnectStatus,
   type StripeOnboardingStatus
 } from "@/services/stripeConnectService";
@@ -70,83 +72,229 @@ interface BankAccountCardProps {
   onConnect: () => void;
   onRefresh: () => void;
   onManage: () => void;
+  showEmbedded: boolean;
+  onCloseEmbedded: () => void;
+  onOnboardingComplete: () => void;
 }
 
-function BankAccountCard({ connectStatus, loadingConnect, onConnect, onRefresh, onManage }: BankAccountCardProps) {
+function BankAccountForm({ onSuccess, onCancel }: { onSuccess: () => void; onCancel: () => void }) {
+  const [form, setForm] = useState({
+    account_holder_name: '',
+    transit_number: '',
+    institution_number: '',
+    account_number: '',
+    account_number_confirm: '',
+  });
+  const [submitting, setSubmitting] = useState(false);
+
+  const set = (field: string, value: string) => setForm(prev => ({ ...prev, [field]: value }));
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (form.account_number !== form.account_number_confirm) {
+      toast.error('Account numbers do not match');
+      return;
+    }
+    if (form.transit_number.length !== 5) {
+      toast.error('Transit number must be 5 digits');
+      return;
+    }
+    if (form.institution_number.length !== 3) {
+      toast.error('Institution number must be 3 digits');
+      return;
+    }
+    setSubmitting(true);
+    try {
+      await attachBankAccount({
+        account_holder_name: form.account_holder_name,
+        transit_number: form.transit_number,
+        institution_number: form.institution_number,
+        account_number: form.account_number,
+      });
+      toast.success('Bank account connected successfully');
+      onSuccess();
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to connect bank account');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      {/* Canadian bank diagram hint */}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs text-blue-800">
+        <p className="font-semibold mb-1">Where to find your banking info:</p>
+        <p>On a cheque: <span className="font-mono">Transit (5 digits) — Institution (3 digits) — Account number</span></p>
+        <p className="mt-1">Example: <span className="font-mono">12345 — 004 — 1234567</span></p>
+      </div>
+
+      <div>
+        <Label htmlFor="holder">Account Holder Name</Label>
+        <Input
+          id="holder"
+          placeholder="Full legal name"
+          value={form.account_holder_name}
+          onChange={e => set('account_holder_name', e.target.value)}
+          required
+          className="mt-1"
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <Label htmlFor="transit">Transit Number</Label>
+          <Input
+            id="transit"
+            placeholder="5 digits"
+            maxLength={5}
+            value={form.transit_number}
+            onChange={e => set('transit_number', e.target.value.replace(/\D/g, ''))}
+            required
+            className="mt-1 font-mono"
+          />
+        </div>
+        <div>
+          <Label htmlFor="institution">Institution Number</Label>
+          <Input
+            id="institution"
+            placeholder="3 digits"
+            maxLength={3}
+            value={form.institution_number}
+            onChange={e => set('institution_number', e.target.value.replace(/\D/g, ''))}
+            required
+            className="mt-1 font-mono"
+          />
+        </div>
+      </div>
+
+      <div>
+        <Label htmlFor="account">Account Number</Label>
+        <Input
+          id="account"
+          placeholder="7–12 digits"
+          value={form.account_number}
+          onChange={e => set('account_number', e.target.value.replace(/\D/g, ''))}
+          required
+          className="mt-1 font-mono"
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="account_confirm">Confirm Account Number</Label>
+        <Input
+          id="account_confirm"
+          placeholder="Re-enter account number"
+          value={form.account_number_confirm}
+          onChange={e => set('account_number_confirm', e.target.value.replace(/\D/g, ''))}
+          required
+          className="mt-1 font-mono"
+        />
+      </div>
+
+      <div className="flex gap-3 pt-2">
+        <Button type="button" variant="outline" onClick={onCancel} className="flex-1" disabled={submitting}>
+          Cancel
+        </Button>
+        <Button
+          type="submit"
+          disabled={submitting}
+          className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
+        >
+          {submitting ? (
+            <><RefreshCw className="h-4 w-4 mr-2 animate-spin" />Connecting...</>
+          ) : (
+            <><Landmark className="h-4 w-4 mr-2" />Connect Bank Account</>
+          )}
+        </Button>
+      </div>
+
+      <p className="text-xs text-slate-500 text-center">
+        Your banking information is encrypted and processed securely via Stripe.
+      </p>
+    </form>
+  );
+}
+
+function BankAccountCard({ connectStatus, loadingConnect, onConnect, onRefresh, onManage, showEmbedded, onCloseEmbedded, onOnboardingComplete }: BankAccountCardProps) {
   const status = connectStatus?.onboarding_status ?? 'not_started';
   const cfg = statusConfig(status);
 
   return (
-    <Card className={`border-2 shadow-sm mb-6 ${cfg.cardClass}`}>
-      <CardContent className="p-5">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-start gap-3">
-            <div className="mt-0.5">{cfg.icon}</div>
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <p className="font-semibold text-slate-900">{cfg.title}</p>
-                {cfg.badge}
+    <>
+      <Card className={`border-2 shadow-sm mb-6 ${cfg.cardClass}`}>
+        <CardContent className="p-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <div className="mt-0.5">{cfg.icon}</div>
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <p className="font-semibold text-slate-900">{cfg.title}</p>
+                  {cfg.badge}
+                </div>
+                <p className="text-sm text-slate-600 max-w-lg">{cfg.description}</p>
               </div>
-              <p className="text-sm text-slate-600 max-w-lg">{cfg.description}</p>
             </div>
-          </div>
 
-          <div className="flex items-center gap-2 flex-shrink-0">
-            {status === 'ready' ? (
-              <>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={onRefresh}
-                  disabled={loadingConnect}
-                  className="gap-1.5"
-                >
-                  <RefreshCw className={`h-3.5 w-3.5 ${loadingConnect ? 'animate-spin' : ''}`} />
-                  Refresh
-                </Button>
-                <Button
-                  size="sm"
-                  onClick={onManage}
-                  disabled={loadingConnect}
-                  className="gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white"
-                >
-                  <ExternalLink className="h-3.5 w-3.5" />
-                  Manage in Stripe
-                </Button>
-              </>
-            ) : (
-              <>
-                {connectStatus?.stripe_account_id && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={onRefresh}
-                    disabled={loadingConnect}
-                    className="gap-1.5"
-                  >
+            <div className="flex items-center gap-2 flex-shrink-0">
+              {status === 'ready' ? (
+                <>
+                  <Button variant="outline" size="sm" onClick={onRefresh} disabled={loadingConnect} className="gap-1.5">
                     <RefreshCw className={`h-3.5 w-3.5 ${loadingConnect ? 'animate-spin' : ''}`} />
                     Refresh
                   </Button>
-                )}
-                <Button
-                  size="sm"
-                  onClick={onConnect}
-                  disabled={loadingConnect}
-                  className="gap-1.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
-                >
-                  {loadingConnect ? (
-                    <RefreshCw className="h-3.5 w-3.5 animate-spin" />
-                  ) : (
-                    <ArrowRight className="h-3.5 w-3.5" />
+                  <Button size="sm" onClick={onManage} disabled={loadingConnect} className="gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white">
+                    <ExternalLink className="h-3.5 w-3.5" />
+                    Manage in Stripe
+                  </Button>
+                </>
+              ) : (
+                <>
+                  {connectStatus?.stripe_account_id && (
+                    <Button variant="outline" size="sm" onClick={onRefresh} disabled={loadingConnect} className="gap-1.5">
+                      <RefreshCw className={`h-3.5 w-3.5 ${loadingConnect ? 'animate-spin' : ''}`} />
+                      Refresh
+                    </Button>
                   )}
-                  {status === 'not_started' ? 'Connect Bank Account' : 'Continue Setup'}
-                </Button>
-              </>
-            )}
+                  <Button
+                    size="sm"
+                    onClick={onConnect}
+                    disabled={loadingConnect}
+                    className="gap-1.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
+                  >
+                    {loadingConnect ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <ArrowRight className="h-3.5 w-3.5" />}
+                    {status === 'not_started' ? 'Connect Bank Account' : 'Continue Setup'}
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Native Bank Account Form Modal */}
+      {showEmbedded && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md">
+            <div className="flex items-center justify-between p-4 border-b">
+              <div className="flex items-center gap-2">
+                <Landmark className="h-5 w-5 text-purple-600" />
+                <div>
+                  <h2 className="text-base font-semibold text-slate-900">Connect Your Bank Account</h2>
+                  <p className="text-xs text-slate-500">Canadian bank accounts only (CAD)</p>
+                </div>
+              </div>
+              <Button variant="ghost" size="sm" onClick={onCloseEmbedded} className="h-8 w-8 p-0">
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="p-4">
+              <BankAccountForm onSuccess={onOnboardingComplete} onCancel={onCloseEmbedded} />
+            </div>
           </div>
         </div>
-      </CardContent>
-    </Card>
+      )}
+    </>
   );
 }
 
@@ -160,6 +308,7 @@ export default function LandlordPayments() {
   const [error, setError] = useState<string | null>(null);
   const [connectStatus, setConnectStatus] = useState<StripeConnectStatus | null>(null);
   const [loadingConnect, setLoadingConnect] = useState(false);
+  const [showEmbedded, setShowEmbedded] = useState(false);
 
   const fetchConnectStatus = useCallback(async (forceRefresh = false) => {
     try {
@@ -193,26 +342,25 @@ export default function LandlordPayments() {
     load();
   }, [user, fetchConnectStatus]);
 
-  // Handle return from Stripe onboarding
+  // Handle return from Stripe onboarding (keep for backward compat with any existing sessions)
   useEffect(() => {
     const onboarding = searchParams.get('onboarding');
     if (onboarding === 'complete') {
-      toast.success('Stripe onboarding complete! Refreshing your account status...');
+      toast.success('Bank account connected! Refreshing status...');
       fetchConnectStatus(true);
     } else if (onboarding === 'refresh') {
-      toast.info('Onboarding session expired. Please try again.');
+      toast.info('Session expired. Please try again.');
     }
   }, [searchParams, fetchConnectStatus]);
 
-  const handleConnect = async () => {
-    setLoadingConnect(true);
-    try {
-      const url = await getStripeOnboardingLink();
-      window.location.href = url;
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to start Stripe onboarding');
-      setLoadingConnect(false);
-    }
+  const handleConnect = () => {
+    setShowEmbedded(true);
+  };
+
+  const handleOnboardingComplete = async () => {
+    setShowEmbedded(false);
+    toast.success('Setup complete! Refreshing your account status...');
+    await fetchConnectStatus(true);
   };
 
   const handleManage = async () => {
@@ -277,6 +425,9 @@ export default function LandlordPayments() {
       onConnect={handleConnect}
       onRefresh={handleRefresh}
       onManage={handleManage}
+      showEmbedded={showEmbedded}
+      onCloseEmbedded={() => setShowEmbedded(false)}
+      onOnboardingComplete={handleOnboardingComplete}
     />
   );
 

@@ -33,6 +33,35 @@ export async function refreshStripeConnectStatus(): Promise<StripeConnectStatus>
 }
 
 /**
+ * Attach a Canadian bank account to the landlord's Stripe Connect account
+ */
+export async function attachBankAccount(params: {
+  account_holder_name: string;
+  transit_number: string;
+  institution_number: string;
+  account_number: string;
+}): Promise<void> {
+  const { data, error } = await supabase.functions.invoke('stripe-connect', {
+    body: { action: 'attach-bank-account', ...params }
+  });
+  if (error) throw new Error(`Failed to attach bank account: ${error.message || JSON.stringify(error)}`);
+  if (data?.error) throw new Error(data.details || data.error);
+  if (!data?.success) throw new Error('Bank account connection failed — no confirmation received');
+}
+
+/**
+ * Create an Account Session for embedded Stripe Connect components
+ */
+export async function createStripeAccountSession(): Promise<string> {
+  const { data, error } = await supabase.functions.invoke('stripe-connect', {
+    body: { action: 'create-account-session' }
+  });
+  if (error) throw new Error(`Failed to create account session: ${JSON.stringify(error)}`);
+  if (!data?.client_secret) throw new Error('No client_secret returned');
+  return data.client_secret;
+}
+
+/**
  * Get Stripe onboarding link (creates account if needed)
  */
 export async function getStripeOnboardingLink(): Promise<string> {

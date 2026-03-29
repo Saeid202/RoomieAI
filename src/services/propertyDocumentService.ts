@@ -330,6 +330,34 @@ export async function respondToAccessRequest(
 }
 
 /**
+ * Revoke an approved document access request immediately
+ */
+export async function revokeDocumentAccess(requestId: string): Promise<void> {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("User not authenticated");
+
+    const { error } = await supabase
+      .from('document_access_requests')
+      .update({
+        status: 'denied',
+        access_expires_at: new Date().toISOString(),
+        response_message: 'Access has been ended by the property owner.',
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', requestId);
+
+    if (error) {
+      console.error('Supabase error revoking access:', error);
+      throw new Error(error.message);
+    }
+  } catch (error) {
+    console.error('Error revoking document access:', error);
+    throw error;
+  }
+}
+
+/**
  * Get listing strength score for a property
  */
 export async function getListingStrength(

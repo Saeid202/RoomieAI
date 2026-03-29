@@ -9,9 +9,9 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Lock, CheckCircle, XCircle, FileText, MapPin, User, Mail, MessageSquare, Clock } from "lucide-react";
+import { Lock, CheckCircle, XCircle, FileText, MapPin, User, Mail, MessageSquare, Clock, ShieldOff } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { respondToAccessRequest } from "@/services/propertyDocumentService";
+import { respondToAccessRequest, revokeDocumentAccess } from "@/services/propertyDocumentService";
 import { toast } from "sonner";
 import type { DocumentAccessRequest } from "@/types/propertyCategories";
 
@@ -34,6 +34,7 @@ export function DocumentAccessRequestCard({
   onStatusUpdate,
 }: DocumentAccessRequestCardProps) {
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isRevoking, setIsRevoking] = useState(false);
   const [accessDuration, setAccessDuration] = useState<string>('24'); // Default 24 hours
 
   const handleRespond = async (status: 'approved' | 'denied') => {
@@ -69,17 +70,31 @@ export function DocumentAccessRequestCard({
     }
   };
 
-  const getStatusBadge = () => {
-    switch (request.status) {
+  const handleRevokeAccess = async () => {
+    setIsRevoking(true);
+    try {
+      await revokeDocumentAccess(request.id);
+      toast.success('Document access has been ended');
+      onStatusUpdate?.();
+    } catch (error) {
+      console.error('Failed to revoke access:', error);
+      toast.error('Failed to end access');
+    } finally {
+      setIsRevoking(false);
+    }
+  };
+
+  const getStatusBadge = () => {    switch (request.status) {
       case 'approved':
         return <Badge className="bg-green-100 text-green-700 border-green-200">Approved</Badge>;
       case 'denied':
-        return <Badge className="bg-red-100 text-red-700 border-red-200">Declined</Badge>;
+        return request.response_message === 'Access has been ended by the property owner.'
+          ? <Badge className="bg-orange-100 text-orange-700 border-orange-200">Access Ended</Badge>
+          : <Badge className="bg-red-100 text-red-700 border-red-200">Declined</Badge>;
       case 'expired':
         return <Badge className="bg-gray-100 text-gray-700 border-gray-200">Expired</Badge>;
       default:
-        return <Badge className="bg-yellow-100 text-yellow-700 border-yellow-200">Pending</Badge>;
-    }
+        return <Badge className="bg-yellow-100 text-yellow-700 border-yellow-200">Pending</Badge>;    }
   };
 
   const getExpirationInfo = () => {
@@ -200,9 +215,26 @@ export function DocumentAccessRequestCard({
           </div>
         )}
 
+        {/* End Access Button (only for active approved requests) */}
+        {request.status === 'approved' && (() => {
+          const isExpired = request.access_expires_at && new Date(request.access_expires_at) < new Date();
+          if (isExpired) return null;          return (
+            <div className="pt-2">
+              <Button
+                onClick={handleRevokeAccess}
+                disabled={isRevoking}
+                variant="outline"
+                className="w-full text-red-600 border-red-300 hover:bg-red-50 hover:border-red-400"
+              >
+                <ShieldOff className="h-4 w-4 mr-2" />
+                {isRevoking ? 'Ending Access...' : 'End Access'}
+              </Button>
+            </div>
+          );
+        })()}
+
         {/* Action Buttons (only for pending requests) */}
-        {request.status === 'pending' && (
-          <div className="space-y-3 pt-2">
+        {request.status === 'pending' && (          <div className="space-y-3 pt-2">
             {/* Access Duration Selector */}
             <div className="bg-slate-50 rounded-lg p-3 border border-slate-200">
               <label className="text-xs font-semibold text-slate-700 mb-2 flex items-center gap-2">

@@ -267,10 +267,11 @@ serve(async (req) => {
                     console.log("🟡 Creating new Stripe Express account for embedded flow...");
 
                     const account = await stripe.accounts.create({
-                        type: "express",
+                        type: "custom",
                         country: "CA",
                         capabilities: {
                             transfers: { requested: true },
+                            card_payments: { requested: true },
                         },
                         metadata: {
                             user_id: user.id,
@@ -308,8 +309,6 @@ serve(async (req) => {
                     account: stripeAccountId,
                     components: {
                         account_onboarding: { enabled: true },
-                        payments: { enabled: true },
-                        payouts: { enabled: true },
                     },
                 });
 
@@ -325,6 +324,116 @@ serve(async (req) => {
                 return new Response(
                     JSON.stringify({
                         error: "stripe_session_failed",
+                        details: err instanceof Error ? err.message : String(err),
+                    }),
+                    { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+                );
+            }
+        }
+
+        if (action === "attach-bank-account") {
+            const { account_holder_name, transit_number, institution_number, account_number } = body;
+
+            if (!account_holder_name || !transit_number || !institution_number || !account_number) {
+                return new Response(
+                    JSON.stringify({ error: "missing_bank_fields" }),
+                    { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+                );
+            }
+
+            let stripeAccountId = existingAccount?.stripe_account_id;
+
+            // Create a new custom Stripe account for bank payouts
+            // If there's an existing express account, we create a new custom one
+            // (express accounts don't support direct bank account attachment)
+            const needsNewAccount = !stripeAccountId || existingAccount?.account_type === 'express';
+
+            if (needsNewAccount) {
+                try {
+                    console.log("🟡 Creating new Stripe Custom account for bank payout...");
+                    const account = await stripe.accounts.create({
+                        type: "custom",
+                        country: "CA",
+                        capabilities: {
+                            transfers: { requested: true },
+                        },
+                        tos_acceptance: { service_agreement: "recipient" },
+                        metadata: { user_id: user.id },
+                    });
+                    stripeAccountId = account.id;
+                    console.log("🟢 Custom account created:", stripeAccountId);
+
+                    // Upsert to DB
+                    if (existingAccount) {
+                        await supabase.from("landlord_connect_accounts").update({
+                            stripe_account_id: stripeAccountId,
+                            onboarding_status: "in_progress",
+                            charges_enabled: false,
+                            payouts_enabled: false,
+                            details_submitted: false,
+                            updated_at: new Date().toISOString(),
+                        }).eq("user_id", user.id);
+                    } else {
+                        await supabase.from("landlord_connect_accounts").insert({
+                            user_id: user.id,
+                            stripe_account_id: stripeAccountId,
+                            onboarding_status: "in_progress",
+                            charges_enabled: false,
+                            payouts_enabled: false,
+                            details_submitted: false,
+                        });
+                    }
+                } catch (err) {
+                    console.error("🔴 Account creation failed:", err);
+                    return new Response(
+                        JSON.stringify({ error: "account_creation_failed", details: err instanceof Error ? err.message : String(err) }),
+                        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+                    );
+                }
+            }
+
+            try {
+                // Canadian routing: transit_number (5 digits) + institution_number (3 digits)
+                const routingNumber = `${transit_number}-${institution_number}`;
+                console.log("🟡 Creating bank account token, routing:", routingNumber);
+
+                const token = await stripe.tokens.create({
+                    bank_account: {
+                        country: "CA",
+                        currency: "cad",
+                        account_holder_name,
+                        account_holder_type: "individual",
+                        routing_number: routingNumber,
+                        account_number,
+                    },
+                });
+
+                console.log("🟢 Token created:", token.id);
+
+                // Attach bank account to the Connect account
+                const bankAccount = await stripe.accounts.createExternalAccount(stripeAccountId!, {
+                    external_account: token.id,
+                    default_for_currency: true,
+                } as any);
+
+                console.log("🟢 Bank account attached:", bankAccount.id);
+
+                // Update DB status to in_progress (payouts pending verification)
+                await supabase.from("landlord_connect_accounts").update({
+                    onboarding_status: "in_progress",
+                    updated_at: new Date().toISOString(),
+                }).eq("stripe_account_id", stripeAccountId);
+
+                return new Response(
+                    JSON.stringify({ success: true, bank_account_id: bankAccount.id }),
+                    { headers: { "Content-Type": "application/json", ...corsHeaders } }
+                );
+
+            } catch (err) {
+                console.error("🔴 Bank account attachment failed:", err);
+                return new Response(
+                    JSON.stringify({
+                        error: "bank_account_failed",
                         details: err instanceof Error ? err.message : String(err),
                     }),
                     { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
