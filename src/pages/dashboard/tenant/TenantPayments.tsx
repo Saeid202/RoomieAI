@@ -54,9 +54,12 @@ function CollapsiblePaymentCard({ paymentMethods, deletingMethodId, onDelete, on
   return (
     <div className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden transition-all duration-300">
       {/* Header — always visible, acts as toggle */}
-      <button
+      <div
         onClick={() => setExpanded(v => !v)}
-        className="w-full flex items-center justify-between px-5 py-4 hover:bg-gray-50 transition-colors"
+        className="w-full flex items-center justify-between px-5 py-4 hover:bg-gray-50 transition-colors cursor-pointer"
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => e.key === 'Enter' && setExpanded(v => !v)}
       >
         <div className="flex items-center gap-3">
           {/* Circle icon with count badge */}
@@ -86,7 +89,7 @@ function CollapsiblePaymentCard({ paymentMethods, deletingMethodId, onDelete, on
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
           </svg>
         </div>
-      </button>
+      </div>
 
       {/* Collapsible content */}
       <div className={`transition-all duration-300 ease-in-out overflow-hidden ${expanded ? 'max-h-[600px] opacity-100' : 'max-h-0 opacity-0'}`}>
