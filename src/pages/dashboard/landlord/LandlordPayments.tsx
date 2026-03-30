@@ -89,8 +89,8 @@ function BankAccountForm({ onSuccess, onCancel }: { onSuccess: () => void; onCan
 
   const set = (field: string, value: string) => setForm(prev => ({ ...prev, [field]: value }));
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     
     // Explicit validation with user feedback
     if (!form.account_holder_name.trim()) {
@@ -152,7 +152,6 @@ function BankAccountForm({ onSuccess, onCancel }: { onSuccess: () => void; onCan
           placeholder="Full legal name"
           value={form.account_holder_name}
           onChange={e => set('account_holder_name', e.target.value)}
-          required
           className="mt-1"
         />
       </div>
@@ -166,7 +165,6 @@ function BankAccountForm({ onSuccess, onCancel }: { onSuccess: () => void; onCan
             maxLength={5}
             value={form.transit_number}
             onChange={e => set('transit_number', e.target.value.replace(/\D/g, ''))}
-            required
             className="mt-1 font-mono"
           />
         </div>
@@ -178,7 +176,6 @@ function BankAccountForm({ onSuccess, onCancel }: { onSuccess: () => void; onCan
             maxLength={3}
             value={form.institution_number}
             onChange={e => set('institution_number', e.target.value.replace(/\D/g, ''))}
-            required
             className="mt-1 font-mono"
           />
         </div>
@@ -191,7 +188,6 @@ function BankAccountForm({ onSuccess, onCancel }: { onSuccess: () => void; onCan
           placeholder="7–12 digits"
           value={form.account_number}
           onChange={e => set('account_number', e.target.value.replace(/\D/g, ''))}
-          required
           className="mt-1 font-mono"
         />
       </div>
@@ -203,7 +199,6 @@ function BankAccountForm({ onSuccess, onCancel }: { onSuccess: () => void; onCan
           placeholder="Re-enter account number"
           value={form.account_number_confirm}
           onChange={e => set('account_number_confirm', e.target.value.replace(/\D/g, ''))}
-          required
           className="mt-1 font-mono"
         />
       </div>
@@ -213,7 +208,8 @@ function BankAccountForm({ onSuccess, onCancel }: { onSuccess: () => void; onCan
           Cancel
         </Button>
         <Button
-          type="submit"
+          type="button"
+          onClick={handleSubmit as any}
           disabled={submitting}
           className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
         >
@@ -370,6 +366,7 @@ export default function LandlordPayments() {
   }, [searchParams, fetchConnectStatus]);
 
   const handleConnect = () => {
+    console.log('🔵 handleConnect called - opening modal');
     setShowEmbedded(true);
   };
 
