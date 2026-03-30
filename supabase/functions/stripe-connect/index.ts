@@ -206,36 +206,18 @@ serve(async (req) => {
                 );
 
             } catch (err) {
-                console.error("🔴 Failed to refresh status from Stripe:", err);
-                const errMsg = err instanceof Error ? err.message : String(err);
+                // ANY Stripe error (account not found, wrong mode, etc.)
+                // — always clear the stale record and return not_started (never 400)
+                console.error("🔴 refresh-status error, clearing stale account:", err instanceof Error ? err.message : String(err));
 
-                // If the account doesn't exist in Stripe (e.g. test account in live mode),
-                // treat it as not started rather than returning a 400
-                if (errMsg.includes("No such account") || errMsg.includes("resource_missing")) {
-                    // Clear the stale account from DB
-                    await supabase
-                        .from("landlord_connect_accounts")
-                        .delete()
-                        .eq("user_id", user.id);
-
-                    return new Response(
-                        JSON.stringify({
-                            onboarding_status: "not_started",
-                            stripe_account_id: null,
-                        }),
-                        { headers: { "Content-Type": "application/json", ...corsHeaders } }
-                    );
-                }
+                await supabase
+                    .from("landlord_connect_accounts")
+                    .delete()
+                    .eq("user_id", user.id);
 
                 return new Response(
-                    JSON.stringify({
-                        error: "refresh_failed",
-                        details: errMsg,
-                    }),
-                    {
-                        status: 400,
-                        headers: { "Content-Type": "application/json", ...corsHeaders },
-                    }
+                    JSON.stringify({ onboarding_status: "not_started", stripe_account_id: null }),
+                    { headers: { "Content-Type": "application/json", ...corsHeaders } }
                 );
             }
         }
