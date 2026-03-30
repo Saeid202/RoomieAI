@@ -28,11 +28,17 @@ export async function createPadPaymentMethod(
 
     if (error) {
       console.error('Supabase function error:', error);
-      throw new Error(`Function error: ${JSON.stringify(error)}`);
+      // Try to get the actual error body
+      const errorBody = (error as any)?.context?.body;
+      throw new Error(`Function error: ${errorBody || JSON.stringify(error)}`);
     }
     
     if (!data) {
       throw new Error('No data returned from payment method creation');
+    }
+
+    if (data.error) {
+      throw new Error(`Stripe error: ${data.details || data.error}`);
     }
 
     if (!data.paymentMethodId || !data.setupIntentId) {
