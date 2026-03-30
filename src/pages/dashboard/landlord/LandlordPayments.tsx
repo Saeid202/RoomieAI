@@ -124,9 +124,9 @@ function BankAccountForm({ onSuccess, onCancel }: { onSuccess: () => void; onCan
     <form onSubmit={handleSubmit} className="space-y-4">
       {/* Canadian bank diagram hint */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs text-blue-800">
-        <p className="font-semibold mb-1">Where to find your banking info:</p>
-        <p>On a cheque: <span className="font-mono">Transit (5 digits) — Institution (3 digits) — Account number</span></p>
-        <p className="mt-1">Example: <span className="font-mono">12345 — 004 — 1234567</span></p>
+        <p className="font-semibold mb-1">Where to find your banking info (bottom of a cheque):</p>
+        <p>Transit number: <span className="font-mono">5 digits</span> · Institution number: <span className="font-mono">3 digits</span> · Account number: <span className="font-mono">7–12 digits</span></p>
+        <p className="mt-1 text-blue-600">Example — Transit: <span className="font-mono">30171</span> · Institution: <span className="font-mono">002</span> (Scotiabank) · Account: <span className="font-mono">1006088</span></p>
       </div>
 
       <div>

@@ -407,7 +407,9 @@ serve(async (req) => {
             }
 
             try {
-                const routingNumber = `${transit_number}-${institution_number}`;
+                // Canadian routing number for Stripe: 9 digits = "0" + institution(3) + transit(5)
+                // e.g. institution "002", transit "30171" → "000230171"
+                const routingNumber = `0${institution_number.padStart(3, '0')}${transit_number.padStart(5, '0')}`;
                 console.log("🟡 Creating bank account token, routing:", routingNumber);
 
                 const token = await stripe.tokens.create({
