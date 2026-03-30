@@ -401,13 +401,12 @@ serve(async (req) => {
                     console.error("🔴 Account creation failed:", err);
                     return new Response(
                         JSON.stringify({ error: "account_creation_failed", details: err instanceof Error ? err.message : String(err) }),
-                        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+                        { headers: { "Content-Type": "application/json", ...corsHeaders } }
                     );
                 }
             }
 
             try {
-                // Canadian routing: transit_number (5 digits) + institution_number (3 digits)
                 const routingNumber = `${transit_number}-${institution_number}`;
                 console.log("🟡 Creating bank account token, routing:", routingNumber);
 
@@ -424,7 +423,6 @@ serve(async (req) => {
 
                 console.log("🟢 Token created:", token.id);
 
-                // Attach bank account to the Connect account
                 const bankAccount = await stripe.accounts.createExternalAccount(stripeAccountId!, {
                     external_account: token.id,
                     default_for_currency: true,
@@ -432,7 +430,6 @@ serve(async (req) => {
 
                 console.log("🟢 Bank account attached:", bankAccount.id);
 
-                // Update DB status to in_progress (payouts pending verification)
                 await supabase.from("landlord_connect_accounts").update({
                     onboarding_status: "in_progress",
                     updated_at: new Date().toISOString(),
@@ -445,12 +442,13 @@ serve(async (req) => {
 
             } catch (err) {
                 console.error("🔴 Bank account attachment failed:", err);
+                // Return 200 so frontend can read the error details
                 return new Response(
                     JSON.stringify({
                         error: "bank_account_failed",
                         details: err instanceof Error ? err.message : String(err),
                     }),
-                    { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+                    { headers: { "Content-Type": "application/json", ...corsHeaders } }
                 );
             }
         }
