@@ -343,10 +343,22 @@ serve(async (req) => {
 
             let stripeAccountId = existingAccount?.stripe_account_id;
 
-            // Create a new custom Stripe account for bank payouts
-            // If there's an existing express account, we create a new custom one
-            // (express accounts don't support direct bank account attachment)
-            const needsNewAccount = !stripeAccountId || existingAccount?.account_type === 'express';
+            // Always check the actual Stripe account type — express accounts can't have
+            // external bank accounts attached directly via API
+            let needsNewAccount = !stripeAccountId;
+
+            if (stripeAccountId) {
+                try {
+                    const acct = await stripe.accounts.retrieve(stripeAccountId);
+                    if (acct.type === 'express' || acct.type === 'standard') {
+                        console.log(`🟡 Existing account is ${acct.type} — creating new custom account`);
+                        needsNewAccount = true;
+                    }
+                } catch (_) {
+                    console.log("🟡 Could not retrieve existing account — creating new one");
+                    needsNewAccount = true;
+                }
+            }
 
             if (needsNewAccount) {
                 try {

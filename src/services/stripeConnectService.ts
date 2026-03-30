@@ -44,9 +44,21 @@ export async function attachBankAccount(params: {
   const { data, error } = await supabase.functions.invoke('stripe-connect', {
     body: { action: 'attach-bank-account', ...params }
   });
-  if (error) throw new Error(`Failed to attach bank account: ${error.message || JSON.stringify(error)}`);
-  if (data?.error) throw new Error(data.details || data.error);
-  if (!data?.success) throw new Error('Bank account connection failed — no confirmation received');
+
+  // Supabase wraps HTTP errors — check both error and data.error
+  if (error) {
+    // Try to parse the error body for Stripe's specific message
+    const msg = error.message || JSON.stringify(error);
+    throw new Error(msg);
+  }
+
+  if (data?.error) {
+    throw new Error(data.details || data.error);
+  }
+
+  if (!data?.success) {
+    throw new Error('Bank account connection failed — no confirmation received');
+  }
 }
 
 /**
