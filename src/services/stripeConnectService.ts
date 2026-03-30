@@ -10,9 +10,6 @@ export interface StripeConnectStatus {
   details_submitted?: boolean;
 }
 
-/**
- * Get current Stripe Connect status from DB (fast, no Stripe API call)
- */
 export async function getStripeConnectStatus(): Promise<StripeConnectStatus> {
   const { data, error } = await supabase.functions.invoke('stripe-connect', {
     body: { action: 'status' }
@@ -21,9 +18,6 @@ export async function getStripeConnectStatus(): Promise<StripeConnectStatus> {
   return data as StripeConnectStatus;
 }
 
-/**
- * Refresh status from Stripe API and sync to DB
- */
 export async function refreshStripeConnectStatus(): Promise<StripeConnectStatus> {
   const { data, error } = await supabase.functions.invoke('stripe-connect', {
     body: { action: 'refresh-status' }
@@ -32,62 +26,6 @@ export async function refreshStripeConnectStatus(): Promise<StripeConnectStatus>
   return data as StripeConnectStatus;
 }
 
-/**
- * Attach a Canadian bank account to the landlord's Stripe Connect account
- */
-export async function attachBankAccount(params: {
-  account_holder_name: string;
-  transit_number: string;
-  institution_number: string;
-  account_number: string;
-}): Promise<void> {
-  const { data, error } = await supabase.functions.invoke('stripe-connect', {
-    body: { action: 'attach-bank-account', ...params }
-  });
-
-  // Supabase wraps HTTP errors — check both error and data.error
-  if (error) {
-    // Try to parse the error body for Stripe's specific message
-    const msg = error.message || JSON.stringify(error);
-    throw new Error(msg);
-  }
-
-  if (data?.error) {
-    throw new Error(data.details || data.error);
-  }
-
-  if (!data?.success) {
-    throw new Error('Bank account connection failed — no confirmation received');
-  }
-}
-
-/**
- * Create an Account Session for embedded Stripe Connect components
- */
-export async function createStripeAccountSession(): Promise<string> {
-  const { data, error } = await supabase.functions.invoke('stripe-connect', {
-    body: { action: 'create-account-session' }
-  });
-  if (error) throw new Error(`Failed to create account session: ${JSON.stringify(error)}`);
-  if (!data?.client_secret) throw new Error('No client_secret returned');
-  return data.client_secret;
-}
-
-/**
- * Get Stripe onboarding link (creates account if needed)
- */
-export async function getStripeOnboardingLink(): Promise<string> {
-  const { data, error } = await supabase.functions.invoke('stripe-connect', {
-    body: { action: 'onboarding-link' }
-  });
-  if (error) throw new Error(`Failed to get onboarding link: ${JSON.stringify(error)}`);
-  if (!data?.url) throw new Error('No onboarding URL returned');
-  return data.url;
-}
-
-/**
- * Get Stripe dashboard login link (for already-onboarded accounts)
- */
 export async function getStripeLoginLink(): Promise<string> {
   const { data, error } = await supabase.functions.invoke('stripe-connect', {
     body: { action: 'login-link' }

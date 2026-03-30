@@ -275,6 +275,7 @@ serve(async (req) => {
                             transfers: { requested: true },
                             card_payments: { requested: true },
                         },
+                        tos_acceptance: { service_agreement: "full" },
                         metadata: {
                             user_id: user.id,
                         },
@@ -371,7 +372,7 @@ serve(async (req) => {
                         capabilities: {
                             transfers: { requested: true },
                         },
-                        tos_acceptance: { service_agreement: "recipient" },
+                        tos_acceptance: { service_agreement: "full" },
                         metadata: { user_id: user.id },
                     });
                     stripeAccountId = account.id;
@@ -434,6 +435,7 @@ serve(async (req) => {
 
                 await supabase.from("landlord_connect_accounts").update({
                     onboarding_status: "in_progress",
+                    account_holder_name,
                     updated_at: new Date().toISOString(),
                 }).eq("stripe_account_id", stripeAccountId);
 

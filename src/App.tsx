@@ -92,6 +92,7 @@ import CleanersPage from "@/pages/dashboard/Cleaners";
 import ShopPage from "@/pages/dashboard/Shop";
 import TenantPaymentsPage from "@/pages/dashboard/tenant/TenantPayments";
 import LandlordPaymentsPage from "@/pages/dashboard/landlord/LandlordPayments";
+import PayoutSetupPage from "@/pages/dashboard/landlord/PayoutSetup";
 import ViewingAppointmentsPage from "@/pages/dashboard/landlord/ViewingAppointments";
 import AIScreeningSettingsPage from "@/pages/dashboard/landlord/AIScreeningSettingsPage";
 import PADPaymentTest from "@/pages/dashboard/PADPaymentTest";
@@ -232,7 +233,7 @@ function AppRoutes() {
           <Route path="landlord/applications" element={<ApplicationsPage />} />
           <Route path="landlord/viewing-appointments" element={<ViewingAppointmentsPage />} />
           <Route path="landlord/payments" element={<LandlordPaymentsPage />} />
-          <Route path="payments" element={<TenantPaymentsPage />} />
+          <Route path="landlord/payout-setup" element={<PayoutSetupPage />} />
           <Route path="landlord/profile" element={<LandlordProfilePage />} />
           <Route path="landlord/add-property" element={<AddPropertyPage />} />
           <Route path="landlord/contracts" element={<ContractReviewPage />} />
@@ -401,7 +402,7 @@ function AppRoutes() {
         <Route path="landlord/properties" element={<PropertiesPage />} />
         <Route path="landlord/applications" element={<ApplicationsPage />} />
         <Route path="landlord/payments" element={<LandlordPaymentsPage />} />
-        <Route path="landlord/profile" element={<LandlordProfilePage />} />
+        <Route path="landlord/payout-setup" element={<PayoutSetupPage />} />
         <Route path="landlord/add-property" element={<AddPropertyPage />} />
         <Route path="rent-opportunities" element={<RentOpportunitiesPage />} />
         <Route path="find-property" element={<FindPropertyPage />} />
