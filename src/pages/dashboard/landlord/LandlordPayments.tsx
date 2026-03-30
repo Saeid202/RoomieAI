@@ -91,19 +91,35 @@ function BankAccountForm({ onSuccess, onCancel }: { onSuccess: () => void; onCan
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Explicit validation with user feedback
+    if (!form.account_holder_name.trim()) {
+      toast.error('Please enter the account holder name');
+      return;
+    }
+    if (form.transit_number.length !== 5) {
+      toast.error('Transit number must be exactly 5 digits');
+      return;
+    }
+    if (form.institution_number.length !== 3) {
+      toast.error('Institution number must be exactly 3 digits');
+      return;
+    }
+    if (!form.account_number) {
+      toast.error('Please enter your account number');
+      return;
+    }
     if (form.account_number !== form.account_number_confirm) {
       toast.error('Account numbers do not match');
       return;
     }
-    if (form.transit_number.length !== 5) {
-      toast.error('Transit number must be 5 digits');
-      return;
-    }
-    if (form.institution_number.length !== 3) {
-      toast.error('Institution number must be 3 digits');
-      return;
-    }
     setSubmitting(true);
+    console.log('🔵 Submitting bank account:', {
+      account_holder_name: form.account_holder_name,
+      transit_number: form.transit_number,
+      institution_number: form.institution_number,
+      account_number: form.account_number.replace(/./g, '*'),
+    });
     try {
       await attachBankAccount({
         account_holder_name: form.account_holder_name,
