@@ -39,7 +39,7 @@ const Navbar = () => {
   }, []);
 
   return (
-    <nav className="w-full py-4 bg-white/90 backdrop-blur-sm fixed top-0 z-50 shadow-lg">
+    <nav className="w-full py-4 bg-white/90 backdrop-blur-sm fixed top-0 z-40 shadow-lg">
       <div className="container mx-auto px-4 flex justify-between items-center">
         <NavLogo />
 

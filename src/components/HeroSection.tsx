@@ -36,7 +36,7 @@ const HeroSection = () => {
   };
 
   return (
-    <section className="hero-section">
+    <section className="hero-section pt-20">
       {/* Floating Background Elements */}
       <div className="floating-element w-64 h-64 top-1/4 left-1/4 opacity-30"></div>
       <div className="floating-element w-96 h-96 bottom-1/4 right-1/4 opacity-20"></div>

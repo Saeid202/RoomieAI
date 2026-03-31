@@ -99,7 +99,7 @@ export const MobileMenu = ({
                 className="w-full bg-[#d97706] hover:bg-[#b45309] text-white"
                 onClick={() => setIsSignupOpen(true)}
               >
-                Get a Quote
+                Sign up
               </Button>
               <LoginDialog isOpen={isLoginOpen} setIsOpen={setIsLoginOpen} />
               <SignupDialog isOpen={isSignupOpen} setIsOpen={setIsSignupOpen} />
