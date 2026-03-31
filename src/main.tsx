@@ -5,6 +5,15 @@ import App from './App.tsx'
 import './index.css'
 import { RoleProvider } from './contexts/RoleContext.tsx'
 
+// Register service worker for PWA
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js', { scope: '/' })
+      .then(reg => console.log('SW registered:', reg))
+      .catch(err => console.log('SW registration failed:', err))
+  })
+}
+
 // Initialize React Query client with better error handling
 const queryClient = new QueryClient({
   defaultOptions: {

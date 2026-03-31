@@ -550,3 +550,41 @@
     text-rendering: optimizeLegibility;
   }
 }
+
+/* PWA Standalone Mode */
+@media display-mode: standalone {
+  body {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* Disable pull-to-refresh */
+  html {
+    overscroll-behavior: none;
+  }
+
+  /* Remove browser chrome appearance */
+  body::before {
+    display: none;
+  }
+}
+
+/* Touch feedback for mobile */
+.touch-feedback {
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+  touch-action: manipulation;
+}
+
+.touch-feedback:active {
+  transform: scale(0.95);
+  opacity: 0.8;
+}
+
+/* Minimum touch target */
+.touch-target {
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

@@ -3,6 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/providers/ThemeProvider";
 import { AuthProvider } from "@/providers/AuthProvider";
 import { RoleProvider } from "@/contexts/RoleContext";
+import { InstallPrompt } from "@/components/PWA/InstallPrompt";
 import Dashboard from "@/pages/Dashboard";
 import HomePage from "@/pages/Home";
 import AboutUs from "./pages/AboutUs";
@@ -483,6 +484,7 @@ function App() {
     <ThemeProvider>
       <AuthProvider>
         <RoleProvider>
+          <InstallPrompt />
           <AppRoutes />
           <Toaster />
         </RoleProvider>
