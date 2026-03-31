@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { NavLinks } from "./NavLinks";
 import { LoginDialog } from "./LoginDialog";
 import { SignupDialog } from "./SignupDialog";
+import { PWAInstallButton } from "../PWAInstallButton";
 import { User } from "@supabase/supabase-js";
 import { LogOut, User as UserIcon, LayoutDashboard, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -60,6 +61,7 @@ export const MobileMenu = ({
 
           {/* Auth Section - sticky at bottom */}
           <div className="border-t border-gray-200 p-4 space-y-3 bg-gray-50">
+            <PWAInstallButton />
             {user ? (
               <>
                 <div className="flex items-center gap-3 p-3 bg-white rounded-lg mb-2">

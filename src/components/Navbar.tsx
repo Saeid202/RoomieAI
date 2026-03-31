@@ -9,6 +9,7 @@ import { Button } from "./ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { NotificationBell } from "./notifications/NotificationBell";
+import { PWAInstallButton } from "./PWAInstallButton";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -52,6 +53,7 @@ const Navbar = ({ hideMobileMenu = false }: NavbarProps) => {
         </div>
 
         <div className="hidden md:flex items-center space-x-4">
+          <PWAInstallButton />
           {user ? (
             <div className="flex items-center space-x-2">
               <NotificationBell />
