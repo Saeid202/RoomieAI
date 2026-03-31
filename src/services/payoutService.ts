@@ -10,7 +10,7 @@ export interface PayoutStatus {
 export async function getPayoutStatus(userId: string): Promise<PayoutStatus> {
   const { data, error } = await supabase
     .from('landlord_connect_accounts')
-    .select('onboarding_status, stripe_account_id')
+    .select('onboarding_status, stripe_account_id, account_holder_name')
     .eq('user_id', userId)
     .maybeSingle();
 
@@ -19,6 +19,7 @@ export async function getPayoutStatus(userId: string): Promise<PayoutStatus> {
 
   return {
     connected: data.onboarding_status === 'ready' || data.onboarding_status === 'in_progress',
+    account_holder_name: data.account_holder_name ?? undefined,
   };
 }
 
