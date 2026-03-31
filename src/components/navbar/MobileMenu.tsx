@@ -33,37 +33,38 @@ export const MobileMenu = ({
 
   return (
     <>
-      {/* Backdrop overlay - starts below navbar */}
+      {/* Dark overlay - full screen */}
       <div 
-        className="fixed top-16 left-0 right-0 bottom-0 z-40 bg-black/40 backdrop-blur-sm"
+        className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
         onClick={() => setIsMenuOpen(false)}
       />
       
-      {/* Slide-in menu panel - starts below navbar */}
-      <div className="fixed top-16 right-0 bottom-0 z-50 w-full max-w-xs pointer-events-auto bg-white shadow-2xl animate-slide-in-right">
-        <div className="flex flex-col h-full p-6 overflow-y-auto">
-          {/* Close button */}
-          <div className="flex justify-end mb-6">
-            <button
-              onClick={() => setIsMenuOpen(false)}
-              className="text-gray-600 hover:text-gray-900 transition-colors p-2"
-            >
-              <X size={24} />
-            </button>
-          </div>
+      {/* Menu panel - slides from left, 75% width */}
+      <div className="fixed inset-y-0 left-0 z-50 w-3/4 bg-white shadow-2xl animate-slide-in-left overflow-y-auto">
+        {/* Close button */}
+        <div className="flex justify-end p-4 border-b border-gray-200">
+          <button
+            onClick={() => setIsMenuOpen(false)}
+            className="text-gray-600 hover:text-gray-900 transition-colors p-2 -mr-2"
+          >
+            <X size={28} />
+          </button>
+        </div>
 
+        {/* Menu content */}
+        <div className="flex flex-col h-full">
           {/* Navigation Links */}
-          <div className="flex-1 flex flex-col space-y-4">
+          <div className="flex-1 px-4 py-6">
             <NavLinks isMobile={true} onClickMobile={() => setIsMenuOpen(false)} />
           </div>
 
-          {/* Auth Section */}
-          <div className="mt-8 pt-6 border-t border-gray-200 space-y-3">
+          {/* Auth Section - sticky at bottom */}
+          <div className="border-t border-gray-200 p-4 space-y-3 bg-gray-50">
             {user ? (
               <>
-                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg mb-4">
-                  <UserIcon size={18} className="text-primary" />
-                  <span className="font-medium text-gray-900 truncate flex-1">
+                <div className="flex items-center gap-3 p-3 bg-white rounded-lg mb-2">
+                  <UserIcon size={18} className="text-primary flex-shrink-0" />
+                  <span className="font-medium text-gray-900 truncate">
                     {user.email ? user.email.split('@')[0] : 'Account'}
                   </span>
                 </div>
@@ -93,7 +94,7 @@ export const MobileMenu = ({
               <>
                 <Button
                   variant="outline"
-                  className="w-full border-gray-300 text-gray-700 hover:bg-gray-50"
+                  className="w-full border-gray-300 text-gray-700 hover:bg-gray-100"
                   onClick={() => setIsLoginOpen(true)}
                 >
                   Log in
