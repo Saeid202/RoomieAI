@@ -1,6 +1,7 @@
 
 import { useEffect } from "react";
 import Navbar from "@/components/Navbar";
+import LandingHamburgerMenu from "@/components/landing/LandingHamburgerMenu";
 import HeroSection from "@/components/HeroSection";
 import FeaturesSection from "@/components/FeaturesSection";
 import HowItWorks from "@/components/HowItWorks";
@@ -34,14 +35,15 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Navbar />
+      <Navbar hideMobileMenu={true} />
+      <LandingHamburgerMenu />
       <main className="flex-1">
         <HeroSection />
         <FeaturesSection />
         <HowItWorks />
         
         {/* Public Property Listings */}
-        <section className="py-16 bg-gradient-to-br from-slate-50 via-orange-50/20 to-purple-50/20">
+        <section id="properties" className="py-16 bg-gradient-to-br from-slate-50 via-orange-50/20 to-purple-50/20">
           <div className="max-w-7xl mx-auto px-4 md:px-6">
             {/* Section Header */}
             <header className="flex items-center justify-between mb-8">

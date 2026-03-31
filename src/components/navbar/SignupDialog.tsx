@@ -7,7 +7,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
 import { useAuth } from "@/hooks/useAuth";
 import { SignupForm, SignupFormValues } from "@/components/auth/SignupForm";
@@ -30,7 +29,6 @@ export const SignupDialog = ({ isOpen, setIsOpen }: SignupDialogProps) => {
   const handleSignupSubmit = async (values: SignupFormValues) => {
     setIsLoading(true);
     try {
-      // Pass role and full_name as metadata during signup
       const result = await signUp(values.email, values.password, {
         role: values.role,
         full_name: values.fullName,
@@ -39,13 +37,11 @@ export const SignupDialog = ({ isOpen, setIsOpen }: SignupDialogProps) => {
       console.log("Signup successful, user data:", result.user);
       console.log("Selected role:", values.role);
 
-      // Store role for later (after email verification)
       localStorage.setItem('pendingRole', values.role);
       localStorage.setItem('pendingFullName', values.fullName);
 
       setIsOpen(false);
 
-      // We should see a message about email verification
       toast({
         title: "Account created",
         description: "Please check your email to confirm your account before logging in. Check your spam folder if you don't see it.",
@@ -63,11 +59,9 @@ export const SignupDialog = ({ isOpen, setIsOpen }: SignupDialogProps) => {
   };
 
   const handleSocialLogin = (provider: 'google' | 'facebook' | 'linkedin') => {
-    // Make sure to get the current role selection from the form
     const formRole = document.querySelector('input[name="role"]:checked') as HTMLInputElement;
     const role = formRole ? formRole.value as UserRole : 'seeker';
 
-    // Store the role for OAuth flow
     console.log(`Setting pendingRole to ${role} for social login`);
     localStorage.setItem('pendingRole', role);
 
@@ -84,51 +78,51 @@ export const SignupDialog = ({ isOpen, setIsOpen }: SignupDialogProps) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-bold text-center">
+      <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto p-4 sm:p-6">
+        <DialogHeader className="space-y-2">
+          <DialogTitle className="text-lg sm:text-xl font-bold text-center">
             Create an account
           </DialogTitle>
-          <DialogDescription className="text-center">
-            Join Homie AI to find your perfect roommate or property match!
+          <DialogDescription className="text-center text-sm">
+            Join Homie AI to find your perfect match!
           </DialogDescription>
         </DialogHeader>
 
-        <SignupForm
-          onSubmit={handleSignupSubmit}
-          isLoading={isLoading}
-        />
+        <div className="space-y-3">
+          <SignupForm
+            onSubmit={handleSignupSubmit}
+            isLoading={isLoading}
+          />
 
-        <div className="relative mt-6 mb-4">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300"></div>
+          <div className="relative my-3">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300"></div>
+            </div>
+            <div className="relative flex justify-center text-xs">
+              <span className="px-2 bg-white text-gray-500">Or continue with</span>
+            </div>
           </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-white text-gray-500">Or continue with</span>
-          </div>
-        </div>
 
-        <SocialLoginButtons
-          onGoogleClick={() => handleSocialLogin('google')}
-          onFacebookClick={() => handleSocialLogin('facebook')}
-          onLinkedInClick={() => handleSocialLogin('linkedin')}
-        />
+          <SocialLoginButtons
+            onGoogleClick={() => handleSocialLogin('google')}
+            onFacebookClick={() => handleSocialLogin('facebook')}
+            onLinkedInClick={() => handleSocialLogin('linkedin')}
+          />
 
-        <DialogFooter className="flex justify-center mt-4">
-          <div className="text-sm text-center">
+          <div className="text-xs text-center pt-2">
             Already have an account?{" "}
             <button
               onClick={() => {
                 setIsOpen(false);
-                // You'd typically open the login dialog here
               }}
-              className="text-roomie-purple hover:underline"
+              className="text-roomie-purple hover:underline font-semibold"
             >
               Sign in
             </button>
           </div>
-        </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );
 };
+

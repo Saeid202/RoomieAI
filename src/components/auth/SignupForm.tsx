@@ -42,23 +42,23 @@ export const SignupForm = ({ onSubmit, isLoading }: SignupFormProps) => {
       fullName: "",
       email: "",
       password: "",
-      role: "seeker", // Default role
+      role: "seeker",
     },
   });
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 mt-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
         <FormField
           control={form.control}
           name="fullName"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="font-medium">Full Name</FormLabel>
+              <FormLabel className="font-medium text-sm">Full Name</FormLabel>
               <FormControl>
-                <Input placeholder="Your full name" {...field} className="h-11" />
+                <Input placeholder="Your full name" {...field} className="h-9 text-sm" />
               </FormControl>
-              <FormMessage />
+              <FormMessage className="text-xs" />
             </FormItem>
           )}
         />
@@ -68,11 +68,11 @@ export const SignupForm = ({ onSubmit, isLoading }: SignupFormProps) => {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="font-medium">Email</FormLabel>
+              <FormLabel className="font-medium text-sm">Email</FormLabel>
               <FormControl>
-                <Input type="email" placeholder="your@email.com" {...field} className="h-11" />
+                <Input type="email" placeholder="your@email.com" {...field} className="h-9 text-sm" />
               </FormControl>
-              <FormMessage />
+              <FormMessage className="text-xs" />
             </FormItem>
           )}
         />
@@ -82,32 +82,32 @@ export const SignupForm = ({ onSubmit, isLoading }: SignupFormProps) => {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="font-medium">Password</FormLabel>
+              <FormLabel className="font-medium text-sm">Password</FormLabel>
               <FormControl>
                 <div className="relative">
                   <Input
                     type={showPassword ? "text" : "password"}
                     placeholder="••••••••"
                     {...field}
-                    className="h-11 pr-10"
+                    className="h-9 pr-9 text-sm"
                   />
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className="absolute right-0 top-0 h-11 px-3 py-2 hover:bg-transparent"
+                    className="absolute right-0 top-0 h-9 px-2 py-1 hover:bg-transparent"
                     onClick={() => setShowPassword(!showPassword)}
                     aria-label={showPassword ? "Hide password" : "Show password"}
                   >
                     {showPassword ? (
-                      <EyeOff className="h-4 w-4 text-gray-500" />
+                      <EyeOff className="h-3.5 w-3.5 text-gray-500" />
                     ) : (
-                      <Eye className="h-4 w-4 text-gray-500" />
+                      <Eye className="h-3.5 w-3.5 text-gray-500" />
                     )}
                   </Button>
                 </div>
               </FormControl>
-              <FormMessage />
+              <FormMessage className="text-xs" />
             </FormItem>
           )}
         />
@@ -116,75 +116,75 @@ export const SignupForm = ({ onSubmit, isLoading }: SignupFormProps) => {
           control={form.control}
           name="role"
           render={({ field }) => (
-            <FormItem className="space-y-3">
-              <FormLabel className="font-medium">I am a:</FormLabel>
+            <FormItem className="space-y-2">
+              <FormLabel className="font-medium text-sm">I am a:</FormLabel>
               <FormControl>
                 <RadioGroup
                   onValueChange={field.onChange}
                   defaultValue={field.value}
-                  className="flex flex-col space-y-2"
+                  className="flex flex-col space-y-1.5"
                 >
-                  <FormItem className="flex items-center space-x-3 space-y-0">
+                  <FormItem className="flex items-center space-x-2 space-y-0">
                     <FormControl>
                       <RadioGroupItem value="seeker" />
                     </FormControl>
-                    <FormLabel className="font-normal cursor-pointer">
-                      Seeker - Looking for rent or co-ownership
+                    <FormLabel className="font-normal cursor-pointer text-xs">
+                      Seeker - Looking for rent
                     </FormLabel>
                   </FormItem>
-                  <FormItem className="flex items-center space-x-3 space-y-0">
+                  <FormItem className="flex items-center space-x-2 space-y-0">
                     <FormControl>
                       <RadioGroupItem value="landlord" />
                     </FormControl>
-                    <FormLabel className="font-normal cursor-pointer">
-                      Landlord - Manage rental properties
+                    <FormLabel className="font-normal cursor-pointer text-xs">
+                      Landlord - Manage properties
                     </FormLabel>
                   </FormItem>
-                  <FormItem className="flex items-center space-x-3 space-y-0">
+                  <FormItem className="flex items-center space-x-2 space-y-0">
                     <FormControl>
                       <RadioGroupItem value="renovator" />
                     </FormControl>
-                    <FormLabel className="font-normal cursor-pointer">
-                      Renovator - Find jobs & receive requests
+                    <FormLabel className="font-normal cursor-pointer text-xs">
+                      Renovator - Find jobs
                     </FormLabel>
                   </FormItem>
-                  <FormItem className="flex items-center space-x-3 space-y-0">
+                  <FormItem className="flex items-center space-x-2 space-y-0">
                     <FormControl>
                       <RadioGroupItem value="mortgage_broker" />
                     </FormControl>
-                    <FormLabel className="font-normal cursor-pointer">
-                      Mortgage Broker - Help clients with financing
+                    <FormLabel className="font-normal cursor-pointer text-xs">
+                      Mortgage Broker
                     </FormLabel>
                   </FormItem>
-                  <FormItem className="flex items-center space-x-3 space-y-0">
+                  <FormItem className="flex items-center space-x-2 space-y-0">
                     <FormControl>
                       <RadioGroupItem value="lawyer" />
                     </FormControl>
-                    <FormLabel className="font-normal cursor-pointer">
-                      Lawyer - Provide legal services
+                    <FormLabel className="font-normal cursor-pointer text-xs">
+                      Lawyer - Legal services
                     </FormLabel>
                   </FormItem>
-                  <FormItem className="flex items-center space-x-3 space-y-0">
+                  <FormItem className="flex items-center space-x-2 space-y-0">
                     <FormControl>
                       <RadioGroupItem value="lender" />
                     </FormControl>
-                    <FormLabel className="font-normal cursor-pointer">
-                      Lender - Provide mortgage financing
+                    <FormLabel className="font-normal cursor-pointer text-xs">
+                      Lender - Financing
                     </FormLabel>
                   </FormItem>
                 </RadioGroup>
               </FormControl>
-              <FormMessage />
+              <FormMessage className="text-xs" />
             </FormItem>
           )}
         />
 
         <Button
           type="submit"
-          className="w-full h-11 bg-roomie-purple hover:bg-roomie-dark text-white font-medium"
+          className="w-full h-9 bg-roomie-purple hover:bg-roomie-dark text-white font-medium text-sm"
           disabled={isLoading}
         >
-          {isLoading ? "Creating account..." : "Sign Up"}
+          {isLoading ? "Creating..." : "Sign Up"}
         </Button>
       </form>
     </Form>

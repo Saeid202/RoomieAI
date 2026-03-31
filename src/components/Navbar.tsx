@@ -16,7 +16,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-const Navbar = () => {
+interface NavbarProps {
+  hideMobileMenu?: boolean;
+}
+
+const Navbar = ({ hideMobileMenu = false }: NavbarProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSignupOpen, setIsSignupOpen] = useState(false);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
@@ -76,7 +80,7 @@ const Navbar = () => {
               </Button>
               <Button 
                 onClick={() => setIsSignupOpen(true)}
-                className="bg-roomie-purple hover:bg-roomie-dark text-white"
+                className="bg-gradient-to-r from-purple-600 via-purple-500 to-orange-500 hover:from-purple-700 hover:via-purple-600 hover:to-orange-600 text-white font-bold hover:shadow-xl transition-all"
                 data-signup-button="true"
               >
                 Sign up
@@ -87,12 +91,14 @@ const Navbar = () => {
           )}
         </div>
 
-        <button
-          className="md:hidden text-gray-700"
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
-        >
-          {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
+        {!hideMobileMenu && (
+          <button
+            className="md:hidden text-gray-700"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+          >
+            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        )}
       </div>
 
       <MobileMenu
