@@ -83,8 +83,8 @@ export const PWAInstallButton = () => {
     }
   };
 
-  // Show button only when install prompt is available
-  if (!showButton || !deferredPrompt) {
+  // Always show button for debugging (remove showButton check)
+  if (!deferredPrompt) {
     return null;
   }
 
