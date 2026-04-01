@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Download } from 'lucide-react';
+import { logPWAInstallation } from '@/services/pwaTrackingService';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -72,6 +73,9 @@ export const PWAInstallButton = () => {
       if (outcome === 'accepted') {
         console.log('PWA installation accepted');
         setIsInstalled(true);
+        
+        // Log the installation
+        await logPWAInstallation();
       } else {
         console.log('PWA installation dismissed');
       }
