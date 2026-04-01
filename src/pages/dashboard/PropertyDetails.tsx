@@ -799,47 +799,73 @@ export default function PropertyDetailsPage() {
         <aside className="space-y-4">
           <Card>
             <CardContent className="p-6 space-y-6">
-              {/* Price and Availability Block - Modern Design */}
+              {/* Price and Availability Block */}
               <div className="space-y-4">
-                <div className="bg-gradient-to-r from-purple-50 to-blue-50 p-6 rounded-xl border-2 border-purple-200 shadow-sm">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <p className="text-purple-600 text-xs font-bold uppercase tracking-widest mb-2">Price</p>
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-4xl font-black text-gray-900">
-                          ${isMLS ? mlsListing?.price : (isSale ? (property as any).sales_price : property?.monthly_rent)}
-                        </span>
-                        {!isSale && <span className="text-lg font-bold text-gray-600">/month</span>}
-                      </div>
-                    </div>
-                    {availableDate && (
-                      <div className="text-right">
-                        <p className="text-green-600 text-xs font-bold uppercase tracking-widest mb-1">Available</p>
-                        <p className="text-2xl font-bold text-gray-900">{availableDate}</p>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    {!isOwner || !editingPrice ? (
+                      <>
+                        <div className="flex items-center gap-1 font-semibold text-2xl text-primary">
+                          <DollarSign className="h-6 w-6" />
+                          <span>{isMLS ? mlsListing?.price : (isSale ? (property as any).sales_price : property?.monthly_rent)}</span>
+                          {!isSale && <span className="text-sm font-normal text-muted-foreground">/month</span>}
+                        </div>
+                        {isMLS && mlsListing ? (
+                          <div className="mt-2 space-y-1 text-sm">
+                            <div className="flex items-center gap-1 text-muted-foreground">
+                              <span className="font-medium text-gray-600">Agent:</span>
+                              <span className="font-semibold text-gray-900">{mlsListing.agentName}</span>
+                            </div>
+                            <div className="flex items-center gap-1 text-muted-foreground">
+                              <span className="font-medium text-gray-600">Brokerage:</span>
+                              <span className="font-semibold text-gray-900">{mlsListing.brokerageName}</span>
+                            </div>
+                            <div className="flex items-center gap-1 text-muted-foreground">
+                              <span className="font-medium text-gray-600">Phone:</span>
+                              <span className="font-semibold text-gray-900">{mlsListing.agentPhone}</span>
+                            </div>
+                            <div className="flex items-center gap-1 text-muted-foreground">
+                              <span className="font-medium text-gray-600">Email:</span>
+                              <span className="font-semibold text-gray-900">{mlsListing.agentEmail}</span>
+                            </div>
+                            <div className="flex items-center gap-1 text-muted-foreground">
+                              <span className="font-medium text-gray-600">MLS#:</span>
+                              <span className="font-semibold text-gray-900">{mlsListing.mlsNumber}</span>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="mt-2 flex items-center gap-1 text-sm text-muted-foreground">
+                            <span className="font-medium text-gray-600">Listed by:</span>
+                            <span className="font-semibold text-gray-900">
+                              {property?.landlord_name || 'Property Owner'}
+                              {property?.listing_agent && ` (${property.listing_agent})`}
+                            </span>
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <Input value={priceDraft} onChange={(e) => setPriceDraft(e.target.value)} placeholder="Monthly rent" className="w-24" />
+                        <Input value={securityDraft} onChange={(e) => setSecurityDraft(e.target.value)} placeholder="Security" className="w-24" />
                       </div>
                     )}
                   </div>
-                  {isOwner && (
-                    !editingPrice ? (
-                      <Button variant="outline" size="sm" className="mt-4 font-bold border-2 border-purple-300 hover:bg-purple-100" onClick={() => setEditingPrice(true)}>Edit Price & Availability</Button>
+                  <div className="flex items-center gap-2">
+                    {!isOwner || !editingPrice ? (
+                      availableDate && (
+                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                          <Calendar className="h-4 w-4" /> Available {availableDate}
+                        </div>
+                      )
                     ) : (
-                      <div className="mt-4 space-y-3">
-                        <div className="grid grid-cols-2 gap-3">
-                          <div>
-                            <label className="text-xs font-bold text-gray-700 mb-1 block">Price</label>
-                            <Input value={priceDraft} onChange={(e) => setPriceDraft(e.target.value)} placeholder="Monthly rent" className="h-10 font-bold border-2 border-purple-300" />
-                          </div>
-                          <div>
-                            <label className="text-xs font-bold text-gray-700 mb-1 block">Security Deposit</label>
-                            <Input value={securityDraft} onChange={(e) => setSecurityDraft(e.target.value)} placeholder="Security" className="h-10 font-bold border-2 border-purple-300" />
-                          </div>
-                        </div>
-                        <div>
-                          <label className="text-xs font-bold text-gray-700 mb-1 block">Available Date</label>
-                          <Input type="date" value={availableDraft} onChange={(e) => setAvailableDraft(e.target.value)} className="h-10 font-bold border-2 border-purple-300" />
-                        </div>
-                        <div className="flex gap-2 justify-end">
-                          <Button size="sm" className="h-9 px-4 font-bold bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800" disabled={saving} onClick={async () => {
+                      <Input type="date" value={availableDraft} onChange={(e) => setAvailableDraft(e.target.value)} className="w-32" />
+                    )}
+                    {isOwner && (
+                      !editingPrice ? (
+                        <Button variant="outline" size="sm" onClick={() => setEditingPrice(true)}>Edit</Button>
+                      ) : (
+                        <div className="flex items-center gap-1">
+                          <Button size="sm" className="h-8 px-2" disabled={saving} onClick={async () => {
                             await savePartial({
                               monthly_rent: isSale ? undefined : priceDraft,
                               sales_price: isSale ? priceDraft : undefined,
@@ -849,7 +875,7 @@ export default function PropertyDetailsPage() {
                             });
                             setEditingPrice(false);
                           }}>Save</Button>
-                          <Button variant="outline" className="h-9 px-4 font-bold border-2 border-gray-300 hover:bg-gray-50" size="sm" onClick={() => {
+                          <Button variant="outline" className="h-8 px-2" size="sm" onClick={() => {
                             setPriceDraft(String(property.monthly_rent ?? ""));
                             setSecurityDraft(property.security_deposit != null ? String(property.security_deposit) : "");
                             setLeaseDraft(property.lease_terms || "");
@@ -857,42 +883,42 @@ export default function PropertyDetailsPage() {
                             setEditingPrice(false);
                           }}>Cancel</Button>
                         </div>
-                      </div>
-                    )
-                  )}
+                      )
+                    )}
+                  </div>
                 </div>
 
                 {/* Type/Address/Nearby Block */}
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <span className="text-gray-700 text-xs font-bold uppercase tracking-widest">Type:</span>
-                    <span className="font-bold bg-gradient-to-r from-blue-100 to-blue-200 text-blue-900 px-3 py-1 rounded-lg text-sm uppercase tracking-wide border border-blue-300">
+                <div className="space-y-3 pt-2">
+                  <div className="flex items-center gap-2 text-sm">
+                    <span className="text-muted-foreground font-medium">Type:</span>
+                    <span className="font-semibold bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-xs uppercase tracking-wide">
                       {!isMLS ? property?.property_type : mlsListing?.propertyType || 'Not specified'}
                     </span>
                   </div>
 
-                  <div className="flex items-start gap-3">
-                    <MapPin className="h-5 w-5 text-purple-600 mt-0.5 shrink-0 font-bold" />
-                    <span className="text-gray-900 font-bold text-sm leading-snug">
+                  <div className="flex items-start gap-2 text-sm">
+                    <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+                    <span className="text-gray-700 font-medium">
                       {!isMLS ? `${property?.address}, ${property?.city}, ${property?.state} ${property?.zip_code}` : `${mlsListing?.address}, ${mlsListing?.city}, ${mlsListing?.province}`}
                     </span>
                   </div>
 
                   {currentNearbyAmenities && currentNearbyAmenities.length > 0 && (
-                    <div className="space-y-2 pt-2">
-                      <span className="text-xs text-gray-700 font-bold uppercase tracking-widest">Nearby Amenities:</span>
-                      <div className="flex flex-wrap gap-2">
+                    <div className="space-y-1">
+                      <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Nearby:</span>
+                      <div className="flex flex-wrap gap-1.5">
                         {currentNearbyAmenities.slice(0, 4).map((amenity, index) => (
                           <span
                             key={index}
-                            className="bg-gradient-to-r from-green-100 to-green-200 text-green-900 border-2 border-green-300 px-3 py-1 rounded-lg text-xs font-bold"
+                            className="bg-green-50 text-green-700 border border-green-100 px-2 py-0.5 rounded text-[10px] font-medium"
                           >
                             {amenity}
                           </span>
                         ))}
                         {currentNearbyAmenities.length > 4 && (
-                          <span className="bg-gray-200 text-gray-700 border-2 border-gray-300 px-3 py-1 rounded-lg text-xs font-bold">
-                            +{currentNearbyAmenities.length - 4} more
+                          <span className="bg-gray-50 text-gray-500 border border-gray-100 px-2 py-0.5 rounded text-[10px]">
+                            +{currentNearbyAmenities.length - 4}
                           </span>
                         )}
                       </div>
@@ -929,94 +955,94 @@ export default function PropertyDetailsPage() {
 
               <Separator />
 
-              {/* Key Details Block - Modern Design */}
-              <div className="space-y-4">
+              {/* Key Facts Block */}
+              <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-bold text-lg text-gray-900">Key Details</h3>
+                  <h3 className="font-semibold text-base">Key Details</h3>
                   {!isMLS && isOwner && !editingFacts && (
-                    <Button variant="ghost" size="sm" className="h-6 text-xs font-semibold text-purple-600 hover:text-purple-700 hover:bg-purple-50" onClick={() => setEditingFacts(true)}>Edit</Button>
+                    <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => setEditingFacts(true)}>Edit</Button>
                   )}
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-3 text-sm">
                   {/* Bedrooms */}
-                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-xl border border-blue-200 shadow-sm hover:shadow-md transition-shadow">
-                    <div className="text-blue-600 text-xs font-bold uppercase tracking-wider mb-1">Bedrooms</div>
+                  <div className="bg-slate-50 p-2 rounded border border-slate-100">
+                    <div className="text-muted-foreground text-xs">Bedrooms</div>
                     {!isMLS && (!isOwner || !editingFacts) ? (
-                      <div className="text-3xl font-bold text-gray-900">{currentBedrooms ?? '—'}</div>
+                      <div className="font-medium">{currentBedrooms ?? '—'}</div>
                     ) : isMLS ? (
-                      <div className="text-3xl font-bold text-gray-900">{currentBedrooms ?? '—'}</div>
+                      <div className="font-medium">{currentBedrooms ?? '—'}</div>
                     ) : (
-                      <Input value={bedroomsDraft} onChange={(e) => setBedroomsDraft(e.target.value)} className="h-10 text-lg font-bold border-blue-300" />
+                      <Input value={bedroomsDraft} onChange={(e) => setBedroomsDraft(e.target.value)} className="h-7 text-xs" />
                     )}
                   </div>
                   {/* Bathrooms */}
-                  <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-xl border border-green-200 shadow-sm hover:shadow-md transition-shadow">
-                    <div className="text-green-600 text-xs font-bold uppercase tracking-wider mb-1">Bathrooms</div>
+                  <div className="bg-slate-50 p-2 rounded border border-slate-100">
+                    <div className="text-muted-foreground text-xs">Bathrooms</div>
                     {!isMLS && (!isOwner || !editingFacts) ? (
-                      <div className="text-3xl font-bold text-gray-900">{currentBathrooms ?? '—'}</div>
+                      <div className="font-medium">{currentBathrooms ?? '—'}</div>
                     ) : isMLS ? (
-                      <div className="text-3xl font-bold text-gray-900">{currentBathrooms ?? '—'}</div>
+                      <div className="font-medium">{currentBathrooms ?? '—'}</div>
                     ) : (
-                      <Input value={bathroomsDraft} onChange={(e) => setBathroomsDraft(e.target.value)} className="h-10 text-lg font-bold border-green-300" />
+                      <Input value={bathroomsDraft} onChange={(e) => setBathroomsDraft(e.target.value)} className="h-7 text-xs" />
                     )}
                   </div>
                   {/* Sqft */}
-                  <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-xl border border-purple-200 shadow-sm hover:shadow-md transition-shadow">
-                    <div className="text-purple-600 text-xs font-bold uppercase tracking-wider mb-1">Square Feet</div>
+                  <div className="bg-slate-50 p-2 rounded border border-slate-100">
+                    <div className="text-muted-foreground text-xs">Sqft</div>
                     {!isMLS && (!isOwner || !editingFacts) ? (
-                      <div className="text-3xl font-bold text-gray-900">{currentSquareFootage ? `${currentSquareFootage.toLocaleString()}` : '—'}</div>
+                      <div className="font-medium">{currentSquareFootage ?? '—'}</div>
                     ) : isMLS ? (
-                      <div className="text-3xl font-bold text-gray-900">—</div>
+                      <div className="font-medium">—</div>
                     ) : (
-                      <Input value={sqftDraft} onChange={(e) => setSqftDraft(e.target.value)} className="h-10 text-lg font-bold border-purple-300" />
+                      <Input value={sqftDraft} onChange={(e) => setSqftDraft(e.target.value)} className="h-7 text-xs" />
                     )}
                   </div>
                   {/* Parking */}
-                  <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-4 rounded-xl border border-orange-200 shadow-sm hover:shadow-md transition-shadow">
-                    <div className="text-orange-600 text-xs font-bold uppercase tracking-wider mb-1">Parking</div>
+                  <div className="bg-slate-50 p-2 rounded border border-slate-100">
+                    <div className="text-muted-foreground text-xs">Parking</div>
                     {!isMLS && (!isOwner || !editingFacts) ? (
-                      <div className="text-2xl font-bold text-gray-900 truncate" title={currentParking}>{currentParking || '—'}</div>
+                      <div className="font-medium truncate" title={currentParking}>{currentParking || '—'}</div>
                     ) : isMLS ? (
-                      <div className="text-2xl font-bold text-gray-900 truncate" title={currentParking}>{currentParking || '—'}</div>
+                      <div className="font-medium truncate" title={currentParking}>{currentParking || '—'}</div>
                     ) : (
-                      <Input value={parkingDraft} onChange={(e) => setParkingDraft(e.target.value)} className="h-10 text-lg font-bold border-orange-300" />
+                      <Input value={parkingDraft} onChange={(e) => setParkingDraft(e.target.value)} className="h-7 text-xs" />
                     )}
                   </div>
                   {/* Pet Policy - HomieAI only */}
                   {!isMLS && (
-                    <div className="bg-gradient-to-br from-pink-50 to-pink-100 p-4 rounded-xl border border-pink-200 shadow-sm hover:shadow-md transition-shadow">
-                      <div className="text-pink-600 text-xs font-bold uppercase tracking-wider mb-1">Pet Policy</div>
+                    <div className="bg-slate-50 p-2 rounded border border-slate-100">
+                      <div className="text-muted-foreground text-xs">Pet Policy</div>
                       {!isOwner || !editingFacts ? (
-                        <div className="text-2xl font-bold text-gray-900 truncate" title={currentPetPolicy}>{currentPetPolicy || '—'}</div>
+                        <div className="font-medium truncate" title={currentPetPolicy}>{currentPetPolicy || '—'}</div>
                       ) : (
-                        <Input value={petPolicyDraft} onChange={(e) => setPetPolicyDraft(e.target.value)} className="h-10 text-lg font-bold border-pink-300" />
+                        <Input value={petPolicyDraft} onChange={(e) => setPetPolicyDraft(e.target.value)} className="h-7 text-xs" />
                       )}
                     </div>
                   )}
                   {/* Furnished - HomieAI only */}
                   {!isMLS && (
-                    <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 p-4 rounded-xl border border-indigo-200 shadow-sm hover:shadow-md transition-shadow">
-                      <div className="text-indigo-600 text-xs font-bold uppercase tracking-wider mb-1">Furnished</div>
+                    <div className="bg-slate-50 p-2 rounded border border-slate-100">
+                      <div className="text-muted-foreground text-xs">Furnished</div>
                       {!isOwner || !editingFacts ? (
-                        <div className="text-2xl font-bold text-gray-900">{currentFurnished ? '✓ Yes' : '✗ No'}</div>
+                        <div className="font-medium">{currentFurnished ? 'Yes' : 'No'}</div>
                       ) : (
-                        <Input value={furnishedDraft} onChange={(e) => setFurnishedDraft(e.target.value)} className="h-10 text-lg font-bold border-indigo-300" />
+                        <Input value={furnishedDraft} onChange={(e) => setFurnishedDraft(e.target.value)} className="h-7 text-xs" />
                       )}
                     </div>
                   )}
                   {/* Days on Market - Only for sales listings */}
                   {!isMLS && isSale && daysOnMarket !== null && (
-                    <div className="bg-gradient-to-br from-red-50 to-red-100 p-4 rounded-xl border border-red-200 shadow-sm hover:shadow-md transition-shadow">
-                      <div className="text-red-600 text-xs font-bold uppercase tracking-wider mb-1">Days on Market</div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-3xl font-bold text-gray-900">{daysOnMarket}</span>
-                        <span className={`text-xs font-bold px-2 py-1 rounded-lg ${
-                          daysOnMarket <= 7 ? 'bg-green-200 text-green-800' :
-                          daysOnMarket <= 30 ? 'bg-yellow-200 text-yellow-800' :
-                          'bg-red-200 text-red-800'
+                    <div className="bg-slate-50 p-2 rounded border border-slate-100">
+                      <div className="text-muted-foreground text-xs">Days on Market</div>
+                      <div className="font-medium flex items-center gap-1">
+                        <span>{daysOnMarket}</span>
+                        <span className={`text-xs px-1.5 py-0.5 rounded ${
+                          daysOnMarket <= 7 ? 'bg-green-100 text-green-700' :
+                          daysOnMarket <= 30 ? 'bg-yellow-100 text-yellow-700' :
+                          'bg-red-100 text-red-700'
                         }`}>
-                          {daysOnMarket <= 7 ? 'NEW' : daysOnMarket <= 30 ? 'ACTIVE' : 'STALE'}
+                          {daysOnMarket <= 7 ? 'New' : daysOnMarket <= 30 ? 'Active' : 'Stale'}
                         </span>
                       </div>
                     </div>
@@ -1024,8 +1050,8 @@ export default function PropertyDetailsPage() {
                 </div>
 
                 {isOwner && editingFacts && (
-                  <div className="flex justify-end gap-2 mt-4 pt-2 border-t border-gray-200">
-                    <Button size="sm" className="h-8 text-xs font-bold bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800" disabled={saving} onClick={async () => {
+                  <div className="flex justify-end gap-2 mt-2">
+                    <Button size="sm" className="h-7 text-xs" disabled={saving} onClick={async () => {
                       await savePartial({
                         bedrooms: bedroomsDraft,
                         bathrooms: bathroomsDraft,
@@ -1035,8 +1061,8 @@ export default function PropertyDetailsPage() {
                         furnished: furnishedDraft,
                       });
                       setEditingFacts(false);
-                    }}>Save Changes</Button>
-                    <Button variant="outline" size="sm" className="h-8 text-xs font-bold border-2 border-gray-300 hover:bg-gray-50" onClick={() => {
+                    }}>Save</Button>
+                    <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => {
                       setBedroomsDraft(property.bedrooms != null ? String(property.bedrooms) : "");
                       setBathroomsDraft(property.bathrooms != null ? String(property.bathrooms) : "");
                       setSqftDraft(property.square_footage != null ? String(property.square_footage) : "");
