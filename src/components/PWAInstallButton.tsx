@@ -83,9 +83,18 @@ export const PWAInstallButton = () => {
     }
   };
 
-  // Always show button for debugging (remove showButton check)
-  if (!deferredPrompt) {
-    return null;
+  // Show button only when install prompt is available
+  if (!showButton || !deferredPrompt) {
+    return (
+      <button
+        disabled
+        className="flex items-center gap-2 px-4 py-2 bg-gray-400 text-white rounded-lg transition-all font-semibold text-sm opacity-50 cursor-not-allowed"
+        title="App installation not available in your browser"
+      >
+        <Download size={18} />
+        Install App
+      </button>
+    );
   }
 
   return (
