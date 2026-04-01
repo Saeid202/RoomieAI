@@ -1,7 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Download, RotateCcw } from 'lucide-react';
-import { PWAReinstallModal } from './PWAReinstallModal';
-import { pwaStorageManager } from '@/utils/pwaStorageManager';
+import { Download } from 'lucide-react';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
