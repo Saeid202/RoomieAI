@@ -801,70 +801,26 @@ export default function PropertyDetailsPage() {
             <CardContent className="p-6 space-y-6">
               {/* Price and Availability Block */}
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
+                <div className="space-y-3">
+                  {/* Price Row */}
                   <div className="flex items-center gap-2">
                     {!isOwner || !editingPrice ? (
-                      <>
-                        <div className="flex items-center gap-1 font-semibold text-2xl text-primary">
-                          <DollarSign className="h-6 w-6" />
-                          <span>{isMLS ? mlsListing?.price : (isSale ? (property as any).sales_price : property?.monthly_rent)}</span>
-                          {!isSale && <span className="text-sm font-normal text-muted-foreground">/month</span>}
-                        </div>
-                        {isMLS && mlsListing ? (
-                          <div className="mt-2 space-y-1 text-sm">
-                            <div className="flex items-center gap-1 text-muted-foreground">
-                              <span className="font-medium text-gray-600">Agent:</span>
-                              <span className="font-semibold text-gray-900">{mlsListing.agentName}</span>
-                            </div>
-                            <div className="flex items-center gap-1 text-muted-foreground">
-                              <span className="font-medium text-gray-600">Brokerage:</span>
-                              <span className="font-semibold text-gray-900">{mlsListing.brokerageName}</span>
-                            </div>
-                            <div className="flex items-center gap-1 text-muted-foreground">
-                              <span className="font-medium text-gray-600">Phone:</span>
-                              <span className="font-semibold text-gray-900">{mlsListing.agentPhone}</span>
-                            </div>
-                            <div className="flex items-center gap-1 text-muted-foreground">
-                              <span className="font-medium text-gray-600">Email:</span>
-                              <span className="font-semibold text-gray-900">{mlsListing.agentEmail}</span>
-                            </div>
-                            <div className="flex items-center gap-1 text-muted-foreground">
-                              <span className="font-medium text-gray-600">MLS#:</span>
-                              <span className="font-semibold text-gray-900">{mlsListing.mlsNumber}</span>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="mt-2 flex items-center gap-1 text-sm text-muted-foreground">
-                            <span className="font-medium text-gray-600">Listed by:</span>
-                            <span className="font-semibold text-gray-900">
-                              {property?.landlord_name || 'Property Owner'}
-                              {property?.listing_agent && ` (${property.listing_agent})`}
-                            </span>
-                          </div>
-                        )}
-                      </>
+                      <div className="flex items-center gap-1 font-semibold text-2xl text-primary">
+                        <DollarSign className="h-6 w-6" />
+                        <span>{isMLS ? mlsListing?.price : (isSale ? (property as any).sales_price : property?.monthly_rent)}</span>
+                        {!isSale && <span className="text-sm font-normal text-muted-foreground">/month</span>}
+                      </div>
                     ) : (
                       <div className="flex items-center gap-2">
                         <Input value={priceDraft} onChange={(e) => setPriceDraft(e.target.value)} placeholder="Monthly rent" className="w-24" />
                         <Input value={securityDraft} onChange={(e) => setSecurityDraft(e.target.value)} placeholder="Security" className="w-24" />
                       </div>
                     )}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {!isOwner || !editingPrice ? (
-                      availableDate && (
-                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                          <Calendar className="h-4 w-4" /> Available {availableDate}
-                        </div>
-                      )
-                    ) : (
-                      <Input type="date" value={availableDraft} onChange={(e) => setAvailableDraft(e.target.value)} className="w-32" />
-                    )}
                     {isOwner && (
                       !editingPrice ? (
-                        <Button variant="outline" size="sm" onClick={() => setEditingPrice(true)}>Edit</Button>
+                        <Button variant="outline" size="sm" className="ml-auto" onClick={() => setEditingPrice(true)}>Edit</Button>
                       ) : (
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1 ml-auto">
                           <Button size="sm" className="h-8 px-2" disabled={saving} onClick={async () => {
                             await savePartial({
                               monthly_rent: isSale ? undefined : priceDraft,
@@ -885,6 +841,59 @@ export default function PropertyDetailsPage() {
                         </div>
                       )
                     )}
+                  </div>
+
+                  {/* Listed By and Available Row */}
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    {/* Listed By / Agent Info */}
+                    <div className="min-w-0">
+                      {isMLS && mlsListing ? (
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-1 text-muted-foreground">
+                            <span className="font-medium text-gray-600">Agent:</span>
+                            <span className="font-semibold text-gray-900 truncate">{mlsListing.agentName}</span>
+                          </div>
+                          <div className="flex items-center gap-1 text-muted-foreground">
+                            <span className="font-medium text-gray-600">Brokerage:</span>
+                            <span className="font-semibold text-gray-900 truncate">{mlsListing.brokerageName}</span>
+                          </div>
+                          <div className="flex items-center gap-1 text-muted-foreground">
+                            <span className="font-medium text-gray-600">Phone:</span>
+                            <span className="font-semibold text-gray-900 truncate">{mlsListing.agentPhone}</span>
+                          </div>
+                          <div className="flex items-center gap-1 text-muted-foreground">
+                            <span className="font-medium text-gray-600">Email:</span>
+                            <span className="font-semibold text-gray-900 truncate">{mlsListing.agentEmail}</span>
+                          </div>
+                          <div className="flex items-center gap-1 text-muted-foreground">
+                            <span className="font-medium text-gray-600">MLS#:</span>
+                            <span className="font-semibold text-gray-900">{mlsListing.mlsNumber}</span>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1">
+                          <span className="font-medium text-gray-600">Listed by:</span>
+                          <span className="font-semibold text-gray-900 truncate">
+                            {property?.landlord_name || 'Property Owner'}
+                            {property?.listing_agent && ` (${property.listing_agent})`}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Available Date */}
+                    <div className="min-w-0">
+                      {!isOwner || !editingPrice ? (
+                        availableDate && (
+                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                            <Calendar className="h-4 w-4 shrink-0" />
+                            <span className="truncate">Available {availableDate}</span>
+                          </div>
+                        )
+                      ) : (
+                        <Input type="date" value={availableDraft} onChange={(e) => setAvailableDraft(e.target.value)} className="w-full" />
+                      )}
+                    </div>
                   </div>
                 </div>
 
