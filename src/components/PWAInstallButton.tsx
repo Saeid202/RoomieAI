@@ -10,134 +10,94 @@ interface BeforeInstallPromptEvent extends Event {
 
 export const PWAInstallButton = () => {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [isStandalone, setIsStandalone] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
-  const [showReinstallModal, setShowReinstallModal] = useState(false);
-  const [installedOrigin, setInstalledOrigin] = useState<string | null>(null);
+  const [showButton, setShowButton] = useState(false);
 
   useEffect(() => {
-    // Check if app is running in standalone mode
-    const checkStandaloneMode = () => {
-      const standalone = window.matchMedia('(display-mode: standalone)').matches;
-      setIsStandalone(standalone);
-
-      if (standalone) {
-        pwaStorageManager.markAsStandalone();
-      }
+    // Check if app is already installed (running in standalone mode)
+    const checkInstallation = () => {
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+      setIsInstalled(isStandalone);
+      console.log('PWA Installation check - Standalone mode:', isStandalone);
     };
 
-    checkStandaloneMode();
+    checkInstallation();
 
     const handleBeforeInstallPrompt = (e: Event) => {
+      console.log('beforeinstallprompt event fired');
       e.preventDefault();
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
+      const event = e as BeforeInstallPromptEvent;
+      setDeferredPrompt(event);
+      setShowButton(true);
       setIsInstalled(false);
     };
 
     const handleAppInstalled = () => {
-      pwaStorageManager.markAsInstalled();
+      console.log('appinstalled event fired');
       setIsInstalled(true);
       setDeferredPrompt(null);
+      setShowButton(false);
     };
 
+    // Listen for when app is uninstalled (beforeinstallprompt fires again)
     const handleDisplayModeChange = () => {
-      checkStandaloneMode();
+      console.log('display-mode changed');
+      checkInstallation();
     };
 
-    // Check if app was previously installed
-    const state = pwaStorageManager.getInstallationState();
-    if (state.state === 'installed' || state.state === 'running_standalone') {
-      setIsInstalled(true);
-      setInstalledOrigin(state.installedOrigin);
-    }
-
+    // Add listeners
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.addEventListener('appinstalled', handleAppInstalled);
-    window.matchMedia('(display-mode: standalone)').addEventListener('change', handleDisplayModeChange);
+    const mediaQuery = window.matchMedia('(display-mode: standalone)');
+    mediaQuery.addEventListener('change', handleDisplayModeChange);
 
-    // Listen for visibility changes to detect if app was uninstalled while in background
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        checkStandaloneMode();
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
+    // Log PWA support
+    console.log('PWA Support:', {
+      serviceWorker: 'serviceWorker' in navigator,
+      manifest: document.querySelector('link[rel="manifest"]') !== null,
+    });
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       window.removeEventListener('appinstalled', handleAppInstalled);
-      window.matchMedia('(display-mode: standalone)').removeEventListener('change', handleDisplayModeChange);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      mediaQuery.removeEventListener('change', handleDisplayModeChange);
     };
   }, []);
 
   const handleInstallClick = async () => {
     if (!deferredPrompt) return;
 
-    pwaStorageManager.incrementInstallAttempts();
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
+    try {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
 
-    if (outcome === 'accepted') {
-      pwaStorageManager.markAsInstalled();
-      setIsInstalled(true);
+      if (outcome === 'accepted') {
+        console.log('PWA installation accepted');
+        setIsInstalled(true);
+      } else {
+        console.log('PWA installation dismissed');
+      }
+
+      setDeferredPrompt(null);
+      setShowButton(false);
+    } catch (error) {
+      console.error('Error during PWA installation:', error);
     }
-
-    setDeferredPrompt(null);
   };
 
-  const handleReinstallClick = () => {
-    setShowReinstallModal(true);
-  };
-
-  // Case 1: Running as standalone app - hide button
-  if (isStandalone) {
+  // Show button only when install prompt is available
+  if (!showButton || !deferredPrompt) {
     return null;
   }
 
-  // Case 2: Can install (beforeinstallprompt available) - show "Install App"
-  if (deferredPrompt) {
-    return (
-      <>
-        <button
-          onClick={handleInstallClick}
-          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 via-purple-500 to-orange-500 hover:from-purple-700 hover:via-purple-600 hover:to-orange-600 text-white rounded-lg transition-all font-semibold text-sm hover:shadow-lg"
-          title="Install HomieAI app on your device for offline access"
-        >
-          <Download size={18} />
-          Install App
-        </button>
-        <PWAReinstallModal
-          isOpen={showReinstallModal}
-          onClose={() => setShowReinstallModal(false)}
-          installedOrigin={installedOrigin || undefined}
-        />
-      </>
-    );
-  }
-
-  // Case 3: Installed but not running as standalone - show "Reinstall App"
-  if (isInstalled && !isStandalone) {
-    return (
-      <>
-        <button
-          onClick={handleReinstallClick}
-          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 via-purple-500 to-orange-500 hover:from-purple-700 hover:via-purple-600 hover:to-orange-600 text-white rounded-lg transition-all font-semibold text-sm hover:shadow-lg"
-          title="Reinstall HomieAI app on your device"
-        >
-          <RotateCcw size={18} />
-          Reinstall App
-        </button>
-        <PWAReinstallModal
-          isOpen={showReinstallModal}
-          onClose={() => setShowReinstallModal(false)}
-          installedOrigin={installedOrigin || undefined}
-        />
-      </>
-    );
-  }
-
-  // Case 4: Not installed and no prompt available - hide button
-  return null;
+  return (
+    <button
+      onClick={handleInstallClick}
+      className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 via-purple-500 to-orange-500 hover:from-purple-700 hover:via-purple-600 hover:to-orange-600 text-white rounded-lg transition-all font-semibold text-sm hover:shadow-lg"
+      title="Install HomieAI app on your device for offline access"
+    >
+      <Download size={18} />
+      Install App
+    </button>
+  );
 };
