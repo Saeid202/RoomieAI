@@ -975,83 +975,83 @@ export default function PropertyDetailsPage() {
 
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   {/* Bedrooms */}
-                  <div className="bg-slate-50 p-2 rounded border border-slate-100">
-                    <div className="text-muted-foreground text-xs">Bedrooms</div>
+                  <div className="bg-blue-50 p-3 rounded-lg border-2 border-blue-200 shadow-sm">
+                    <div className="text-blue-600 text-xs font-semibold uppercase">Bedrooms</div>
                     {!isMLS && (!isOwner || !editingFacts) ? (
-                      <div className="font-medium">{currentBedrooms ?? '—'}</div>
+                      <div className="font-bold text-lg text-blue-900">{currentBedrooms ?? '—'}</div>
                     ) : isMLS ? (
-                      <div className="font-medium">{currentBedrooms ?? '—'}</div>
+                      <div className="font-bold text-lg text-blue-900">{currentBedrooms ?? '—'}</div>
                     ) : (
-                      <Input value={bedroomsDraft} onChange={(e) => setBedroomsDraft(e.target.value)} className="h-7 text-xs" />
+                      <Input value={bedroomsDraft} onChange={(e) => setBedroomsDraft(e.target.value)} className="h-8 text-sm font-bold border-blue-300" />
                     )}
                   </div>
                   {/* Bathrooms */}
-                  <div className="bg-slate-50 p-2 rounded border border-slate-100">
-                    <div className="text-muted-foreground text-xs">Bathrooms</div>
+                  <div className="bg-green-50 p-3 rounded-lg border-2 border-green-200 shadow-sm">
+                    <div className="text-green-600 text-xs font-semibold uppercase">Bathrooms</div>
                     {!isMLS && (!isOwner || !editingFacts) ? (
-                      <div className="font-medium">{currentBathrooms ?? '—'}</div>
+                      <div className="font-bold text-lg text-green-900">{currentBathrooms ?? '—'}</div>
                     ) : isMLS ? (
-                      <div className="font-medium">{currentBathrooms ?? '—'}</div>
+                      <div className="font-bold text-lg text-green-900">{currentBathrooms ?? '—'}</div>
                     ) : (
-                      <Input value={bathroomsDraft} onChange={(e) => setBathroomsDraft(e.target.value)} className="h-7 text-xs" />
+                      <Input value={bathroomsDraft} onChange={(e) => setBathroomsDraft(e.target.value)} className="h-8 text-sm font-bold border-green-300" />
                     )}
                   </div>
                   {/* Sqft */}
-                  <div className="bg-slate-50 p-2 rounded border border-slate-100">
-                    <div className="text-muted-foreground text-xs">Sqft</div>
+                  <div className="bg-purple-50 p-3 rounded-lg border-2 border-purple-200 shadow-sm">
+                    <div className="text-purple-600 text-xs font-semibold uppercase">Sqft</div>
                     {!isMLS && (!isOwner || !editingFacts) ? (
-                      <div className="font-medium">{currentSquareFootage ?? '—'}</div>
+                      <div className="font-bold text-lg text-purple-900">{currentSquareFootage ?? '—'}</div>
                     ) : isMLS ? (
-                      <div className="font-medium">—</div>
+                      <div className="font-bold text-lg text-purple-900">—</div>
                     ) : (
-                      <Input value={sqftDraft} onChange={(e) => setSqftDraft(e.target.value)} className="h-7 text-xs" />
+                      <Input value={sqftDraft} onChange={(e) => setSqftDraft(e.target.value)} className="h-8 text-sm font-bold border-purple-300" />
                     )}
                   </div>
                   {/* Parking */}
-                  <div className="bg-slate-50 p-2 rounded border border-slate-100">
-                    <div className="text-muted-foreground text-xs">Parking</div>
+                  <div className="bg-orange-50 p-3 rounded-lg border-2 border-orange-200 shadow-sm">
+                    <div className="text-orange-600 text-xs font-semibold uppercase">Parking</div>
                     {!isMLS && (!isOwner || !editingFacts) ? (
-                      <div className="font-medium truncate" title={currentParking}>{currentParking || '—'}</div>
+                      <div className="font-bold text-lg text-orange-900 truncate" title={currentParking}>{currentParking || '—'}</div>
                     ) : isMLS ? (
-                      <div className="font-medium truncate" title={currentParking}>{currentParking || '—'}</div>
+                      <div className="font-bold text-lg text-orange-900 truncate" title={currentParking}>{currentParking || '—'}</div>
                     ) : (
-                      <Input value={parkingDraft} onChange={(e) => setParkingDraft(e.target.value)} className="h-7 text-xs" />
+                      <Input value={parkingDraft} onChange={(e) => setParkingDraft(e.target.value)} className="h-8 text-sm font-bold border-orange-300" />
                     )}
                   </div>
                   {/* Pet Policy - HomieAI only */}
                   {!isMLS && (
-                    <div className="bg-slate-50 p-2 rounded border border-slate-100">
-                      <div className="text-muted-foreground text-xs">Pet Policy</div>
+                    <div className="bg-pink-50 p-3 rounded-lg border-2 border-pink-200 shadow-sm">
+                      <div className="text-pink-600 text-xs font-semibold uppercase">Pet Policy</div>
                       {!isOwner || !editingFacts ? (
-                        <div className="font-medium truncate" title={currentPetPolicy}>{currentPetPolicy || '—'}</div>
+                        <div className="font-bold text-lg text-pink-900 truncate" title={currentPetPolicy}>{currentPetPolicy || '—'}</div>
                       ) : (
-                        <Input value={petPolicyDraft} onChange={(e) => setPetPolicyDraft(e.target.value)} className="h-7 text-xs" />
+                        <Input value={petPolicyDraft} onChange={(e) => setPetPolicyDraft(e.target.value)} className="h-8 text-sm font-bold border-pink-300" />
                       )}
                     </div>
                   )}
                   {/* Furnished - HomieAI only */}
                   {!isMLS && (
-                    <div className="bg-slate-50 p-2 rounded border border-slate-100">
-                      <div className="text-muted-foreground text-xs">Furnished</div>
+                    <div className="bg-indigo-50 p-3 rounded-lg border-2 border-indigo-200 shadow-sm">
+                      <div className="text-indigo-600 text-xs font-semibold uppercase">Furnished</div>
                       {!isOwner || !editingFacts ? (
-                        <div className="font-medium">{currentFurnished ? 'Yes' : 'No'}</div>
+                        <div className="font-bold text-lg text-indigo-900">{currentFurnished ? 'Yes' : 'No'}</div>
                       ) : (
-                        <Input value={furnishedDraft} onChange={(e) => setFurnishedDraft(e.target.value)} className="h-7 text-xs" />
+                        <Input value={furnishedDraft} onChange={(e) => setFurnishedDraft(e.target.value)} className="h-8 text-sm font-bold border-indigo-300" />
                       )}
                     </div>
                   )}
                   {/* Days on Market - Only for sales listings */}
                   {!isMLS && isSale && daysOnMarket !== null && (
-                    <div className="bg-slate-50 p-2 rounded border border-slate-100">
-                      <div className="text-muted-foreground text-xs">Days on Market</div>
-                      <div className="font-medium flex items-center gap-1">
+                    <div className="bg-red-50 p-3 rounded-lg border-2 border-red-200 shadow-sm">
+                      <div className="text-red-600 text-xs font-semibold uppercase">Days on Market</div>
+                      <div className="font-bold text-lg text-red-900 flex items-center gap-2">
                         <span>{daysOnMarket}</span>
-                        <span className={`text-xs px-1.5 py-0.5 rounded ${
-                          daysOnMarket <= 7 ? 'bg-green-100 text-green-700' :
-                          daysOnMarket <= 30 ? 'bg-yellow-100 text-yellow-700' :
-                          'bg-red-100 text-red-700'
+                        <span className={`text-xs px-2 py-1 rounded font-bold ${
+                          daysOnMarket <= 7 ? 'bg-green-200 text-green-800' :
+                          daysOnMarket <= 30 ? 'bg-yellow-200 text-yellow-800' :
+                          'bg-red-200 text-red-800'
                         }`}>
-                          {daysOnMarket <= 7 ? 'New' : daysOnMarket <= 30 ? 'Active' : 'Stale'}
+                          {daysOnMarket <= 7 ? 'NEW' : daysOnMarket <= 30 ? 'ACTIVE' : 'STALE'}
                         </span>
                       </div>
                     </div>
