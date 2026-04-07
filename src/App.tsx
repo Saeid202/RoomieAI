@@ -46,6 +46,7 @@ import AdminConstructionContent from "@/pages/dashboard/admin/AdminConstructionC
 import ReportingPreviewPage from "@/pages/dashboard/admin/ReportingPreview";
 import ReportingBatchesPage from "@/pages/dashboard/admin/ReportingBatches";
 import RateLimitManagementPage from "@/pages/dashboard/admin/RateLimitManagement";
+import AdminCommunities from "@/pages/dashboard/admin/AdminCommunities";
 import SettingsPage from "@/pages/dashboard/Settings";
 import MatchesPage from "@/pages/dashboard/Matches";
 import DebugPropertiesPage from "@/pages/dashboard/DebugProperties";
@@ -312,6 +313,7 @@ function AppRoutes() {
           <Route path="admin/reporting-batches" element={<AdminRoute><ReportingBatchesPage /></AdminRoute>} />
           <Route path="admin/settings" element={<AdminRoute><SettingsPage /></AdminRoute>} />
           <Route path="admin/rate-limits" element={<AdminRoute><RateLimitManagementPage /></AdminRoute>} />
+          <Route path="admin/communities" element={<AdminRoute><AdminCommunities /></AdminRoute>} />
 
           {/* Community routes */}
           <Route path="communities" element={<CommunitiesPage />} />
@@ -477,6 +479,7 @@ function AppRoutes() {
         <Route path="admin/reporting-batches" element={<AdminRoute><ReportingBatchesPage /></AdminRoute>} />
         <Route path="admin/settings" element={<AdminRoute><SettingsPage /></AdminRoute>} />
           <Route path="admin/rate-limits" element={<AdminRoute><RateLimitManagementPage /></AdminRoute>} />
+        <Route path="admin/communities" element={<AdminRoute><AdminCommunities /></AdminRoute>} />
 
         {/* Community routes */}
         <Route path="communities" element={<CommunitiesPage />} />

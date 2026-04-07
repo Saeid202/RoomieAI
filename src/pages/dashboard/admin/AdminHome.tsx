@@ -2,6 +2,7 @@
 import {
   LayoutDashboard,
   Users,
+  Users2,
   FileText,
   Hammer,
   Sparkles,
@@ -159,6 +160,20 @@ export default function AdminHomePage() {
             <CardContent>
               <p className="text-sm text-muted-foreground">
                 Manage document processing rate limits and view audit logs
+              </p>
+            </CardContent>
+          </EnhancedCard>
+        </Link>
+
+        <Link to="/dashboard/admin/communities" className="block">
+          <EnhancedCard className="h-full">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-lg font-medium">Communities</CardTitle>
+              <Users2 className="h-5 w-5 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                Manage seeker communities, moderate posts, and handle reports
               </p>
             </CardContent>
           </EnhancedCard>
