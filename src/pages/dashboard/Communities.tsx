@@ -439,32 +439,49 @@ export default function CommunitiesPage() {
 
         {/* My Community Tab */}
         {activeTab === 'my-community' && selectedCommunity && (
-          <div className="max-w-4xl mx-auto">
-            {/* Community Header Card - Premium */}
-            <div className="rounded-xl border border-gray-200 bg-white p-8 mb-8 shadow-sm hover:shadow-md transition-shadow">
-              <div className="flex items-start justify-between gap-6">
+          <div className="w-full">
+            {/* Community header - Full Width Premium Card */}
+            <div className="rounded-2xl border border-gray-200 bg-gradient-to-br from-white to-gray-50 p-10 mb-10 shadow-lg hover:shadow-xl transition-shadow">
+              <div className="flex items-start justify-between gap-8">
                 <div className="flex-1 min-w-0">
-                  <h1 className="text-4xl font-bold text-gray-900 mb-2">{selectedCommunity.name}</h1>
-                  {selectedCommunity.description && (
-                    <p className="text-gray-600 text-lg mb-4 leading-relaxed">{selectedCommunity.description}</p>
-                  )}
-                  <div className="flex items-center gap-6 text-base text-gray-600">
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-violet-600 to-purple-600 flex items-center justify-center shadow-lg">
+                      <span className="text-white font-bold text-3xl">{getInitials(selectedCommunity.name)}</span>
+                    </div>
+                    <div>
+                      <h1 className="text-5xl font-bold text-gray-900 mb-2">{selectedCommunity.name}</h1>
+                      {selectedCommunity.description && (
+                        <p className="text-gray-700 text-lg leading-relaxed">{selectedCommunity.description}</p>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-8 mt-6 text-lg">
                     {selectedCommunity.city && (
-                      <span className="flex items-center gap-2">
-                        <MapPin className="h-5 w-5 text-purple-500" />
-                        <span className="font-semibold">{selectedCommunity.city}</span>
+                      <span className="flex items-center gap-3 text-gray-700">
+                        <div className="p-2 bg-violet-100 rounded-lg">
+                          <MapPin className="h-6 w-6 text-violet-600" />
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-600">Location</p>
+                          <p className="font-semibold text-gray-900">{selectedCommunity.city}</p>
+                        </div>
                       </span>
                     )}
-                    <span className="flex items-center gap-2">
-                      <Users className="h-5 w-5 text-purple-500" />
-                      <span className="font-semibold">
-                        {selectedCommunity.memberCount.toLocaleString()} {selectedCommunity.memberCount === 1 ? 'member' : 'members'}
-                      </span>
+                    <span className="flex items-center gap-3 text-gray-700">
+                      <div className="p-2 bg-purple-100 rounded-lg">
+                        <Users className="h-6 w-6 text-purple-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">Members</p>
+                        <p className="font-semibold text-gray-900">{selectedCommunity.memberCount.toLocaleString()}</p>
+                      </div>
                     </span>
                   </div>
                 </div>
+                
                 {user && (
-                  <div className="w-40">
+                  <div className="w-48 flex-shrink-0">
                     <JoinCommunityButton
                       communityId={selectedCommunity.id}
                       membership={selectedCommunity.membership}
@@ -475,37 +492,55 @@ export default function CommunitiesPage() {
               </div>
             </div>
 
-            {/* Create Post Button - Premium */}
+            {/* Action Buttons - Modern & Luxury */}
             {isMember && (
-              <Button
-                onClick={() => setShowPostForm(true)}
-                className="w-full mb-8 h-12 gap-2 bg-gradient-to-r from-violet-600 via-purple-600 to-orange-500 text-white font-semibold text-base hover:from-violet-700 hover:via-purple-700 hover:to-orange-600 shadow-lg hover:shadow-xl transition-all rounded-lg"
-              >
-                <PenSquare className="h-5 w-5" />
-                Create Post
-              </Button>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+                <button
+                  onClick={() => setShowPostForm(true)}
+                  className="group relative overflow-hidden rounded-2xl bg-gradient-to-r from-violet-600 via-purple-600 to-orange-500 p-8 text-white font-bold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105"
+                >
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+                  <div className="relative flex items-center justify-center gap-3">
+                    <PenSquare className="h-7 w-7" />
+                    <span>Create Post</span>
+                  </div>
+                </button>
+
+                <button
+                  className="group relative overflow-hidden rounded-2xl bg-white border-2 border-violet-600 p-8 text-violet-600 font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:bg-violet-50"
+                >
+                  <div className="relative flex items-center justify-center gap-3">
+                    <Users className="h-7 w-7" />
+                    <span>Invite Members</span>
+                  </div>
+                </button>
+              </div>
             )}
 
-            {/* Filter Tabs - Premium */}
-            <div className="flex gap-2 mb-8 overflow-x-auto pb-2 border-b border-gray-200">
-              {FILTER_TABS.map(tab => (
-                <button
-                  key={tab.value}
-                  onClick={() => handleFilterTabChange(tab.value)}
-                  className={`px-4 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-all ${
-                    filter === tab.value
-                      ? 'bg-gradient-to-r from-violet-100 to-purple-100 text-violet-700 border border-violet-300'
-                      : 'text-gray-600 hover:bg-gray-100 border border-transparent'
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
+            {/* Filter Tabs - Enhanced */}
+            <div className="mb-10">
+              <h3 className="text-2xl font-bold text-gray-900 mb-6">Browse Posts</h3>
+              <div className="flex gap-3 overflow-x-auto pb-3 border-b-2 border-gray-200">
+                {FILTER_TABS.map(tab => (
+                  <button
+                    key={tab.value}
+                    onClick={() => handleFilterTabChange(tab.value)}
+                    className={`px-6 py-3 rounded-xl text-base font-semibold whitespace-nowrap transition-all ${
+                      filter === tab.value
+                        ? 'bg-gradient-to-r from-violet-600 to-purple-600 text-white shadow-lg'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Structured Post Filters */}
             {showPostFilter && (
-              <div className="mb-8 p-6 bg-gray-50 rounded-lg border border-gray-200">
+              <div className="mb-10 p-8 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl border border-gray-200 shadow-sm">
+                <h3 className="text-xl font-bold text-gray-900 mb-6">Refine Your Search</h3>
                 <PostFilter
                   activeFilters={structuredFilters}
                   onFilterChange={setStructuredFilters}
@@ -514,30 +549,38 @@ export default function CommunitiesPage() {
             )}
 
             {/* Posts Section */}
-            {postsLoading ? (
-              <PostLoadingSkeleton />
-            ) : displayedPosts.length === 0 ? (
-              <div className="rounded-lg border border-gray-200 bg-white p-16 text-center">
-                <p className="text-gray-600 text-lg">
-                  {filter === 'all' ? 'No posts yet. Be the first to post!' : 'No posts in this category.'}
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {displayedPosts.map(post => (
-                  <PostCard
-                    key={post.id}
-                    post={post}
-                    isMember={isMember}
-                    currentUserId={user?.id}
-                    likeCount={postMeta[post.id]?.likeCount ?? 0}
-                    commentCount={postMeta[post.id]?.commentCount ?? 0}
-                    isLiked={postMeta[post.id]?.isLiked ?? false}
-                    onLikeChange={handleLikeChange}
-                  />
-                ))}
-              </div>
-            )}
+            <div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-6">
+                {filter === 'all' ? 'All Posts' : `${FILTER_TABS.find(t => t.value === filter)?.label} Posts`}
+              </h3>
+              {postsLoading ? (
+                <PostLoadingSkeleton />
+              ) : displayedPosts.length === 0 ? (
+                <div className="rounded-2xl border-2 border-dashed border-gray-300 bg-gray-50 p-20 text-center">
+                  <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center mx-auto mb-4">
+                    <PenSquare className="h-8 w-8 text-gray-400" />
+                  </div>
+                  <p className="text-gray-600 text-lg font-medium">
+                    {filter === 'all' ? 'No posts yet. Be the first to post!' : 'No posts in this category.'}
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-5">
+                  {displayedPosts.map(post => (
+                    <PostCard
+                      key={post.id}
+                      post={post}
+                      isMember={isMember}
+                      currentUserId={user?.id}
+                      likeCount={postMeta[post.id]?.likeCount ?? 0}
+                      commentCount={postMeta[post.id]?.commentCount ?? 0}
+                      isLiked={postMeta[post.id]?.isLiked ?? false}
+                      onLikeChange={handleLikeChange}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
 
             {/* Post Form Modal */}
             <PostForm
