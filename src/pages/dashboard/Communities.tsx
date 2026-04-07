@@ -60,15 +60,18 @@ function getInitials(name: string) {
 
 function LoadingSkeleton() {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {[1, 2, 3, 4, 5, 6].map(i => (
-        <div key={i} className="rounded-2xl overflow-hidden border border-gray-100 bg-white shadow-sm animate-pulse">
-          <div className="h-28 bg-gradient-to-r from-gray-200 to-gray-300" />
-          <div className="p-4 space-y-3">
-            <div className="h-4 w-3/4 bg-gray-200 rounded-full" />
-            <div className="h-3 w-full bg-gray-100 rounded-full" />
-            <div className="h-3 w-2/3 bg-gray-100 rounded-full" />
-            <div className="h-9 w-full bg-gray-200 rounded-xl mt-2" />
+        <div key={i} className="rounded-xl overflow-hidden border border-gray-200 bg-white shadow-sm animate-pulse">
+          <div className="h-40 bg-gradient-to-r from-gray-200 to-gray-300" />
+          <div className="p-6 space-y-4">
+            <div className="h-5 w-3/4 bg-gray-200 rounded-lg" />
+            <div className="h-4 w-full bg-gray-100 rounded-lg" />
+            <div className="h-4 w-2/3 bg-gray-100 rounded-lg" />
+            <div className="flex gap-3 pt-2">
+              <div className="h-10 flex-1 bg-gray-200 rounded-lg" />
+              <div className="h-10 w-20 bg-gray-200 rounded-lg" />
+            </div>
           </div>
         </div>
       ))}
@@ -78,18 +81,18 @@ function LoadingSkeleton() {
 
 function PostLoadingSkeleton() {
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       {[1, 2, 3].map(i => (
-        <div key={i} className="rounded-lg border bg-card p-4 space-y-2 animate-pulse">
+        <div key={i} className="rounded-lg border border-gray-200 bg-white p-6 space-y-3 animate-pulse">
           <div className="flex justify-between">
-            <div className="h-3 w-24 bg-muted rounded" />
-            <div className="h-5 w-28 bg-muted rounded-full" />
+            <div className="h-4 w-28 bg-gray-200 rounded" />
+            <div className="h-5 w-32 bg-gray-200 rounded-full" />
           </div>
-          <div className="h-3 w-full bg-muted rounded" />
-          <div className="h-3 w-4/5 bg-muted rounded" />
-          <div className="flex gap-4 pt-2 border-t">
-            <div className="h-3 w-12 bg-muted rounded" />
-            <div className="h-3 w-12 bg-muted rounded" />
+          <div className="h-4 w-full bg-gray-100 rounded" />
+          <div className="h-4 w-4/5 bg-gray-100 rounded" />
+          <div className="flex gap-6 pt-3 border-t border-gray-100">
+            <div className="h-4 w-16 bg-gray-100 rounded" />
+            <div className="h-4 w-16 bg-gray-100 rounded" />
           </div>
         </div>
       ))}
@@ -272,41 +275,43 @@ export default function CommunitiesPage() {
   const discoverCommunities = communities.filter(c => c.membership?.status !== 'active');
 
   return (
-    <div className="min-h-screen bg-gray-50/50">
-      {/* Hero Header */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-violet-600 via-purple-700 to-indigo-800 px-6 py-10 md:py-14">
-        {/* Decorative blobs */}
-        <div className="absolute top-0 right-0 w-72 h-72 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/4 blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-56 h-56 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/4 blur-3xl" />
+    <div className="min-h-screen bg-white">
+      {/* Premium Header */}
+      <div className="relative overflow-hidden bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 px-8 py-16 md:py-20">
+        {/* Subtle animated background */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-purple-500 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-500 rounded-full blur-3xl" />
+        </div>
 
-        <div className="relative max-w-4xl mx-auto">
-          <div className="flex items-center gap-2 mb-3">
-            <div className="p-1.5 bg-white/20 rounded-lg backdrop-blur-sm">
-              <Sparkles className="h-4 w-4 text-white" />
+        <div className="relative max-w-7xl mx-auto">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg">
+              <Users className="h-5 w-5 text-white" />
             </div>
-            <span className="text-white/80 text-sm font-medium">Roommate Communities</span>
+            <span className="text-purple-300 text-sm font-semibold tracking-wide uppercase">Communities</span>
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold text-white mb-2 tracking-tight">
+          <h1 className="text-5xl md:text-6xl font-bold text-white mb-3 tracking-tight">
             Find Your Community
           </h1>
-          <p className="text-white/70 text-base mb-8 max-w-lg">
-            Connect with seekers in your city, share posts, find roommates, and build your network.
+          <p className="text-gray-300 text-lg mb-10 max-w-2xl leading-relaxed">
+            Connect with like-minded seekers in your city. Share experiences, find roommates, and build meaningful relationships.
           </p>
 
-          {/* Search Bar */}
-          <form onSubmit={handleSearch} className="flex gap-2 max-w-xl">
+          {/* Premium Search Bar */}
+          <form onSubmit={handleSearch} className="flex gap-3 max-w-2xl">
             <div className="relative flex-1">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
               <Input
                 value={searchInput}
                 onChange={e => setSearchInput(e.target.value)}
                 placeholder="Search communities by city..."
-                className="pl-10 h-11 bg-white/95 backdrop-blur-sm border-0 shadow-lg rounded-xl text-gray-800 placeholder:text-gray-400 focus-visible:ring-2 focus-visible:ring-white/50"
+                className="pl-12 h-12 bg-white border-0 shadow-xl rounded-lg text-gray-900 placeholder:text-gray-500 focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-0 text-base"
               />
             </div>
             <button
               type="submit"
-              className="px-5 h-11 rounded-xl bg-white text-purple-700 font-semibold text-sm hover:bg-white/90 transition-all shadow-lg"
+              className="px-8 h-12 rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold text-base hover:from-purple-700 hover:to-blue-700 transition-all shadow-lg hover:shadow-xl"
             >
               Search
             </button>
@@ -314,7 +319,7 @@ export default function CommunitiesPage() {
               <button
                 type="button"
                 onClick={() => { setSearch(''); setSearchInput(''); }}
-                className="px-4 h-11 rounded-xl bg-white/20 text-white text-sm hover:bg-white/30 transition-all backdrop-blur-sm"
+                className="px-6 h-12 rounded-lg bg-gray-700 text-gray-200 text-base font-medium hover:bg-gray-600 transition-all"
               >
                 Clear
               </button>
@@ -323,24 +328,24 @@ export default function CommunitiesPage() {
         </div>
       </div>
 
-      {/* Tab Navigation */}
+      {/* Tab Navigation - Premium Style */}
       {selectedCommunity && (
-        <div className="border-b bg-white sticky top-0 z-10">
-          <div className="max-w-5xl mx-auto px-4 md:px-6">
-            <div className="flex gap-8">
+        <div className="border-b border-gray-200 bg-white sticky top-0 z-10 shadow-sm">
+          <div className="max-w-7xl mx-auto px-8">
+            <div className="flex gap-12">
               <button
                 onClick={() => setActiveTab('browse')}
-                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                className={`py-4 px-1 border-b-2 font-semibold text-base transition-all ${
                   activeTab === 'browse'
                     ? 'border-purple-600 text-purple-600'
                     : 'border-transparent text-gray-600 hover:text-gray-900'
                 }`}
               >
-                Browse
+                Browse Communities
               </button>
               <button
                 onClick={() => setActiveTab('my-community')}
-                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                className={`py-4 px-1 border-b-2 font-semibold text-base transition-all ${
                   activeTab === 'my-community'
                     ? 'border-purple-600 text-purple-600'
                     : 'border-transparent text-gray-600 hover:text-gray-900'
@@ -353,8 +358,8 @@ export default function CommunitiesPage() {
         </div>
       )}
 
-      {/* Content */}
-      <div className="max-w-5xl mx-auto px-4 md:px-6 py-8 space-y-10">
+      {/* Content - Premium Layout */}
+      <div className="max-w-7xl mx-auto px-8 py-12 space-y-12">
 
         {/* Browse Tab */}
         {activeTab === 'browse' && (
@@ -362,27 +367,30 @@ export default function CommunitiesPage() {
             {loading ? (
               <LoadingSkeleton />
             ) : communities.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-20 text-center">
-                <div className="w-20 h-20 rounded-full bg-purple-100 flex items-center justify-center mb-4">
-                  <Globe className="h-9 w-9 text-purple-400" />
+              <div className="flex flex-col items-center justify-center py-32 text-center">
+                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-purple-100 to-blue-100 flex items-center justify-center mb-6">
+                  <Globe className="h-12 w-12 text-purple-400" />
                 </div>
-                <h3 className="text-lg font-semibold text-gray-800 mb-1">No communities found</h3>
-                <p className="text-sm text-gray-500 max-w-xs">
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">No communities found</h3>
+                <p className="text-gray-600 max-w-md text-lg">
                   {search ? `No communities found for "${search}". Try a different city.` : 'No communities available yet. Check back soon.'}
                 </p>
               </div>
             ) : (
               <>
-                {/* Joined Communities */}
+                {/* Joined Communities Section */}
                 {joinedCommunities.length > 0 && (
                   <section>
-                    <div className="flex items-center justify-between mb-4">
-                      <h2 className="text-lg font-bold text-gray-900">Your Communities</h2>
-                      <span className="text-xs text-gray-400 bg-gray-100 px-2.5 py-1 rounded-full font-medium">
+                    <div className="flex items-center justify-between mb-8">
+                      <div>
+                        <h2 className="text-3xl font-bold text-gray-900">Your Communities</h2>
+                        <p className="text-gray-600 mt-1">Communities you're actively part of</p>
+                      </div>
+                      <span className="text-sm font-semibold text-purple-600 bg-purple-50 px-4 py-2 rounded-full">
                         {joinedCommunities.length} joined
                       </span>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                       {joinedCommunities.map(community => (
                         <CommunityCard
                           key={community.id}
@@ -396,18 +404,21 @@ export default function CommunitiesPage() {
                   </section>
                 )}
 
-                {/* Discover Communities */}
+                {/* Discover Communities Section */}
                 {discoverCommunities.length > 0 && (
                   <section>
-                    <div className="flex items-center justify-between mb-4">
-                      <h2 className="text-lg font-bold text-gray-900">
-                        {joinedCommunities.length > 0 ? 'Discover More' : 'All Communities'}
-                      </h2>
-                      <span className="text-xs text-gray-400 bg-gray-100 px-2.5 py-1 rounded-full font-medium">
+                    <div className="flex items-center justify-between mb-8">
+                      <div>
+                        <h2 className="text-3xl font-bold text-gray-900">
+                          {joinedCommunities.length > 0 ? 'Discover More' : 'All Communities'}
+                        </h2>
+                        <p className="text-gray-600 mt-1">Explore communities and find your perfect match</p>
+                      </div>
+                      <span className="text-sm font-semibold text-blue-600 bg-blue-50 px-4 py-2 rounded-full">
                         {discoverCommunities.length} available
                       </span>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                       {discoverCommunities.map(community => (
                         <CommunityCard
                           key={community.id}
@@ -427,60 +438,63 @@ export default function CommunitiesPage() {
 
         {/* My Community Tab */}
         {activeTab === 'my-community' && selectedCommunity && (
-          <div className="max-w-2xl mx-auto">
-            {/* Community header */}
-            <div className="rounded-lg border bg-card p-4 mb-4">
-              <div className="flex items-start justify-between gap-3">
+          <div className="max-w-4xl mx-auto">
+            {/* Community Header Card - Premium */}
+            <div className="rounded-xl border border-gray-200 bg-white p-8 mb-8 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-start justify-between gap-6">
                 <div className="flex-1 min-w-0">
-                  <h1 className="text-xl font-bold">{selectedCommunity.name}</h1>
+                  <h1 className="text-4xl font-bold text-gray-900 mb-2">{selectedCommunity.name}</h1>
                   {selectedCommunity.description && (
-                    <p className="text-sm text-muted-foreground mt-1">{selectedCommunity.description}</p>
+                    <p className="text-gray-600 text-lg mb-4 leading-relaxed">{selectedCommunity.description}</p>
                   )}
-                  <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-6 text-base text-gray-600">
                     {selectedCommunity.city && (
-                      <span className="flex items-center gap-1">
-                        <MapPin className="h-3 w-3" />
-                        {selectedCommunity.city}
+                      <span className="flex items-center gap-2">
+                        <MapPin className="h-5 w-5 text-purple-500" />
+                        <span className="font-semibold">{selectedCommunity.city}</span>
                       </span>
                     )}
-                    <span className="flex items-center gap-1">
-                      <Users className="h-3 w-3" />
-                      {selectedCommunity.memberCount} {selectedCommunity.memberCount === 1 ? 'member' : 'members'}
+                    <span className="flex items-center gap-2">
+                      <Users className="h-5 w-5 text-purple-500" />
+                      <span className="font-semibold">
+                        {selectedCommunity.memberCount.toLocaleString()} {selectedCommunity.memberCount === 1 ? 'member' : 'members'}
+                      </span>
                     </span>
                   </div>
                 </div>
                 {user && (
-                  <JoinCommunityButton
-                    communityId={selectedCommunity.id}
-                    membership={selectedCommunity.membership}
-                    onMembershipChange={m => handleMembershipChange(selectedCommunity.id, m)}
-                  />
+                  <div className="w-40">
+                    <JoinCommunityButton
+                      communityId={selectedCommunity.id}
+                      membership={selectedCommunity.membership}
+                      onMembershipChange={m => handleMembershipChange(selectedCommunity.id, m)}
+                    />
+                  </div>
                 )}
               </div>
             </div>
 
-            {/* Create post button */}
+            {/* Create Post Button - Premium */}
             {isMember && (
               <Button
                 onClick={() => setShowPostForm(true)}
-                className="w-full mb-4 gap-2"
-                variant="outline"
+                className="w-full mb-8 h-12 gap-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold text-base hover:from-purple-700 hover:to-blue-700 shadow-lg hover:shadow-xl transition-all rounded-lg"
               >
-                <PenSquare className="h-4 w-4" />
+                <PenSquare className="h-5 w-5" />
                 Create Post
               </Button>
             )}
 
-            {/* Filter tabs */}
-            <div className="flex gap-1 mb-4 overflow-x-auto pb-1">
+            {/* Filter Tabs - Premium */}
+            <div className="flex gap-2 mb-8 overflow-x-auto pb-2 border-b border-gray-200">
               {FILTER_TABS.map(tab => (
                 <button
                   key={tab.value}
                   onClick={() => handleFilterTabChange(tab.value)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
+                  className={`px-4 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-all ${
                     filter === tab.value
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                      ? 'bg-purple-100 text-purple-700 border border-purple-300'
+                      : 'text-gray-600 hover:bg-gray-100 border border-transparent'
                   }`}
                 >
                   {tab.label}
@@ -488,25 +502,27 @@ export default function CommunitiesPage() {
               ))}
             </div>
 
-            {/* Structured post filters */}
+            {/* Structured Post Filters */}
             {showPostFilter && (
-              <PostFilter
-                activeFilters={structuredFilters}
-                onFilterChange={setStructuredFilters}
-              />
+              <div className="mb-8 p-6 bg-gray-50 rounded-lg border border-gray-200">
+                <PostFilter
+                  activeFilters={structuredFilters}
+                  onFilterChange={setStructuredFilters}
+                />
+              </div>
             )}
 
-            {/* Posts */}
+            {/* Posts Section */}
             {postsLoading ? (
               <PostLoadingSkeleton />
             ) : displayedPosts.length === 0 ? (
-              <div className="rounded-lg border bg-card p-12 text-center">
-                <p className="text-sm text-muted-foreground">
+              <div className="rounded-lg border border-gray-200 bg-white p-16 text-center">
+                <p className="text-gray-600 text-lg">
                   {filter === 'all' ? 'No posts yet. Be the first to post!' : 'No posts in this category.'}
                 </p>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {displayedPosts.map(post => (
                   <PostCard
                     key={post.id}
@@ -522,7 +538,7 @@ export default function CommunitiesPage() {
               </div>
             )}
 
-            {/* Post form modal */}
+            {/* Post Form Modal */}
             <PostForm
               communityId={selectedCommunity.id}
               open={showPostForm}
@@ -552,52 +568,55 @@ function CommunityCard({ community, onNavigate, onMembershipChange, showUser }: 
 
   return (
     <div
-      className="group bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 cursor-pointer flex flex-col"
+      className="group bg-white rounded-xl overflow-hidden border border-gray-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer flex flex-col"
       onClick={onNavigate}
     >
-      {/* Cover */}
-      <div className={`relative h-28 bg-gradient-to-br ${gradient} flex items-center justify-center`}>
-        <div className="absolute inset-0 bg-black/10" />
-        <div className="relative z-10 w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm border border-white/30 flex items-center justify-center shadow-lg">
-          <span className="text-white font-bold text-xl tracking-wide">{initials}</span>
+      {/* Premium Cover */}
+      <div className={`relative h-40 bg-gradient-to-br ${gradient} flex items-center justify-center overflow-hidden`}>
+        <div className="absolute inset-0 bg-black/5" />
+        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 bg-black/10 transition-opacity duration-300" />
+        
+        <div className="relative z-10 w-16 h-16 rounded-2xl bg-white/25 backdrop-blur-md border border-white/40 flex items-center justify-center shadow-xl">
+          <span className="text-white font-bold text-2xl tracking-wide">{initials}</span>
         </div>
+        
         {isJoined && (
-          <div className="absolute top-3 right-3 bg-white/20 backdrop-blur-sm border border-white/30 rounded-full px-2.5 py-0.5 flex items-center gap-1">
-            <div className="w-1.5 h-1.5 rounded-full bg-green-400" />
-            <span className="text-white text-xs font-medium">Joined</span>
+          <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm border border-white rounded-full px-3 py-1.5 flex items-center gap-1.5 shadow-lg">
+            <div className="w-2 h-2 rounded-full bg-green-500" />
+            <span className="text-gray-900 text-xs font-semibold">Joined</span>
           </div>
         )}
       </div>
 
       {/* Body */}
-      <div className="p-4 flex flex-col flex-1">
+      <div className="p-6 flex flex-col flex-1">
         <div className="flex-1">
-          <h3 className="font-bold text-gray-900 text-base leading-tight mb-1 group-hover:text-purple-700 transition-colors">
+          <h3 className="font-bold text-gray-900 text-lg leading-tight mb-2 group-hover:text-purple-700 transition-colors">
             {community.name}
           </h3>
           {community.description && (
-            <p className="text-sm text-gray-500 line-clamp-2 leading-relaxed">
+            <p className="text-gray-600 text-sm line-clamp-2 leading-relaxed mb-4">
               {community.description}
             </p>
           )}
-          <div className="flex items-center gap-3 mt-3 text-xs text-gray-400">
+          <div className="flex items-center gap-4 text-sm text-gray-600">
             {community.city && (
-              <span className="flex items-center gap-1">
-                <MapPin className="h-3 w-3 text-purple-400" />
-                <span className="font-medium text-gray-600">{community.city}</span>
+              <span className="flex items-center gap-1.5">
+                <MapPin className="h-4 w-4 text-purple-500" />
+                <span className="font-medium">{community.city}</span>
               </span>
             )}
-            <span className="flex items-center gap-1">
-              <Users className="h-3 w-3 text-purple-400" />
-              <span className="font-medium text-gray-600">
-                {community.memberCount.toLocaleString()} {community.memberCount === 1 ? 'member' : 'members'}
+            <span className="flex items-center gap-1.5">
+              <Users className="h-4 w-4 text-purple-500" />
+              <span className="font-medium">
+                {community.memberCount.toLocaleString()}
               </span>
             </span>
           </div>
         </div>
 
         {/* Actions */}
-        <div className="mt-4 flex items-center gap-2" onClick={e => e.stopPropagation()}>
+        <div className="mt-6 flex items-center gap-3" onClick={e => e.stopPropagation()}>
           {showUser && (
             <div className="flex-1">
               <JoinCommunityButton
@@ -609,10 +628,10 @@ function CommunityCard({ community, onNavigate, onMembershipChange, showUser }: 
           )}
           <button
             onClick={e => { e.stopPropagation(); onNavigate(); }}
-            className="flex items-center gap-1 px-3 py-2 rounded-xl border border-gray-200 text-gray-500 text-xs font-medium hover:bg-gray-50 hover:text-purple-600 hover:border-purple-200 transition-all"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-gray-300 text-gray-700 text-sm font-semibold hover:bg-purple-50 hover:text-purple-700 hover:border-purple-300 transition-all"
           >
             View
-            <ChevronRight className="h-3 w-3" />
+            <ChevronRight className="h-4 w-4" />
           </button>
         </div>
       </div>
