@@ -254,120 +254,122 @@ export default function CommunitiesPage() {
   const joinedCommunities = communities.filter(c => c.membership?.status === 'active');
   const discoverCommunities = communities.filter(c => c.membership?.status !== 'active');
 
-  // Show joined community detail view
+  // Show joined community detail view - full page
   if (selectedCommunity && isMember) {
     return (
-      <div className="max-w-2xl mx-auto px-4 md:px-6 py-6">
-        {/* Back button */}
-        <button
-          onClick={handleBackFromDetail}
-          className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 transition-colors"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to Communities
-        </button>
-
-        {/* Community header */}
-        <div className="rounded-lg border bg-card p-4 mb-4">
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex-1 min-w-0">
-              <h1 className="text-xl font-bold">{selectedCommunity.name}</h1>
-              {selectedCommunity.description && (
-                <p className="text-sm text-muted-foreground mt-1">{selectedCommunity.description}</p>
-              )}
-              <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
-                {selectedCommunity.city && (
-                  <span className="flex items-center gap-1">
-                    <MapPin className="h-3 w-3" />
-                    {selectedCommunity.city}
-                  </span>
-                )}
-                <span className="flex items-center gap-1">
-                  <Users className="h-3 w-3" />
-                  {selectedCommunity.memberCount} {selectedCommunity.memberCount === 1 ? 'member' : 'members'}
-                </span>
-              </div>
-            </div>
-            {user && (
-              <JoinCommunityButton
-                communityId={selectedCommunity.id}
-                membership={selectedCommunity.membership}
-                onMembershipChange={m => handleMembershipChange(selectedCommunity.id, m)}
-              />
-            )}
-          </div>
-        </div>
-
-        {/* Create post button */}
-        {isMember && (
-          <Button
-            onClick={() => setShowPostForm(true)}
-            className="w-full mb-4 gap-2"
-            variant="outline"
+      <div className="min-h-screen bg-gray-50/50">
+        <div className="max-w-2xl mx-auto px-4 md:px-6 py-6">
+          {/* Back button */}
+          <button
+            onClick={handleBackFromDetail}
+            className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 transition-colors"
           >
-            <PenSquare className="h-4 w-4" />
-            Create Post
-          </Button>
-        )}
+            <ArrowLeft className="h-4 w-4" />
+            Back to Communities
+          </button>
 
-        {/* Filter tabs */}
-        <div className="flex gap-1 mb-4 overflow-x-auto pb-1">
-          {FILTER_TABS.map(tab => (
-            <button
-              key={tab.value}
-              onClick={() => handleFilterTabChange(tab.value)}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
-                filter === tab.value
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted text-muted-foreground hover:bg-muted/80'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Structured post filters */}
-        {showPostFilter && (
-          <PostFilter
-            activeFilters={structuredFilters}
-            onFilterChange={setStructuredFilters}
-          />
-        )}
-
-        {/* Posts */}
-        {postsLoading ? (
-          <PostLoadingSkeleton />
-        ) : displayedPosts.length === 0 ? (
-          <div className="rounded-lg border bg-card p-12 text-center">
-            <p className="text-sm text-muted-foreground">
-              {filter === 'all' ? 'No posts yet. Be the first to post!' : 'No posts in this category.'}
-            </p>
+          {/* Community header */}
+          <div className="rounded-lg border bg-card p-4 mb-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex-1 min-w-0">
+                <h1 className="text-xl font-bold">{selectedCommunity.name}</h1>
+                {selectedCommunity.description && (
+                  <p className="text-sm text-muted-foreground mt-1">{selectedCommunity.description}</p>
+                )}
+                <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
+                  {selectedCommunity.city && (
+                    <span className="flex items-center gap-1">
+                      <MapPin className="h-3 w-3" />
+                      {selectedCommunity.city}
+                    </span>
+                  )}
+                  <span className="flex items-center gap-1">
+                    <Users className="h-3 w-3" />
+                    {selectedCommunity.memberCount} {selectedCommunity.memberCount === 1 ? 'member' : 'members'}
+                  </span>
+                </div>
+              </div>
+              {user && (
+                <JoinCommunityButton
+                  communityId={selectedCommunity.id}
+                  membership={selectedCommunity.membership}
+                  onMembershipChange={m => handleMembershipChange(selectedCommunity.id, m)}
+                />
+              )}
+            </div>
           </div>
-        ) : (
-          <div className="space-y-3">
-            {displayedPosts.map(post => (
-              <PostCard
-                key={post.id}
-                post={post}
-                isMember={isMember}
-                currentUserId={user?.id}
-                likeCount={postMeta[post.id]?.likeCount ?? 0}
-                commentCount={postMeta[post.id]?.commentCount ?? 0}
-                isLiked={postMeta[post.id]?.isLiked ?? false}
-                onLikeChange={handleLikeChange}
-              />
+
+          {/* Create post button */}
+          {isMember && (
+            <Button
+              onClick={() => setShowPostForm(true)}
+              className="w-full mb-4 gap-2"
+              variant="outline"
+            >
+              <PenSquare className="h-4 w-4" />
+              Create Post
+            </Button>
+          )}
+
+          {/* Filter tabs */}
+          <div className="flex gap-1 mb-4 overflow-x-auto pb-1">
+            {FILTER_TABS.map(tab => (
+              <button
+                key={tab.value}
+                onClick={() => handleFilterTabChange(tab.value)}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
+                  filter === tab.value
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                }`}
+              >
+                {tab.label}
+              </button>
             ))}
           </div>
-        )}
 
-        {/* Post form modal */}
-        <PostForm
-          communityId={selectedCommunity.id}
-          open={showPostForm}
-          onClose={() => setShowPostForm(false)}
-          onPostCreated={handlePostCreated}
-        />
+          {/* Structured post filters */}
+          {showPostFilter && (
+            <PostFilter
+              activeFilters={structuredFilters}
+              onFilterChange={setStructuredFilters}
+            />
+          )}
+
+          {/* Posts */}
+          {postsLoading ? (
+            <PostLoadingSkeleton />
+          ) : displayedPosts.length === 0 ? (
+            <div className="rounded-lg border bg-card p-12 text-center">
+              <p className="text-sm text-muted-foreground">
+                {filter === 'all' ? 'No posts yet. Be the first to post!' : 'No posts in this category.'}
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {displayedPosts.map(post => (
+                <PostCard
+                  key={post.id}
+                  post={post}
+                  isMember={isMember}
+                  currentUserId={user?.id}
+                  likeCount={postMeta[post.id]?.likeCount ?? 0}
+                  commentCount={postMeta[post.id]?.commentCount ?? 0}
+                  isLiked={postMeta[post.id]?.isLiked ?? false}
+                  onLikeChange={handleLikeChange}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* Post form modal */}
+          <PostForm
+            communityId={selectedCommunity.id}
+            open={showPostForm}
+            onClose={() => setShowPostForm(false)}
+            onPostCreated={handlePostCreated}
+          />
+        </div>
       </div>
     );
   }
