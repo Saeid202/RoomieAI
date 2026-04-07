@@ -93,9 +93,9 @@ export function PostForm({ communityId, open, onClose, onPostCreated }: PostForm
 
   return (
     <Dialog open={open} onOpenChange={open => !open && handleClose()}>
-      <DialogContent className="max-w-4xl max-h-[95vh] overflow-y-auto rounded-2xl shadow-2xl">
+      <DialogContent className="max-w-6xl max-h-[95vh] overflow-y-auto rounded-2xl shadow-2xl">
         <DialogHeader className="pb-6 border-b border-gray-200">
-          <DialogTitle className="text-3xl font-bold text-gray-900">Create Post</DialogTitle>
+          <DialogTitle className="text-3xl font-bold bg-gradient-to-r from-violet-600 via-purple-600 to-orange-500 bg-clip-text text-transparent">Create Post</DialogTitle>
           <p className="text-gray-600 text-base mt-2">Share your thoughts with the community</p>
         </DialogHeader>
 
@@ -110,7 +110,7 @@ export function PostForm({ communityId, open, onClose, onPostCreated }: PostForm
                   onClick={() => setPostType(value)}
                   className={`px-6 py-3 rounded-xl text-base font-semibold border-2 transition-all ${
                     postType === value
-                      ? 'bg-gradient-to-r from-violet-600 to-purple-600 text-white border-violet-600 shadow-lg'
+                      ? 'bg-gradient-to-r from-violet-600 via-purple-600 to-orange-500 text-white border-transparent shadow-lg'
                       : 'border-gray-300 text-gray-700 hover:border-violet-400 hover:bg-gray-50'
                   }`}
                 >
@@ -135,7 +135,7 @@ export function PostForm({ communityId, open, onClose, onPostCreated }: PostForm
 
           {/* Structured fields */}
           {isStructured && (
-            <div className="space-y-6 border-2 border-gray-200 rounded-2xl p-8 bg-gradient-to-br from-gray-50 to-white">
+            <div className="space-y-6 border-2 border-gray-200 rounded-2xl p-8 bg-gradient-to-br from-violet-50 via-purple-50 to-orange-50">
               <p className="text-lg font-bold text-gray-900 uppercase tracking-wide">
                 Listing Details
               </p>
@@ -257,7 +257,7 @@ export function PostForm({ communityId, open, onClose, onPostCreated }: PostForm
             <Button 
               onClick={handleSubmit} 
               disabled={submitting || !content.trim()}
-              className="px-8 py-3 text-base font-semibold rounded-lg bg-gradient-to-r from-violet-600 to-purple-600 text-white hover:from-violet-700 hover:to-purple-700 shadow-lg disabled:opacity-50"
+              className="px-8 py-3 text-base font-semibold rounded-lg bg-gradient-to-r from-violet-600 via-purple-600 to-orange-500 text-white hover:from-violet-700 hover:via-purple-700 hover:to-orange-600 shadow-lg disabled:opacity-50"
             >
               {submitting ? 'Posting...' : 'Post'}
             </Button>
