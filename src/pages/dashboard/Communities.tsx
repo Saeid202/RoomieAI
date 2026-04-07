@@ -494,24 +494,24 @@ export default function CommunitiesPage() {
 
             {/* Action Buttons - Modern & Luxury */}
             {isMember && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
                 <button
                   onClick={() => setShowPostForm(true)}
-                  className="group relative overflow-hidden rounded-2xl bg-gradient-to-r from-violet-600 via-purple-600 to-orange-500 p-8 text-white font-bold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105"
+                  className="group relative overflow-hidden rounded-2xl bg-gradient-to-r from-violet-600 via-purple-600 to-orange-500 p-12 text-white font-bold text-2xl shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105 md:col-span-2"
                 >
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
-                  <div className="relative flex items-center justify-center gap-3">
-                    <PenSquare className="h-7 w-7" />
+                  <div className="relative flex items-center justify-center gap-4">
+                    <PenSquare className="h-10 w-10" />
                     <span>Create Post</span>
                   </div>
                 </button>
 
                 <button
-                  className="group relative overflow-hidden rounded-2xl bg-white border-2 border-violet-600 p-8 text-violet-600 font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:bg-violet-50"
+                  className="group relative overflow-hidden rounded-2xl bg-white border-2 border-violet-600 p-12 text-violet-600 font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:bg-violet-50"
                 >
                   <div className="relative flex items-center justify-center gap-3">
-                    <Users className="h-7 w-7" />
-                    <span>Invite Members</span>
+                    <Users className="h-8 w-8" />
+                    <span>Invite</span>
                   </div>
                 </button>
               </div>
