@@ -131,6 +131,8 @@ import ConstructionMessageDetail from "@/construction/pages/dashboard/Constructi
 import ConstructionProductDetail from "@/construction/pages/ConstructionProductDetail";
 import ConstructionPublicProducts from "@/construction/pages/ConstructionPublicProducts";
 import ConstructionCustomOrder from "@/construction/pages/ConstructionCustomOrder"
+import CommunitiesPage from "@/pages/dashboard/Communities";
+import CommunityDetailPage from "@/pages/dashboard/CommunityDetail";
 
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect } from "react";
@@ -310,6 +312,10 @@ function AppRoutes() {
           <Route path="admin/reporting-batches" element={<AdminRoute><ReportingBatchesPage /></AdminRoute>} />
           <Route path="admin/settings" element={<AdminRoute><SettingsPage /></AdminRoute>} />
           <Route path="admin/rate-limits" element={<AdminRoute><RateLimitManagementPage /></AdminRoute>} />
+
+          {/* Community routes */}
+          <Route path="communities" element={<CommunitiesPage />} />
+          <Route path="communities/:id" element={<CommunityDetailPage />} />
         </Route>
 
         {/* Renovator Portal Routes */}
@@ -471,6 +477,10 @@ function AppRoutes() {
         <Route path="admin/reporting-batches" element={<AdminRoute><ReportingBatchesPage /></AdminRoute>} />
         <Route path="admin/settings" element={<AdminRoute><SettingsPage /></AdminRoute>} />
           <Route path="admin/rate-limits" element={<AdminRoute><RateLimitManagementPage /></AdminRoute>} />
+
+        {/* Community routes */}
+        <Route path="communities" element={<CommunitiesPage />} />
+        <Route path="communities/:id" element={<CommunityDetailPage />} />
       </Route>
 
     </Routes>
