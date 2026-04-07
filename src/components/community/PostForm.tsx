@@ -93,24 +93,25 @@ export function PostForm({ communityId, open, onClose, onPostCreated }: PostForm
 
   return (
     <Dialog open={open} onOpenChange={open => !open && handleClose()}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Create Post</DialogTitle>
+      <DialogContent className="max-w-4xl max-h-[95vh] overflow-y-auto rounded-2xl shadow-2xl">
+        <DialogHeader className="pb-6 border-b border-gray-200">
+          <DialogTitle className="text-3xl font-bold text-gray-900">Create Post</DialogTitle>
+          <p className="text-gray-600 text-base mt-2">Share your thoughts with the community</p>
         </DialogHeader>
 
-        <div className="space-y-4 mt-2">
+        <div className="space-y-8 mt-6">
           {/* Post type */}
-          <div className="space-y-1.5">
-            <Label>Post Type</Label>
-            <div className="flex gap-2 flex-wrap">
+          <div className="space-y-4">
+            <Label className="text-lg font-bold text-gray-900">Post Type</Label>
+            <div className="flex gap-3 flex-wrap">
               {POST_TYPES.map(({ value, label }) => (
                 <button
                   key={value}
                   onClick={() => setPostType(value)}
-                  className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
+                  className={`px-6 py-3 rounded-xl text-base font-semibold border-2 transition-all ${
                     postType === value
-                      ? 'bg-primary text-primary-foreground border-primary'
-                      : 'border-border hover:bg-muted'
+                      ? 'bg-gradient-to-r from-violet-600 to-purple-600 text-white border-violet-600 shadow-lg'
+                      : 'border-gray-300 text-gray-700 hover:border-violet-400 hover:bg-gray-50'
                   }`}
                 >
                   {label}
@@ -120,27 +121,28 @@ export function PostForm({ communityId, open, onClose, onPostCreated }: PostForm
           </div>
 
           {/* Content */}
-          <div className="space-y-1.5">
-            <Label htmlFor="post-content">Content *</Label>
+          <div className="space-y-4">
+            <Label htmlFor="post-content" className="text-lg font-bold text-gray-900">What's on your mind? *</Label>
             <Textarea
               id="post-content"
               value={content}
               onChange={e => setContent(e.target.value)}
-              placeholder="What's on your mind?"
-              className="min-h-[100px] resize-none"
+              placeholder="Share your thoughts, ask questions, or describe what you're looking for..."
+              className="min-h-[200px] resize-none text-base p-4 rounded-xl border-2 border-gray-200 focus:border-violet-600 focus:ring-2 focus:ring-violet-100"
             />
+            <p className="text-sm text-gray-500">{content.length} characters</p>
           </div>
 
           {/* Structured fields */}
           {isStructured && (
-            <div className="space-y-3 border rounded-lg p-3 bg-muted/30">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+            <div className="space-y-6 border-2 border-gray-200 rounded-2xl p-8 bg-gradient-to-br from-gray-50 to-white">
+              <p className="text-lg font-bold text-gray-900 uppercase tracking-wide">
                 Listing Details
               </p>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label htmlFor="budget">Budget ($/mo)</Label>
+              <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-3">
+                  <Label htmlFor="budget" className="text-base font-semibold text-gray-900">Budget ($/mo)</Label>
                   <Input
                     id="budget"
                     type="number"
@@ -152,11 +154,12 @@ export function PostForm({ communityId, open, onClose, onPostCreated }: PostForm
                         budget: e.target.value ? Number(e.target.value) : null,
                       }))
                     }
+                    className="h-12 text-base border-2 border-gray-200 rounded-lg focus:border-violet-600 focus:ring-2 focus:ring-violet-100"
                   />
                 </div>
 
-                <div className="space-y-1.5">
-                  <Label htmlFor="move-in-date">Move-in Date</Label>
+                <div className="space-y-3">
+                  <Label htmlFor="move-in-date" className="text-base font-semibold text-gray-900">Move-in Date</Label>
                   <Input
                     id="move-in-date"
                     type="date"
@@ -164,20 +167,21 @@ export function PostForm({ communityId, open, onClose, onPostCreated }: PostForm
                     onChange={e =>
                       setStructured(prev => ({ ...prev, move_in_date: e.target.value || null }))
                     }
+                    className="h-12 text-base border-2 border-gray-200 rounded-lg focus:border-violet-600 focus:ring-2 focus:ring-violet-100"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label>Gender Preference</Label>
+              <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-3">
+                  <Label className="text-base font-semibold text-gray-900">Gender Preference</Label>
                   <Select
                     value={structured.gender_preference ?? ''}
                     onValueChange={v =>
                       setStructured(prev => ({ ...prev, gender_preference: v as any || null }))
                     }
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="h-12 text-base border-2 border-gray-200 rounded-lg focus:border-violet-600 focus:ring-2 focus:ring-violet-100">
                       <SelectValue placeholder="Select..." />
                     </SelectTrigger>
                     <SelectContent>
@@ -188,15 +192,15 @@ export function PostForm({ communityId, open, onClose, onPostCreated }: PostForm
                   </Select>
                 </div>
 
-                <div className="space-y-1.5">
-                  <Label>Room Type</Label>
+                <div className="space-y-3">
+                  <Label className="text-base font-semibold text-gray-900">Room Type</Label>
                   <Select
                     value={structured.room_type ?? ''}
                     onValueChange={v =>
                       setStructured(prev => ({ ...prev, room_type: v as any || null }))
                     }
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="h-12 text-base border-2 border-gray-200 rounded-lg focus:border-violet-600 focus:ring-2 focus:ring-violet-100">
                       <SelectValue placeholder="Select..." />
                     </SelectTrigger>
                     <SelectContent>
@@ -208,15 +212,15 @@ export function PostForm({ communityId, open, onClose, onPostCreated }: PostForm
                 </div>
               </div>
 
-              <div className="space-y-1.5">
-                <Label>Lease Duration</Label>
+              <div className="space-y-3">
+                <Label className="text-base font-semibold text-gray-900">Lease Duration</Label>
                 <Select
                   value={structured.lease_duration ?? ''}
                   onValueChange={v =>
                     setStructured(prev => ({ ...prev, lease_duration: v as any || null }))
                   }
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="h-12 text-base border-2 border-gray-200 rounded-lg focus:border-violet-600 focus:ring-2 focus:ring-violet-100">
                     <SelectValue placeholder="Select..." />
                   </SelectTrigger>
                   <SelectContent>
@@ -227,24 +231,34 @@ export function PostForm({ communityId, open, onClose, onPostCreated }: PostForm
                 </Select>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3 pt-2">
                 <Checkbox
                   id="pets"
                   checked={structured.pets ?? false}
                   onCheckedChange={checked =>
                     setStructured(prev => ({ ...prev, pets: checked === true }))
                   }
+                  className="w-5 h-5"
                 />
-                <Label htmlFor="pets" className="cursor-pointer">Pets allowed</Label>
+                <Label htmlFor="pets" className="cursor-pointer text-base font-medium text-gray-900">Pets allowed</Label>
               </div>
             </div>
           )}
 
-          <div className="flex justify-end gap-2 pt-1">
-            <Button variant="outline" onClick={handleClose} disabled={submitting}>
+          <div className="flex justify-end gap-4 pt-6 border-t border-gray-200">
+            <Button 
+              variant="outline" 
+              onClick={handleClose} 
+              disabled={submitting}
+              className="px-8 py-3 text-base font-semibold rounded-lg border-2 border-gray-300 hover:bg-gray-50"
+            >
               Cancel
             </Button>
-            <Button onClick={handleSubmit} disabled={submitting || !content.trim()}>
+            <Button 
+              onClick={handleSubmit} 
+              disabled={submitting || !content.trim()}
+              className="px-8 py-3 text-base font-semibold rounded-lg bg-gradient-to-r from-violet-600 to-purple-600 text-white hover:from-violet-700 hover:to-purple-700 shadow-lg disabled:opacity-50"
+            >
               {submitting ? 'Posting...' : 'Post'}
             </Button>
           </div>
