@@ -42,7 +42,8 @@ export function SeekerSidebar({ isActive, showLabels }: SeekerSidebarProps) {
           location.pathname.includes('/dashboard/matches') ||
           location.pathname.includes('/dashboard/plan-ahead-matching') ||
           location.pathname.includes('/dashboard/opposite-schedule') ||
-          location.pathname.includes('/dashboard/work-exchange')
+          location.pathname.includes('/dashboard/work-exchange') ||
+          location.pathname.includes('/dashboard/communities')
         }
         subItems={[
           {
@@ -54,6 +55,11 @@ export function SeekerSidebar({ isActive, showLabels }: SeekerSidebarProps) {
             label: "View Matches",
             path: "/dashboard/matches?tab=matches",
             icon: <span className="text-sm">🔍</span>
+          },
+          {
+            label: "Communities",
+            path: "/dashboard/communities",
+            icon: <span className="text-sm">👥</span>
           },
           {
             label: "Plan Ahead",

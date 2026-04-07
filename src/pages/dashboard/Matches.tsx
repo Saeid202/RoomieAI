@@ -404,6 +404,20 @@ export default function MatchesPage() {
 
 
 
+            {/* Communities shortcut banner */}
+            <div className="bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-xl p-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">👥</span>
+                <div>
+                  <p className="font-semibold text-sm text-purple-900">Roommate Communities</p>
+                  <p className="text-xs text-purple-600">Connect with seekers in your city</p>
+                </div>
+              </div>
+              <Button size="sm" variant="outline" className="border-purple-300 text-purple-700 hover:bg-purple-100" onClick={() => navigate('/dashboard/communities')}>
+                Join Now
+              </Button>
+            </div>
+
             {/* Mobile-optimized profile section */}
             <div className="w-full !mt-0">
               <div className="bg-background/95 backdrop-blur-sm">
