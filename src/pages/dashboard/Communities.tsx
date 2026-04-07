@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, Search, MapPin, Globe, ChevronRight, Sparkles, ArrowLeft, PenSquare } from 'lucide-react';
+import { Users, Search, MapPin, Globe, ChevronRight, Sparkles, PenSquare } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
@@ -111,6 +111,8 @@ async function loadPostMeta(posts: CommunityPost[], userId?: string) {
   return Object.fromEntries(entries);
 }
 
+type TabType = 'browse' | 'my-community';
+
 export default function CommunitiesPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -118,6 +120,9 @@ export default function CommunitiesPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [searchInput, setSearchInput] = useState('');
+  
+  // Tab-based navigation state
+  const [activeTab, setActiveTab] = useState<TabType>('browse');
   
   // Joined community detail view state
   const [selectedCommunity, setSelectedCommunity] = useState<CommunityWithMeta | null>(null);
@@ -200,19 +205,21 @@ export default function CommunitiesPage() {
           : c
       );
       
-      // If user just joined, automatically open the community
+      // If user just joined, automatically switch to my-community tab
       if (membership?.status === 'active') {
         const joinedCommunity = updated.find(c => c.id === communityId);
         if (joinedCommunity) {
           setSelectedCommunity(joinedCommunity);
+          setActiveTab('my-community');
           setFilter('all');
           setStructuredFilters({});
           setPosts([]);
         }
       } else {
-        // If user left, close the community view
+        // If user left, switch back to browse tab
         if (selectedCommunity?.id === communityId) {
           setSelectedCommunity(null);
+          setActiveTab('browse');
         }
       }
       
@@ -222,13 +229,14 @@ export default function CommunitiesPage() {
 
   function handleSelectCommunity(community: CommunityWithMeta) {
     setSelectedCommunity(community);
+    setActiveTab('my-community');
     setFilter('all');
     setStructuredFilters({});
     setPosts([]);
   }
 
   function handleBackFromDetail() {
-    setSelectedCommunity(null);
+    setActiveTab('browse');
     setShowPostForm(false);
   }
 
@@ -262,126 +270,6 @@ export default function CommunitiesPage() {
 
   const joinedCommunities = communities.filter(c => c.membership?.status === 'active');
   const discoverCommunities = communities.filter(c => c.membership?.status !== 'active');
-
-  // Show joined community detail view - full page
-  if (selectedCommunity && isMember) {
-    return (
-      <div className="min-h-screen bg-gray-50/50">
-        <div className="max-w-2xl mx-auto px-4 md:px-6 py-6">
-          {/* Back button */}
-          <button
-            onClick={handleBackFromDetail}
-            className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 transition-colors"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to Communities
-          </button>
-
-          {/* Community header */}
-          <div className="rounded-lg border bg-card p-4 mb-4">
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex-1 min-w-0">
-                <h1 className="text-xl font-bold">{selectedCommunity.name}</h1>
-                {selectedCommunity.description && (
-                  <p className="text-sm text-muted-foreground mt-1">{selectedCommunity.description}</p>
-                )}
-                <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
-                  {selectedCommunity.city && (
-                    <span className="flex items-center gap-1">
-                      <MapPin className="h-3 w-3" />
-                      {selectedCommunity.city}
-                    </span>
-                  )}
-                  <span className="flex items-center gap-1">
-                    <Users className="h-3 w-3" />
-                    {selectedCommunity.memberCount} {selectedCommunity.memberCount === 1 ? 'member' : 'members'}
-                  </span>
-                </div>
-              </div>
-              {user && (
-                <JoinCommunityButton
-                  communityId={selectedCommunity.id}
-                  membership={selectedCommunity.membership}
-                  onMembershipChange={m => handleMembershipChange(selectedCommunity.id, m)}
-                />
-              )}
-            </div>
-          </div>
-
-          {/* Create post button */}
-          {isMember && (
-            <Button
-              onClick={() => setShowPostForm(true)}
-              className="w-full mb-4 gap-2"
-              variant="outline"
-            >
-              <PenSquare className="h-4 w-4" />
-              Create Post
-            </Button>
-          )}
-
-          {/* Filter tabs */}
-          <div className="flex gap-1 mb-4 overflow-x-auto pb-1">
-            {FILTER_TABS.map(tab => (
-              <button
-                key={tab.value}
-                onClick={() => handleFilterTabChange(tab.value)}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
-                  filter === tab.value
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Structured post filters */}
-          {showPostFilter && (
-            <PostFilter
-              activeFilters={structuredFilters}
-              onFilterChange={setStructuredFilters}
-            />
-          )}
-
-          {/* Posts */}
-          {postsLoading ? (
-            <PostLoadingSkeleton />
-          ) : displayedPosts.length === 0 ? (
-            <div className="rounded-lg border bg-card p-12 text-center">
-              <p className="text-sm text-muted-foreground">
-                {filter === 'all' ? 'No posts yet. Be the first to post!' : 'No posts in this category.'}
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {displayedPosts.map(post => (
-                <PostCard
-                  key={post.id}
-                  post={post}
-                  isMember={isMember}
-                  currentUserId={user?.id}
-                  likeCount={postMeta[post.id]?.likeCount ?? 0}
-                  commentCount={postMeta[post.id]?.commentCount ?? 0}
-                  isLiked={postMeta[post.id]?.isLiked ?? false}
-                  onLikeChange={handleLikeChange}
-                />
-              ))}
-            </div>
-          )}
-
-          {/* Post form modal */}
-          <PostForm
-            communityId={selectedCommunity.id}
-            open={showPostForm}
-            onClose={() => setShowPostForm(false)}
-            onPostCreated={handlePostCreated}
-          />
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gray-50/50">
@@ -435,71 +323,213 @@ export default function CommunitiesPage() {
         </div>
       </div>
 
+      {/* Tab Navigation */}
+      {selectedCommunity && (
+        <div className="border-b bg-white sticky top-0 z-10">
+          <div className="max-w-5xl mx-auto px-4 md:px-6">
+            <div className="flex gap-8">
+              <button
+                onClick={() => setActiveTab('browse')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                  activeTab === 'browse'
+                    ? 'border-purple-600 text-purple-600'
+                    : 'border-transparent text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Browse
+              </button>
+              <button
+                onClick={() => setActiveTab('my-community')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                  activeTab === 'my-community'
+                    ? 'border-purple-600 text-purple-600'
+                    : 'border-transparent text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                {selectedCommunity.name}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Content */}
       <div className="max-w-5xl mx-auto px-4 md:px-6 py-8 space-y-10">
 
-        {loading ? (
-          <LoadingSkeleton />
-        ) : communities.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center">
-            <div className="w-20 h-20 rounded-full bg-purple-100 flex items-center justify-center mb-4">
-              <Globe className="h-9 w-9 text-purple-400" />
-            </div>
-            <h3 className="text-lg font-semibold text-gray-800 mb-1">No communities found</h3>
-            <p className="text-sm text-gray-500 max-w-xs">
-              {search ? `No communities found for "${search}". Try a different city.` : 'No communities available yet. Check back soon.'}
-            </p>
-          </div>
-        ) : (
+        {/* Browse Tab */}
+        {activeTab === 'browse' && (
           <>
-            {/* Joined Communities */}
-            {joinedCommunities.length > 0 && (
-              <section>
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-bold text-gray-900">Your Communities</h2>
-                  <span className="text-xs text-gray-400 bg-gray-100 px-2.5 py-1 rounded-full font-medium">
-                    {joinedCommunities.length} joined
-                  </span>
+            {loading ? (
+              <LoadingSkeleton />
+            ) : communities.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-20 text-center">
+                <div className="w-20 h-20 rounded-full bg-purple-100 flex items-center justify-center mb-4">
+                  <Globe className="h-9 w-9 text-purple-400" />
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                  {joinedCommunities.map(community => (
-                    <CommunityCard
-                      key={community.id}
-                      community={community}
-                      onNavigate={() => handleSelectCommunity(community)}
-                      onMembershipChange={m => handleMembershipChange(community.id, m)}
-                      showUser={!!user}
-                    />
-                  ))}
-                </div>
-              </section>
-            )}
+                <h3 className="text-lg font-semibold text-gray-800 mb-1">No communities found</h3>
+                <p className="text-sm text-gray-500 max-w-xs">
+                  {search ? `No communities found for "${search}". Try a different city.` : 'No communities available yet. Check back soon.'}
+                </p>
+              </div>
+            ) : (
+              <>
+                {/* Joined Communities */}
+                {joinedCommunities.length > 0 && (
+                  <section>
+                    <div className="flex items-center justify-between mb-4">
+                      <h2 className="text-lg font-bold text-gray-900">Your Communities</h2>
+                      <span className="text-xs text-gray-400 bg-gray-100 px-2.5 py-1 rounded-full font-medium">
+                        {joinedCommunities.length} joined
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                      {joinedCommunities.map(community => (
+                        <CommunityCard
+                          key={community.id}
+                          community={community}
+                          onNavigate={() => handleSelectCommunity(community)}
+                          onMembershipChange={m => handleMembershipChange(community.id, m)}
+                          showUser={!!user}
+                        />
+                      ))}
+                    </div>
+                  </section>
+                )}
 
-            {/* Discover Communities */}
-            {discoverCommunities.length > 0 && (
-              <section>
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-bold text-gray-900">
-                    {joinedCommunities.length > 0 ? 'Discover More' : 'All Communities'}
-                  </h2>
-                  <span className="text-xs text-gray-400 bg-gray-100 px-2.5 py-1 rounded-full font-medium">
-                    {discoverCommunities.length} available
-                  </span>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                  {discoverCommunities.map(community => (
-                    <CommunityCard
-                      key={community.id}
-                      community={community}
-                      onNavigate={() => navigate(`/dashboard/communities/${community.id}`)}
-                      onMembershipChange={m => handleMembershipChange(community.id, m)}
-                      showUser={!!user}
-                    />
-                  ))}
-                </div>
-              </section>
+                {/* Discover Communities */}
+                {discoverCommunities.length > 0 && (
+                  <section>
+                    <div className="flex items-center justify-between mb-4">
+                      <h2 className="text-lg font-bold text-gray-900">
+                        {joinedCommunities.length > 0 ? 'Discover More' : 'All Communities'}
+                      </h2>
+                      <span className="text-xs text-gray-400 bg-gray-100 px-2.5 py-1 rounded-full font-medium">
+                        {discoverCommunities.length} available
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                      {discoverCommunities.map(community => (
+                        <CommunityCard
+                          key={community.id}
+                          community={community}
+                          onNavigate={() => navigate(`/dashboard/communities/${community.id}`)}
+                          onMembershipChange={m => handleMembershipChange(community.id, m)}
+                          showUser={!!user}
+                        />
+                      ))}
+                    </div>
+                  </section>
+                )}
+              </>
             )}
           </>
+        )}
+
+        {/* My Community Tab */}
+        {activeTab === 'my-community' && selectedCommunity && (
+          <div className="max-w-2xl mx-auto">
+            {/* Community header */}
+            <div className="rounded-lg border bg-card p-4 mb-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <h1 className="text-xl font-bold">{selectedCommunity.name}</h1>
+                  {selectedCommunity.description && (
+                    <p className="text-sm text-muted-foreground mt-1">{selectedCommunity.description}</p>
+                  )}
+                  <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
+                    {selectedCommunity.city && (
+                      <span className="flex items-center gap-1">
+                        <MapPin className="h-3 w-3" />
+                        {selectedCommunity.city}
+                      </span>
+                    )}
+                    <span className="flex items-center gap-1">
+                      <Users className="h-3 w-3" />
+                      {selectedCommunity.memberCount} {selectedCommunity.memberCount === 1 ? 'member' : 'members'}
+                    </span>
+                  </div>
+                </div>
+                {user && (
+                  <JoinCommunityButton
+                    communityId={selectedCommunity.id}
+                    membership={selectedCommunity.membership}
+                    onMembershipChange={m => handleMembershipChange(selectedCommunity.id, m)}
+                  />
+                )}
+              </div>
+            </div>
+
+            {/* Create post button */}
+            {isMember && (
+              <Button
+                onClick={() => setShowPostForm(true)}
+                className="w-full mb-4 gap-2"
+                variant="outline"
+              >
+                <PenSquare className="h-4 w-4" />
+                Create Post
+              </Button>
+            )}
+
+            {/* Filter tabs */}
+            <div className="flex gap-1 mb-4 overflow-x-auto pb-1">
+              {FILTER_TABS.map(tab => (
+                <button
+                  key={tab.value}
+                  onClick={() => handleFilterTabChange(tab.value)}
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
+                    filter === tab.value
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Structured post filters */}
+            {showPostFilter && (
+              <PostFilter
+                activeFilters={structuredFilters}
+                onFilterChange={setStructuredFilters}
+              />
+            )}
+
+            {/* Posts */}
+            {postsLoading ? (
+              <PostLoadingSkeleton />
+            ) : displayedPosts.length === 0 ? (
+              <div className="rounded-lg border bg-card p-12 text-center">
+                <p className="text-sm text-muted-foreground">
+                  {filter === 'all' ? 'No posts yet. Be the first to post!' : 'No posts in this category.'}
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {displayedPosts.map(post => (
+                  <PostCard
+                    key={post.id}
+                    post={post}
+                    isMember={isMember}
+                    currentUserId={user?.id}
+                    likeCount={postMeta[post.id]?.likeCount ?? 0}
+                    commentCount={postMeta[post.id]?.commentCount ?? 0}
+                    isLiked={postMeta[post.id]?.isLiked ?? false}
+                    onLikeChange={handleLikeChange}
+                  />
+                ))}
+              </div>
+            )}
+
+            {/* Post form modal */}
+            <PostForm
+              communityId={selectedCommunity.id}
+              open={showPostForm}
+              onClose={() => setShowPostForm(false)}
+              onPostCreated={handlePostCreated}
+            />
+          </div>
         )}
       </div>
     </div>
