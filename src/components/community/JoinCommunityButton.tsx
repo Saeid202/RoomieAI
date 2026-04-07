@@ -48,23 +48,31 @@ export function JoinCommunityButton({
 
   if (isBanned) {
     return (
-      <Button variant="destructive" disabled size="sm">
+      <button disabled className="w-full py-2 px-4 rounded-xl bg-red-50 text-red-400 text-sm font-medium border border-red-100 cursor-not-allowed">
         Banned
-      </Button>
+      </button>
     );
   }
 
   if (isMember) {
     return (
-      <Button variant="outline" size="sm" onClick={handleLeave} disabled={loading}>
+      <button
+        onClick={handleLeave}
+        disabled={loading}
+        className="w-full py-2 px-4 rounded-xl bg-gray-100 text-gray-600 text-sm font-medium hover:bg-gray-200 transition-all disabled:opacity-50"
+      >
         {loading ? 'Leaving...' : 'Leave Community'}
-      </Button>
+      </button>
     );
   }
 
   return (
-    <Button size="sm" onClick={handleJoin} disabled={loading}>
-      {loading ? 'Joining...' : 'Join Community'}
-    </Button>
+    <button
+      onClick={handleJoin}
+      disabled={loading}
+      className="w-full py-2 px-4 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 text-white text-sm font-semibold hover:from-violet-700 hover:to-purple-700 transition-all shadow-sm shadow-purple-200 disabled:opacity-50"
+    >
+      {loading ? 'Joining...' : '+ Join Community'}
+    </button>
   );
 }
