@@ -1,14 +1,12 @@
 import { useState } from 'react';
-import { Heart, MessageCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import { Heart, MessageCircle, ChevronDown, ChevronUp, Flag } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Textarea } from '@/components/ui/textarea';
 import { togglePostLike } from '@/services/communityLikeService';
-import { getPostComments, createComment } from '@/services/communityCommentService';
-import type { CommunityPost, CommunityComment } from '@/types/community';
+import { CommentSection } from './CommentSection';
+import { ReportModal } from './ReportModal';
+import type { CommunityPost } from '@/types/community';
 
 interface PostCardProps {
   post: CommunityPost;
@@ -20,23 +18,23 @@ interface PostCardProps {
   onLikeChange: (postId: string, liked: boolean, count: number) => void;
 }
 
-const POST_TYPE_BADGE: Record<string, { label: string; variant: 'secondary' | 'default' | 'outline' }> = {
-  casual: { label: 'General Chat', variant: 'secondary' },
-  looking_for_roommate: { label: 'Looking for Roommate', variant: 'default' },
-  offering_room: { label: 'Offering Room', variant: 'outline' },
-};
-
 const POST_TYPE_COLORS: Record<string, string> = {
   casual: 'bg-gray-100 text-gray-700',
   looking_for_roommate: 'bg-blue-100 text-blue-700',
   offering_room: 'bg-green-100 text-green-700',
 };
 
+const POST_TYPE_LABELS: Record<string, string> = {
+  casual: 'General Chat',
+  looking_for_roommate: 'Looking for Roommate',
+  offering_room: 'Offering Room',
+};
+
 function formatUserId(userId: string) {
   return `User ${userId.slice(0, 8)}`;
 }
 
-function StructuredDataFields({ data, postType }: { data: NonNullable<CommunityPost['structured_data']>; postType: string }) {
+function StructuredDataFields({ data }: { data: NonNullable<CommunityPost['structured_data']> }) {
   const fields: { label: string; value: string | null | undefined }[] = [];
 
   if (data.budget != null) fields.push({ label: 'Budget', value: `$${data.budget}/mo` });
@@ -65,59 +63,39 @@ export function PostCard({
   isMember,
   currentUserId,
   likeCount,
-  commentCount: initialCommentCount,
+  commentCount,
   isLiked,
   onLikeChange,
 }: PostCardProps) {
   const [showComments, setShowComments] = useState(false);
-  const [comments, setComments] = useState<CommunityComment[]>([]);
-  const [commentsLoaded, setCommentsLoaded] = useState(false);
-  const [commentCount, setCommentCount] = useState(initialCommentCount);
-  const [newComment, setNewComment] = useState('');
-  const [submittingComment, setSubmittingComment] = useState(false);
   const [likingPost, setLikingPost] = useState(false);
+  const [optimisticLiked, setOptimisticLiked] = useState(isLiked);
+  const [optimisticCount, setOptimisticCount] = useState(likeCount);
+  const [reportOpen, setReportOpen] = useState(false);
 
-  const badgeInfo = POST_TYPE_BADGE[post.post_type] || POST_TYPE_BADGE.casual;
   const badgeColor = POST_TYPE_COLORS[post.post_type] || POST_TYPE_COLORS.casual;
+  const badgeLabel = POST_TYPE_LABELS[post.post_type] || 'General Chat';
 
   async function handleToggleLike() {
     if (!isMember || likingPost) return;
+    // Optimistic update
+    const newLiked = !optimisticLiked;
+    const newCount = newLiked ? optimisticCount + 1 : Math.max(0, optimisticCount - 1);
+    setOptimisticLiked(newLiked);
+    setOptimisticCount(newCount);
     setLikingPost(true);
     try {
       const result = await togglePostLike(post.id);
+      setOptimisticLiked(result.liked);
+      setOptimisticCount(result.count);
       onLikeChange(post.id, result.liked, result.count);
     } catch (e: any) {
+      // Revert on error
+      setOptimisticLiked(isLiked);
+      setOptimisticCount(likeCount);
       toast.error(e?.message || 'Failed to update like');
     } finally {
       setLikingPost(false);
-    }
-  }
-
-  async function handleToggleComments() {
-    if (!showComments && !commentsLoaded) {
-      try {
-        const data = await getPostComments(post.id);
-        setComments(data);
-        setCommentsLoaded(true);
-      } catch {
-        toast.error('Failed to load comments');
-      }
-    }
-    setShowComments(prev => !prev);
-  }
-
-  async function handleSubmitComment() {
-    if (!newComment.trim() || submittingComment) return;
-    setSubmittingComment(true);
-    try {
-      const comment = await createComment({ post_id: post.id, content: newComment.trim() });
-      setComments(prev => [...prev, comment]);
-      setCommentCount(prev => prev + 1);
-      setNewComment('');
-    } catch (e: any) {
-      toast.error(e?.message || 'Failed to post comment');
-    } finally {
-      setSubmittingComment(false);
     }
   }
 
@@ -133,7 +111,7 @@ export function PostCard({
             </span>
           </div>
           <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${badgeColor}`}>
-            {badgeInfo.label}
+            {badgeLabel}
           </span>
         </div>
 
@@ -142,7 +120,7 @@ export function PostCard({
 
         {/* Structured data */}
         {post.post_type !== 'casual' && post.structured_data && (
-          <StructuredDataFields data={post.structured_data} postType={post.post_type} />
+          <StructuredDataFields data={post.structured_data} />
         )}
 
         {/* Actions */}
@@ -152,62 +130,47 @@ export function PostCard({
             disabled={!isMember || likingPost}
             className={`flex items-center gap-1.5 text-xs transition-colors ${
               isMember ? 'hover:text-red-500 cursor-pointer' : 'cursor-default'
-            } ${isLiked ? 'text-red-500' : 'text-muted-foreground'}`}
+            } ${optimisticLiked ? 'text-red-500' : 'text-muted-foreground'}`}
           >
-            <Heart className={`h-4 w-4 ${isLiked ? 'fill-current' : ''}`} />
-            <span>{likeCount}</span>
+            <Heart className={`h-4 w-4 ${optimisticLiked ? 'fill-current' : ''}`} />
+            <span>{optimisticCount}</span>
           </button>
 
           <button
-            onClick={handleToggleComments}
+            onClick={() => setShowComments(prev => !prev)}
             className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground cursor-pointer transition-colors"
           >
             <MessageCircle className="h-4 w-4" />
             <span>{commentCount}</span>
             {showComments ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
           </button>
+
+          <button
+            onClick={() => setReportOpen(true)}
+            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-orange-500 cursor-pointer transition-colors ml-auto"
+            title="Report post"
+          >
+            <Flag className="h-3.5 w-3.5" />
+          </button>
         </div>
 
         {/* Comments section */}
         {showComments && (
-          <div className="mt-3 space-y-2">
-            {comments.map(comment => (
-              <div key={comment.id} className="text-sm bg-muted/40 rounded-md px-3 py-2">
-                <span className="font-medium text-xs">{formatUserId(comment.user_id)}</span>
-                <span className="text-xs text-muted-foreground ml-2">
-                  {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
-                </span>
-                <p className="mt-0.5 text-sm">{comment.content}</p>
-              </div>
-            ))}
-
-            {isMember && (
-              <div className="flex gap-2 mt-2">
-                <Textarea
-                  value={newComment}
-                  onChange={e => setNewComment(e.target.value)}
-                  placeholder="Write a comment..."
-                  className="text-sm min-h-[60px] resize-none"
-                  onKeyDown={e => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      handleSubmitComment();
-                    }
-                  }}
-                />
-                <Button
-                  size="sm"
-                  onClick={handleSubmitComment}
-                  disabled={!newComment.trim() || submittingComment}
-                  className="self-end"
-                >
-                  Post
-                </Button>
-              </div>
-            )}
-          </div>
+          <CommentSection
+            postId={post.id}
+            communityId={post.community_id}
+            isMember={isMember}
+            currentUserId={currentUserId}
+          />
         )}
       </CardContent>
+
+      <ReportModal
+        targetType="post"
+        targetId={post.id}
+        isOpen={reportOpen}
+        onClose={() => setReportOpen(false)}
+      />
     </Card>
   );
 }

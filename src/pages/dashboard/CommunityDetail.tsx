@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Users, MapPin, PenSquare } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
@@ -7,9 +7,11 @@ import { Button } from '@/components/ui/button';
 import { PostCard } from '@/components/community/PostCard';
 import { PostForm } from '@/components/community/PostForm';
 import { JoinCommunityButton } from '@/components/community/JoinCommunityButton';
+import { PostFilter } from '@/components/community/PostFilter';
+import type { PostFilters } from '@/components/community/PostFilter';
 import { getCommunityById, getCommunityMemberCount } from '@/services/communityService';
 import { getMembership } from '@/services/communityMembershipService';
-import { getCommunityPosts } from '@/services/communityPostService';
+import { getCommunityPosts, filterStructuredPosts } from '@/services/communityPostService';
 import { getPostLikeCount, hasUserLikedPost } from '@/services/communityLikeService';
 import { getPostComments } from '@/services/communityCommentService';
 import type { Community, CommunityMembership, CommunityPost, PostType } from '@/types/community';
@@ -22,6 +24,8 @@ const FILTER_TABS: { value: FilterType; label: string }[] = [
   { value: 'offering_room', label: 'Offering Room' },
   { value: 'casual', label: 'General Chat' },
 ];
+
+const STRUCTURED_TABS: FilterType[] = ['looking_for_roommate', 'offering_room'];
 
 interface PostMeta {
   likeCount: number;
@@ -50,6 +54,20 @@ function LoadingSkeleton() {
   );
 }
 
+async function loadPostMeta(posts: CommunityPost[], userId?: string) {
+  const entries = await Promise.all(
+    posts.map(async post => {
+      const [likeCount, commentCount, isLiked] = await Promise.all([
+        getPostLikeCount(post.id),
+        getPostComments(post.id).then(c => c.length),
+        userId ? hasUserLikedPost(post.id) : Promise.resolve(false),
+      ]);
+      return [post.id, { likeCount, commentCount, isLiked }] as const;
+    })
+  );
+  return Object.fromEntries(entries);
+}
+
 export default function CommunityDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -63,9 +81,11 @@ export default function CommunityDetailPage() {
   const [loading, setLoading] = useState(true);
   const [postsLoading, setPostsLoading] = useState(true);
   const [filter, setFilter] = useState<FilterType>('all');
+  const [structuredFilters, setStructuredFilters] = useState<PostFilters>({});
   const [showPostForm, setShowPostForm] = useState(false);
 
   const isMember = membership?.status === 'active';
+  const showPostFilter = STRUCTURED_TABS.includes(filter);
 
   async function loadCommunity() {
     if (!id) return;
@@ -89,21 +109,19 @@ export default function CommunityDetailPage() {
     if (!id) return;
     setPostsLoading(true);
     try {
-      const data = await getCommunityPosts(id);
+      let data: CommunityPost[];
+      if (showPostFilter && Object.keys(structuredFilters).some(k => structuredFilters[k as keyof PostFilters] != null)) {
+        data = await filterStructuredPosts(id, structuredFilters);
+        // If a specific structured tab is active, filter by post_type too
+        if (filter !== 'all') {
+          data = data.filter(p => p.post_type === filter);
+        }
+      } else {
+        data = await getCommunityPosts(id);
+      }
       setPosts(data);
-
-      // Load meta for each post
-      const metaEntries = await Promise.all(
-        data.map(async post => {
-          const [likeCount, commentCount, isLiked] = await Promise.all([
-            getPostLikeCount(post.id),
-            getPostComments(post.id).then(c => c.length),
-            user ? hasUserLikedPost(post.id) : Promise.resolve(false),
-          ]);
-          return [post.id, { likeCount, commentCount, isLiked }] as const;
-        })
-      );
-      setPostMeta(Object.fromEntries(metaEntries));
+      const meta = await loadPostMeta(data, user?.id);
+      setPostMeta(meta);
     } catch (e: any) {
       toast.error(e?.message || 'Failed to load posts');
     } finally {
@@ -119,7 +137,7 @@ export default function CommunityDetailPage() {
   useEffect(() => {
     loadPosts();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, user?.id]);
+  }, [id, user?.id, filter, structuredFilters]);
 
   function handleMembershipChange(newMembership: CommunityMembership | null) {
     setMembership(newMembership);
@@ -143,7 +161,20 @@ export default function CommunityDetailPage() {
     }));
   }
 
-  const filteredPosts = filter === 'all' ? posts : posts.filter(p => p.post_type === filter);
+  function handleFilterTabChange(tab: FilterType) {
+    setFilter(tab);
+    // Clear structured filters when switching away from structured tabs
+    if (!STRUCTURED_TABS.includes(tab)) {
+      setStructuredFilters({});
+    }
+  }
+
+  // For non-structured tabs, filter client-side
+  const displayedPosts = showPostFilter
+    ? posts
+    : filter === 'all'
+    ? posts
+    : posts.filter(p => p.post_type === filter);
 
   if (loading) {
     return (
@@ -227,7 +258,7 @@ export default function CommunityDetailPage() {
         {FILTER_TABS.map(tab => (
           <button
             key={tab.value}
-            onClick={() => setFilter(tab.value)}
+            onClick={() => handleFilterTabChange(tab.value)}
             className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
               filter === tab.value
                 ? 'bg-primary text-primary-foreground'
@@ -239,10 +270,18 @@ export default function CommunityDetailPage() {
         ))}
       </div>
 
+      {/* Structured post filters */}
+      {showPostFilter && (
+        <PostFilter
+          activeFilters={structuredFilters}
+          onFilterChange={setStructuredFilters}
+        />
+      )}
+
       {/* Posts */}
       {postsLoading ? (
         <LoadingSkeleton />
-      ) : filteredPosts.length === 0 ? (
+      ) : displayedPosts.length === 0 ? (
         <div className="rounded-lg border bg-card p-12 text-center">
           <p className="text-sm text-muted-foreground">
             {filter === 'all' ? 'No posts yet. Be the first to post!' : 'No posts in this category.'}
@@ -250,7 +289,7 @@ export default function CommunityDetailPage() {
         </div>
       ) : (
         <div className="space-y-3">
-          {filteredPosts.map(post => (
+          {displayedPosts.map(post => (
             <PostCard
               key={post.id}
               post={post}
