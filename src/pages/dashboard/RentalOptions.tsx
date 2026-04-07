@@ -9,7 +9,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { MapPin, Search, Home, Filter, Sparkles } from "lucide-react";
+import { MapPin, Search, Home, Filter, Sparkles, Zap } from "lucide-react";
 import { fetchProperties, Property } from "@/services/propertyService";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
@@ -17,6 +17,9 @@ import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { MessageButton } from "@/components/MessageButton";
 import { MapModal } from "@/components/map/MapModal";
+import { QuickApplyModal } from "@/components/application/QuickApplyModal";
+import { checkProfileCompleteness, getTenantProfileForApplication } from "@/utils/profileCompleteness";
+import { submitQuickApplication, hasUserApplied } from "@/services/quickApplyService";
 
 export default function RentalOptionsPage() {
   const navigate = useNavigate();
@@ -34,6 +37,13 @@ export default function RentalOptionsPage() {
   const [isMapModalOpen, setMapModalOpen] = useState(false);
   const [naturalQuery, setNaturalQuery] = useState("");
   const [aiProcessing, setAiProcessing] = useState(false);
+  
+  // Quick Apply states
+  const [showQuickApplyModal, setShowQuickApplyModal] = useState(false);
+  const [quickApplyProperty, setQuickApplyProperty] = useState<Property | null>(null);
+  const [profileData, setProfileData] = useState<any>(null);
+  const [isSubmittingQuickApply, setIsSubmittingQuickApply] = useState(false);
+  const [hasApplied, setHasApplied] = useState(false);
 
   useEffect(() => {
     loadProperties();
@@ -42,7 +52,7 @@ export default function RentalOptionsPage() {
   const loadProperties = async () => {
     try {
       setLoading(true);
-      console.log("Loading properties with filters:", filters);
+      console.log("🔍 [RentalOptions.tsx] loadProperties starting with filters:", filters);
       const processedFilters = {
         location: filters.location || undefined,
         minPrice: filters.minPrice ? parseInt(filters.minPrice) : undefined,
@@ -50,12 +60,21 @@ export default function RentalOptionsPage() {
         bedrooms: filters.bedrooms ? parseInt(filters.bedrooms) : undefined,
         property_type: filters.property_type || undefined,
       };
-      console.log("Processed filters:", processedFilters);
+      console.log("🔍 [RentalOptions.tsx] Processed filters:", processedFilters);
+      console.log("🔍 [RentalOptions.tsx] Calling fetchProperties...");
       const data = await fetchProperties(processedFilters);
-      console.log("Fetched properties:", data);
+      console.log("✅ [RentalOptions.tsx] fetchProperties returned:", data.length, "properties");
+      if (data.length > 0) {
+        console.log("📋 [RentalOptions.tsx] First property:", {
+          id: data[0].id,
+          title: data[0].listing_title,
+          status: data[0].status,
+          monthly_rent: data[0].monthly_rent
+        });
+      }
       setProperties(data);
     } catch (error) {
-      console.error("Error loading properties:", error);
+      console.error("❌ [RentalOptions.tsx] Error loading properties:", error);
     } finally {
       setLoading(false);
     }
@@ -97,6 +116,89 @@ export default function RentalOptionsPage() {
 
   const applyFilters = () => {
     loadProperties();
+  };
+
+  // Quick Apply Handlers
+  const handleQuickApplyClick = async (property: Property) => {
+    if (!user) {
+      toast.error("Please log in to apply");
+      return;
+    }
+
+    // Check if already applied
+    const applied = await hasUserApplied(user.id, property.id);
+    if (applied) {
+      toast.error("You have already applied to this property");
+      setHasApplied(true);
+      return;
+    }
+
+    // Check profile completeness
+    const completeness = await checkProfileCompleteness(user.id);
+
+    if (!completeness.isComplete) {
+      const missing = [
+        ...completeness.missingFields,
+        ...completeness.missingDocuments
+      ];
+
+      toast.error(
+        `Please complete your profile first. Missing: ${missing.join(', ')}`,
+        { duration: 5000 }
+      );
+
+      // Redirect to profile page
+      setTimeout(() => {
+        navigate('/dashboard/profile');
+      }, 2000);
+      return;
+    }
+
+    // Load profile data
+    const data = await getTenantProfileForApplication(user.id);
+    if (!data) {
+      toast.error("Could not load profile data");
+      return;
+    }
+
+    setProfileData(data);
+    setQuickApplyProperty(property);
+    setShowQuickApplyModal(true);
+  };
+
+  const handleQuickApplyConfirm = async (message: string) => {
+    if (!user || !quickApplyProperty) return;
+
+    setIsSubmittingQuickApply(true);
+
+    try {
+      console.log("Starting quick application submission...");
+      const applicationId = await submitQuickApplication({
+        user_id: user.id,
+        property_id: quickApplyProperty.id,
+        message,
+      });
+
+      if (!applicationId) {
+        throw new Error("Failed to submit application - no ID returned");
+      }
+
+      console.log("Application submitted successfully with ID:", applicationId);
+      toast.success("Application submitted successfully!");
+      setShowQuickApplyModal(false);
+      setHasApplied(true);
+
+      // Optionally navigate to applications page
+      setTimeout(() => {
+        navigate('/dashboard/applications');
+      }, 1500);
+    } catch (error) {
+      console.error("Error submitting quick application:", error);
+      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+      toast.error(`Failed to submit application: ${errorMessage}`);
+    } finally {
+      setIsSubmittingQuickApply(false);
+    }
   };
 
   const getPropertyTypeDisplay = (type: string) => {
@@ -395,15 +497,13 @@ export default function RentalOptionsPage() {
                     <Button
                       onClick={(e) => {
                         e.stopPropagation();
-                        if (user) {
-                          navigate(`/dashboard/rental-application/${property.id}`);
-                        } else {
-                          toast.error("Please log in to apply for a rental.");
-                        }
+                        handleQuickApplyClick(property);
                       }}
-                      className="w-full mt-2 h-8 text-xs button-gradient text-white font-semibold"
+                      className="w-full mt-2 h-8 text-xs button-gradient text-white font-semibold flex items-center justify-center gap-1"
+                      disabled={hasApplied}
                     >
-                      Apply Now
+                      <Zap className="h-3.5 w-3.5" />
+                      {hasApplied ? "Already Applied" : "Quick Apply"}
                     </Button>
                   </CardContent>
                 </Card>
@@ -416,6 +516,16 @@ export default function RentalOptionsPage() {
             property={selectedProperty}
             isOpen={isMapModalOpen}
             onClose={() => setMapModalOpen(false)}
+          />
+        )}
+        {showQuickApplyModal && quickApplyProperty && (
+          <QuickApplyModal
+            open={showQuickApplyModal}
+            onOpenChange={setShowQuickApplyModal}
+            property={quickApplyProperty}
+            profileData={profileData}
+            onConfirm={handleQuickApplyConfirm}
+            isSubmitting={isSubmittingQuickApply}
           />
         )}
       </div>

@@ -23,31 +23,59 @@ export default function PropertiesPage() {
     const load = async () => {
       try {
         setError(null);
+        console.log("🔍 [Properties.tsx] useEffect starting...");
+        
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
+          console.log("❌ [Properties.tsx] No user found in auth");
           setProperties([]);
           return;
         }
 
+        console.log("✅ [Properties.tsx] User authenticated:", user.id, "Email:", user.email);
+
+        console.log("🔍 [Properties.tsx] Calling getPropertiesByOwnerId...");
         const list = await getPropertiesByOwnerId(user.id);
+        console.log("✅ [Properties.tsx] getPropertiesByOwnerId returned:", list.length, "properties");
+        
+        console.log("🔍 [Properties.tsx] Calling getSalesListingsByOwnerId...");
         const sList = await getSalesListingsByOwnerId(user.id);
+        console.log("✅ [Properties.tsx] getSalesListingsByOwnerId returned:", sList.length, "listings");
+        
+        console.log("🔍 [Properties.tsx] Calling getArchivedProperties...");
         const archived = await getArchivedProperties(user.id);
-        console.log("🔍 Properties loaded:", list);
-        console.log("🔍 Sales listings loaded:", sList);
-        console.log("🔍 Archived properties loaded:", archived);
+        console.log("✅ [Properties.tsx] getArchivedProperties returned:", archived.length, "properties");
+        
+        // Debug: Log first property details
+        if (list.length > 0) {
+          console.log("📋 [Properties.tsx] First rental property:", {
+            id: list[0].id,
+            title: list[0].listing_title,
+            user_id: list[0].user_id,
+            status: list[0].status,
+            created_at: list[0].created_at
+          });
+        } else {
+          console.log("⚠️ [Properties.tsx] No rental properties found for user:", user.id);
+          console.log("⚠️ [Properties.tsx] User email:", user.email);
+        }
 
         if (mounted) {
+          console.log("🔍 [Properties.tsx] Setting state with", list.length, "properties");
           setProperties(list);
           setSalesListings(sList);
           setArchivedProperties(archived);
         }
       } catch (e: any) {
-        console.error("Failed to load landlord properties", e);
+        console.error("❌ [Properties.tsx] Failed to load landlord properties", e);
         if (mounted) {
           setError(e.message || "Failed to load properties");
         }
       } finally {
-        if (mounted) setLoading(false);
+        if (mounted) {
+          console.log("✅ [Properties.tsx] Setting loading=false");
+          setLoading(false);
+        }
       }
     };
 

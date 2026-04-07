@@ -9,6 +9,7 @@ import { useRole } from "@/contexts/RoleContext";
 import { Calendar, DollarSign, MapPin, Volume2, Play, Square, Box, ChevronLeft, ChevronRight, User, Users, Pencil, Trash2, Check, X, MessageSquare, Reply, Zap, CalendarCheck, Link as LinkIcon, Bookmark } from "lucide-react";
 import { PropertyVideoPlayer } from "@/components/property/PropertyVideoPlayer";
 import { PropertyDocumentViewer } from "@/components/property/PropertyDocumentViewerSimplified";
+import { MapModalTrigger } from "@/components/property/MapModalTrigger";
 import { useAuth } from "@/hooks/useAuth";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -110,7 +111,16 @@ export default function PropertyDetailsPage() {
   const [editingOfferId, setEditingOfferId] = useState<string | null>(null);
   const [editingOfferDraft, setEditingOfferDraft] = useState<Partial<InvestorOffer>>({});
 
-  console.log("PropertyDetailsPage rendering", { id, loading, property, role, user });
+  console.log("PropertyDetailsPage rendering", { 
+    id, 
+    loading, 
+    property: property?.id, 
+    role, 
+    user: user?.email,
+    isOwner,
+    isSale,
+    hasApplied
+  });
 
   useEffect(() => {
     let mounted = true;
@@ -611,6 +621,8 @@ export default function PropertyDetailsPage() {
         )}
       </header>
 
+
+
       <main className="grid gap-6 lg:grid-cols-3">
         <section className="lg:col-span-2">
           <Card>
@@ -907,10 +919,16 @@ export default function PropertyDetailsPage() {
                   </div>
 
                   <div className="flex items-start gap-2 text-sm">
-                    <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
-                    <span className="text-gray-700 font-medium">
-                      {!isMLS ? `${property?.address}, ${property?.city}, ${property?.state} ${property?.zip_code}` : `${mlsListing?.address}, ${mlsListing?.city}, ${mlsListing?.province}`}
-                    </span>
+                    {!isMLS && property ? (
+                      <MapModalTrigger property={property} />
+                    ) : (
+                      <>
+                        <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+                        <span className="text-gray-700 font-medium">
+                          {mlsListing?.address}, {mlsListing?.city}, {mlsListing?.province}
+                        </span>
+                      </>
+                    )}
                   </div>
 
                   {currentNearbyAmenities && currentNearbyAmenities.length > 0 && (
@@ -1172,28 +1190,30 @@ export default function PropertyDetailsPage() {
               </>
             ) : (
               <>
-                {/* HomieAI Listing Buttons */}
-                {role !== 'landlord' && !isSale && !hasApplied && (
+                {/* HomieAI Listing Buttons - Show for all non-owners */}
+                {!isOwner && property ? (
                   <>
-                    <Button
-                      variant="default"
-                      className="w-full bg-gradient-to-r from-purple-600 via-pink-600 to-indigo-600 hover:from-purple-700 hover:via-pink-700 hover:to-indigo-700 shadow-lg shadow-purple-200"
-                      onClick={handleQuickApplyClick}
-                    >
-                      <Zap className="h-4 w-4 mr-2" />
-                      Quick Apply
-                    </Button>
-                  </>
-                )}
-                {hasApplied && (
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
-                    <p className="text-green-800 font-semibold">✓ Application Submitted</p>
-                    <p className="text-green-600 text-sm mt-1">The landlord will review your application</p>
-                  </div>
-                )}
-                {role !== 'landlord' && property && (
-                  <>
-                    {/* Schedule Viewing button - now first */}
+                    {/* Quick Apply - only for rental properties */}
+                    {!isSale && !hasApplied && (
+                      <Button
+                        variant="default"
+                        className="w-full bg-gradient-to-r from-purple-600 via-pink-600 to-indigo-600 hover:from-purple-700 hover:via-pink-700 hover:to-indigo-700 shadow-lg shadow-purple-200"
+                        onClick={handleQuickApplyClick}
+                      >
+                        <Zap className="h-4 w-4 mr-2" />
+                        Quick Apply
+                      </Button>
+                    )}
+                    
+                    {/* Application Status */}
+                    {hasApplied && (
+                      <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+                        <p className="text-green-800 font-semibold">✓ Application Submitted</p>
+                        <p className="text-green-600 text-sm mt-1">The landlord will review your application</p>
+                      </div>
+                    )}
+
+                    {/* Schedule Viewing */}
                     <Button
                       variant="default"
                       className="w-full bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white font-semibold shadow-lg shadow-blue-200"
@@ -1202,7 +1222,8 @@ export default function PropertyDetailsPage() {
                       <CalendarCheck className="h-4 w-4 mr-2" />
                       Schedule Viewing
                     </Button>
-                    {/* Make an Offer button - only for sales properties */}
+
+                    {/* Make an Offer - only for sales properties */}
                     {isSale && !hasApplied && (
                       <Button
                         variant="default"
@@ -1213,6 +1234,8 @@ export default function PropertyDetailsPage() {
                         Make an Offer
                       </Button>
                     )}
+
+                    {/* Message Landlord */}
                     <MessageButton
                       propertyId={!isSale ? property.id : undefined}
                       salesListingId={isSale ? property.id : undefined}
@@ -1222,11 +1245,15 @@ export default function PropertyDetailsPage() {
                       {isCoOwnership ? "Join Co-Ownership Group" : "Message"}
                     </MessageButton>
                   </>
-                )}
+                ) : !isOwner && !property ? (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
+                    <p className="text-blue-800 font-semibold">Loading property details...</p>
+                  </div>
+                ) : null}
               </>
             )}
             <Button variant="outline" className="w-full border-2 border-purple-200 hover:bg-purple-50 text-purple-700 font-semibold" onClick={() => navigate(-1)}>
-              {role === 'landlord' ? 'Back to properties' : (isSale ? 'Back to opportunities' : 'Back to results')}
+              {isOwner ? 'Back to properties' : (isSale ? 'Back to opportunities' : 'Back to results')}
             </Button>
           </div>
         </aside>

@@ -107,9 +107,17 @@ export type CreatePropertyInput = Omit<Property, 'id' | 'created_at' | 'updated_
 export type UpdatePropertyInput = Partial<Omit<Property, 'furnished'>> & { furnished?: string | boolean };
 
 export async function getPropertiesByOwnerId(userId: string): Promise<Property[]> {
-  console.log("Fetching properties for owner:", userId);
+  console.log("🔍 [getPropertiesByOwnerId] Starting fetch for user:", userId);
 
   try {
+    if (!userId) {
+      console.error("❌ [getPropertiesByOwnerId] No userId provided");
+      return [];
+    }
+
+    console.log("🔍 [getPropertiesByOwnerId] Querying properties table...");
+    
+    // Fetch ALL properties for this user (no status filter)
     const { data, error } = await sb
       .from('properties')
       .select('*')
@@ -117,26 +125,46 @@ export async function getPropertiesByOwnerId(userId: string): Promise<Property[]
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error("Error fetching properties by owner:", error);
+      console.error("❌ [getPropertiesByOwnerId] Database error:", error);
+      console.error("❌ [getPropertiesByOwnerId] Error code:", error.code);
+      console.error("❌ [getPropertiesByOwnerId] Error message:", error.message);
+      console.error("❌ [getPropertiesByOwnerId] Full error object:", JSON.stringify(error));
+      
       if (error.code === '42P01') {
-        console.log("Properties table doesn't exist yet, returning empty array");
+        console.log("⚠️ [getPropertiesByOwnerId] Properties table doesn't exist yet");
         return [];
       }
+      
       throw new Error(`Failed to fetch properties: ${error.message}`);
     }
 
-    console.log("Properties fetched successfully:", data);
-
-    // Exclude only archived properties from the main list
-    // Show all other properties (including NULL, 'available', 'active', 'draft', 'inactive' for backward compatibility)
-    const activeProperties = (data as any as Property[])?.filter(p =>
-      p.status !== 'archived'
-    ) || [];
-
-    console.log("Active properties after filtering:", activeProperties);
-    return activeProperties;
+    console.log("✅ [getPropertiesByOwnerId] Query successful, received:", data?.length || 0, "items");
+    
+    if (data && data.length > 0) {
+      console.log("📋 [getPropertiesByOwnerId] First property details:", {
+        id: data[0].id,
+        title: data[0].listing_title,
+        user_id: data[0].user_id,
+        status: data[0].status,
+        created_at: data[0].created_at,
+        monthly_rent: data[0].monthly_rent
+      });
+      console.log("📋 [getPropertiesByOwnerId] All properties:", JSON.stringify(data.map((p: any) => ({
+        id: p.id,
+        title: p.listing_title,
+        status: p.status,
+        user_id: p.user_id
+      })), null, 2));
+    } else {
+      console.log("⚠️ [getPropertiesByOwnerId] No properties found for user:", userId);
+    }
+    
+    const allProperties = (data as any as Property[]) || [];
+    console.log("✅ [getPropertiesByOwnerId] Returning", allProperties.length, "properties");
+    
+    return allProperties;
   } catch (error) {
-    console.error("Error in getPropertiesByOwnerId:", error);
+    console.error("❌ [getPropertiesByOwnerId] Exception caught:", error);
     throw error;
   }
 }
@@ -295,10 +323,21 @@ export async function createProperty(propertyData: any): Promise<Property | null
   }
 
   console.log("✅ Authenticated user found:", user.id);
+  console.log("📋 User email:", user.email);
+
+  // Verify user_id matches
+  if (propertyData.user_id !== user.id) {
+    console.warn("⚠️ WARNING: propertyData.user_id doesn't match authenticated user.id");
+    console.warn("   propertyData.user_id:", propertyData.user_id);
+    console.warn("   user.id:", user.id);
+    // Force correct user_id
+    propertyData.user_id = user.id;
+  }
 
   // Map frontend field names to database field names
   const payload: any = {
     user_id: user.id, // Ensure user_id is always set
+    status: 'active', // Set default status to 'active' so property shows in listings
     listing_title: propertyData.listingTitle || propertyData.listing_title,
     property_type: propertyData.propertyType || propertyData.property_type,
     listing_category: propertyData.listingCategory || propertyData.listing_category || 'rental',
@@ -347,9 +386,14 @@ export async function createProperty(propertyData: any): Promise<Property | null
   }
 
   console.log("📦 Final payload for database:", payload);
+  console.log("🔐 Payload user_id:", payload.user_id);
+  console.log("🔐 Authenticated user_id:", user.id);
 
   try {
     console.log("🚀 Inserting into properties table...");
+    console.log("🔐 Payload user_id before insert:", payload.user_id);
+    console.log("🔐 Authenticated user_id before insert:", user.id);
+    
     const { data, error } = await sb
       .from('properties')
       .insert(payload)
@@ -364,16 +408,42 @@ export async function createProperty(propertyData: any): Promise<Property | null
         details: error.details,
         hint: error.hint
       });
+      console.error("❌ Full error object:", JSON.stringify(error, null, 2));
       throw new Error(`Failed to create property: ${error.message}`);
     }
 
+    if (!data) {
+      console.error("❌ No data returned from insert");
+      throw new Error("Failed to create property: No data returned");
+    }
+
     console.log("✅ Property created successfully:", data);
+    console.log("✅ Created property ID:", data.id);
+    console.log("✅ Created property user_id:", data.user_id);
+    console.log("✅ Authenticated user_id:", user.id);
+    console.log("✅ user_id match:", data.user_id === user.id);
     
     // After successful property creation, check for Plan Ahead matches
     // Run in background — do not await so it doesn't slow down listing creation
     checkPlanAheadMatches(data).catch(
       err => console.error('Plan ahead check failed:', err)
     );
+    
+    // Verify the property was actually created by fetching it back
+    console.log("🔍 Verifying property was created...");
+    const { data: verifyData, error: verifyError } = await sb
+      .from('properties')
+      .select('id, user_id, listing_title')
+      .eq('id', data.id)
+      .single();
+    
+    if (verifyError) {
+      console.error("❌ Failed to verify property creation:", verifyError);
+    } else if (verifyData) {
+      console.log("✅ Property verified in database:", verifyData);
+    } else {
+      console.error("❌ Property not found after creation!");
+    }
     
     return data as any as Property;
   } catch (error) {
@@ -393,6 +463,7 @@ export async function createSalesListing(salesData: any): Promise<SalesListing |
 
   const payload: any = {
     user_id: user.id,
+    status: 'active', // Set default status to 'active' so listing shows
     listing_title: salesData.listingTitle || salesData.listing_title,
     property_type: salesData.propertyType || salesData.property_type,
     description: salesData.description,
@@ -457,49 +528,72 @@ export async function fetchProperties(filters?: {
   bedrooms?: number;
   property_type?: string;
 }): Promise<Property[]> {
-  console.log("Fetching properties with filters:", filters);
+  console.log("🔍 [fetchProperties] Starting with filters:", filters);
 
   try {
+    // SIMPLIFIED: Just fetch ALL properties first to debug
+    console.log("🔍 [fetchProperties] Fetching ALL properties from database...");
+    const { data: allData, error: allError } = await sb
+      .from('properties')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (allError) {
+      console.error("❌ [fetchProperties] Error fetching all properties:", allError);
+      return [];
+    }
+
+    console.log("✅ [fetchProperties] Total properties in database:", allData?.length || 0);
+    if (allData && allData.length > 0) {
+      console.log("📋 [fetchProperties] Sample properties:", allData.slice(0, 3).map((p: any) => ({
+        id: p.id,
+        title: p.listing_title,
+        status: p.status,
+        listing_category: p.listing_category,
+        monthly_rent: p.monthly_rent
+      })));
+    }
+
+    // Now apply filters
     let query = sb.from('properties').select('*');
 
-    // IMPORTANT: Exclude archived properties from rental listings
-    // Accept both 'active' and 'available' for backward compatibility
-    query = query.in('status', ['active', 'available']);
-
-    // IMPORTANT: Exclude sales properties from rental listings
-    // Only filter out properties explicitly marked as 'sale'
-    query = query.not('listing_category', 'eq', 'sale');
+    // Filter for rental properties only
+    console.log("🔍 [fetchProperties] Filtering for rental properties...");
+    query = query.neq('listing_category', 'sale');
 
     if (filters) {
       if (filters.location) {
+        console.log("🔍 [fetchProperties] Adding location filter:", filters.location);
         query = query.or(`city.ilike.%${filters.location}%,state.ilike.%${filters.location}%`);
       }
       if (filters.minPrice) {
+        console.log("🔍 [fetchProperties] Adding minPrice filter:", filters.minPrice);
         query = query.gte('monthly_rent', filters.minPrice);
       }
       if (filters.maxPrice) {
+        console.log("🔍 [fetchProperties] Adding maxPrice filter:", filters.maxPrice);
         query = query.lte('monthly_rent', filters.maxPrice);
       }
       if (filters.bedrooms) {
+        console.log("🔍 [fetchProperties] Adding bedrooms filter:", filters.bedrooms);
         query = query.eq('bedrooms', filters.bedrooms);
       }
       if (filters.property_type) {
+        console.log("🔍 [fetchProperties] Adding property_type filter:", filters.property_type);
         query = query.eq('property_type', filters.property_type);
       }
     }
 
+    console.log("🔍 [fetchProperties] Executing filtered query...");
     const { data, error } = await query.order('created_at', { ascending: false });
 
     if (error) {
-      console.error("Error fetching properties:", error);
-      // If properties table doesn't exist, return empty array
-      if (error.code === '42P01') {
-        console.log("Properties table doesn't exist yet, returning empty array");
-        return [];
-      }
-      throw new Error(`Failed to fetch properties: ${error.message}`);
+      console.error("❌ [fetchProperties] Database error:", error);
+      return [];
     }
 
+    console.log("✅ [fetchProperties] Query successful, received:", data?.length || 0, "properties");
+    
     const properties = (data as any as Property[]) || [];
 
     const propertyIds = properties.map((p: any) => p.id).filter(Boolean) as string[];
@@ -510,70 +604,53 @@ export async function fetchProperties(filters?: {
     const nameByUserId = new Map<string, string>();
     const roleByUserId = new Map<string, string>();
 
-    // First try public_property_owners view (public access, no RLS issues)
+    // Fetch owner names
     if (propertyIds.length > 0) {
-      console.log('Fetching public_property_owners for propertyIds:', propertyIds);
-      const { data: owners, error: ownersError } = await sb
+      const { data: owners } = await sb
         .from('public_property_owners')
         .select('property_id, owner_name, owner_email')
         .in('property_id', propertyIds);
 
-      console.log('public_property_owners result:', { owners, ownersError });
-
-      if (!ownersError && owners) {
+      if (owners) {
         for (const o of owners as any[]) {
           if (o?.property_id && o?.owner_name) {
-            // Find the user_id for this property_id
             const property = properties.find((p: any) => p.id === o.property_id);
             if (property?.user_id) {
               nameByUserId.set(property.user_id, o.owner_name);
             }
           }
         }
-        console.log('nameByUserId map:', Object.fromEntries(nameByUserId));
-      } else {
-        console.error('Error fetching public_property_owners for property list:', ownersError);
       }
     }
 
-    // Fallback: fetch user_profiles for missing names and roles
+    // Fallback: fetch user_profiles
     const missingUserIds = userIds.filter(uid => !nameByUserId.has(uid));
-
     if (missingUserIds.length > 0) {
-      console.log('Fetching user_profiles fallback for missing userIds:', missingUserIds);
-      const { data: profiles, error: profilesError } = await sb
+      const { data: profiles } = await sb
         .from('user_profiles')
         .select('id, full_name, role')
         .in('id', missingUserIds);
 
-      console.log('Profiles fallback result:', { profiles, profilesError });
-
-      if (!profilesError && profiles) {
+      if (profiles) {
         for (const p of profiles as any[]) {
           if (p?.id) {
             nameByUserId.set(p.id, p.full_name || 'Property Owner');
-            // We'll use this in the enrichment step
             roleByUserId.set(p.id, p.role ? p.role.charAt(0).toUpperCase() + p.role.slice(1) : '');
           }
         }
-      } else {
-        console.error('Error fetching user_profiles fallback:', profilesError);
       }
     }
 
     const enriched = properties.map((p: any) => {
       const landlord_name = nameByUserId.get(p.user_id) || 'Property Owner';
       const listing_agent = roleByUserId.get(p.user_id) || undefined;
-      const enriched = { ...p, landlord_name, listing_agent };
-      console.log('Enriched property:', enriched);
-      return enriched;
+      return { ...p, landlord_name, listing_agent };
     });
 
-    console.log("Properties fetched successfully:", enriched);
+    console.log("✅ [fetchProperties] Returning", enriched.length, "enriched properties");
     return enriched;
   } catch (error) {
-    console.error("Error in fetchProperties:", error);
-    // Return empty array if table doesn't exist or other error
+    console.error("❌ [fetchProperties] Exception caught:", error);
     return [];
   }
 }

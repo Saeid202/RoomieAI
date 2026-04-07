@@ -48,6 +48,7 @@ import ReportingBatchesPage from "@/pages/dashboard/admin/ReportingBatches";
 import RateLimitManagementPage from "@/pages/dashboard/admin/RateLimitManagement";
 import SettingsPage from "@/pages/dashboard/Settings";
 import MatchesPage from "@/pages/dashboard/Matches";
+import DebugPropertiesPage from "@/pages/dashboard/DebugProperties";
 import MyApplicationsPage from "@/pages/dashboard/MyApplications";
 import ApplicationOverviewPage from "@/pages/dashboard/landlord/ApplicationOverview";
 import EmergencyMode from "@/pages/dashboard/EmergencyMode";
@@ -92,6 +93,7 @@ import RenovatorsPage from "@/pages/dashboard/Renovators";
 import CleanersPage from "@/pages/dashboard/Cleaners";
 import ShopPage from "@/pages/dashboard/Shop";
 import TenantPaymentsPage from "@/pages/dashboard/tenant/TenantPayments";
+import WalletPage from "@/pages/dashboard/Wallet";
 import LandlordPaymentsPage from "@/pages/dashboard/landlord/LandlordPayments";
 import PayoutSetupPage from "@/pages/dashboard/landlord/PayoutSetup";
 import ViewingAppointmentsPage from "@/pages/dashboard/landlord/ViewingAppointments";
@@ -212,6 +214,7 @@ function AppRoutes() {
           <Route path="matches" element={<MatchesPage />} />
           <Route path="roommate-recommendations" element={<RoommateRecommendationsPage />} />
           <Route path="rental-options" element={<ErrorBoundary componentName="RentalOptionsPage"><RentalOptionsPage /></ErrorBoundary>} />
+          <Route path="debug-properties" element={<DebugPropertiesPage />} />
           <Route path="rent/:id" element={<ErrorBoundary componentName="PropertyDetailsPage"><PropertyDetailsPage /></ErrorBoundary>} />
           <Route path="buy/:id" element={<ErrorBoundary componentName="PropertyDetailsPage"><PropertyDetailsPage /></ErrorBoundary>} />
           <Route path="co-ownership/:id" element={<ErrorBoundary componentName="PropertyDetailsPage"><PropertyDetailsPage /></ErrorBoundary>} />
@@ -267,7 +270,7 @@ function AppRoutes() {
           <Route path="tax-intelligence" element={<ErrorBoundary componentName="TaxIntelligencePage"><TaxIntelligencePage /></ErrorBoundary>} />
           <Route path="cleaners" element={<CleanersPage />} />
           <Route path="shop" element={<ShopPage />} />
-          <Route path="digital-wallet" element={<TenantPaymentsPage />} />
+          <Route path="digital-wallet" element={<WalletPage />} />
           <Route path="pad-test" element={<PADPaymentTest />} />
           <Route path="list-room" element={<ListRoomPage />} />
           <Route path="profile" element={<SeekerProfilePage />} />
@@ -386,6 +389,7 @@ function AppRoutes() {
         <Route path="matches" element={<MatchesPage />} />
         <Route path="roommate-recommendations" element={<RoommateRecommendationsPage />} />
         <Route path="rental-options" element={<ErrorBoundary componentName="RentalOptionsPage"><RentalOptionsPage /></ErrorBoundary>} />
+        <Route path="debug-properties" element={<DebugPropertiesPage />} />
         <Route path="rent/:id" element={<ErrorBoundary componentName="PropertyDetailsPage"><PropertyDetailsPage /></ErrorBoundary>} />
         <Route path="buy/:id" element={<ErrorBoundary componentName="PropertyDetailsPage"><PropertyDetailsPage /></ErrorBoundary>} />
         <Route path="co-ownership/:id" element={<ErrorBoundary componentName="PropertyDetailsPage"><PropertyDetailsPage /></ErrorBoundary>} />
@@ -433,7 +437,7 @@ function AppRoutes() {
         <Route path="tax-intelligence" element={<ErrorBoundary componentName="TaxIntelligencePage"><TaxIntelligencePage /></ErrorBoundary>} />
         <Route path="cleaners" element={<CleanersPage />} />
         <Route path="shop" element={<ShopPage />} />
-        <Route path="digital-wallet" element={<TenantPaymentsPage />} />
+        <Route path="digital-wallet" element={<WalletPage />} />
         <Route path="list-room" element={<ListRoomPage />} />
         <Route path="profile" element={<SeekerProfilePage />} />
         <Route path="user/:userId" element={<PublicProfilePage />} />

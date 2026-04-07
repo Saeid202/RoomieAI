@@ -85,16 +85,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-    if (error) {
-      throw error;
+      if (error) {
+        // Provide more helpful error messages
+        if (error.message?.includes('Failed to fetch') || error.message?.includes('NetworkError')) {
+          throw new Error('Network error: Please check your internet connection and try again.');
+        }
+        if (error.message?.includes('Invalid login credentials')) {
+          throw new Error('Invalid email or password. Please try again.');
+        }
+        throw error;
+      }
+
+      return data;
+    } catch (err: any) {
+      // Handle network errors
+      if (err.message?.includes('Failed to fetch') || err.message?.includes('NetworkError')) {
+        throw new Error('Network error: Please check your internet connection and try again.');
+      }
+      throw err;
     }
-
-    return data;
   };
 
   const signUp = async (
@@ -102,115 +117,130 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     password: string,
     metadata: Record<string, any> = {}
   ) => {
-    // Extract metadata from localStorage if available
-    const signupData = localStorage.getItem("signupData");
-    let combinedMetadata: Record<string, any> = { ...metadata };
+    try {
+      // Extract metadata from localStorage if available
+      const signupData = localStorage.getItem("signupData");
+      let combinedMetadata: Record<string, any> = { ...metadata };
 
-    if (signupData) {
-      try {
-        const localData = JSON.parse(signupData);
-        combinedMetadata = { ...combinedMetadata, ...localData };
-        console.log("Using combined metadata:", combinedMetadata);
-      } catch (e) {
-        console.error("Error parsing signup data from localStorage:", e);
+      if (signupData) {
+        try {
+          const localData = JSON.parse(signupData);
+          combinedMetadata = { ...combinedMetadata, ...localData };
+          console.log("Using combined metadata:", combinedMetadata);
+        } catch (e) {
+          console.error("Error parsing signup data from localStorage:", e);
+        }
       }
-    }
 
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: combinedMetadata,
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
-
-    if (error) {
-      throw error;
-    }
-
-    // After successful signup, ensure profile is created
-    if (data.user) {
-      console.log("User created, checking profile...", {
-        userId: data.user.id,
-        metadata: data.user.user_metadata,
-        rawMetadata: data.user.user_metadata
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: combinedMetadata,
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        },
       });
 
-      // Wait a bit for trigger to execute
-      await new Promise(resolve => setTimeout(resolve, 500));
+      if (error) {
+        // Provide more helpful error messages
+        if (error.message?.includes('Failed to fetch') || error.message?.includes('NetworkError')) {
+          throw new Error('Network error: Please check your internet connection and try again.');
+        }
+        if (error.message?.includes('User already registered')) {
+          throw new Error('This email is already registered. Please sign in instead.');
+        }
+        throw error;
+      }
 
-      try {
-        // Check if profile exists, if not create it
-        const { data: existingProfile, error: checkError } = await supabase
-          .from("user_profiles")
-          .select("id, full_name")
-          .eq("id", data.user.id)
-          .maybeSingle();
+      // After successful signup, ensure profile is created
+      if (data.user) {
+        console.log("User created, checking profile...", {
+          userId: data.user.id,
+          metadata: data.user.user_metadata,
+          rawMetadata: data.user.user_metadata
+        });
 
-        console.log("Profile check result:", { existingProfile, checkError });
+        // Wait a bit for trigger to execute
+        await new Promise(resolve => setTimeout(resolve, 500));
 
-        if (!existingProfile) {
-          // Create profile manually if trigger didn't work
-          const fullName =
-            (metadata as any).full_name ||
-            data.user.user_metadata?.full_name ||
-            data.user.user_metadata?.name ||
-            null;
-
-          console.log("Creating profile manually with fullName:", fullName);
-
-          const { data: newProfile, error: profileError } = await supabase
+        try {
+          // Check if profile exists, if not create it
+          const { data: existingProfile, error: checkError } = await supabase
             .from("user_profiles")
-            .insert({
-              id: data.user.id,
-              full_name: fullName,
-              role: (metadata as any).role || data.user.user_metadata?.role || 'seeker',
-              email: data.user.email || null,
-            })
-            .select()
-            .single();
+            .select("id, full_name")
+            .eq("id", data.user.id)
+            .maybeSingle();
 
-          if (profileError) {
-            console.error(
-              "Could not create profile automatically:",
-              profileError,
-              "Error details:",
-              JSON.stringify(profileError, null, 2)
-            );
-          } else {
-            console.log("Profile created successfully:", newProfile);
-          }
-        } else {
-          // Profile exists, but check if full_name is missing
-          if (!existingProfile.full_name) {
+          console.log("Profile check result:", { existingProfile, checkError });
+
+          if (!existingProfile) {
+            // Create profile manually if trigger didn't work
             const fullName =
               (metadata as any).full_name ||
               data.user.user_metadata?.full_name ||
               data.user.user_metadata?.name ||
               null;
 
-            if (fullName) {
-              console.log("Updating profile with full_name:", fullName);
-              const { error: updateError } = await supabase
-                .from("user_profiles")
-                .update({ full_name: fullName })
-                .eq("id", data.user.id);
+            console.log("Creating profile manually with fullName:", fullName);
 
-              if (updateError) {
-                console.error("Could not update profile full_name:", updateError);
-              } else {
-                console.log("Profile full_name updated successfully");
+            const { data: newProfile, error: profileError } = await supabase
+              .from("user_profiles")
+              .insert({
+                id: data.user.id,
+                full_name: fullName,
+                role: (metadata as any).role || data.user.user_metadata?.role || 'seeker',
+                email: data.user.email || null,
+              })
+              .select()
+              .single();
+
+            if (profileError) {
+              console.error(
+                "Could not create profile automatically:",
+                profileError,
+                "Error details:",
+                JSON.stringify(profileError, null, 2)
+              );
+            } else {
+              console.log("Profile created successfully:", newProfile);
+            }
+          } else {
+            // Profile exists, but check if full_name is missing
+            if (!existingProfile.full_name) {
+              const fullName =
+                (metadata as any).full_name ||
+                data.user.user_metadata?.full_name ||
+                data.user.user_metadata?.name ||
+                null;
+
+              if (fullName) {
+                console.log("Updating profile with full_name:", fullName);
+                const { error: updateError } = await supabase
+                  .from("user_profiles")
+                  .update({ full_name: fullName })
+                  .eq("id", data.user.id);
+
+                if (updateError) {
+                  console.error("Could not update profile full_name:", updateError);
+                } else {
+                  console.log("Profile full_name updated successfully");
+                }
               }
             }
           }
+        } catch (profileErr) {
+          console.error("Error checking/creating profile:", profileErr);
         }
-      } catch (profileErr) {
-        console.error("Error checking/creating profile:", profileErr);
       }
-    }
 
-    return data;
+      return data;
+    } catch (err: any) {
+      // Handle network errors
+      if (err.message?.includes('Failed to fetch') || err.message?.includes('NetworkError')) {
+        throw new Error('Network error: Please check your internet connection and try again.');
+      }
+      throw err;
+    }
   };
 
   const signOut = async () => {
