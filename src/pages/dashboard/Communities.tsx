@@ -276,25 +276,26 @@ export default function CommunitiesPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Premium Header */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 px-8 py-16 md:py-20">
-        {/* Subtle animated background */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-purple-500 rounded-full blur-3xl" />
-          <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-500 rounded-full blur-3xl" />
+      {/* Premium Header - Homei AI Brand */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-violet-600 via-purple-600 to-orange-500 px-8 py-16 md:py-20">
+        {/* Energetic animated background */}
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-orange-400 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-0 left-0 w-96 h-96 bg-cyan-400 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+          <div className="absolute top-1/2 left-1/2 w-72 h-72 bg-pink-400 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
         </div>
 
         <div className="relative max-w-7xl mx-auto">
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg">
+            <div className="p-2 bg-white/20 backdrop-blur-sm rounded-lg border border-white/30">
               <Users className="h-5 w-5 text-white" />
             </div>
-            <span className="text-purple-300 text-sm font-semibold tracking-wide uppercase">Communities</span>
+            <span className="text-white/90 text-sm font-semibold tracking-wide uppercase">Communities</span>
           </div>
-          <h1 className="text-5xl md:text-6xl font-bold text-white mb-3 tracking-tight">
+          <h1 className="text-5xl md:text-6xl font-bold text-white mb-3 tracking-tight drop-shadow-lg">
             Find Your Community
           </h1>
-          <p className="text-gray-300 text-lg mb-10 max-w-2xl leading-relaxed">
+          <p className="text-white/95 text-lg mb-10 max-w-2xl leading-relaxed drop-shadow">
             Connect with like-minded seekers in your city. Share experiences, find roommates, and build meaningful relationships.
           </p>
 
@@ -306,12 +307,12 @@ export default function CommunitiesPage() {
                 value={searchInput}
                 onChange={e => setSearchInput(e.target.value)}
                 placeholder="Search communities by city..."
-                className="pl-12 h-12 bg-white border-0 shadow-xl rounded-lg text-gray-900 placeholder:text-gray-500 focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-0 text-base"
+                className="pl-12 h-12 bg-white/95 backdrop-blur-sm border-0 shadow-xl rounded-lg text-gray-900 placeholder:text-gray-500 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-0 text-base"
               />
             </div>
             <button
               type="submit"
-              className="px-8 h-12 rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold text-base hover:from-purple-700 hover:to-blue-700 transition-all shadow-lg hover:shadow-xl"
+              className="px-8 h-12 rounded-lg bg-white text-violet-600 font-semibold text-base hover:bg-white/90 transition-all shadow-lg hover:shadow-xl hover:scale-105"
             >
               Search
             </button>
@@ -319,7 +320,7 @@ export default function CommunitiesPage() {
               <button
                 type="button"
                 onClick={() => { setSearch(''); setSearchInput(''); }}
-                className="px-6 h-12 rounded-lg bg-gray-700 text-gray-200 text-base font-medium hover:bg-gray-600 transition-all"
+                className="px-6 h-12 rounded-lg bg-white/20 backdrop-blur-sm text-white text-base font-medium hover:bg-white/30 transition-all border border-white/30"
               >
                 Clear
               </button>
@@ -337,7 +338,7 @@ export default function CommunitiesPage() {
                 onClick={() => setActiveTab('browse')}
                 className={`py-4 px-1 border-b-2 font-semibold text-base transition-all ${
                   activeTab === 'browse'
-                    ? 'border-purple-600 text-purple-600'
+                    ? 'border-violet-600 text-violet-600'
                     : 'border-transparent text-gray-600 hover:text-gray-900'
                 }`}
               >
@@ -347,7 +348,7 @@ export default function CommunitiesPage() {
                 onClick={() => setActiveTab('my-community')}
                 className={`py-4 px-1 border-b-2 font-semibold text-base transition-all ${
                   activeTab === 'my-community'
-                    ? 'border-purple-600 text-purple-600'
+                    ? 'border-violet-600 text-violet-600'
                     : 'border-transparent text-gray-600 hover:text-gray-900'
                 }`}
               >
@@ -386,7 +387,7 @@ export default function CommunitiesPage() {
                         <h2 className="text-3xl font-bold text-gray-900">Your Communities</h2>
                         <p className="text-gray-600 mt-1">Communities you're actively part of</p>
                       </div>
-                      <span className="text-sm font-semibold text-purple-600 bg-purple-50 px-4 py-2 rounded-full">
+                      <span className="text-sm font-semibold text-white bg-gradient-to-r from-violet-600 to-purple-600 px-4 py-2 rounded-full shadow-md">
                         {joinedCommunities.length} joined
                       </span>
                     </div>
@@ -414,7 +415,7 @@ export default function CommunitiesPage() {
                         </h2>
                         <p className="text-gray-600 mt-1">Explore communities and find your perfect match</p>
                       </div>
-                      <span className="text-sm font-semibold text-blue-600 bg-blue-50 px-4 py-2 rounded-full">
+                      <span className="text-sm font-semibold text-white bg-gradient-to-r from-orange-500 to-pink-500 px-4 py-2 rounded-full shadow-md">
                         {discoverCommunities.length} available
                       </span>
                     </div>
@@ -478,7 +479,7 @@ export default function CommunitiesPage() {
             {isMember && (
               <Button
                 onClick={() => setShowPostForm(true)}
-                className="w-full mb-8 h-12 gap-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold text-base hover:from-purple-700 hover:to-blue-700 shadow-lg hover:shadow-xl transition-all rounded-lg"
+                className="w-full mb-8 h-12 gap-2 bg-gradient-to-r from-violet-600 via-purple-600 to-orange-500 text-white font-semibold text-base hover:from-violet-700 hover:via-purple-700 hover:to-orange-600 shadow-lg hover:shadow-xl transition-all rounded-lg"
               >
                 <PenSquare className="h-5 w-5" />
                 Create Post
@@ -493,7 +494,7 @@ export default function CommunitiesPage() {
                   onClick={() => handleFilterTabChange(tab.value)}
                   className={`px-4 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-all ${
                     filter === tab.value
-                      ? 'bg-purple-100 text-purple-700 border border-purple-300'
+                      ? 'bg-gradient-to-r from-violet-100 to-purple-100 text-violet-700 border border-violet-300'
                       : 'text-gray-600 hover:bg-gray-100 border border-transparent'
                   }`}
                 >
@@ -574,7 +575,7 @@ function CommunityCard({ community, onNavigate, onMembershipChange, showUser }: 
       {/* Premium Cover */}
       <div className={`relative h-40 bg-gradient-to-br ${gradient} flex items-center justify-center overflow-hidden`}>
         <div className="absolute inset-0 bg-black/5" />
-        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 bg-black/10 transition-opacity duration-300" />
+        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 bg-gradient-to-br from-white/10 to-transparent transition-opacity duration-300" />
         
         <div className="relative z-10 w-16 h-16 rounded-2xl bg-white/25 backdrop-blur-md border border-white/40 flex items-center justify-center shadow-xl">
           <span className="text-white font-bold text-2xl tracking-wide">{initials}</span>
@@ -582,7 +583,7 @@ function CommunityCard({ community, onNavigate, onMembershipChange, showUser }: 
         
         {isJoined && (
           <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm border border-white rounded-full px-3 py-1.5 flex items-center gap-1.5 shadow-lg">
-            <div className="w-2 h-2 rounded-full bg-green-500" />
+            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
             <span className="text-gray-900 text-xs font-semibold">Joined</span>
           </div>
         )}
@@ -591,7 +592,7 @@ function CommunityCard({ community, onNavigate, onMembershipChange, showUser }: 
       {/* Body */}
       <div className="p-6 flex flex-col flex-1">
         <div className="flex-1">
-          <h3 className="font-bold text-gray-900 text-lg leading-tight mb-2 group-hover:text-purple-700 transition-colors">
+          <h3 className="font-bold text-gray-900 text-lg leading-tight mb-2 group-hover:text-violet-700 transition-colors">
             {community.name}
           </h3>
           {community.description && (
@@ -602,12 +603,12 @@ function CommunityCard({ community, onNavigate, onMembershipChange, showUser }: 
           <div className="flex items-center gap-4 text-sm text-gray-600">
             {community.city && (
               <span className="flex items-center gap-1.5">
-                <MapPin className="h-4 w-4 text-purple-500" />
+                <MapPin className="h-4 w-4 text-violet-500" />
                 <span className="font-medium">{community.city}</span>
               </span>
             )}
             <span className="flex items-center gap-1.5">
-              <Users className="h-4 w-4 text-purple-500" />
+              <Users className="h-4 w-4 text-violet-500" />
               <span className="font-medium">
                 {community.memberCount.toLocaleString()}
               </span>
@@ -628,7 +629,7 @@ function CommunityCard({ community, onNavigate, onMembershipChange, showUser }: 
           )}
           <button
             onClick={e => { e.stopPropagation(); onNavigate(); }}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-gray-300 text-gray-700 text-sm font-semibold hover:bg-purple-50 hover:text-purple-700 hover:border-purple-300 transition-all"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-gray-300 text-gray-700 text-sm font-semibold hover:bg-gradient-to-r hover:from-violet-50 hover:to-purple-50 hover:text-violet-700 hover:border-violet-300 transition-all"
           >
             View
             <ChevronRight className="h-4 w-4" />
