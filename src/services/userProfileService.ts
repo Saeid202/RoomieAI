@@ -94,6 +94,59 @@ export function getDisplayName(profile: UserProfile | null, userId: string): str
 }
 
 /**
+ * Fetch user profile for rental application auto-fill
+ * Returns profile data with additional fields for application form
+ */
+export async function fetchUserProfileForApplication(userId: string): Promise<{
+  fullName: string | null;
+  email: string | null;
+  phone: string | null;
+  occupation: string | null;
+}> {
+  try {
+    const { data, error } = await supabase
+      .from('user_profiles')
+      .select('full_name, email, phone, occupation')
+      .eq('id', userId)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        // Profile not found, return empty object
+        return {
+          fullName: null,
+          email: null,
+          phone: null,
+          occupation: null,
+        };
+      }
+      console.error("Error fetching user profile for application:", error);
+      return {
+        fullName: null,
+        email: null,
+        phone: null,
+        occupation: null,
+      };
+    }
+
+    return {
+      fullName: data?.full_name || null,
+      email: data?.email || null,
+      phone: data?.phone || null,
+      occupation: data?.occupation || null,
+    };
+  } catch (e) {
+    console.error("Error fetching user profile for application:", e);
+    return {
+      fullName: null,
+      email: null,
+      phone: null,
+      occupation: null,
+    };
+  }
+}
+
+/**
  * Clear the user profile cache (useful for testing or manual refresh)
  */
 export function clearUserProfileCache(): void {
