@@ -35,14 +35,15 @@ const LandingHamburgerMenu = () => {
           console.log('Landing menu button clicked, isOpen:', isOpen);
           setIsOpen(!isOpen);
         }}
-        className="fixed top-4 right-4 z-50 md:hidden p-2 rounded-lg hover:bg-purple-50 transition-colors cursor-pointer active:scale-95"
+        className="fixed top-4 right-4 z-50 md:hidden p-3 rounded-lg bg-white shadow-lg border-2 border-roomie-purple hover:bg-purple-50 transition-colors cursor-pointer active:scale-95"
         aria-label="Toggle menu"
         type="button"
+        style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
       >
         {isOpen ? (
-          <X size={28} className="text-roomie-purple" strokeWidth={2.5} />
+          <X size={32} className="text-roomie-purple" strokeWidth={2.5} />
         ) : (
-          <Menu size={28} className="text-roomie-purple" strokeWidth={2.5} />
+          <Menu size={32} className="text-roomie-purple" strokeWidth={2.5} />
         )}
       </button>
 
