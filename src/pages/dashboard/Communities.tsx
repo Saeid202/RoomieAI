@@ -9,6 +9,7 @@ import { JoinCommunityButton } from '@/components/community/JoinCommunityButton'
 import { PostCard } from '@/components/community/PostCard';
 import { PostForm } from '@/components/community/PostForm';
 import { PostFilter } from '@/components/community/PostFilter';
+import { InviteModal } from '@/components/community/InviteModal';
 import type { PostFilters } from '@/components/community/PostFilter';
 import { getCommunities, getCommunityMemberCount } from '@/services/communityService';
 import { getMembership } from '@/services/communityMembershipService';
@@ -135,6 +136,7 @@ export default function CommunitiesPage() {
   const [filter, setFilter] = useState<FilterType>('all');
   const [structuredFilters, setStructuredFilters] = useState<PostFilters>({});
   const [showPostForm, setShowPostForm] = useState(false);
+  const [showInviteModal, setShowInviteModal] = useState(false);
 
   const showPostFilter = STRUCTURED_TABS.includes(filter);
   const isMember = selectedCommunity?.membership?.status === 'active';
@@ -507,6 +509,7 @@ export default function CommunitiesPage() {
                 </button>
 
                 <button
+                  onClick={() => setShowInviteModal(true)}
                   className="group relative overflow-hidden rounded-2xl bg-white border-2 border-violet-600 px-8 py-4 text-violet-600 font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:bg-violet-50 flex items-center justify-center gap-3"
                 >
                   <div className="relative flex items-center justify-center gap-3">
@@ -588,6 +591,14 @@ export default function CommunitiesPage() {
               open={showPostForm}
               onClose={() => setShowPostForm(false)}
               onPostCreated={handlePostCreated}
+            />
+
+            {/* Invite Modal */}
+            <InviteModal
+              isOpen={showInviteModal}
+              onClose={() => setShowInviteModal(false)}
+              communityId={selectedCommunity.id}
+              communityName={selectedCommunity.name}
             />
           </div>
         )}

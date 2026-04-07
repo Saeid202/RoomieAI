@@ -11,6 +11,7 @@ import {
   subscribeToPostComments,
 } from '@/services/communityCommentService';
 import { getPostById } from '@/services/communityPostService';
+import { getUserProfiles, getUserProfile, getDisplayName } from '@/services/userProfileService';
 import { createNotification } from '@/services/notificationService';
 import type { CommunityComment } from '@/types/community';
 
@@ -21,15 +22,14 @@ interface CommentSectionProps {
   currentUserId?: string;
 }
 
-function formatUserId(userId: string) {
-  return `User ${userId.slice(0, 8)}`;
-}
+
 
 export function CommentSection({ postId, communityId, isMember, currentUserId }: CommentSectionProps) {
   const [comments, setComments] = useState<CommunityComment[]>([]);
   const [loading, setLoading] = useState(true);
   const [newComment, setNewComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [userProfiles, setUserProfiles] = useState<Map<string, any>>(new Map());
 
   useEffect(() => {
     let unsubscribe: (() => void) | undefined;
@@ -38,6 +38,13 @@ export function CommentSection({ postId, communityId, isMember, currentUserId }:
       try {
         const data = await getPostComments(postId);
         setComments(data);
+        
+        // Fetch all user profiles for the comments
+        if (data.length > 0) {
+          const userIds = data.map(c => c.user_id);
+          const profiles = await getUserProfiles(userIds);
+          setUserProfiles(profiles);
+        }
       } catch {
         toast.error('Failed to load comments');
       } finally {
@@ -49,8 +56,14 @@ export function CommentSection({ postId, communityId, isMember, currentUserId }:
 
     unsubscribe = subscribeToPostComments(
       postId,
-      (comment) => setComments(prev => {
+      async (comment) => setComments(prev => {
         if (prev.some(c => c.id === comment.id)) return prev;
+        // Fetch profile for new comment
+        getUserProfile(comment.user_id).then(profile => {
+          if (profile) {
+            setUserProfiles(prev => new Map(prev).set(comment.user_id, profile));
+          }
+        });
         return [...prev, comment];
       }),
       (id) => setComments(prev => prev.filter(c => c.id !== id))
@@ -115,7 +128,9 @@ export function CommentSection({ postId, communityId, isMember, currentUserId }:
         <div key={comment.id} className="text-sm bg-muted/40 rounded-md px-3 py-2">
           <div className="flex items-start justify-between gap-2">
             <div className="flex-1 min-w-0">
-              <span className="font-medium text-xs">{formatUserId(comment.user_id)}</span>
+              <span className="font-medium text-xs">
+                {getDisplayName(userProfiles.get(comment.user_id) || null, comment.user_id)}
+              </span>
               <span className="text-xs text-muted-foreground ml-2">
                 {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
               </span>

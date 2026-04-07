@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Heart, MessageCircle, ChevronDown, ChevronUp, Flag } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
 import { Card, CardContent } from '@/components/ui/card';
 import { togglePostLike } from '@/services/communityLikeService';
+import { getUserProfile, getDisplayName } from '@/services/userProfileService';
 import { CommentSection } from './CommentSection';
 import { ReportModal } from './ReportModal';
 import type { CommunityPost } from '@/types/community';
@@ -30,9 +31,7 @@ const POST_TYPE_LABELS: Record<string, string> = {
   offering_room: 'Offering Room',
 };
 
-function formatUserId(userId: string) {
-  return `User ${userId.slice(0, 8)}`;
-}
+
 
 function StructuredDataFields({ data }: { data: NonNullable<CommunityPost['structured_data']> }) {
   const fields: { label: string; value: string | null | undefined }[] = [];
@@ -72,6 +71,23 @@ export function PostCard({
   const [optimisticLiked, setOptimisticLiked] = useState(isLiked);
   const [optimisticCount, setOptimisticCount] = useState(likeCount);
   const [reportOpen, setReportOpen] = useState(false);
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const [loadingProfile, setLoadingProfile] = useState(true);
+
+  useEffect(() => {
+    async function loadUserProfile() {
+      try {
+        const profile = await getUserProfile(post.user_id);
+        setUserProfile(profile);
+      } catch (e) {
+        console.error("Error loading user profile:", e);
+      } finally {
+        setLoadingProfile(false);
+      }
+    }
+
+    loadUserProfile();
+  }, [post.user_id]);
 
   const badgeColor = POST_TYPE_COLORS[post.post_type] || POST_TYPE_COLORS.casual;
   const badgeLabel = POST_TYPE_LABELS[post.post_type] || 'General Chat';
@@ -105,7 +121,9 @@ export function PostCard({
         {/* Header */}
         <div className="flex items-start justify-between mb-2">
           <div>
-            <span className="text-sm font-medium">{formatUserId(post.user_id)}</span>
+            <span className="text-sm font-medium">
+              {loadingProfile ? 'Loading...' : getDisplayName(userProfile, post.user_id)}
+            </span>
             <span className="text-xs text-muted-foreground ml-2">
               {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
             </span>
