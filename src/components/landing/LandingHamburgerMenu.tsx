@@ -31,9 +31,13 @@ const LandingHamburgerMenu = () => {
     <>
       {/* Hamburger Button - Top Right Corner */}
       <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="fixed top-4 right-4 z-50 md:hidden p-1.5 rounded-lg hover:bg-purple-50 transition-colors"
+        onClick={() => {
+          console.log('Landing menu button clicked, isOpen:', isOpen);
+          setIsOpen(!isOpen);
+        }}
+        className="fixed top-4 right-4 z-50 md:hidden p-2 rounded-lg hover:bg-purple-50 transition-colors cursor-pointer active:scale-95"
         aria-label="Toggle menu"
+        type="button"
       >
         {isOpen ? (
           <X size={28} className="text-roomie-purple" strokeWidth={2.5} />

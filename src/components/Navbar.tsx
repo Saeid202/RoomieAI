@@ -45,7 +45,7 @@ const Navbar = ({ hideMobileMenu = false }: NavbarProps) => {
 
   return (
     <nav className="w-full py-4 bg-white/90 backdrop-blur-sm fixed top-0 z-50 shadow-lg">
-      <div className="container mx-auto px-4 flex justify-between items-center">
+      <div className="container mx-auto px-4 flex justify-between items-center relative">
         <NavLogo />
 
         <div className="hidden md:flex items-center space-x-8">
@@ -95,10 +95,14 @@ const Navbar = ({ hideMobileMenu = false }: NavbarProps) => {
 
         {!hideMobileMenu && (
           <button
-            className="md:hidden text-gray-700 hover:text-gray-900 p-2 -mr-2 transition-colors"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className="md:hidden text-gray-700 hover:text-gray-900 p-2 transition-colors cursor-pointer active:scale-95 flex-shrink-0"
+            onClick={() => {
+              console.log('Menu button clicked, isMenuOpen:', isMenuOpen);
+              setIsMenuOpen(!isMenuOpen);
+            }}
             aria-label={isMenuOpen ? "Close menu" : "Open menu"}
             aria-expanded={isMenuOpen}
+            type="button"
           >
             {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
           </button>
