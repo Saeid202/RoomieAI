@@ -1,18 +1,43 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, Search, MapPin, Globe, ChevronRight, Sparkles } from 'lucide-react';
+import { Users, Search, MapPin, Globe, ChevronRight, Sparkles, ArrowLeft, PenSquare } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { JoinCommunityButton } from '@/components/community/JoinCommunityButton';
+import { PostCard } from '@/components/community/PostCard';
+import { PostForm } from '@/components/community/PostForm';
+import { PostFilter } from '@/components/community/PostFilter';
+import type { PostFilters } from '@/components/community/PostFilter';
 import { getCommunities, getCommunityMemberCount } from '@/services/communityService';
 import { getMembership } from '@/services/communityMembershipService';
-import type { Community, CommunityMembership } from '@/types/community';
+import { getCommunityPosts, filterStructuredPosts } from '@/services/communityPostService';
+import { getPostLikeCount, hasUserLikedPost } from '@/services/communityLikeService';
+import { getPostComments } from '@/services/communityCommentService';
+import type { Community, CommunityMembership, CommunityPost, PostType } from '@/types/community';
 
 interface CommunityWithMeta extends Community {
   memberCount: number;
   membership: CommunityMembership | null;
 }
+
+interface PostMeta {
+  likeCount: number;
+  commentCount: number;
+  isLiked: boolean;
+}
+
+type FilterType = 'all' | PostType;
+
+const FILTER_TABS: { value: FilterType; label: string }[] = [
+  { value: 'all', label: 'All' },
+  { value: 'looking_for_roommate', label: 'Looking for Roommate' },
+  { value: 'offering_room', label: 'Offering Room' },
+  { value: 'casual', label: 'General Chat' },
+];
+
+const STRUCTURED_TABS: FilterType[] = ['looking_for_roommate', 'offering_room'];
 
 // Gradient palettes for community cover images
 const GRADIENTS = [
@@ -51,6 +76,41 @@ function LoadingSkeleton() {
   );
 }
 
+function PostLoadingSkeleton() {
+  return (
+    <div className="space-y-3">
+      {[1, 2, 3].map(i => (
+        <div key={i} className="rounded-lg border bg-card p-4 space-y-2 animate-pulse">
+          <div className="flex justify-between">
+            <div className="h-3 w-24 bg-muted rounded" />
+            <div className="h-5 w-28 bg-muted rounded-full" />
+          </div>
+          <div className="h-3 w-full bg-muted rounded" />
+          <div className="h-3 w-4/5 bg-muted rounded" />
+          <div className="flex gap-4 pt-2 border-t">
+            <div className="h-3 w-12 bg-muted rounded" />
+            <div className="h-3 w-12 bg-muted rounded" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+async function loadPostMeta(posts: CommunityPost[], userId?: string) {
+  const entries = await Promise.all(
+    posts.map(async post => {
+      const [likeCount, commentCount, isLiked] = await Promise.all([
+        getPostLikeCount(post.id),
+        getPostComments(post.id).then(c => c.length),
+        userId ? hasUserLikedPost(post.id) : Promise.resolve(false),
+      ]);
+      return [post.id, { likeCount, commentCount, isLiked }] as const;
+    })
+  );
+  return Object.fromEntries(entries);
+}
+
 export default function CommunitiesPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -58,6 +118,18 @@ export default function CommunitiesPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [searchInput, setSearchInput] = useState('');
+  
+  // Joined community detail view state
+  const [selectedCommunity, setSelectedCommunity] = useState<CommunityWithMeta | null>(null);
+  const [posts, setPosts] = useState<CommunityPost[]>([]);
+  const [postMeta, setPostMeta] = useState<Record<string, PostMeta>>({});
+  const [postsLoading, setPostsLoading] = useState(false);
+  const [filter, setFilter] = useState<FilterType>('all');
+  const [structuredFilters, setStructuredFilters] = useState<PostFilters>({});
+  const [showPostForm, setShowPostForm] = useState(false);
+
+  const showPostFilter = STRUCTURED_TABS.includes(filter);
+  const isMember = selectedCommunity?.membership?.status === 'active';
 
   async function loadCommunities(city?: string) {
     setLoading(true);
@@ -80,10 +152,40 @@ export default function CommunitiesPage() {
     }
   }
 
+  async function loadPosts() {
+    if (!selectedCommunity) return;
+    setPostsLoading(true);
+    try {
+      let data: CommunityPost[];
+      if (showPostFilter && Object.keys(structuredFilters).some(k => structuredFilters[k as keyof PostFilters] != null)) {
+        data = await filterStructuredPosts(selectedCommunity.id, structuredFilters);
+        if (filter !== 'all') {
+          data = data.filter(p => p.post_type === filter);
+        }
+      } else {
+        data = await getCommunityPosts(selectedCommunity.id);
+      }
+      setPosts(data);
+      const meta = await loadPostMeta(data, user?.id);
+      setPostMeta(meta);
+    } catch (e: any) {
+      toast.error(e?.message || 'Failed to load posts');
+    } finally {
+      setPostsLoading(false);
+    }
+  }
+
   useEffect(() => {
     loadCommunities(search || undefined);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search, user?.id]);
+
+  useEffect(() => {
+    if (selectedCommunity) {
+      loadPosts();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCommunity?.id, user?.id, filter, structuredFilters]);
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
@@ -98,10 +200,177 @@ export default function CommunitiesPage() {
           : c
       )
     );
+    
+    // If the selected community was updated, update it too
+    if (selectedCommunity?.id === communityId) {
+      setSelectedCommunity(prev => prev ? {
+        ...prev,
+        membership,
+        memberCount: membership?.status === 'active' ? prev.memberCount + 1 : Math.max(0, prev.memberCount - 1)
+      } : null);
+    }
   }
+
+  function handleSelectCommunity(community: CommunityWithMeta) {
+    setSelectedCommunity(community);
+    setFilter('all');
+    setStructuredFilters({});
+    setPosts([]);
+  }
+
+  function handleBackFromDetail() {
+    setSelectedCommunity(null);
+    setShowPostForm(false);
+  }
+
+  function handlePostCreated(post: CommunityPost) {
+    setPosts(prev => [post, ...prev]);
+    setPostMeta(prev => ({
+      ...prev,
+      [post.id]: { likeCount: 0, commentCount: 0, isLiked: false },
+    }));
+  }
+
+  function handleLikeChange(postId: string, liked: boolean, count: number) {
+    setPostMeta(prev => ({
+      ...prev,
+      [postId]: { ...prev[postId], isLiked: liked, likeCount: count },
+    }));
+  }
+
+  function handleFilterTabChange(tab: FilterType) {
+    setFilter(tab);
+    if (!STRUCTURED_TABS.includes(tab)) {
+      setStructuredFilters({});
+    }
+  }
+
+  const displayedPosts = showPostFilter
+    ? posts
+    : filter === 'all'
+    ? posts
+    : posts.filter(p => p.post_type === filter);
 
   const joinedCommunities = communities.filter(c => c.membership?.status === 'active');
   const discoverCommunities = communities.filter(c => c.membership?.status !== 'active');
+
+  // Show joined community detail view
+  if (selectedCommunity && isMember) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 md:px-6 py-6">
+        {/* Back button */}
+        <button
+          onClick={handleBackFromDetail}
+          className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 transition-colors"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to Communities
+        </button>
+
+        {/* Community header */}
+        <div className="rounded-lg border bg-card p-4 mb-4">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-xl font-bold">{selectedCommunity.name}</h1>
+              {selectedCommunity.description && (
+                <p className="text-sm text-muted-foreground mt-1">{selectedCommunity.description}</p>
+              )}
+              <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
+                {selectedCommunity.city && (
+                  <span className="flex items-center gap-1">
+                    <MapPin className="h-3 w-3" />
+                    {selectedCommunity.city}
+                  </span>
+                )}
+                <span className="flex items-center gap-1">
+                  <Users className="h-3 w-3" />
+                  {selectedCommunity.memberCount} {selectedCommunity.memberCount === 1 ? 'member' : 'members'}
+                </span>
+              </div>
+            </div>
+            {user && (
+              <JoinCommunityButton
+                communityId={selectedCommunity.id}
+                membership={selectedCommunity.membership}
+                onMembershipChange={m => handleMembershipChange(selectedCommunity.id, m)}
+              />
+            )}
+          </div>
+        </div>
+
+        {/* Create post button */}
+        {isMember && (
+          <Button
+            onClick={() => setShowPostForm(true)}
+            className="w-full mb-4 gap-2"
+            variant="outline"
+          >
+            <PenSquare className="h-4 w-4" />
+            Create Post
+          </Button>
+        )}
+
+        {/* Filter tabs */}
+        <div className="flex gap-1 mb-4 overflow-x-auto pb-1">
+          {FILTER_TABS.map(tab => (
+            <button
+              key={tab.value}
+              onClick={() => handleFilterTabChange(tab.value)}
+              className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
+                filter === tab.value
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-muted text-muted-foreground hover:bg-muted/80'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Structured post filters */}
+        {showPostFilter && (
+          <PostFilter
+            activeFilters={structuredFilters}
+            onFilterChange={setStructuredFilters}
+          />
+        )}
+
+        {/* Posts */}
+        {postsLoading ? (
+          <PostLoadingSkeleton />
+        ) : displayedPosts.length === 0 ? (
+          <div className="rounded-lg border bg-card p-12 text-center">
+            <p className="text-sm text-muted-foreground">
+              {filter === 'all' ? 'No posts yet. Be the first to post!' : 'No posts in this category.'}
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {displayedPosts.map(post => (
+              <PostCard
+                key={post.id}
+                post={post}
+                isMember={isMember}
+                currentUserId={user?.id}
+                likeCount={postMeta[post.id]?.likeCount ?? 0}
+                commentCount={postMeta[post.id]?.commentCount ?? 0}
+                isLiked={postMeta[post.id]?.isLiked ?? false}
+                onLikeChange={handleLikeChange}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Post form modal */}
+        <PostForm
+          communityId={selectedCommunity.id}
+          open={showPostForm}
+          onClose={() => setShowPostForm(false)}
+          onPostCreated={handlePostCreated}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50/50">
@@ -186,7 +455,7 @@ export default function CommunitiesPage() {
                     <CommunityCard
                       key={community.id}
                       community={community}
-                      onNavigate={() => navigate(`/dashboard/communities/${community.id}`)}
+                      onNavigate={() => handleSelectCommunity(community)}
                       onMembershipChange={m => handleMembershipChange(community.id, m)}
                       showUser={!!user}
                     />
