@@ -193,22 +193,31 @@ export default function CommunitiesPage() {
   }
 
   function handleMembershipChange(communityId: string, membership: CommunityMembership | null) {
-    setCommunities(prev =>
-      prev.map(c =>
+    setCommunities(prev => {
+      const updated = prev.map(c =>
         c.id === communityId
           ? { ...c, membership, memberCount: membership?.status === 'active' ? c.memberCount + 1 : Math.max(0, c.memberCount - 1) }
           : c
-      )
-    );
-    
-    // If the selected community was updated, update it too
-    if (selectedCommunity?.id === communityId) {
-      setSelectedCommunity(prev => prev ? {
-        ...prev,
-        membership,
-        memberCount: membership?.status === 'active' ? prev.memberCount + 1 : Math.max(0, prev.memberCount - 1)
-      } : null);
-    }
+      );
+      
+      // If user just joined, automatically open the community
+      if (membership?.status === 'active') {
+        const joinedCommunity = updated.find(c => c.id === communityId);
+        if (joinedCommunity) {
+          setSelectedCommunity(joinedCommunity);
+          setFilter('all');
+          setStructuredFilters({});
+          setPosts([]);
+        }
+      } else {
+        // If user left, close the community view
+        if (selectedCommunity?.id === communityId) {
+          setSelectedCommunity(null);
+        }
+      }
+      
+      return updated;
+    });
   }
 
   function handleSelectCommunity(community: CommunityWithMeta) {
