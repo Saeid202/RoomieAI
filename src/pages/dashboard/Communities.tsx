@@ -494,23 +494,23 @@ export default function CommunitiesPage() {
 
             {/* Action Buttons - Modern & Luxury */}
             {isMember && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+              <div className="flex gap-6 mb-10 max-w-2xl">
                 <button
                   onClick={() => setShowPostForm(true)}
-                  className="group relative overflow-hidden rounded-2xl bg-gradient-to-r from-violet-600 via-purple-600 to-orange-500 p-12 text-white font-bold text-2xl shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105 md:col-span-2"
+                  className="group relative overflow-hidden rounded-2xl bg-gradient-to-r from-violet-600 via-purple-600 to-orange-500 px-8 py-4 text-white font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 flex items-center justify-center gap-3 flex-1"
                 >
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
-                  <div className="relative flex items-center justify-center gap-4">
-                    <PenSquare className="h-10 w-10" />
+                  <div className="relative flex items-center justify-center gap-3">
+                    <PenSquare className="h-6 w-6" />
                     <span>Create Post</span>
                   </div>
                 </button>
 
                 <button
-                  className="group relative overflow-hidden rounded-2xl bg-white border-2 border-violet-600 p-12 text-violet-600 font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:bg-violet-50"
+                  className="group relative overflow-hidden rounded-2xl bg-white border-2 border-violet-600 px-8 py-4 text-violet-600 font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:bg-violet-50 flex items-center justify-center gap-3"
                 >
                   <div className="relative flex items-center justify-center gap-3">
-                    <Users className="h-8 w-8" />
+                    <Users className="h-6 w-6" />
                     <span>Invite</span>
                   </div>
                 </button>
