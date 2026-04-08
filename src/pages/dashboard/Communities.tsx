@@ -279,7 +279,7 @@ export default function CommunitiesPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Premium Header - Homei AI Brand */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-violet-600 via-purple-600 to-orange-500 px-8 py-16 md:py-20">
+      <div className="relative overflow-hidden bg-gradient-to-br from-violet-600 via-purple-600 to-orange-500 px-4 py-8 md:px-8 md:py-20">
         {/* Energetic animated background */}
         <div className="absolute inset-0 opacity-20">
           <div className="absolute top-0 right-0 w-96 h-96 bg-orange-400 rounded-full blur-3xl animate-pulse" />
@@ -294,27 +294,27 @@ export default function CommunitiesPage() {
             </div>
             <span className="text-white/90 text-sm font-semibold tracking-wide uppercase">Communities</span>
           </div>
-          <h1 className="text-5xl md:text-6xl font-bold text-white mb-3 tracking-tight drop-shadow-lg">
+          <h1 className="text-2xl md:text-6xl font-bold text-white mb-2 md:mb-3 tracking-tight drop-shadow-lg">
             Find Your Community
           </h1>
-          <p className="text-white/95 text-lg mb-10 max-w-2xl leading-relaxed drop-shadow">
+          <p className="text-white/95 text-sm md:text-lg mb-5 md:mb-10 max-w-2xl leading-relaxed drop-shadow">
             Connect with like-minded seekers in your city. Share experiences, find roommates, and build meaningful relationships.
           </p>
 
           {/* Premium Search Bar */}
-          <form onSubmit={handleSearch} className="flex gap-3 max-w-2xl">
+          <form onSubmit={handleSearch} className="flex gap-2 max-w-2xl">
             <div className="relative flex-1">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
                 value={searchInput}
                 onChange={e => setSearchInput(e.target.value)}
-                placeholder="Search communities by city..."
-                className="pl-12 h-12 bg-white/95 backdrop-blur-sm border-0 shadow-xl rounded-lg text-gray-900 placeholder:text-gray-500 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-0 text-base"
+                placeholder="Search by city..."
+                className="pl-9 h-10 bg-white/95 backdrop-blur-sm border-0 shadow-xl rounded-lg text-gray-900 placeholder:text-gray-500 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-0 text-sm"
               />
             </div>
             <button
               type="submit"
-              className="px-8 h-12 rounded-lg bg-white text-violet-600 font-semibold text-base hover:bg-white/90 transition-all shadow-lg hover:shadow-xl hover:scale-105"
+              className="px-4 h-10 rounded-lg bg-white text-violet-600 font-semibold text-sm hover:bg-white/90 transition-all shadow-lg"
             >
               Search
             </button>
@@ -322,7 +322,7 @@ export default function CommunitiesPage() {
               <button
                 type="button"
                 onClick={() => { setSearch(''); setSearchInput(''); }}
-                className="px-6 h-12 rounded-lg bg-white/20 backdrop-blur-sm text-white text-base font-medium hover:bg-white/30 transition-all border border-white/30"
+                className="px-3 h-10 rounded-lg bg-white/20 backdrop-blur-sm text-white text-sm font-medium hover:bg-white/30 transition-all border border-white/30"
               >
                 Clear
               </button>
@@ -334,8 +334,8 @@ export default function CommunitiesPage() {
       {/* Tab Navigation - Premium Style */}
       {selectedCommunity && (
         <div className="border-b border-gray-200 bg-white sticky top-0 z-10 shadow-sm">
-          <div className="max-w-7xl mx-auto px-8">
-            <div className="flex gap-12">
+          <div className="max-w-7xl mx-auto px-4 md:px-8">
+            <div className="flex gap-6 md:gap-12">
               <button
                 onClick={() => setActiveTab('browse')}
                 className={`py-4 px-1 border-b-2 font-semibold text-base transition-all ${
@@ -362,7 +362,7 @@ export default function CommunitiesPage() {
       )}
 
       {/* Content - Premium Layout */}
-      <div className="max-w-7xl mx-auto px-8 py-12 space-y-12">
+      <div className="max-w-7xl mx-auto px-4 md:px-8 py-4 md:py-12 space-y-6 md:space-y-12">
 
         {/* Browse Tab */}
         {activeTab === 'browse' && (
@@ -442,48 +442,38 @@ export default function CommunitiesPage() {
         {/* My Community Tab */}
         {activeTab === 'my-community' && selectedCommunity && (
           <div className="w-full">
-            {/* Community header - Full Width Premium Card */}
-            <div className="rounded-2xl border border-gray-200 bg-gradient-to-br from-white to-gray-50 p-10 mb-10 shadow-lg hover:shadow-xl transition-shadow">
-              <div className="flex items-start justify-between gap-8">
+            {/* Community header - Compact Mobile Card */}
+            <div className="rounded-xl border border-gray-200 bg-white p-4 md:p-10 mb-4 md:mb-10 shadow-sm">
+              <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-4 mb-4">
-                    <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-violet-600 to-purple-600 flex items-center justify-center shadow-lg">
-                      <span className="text-white font-bold text-3xl">{getInitials(selectedCommunity.name)}</span>
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-12 h-12 md:w-20 md:h-20 rounded-xl md:rounded-2xl bg-gradient-to-br from-violet-600 to-purple-600 flex items-center justify-center shadow-md flex-shrink-0">
+                      <span className="text-white font-bold text-lg md:text-3xl">{getInitials(selectedCommunity.name)}</span>
                     </div>
-                    <div>
-                      <h1 className="text-5xl font-bold text-gray-900 mb-2">{selectedCommunity.name}</h1>
+                    <div className="min-w-0">
+                      <h1 className="text-lg md:text-5xl font-bold text-gray-900 leading-tight truncate">{selectedCommunity.name}</h1>
                       {selectedCommunity.description && (
-                        <p className="text-gray-700 text-lg leading-relaxed">{selectedCommunity.description}</p>
+                        <p className="text-gray-600 text-xs md:text-lg leading-relaxed line-clamp-2 mt-0.5">{selectedCommunity.description}</p>
                       )}
                     </div>
                   </div>
                   
-                  <div className="flex items-center gap-8 mt-6 text-lg">
+                  <div className="flex items-center gap-4 mt-2 text-sm">
                     {selectedCommunity.city && (
-                      <span className="flex items-center gap-3 text-gray-700">
-                        <div className="p-2 bg-violet-100 rounded-lg">
-                          <MapPin className="h-6 w-6 text-violet-600" />
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-600">Location</p>
-                          <p className="font-semibold text-gray-900">{selectedCommunity.city}</p>
-                        </div>
+                      <span className="flex items-center gap-1.5 text-gray-600">
+                        <MapPin className="h-4 w-4 text-violet-500 flex-shrink-0" />
+                        <span className="font-medium truncate">{selectedCommunity.city}</span>
                       </span>
                     )}
-                    <span className="flex items-center gap-3 text-gray-700">
-                      <div className="p-2 bg-purple-100 rounded-lg">
-                        <Users className="h-6 w-6 text-purple-600" />
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-600">Members</p>
-                        <p className="font-semibold text-gray-900">{selectedCommunity.memberCount.toLocaleString()}</p>
-                      </div>
+                    <span className="flex items-center gap-1.5 text-gray-600">
+                      <Users className="h-4 w-4 text-purple-500 flex-shrink-0" />
+                      <span className="font-medium">{selectedCommunity.memberCount.toLocaleString()} members</span>
                     </span>
                   </div>
                 </div>
                 
                 {user && (
-                  <div className="w-48 flex-shrink-0">
+                  <div className="flex-shrink-0">
                     <JoinCommunityButton
                       communityId={selectedCommunity.id}
                       membership={selectedCommunity.membership}
@@ -494,43 +484,38 @@ export default function CommunitiesPage() {
               </div>
             </div>
 
-            {/* Action Buttons - Modern & Luxury */}
+            {/* Action Buttons */}
             {isMember && (
-              <div className="flex gap-6 mb-10 max-w-2xl">
+              <div className="flex gap-3 mb-5 md:mb-10">
                 <button
                   onClick={() => setShowPostForm(true)}
-                  className="group relative overflow-hidden rounded-2xl bg-gradient-to-r from-violet-600 via-purple-600 to-orange-500 px-8 py-4 text-white font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 flex items-center justify-center gap-3 flex-1"
+                  className="flex-1 rounded-xl bg-gradient-to-r from-violet-600 via-purple-600 to-orange-500 px-4 py-2.5 text-white font-semibold text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2"
                 >
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
-                  <div className="relative flex items-center justify-center gap-3">
-                    <PenSquare className="h-6 w-6" />
-                    <span>Create Post</span>
-                  </div>
+                  <PenSquare className="h-4 w-4" />
+                  <span>Create Post</span>
                 </button>
 
                 <button
                   onClick={() => setShowInviteModal(true)}
-                  className="group relative overflow-hidden rounded-2xl bg-white border-2 border-violet-600 px-8 py-4 text-violet-600 font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:bg-violet-50 flex items-center justify-center gap-3"
+                  className="rounded-xl bg-white border-2 border-violet-600 px-4 py-2.5 text-violet-600 font-semibold text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2"
                 >
-                  <div className="relative flex items-center justify-center gap-3">
-                    <Users className="h-6 w-6" />
-                    <span>Invite</span>
-                  </div>
+                  <Users className="h-4 w-4" />
+                  <span>Invite</span>
                 </button>
               </div>
             )}
 
-            {/* Filter Tabs - Enhanced */}
-            <div className="mb-10">
-              <h3 className="text-2xl font-bold text-gray-900 mb-6">Browse Posts</h3>
-              <div className="flex gap-3 overflow-x-auto pb-3 border-b-2 border-gray-200">
+            {/* Filter Tabs */}
+            <div className="mb-5 md:mb-10">
+              <h3 className="text-base md:text-2xl font-bold text-gray-900 mb-3 md:mb-6">Browse Posts</h3>
+              <div className="flex gap-2 overflow-x-auto pb-2 border-b border-gray-200 scrollbar-hide">
                 {FILTER_TABS.map(tab => (
                   <button
                     key={tab.value}
                     onClick={() => handleFilterTabChange(tab.value)}
-                    className={`px-6 py-3 rounded-xl text-base font-semibold whitespace-nowrap transition-all ${
+                    className={`px-3 py-2 rounded-lg text-xs md:text-base font-semibold whitespace-nowrap transition-all flex-shrink-0 ${
                       filter === tab.value
-                        ? 'bg-gradient-to-r from-violet-600 to-purple-600 text-white shadow-lg'
+                        ? 'bg-gradient-to-r from-violet-600 to-purple-600 text-white shadow-md'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                   >
@@ -542,8 +527,8 @@ export default function CommunitiesPage() {
 
             {/* Structured Post Filters */}
             {showPostFilter && (
-              <div className="mb-10 p-8 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl border border-gray-200 shadow-sm">
-                <h3 className="text-xl font-bold text-gray-900 mb-6">Refine Your Search</h3>
+              <div className="mb-5 md:mb-10 p-4 md:p-8 bg-gray-50 rounded-xl border border-gray-200">
+                <h3 className="text-sm md:text-xl font-bold text-gray-900 mb-3 md:mb-6">Refine Your Search</h3>
                 <PostFilter
                   activeFilters={structuredFilters}
                   onFilterChange={setStructuredFilters}
@@ -553,7 +538,7 @@ export default function CommunitiesPage() {
 
             {/* Posts Section */}
             <div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-6">
+              <h3 className="text-base md:text-2xl font-bold text-gray-900 mb-3 md:mb-6">
                 {filter === 'all' ? 'All Posts' : `${FILTER_TABS.find(t => t.value === filter)?.label} Posts`}
               </h3>
               {postsLoading ? (
