@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Menu, X, LogOut, User, LayoutDashboard } from "lucide-react";
+import { Menu, X, LogOut, User } from "lucide-react";
 import { NavLogo } from "./navbar/NavLogo";
 import { NavLinks } from "./navbar/NavLinks";
 import { LoginDialog } from "./navbar/LoginDialog";
@@ -106,15 +106,19 @@ const Navbar = ({ hideMobileMenu = false }: NavbarProps) => {
           </button>
         )}
 
-        {/* Mobile: show Dashboard button when logged in on landing page */}
+        {/* Mobile: show user info button when logged in on landing page */}
         {hideMobileMenu && user && (
-          <Button
+          <button
             onClick={() => navigate("/dashboard")}
-            className="md:hidden bg-gradient-to-r from-purple-600 to-orange-500 text-white text-xs px-3 py-1.5 h-auto font-bold flex items-center gap-1.5"
+            className="md:hidden flex items-center gap-1.5 bg-white border border-gray-200 rounded-full px-3 py-1.5 shadow-sm hover:shadow-md transition-all"
           >
-            <LayoutDashboard size={14} />
-            Dashboard
-          </Button>
+            <div className="w-6 h-6 rounded-full bg-gradient-to-r from-purple-600 to-orange-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+              {user.email?.[0].toUpperCase() || 'U'}
+            </div>
+            <span className="text-xs font-semibold text-gray-800 max-w-[80px] truncate">
+              {user.email?.split('@')[0]}
+            </span>
+          </button>
         )}
       </div>
 
