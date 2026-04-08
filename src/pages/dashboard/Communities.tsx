@@ -31,11 +31,11 @@ interface PostMeta {
 
 type FilterType = 'all' | PostType;
 
-const FILTER_TABS: { value: FilterType; label: string }[] = [
-  { value: 'all', label: 'All' },
-  { value: 'looking_for_roommate', label: 'Looking for Roommate' },
-  { value: 'offering_room', label: 'Offering Room' },
-  { value: 'casual', label: 'General Chat' },
+const FILTER_TABS: { value: FilterType; label: string; shortLabel: string }[] = [
+  { value: 'all', label: 'All', shortLabel: 'All' },
+  { value: 'looking_for_roommate', label: 'Looking for Roommate', shortLabel: 'Roommate' },
+  { value: 'offering_room', label: 'Offering Room', shortLabel: 'Offering' },
+  { value: 'casual', label: 'General Chat', shortLabel: 'Chat' },
 ];
 
 const STRUCTURED_TABS: FilterType[] = ['looking_for_roommate', 'offering_room'];
@@ -508,18 +508,19 @@ export default function CommunitiesPage() {
             {/* Filter Tabs */}
             <div className="mb-5 md:mb-10">
               <h3 className="text-base md:text-2xl font-bold text-gray-900 mb-3 md:mb-6">Browse Posts</h3>
-              <div className="flex gap-2 overflow-x-auto pb-2 border-b border-gray-200 scrollbar-hide">
+              <div className="flex gap-1.5 pb-2 border-b border-gray-200">
                 {FILTER_TABS.map(tab => (
                   <button
                     key={tab.value}
                     onClick={() => handleFilterTabChange(tab.value)}
-                    className={`px-3 py-2 rounded-lg text-xs md:text-base font-semibold whitespace-nowrap transition-all flex-shrink-0 ${
+                    className={`flex-1 px-1.5 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-all text-center ${
                       filter === tab.value
-                        ? 'bg-gradient-to-r from-violet-600 to-purple-600 text-white shadow-md'
+                        ? 'bg-gradient-to-r from-violet-600 to-purple-600 text-white shadow-sm'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                   >
-                    {tab.label}
+                    <span className="md:hidden">{tab.shortLabel}</span>
+                    <span className="hidden md:inline">{tab.label}</span>
                   </button>
                 ))}
               </div>
@@ -539,7 +540,7 @@ export default function CommunitiesPage() {
             {/* Posts Section */}
             <div>
               <h3 className="text-base md:text-2xl font-bold text-gray-900 mb-3 md:mb-6">
-                {filter === 'all' ? 'All Posts' : `${FILTER_TABS.find(t => t.value === filter)?.label} Posts`}
+                {filter === 'all' ? 'All Posts' : `${FILTER_TABS.find(t => t.value === filter)?.shortLabel} Posts`}
               </h3>
               {postsLoading ? (
                 <PostLoadingSkeleton />
