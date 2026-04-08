@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Menu, X, LogOut, User } from "lucide-react";
+import { Menu, X, LogOut, User, LayoutDashboard } from "lucide-react";
 import { NavLogo } from "./navbar/NavLogo";
 import { NavLinks } from "./navbar/NavLinks";
 import { LoginDialog } from "./navbar/LoginDialog";
@@ -95,17 +95,26 @@ const Navbar = ({ hideMobileMenu = false }: NavbarProps) => {
 
         {!hideMobileMenu && (
           <button
-            className="md:hidden text-gray-700 hover:text-gray-900 p-2 transition-colors cursor-pointer active:scale-95 flex-shrink-0"
-            onClick={() => {
-              console.log('Menu button clicked, isMenuOpen:', isMenuOpen);
-              setIsMenuOpen(!isMenuOpen);
-            }}
+            className="md:hidden text-gray-700 hover:text-gray-900 p-2.5 rounded-lg hover:bg-gray-100 transition-all duration-200 cursor-pointer active:scale-95 flex-shrink-0"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
             aria-label={isMenuOpen ? "Close menu" : "Open menu"}
             aria-expanded={isMenuOpen}
             type="button"
+            style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
           >
-            {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
+            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
+        )}
+
+        {/* Mobile: show Dashboard button when logged in on landing page */}
+        {hideMobileMenu && user && (
+          <Button
+            onClick={() => navigate("/dashboard")}
+            className="md:hidden bg-gradient-to-r from-purple-600 to-orange-500 text-white text-xs px-3 py-1.5 h-auto font-bold flex items-center gap-1.5"
+          >
+            <LayoutDashboard size={14} />
+            Dashboard
+          </Button>
         )}
       </div>
 

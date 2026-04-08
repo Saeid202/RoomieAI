@@ -44,13 +44,8 @@ export function DashboardSidebar() {
     return location.pathname === path;
   };
 
-  // Don't render on mobile, let the mobile navigation handle it
-  if (isMobile) {
-    return null;
-  }
-
   return (
-    <Sidebar collapsible="icon" defaultOpen={true}>
+    <Sidebar collapsible="offcanvas" defaultOpen={!isMobile}>
       <SidebarHeader className="flex items-center justify-center p-4 border-b">
         <div className="w-full">
           <RoleSwitcher variant="full-width" />

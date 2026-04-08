@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu, X, LayoutDashboard } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { LoginDialog } from "@/components/navbar/LoginDialog";
@@ -29,32 +29,32 @@ const LandingHamburgerMenu = () => {
 
   return (
     <>
-      {/* Hamburger Button - Top Right Corner */}
+      {/* Hamburger Button - Top Right, above Navbar */}
       <button
-        onClick={() => {
-          console.log('Landing menu button clicked, isOpen:', isOpen);
-          setIsOpen(!isOpen);
-        }}
-        className="fixed top-4 right-4 z-50 md:hidden p-3 rounded-lg bg-white shadow-lg border-2 border-roomie-purple hover:bg-purple-50 transition-colors cursor-pointer active:scale-95"
+        onClick={() => setIsOpen(!isOpen)}
+        className="fixed top-3 right-4 z-[60] md:hidden p-2 rounded-lg bg-white/90 shadow-md border border-gray-200 hover:bg-purple-50 transition-colors cursor-pointer"
         aria-label="Toggle menu"
         type="button"
-        style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
+        style={{ touchAction: 'manipulation' }}
       >
         {isOpen ? (
-          <X size={32} className="text-roomie-purple" strokeWidth={2.5} />
+          <X size={28} className="text-purple-600" strokeWidth={2.5} />
         ) : (
-          <Menu size={32} className="text-roomie-purple" strokeWidth={2.5} />
+          <Menu size={28} className="text-purple-600" strokeWidth={2.5} />
         )}
       </button>
 
       {/* Full-Page Overlay Menu */}
       {isOpen && (
-        <div className="fixed inset-0 bg-white z-40 md:hidden flex flex-col">
-          {/* Close button area */}
-          <div className="h-16 flex items-center justify-end px-4 border-b border-gray-100">
+        <div className="fixed inset-0 bg-white z-50 md:hidden flex flex-col">
+          {/* Header */}
+          <div className="h-16 flex items-center justify-between px-4 border-b border-gray-100">
+            <span className="text-lg font-bold bg-gradient-to-r from-purple-600 to-orange-500 bg-clip-text text-transparent">
+              Homie AI
+            </span>
             <button
               onClick={closeMenu}
-              className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
               aria-label="Close menu"
             >
               <X size={24} className="text-gray-600" />
@@ -64,24 +64,23 @@ const LandingHamburgerMenu = () => {
           {/* Scrollable Content */}
           <div className="flex-1 overflow-y-auto px-4 py-6">
             {/* Navigation Items */}
-            <nav className="space-y-4 mb-8">
+            <nav className="space-y-2 mb-8">
               {menuItems.map((item) => (
                 <button
                   key={item.id}
                   onClick={() => handleMenuClick(item.href)}
-                  className="block w-full text-left text-lg font-semibold text-gray-900 hover:text-roomie-purple transition-colors py-2"
+                  className="block w-full text-left text-lg font-semibold text-gray-900 hover:text-purple-600 hover:bg-purple-50 transition-colors py-3 px-3 rounded-lg"
                 >
                   {item.label}
                 </button>
               ))}
             </nav>
 
-            {/* Divider */}
-            <div className="h-px bg-gradient-to-r from-roomie-purple to-orange-400 my-6" />
+            <div className="h-px bg-gradient-to-r from-purple-600 to-orange-400 my-6" />
 
             {/* User Info (if logged in) */}
             {user && (
-              <div className="mb-6 pb-6 border-b border-gray-100">
+              <div className="mb-4 p-3 bg-purple-50 rounded-lg">
                 <p className="text-xs text-gray-500 uppercase tracking-wide">Logged in as</p>
                 <p className="font-semibold text-gray-900 text-sm mt-1">{user.email?.split("@")[0]}</p>
               </div>
@@ -90,29 +89,43 @@ const LandingHamburgerMenu = () => {
 
           {/* Fixed Auth Buttons at Bottom */}
           <div className="border-t border-gray-100 bg-white px-4 py-4 space-y-3">
-            <button
-              onClick={() => {
-                setIsLoginOpen(true);
-                closeMenu();
-              }}
-              className="w-full px-4 py-2.5 border-2 border-roomie-purple text-roomie-purple rounded-lg hover:bg-purple-50 transition-colors font-semibold text-sm"
-            >
-              Log in
-            </button>
-            <button
-              onClick={() => {
-                setIsSignupOpen(true);
-                closeMenu();
-              }}
-              className="w-full px-4 py-2.5 bg-gradient-to-r from-purple-600 via-purple-500 to-orange-500 hover:shadow-xl hover:from-purple-700 hover:via-purple-600 hover:to-orange-600 text-white rounded-lg transition-all font-bold text-sm tracking-wide"
-            >
-              Sign up
-            </button>
+            {user ? (
+              <button
+                onClick={() => {
+                  navigate("/dashboard");
+                  closeMenu();
+                }}
+                className="w-full px-4 py-3 bg-gradient-to-r from-purple-600 via-purple-500 to-orange-500 text-white rounded-lg font-bold text-sm flex items-center justify-center gap-2"
+              >
+                <LayoutDashboard size={18} />
+                Go to Dashboard
+              </button>
+            ) : (
+              <>
+                <button
+                  onClick={() => {
+                    setIsLoginOpen(true);
+                    closeMenu();
+                  }}
+                  className="w-full px-4 py-2.5 border-2 border-purple-600 text-purple-600 rounded-lg hover:bg-purple-50 transition-colors font-semibold text-sm"
+                >
+                  Log in
+                </button>
+                <button
+                  onClick={() => {
+                    setIsSignupOpen(true);
+                    closeMenu();
+                  }}
+                  className="w-full px-4 py-2.5 bg-gradient-to-r from-purple-600 via-purple-500 to-orange-500 text-white rounded-lg font-bold text-sm"
+                >
+                  Sign up
+                </button>
+              </>
+            )}
           </div>
         </div>
       )}
 
-      {/* Auth Dialogs */}
       <LoginDialog isOpen={isLoginOpen} setIsOpen={setIsLoginOpen} />
       <SignupDialog isOpen={isSignupOpen} setIsOpen={setIsSignupOpen} />
     </>
