@@ -7,7 +7,6 @@ import { useRole } from "@/contexts/RoleContext";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useState } from "react";
 import { RoleSelectionDialog } from "@/components/auth/RoleSelectionDialog";
-import { RoommateRecommendations } from "@/components/dashboard/RoommateRecommendations";
 import { GeminiChat } from "@/components/chat/GeminiChat";
 import { Button } from "@/components/ui/button";
 import { MessageCircle } from "lucide-react";
@@ -88,9 +87,16 @@ function DashboardContent({ role, assignedRole, location, showRoleDialog }: any)
   if (location.pathname === '/dashboard' && !showRoleDialog) {
     const effectiveRole = role || assignedRole;
 
-    if (effectiveRole === 'landlord') {
-      return <Navigate to="/dashboard/landlord" replace />;
-    } else if (effectiveRole === 'developer') {
+    // If role is still loading, show a spinner instead of blank screen
+    if (!effectiveRole) {
+      return (
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      );
+    }
+
+    if (effectiveRole === 'landlord' || effectiveRole === 'developer') {
       return <Navigate to="/dashboard/landlord" replace />;
     } else if (effectiveRole === 'admin') {
       return <Navigate to="/dashboard/admin" replace />;
@@ -102,12 +108,9 @@ function DashboardContent({ role, assignedRole, location, showRoleDialog }: any)
       return <Navigate to="/dashboard/lawyer" replace />;
     } else if (effectiveRole === 'lender') {
       return <Navigate to="/dashboard/lender" replace />;
-    } else if (effectiveRole === 'seeker') {
-      return (
-        <DashboardLayout>
-          <RoommateRecommendations />
-        </DashboardLayout>
-      );
+    } else {
+      // seeker or any unknown role → seeker dashboard
+      return <Navigate to="/dashboard/roommate-recommendations" replace />;
     }
   }
 
