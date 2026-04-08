@@ -35,7 +35,8 @@ export function SidebarMenuSection({
   showLabels
 }: SidebarMenuSectionProps) {
   const [expanded, setExpanded] = useState(defaultExpanded);
-  const { open } = useSidebar();
+  const { open, isMobile, openMobile } = useSidebar();
+  const shouldShowLabel = open || showLabels || (isMobile && openMobile);
 
   return (
     <SidebarMenuItem>
@@ -45,9 +46,9 @@ export function SidebarMenuSection({
       >
         <div className="flex items-center gap-2">
           {typeof Icon === 'function' || typeof Icon === 'object' ? <Icon size={20} /> : Icon}
-          {(open || showLabels) && <span>{title}</span>}
+          {shouldShowLabel && <span>{title}</span>}
         </div>
-        {(open || showLabels) && (
+        {shouldShowLabel && (
           <ChevronDown
             size={16}
             className={`transition-transform ${expanded ? "rotate-180" : ""}`}

@@ -28,7 +28,8 @@ export function SidebarSimpleMenuItem({
   isActive,
   showLabel
 }: SidebarSimpleMenuItemProps) {
-  const { open } = useSidebar();
+  const { open, isMobile, openMobile } = useSidebar();
+  const shouldShowLabel = open || showLabel || (isMobile && openMobile);
   return (
     <SidebarMenuItem>
       <Tooltip delayDuration={150}>
@@ -36,12 +37,12 @@ export function SidebarSimpleMenuItem({
           <SidebarMenuButton asChild isActive={isActive} className="font-semibold">
             <Link to={to} className="flex items-center gap-3">
               {icon}
-              {(open || showLabel) && <span className="font-semibold">{label}</span>}
+              {shouldShowLabel && <span className="font-semibold">{label}</span>}
             </Link>
           </SidebarMenuButton>
         </TooltipTrigger>
 
-        {!open && (
+        {!shouldShowLabel && (
           <TooltipContent side="right" align="center">
             {label}
           </TooltipContent>
