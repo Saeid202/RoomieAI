@@ -28,14 +28,21 @@ export function SidebarSimpleMenuItem({
   isActive,
   showLabel
 }: SidebarSimpleMenuItemProps) {
-  const { open, isMobile, openMobile } = useSidebar();
+  const { open, isMobile, openMobile, setOpenMobile } = useSidebar();
   const shouldShowLabel = open || showLabel || (isMobile && openMobile);
+
+  function handleClick() {
+    if (isMobile && openMobile) {
+      setOpenMobile(false);
+    }
+  }
+
   return (
     <SidebarMenuItem>
       <Tooltip delayDuration={150}>
         <TooltipTrigger asChild>
           <SidebarMenuButton asChild isActive={isActive} className="font-semibold">
-            <Link to={to} className="flex items-center gap-3">
+            <Link to={to} className="flex items-center gap-3" onClick={handleClick}>
               {icon}
               {shouldShowLabel && <span className="font-semibold">{label}</span>}
             </Link>

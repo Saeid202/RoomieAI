@@ -35,7 +35,7 @@ export function SidebarMenuSection({
   showLabels
 }: SidebarMenuSectionProps) {
   const [expanded, setExpanded] = useState(defaultExpanded);
-  const { open, isMobile, openMobile } = useSidebar();
+  const { open, isMobile, openMobile, setOpenMobile } = useSidebar();
   const shouldShowLabel = open || showLabels || (isMobile && openMobile);
 
   return (
@@ -61,7 +61,7 @@ export function SidebarMenuSection({
           {subItems.map((item) => (
             <SidebarMenuSubItem key={item.path}>
               <SidebarMenuSubButton asChild isActive={isActive(item.path)}>
-                <Link to={item.path} className="flex items-center gap-2">
+                <Link to={item.path} className="flex items-center gap-2" onClick={() => { if (isMobile && openMobile) setOpenMobile(false); }}>
                   {item.icon && <span className="opacity-70">{item.icon}</span>}
                   <span>{item.label}</span>
                 </Link>
