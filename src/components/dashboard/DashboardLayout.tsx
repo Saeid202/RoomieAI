@@ -14,17 +14,17 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const isMobile = useIsMobile();
   
   return (
-    <div className="flex flex-col min-h-screen bg-background">
+    <div className="flex flex-col min-h-screen bg-background overflow-x-hidden">
       <SidebarProvider defaultOpen={!isMobile}>
-        <div className="flex flex-1">
+        <div className="flex flex-1 overflow-x-hidden">
           <DashboardSidebar />
           
-          <div className="flex flex-col w-full min-h-screen">
+          <div className="flex flex-col w-full min-h-screen overflow-x-hidden">
             <div className="sticky top-0 z-10 bg-background border-b">
               <UserMenu />
             </div>
             
-            <main className="flex-1 overflow-y-auto md:px-6 pb-6 bg-background">
+            <main className="flex-1 overflow-y-auto overflow-x-hidden md:px-6 pb-6 bg-background">
               {children}
             </main>
             
