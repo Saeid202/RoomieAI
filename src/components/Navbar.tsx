@@ -19,9 +19,10 @@ import {
 
 interface NavbarProps {
   hideMobileMenu?: boolean;
+  onMobileMenuToggle?: () => void;
 }
 
-const Navbar = ({ hideMobileMenu = false }: NavbarProps) => {
+const Navbar = ({ hideMobileMenu = false, onMobileMenuToggle }: NavbarProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSignupOpen, setIsSignupOpen] = useState(false);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
@@ -46,7 +47,23 @@ const Navbar = ({ hideMobileMenu = false }: NavbarProps) => {
   return (
     <nav className="w-full py-4 bg-white/90 backdrop-blur-sm fixed top-0 z-50 shadow-lg">
       <div className="container mx-auto px-4 flex justify-between items-center relative">
-        <NavLogo />
+        
+        {/* Left side: hamburger (landing page only) + logo */}
+        <div className="flex items-center gap-3">
+          {hideMobileMenu && (
+            <button
+              id="landing-hamburger"
+              onClick={onMobileMenuToggle}
+              className="md:hidden text-purple-600 p-2 rounded-lg hover:bg-purple-50 transition-colors cursor-pointer flex-shrink-0"
+              aria-label="Open menu"
+              type="button"
+              style={{ touchAction: 'manipulation' }}
+            >
+              <Menu size={26} />
+            </button>
+          )}
+          <NavLogo />
+        </div>
 
         <div className="hidden md:flex items-center space-x-8">
           <NavLinks />
@@ -93,33 +110,46 @@ const Navbar = ({ hideMobileMenu = false }: NavbarProps) => {
           )}
         </div>
 
-        {!hideMobileMenu && (
-          <button
-            className="md:hidden text-gray-700 hover:text-gray-900 p-2.5 rounded-lg hover:bg-gray-100 transition-all duration-200 cursor-pointer active:scale-95 flex-shrink-0"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            aria-label={isMenuOpen ? "Close menu" : "Open menu"}
-            aria-expanded={isMenuOpen}
-            type="button"
-            style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
-          >
-            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
-        )}
+        {/* Mobile right side */}
+        <div className="md:hidden flex items-center gap-2">
+          {/* Non-landing pages: hamburger on right */}
+          {!hideMobileMenu && (
+            <button
+              className="text-gray-700 hover:text-gray-900 p-2.5 rounded-lg hover:bg-gray-100 transition-all cursor-pointer active:scale-95"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              aria-label={isMenuOpen ? "Close menu" : "Open menu"}
+              type="button"
+              style={{ touchAction: 'manipulation' }}
+            >
+              {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          )}
 
-        {/* Mobile: show user info button when logged in on landing page */}
-        {hideMobileMenu && user && (
-          <button
-            onClick={() => navigate("/dashboard")}
-            className="md:hidden flex items-center gap-1.5 bg-white border border-gray-200 rounded-full px-3 py-1.5 shadow-sm hover:shadow-md transition-all"
-          >
-            <div className="w-6 h-6 rounded-full bg-gradient-to-r from-purple-600 to-orange-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-              {user.email?.[0].toUpperCase() || 'U'}
-            </div>
-            <span className="text-xs font-semibold text-gray-800 max-w-[80px] truncate">
-              {user.email?.split('@')[0]}
-            </span>
-          </button>
-        )}
+          {/* Landing page: user dropdown when logged in */}
+          {hideMobileMenu && user && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex items-center gap-1.5 bg-white border border-gray-200 rounded-full px-3 py-1.5 shadow-sm active:scale-95 transition-all">
+                  <div className="w-6 h-6 rounded-full bg-gradient-to-r from-purple-600 to-orange-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                    {user.email?.[0].toUpperCase() || 'U'}
+                  </div>
+                  <span className="text-xs font-semibold text-gray-800 max-w-[70px] truncate">
+                    {user.email?.split('@')[0]}
+                  </span>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-44 z-[70]">
+                <DropdownMenuItem onClick={() => navigate("/dashboard")} className="font-semibold">
+                  Dashboard
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleSignOut} className="text-red-500">
+                  <LogOut size={14} className="mr-2" />
+                  Logout
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </div>
       </div>
 
       <MobileMenu

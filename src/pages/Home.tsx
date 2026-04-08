@@ -1,5 +1,5 @@
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
 import LandingHamburgerMenu from "@/components/landing/LandingHamburgerMenu";
 import HeroSection from "@/components/HeroSection";
@@ -12,6 +12,7 @@ import { Home } from "lucide-react";
 
 export default function HomePage() {
   const location = useLocation();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     document.title = "Homie AI - Find Your Ideal Roommate";
@@ -35,8 +36,8 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Navbar hideMobileMenu={true} />
-      <LandingHamburgerMenu />
+      <Navbar hideMobileMenu={true} onMobileMenuToggle={() => setMenuOpen(o => !o)} />
+      <LandingHamburgerMenu isOpen={menuOpen} onClose={() => setMenuOpen(false)} />
       <main className="flex-1">
         <HeroSection />
         <FeaturesSection />
