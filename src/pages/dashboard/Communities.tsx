@@ -277,7 +277,7 @@ export default function CommunitiesPage() {
   const discoverCommunities = communities.filter(c => c.membership?.status !== 'active');
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white overflow-x-hidden">
       {/* Premium Header - Homei AI Brand */}
       <div className="relative overflow-hidden bg-gradient-to-br from-violet-600 via-purple-600 to-orange-500 px-4 py-8 md:px-8 md:py-20">
         {/* Energetic animated background */}
@@ -441,37 +441,22 @@ export default function CommunitiesPage() {
 
         {/* My Community Tab */}
         {activeTab === 'my-community' && selectedCommunity && (
-          <div className="w-full">
+          <div className="w-full overflow-hidden">
             {/* Community header - Compact Mobile Card */}
-            <div className="rounded-xl border border-gray-200 bg-white p-4 md:p-10 mb-4 md:mb-10 shadow-sm">
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="w-12 h-12 md:w-20 md:h-20 rounded-xl md:rounded-2xl bg-gradient-to-br from-violet-600 to-purple-600 flex items-center justify-center shadow-md flex-shrink-0">
-                      <span className="text-white font-bold text-lg md:text-3xl">{getInitials(selectedCommunity.name)}</span>
-                    </div>
-                    <div className="min-w-0">
-                      <h1 className="text-lg md:text-5xl font-bold text-gray-900 leading-tight truncate">{selectedCommunity.name}</h1>
-                      {selectedCommunity.description && (
-                        <p className="text-gray-600 text-xs md:text-lg leading-relaxed line-clamp-2 mt-0.5">{selectedCommunity.description}</p>
-                      )}
-                    </div>
+            <div className="rounded-xl border border-gray-200 bg-white p-3 md:p-10 mb-3 md:mb-10 shadow-sm overflow-hidden">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                  <div className="w-10 h-10 md:w-20 md:h-20 rounded-xl bg-gradient-to-br from-violet-600 to-purple-600 flex items-center justify-center shadow-md flex-shrink-0">
+                    <span className="text-white font-bold text-sm md:text-3xl">{getInitials(selectedCommunity.name)}</span>
                   </div>
-                  
-                  <div className="flex items-center gap-4 mt-2 text-sm">
-                    {selectedCommunity.city && (
-                      <span className="flex items-center gap-1.5 text-gray-600">
-                        <MapPin className="h-4 w-4 text-violet-500 flex-shrink-0" />
-                        <span className="font-medium truncate">{selectedCommunity.city}</span>
-                      </span>
-                    )}
-                    <span className="flex items-center gap-1.5 text-gray-600">
-                      <Users className="h-4 w-4 text-purple-500 flex-shrink-0" />
-                      <span className="font-medium">{selectedCommunity.memberCount.toLocaleString()} members</span>
-                    </span>
+                  <div className="min-w-0">
+                    <h1 className="text-sm md:text-5xl font-bold text-gray-900 leading-tight truncate">{selectedCommunity.name}</h1>
+                    <div className="flex items-center gap-2 mt-0.5 text-xs text-gray-500">
+                      {selectedCommunity.city && <span className="truncate">{selectedCommunity.city}</span>}
+                      <span>{selectedCommunity.memberCount} members</span>
+                    </div>
                   </div>
                 </div>
-                
                 {user && (
                   <div className="flex-shrink-0">
                     <JoinCommunityButton
@@ -486,20 +471,20 @@ export default function CommunitiesPage() {
 
             {/* Action Buttons */}
             {isMember && (
-              <div className="flex gap-3 mb-5 md:mb-10">
+              <div className="flex gap-2 mb-4 md:mb-10 w-full">
                 <button
                   onClick={() => setShowPostForm(true)}
-                  className="flex-1 rounded-xl bg-gradient-to-r from-violet-600 via-purple-600 to-orange-500 px-4 py-2.5 text-white font-semibold text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2"
+                  className="flex-1 rounded-xl bg-gradient-to-r from-violet-600 via-purple-600 to-orange-500 px-3 py-2.5 text-white font-semibold text-sm shadow-md flex items-center justify-center gap-1.5 min-w-0"
                 >
-                  <PenSquare className="h-4 w-4" />
-                  <span>Create Post</span>
+                  <PenSquare className="h-4 w-4 flex-shrink-0" />
+                  <span className="truncate">Create Post</span>
                 </button>
 
                 <button
                   onClick={() => setShowInviteModal(true)}
-                  className="rounded-xl bg-white border-2 border-violet-600 px-4 py-2.5 text-violet-600 font-semibold text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2"
+                  className="rounded-xl bg-white border-2 border-violet-600 px-3 py-2.5 text-violet-600 font-semibold text-sm shadow-md flex items-center justify-center gap-1.5 flex-shrink-0"
                 >
-                  <Users className="h-4 w-4" />
+                  <Users className="h-4 w-4 flex-shrink-0" />
                   <span>Invite</span>
                 </button>
               </div>

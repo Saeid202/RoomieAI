@@ -119,8 +119,8 @@ export function PostCard({
     <Card className="border bg-card">
       <CardContent className="pt-4 pb-3 px-4">
         {/* Header */}
-        <div className="flex items-start justify-between mb-2">
-          <div>
+        <div className="flex items-start justify-between gap-2 mb-2">
+          <div className="min-w-0 flex-1">
             <span className="text-sm font-medium">
               {loadingProfile ? 'Loading...' : getDisplayName(userProfile, post.user_id)}
             </span>
@@ -128,7 +128,7 @@ export function PostCard({
               {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
             </span>
           </div>
-          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${badgeColor}`}>
+          <span className={`text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0 ${badgeColor}`}>
             {badgeLabel}
           </span>
         </div>
