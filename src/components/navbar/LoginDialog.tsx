@@ -80,6 +80,14 @@ export const LoginDialog = ({ isOpen, setIsOpen }: LoginDialogProps) => {
       console.log("🔄 LoginDialog - Set role to context:", userRole);
 
       // Redirect based on user role from DATABASE
+      // Stay on landing page - user can click Dashboard button to navigate
+      // Only redirect if they're not already on the landing page
+      const currentPath = window.location.pathname;
+      if (currentPath === '/') {
+        // Stay on landing page - the navbar will show the user button
+        return;
+      }
+
       if (userRole === 'landlord') {
         navigate("/dashboard/landlord");
       } else if (userRole === 'lawyer') {
