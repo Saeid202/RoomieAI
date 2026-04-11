@@ -22,9 +22,7 @@ export default function ConstructionProfile() {
 
       const role = session.user.user_metadata?.role
       if (role !== 'construction_supplier') {
-        await supabase.auth.signOut()
-        window.location.href = '/construction/login'
-        return
+        await supabase.auth.updateUser({ data: { role: 'construction_supplier' } })
       }
 
       setEmail(session.user.email)
@@ -33,7 +31,7 @@ export default function ConstructionProfile() {
         .from('construction_supplier_profiles')
         .select('*')
         .eq('id', session.user.id)
-        .single()
+        .maybeSingle()
 
       if (profile) {
         setCompanyName(profile.company_name)

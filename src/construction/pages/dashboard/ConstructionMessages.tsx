@@ -27,9 +27,7 @@ export default function ConstructionMessages() {
 
       const role = session.user.user_metadata?.role
       if (role !== 'construction_supplier') {
-        await supabase.auth.signOut()
-        window.location.href = '/construction/login'
-        return
+        await supabase.auth.updateUser({ data: { role: 'construction_supplier' } })
       }
 
       // Load conversations with last message

@@ -3,23 +3,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { RentPaymentFlow } from "@/components/payment/RentPaymentFlow";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Info, Loader2, RefreshCw, Building2, Plus, CreditCard, CheckCircle2, Trash2 } from "lucide-react";
+import { Info, Loader2, RefreshCw, Building2, Plus, CreditCard, CheckCircle2, Trash2, Star } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { getUserPaymentMethods, createRentPaymentIntent, recordRentPayment, deletePaymentMethod } from "@/services/padPaymentService";
 import { PaymentMethod } from "@/types/payment";
 import { formatCurrency } from "@/services/feeCalculationService";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -285,7 +279,8 @@ export default function DigitalWallet() {
   const [activeLease, setActiveLease] = useState<ActiveLease | null>(null);
   const [loading, setLoading] = useState(true);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
-  const [showConnectModal, setShowConnectModal] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [showAddFlow, setShowAddFlow] = useState(false);
   const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [paymentAmount, setPaymentAmount] = useState<string>('');
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
@@ -372,8 +367,7 @@ export default function DigitalWallet() {
 
   const handleBankConnected = () => {
     console.log('✅ Bank account connected successfully');
-    setShowConnectModal(false);
-    fetchPaymentMethods(); // Refresh payment methods
+    fetchPaymentMethods();
     toast.success('Bank account connected! You can now make payments.');
   };
 
@@ -497,131 +491,204 @@ export default function DigitalWallet() {
     );
   }
 
-  // Show payment methods and payment form (Uber/Airbnb model)
   return (
-    <div className="max-w-full px-6 py-6">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-3xl font-semibold tracking-tight">Digital Wallet</h1>
-          <p className="text-gray-600 mt-2">
-            Manage your rent payments with Canadian Pre-Authorized Debit (PAD)
-          </p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
+      <div className="max-w-full px-6 py-8">
+      {/* Header — matches landlord style */}
+      <div className="relative rounded-xl overflow-hidden shadow-lg mb-8" style={{background: 'linear-gradient(to right, #8B5CF6, #A855F7, #FF6B35)'}}>
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 right-0 w-48 h-48 bg-white rounded-full -translate-y-1/2 translate-x-1/2" />
+          <div className="absolute bottom-0 left-0 w-32 h-32 bg-white rounded-full translate-y-1/2 -translate-x-1/2" />
         </div>
-        <Button 
-          variant="outline" 
-          size="sm" 
-          onClick={() => {
-            toast.info('Refreshing...');
-            fetchActiveLease();
-            fetchPaymentMethods();
-          }}
-          disabled={loading}
-          className="h-9"
-        >
-          <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-          Refresh
-        </Button>
+        <div className="relative px-6 py-5 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="flex-shrink-0 bg-white/20 backdrop-blur-sm rounded-xl p-2.5">
+              <CreditCard className="h-7 w-7 text-white" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-black text-white tracking-tight leading-tight">Digital Wallet</h1>
+              <p className="text-purple-100 text-sm font-medium mt-0.5">Manage your rent payments with Canadian Pre-Authorized Debit (PAD)</p>
+            </div>
+          </div>
+          {/* Smart payment method button */}
+          <button
+            onClick={() => setDrawerOpen(true)}
+            className="flex-shrink-0 flex items-center gap-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30 text-white rounded-xl px-4 py-2.5 text-sm font-semibold transition-all"
+          >
+            {paymentMethods.length === 0 ? (
+              <>
+                <Plus className="h-4 w-4" />
+                Add Payment
+              </>
+            ) : (
+              <>
+                <Building2 className="h-4 w-4" />
+                {(() => {
+                  const def = paymentMethods.find(m => m.is_default) || paymentMethods[0];
+                  return `${def.bank_name || 'Bank'} ••••${def.last4 || def.stripe_payment_method_id?.slice(-4)}`;
+                })()}
+                <span className="ml-1 opacity-70">▾</span>
+              </>
+            )}
+          </button>
+        </div>
       </div>
 
-      {!activeLease && (
-        <Alert className="bg-blue-50 border-blue-200 mb-6">
-          <Info className="h-4 w-4 text-blue-800" />
-          <AlertDescription className="text-blue-800">
-            No active lease found. You can still set up your payment method to be ready when you have a lease.
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {activeLease && (
-        <Alert className="bg-blue-50 border-blue-200 mb-6">
-          <Info className="h-4 w-4 text-blue-800" />
-          <AlertDescription className="text-blue-800">
-            Save money with Canadian PAD! Pay only 1% + $0.25 per transaction instead of 2.9% + $0.30 with cards.
-            {activeLease.monthly_rent >= 1000 && (
-              <> That's ~${Math.round((activeLease.monthly_rent * 0.019) - (activeLease.monthly_rent * 0.01))} savings per month on ${activeLease.monthly_rent.toLocaleString()} rent.</>
-            )}
-          </AlertDescription>
-        </Alert>
-      )}
-
-      <div className="space-y-6">
-        {/* Payment Methods — Collapsible Card */}
-        <CollapsiblePaymentCard
-          paymentMethods={paymentMethods}
-          deletingMethodId={deletingMethodId}
-          onDelete={handleDeletePaymentMethod}
-          onAdd={() => setShowConnectModal(true)}
-        />
-
-        {/* Make Payment Section - Only show if payment method exists */}
-        {paymentMethods.length > 0 && (
-          <Card className="bg-white shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-xl">Make a Payment</CardTitle>
-              <CardDescription className="text-gray-600">
-                Enter the amount you want to pay
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {!showPaymentForm ? (
-                <Button 
-                  onClick={() => setShowPaymentForm(true)}
-                  className="w-full bg-blue-600 hover:bg-blue-700"
-                  size="lg"
+      {/* Payment Methods Drawer */}
+      <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
+        <SheetContent side="right" className="w-full sm:max-w-md p-0 flex flex-col">
+          <SheetHeader className="px-6 py-5 border-b">
+            <SheetTitle className="text-lg font-bold">Payment Methods</SheetTitle>
+          </SheetHeader>
+          <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3">
+            {showAddFlow ? (
+              <div>
+                <button
+                  onClick={() => setShowAddFlow(false)}
+                  className="mb-4 text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1"
                 >
-                  <CreditCard className="mr-2 h-5 w-5" />
-                  Make Payment
-                </Button>
+                  ← Back to accounts
+                </button>
+                <RentPaymentFlow
+                  userId={user!.id}
+                  propertyId={activeLease?.property_id || ''}
+                  landlordId={activeLease?.landlord_id || ''}
+                  rentAmount={0}
+                  dueDate=""
+                  onBankConnected={() => {
+                    setShowAddFlow(false);
+                    fetchPaymentMethods();
+                    toast.success('Bank account connected!');
+                  }}
+                  onCancel={() => setShowAddFlow(false)}
+                  connectOnly={true}
+                />
+              </div>
+            ) : (
+              <>
+                {paymentMethods.length === 0 ? (
+                  <div className="text-center py-10">
+                    <CreditCard className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                    <p className="text-gray-500 text-sm mb-4">No payment methods yet</p>
+                    <button
+                      onClick={() => setShowAddFlow(true)}
+                      className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white"
+                      style={{background: 'linear-gradient(to right, #8B5CF6, #FF6B35)'}}
+                    >
+                      Connect Bank Account
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    {paymentMethods.map((method) => (
+                      <div key={method.id} className={`flex items-center justify-between p-4 rounded-xl border-2 transition-all ${method.is_default ? 'border-purple-400 bg-purple-50' : 'border-gray-100 bg-gray-50'}`}>
+                        <div className="flex items-center gap-3">
+                          <div className="h-10 w-10 rounded-full bg-gradient-to-br from-purple-500 to-orange-400 flex items-center justify-center">
+                            <Building2 className="h-5 w-5 text-white" />
+                          </div>
+                          <div>
+                            <p className="font-semibold text-sm text-gray-900">{method.bank_name || 'Bank Account'} ••••{method.last4 || method.stripe_payment_method_id?.slice(-4)}</p>
+                            <p className="text-xs text-gray-500">Pre-Authorized Debit</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {method.is_default ? (
+                            <span className="flex items-center gap-1 text-xs font-semibold text-purple-600 bg-purple-100 px-2 py-1 rounded-full">
+                              <Star className="h-3 w-3 fill-purple-600" /> Default
+                            </span>
+                          ) : (
+                            <span className="text-xs text-gray-400">Not default</span>
+                          )}
+                          <button
+                            onClick={() => handleDeletePaymentMethod(method)}
+                            disabled={deletingMethodId === method.id}
+                            className="h-8 w-8 rounded-full flex items-center justify-center text-red-400 hover:bg-red-50 hover:text-red-600 transition-colors"
+                          >
+                            {deletingMethodId === method.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                    <button
+                      onClick={() => setShowAddFlow(true)}
+                      className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-purple-200 text-purple-500 text-sm font-medium hover:border-purple-400 hover:bg-purple-50 transition-all"
+                    >
+                      <Plus className="h-4 w-4" />
+                      Add Another Account
+                    </button>
+                  </>
+                )}
+              </>
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
+
+        {/* Lease / savings info */}
+        {!activeLease ? (
+          <Alert className="bg-blue-50 border-blue-200 mb-6">
+            <Info className="h-4 w-4 text-blue-800" />
+            <AlertDescription className="text-blue-800">No active lease found. You can still set up your payment method to be ready when you have a lease.</AlertDescription>
+          </Alert>
+        ) : (
+          <Alert className="bg-blue-50 border-blue-200 mb-6">
+            <Info className="h-4 w-4 text-blue-800" />
+            <AlertDescription className="text-blue-800">
+              Save money with Canadian PAD! Pay only 1% + $0.25 per transaction instead of 2.9% + $0.30 with cards.
+              {activeLease.monthly_rent >= 1000 && <> That's ~${Math.round((activeLease.monthly_rent * 0.019) - (activeLease.monthly_rent * 0.01))} savings per month on ${activeLease.monthly_rent.toLocaleString()} rent.</>}
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Summary cards — mirrors landlord layout */}
+        <div className="grid gap-6 lg:grid-cols-3 mb-8">
+          {[
+            { label: 'Monthly Rent', value: activeLease ? formatCurrency(activeLease.monthly_rent) : '—', sub: 'Current lease', icon: <CreditCard className="h-5 w-5 text-white" />, grad: 'from-purple-400 to-pink-500' },
+            { label: 'Next Due Date', value: activeLease ? new Date(activeLease.lease_start_date).toLocaleDateString('en-CA', { month: 'short', day: 'numeric' }) : '—', sub: 'Payment due', icon: <Info className="h-5 w-5 text-white" />, grad: 'from-amber-400 to-orange-500' },
+            { label: 'Payment Methods', value: String(paymentMethods.length), sub: paymentMethods.length === 0 ? 'None connected' : 'Connected accounts', icon: <Building2 className="h-5 w-5 text-white" />, grad: 'from-green-400 to-emerald-500' },
+          ].map(c => (
+            <Card key={c.label} className="border-slate-200 shadow-sm">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-sm font-medium text-slate-600">{c.label}</p>
+                  <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${c.grad} flex items-center justify-center`}>{c.icon}</div>
+                </div>
+                <p className="text-2xl font-bold text-slate-900">{c.value}</p>
+                <p className="text-xs text-slate-500 mt-1">{c.sub}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* Make a Payment */}
+        {paymentMethods.length > 0 && (
+          <Card className="border-slate-200 shadow-sm mb-6">
+            <CardHeader className="border-b border-slate-100 bg-slate-50">
+              <CardTitle className="text-xl font-semibold text-slate-900">Make a Payment</CardTitle>
+              <CardDescription>Pay your rent using your connected bank account</CardDescription>
+            </CardHeader>
+            <CardContent className="p-6">
+              {!showPaymentForm ? (
+                <button onClick={() => setShowPaymentForm(true)}
+                  className="w-full py-3.5 rounded-xl text-white font-bold text-base transition-all flex items-center justify-center gap-2"
+                  style={{background: 'linear-gradient(to right, #8B5CF6, #FF6B35)'}}>
+                  <CreditCard className="h-5 w-5" /> Pay Rent Now
+                </button>
               ) : (
                 <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="amount">Payment Amount (CAD)</Label>
-                    <Input
-                      id="amount"
-                      type="number"
-                      step="0.01"
-                      min="0.50"
-                      placeholder="0.00"
-                      value={paymentAmount}
-                      onChange={(e) => setPaymentAmount(e.target.value)}
-                      disabled={isProcessingPayment}
-                    />
-                    <p className="text-xs text-gray-500">Minimum: $0.50 CAD</p>
-                    {activeLease && (
-                      <p className="text-sm text-gray-600">
-                        Monthly rent: {formatCurrency(activeLease.monthly_rent)}
-                      </p>
-                    )}
+                  <div>
+                    <Label htmlFor="amount" className="text-sm font-semibold text-slate-700 mb-1.5 block">Payment Amount (CAD)</Label>
+                    <Input id="amount" type="number" step="0.01" min="0.50" placeholder="0.00"
+                      value={paymentAmount} onChange={(e) => setPaymentAmount(e.target.value)} disabled={isProcessingPayment}
+                      className="h-12 text-base border-slate-200 focus:border-purple-500" />
+                    <p className="text-xs text-slate-500 mt-1">Minimum: $0.50 CAD{activeLease && ` · Monthly rent: ${formatCurrency(activeLease.monthly_rent)}`}</p>
                   </div>
-
                   <div className="flex gap-3">
-                    <Button
-                      onClick={handleMakePayment}
-                      disabled={isProcessingPayment || !paymentAmount}
-                      className="flex-1 bg-green-600 hover:bg-green-700"
-                    >
-                      {isProcessingPayment ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Processing...
-                        </>
-                      ) : (
-                        <>
-                          <CheckCircle2 className="mr-2 h-4 w-4" />
-                          Confirm Payment
-                        </>
-                      )}
+                    <Button onClick={handleMakePayment} disabled={isProcessingPayment || !paymentAmount}
+                      className="flex-1 h-12 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold">
+                      {isProcessingPayment ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Processing...</> : <><CheckCircle2 className="mr-2 h-4 w-4" />Confirm Payment</>}
                     </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        setShowPaymentForm(false);
-                        setPaymentAmount('');
-                      }}
-                      disabled={isProcessingPayment}
-                    >
-                      Cancel
-                    </Button>
+                    <Button variant="outline" onClick={() => { setShowPaymentForm(false); setPaymentAmount(''); }} disabled={isProcessingPayment} className="h-12">Cancel</Button>
                   </div>
                 </div>
               )}
@@ -629,61 +696,24 @@ export default function DigitalWallet() {
           </Card>
         )}
 
-        {/* Test Credentials Card - Only show in development with test keys */}
-        {process.env.NODE_ENV === 'development' && import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY?.startsWith('pk_test_') && (
-          <Card className="border-dashed bg-gray-50">
-            <CardHeader>
-              <CardTitle className="text-sm text-gray-700">Test Mode - Stripe Test Credentials</CardTitle>
-              <CardDescription className="text-xs text-gray-600">
-                Use these test bank account details for testing
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <h3 className="font-semibold text-sm text-green-700">✅ Successful Payment</h3>
-                  <ul className="list-disc list-inside space-y-1 text-xs text-gray-600">
-                    <li>Account Holder: Test User</li>
-                    <li>Institution: 000</li>
-                    <li>Transit: 11000</li>
-                    <li>Account: 000123456789</li>
-                  </ul>
-                </div>
-                
-                <div className="space-y-2">
-                  <h3 className="font-semibold text-sm text-red-700">❌ Failed Payment Tests</h3>
-                  <ul className="list-disc list-inside space-y-1 text-xs text-gray-600">
-                    <li>Insufficient Funds: 000111111116</li>
-                    <li>Account Closed: 000222222227</li>
-                  </ul>
-                </div>
+        {/* No payment method CTA */}
+        {paymentMethods.length === 0 && (
+          <Card className="border-dashed border-slate-300 shadow-sm">
+            <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+              <div className="rounded-full bg-gradient-to-br from-purple-100 to-pink-100 p-6 mb-6">
+                <CreditCard className="h-12 w-12 text-purple-600" />
               </div>
+              <h3 className="text-2xl font-bold text-slate-900 mb-3">No Payment Method Yet</h3>
+              <p className="text-slate-600 max-w-md mb-6">Connect your Canadian bank account to start paying rent with low fees.</p>
+              <button onClick={() => setDrawerOpen(true)}
+                className="px-8 py-3 rounded-xl text-white font-bold transition-all"
+                style={{background: 'linear-gradient(to right, #8B5CF6, #FF6B35)'}}>
+                Connect Bank Account
+              </button>
             </CardContent>
           </Card>
         )}
       </div>
-
-      {/* Connect Bank Account Modal */}
-      <Dialog open={showConnectModal} onOpenChange={setShowConnectModal}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Connect Bank Account</DialogTitle>
-            <DialogDescription>
-              Set up Pre-Authorized Debit for easy rent payments
-            </DialogDescription>
-          </DialogHeader>
-          <RentPaymentFlow 
-            userId={user?.id || ''}
-            propertyId={activeLease?.property_id || ''}
-            landlordId={activeLease?.landlord_id || ''}
-            rentAmount={0} // Not needed for just connecting
-            dueDate=""
-            onBankConnected={handleBankConnected}
-            onCancel={() => setShowConnectModal(false)}
-            connectOnly={true}
-          />
-        </DialogContent>
-      </Dialog>
 
       {/* Delete Payment Method Confirmation */}
       <AlertDialog open={!!methodToDelete} onOpenChange={(open) => !open && setMethodToDelete(null)}>
@@ -691,18 +721,12 @@ export default function DigitalWallet() {
           <AlertDialogHeader>
             <AlertDialogTitle>Remove Payment Method?</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to remove {methodToDelete?.bank_name || 'this payment method'} (••••{methodToDelete?.last4 || methodToDelete?.stripe_payment_method_id?.slice(-4)})?
-              This action cannot be undone.
+              Are you sure you want to remove {methodToDelete?.bank_name || 'this payment method'} (••••{methodToDelete?.last4 || methodToDelete?.stripe_payment_method_id?.slice(-4)})? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={confirmDeletePaymentMethod}
-              className="bg-red-600 hover:bg-red-700"
-            >
-              Remove
-            </AlertDialogAction>
+            <AlertDialogAction onClick={confirmDeletePaymentMethod} className="bg-red-600 hover:bg-red-700">Remove</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

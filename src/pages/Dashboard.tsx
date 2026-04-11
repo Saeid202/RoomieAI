@@ -16,18 +16,16 @@ export default function Dashboard() {
   const { user, loading } = useAuth();
   const location = useLocation();
   const [showRoleDialog, setShowRoleDialog] = useState(false);
+  // State for the AI Chat dialog
   const [chatOpen, setChatOpen] = useState(false);
-
-  const assignedRole = user?.user_metadata?.role;
 
   useEffect(() => {
     console.log("📍 Dashboard - Current state:", {
       path: location.pathname,
       role: role,
-      assignedRole: assignedRole,
       loading: loading
     });
-  }, [location.pathname, role, assignedRole, loading]);
+  }, [location.pathname, role, loading]);
 
   // Show loading state only if auth is loading
   if (loading) {
@@ -47,7 +45,6 @@ export default function Dashboard() {
         <RouteGuard>
           <DashboardContent 
             role={role}
-            assignedRole={assignedRole}
             location={location}
             showRoleDialog={showRoleDialog}
           />
@@ -82,13 +79,11 @@ export default function Dashboard() {
   );
 }
 
-function DashboardContent({ role, assignedRole, location, showRoleDialog }: any) {
+function DashboardContent({ role, location, showRoleDialog }: any) {
   // Only redirect if we're exactly at /dashboard root
   if (location.pathname === '/dashboard' && !showRoleDialog) {
-    const effectiveRole = role || assignedRole;
-
     // If role is still loading, show a spinner instead of blank screen
-    if (!effectiveRole) {
+    if (!role) {
       return (
         <div className="flex items-center justify-center min-h-screen">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -96,17 +91,17 @@ function DashboardContent({ role, assignedRole, location, showRoleDialog }: any)
       );
     }
 
-    if (effectiveRole === 'landlord' || effectiveRole === 'developer') {
+    if (role === 'landlord' || role === 'developer') {
       return <Navigate to="/dashboard/landlord" replace />;
-    } else if (effectiveRole === 'admin') {
+    } else if (role === 'admin') {
       return <Navigate to="/dashboard/admin" replace />;
-    } else if (effectiveRole === 'renovator') {
+    } else if (role === 'renovator') {
       return <Navigate to="/renovator/dashboard" replace />;
-    } else if (effectiveRole === 'mortgage_broker') {
+    } else if (role === 'mortgage_broker') {
       return <Navigate to="/dashboard/mortgage-broker" replace />;
-    } else if (effectiveRole === 'lawyer') {
+    } else if (role === 'lawyer') {
       return <Navigate to="/dashboard/lawyer" replace />;
-    } else if (effectiveRole === 'lender') {
+    } else if (role === 'lender') {
       return <Navigate to="/dashboard/lender" replace />;
     } else {
       // seeker or any unknown role → seeker dashboard

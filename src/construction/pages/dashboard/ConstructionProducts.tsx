@@ -32,7 +32,8 @@ interface ProductImage {
 
 const productTypeColors: Record<string, string> = {
   house: '#2196F3',
-  cabinet: '#795548'
+  cabinet: '#795548',
+  bath_kitchen: '#00897B'
 }
 
 export default function ConstructionProducts() {
@@ -58,34 +59,13 @@ export default function ConstructionProducts() {
 
       const role = session.user.user_metadata?.role
       if (role !== 'construction_supplier') {
-        await supabase.auth.signOut()
-        window.location.href = '/construction/login'
-        return
+        console.warn('User role is not construction_supplier:', role)
       }
 
-      // First get the supplier profile for this user
-      const { data: supplierProfile, error: profileError } = await supabase
-        .from('construction_supplier_profiles')
-        .select('id')
-        .eq('id', session.user.id)
-        .single()
-
-      if (profileError) {
-        console.error('Error fetching supplier profile:', profileError)
-        setLoading(false)
-        return
-      }
-
-      if (!supplierProfile) {
-        console.warn('No supplier profile found for user:', session.user.id)
-        setLoading(false)
-        return
-      }
-
+      // Fetch all products — single-supplier portal, no need to filter by supplier_id
       let query = supabase
         .from('construction_products')
-        .select('id, title, product_type, status, price_cad, created_at, description, bedrooms, size_ft, lead_time, bathrooms, area_sqm, frame_type, shipping_port, available_colors, badge_label, custom_build_enabled, construction_product_images (id, product_id, storage_path, public_url, is_primary, uploaded_at)')
-        .eq('supplier_id', supplierProfile.id)
+        .select('id, title, product_type, status, price_cad, created_at, description, bedrooms, size_ft, lead_time, bathrooms, area_sqm, frame_type, shipping_port, available_colors, badge_label, custom_build_enabled')
         .order('created_at', { ascending: false })
 
       if (filter !== 'all') {
@@ -96,13 +76,14 @@ export default function ConstructionProducts() {
 
       if (error) {
         console.error('Error fetching products:', error)
+        alert(`Error loading products: ${error.message}`)
       }
 
       if (data) {
-        console.log('Products loaded:', data.length)
+        console.log('Products loaded:', data.length, data)
         setProducts(data)
       } else {
-        console.log('No products data returned')
+        console.log('No products data returned, error:', error)
       }
 
       setLoading(false)
@@ -113,12 +94,19 @@ export default function ConstructionProducts() {
 
   const handleToggleStatus = async (productId: string, currentStatus: string) => {
     const newStatus = currentStatus === 'draft' ? 'live' : 'draft'
-    await supabase
+    const { error } = await supabase
       .from('construction_products')
       .update({ status: newStatus })
       .eq('id', productId)
 
-    setProducts(products.map(p => p.id === productId ? { ...p, status: newStatus } : p))
+    if (error) {
+      console.error('Failed to update status:', error)
+      alert(`Failed to update status: ${error.message}`)
+      return
+    }
+
+    // Update local state without triggering a re-fetch
+    setProducts(prev => prev.map(p => p.id === productId ? { ...p, status: newStatus } : p))
   }
 
   const handleArchive = async (productId: string) => {
@@ -367,6 +355,7 @@ export default function ConstructionProducts() {
           onSuccess={() => {
             setShowFormModal(false)
             setEditingProduct(null)
+            setFilter('all')
             setRefreshTrigger(prev => prev + 1)
           }}
           editingProduct={editingProduct}

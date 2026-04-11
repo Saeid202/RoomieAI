@@ -146,6 +146,7 @@ export default function BuyingOpportunitiesPage() {
     const [userEmail, setUserEmail] = useState<string>("");
     const [userFullName, setUserFullName] = useState<string>("");
     const [brokerConsent, setBrokerConsent] = useState<boolean>(false);
+    const [lenderConsent, setLenderConsent] = useState<boolean>(false);
     const [unreadFeedbackCount, setUnreadFeedbackCount] = useState(0);
     const { toast } = useToast();
 
@@ -244,6 +245,7 @@ export default function BuyingOpportunitiesPage() {
 
                     // Initialize broker consent state
                     setBrokerConsent(profile?.broker_consent || false);
+                    setLenderConsent(profile?.lender_access_consent || false);
 
                     if (profile) {
                         mortgageForm.reset({
@@ -383,6 +385,7 @@ export default function BuyingOpportunitiesPage() {
     useEffect(() => {
         if (mortgageProfile) {
             setBrokerConsent(mortgageProfile.broker_consent || false);
+            setLenderConsent(mortgageProfile.lender_access_consent || false);
         }
     }, [mortgageProfile]);
 
@@ -561,6 +564,7 @@ export default function BuyingOpportunitiesPage() {
                 target_location: values.target_location,
                 timeline_to_buy: values.timeline_to_buy,
                 broker_consent: brokerConsent,
+                lender_access_consent: lenderConsent,
             };
 
             // Track consent changes for notifications
@@ -993,14 +997,24 @@ export default function BuyingOpportunitiesPage() {
 
                     <TabsContent value="sales">
                         {/* Buy Unit Header */}
-                        <div className="mb-6">
-                            <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight flex items-center gap-3">
-                                <span className="text-4xl">??</span>
-                                Buy Unit
-                            </h1>
-                            <p className="text-slate-600 text-base md:text-lg font-medium">
-                                Browse properties available for direct purchase.
-                            </p>
+                        <div className="relative mb-8 rounded-xl overflow-hidden shadow-lg" style={{background: 'linear-gradient(to right, #8B5CF6, #A855F7, #FF6B35)'}}>
+                            <div className="absolute inset-0 opacity-10">
+                                <div className="absolute top-0 right-0 w-48 h-48 bg-white rounded-full -translate-y-1/2 translate-x-1/2" />
+                                <div className="absolute bottom-0 left-0 w-32 h-32 bg-white rounded-full translate-y-1/2 -translate-x-1/2" />
+                            </div>
+                            <div className="relative px-6 py-5 flex items-center gap-4">
+                                <div className="flex-shrink-0 bg-white/20 backdrop-blur-sm rounded-xl p-2.5">
+                                    <Home className="h-7 w-7 text-white" />
+                                </div>
+                                <div>
+                                    <h1 className="text-2xl font-black text-white tracking-tight leading-tight">
+                                        Buy a Property
+                                    </h1>
+                                    <p className="text-purple-100 text-sm font-medium mt-0.5">
+                                        Browse properties available for direct purchase.
+                                    </p>
+                                </div>
+                            </div>
                         </div>
 
                         <h2 className="text-2xl md:text-3xl font-bold text-slate-800 mb-4 flex items-center gap-2">
@@ -2573,55 +2587,117 @@ export default function BuyingOpportunitiesPage() {
                                             </Card>
 
                                             {/* Broker Consent Section */}
-                                            <Card className="border-2 border-purple-200 bg-gradient-to-br from-pink-50 to-purple-50">
+                                            <Card className="border-2 border-purple-400 bg-gradient-to-br from-purple-50 to-pink-50 shadow-lg ring-2 ring-purple-200 ring-offset-2">
                                                 <CardContent className="p-6">
-                                                    <div className="flex items-start gap-4">
-                                                        <Checkbox
-                                                            id="broker_consent"
-                                                            checked={brokerConsent}
-                                                            onCheckedChange={(checked) => {
-                                                                setBrokerConsent(checked as boolean);
+                                                    <div className="flex items-center justify-between gap-4">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="p-2 bg-purple-100 rounded-xl">
+                                                                <Shield className="h-6 w-6 text-purple-600" />
+                                                            </div>
+                                                            <div>
+                                                                <p className="font-bold text-gray-900 text-base">Share Profile with Mortgage Broker</p>
+                                                                <p className="text-sm text-gray-600 mt-0.5">
+                                                                    I consent to share my mortgage profile with Homie AI's trusted mortgage broker for review and recommendations.
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                        {/* Toggle Switch */}
+                                                        <button
+                                                            type="button"
+                                                            role="switch"
+                                                            aria-checked={brokerConsent}
+                                                            onClick={() => {
+                                                                const newValue = !brokerConsent;
+                                                                setBrokerConsent(newValue);
                                                                 toast({
-                                                                    title: checked ? "Consent Given" : "Consent Revoked",
-                                                                    description: checked
-                                                                        ? "Remember to save your profile to apply this change."
-                                                                        : "Remember to save your profile to apply this change.",
+                                                                    title: newValue ? "Consent Given" : "Consent Revoked",
+                                                                    description: "Remember to save your profile to apply this change.",
                                                                 });
                                                             }}
-                                                            className="mt-1 data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600"
-                                                        />
-                                                        <div className="flex-1">
-                                                            <label
-                                                                htmlFor="broker_consent"
-                                                                className="text-sm font-bold text-gray-900 cursor-pointer flex items-center gap-2 mb-2"
-                                                            >
-                                                                <Shield className="h-5 w-5 text-purple-600" />
-                                                                <span>Share with Mortgage Broker</span>
-                                                            </label>
-                                                            <p className="text-sm text-gray-900 leading-relaxed font-bold">
-                                                                I consent to share my mortgage profile with Homie AI's trusted mortgage broker
-                                                                for the purpose of mortgage review and recommendations. You can revoke this
-                                                                consent at any time.
-                                                            </p>
-                                                            {brokerConsent && (
-                                                                <div className="mt-3 flex items-center gap-2 text-xs text-green-700 font-semibold bg-green-50 p-2 rounded-lg border border-green-200">
-                                                                    <CheckCircle className="h-4 w-4" />
-                                                                    <span>Your profile will be visible to our mortgage broker</span>
-                                                                    {mortgageProfile?.broker_consent_date && (
-                                                                        <span className="text-gray-600">
-                                                                            � Consented on {new Date(mortgageProfile.broker_consent_date).toLocaleDateString()}
-                                                                        </span>
-                                                                    )}
-                                                                </div>
-                                                            )}
-                                                            {!brokerConsent && (
-                                                                <div className="mt-3 flex items-center gap-2 text-xs text-gray-600 font-medium bg-gray-50 p-2 rounded-lg border border-gray-200">
-                                                                    <Info className="h-4 w-4" />
-                                                                    <span>Your profile is private and not shared with brokers</span>
-                                                                </div>
+                                                            className={`relative inline-flex h-8 w-14 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 ${
+                                                                brokerConsent ? 'bg-purple-600' : 'bg-gray-300'
+                                                            }`}
+                                                        >
+                                                            <span
+                                                                className={`pointer-events-none inline-block h-7 w-7 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
+                                                                    brokerConsent ? 'translate-x-6' : 'translate-x-0'
+                                                                }`}
+                                                            />
+                                                        </button>
+                                                    </div>
+
+                                                    {/* Status Banner */}
+                                                    {brokerConsent ? (
+                                                        <div className="mt-4 flex items-center gap-2 text-sm text-green-700 font-semibold bg-green-50 px-4 py-3 rounded-xl border border-green-200">
+                                                            <CheckCircle className="h-4 w-4 flex-shrink-0" />
+                                                            <span>Your profile is visible to our mortgage broker</span>
+                                                            {mortgageProfile?.broker_consent_date && (
+                                                                <span className="text-gray-500 font-normal ml-1">
+                                                                    · Consented on {new Date(mortgageProfile.broker_consent_date).toLocaleDateString()}
+                                                                </span>
                                                             )}
                                                         </div>
+                                                    ) : (
+                                                        <div className="mt-4 flex items-center gap-2 text-sm text-gray-600 font-medium bg-gray-50 px-4 py-3 rounded-xl border border-gray-200">
+                                                            <Info className="h-4 w-4 flex-shrink-0" />
+                                                            <span>Your profile is private — not shared with brokers. Turn on to allow access.</span>
+                                                        </div>
+                                                    )}
+                                                </CardContent>
+                                            </Card>
+
+                                            {/* Lender Consent Section */}
+                                            <Card className="border-2 border-blue-400 bg-gradient-to-br from-blue-50 to-indigo-50 shadow-lg ring-2 ring-blue-200 ring-offset-2">
+                                                <CardContent className="p-6">
+                                                    <div className="flex items-center justify-between gap-4">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="p-2 bg-blue-100 rounded-xl">
+                                                                <Shield className="h-6 w-6 text-blue-600" />
+                                                            </div>
+                                                            <div>
+                                                                <p className="font-bold text-gray-900 text-base">Share Profile with Lender</p>
+                                                                <p className="text-sm text-gray-600 mt-0.5">
+                                                                    I consent to share my mortgage profile with Homie AI's trusted lenders for loan review and rate offers.
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                        {/* Toggle Switch */}
+                                                        <button
+                                                            type="button"
+                                                            role="switch"
+                                                            aria-checked={lenderConsent}
+                                                            onClick={() => {
+                                                                const newValue = !lenderConsent;
+                                                                setLenderConsent(newValue);
+                                                                toast({
+                                                                    title: newValue ? "Lender Access Granted" : "Lender Access Revoked",
+                                                                    description: "Remember to save your profile to apply this change.",
+                                                                });
+                                                            }}
+                                                            className={`relative inline-flex h-8 w-14 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                                                                lenderConsent ? 'bg-blue-600' : 'bg-gray-300'
+                                                            }`}
+                                                        >
+                                                            <span
+                                                                className={`pointer-events-none inline-block h-7 w-7 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
+                                                                    lenderConsent ? 'translate-x-6' : 'translate-x-0'
+                                                                }`}
+                                                            />
+                                                        </button>
                                                     </div>
+
+                                                    {/* Status Banner */}
+                                                    {lenderConsent ? (
+                                                        <div className="mt-4 flex items-center gap-2 text-sm text-blue-700 font-semibold bg-blue-50 px-4 py-3 rounded-xl border border-blue-200">
+                                                            <CheckCircle className="h-4 w-4 flex-shrink-0" />
+                                                            <span>Your profile is visible to our lenders</span>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="mt-4 flex items-center gap-2 text-sm text-gray-600 font-medium bg-gray-50 px-4 py-3 rounded-xl border border-gray-200">
+                                                            <Info className="h-4 w-4 flex-shrink-0" />
+                                                            <span>Your profile is private — not shared with lenders. Turn on to allow access.</span>
+                                                        </div>
+                                                    )}
                                                 </CardContent>
                                             </Card>
 

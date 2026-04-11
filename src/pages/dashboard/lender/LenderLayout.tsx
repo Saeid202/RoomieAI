@@ -40,12 +40,6 @@ export default function LenderLayout({ children }: LenderLayoutProps) {
         return;
       }
 
-      if (!profile.is_active) {
-        toast.error("Your lender account is not active. Please contact support.");
-        navigate('/dashboard');
-        return;
-      }
-
       setIsAuthorized(true);
     } catch (error) {
       console.error("Error checking authorization:", error);

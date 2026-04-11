@@ -344,6 +344,7 @@ export async function getLandlordApplications(): Promise<any[]> {
 
     console.log("✅ Landlord has properties, fetching applications...");
 
+    // Fetch direct applications for this landlord's properties
     const { data, error } = await sb
       .from('rental_applications')
       .select(`
@@ -359,7 +360,6 @@ export async function getLandlordApplications(): Promise<any[]> {
           stored_contracts:contracts(id, file_path, status)
         )
       `)
-      .eq('property.user_id', user.id)  // Filter by landlord's properties
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -367,8 +367,12 @@ export async function getLandlordApplications(): Promise<any[]> {
       throw new Error(`Failed to fetch applications: ${error.message}`);
     }
 
-    console.log(`✅ Landlord applications fetched successfully: ${data?.length || 0} applications`);
-    return data || [];
+    // Filter locally to be 100% sure we only show this landlord's properties
+    // This avoids any potential issues with complex inner join filtering in some Supabase versions
+    const filteredData = data?.filter((app: any) => app.property?.user_id === user.id) || [];
+
+    console.log(`✅ Landlord applications fetched successfully: ${filteredData.length} applications`);
+    return filteredData;
   } catch (error) {
     console.error("❌ Error in getLandlordApplications:", error);
     throw error;

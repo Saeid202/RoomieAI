@@ -78,66 +78,40 @@ export function clearAdminCache(userId?: string) {
 }
 
 /**
- * Get list of available roles for a user
+ * Get the single authoritative role for a user (Strict Separation)
  */
 export async function getAvailableRoles(userId: string): Promise<string[]> {
   try {
-    const roles: string[] = ['seeker'];
-
-    // 1. Check if user is an admin
-    const isAdmin = await checkIsAdmin(userId);
-    if (isAdmin) {
-      return ['seeker', 'landlord', 'renovator', 'admin'];
-    }
-
-    // 2. Fetch the user's primary profile role
-    const { data: profile } = await (supabase as any)
+    // 1. Fetch the user's primary profile role from the database
+    const { data: profile, error } = await supabase
       .from('user_profiles')
       .select('role')
       .eq('id', userId)
       .maybeSingle();
 
-    const dbRole = (profile as any)?.role || 'seeker';
-
-    // 3. Check if they have a renovation partner profile
-    const { data: renovatorProfile } = await (supabase as any)
-      .from('renovation_partners')
-      .select('id')
-      .eq('user_id', userId)
-      .maybeSingle();
-
-    // 4. Determine available roles
-    // Everyone gets Seeker and Landlord (standard flow)
-    roles.push('landlord');
-
-    // Add Renovator if they have a profile OR if their DB role is renovator
-    if (renovatorProfile || dbRole === 'renovator') {
-      roles.push('renovator');
+    if (error) {
+      console.error('Error fetching authoritative role:', error);
+      return ['seeker'];
     }
 
-    // 5. Add admin if they are admin
-    if (isAdmin) {
-      roles.push('admin');
+    // Default to seeker if no role is found
+    const primaryRole = profile?.role || 'seeker';
+
+    // 2. Extra verification for Admin
+    if (primaryRole === 'admin') {
+      const isAdmin = await checkIsAdmin(userId);
+      if (!isAdmin) {
+        console.warn(`⚠️ User ${userId} claims admin role in profile but failed validation.`);
+        return ['seeker'];
+      }
     }
 
-    // 6. Support Lawyer, Mortgage Broker and Developer roles if they are in the DB
-    if (dbRole === 'lawyer') {
-      roles.push('lawyer');
-    }
-    if (dbRole === 'mortgage_broker') {
-      roles.push('mortgage_broker');
-    }
-    if (dbRole === 'developer') {
-      roles.push('developer');
-    }
-    if (dbRole === 'lender') {
-      roles.push('lender');
-    }
-
-    // Return unique roles
-    return Array.from(new Set(roles));
+    console.log(`🛡️ [Strict Role] Authoritative role for ${userId}:`, primaryRole);
+    
+    // Return only the single primary role in the array
+    return [primaryRole];
   } catch (error) {
-    console.error('Error fetching available roles:', error);
-    return ['seeker', 'landlord', 'renovator', 'mortgage_broker', 'lawyer', 'lender'];
+    console.error('Error in getAvailableRoles (Strict Mode):', error);
+    return ['seeker'];
   }
 }

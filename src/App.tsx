@@ -189,6 +189,7 @@ function AppRoutes() {
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/admin/login" element={<AdminLoginPage />} />
         <Route path="/auth" element={<AuthPage />} />
+        <Route path="/auth/login" element={<Navigate to="/auth" replace />} />
         <Route path="/auth/callback" element={<Callback />} />
         <Route path="/emergency/accept/:token" element={<EmergencyAccept />} />
         <Route path="/property/:id" element={<PublicPropertyDetails />} />

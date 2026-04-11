@@ -15,7 +15,6 @@ export function RouteGuard({ children }: RouteGuardProps) {
   const navigate = useNavigate();
 
   const { role } = useRole();
-  const assignedRole = user?.user_metadata?.role;
 
   useEffect(() => {
     if (loading || !user) return;
@@ -27,62 +26,79 @@ export function RouteGuard({ children }: RouteGuardProps) {
 
     const currentRole = role;
 
-    // Only block access to role-specific dashboard sections
-    if (location.pathname.startsWith('/dashboard/landlord') && currentRole !== 'landlord') {
-      console.warn("🚫 RouteGuard - Access denied for landlord route. Role:", currentRole);
-      toast({
-        title: "Access restricted",
-        description: "You need to be a Landlord to access this section",
-        variant: "destructive",
-      });
-      navigate('/dashboard', { replace: true });
+    // 30. STRICT BILATERAL BLOCKING
+    const path = location.pathname;
+
+    // A. Define Seeker-only paths
+    const isSeekerOnlyPath = 
+      path === '/dashboard' || 
+      path.startsWith('/dashboard/roommate-recommendations') ||
+      path.startsWith('/dashboard/matches') ||
+      path.startsWith('/dashboard/rental-options') ||
+      path.startsWith('/dashboard/buying-opportunities') ||
+      path.startsWith('/dashboard/applications') ||
+      path.startsWith('/dashboard/co-ownership');
+
+    // B. Rejection Logic
+    
+    // 1. Block Non-Landlords from Landlord dashboard
+    if (path.startsWith('/dashboard/landlord') && currentRole !== 'landlord') {
+      redirectToHome(currentRole, "Landlord");
       return;
     }
 
-    if (location.pathname.startsWith('/dashboard/admin') && currentRole !== 'admin') {
-      console.warn("🚫 RouteGuard - Access denied for admin route. Role:", currentRole);
-      toast({
-        title: "Access restricted",
-        description: "You need to be an Administrator to access this section",
-        variant: "destructive",
-      });
-      navigate('/dashboard', { replace: true });
+    // 2. Block Non-Seekers from Seeker-only sections
+    if (isSeekerOnlyPath && currentRole !== 'seeker') {
+      redirectToHome(currentRole, "Seeker");
       return;
     }
 
-    if (location.pathname.startsWith('/dashboard/lawyer') && currentRole !== 'lawyer') {
-      console.warn("🚫 RouteGuard - Access denied for lawyer route. Role:", currentRole);
-      toast({
-        title: "Access restricted",
-        description: "You need to be a Lawyer to access this section",
-        variant: "destructive",
-      });
-      navigate('/dashboard', { replace: true });
+    // 3. Block Non-Admins from Admin dashboard
+    if (path.startsWith('/dashboard/admin') && currentRole !== 'admin') {
+      redirectToHome(currentRole, "Administrator");
       return;
     }
 
-    if (location.pathname.startsWith('/dashboard/mortgage-broker') && currentRole !== 'mortgage_broker') {
-      console.warn("🚫 RouteGuard - Access denied for mortgage broker route. Role:", currentRole);
-      toast({
-        title: "Access restricted",
-        description: "You need to be a Mortgage Broker to access this section",
-        variant: "destructive",
-      });
-      navigate('/dashboard', { replace: true });
+    // 4. Block Non-Renovators from Renovator dashboard
+    if (path.startsWith('/renovator') && currentRole !== 'renovator') {
+      redirectToHome(currentRole, "Renovator");
       return;
     }
 
-    if (location.pathname.startsWith('/dashboard/lender') && currentRole !== 'lender') {
-      console.warn("🚫 RouteGuard - Access denied for lender route. Role:", currentRole);
-      toast({
-        title: "Access restricted",
-        description: "You need to be a Lender to access this section",
-        variant: "destructive",
-      });
-      navigate('/dashboard', { replace: true });
+    // 5. Block Non-Lawyers from Lawyer dashboard
+    if (path.startsWith('/dashboard/lawyer') && currentRole !== 'lawyer') {
+      redirectToHome(currentRole, "Lawyer");
       return;
     }
-  }, [location.pathname, navigate, user, loading, assignedRole, role]);
+
+    // 6. Block Non-Brokers from Broker dashboard
+    if (path.startsWith('/dashboard/mortgage-broker') && currentRole !== 'mortgage_broker') {
+      redirectToHome(currentRole, "Mortgage Broker");
+      return;
+    }
+
+    // 7. Block Non-Lenders from Lender dashboard
+    if (path.startsWith('/dashboard/lender') && currentRole !== 'lender') {
+      redirectToHome(currentRole, "Lender");
+      return;
+    }
+
+  }, [location.pathname, navigate, user, loading, role]);
+
+  const redirectToHome = (currentRole: string, targetRoleName: string) => {
+    console.warn(`🚫 RouteGuard - Access denied for ${targetRoleName} route. User is:`, currentRole);
+    
+    // Auto-teleport to their correct home without showing the red error message
+    switch (currentRole) {
+      case 'landlord': navigate('/dashboard/landlord', { replace: true }); break;
+      case 'renovator': navigate('/renovator/dashboard', { replace: true }); break;
+      case 'admin': navigate('/dashboard/admin', { replace: true }); break;
+      case 'lawyer': navigate('/dashboard/lawyer', { replace: true }); break;
+      case 'mortgage_broker': navigate('/dashboard/mortgage-broker', { replace: true }); break;
+      case 'lender': navigate('/dashboard/lender', { replace: true }); break;
+      default: navigate('/dashboard/roommate-recommendations', { replace: true });
+    }
+  };
 
   return <>{children}</>;
 }

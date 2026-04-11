@@ -50,8 +50,8 @@ export function RentPaymentFlow({
   onCancel,
   connectOnly = false
 }: RentPaymentFlowProps) {
-  // Start at 'connect-bank' step if connectOnly mode (Uber/Airbnb model)
-  const [currentStep, setCurrentStep] = useState<PaymentStep>(connectOnly ? 'connect-bank' : 'select-method');
+  // Always start at 'select-method' to show fees/comparison first
+  const [currentStep, setCurrentStep] = useState<PaymentStep>('select-method');
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethodType>('acss_debit'); // Default to PAD
   const [bankDetails, setBankDetails] = useState<BankAccountDetails | null>(null);
   const [paymentMethodId, setPaymentMethodId] = useState<string | null>(null);

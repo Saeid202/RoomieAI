@@ -146,7 +146,7 @@ export default function ConstructionProductDetail() {
       {/* Category filter bar — not sticky, sits naturally in flow */}
       <div style={{ background: C.white, borderBottom: `1px solid ${C.border}`, marginTop: '72px' }}>
         <div style={{ maxWidth: 1280, margin: '0 auto', padding: '14px 32px', display: 'flex', gap: 10 }}>
-          {['All Types', 'Pre-fabricated Houses', 'Cabinets'].map((label, i) => (
+          {['All Types', 'Pre-fabricated Houses', 'Cabinets', 'Bath & Kitchen'].map((label, i) => (
             <Link key={label} to="/construction" style={{
               padding: '8px 20px',
               borderRadius: 8,

@@ -350,3 +350,22 @@ export async function setDefaultPaymentMethod(
     throw error;
   }
 }
+
+/**
+ * Get user's recent payments
+ */
+export async function getUserPayments(userId: string): Promise<any[]> {
+  try {
+    const { data, error } = await supabase
+      .from('rental_payments')
+      .select('*')
+      .eq('tenant_id', userId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
+    console.error('Error fetching payments:', error);
+    throw error;
+  }
+}

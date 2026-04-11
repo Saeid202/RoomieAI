@@ -34,6 +34,7 @@ export default function PayoutSetup() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [forceShowForm, setForceShowForm] = useState(false);
 
   // Form fields
   const [holderName, setHolderName] = useState('');
@@ -99,39 +100,48 @@ export default function PayoutSetup() {
     </div>
   );
 
-  // Already connected state
-  if (status?.connected) {
+  // Already connected state — show inline summary + form directly
+  if (status?.connected && !forceShowForm) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 w-full max-w-md p-8 text-center">
-          <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-lg mx-auto px-4 py-10">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 text-gray-500 hover:text-gray-700 mb-8 text-sm font-medium"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
-          </div>
-          <h2 className="text-xl font-bold text-gray-900 mb-2">Payout Account Connected</h2>
-          <p className="text-gray-500 mb-1">
-            {status.bank_name && <span className="font-medium text-gray-700">{status.bank_name}</span>}
-          </p>
-          <p className="text-gray-500 mb-6">
-            Account ending in <span className="font-mono font-semibold text-gray-800">••••{status.last4}</span>
-          </p>
-          <div className="flex gap-3">
+            Back
+          </button>
+
+          {/* Current account summary */}
+          <div className="bg-green-50 border border-green-200 rounded-2xl p-5 mb-6 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <div>
+                <p className="font-semibold text-green-900 text-sm">Connected Account</p>
+                <p className="text-green-700 text-sm">
+                  {status.bank_name && <span>{status.bank_name} · </span>}
+                  ••••{status.last4}
+                </p>
+              </div>
+            </div>
             <button
               onClick={() => navigate('/dashboard/landlord/payments')}
-              className="flex-1 py-3 rounded-xl bg-purple-600 text-white font-semibold hover:bg-purple-700 transition-colors"
+              className="text-sm text-green-700 font-semibold hover:text-green-900"
             >
-              Go to Payments
+              Go to Payments →
             </button>
-            <button
-              onClick={() => {
-                if (status?.account_holder_name) setHolderName(status.account_holder_name);
-                setStatus(null);
-              }}
-              className="flex-1 py-3 rounded-xl border border-gray-200 text-gray-700 font-semibold hover:bg-gray-50 transition-colors"
-            >
-              Update Account
-            </button>
+          </div>
+
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-gray-900">Update Bank Account</h1>
+            <p className="text-gray-500 mt-1">Enter your new Canadian bank account details below.</p>
           </div>
         </div>
       </div>
@@ -153,9 +163,31 @@ export default function PayoutSetup() {
         </button>
 
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Set Up Payouts</h1>
-          <p className="text-gray-500 mt-1">Add your Canadian bank account to receive rent payments automatically.</p>
+          <h1 className="text-2xl font-bold text-gray-900">{status?.connected ? 'Update Bank Account' : 'Set Up Payouts'}</h1>
+          <p className="text-gray-500 mt-1">{status?.connected ? 'Enter your new bank account details below.' : 'Add your Canadian bank account to receive rent payments automatically.'}</p>
         </div>
+
+        {/* Current account banner when updating */}
+        {status?.connected && (
+          <div className="bg-green-50 border border-green-200 rounded-2xl p-4 mb-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
+                <svg className="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <div>
+                <p className="font-semibold text-green-900 text-sm">Current: {status.bank_name && `${status.bank_name} · `}••••{status.last4}</p>
+              </div>
+            </div>
+            <button
+              onClick={() => navigate('/dashboard/landlord/payments')}
+              className="text-xs text-green-700 font-semibold hover:text-green-900"
+            >
+              Go to Payments →
+            </button>
+          </div>
+        )}
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-5">
 

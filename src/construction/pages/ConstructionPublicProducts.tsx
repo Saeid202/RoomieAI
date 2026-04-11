@@ -131,7 +131,8 @@ export default function ConstructionPublicProducts() {
           {[
             { value: 'all', label: 'All Types' },
             { value: 'house', label: 'Pre-fabricated Houses' },
-            { value: 'cabinet', label: 'Cabinets' }
+            { value: 'cabinet', label: 'Cabinets' },
+            { value: 'bath_kitchen', label: 'Bath & Kitchen' }
           ].map((filter) => (
             <button
               key={filter.value}

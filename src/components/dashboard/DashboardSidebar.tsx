@@ -47,8 +47,16 @@ export function DashboardSidebar() {
   return (
     <Sidebar collapsible="offcanvas" defaultOpen={!isMobile}>
       <SidebarHeader className="flex items-center justify-center p-4 border-b">
-        <div className="w-full">
-          <RoleSwitcher variant="full-width" />
+        <div className="w-full flex items-center gap-3 px-2">
+          <div className="bg-primary/10 p-2 rounded-lg">
+            <Home className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <h2 className="text-sm font-bold text-gradient leading-none mb-1">Homie AI</h2>
+            <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">
+              {role?.replace('_', ' ') || 'Dashboard'}
+            </p>
+          </div>
         </div>
       </SidebarHeader>
 

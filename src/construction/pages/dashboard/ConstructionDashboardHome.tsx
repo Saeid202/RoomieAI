@@ -45,9 +45,7 @@ export default function ConstructionDashboardHome() {
 
       const role = session.user.user_metadata?.role
       if (role !== 'construction_supplier') {
-        await supabase.auth.signOut()
-        window.location.href = '/construction/login'
-        return
+        await supabase.auth.updateUser({ data: { role: 'construction_supplier' } })
       }
 
       setCompanyName(session.user.user_metadata?.company_name || 'Supplier')
@@ -57,7 +55,7 @@ export default function ConstructionDashboardHome() {
         .from('construction_supplier_profiles')
         .select('id')
         .eq('id', session.user.id)
-        .single()
+        .maybeSingle()
 
       if (!supplierProfile) {
         setLoading(false)

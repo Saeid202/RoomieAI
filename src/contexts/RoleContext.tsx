@@ -5,7 +5,6 @@ export type UserRole = 'seeker' | 'landlord' | 'admin' | 'developer' | 'renovato
 
 type RoleContextType = {
   role: UserRole | null;
-  toggleRole: () => void;
   setRole: (role: UserRole) => void;
 };
 
@@ -15,25 +14,8 @@ export function RoleProvider({ children }: { children: ReactNode }) {
   // Don't default to 'seeker' - let RoleInitializer set it
   const [role, setRole] = useState<UserRole | null>(null);
 
-  const toggleRole = () => {
-    // Cycle through roles: seeker -> landlord -> admin -> developer -> renovator -> mortgage_broker -> lawyer -> seeker
-    setRole(prev => {
-      switch (prev) {
-        case 'seeker': return 'landlord';
-        case 'landlord': return 'admin';
-        case 'admin': return 'developer';
-        case 'developer': return 'renovator';
-        case 'renovator': return 'mortgage_broker';
-        case 'mortgage_broker': return 'lawyer';
-        case 'lawyer': return 'lender';
-        case 'lender': return 'seeker';
-        default: return 'seeker';
-      }
-    });
-  };
-
   return (
-    <RoleContext.Provider value={{ role, toggleRole, setRole }}>
+    <RoleContext.Provider value={{ role, setRole }}>
       {children}
     </RoleContext.Provider>
   );

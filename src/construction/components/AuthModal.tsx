@@ -51,16 +51,7 @@ export default function AuthModal({ isOpen, onClose, defaultTab = 'login' }: Aut
         return
       }
 
-      const { data: { user: freshUser } } = await supabase.auth.getUser()
-      const role = freshUser?.user_metadata?.role
-      
-      if (role !== 'construction_supplier') {
-        await supabase.auth.signOut()
-        setError('You do not have access to this portal. Please sign up as a construction supplier.')
-        setLoading(false)
-        return
-      }
-
+      // Login successful — redirect to dashboard
       window.location.href = '/construction/dashboard'
     } catch (err) {
       setError('An unexpected error occurred. Please try again.')

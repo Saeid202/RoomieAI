@@ -58,7 +58,8 @@ interface FormState {
 const CATEGORIES = {
   'Categories': [
     'Pre-fabricated Houses',
-    'Cabinets'
+    'Cabinets',
+    'Bath & Kitchen'
   ]
 }
 
@@ -167,7 +168,8 @@ export default function ConstructionProductNew() {
       // Map category to product_type (must match database constraint)
       const categoryMap: Record<string, string> = {
         'Pre-fabricated Houses': 'house',
-        'Cabinets': 'cabinet'
+        'Cabinets': 'cabinet',
+        'Bath & Kitchen': 'bath_kitchen'
       }
       const productType = categoryMap[form.category] || 'modular'
 

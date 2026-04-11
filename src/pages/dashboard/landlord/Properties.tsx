@@ -214,7 +214,7 @@ export default function PropertiesPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    {properties.filter(p => !p.listing_category || p.listing_category === 'rental').map((p) => (
+                    {properties.filter(p => !p.listing_category || p.listing_category === 'rental' || p.listing_category === 'rent').map((p) => (
                       <Card key={p.id} className="border overflow-hidden">
                         {/* Image preview */}
                         <div className="relative h-40 bg-gray-100 flex items-center justify-center">

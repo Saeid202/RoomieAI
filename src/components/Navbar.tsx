@@ -76,9 +76,9 @@ const Navbar = ({ hideMobileMenu = false, onMobileMenuToggle }: NavbarProps) => 
               <NotificationBell />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="flex items-center gap-2 font-semibold">
-                    <User size={16} />
-                    {user.email ? user.email.split('@')[0] : 'Account'}
+                  <Button variant="outline" className="flex items-center gap-2 font-semibold max-w-[220px]">
+                    <User size={16} className="flex-shrink-0" />
+                    <span className="truncate">{user.email || 'Account'}</span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
@@ -129,12 +129,12 @@ const Navbar = ({ hideMobileMenu = false, onMobileMenuToggle }: NavbarProps) => 
           {hideMobileMenu && user && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-1.5 bg-white border border-gray-200 rounded-full px-3 py-1.5 shadow-sm active:scale-95 transition-all">
+                <button className="flex items-center gap-1.5 bg-white border border-gray-200 rounded-full px-3 py-1.5 shadow-sm active:scale-95 transition-all max-w-[180px]">
                   <div className="w-6 h-6 rounded-full bg-gradient-to-r from-purple-600 to-orange-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
                     {user.email?.[0].toUpperCase() || 'U'}
                   </div>
-                  <span className="text-xs font-semibold text-gray-800 max-w-[70px] truncate">
-                    {user.email?.split('@')[0]}
+                  <span className="text-xs font-semibold text-gray-800 truncate">
+                    {user.email}
                   </span>
                 </button>
               </DropdownMenuTrigger>

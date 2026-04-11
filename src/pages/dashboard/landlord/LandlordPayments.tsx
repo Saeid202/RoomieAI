@@ -3,8 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useAuth } from "@/hooks/useAuth";
-import { DollarSign, TrendingUp, Wallet, Clock, Building2, CheckCircle2, ChevronRight } from "lucide-react";
+import { DollarSign, TrendingUp, Wallet, Clock, Building2, CheckCircle2, ChevronRight, Plus } from "lucide-react";
 import {
   getLandlordPayments,
   calculatePaymentSummary,
@@ -14,7 +15,24 @@ import {
   type LandlordPayment
 } from "@/services/landlordPaymentService";
 import { formatCurrency } from "@/services/feeCalculationService";
-import { getPayoutStatus, type PayoutStatus } from "@/services/payoutService";
+import { getPayoutStatus, savePayoutBankAccount, type PayoutStatus } from "@/services/payoutService";
+import { toast } from "sonner";
+
+const CANADIAN_BANKS = [
+  { name: 'TD Canada Trust', code: '004' },
+  { name: 'Royal Bank (RBC)', code: '003' },
+  { name: 'Bank of Nova Scotia (Scotiabank)', code: '002' },
+  { name: 'Bank of Montreal (BMO)', code: '001' },
+  { name: 'CIBC', code: '010' },
+  { name: 'National Bank', code: '006' },
+  { name: 'HSBC Canada', code: '016' },
+  { name: 'Desjardins', code: '815' },
+  { name: 'Tangerine', code: '614' },
+  { name: 'Other', code: '' },
+];
+
+const inputCls = `w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-gray-900 text-base
+  focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all placeholder-gray-400`;
 
 export default function LandlordPayments() {
   const { user } = useAuth();
@@ -23,6 +41,18 @@ export default function LandlordPayments() {
   const [payments, setPayments] = useState<LandlordPayment[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [payoutStatus, setPayoutStatus] = useState<PayoutStatus | null>(null);
+
+  // Bank account modal state
+  const [showBankModal, setShowBankModal] = useState(false);
+  const [bankSaving, setBankSaving] = useState(false);
+  const [bankError, setBankError] = useState('');
+  const [holderName, setHolderName] = useState('');
+  const [selectedBank, setSelectedBank] = useState('');
+  const [institutionCode, setInstitutionCode] = useState('');
+  const [transit, setTransit] = useState('');
+  const [account, setAccount] = useState('');
+  const [accountConfirm, setAccountConfirm] = useState('');
+  const [showCheque, setShowCheque] = useState(false);
 
   useEffect(() => {
     if (!user) { setIsLoading(false); return; }
@@ -54,53 +84,123 @@ export default function LandlordPayments() {
 
   const summary = calculatePaymentSummary(payments);
 
+  const openBankModal = () => {
+    setHolderName(payoutStatus?.account_holder_name || '');
+    setSelectedBank('');
+    setInstitutionCode('');
+    setTransit('');
+    setAccount('');
+    setAccountConfirm('');
+    setBankError('');
+    setShowCheque(false);
+    setShowBankModal(true);
+  };
+
+  const handleBankSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const bank = CANADIAN_BANKS.find(b => b.name === e.target.value);
+    setSelectedBank(e.target.value);
+    setInstitutionCode(bank?.code || '');
+  };
+
+  const handleBankSave = async () => {
+    if (!holderName.trim()) { setBankError('Enter the account holder name'); return; }
+    if (!institutionCode || institutionCode.length !== 3) { setBankError('Select your bank or enter a 3-digit institution number'); return; }
+    if (transit.length !== 5) { setBankError('Transit number must be exactly 5 digits'); return; }
+    if (account.length < 7 || account.length > 12) { setBankError('Account number must be 7–12 digits'); return; }
+    if (account !== accountConfirm) { setBankError('Account numbers do not match'); return; }
+    setBankError('');
+    setBankSaving(true);
+    try {
+      await savePayoutBankAccount({
+        account_holder_name: holderName,
+        institution_number: institutionCode,
+        transit_number: transit,
+        account_number: account,
+      });
+      // Refresh payout status
+      if (user) {
+        const updated = await getPayoutStatus(user.id);
+        setPayoutStatus(updated);
+      }
+      setShowBankModal(false);
+      toast.success('Bank account connected! Payouts are now enabled.');
+    } catch (e: any) {
+      setBankError(e.message || 'Failed to connect bank account. Please check your details.');
+    } finally {
+      setBankSaving(false);
+    }
+  };
+
   return (
+    <>
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
       <div className="max-w-full px-6 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-semibold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-            Payment Dashboard
-          </h1>
-          <p className="text-slate-600 mt-2">Track and manage rent payments from your tenants</p>
+        {/* Header */}
+        <div className="relative rounded-xl overflow-hidden shadow-lg mb-8" style={{background: 'linear-gradient(to right, #8B5CF6, #A855F7, #FF6B35)'}}>
+          <div className="absolute inset-0 opacity-10">
+            <div className="absolute top-0 right-0 w-48 h-48 bg-white rounded-full -translate-y-1/2 translate-x-1/2" />
+            <div className="absolute bottom-0 left-0 w-32 h-32 bg-white rounded-full translate-y-1/2 -translate-x-1/2" />
+          </div>
+          <div className="relative px-6 py-5 flex items-center gap-4">
+            <div className="flex-shrink-0 bg-white/20 backdrop-blur-sm rounded-xl p-2.5">
+              <DollarSign className="h-7 w-7 text-white" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-black text-white tracking-tight leading-tight">Payment Dashboard</h1>
+              <p className="text-purple-100 text-sm font-medium mt-0.5">Track and manage rent payments from your tenants</p>
+            </div>
+          </div>
         </div>
 
-        {/* Payout Account Banner */}
-        {payoutStatus?.connected ? (
-          <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-xl px-5 py-4 mb-6">
-            <div className="flex items-center gap-3">
-              <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0" />
-              <div>
-                <p className="font-semibold text-green-900 text-sm">Payout Account Connected</p>
-                <p className="text-green-700 text-xs">
-                  {payoutStatus.bank_name && `${payoutStatus.bank_name} · `}
-                  {payoutStatus.last4 ? `••••${payoutStatus.last4}` : 'Bank account active'}
-                </p>
-              </div>
-            </div>
+        {/* Bank Account Section */}
+        <div className="bg-white border border-slate-200 rounded-xl shadow-sm mb-6 overflow-hidden">
+          <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100 bg-slate-50">
+            <p className="text-sm font-semibold text-slate-700">Payout Bank Account</p>
             <button
-              onClick={() => navigate('/dashboard/landlord/payout-setup')}
-              className="text-xs text-green-700 font-medium hover:text-green-900 flex items-center gap-1"
+              onClick={openBankModal}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
+              style={{background: 'linear-gradient(to right, #8B5CF6, #FF6B35)', color: 'white'}}
             >
-              Update <ChevronRight className="h-3 w-3" />
+              <Plus className="h-3.5 w-3.5" />
+              {payoutStatus?.connected ? 'Update Account' : 'Add Payment'}
             </button>
           </div>
-        ) : (
-          <div className="flex items-center justify-between bg-amber-50 border border-amber-200 rounded-xl px-5 py-4 mb-6">
-            <div className="flex items-center gap-3">
-              <Building2 className="h-5 w-5 text-amber-600 flex-shrink-0" />
-              <div>
-                <p className="font-semibold text-amber-900 text-sm">Set Up Payouts</p>
-                <p className="text-amber-700 text-xs">Connect your bank account to receive rent payments</p>
+
+          {payoutStatus?.connected ? (
+            <div className="flex items-center justify-between px-5 py-4">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-full bg-gradient-to-br from-purple-500 to-orange-400 flex items-center justify-center flex-shrink-0">
+                  <Building2 className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <p className="font-semibold text-slate-900 text-sm">
+                    {payoutStatus.bank_name || 'Bank Account'}
+                    {payoutStatus.last4 && <span className="text-slate-500 font-normal ml-2">••••{payoutStatus.last4}</span>}
+                  </p>
+                  <p className="text-xs text-slate-500">Pre-Authorized Debit · Payout account</p>
+                </div>
               </div>
+              <span className="flex items-center gap-1 text-xs font-semibold text-green-700 bg-green-50 border border-green-200 px-2.5 py-1 rounded-full">
+                <CheckCircle2 className="h-3.5 w-3.5" /> Connected
+              </span>
             </div>
-            <button
-              onClick={() => navigate('/dashboard/landlord/payout-setup')}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-amber-600 text-white text-xs font-semibold hover:bg-amber-700 transition-colors"
-            >
-              Set Up <ChevronRight className="h-3 w-3" />
-            </button>
-          </div>
-        )}
+          ) : (
+            <div className="flex items-center justify-between px-5 py-4">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
+                  <Building2 className="h-5 w-5 text-amber-600" />
+                </div>
+                <div>
+                  <p className="font-semibold text-slate-900 text-sm">No bank account connected</p>
+                  <p className="text-xs text-slate-500">Connect your account to receive rent payments</p>
+                </div>
+              </div>
+              <span className="text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full">
+                Not set up
+              </span>
+            </div>
+          )}
+        </div>
 
         {/* Balance Cards */}
         <div className="grid gap-6 lg:grid-cols-3 mb-8">
@@ -179,5 +279,121 @@ export default function LandlordPayments() {
         )}
       </div>
     </div>
+
+      {/* Bank Account Modal */}
+      <Dialog open={showBankModal} onOpenChange={setShowBankModal}>
+        <DialogContent className="max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold">
+              {payoutStatus?.connected ? 'Update Bank Account' : 'Connect Bank Account'}
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-5 pt-2">
+            {payoutStatus?.connected && (
+              <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm text-amber-800">
+                <p className="font-semibold mb-0.5">Updating your bank account</p>
+                <p className="text-xs">For security, please re-enter your complete banking details.</p>
+              </div>
+            )}
+
+            {/* Account Holder Name */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Account Holder Name</label>
+              <input type="text" className={inputCls} placeholder="Full legal name as on your bank account"
+                value={holderName} onChange={e => setHolderName(e.target.value)} />
+            </div>
+
+            {/* Bank Selector */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Your Bank</label>
+              <select className={inputCls} value={selectedBank} onChange={handleBankSelect}>
+                <option value="">Select your bank...</option>
+                {CANADIAN_BANKS.map(b => <option key={b.name} value={b.name}>{b.name}</option>)}
+              </select>
+            </div>
+
+            {/* Institution + Transit */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Institution Number</label>
+                <input type="text" inputMode="numeric" maxLength={3} className={`${inputCls} font-mono`}
+                  placeholder="3 digits" value={institutionCode}
+                  onChange={e => setInstitutionCode(e.target.value.replace(/\D/g, ''))} />
+              </div>
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-sm font-semibold text-gray-700">Transit Number</label>
+                  <button type="button" onClick={() => setShowCheque(v => !v)}
+                    className="text-xs text-purple-600 hover:text-purple-700 font-medium">
+                    Where is this?
+                  </button>
+                </div>
+                <input type="text" inputMode="numeric" maxLength={5} className={`${inputCls} font-mono`}
+                  placeholder="5 digits" value={transit}
+                  onChange={e => setTransit(e.target.value.replace(/\D/g, ''))} />
+              </div>
+            </div>
+
+            {showCheque && (
+              <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 text-sm text-blue-800">
+                <p className="font-semibold mb-2">Find these numbers at the bottom of a cheque:</p>
+                <div className="font-mono bg-white border border-blue-200 rounded-lg p-3 text-center text-xs tracking-widest">
+                  ⑆ <span className="text-purple-700 font-bold">TTTTT</span> ⑆ <span className="text-blue-700 font-bold">III</span> ⑆ <span className="text-green-700 font-bold">AAAAAAAAAA</span>
+                </div>
+                <div className="flex justify-between mt-2 text-xs">
+                  <span><span className="text-purple-700 font-bold">T</span> = Transit (5)</span>
+                  <span><span className="text-blue-700 font-bold">I</span> = Institution (3)</span>
+                  <span><span className="text-green-700 font-bold">A</span> = Account</span>
+                </div>
+              </div>
+            )}
+
+            {/* Account Number */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Account Number</label>
+              <input type="text" inputMode="numeric" className={`${inputCls} font-mono`}
+                placeholder="7–12 digits" value={account}
+                onChange={e => setAccount(e.target.value.replace(/\D/g, ''))} />
+            </div>
+
+            {/* Confirm Account */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Confirm Account Number</label>
+              <input type="text" inputMode="numeric" className={`${inputCls} font-mono`}
+                placeholder="Re-enter account number" value={accountConfirm}
+                onChange={e => setAccountConfirm(e.target.value.replace(/\D/g, ''))} />
+            </div>
+
+            {bankError && (
+              <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700 font-medium">
+                {bankError}
+              </div>
+            )}
+
+            <div className="flex gap-3 pt-2">
+              <button type="button" disabled={bankSaving} onClick={handleBankSave}
+                className="flex-1 py-3.5 rounded-xl text-white font-bold text-base disabled:opacity-60 transition-all flex items-center justify-center gap-2"
+                style={{background: 'linear-gradient(to right, #8B5CF6, #FF6B35)'}}>
+                {bankSaving ? (
+                  <><svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+                  </svg> Saving...</>
+                ) : 'Save Bank Account'}
+              </button>
+              <button type="button" onClick={() => setShowBankModal(false)}
+                className="px-6 py-3.5 rounded-xl border border-gray-200 text-gray-700 font-semibold hover:bg-gray-50 transition-colors">
+                Cancel
+              </button>
+            </div>
+
+            <p className="text-center text-xs text-gray-400">
+              🔒 Your banking information is encrypted and processed securely via Stripe
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

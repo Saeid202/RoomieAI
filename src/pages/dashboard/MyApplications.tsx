@@ -234,13 +234,21 @@ export default function MyApplicationsPage() {
   };
 
   const filtered = applications.filter((a) => {
+    // Safer check if property fields are missing
+    const propertyTitle = a.property?.listing_title?.toLowerCase() || '';
+    const propertyCity = a.property?.city?.toLowerCase() || '';
+    const propertyState = a.property?.state?.toLowerCase() || '';
+    
     const matchesSearch = !search ||
-      a.property?.listing_title?.toLowerCase().includes(search.toLowerCase()) ||
-      a.property?.city?.toLowerCase().includes(search.toLowerCase()) ||
-      a.property?.state?.toLowerCase().includes(search.toLowerCase());
+      propertyTitle.includes(search.toLowerCase()) ||
+      propertyCity.includes(search.toLowerCase()) ||
+      propertyState.includes(search.toLowerCase());
+      
     const matchesStatus = status === "all" || a.status === status;
     return matchesSearch && matchesStatus;
   });
+
+  console.log(`🔍 [MyApplications] Total fetched: ${applications.length}, Displaying after filter: ${filtered.length}`);
 
   const stats = {
     total: applications.length,

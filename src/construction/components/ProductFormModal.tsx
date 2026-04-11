@@ -105,7 +105,8 @@ interface FormState {
 const CATEGORIES = {
   'Categories': [
     'Pre-fabricated Houses',
-    'Cabinets'
+    'Cabinets',
+    'Bath & Kitchen'
   ]
 }
 
@@ -210,7 +211,8 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, editingPr
       // Reverse map product_type back to display category
       const productTypeToCategory: Record<string, string> = {
         'house': 'Pre-fabricated Houses',
-        'cabinet': 'Cabinets'
+        'cabinet': 'Cabinets',
+        'bath_kitchen': 'Bath & Kitchen'
       }
       const resolvedCategory = editingProduct.category || productTypeToCategory[editingProduct.product_type] || ''
       // Load existing images for this product
@@ -331,22 +333,20 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, editingPr
       }
 
       // Get supplier profile for this user
-      const { data: supplierProfile, error: profileError } = await supabase
+      const { data: supplierProfile } = await supabase
         .from('construction_supplier_profiles')
         .select('id')
         .eq('id', session.user.id)
-        .single()
+        .maybeSingle()
 
-      if (profileError || !supplierProfile) {
-        setError('Supplier profile not found. Please complete your profile setup.')
-        setLoading(false)
-        return
-      }
+      // Use session.user.id directly as supplier_id (profiles.id = auth.users.id)
+      const supplierId = supplierProfile?.id || session.user.id
 
       // Map category to product_type (must match database constraint)
       const categoryMap: Record<string, string> = {
         'Pre-fabricated Houses': 'house',
-        'Cabinets': 'cabinet'
+        'Cabinets': 'cabinet',
+        'Bath & Kitchen': 'bath_kitchen'
       }
       const productType = categoryMap[form.category] || 'modular'
 
@@ -367,7 +367,7 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, editingPr
         custom_build_enabled: form.customBuildEnabled,
         product_specs: form.productSpecs || null,
         status: 'live',
-        supplier_id: supplierProfile.id
+        supplier_id: supplierId
       }
 
       let product: any

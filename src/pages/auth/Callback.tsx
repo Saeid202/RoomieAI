@@ -138,30 +138,9 @@ export default function Callback() {
         // Clear pending role
         localStorage.removeItem('pendingRole');
 
-        // Redirect based on role
-        console.log("Auth callback - redirecting based on role:", effectiveRole);
-
-        if (effectiveRole === 'landlord') {
-          navigate('/dashboard/landlord');
-        } else if (effectiveRole === 'renovator') {
-          navigate('/renovator/dashboard');
-        } else if (effectiveRole === 'mortgage_broker') {
-          navigate('/dashboard/mortgage-broker');
-        } else if (effectiveRole === 'lawyer') {
-          navigate('/dashboard/lawyer');
-        } else if (effectiveRole === 'lender') {
-          navigate('/dashboard/lender');
-        } else if (effectiveRole === 'admin') {
-          navigate('/dashboard/admin');
-        } else if (effectiveRole === 'developer') {
-          navigate('/dashboard/developer');
-        } else {
-          // Default for seekers or unknown roles that were validated
-          navigate('/dashboard/roommate-recommendations');
-        }
-      } else {
-        console.log("Auth callback - no session found");
-        navigate('/');
+        // Final Navigation: ALWAYS go to /dashboard root.
+        console.log("Auth callback - Final redirect to /dashboard");
+        navigate('/dashboard', { replace: true });
       }
     });
   }, [navigate, setRole]);

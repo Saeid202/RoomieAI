@@ -73,7 +73,6 @@ export function RoleInitializer({ children }: RoleInitializerProps) {
         }
 
         // CRITICAL: Always update role context with database value
-        // Don't check if it's different - just set it to ensure consistency
         console.log("🔄 RoleInitializer - Setting role to context:", userRole);
         setRole(userRole);
       } catch (error) {
