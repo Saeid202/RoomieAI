@@ -94,6 +94,7 @@ import RenovatorsPage from "@/pages/dashboard/Renovators";
 import CleanersPage from "@/pages/dashboard/Cleaners";
 import ShopPage from "@/pages/dashboard/Shop";
 import TenantPaymentsPage from "@/pages/dashboard/tenant/TenantPayments";
+import WalletPage from "@/pages/dashboard/Wallet";
 import LandlordPaymentsPage from "@/pages/dashboard/landlord/LandlordPayments";
 import PayoutSetupPage from "@/pages/dashboard/landlord/PayoutSetup";
 import ViewingAppointmentsPage from "@/pages/dashboard/landlord/ViewingAppointments";
@@ -273,7 +274,7 @@ function AppRoutes() {
           <Route path="tax-intelligence" element={<ErrorBoundary componentName="TaxIntelligencePage"><TaxIntelligencePage /></ErrorBoundary>} />
           <Route path="cleaners" element={<CleanersPage />} />
           <Route path="shop" element={<ShopPage />} />
-          <Route path="digital-wallet" element={<TenantPaymentsPage />} />
+          <Route path="digital-wallet" element={<WalletPage />} />
           <Route path="pad-test" element={<PADPaymentTest />} />
           <Route path="list-room" element={<ListRoomPage />} />
           <Route path="profile" element={<SeekerProfilePage />} />
@@ -445,7 +446,7 @@ function AppRoutes() {
         <Route path="tax-intelligence" element={<ErrorBoundary componentName="TaxIntelligencePage"><TaxIntelligencePage /></ErrorBoundary>} />
         <Route path="cleaners" element={<CleanersPage />} />
         <Route path="shop" element={<ShopPage />} />
-        <Route path="digital-wallet" element={<TenantPaymentsPage />} />
+        <Route path="digital-wallet" element={<WalletPage />} />
         <Route path="list-room" element={<ListRoomPage />} />
         <Route path="profile" element={<SeekerProfilePage />} />
         <Route path="user/:userId" element={<PublicProfilePage />} />

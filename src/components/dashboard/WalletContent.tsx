@@ -24,14 +24,14 @@ import { formatCurrency } from "@/services/feeCalculationService";
 import { getTenantContracts, TenantContractView } from "@/services/leaseContractService";
 import { format, addMonths, setDate, isBefore, isAfter } from "date-fns";
 
-export function WalletContent() {
+export function WalletContent({ mortgageOnly = false }: { mortgageOnly?: boolean }) {
   const { user } = useAuth();
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [loading, setLoading] = useState(true);
   const [deletingMethodId, setDeletingMethodId] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [showAddFlow, setShowAddFlow] = useState(false);
-  const [activeFlow, setActiveFlow] = useState<"none" | "rent" | "mortgage">("rent");
+  const [activeFlow, setActiveFlow] = useState<"none" | "rent" | "mortgage">(mortgageOnly ? "mortgage" : "rent");
   const [isProcessing, setIsProcessing] = useState(false);
   const [applications, setApplications] = useState<any[]>([]);
   const [selectedAppId, setSelectedAppId] = useState<string | null>(null);
@@ -356,6 +356,7 @@ export function WalletContent() {
       </div>
 
       {/* Payment Bar - Prominent Segmented Control */}
+      {!mortgageOnly && (
       <div className="flex justify-center mb-8">
         <div className="bg-slate-100 p-1 rounded-xl flex gap-1 border border-slate-200 shadow-sm w-full">
           <button
@@ -382,6 +383,7 @@ export function WalletContent() {
           </button>
         </div>
       </div>
+      )}
 
       {activeFlow !== "none" && (
         <div className="max-w-4xl mx-auto animate-in fade-in zoom-in-95 duration-500 mb-20">
