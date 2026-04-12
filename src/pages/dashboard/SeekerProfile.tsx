@@ -18,7 +18,7 @@ import {
     FormMessage,
 } from "@/components/ui/form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, Linkedin, Globe, Mail, Calendar, GripHorizontal, Home, Heart, Briefcase, Users, FileText, DollarSign, Phone } from "lucide-react";
+import { User, Linkedin, Globe, Mail, Calendar, GripHorizontal, Home, Heart, Briefcase, Users, FileText, DollarSign, Phone, ShieldCheck, Lock } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
@@ -459,6 +459,23 @@ export default function SeekerProfilePage() {
                                     </FormItem>
                                 )}
                             />
+
+                            {/* Identity Verification — Coming Soon */}
+                            <div className="relative rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 p-5 opacity-75">
+                                <div className="flex items-center justify-between mb-2">
+                                    <div className="flex items-center gap-2">
+                                        <ShieldCheck className="h-5 w-5 text-slate-400" />
+                                        <span className="text-base font-semibold text-slate-600">Identity Verification</span>
+                                    </div>
+                                    <span className="flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full bg-amber-100 text-amber-700 border border-amber-200">
+                                        <Lock className="h-3 w-3" /> Coming Soon
+                                    </span>
+                                </div>
+                                <p className="text-sm text-slate-400">
+                                    Verify your identity with a government-issued ID to build trust with landlords and increase your match rate.
+                                </p>
+                                <div className="absolute inset-0 rounded-xl cursor-not-allowed" />
+                            </div>
                             </CardContent>
                         </Card>
 
