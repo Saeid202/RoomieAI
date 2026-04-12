@@ -1,7 +1,6 @@
 import { useState } from "react";
-import { Building2, ShieldCheck } from "lucide-react";
+import { Building2, ShieldCheck, Home } from "lucide-react";
 import DigitalWallet from "@/pages/dashboard/tenant/TenantPayments";
-import { WalletContent } from "@/components/dashboard/WalletContent";
 
 export default function WalletPage() {
   const [tab, setTab] = useState<"rent" | "mortgage">("rent");
@@ -36,8 +35,19 @@ export default function WalletPage() {
         </div>
       </div>
 
-      {/* Tab content */}
-      {tab === "rent" ? <DigitalWallet /> : <WalletContent mortgageOnly />}
+      {tab === "rent" ? (
+        <DigitalWallet />
+      ) : (
+        <div className="flex flex-col items-center justify-center py-24 px-6 text-center">
+          <div className="rounded-full bg-orange-50 p-6 mb-5">
+            <Home className="h-12 w-12 text-orange-400" />
+          </div>
+          <h2 className="text-2xl font-bold text-slate-800 mb-2">Mortgage Payments</h2>
+          <p className="text-slate-500 max-w-sm">
+            Mortgage payment functionality is coming soon. Once your mortgage is set up, you'll be able to manage and track payments here.
+          </p>
+        </div>
+      )}
     </div>
   );
 }
