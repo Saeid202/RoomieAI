@@ -292,15 +292,26 @@ export async function recordRentPayment(
  */
 export async function getUserPaymentMethods(userId: string): Promise<PaymentMethod[]> {
   try {
+    console.log('getUserPaymentMethods called with userId:', userId);
+    
     const { data, error } = await supabase
       .from('payment_methods')
       .select('*')
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
 
-    if (error) throw error;
+    console.log('Supabase query result:', { data, error });
+    console.log('Data length:', data?.length || 0);
+
+    if (error) {
+      console.error('Supabase error:', error);
+      throw error;
+    }
+    
     // Cast to PaymentMethod[] since TypeScript types may not be updated yet
-    return (data || []) as unknown as PaymentMethod[];
+    const result = (data || []) as unknown as PaymentMethod[];
+    console.log('Final result:', result);
+    return result;
   } catch (error) {
     console.error('Error fetching payment methods:', error);
     throw error;

@@ -190,6 +190,7 @@ export default function CommunitiesPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search, user?.id]);
 
+  
   useEffect(() => {
     if (selectedCommunity) {
       loadPosts();
@@ -279,12 +280,12 @@ export default function CommunitiesPage() {
   return (
     <div className="min-h-screen bg-white overflow-x-hidden">
       {/* Premium Header - Homei AI Brand */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-violet-600 via-purple-600 to-orange-500 px-4 py-8 md:px-8 md:py-20">
+      <div className="relative overflow-hidden bg-gradient-to-br from-roomie-purple via-roomie-purple-light to-roomie-orange px-4 py-8 md:px-8 md:py-20">
         {/* Energetic animated background */}
         <div className="absolute inset-0 opacity-20">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-orange-400 rounded-full blur-3xl animate-pulse" />
-          <div className="absolute bottom-0 left-0 w-96 h-96 bg-cyan-400 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
-          <div className="absolute top-1/2 left-1/2 w-72 h-72 bg-pink-400 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
+          <div className="absolute top-0 right-0 w-96 h-96 bg-roomie-orange rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-0 left-0 w-96 h-96 bg-roomie-purple-light rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+          <div className="absolute top-1/2 left-1/2 w-72 h-72 bg-roomie-lavender rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
         </div>
 
         <div className="relative max-w-7xl mx-auto">
@@ -314,7 +315,7 @@ export default function CommunitiesPage() {
             </div>
             <button
               type="submit"
-              className="px-4 h-10 rounded-lg bg-white text-violet-600 font-semibold text-sm hover:bg-white/90 transition-all shadow-lg"
+              className="px-4 h-10 rounded-lg bg-white text-roomie-purple font-semibold text-sm hover:bg-white/90 transition-all shadow-lg"
             >
               Search
             </button>
@@ -340,8 +341,8 @@ export default function CommunitiesPage() {
                 onClick={() => setActiveTab('browse')}
                 className={`py-4 px-1 border-b-2 font-semibold text-base transition-all ${
                   activeTab === 'browse'
-                    ? 'border-violet-600 text-violet-600'
-                    : 'border-transparent text-gray-600 hover:text-gray-900'
+                    ? 'border-roomie-purple text-roomie-purple'
+                    : 'border-transparent text-gray-600 hover:text-roomie-purple'
                 }`}
               >
                 Browse Communities
@@ -350,8 +351,8 @@ export default function CommunitiesPage() {
                 onClick={() => setActiveTab('my-community')}
                 className={`py-4 px-1 border-b-2 font-semibold text-base transition-all ${
                   activeTab === 'my-community'
-                    ? 'border-violet-600 text-violet-600'
-                    : 'border-transparent text-gray-600 hover:text-gray-900'
+                    ? 'border-roomie-purple text-roomie-purple'
+                    : 'border-transparent text-gray-600 hover:text-roomie-purple'
                 }`}
               >
                 {selectedCommunity.name}
@@ -362,7 +363,7 @@ export default function CommunitiesPage() {
       )}
 
       {/* Content - Premium Layout */}
-      <div className="max-w-7xl mx-auto px-4 md:px-8 py-4 md:py-12 space-y-6 md:space-y-12">
+      <div className="max-w-7xl px-4 md:px-8 py-4 md:py-12 space-y-6 md:space-y-12">
 
         {/* Browse Tab */}
         {activeTab === 'browse' && (
@@ -389,7 +390,7 @@ export default function CommunitiesPage() {
                         <h2 className="text-3xl font-bold text-gray-900">Your Communities</h2>
                         <p className="text-gray-600 mt-1">Communities you're actively part of</p>
                       </div>
-                      <span className="text-sm font-semibold text-white bg-gradient-to-r from-violet-600 to-purple-600 px-4 py-2 rounded-full shadow-md">
+                      <span className="text-sm font-semibold text-white bg-gradient-to-r from-roomie-purple to-roomie-orange px-4 py-2 rounded-full shadow-md">
                         {joinedCommunities.length} joined
                       </span>
                     </div>
@@ -417,7 +418,7 @@ export default function CommunitiesPage() {
                         </h2>
                         <p className="text-gray-600 mt-1">Explore communities and find your perfect match</p>
                       </div>
-                      <span className="text-sm font-semibold text-white bg-gradient-to-r from-orange-500 to-pink-500 px-4 py-2 rounded-full shadow-md">
+                      <span className="text-sm font-semibold text-white bg-gradient-to-r from-roomie-orange to-roomie-purple px-4 py-2 rounded-full shadow-md">
                         {discoverCommunities.length} available
                       </span>
                     </div>
@@ -446,7 +447,7 @@ export default function CommunitiesPage() {
             <div className="rounded-xl border border-gray-200 bg-white p-3 md:p-10 mb-3 md:mb-10 shadow-sm overflow-hidden">
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2 min-w-0 flex-1">
-                  <div className="w-10 h-10 md:w-20 md:h-20 rounded-xl bg-gradient-to-br from-violet-600 to-purple-600 flex items-center justify-center shadow-md flex-shrink-0">
+                  <div className="w-10 h-10 md:w-20 md:h-20 rounded-xl bg-gradient-to-br from-roomie-purple to-roomie-orange flex items-center justify-center shadow-md flex-shrink-0">
                     <span className="text-white font-bold text-sm md:text-3xl">{getInitials(selectedCommunity.name)}</span>
                   </div>
                   <div className="min-w-0">
@@ -474,7 +475,7 @@ export default function CommunitiesPage() {
               <div className="flex gap-2 mb-4 md:mb-10 w-full">
                 <button
                   onClick={() => setShowPostForm(true)}
-                  className="flex-1 rounded-xl bg-gradient-to-r from-violet-600 via-purple-600 to-orange-500 px-3 py-2.5 text-white font-semibold text-sm shadow-md flex items-center justify-center gap-1.5 min-w-0"
+                  className="flex-1 rounded-xl bg-gradient-to-r from-roomie-purple to-roomie-orange px-3 py-2.5 text-white font-semibold text-sm shadow-md flex items-center justify-center gap-1.5 min-w-0"
                 >
                   <PenSquare className="h-4 w-4 flex-shrink-0" />
                   <span className="truncate">Create Post</span>
@@ -482,7 +483,7 @@ export default function CommunitiesPage() {
 
                 <button
                   onClick={() => setShowInviteModal(true)}
-                  className="rounded-xl bg-white border-2 border-violet-600 px-3 py-2.5 text-violet-600 font-semibold text-sm shadow-md flex items-center justify-center gap-1.5 flex-shrink-0"
+                  className="rounded-xl bg-white border-2 border-roomie-purple px-3 py-2.5 text-roomie-purple font-semibold text-sm shadow-md flex items-center justify-center gap-1.5 flex-shrink-0"
                 >
                   <Users className="h-4 w-4 flex-shrink-0" />
                   <span>Invite</span>
@@ -500,7 +501,7 @@ export default function CommunitiesPage() {
                     onClick={() => handleFilterTabChange(tab.value)}
                     className={`flex-1 px-1.5 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-all text-center ${
                       filter === tab.value
-                        ? 'bg-gradient-to-r from-violet-600 to-purple-600 text-white shadow-sm'
+                        ? 'bg-gradient-to-r from-roomie-purple to-roomie-orange text-white shadow-sm'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                   >

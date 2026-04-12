@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { getUserPaymentMethods, createRentPaymentIntent, recordRentPayment, deletePaymentMethod } from "@/services/padPaymentService";
 import { PaymentMethod } from "@/types/payment";
 import { formatCurrency } from "@/services/feeCalculationService";
+import SecurityDepositSection from "@/components/lease/SecurityDepositSection";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -22,7 +23,7 @@ import {
 interface ActiveLease {
   id: string;
   property_id: string;
-  landlord_id: string;
+  owner_id: string;
   monthly_rent: number;
   lease_start_date: string;
   payment_day?: number;
@@ -123,10 +124,10 @@ export default function DigitalWallet() {
     setLoading(true);
     try {
       const { data: leaseData } = await sb
-        .from('lease_contracts')
-        .select('id, property_id, landlord_id, monthly_rent, lease_start_date, payment_day')
+        .from('active_leases')
+        .select('id, property_id, owner_id, monthly_rent, lease_start_date, payment_day')
         .eq('tenant_id', user.id)
-        .in('status', ['fully_signed', 'executed'])
+        .eq('status', 'active')
         .single();
 
       if (leaseData) {
@@ -135,7 +136,30 @@ export default function DigitalWallet() {
       }
 
       const methods = await getUserPaymentMethods(user.id);
-      setPaymentMethods(methods);
+      console.log('Fetched payment methods:', methods);
+      console.log('Payment methods count:', methods?.length || 0);
+      
+      // Only update state if we have valid data
+      if (methods && methods.length > 0) {
+        setPaymentMethods(methods);
+      } else {
+        // Fallback: try direct query if service function fails
+        console.log('Service function failed, trying direct query...');
+        const { data: directData, error: directError } = await sb
+          .from('payment_methods')
+          .select('*')
+          .eq('user_id', user.id);
+        
+        console.log('Direct query result:', { directData, directError });
+        
+        if (directData && directData.length > 0 && !directError) {
+          console.log('Using direct query results:', directData);
+          setPaymentMethods(directData as PaymentMethod[]);
+        } else {
+          console.log('Both queries failed, keeping existing state');
+          // Don't reset to empty array - keep existing state
+        }
+      }
 
       const { data: paymentsData } = await sb
         .from('rent_payments')
@@ -218,7 +242,7 @@ export default function DigitalWallet() {
         defaultMethod.id,
         {
           tenantId: user.id,
-          landlordId: activeLease.landlord_id,
+          landlordId: activeLease.owner_id,
           propertyId: activeLease.property_id,
           dueDate,
         }
@@ -232,7 +256,7 @@ export default function DigitalWallet() {
         stripeMandateId: defaultMethod.mandate_id,
         propertyId: activeLease.property_id,
         tenantId: user.id,
-        landlordId: activeLease.landlord_id,
+        landlordId: activeLease.owner_id,
         dueDate,
       });
 
@@ -389,7 +413,7 @@ export default function DigitalWallet() {
                   <RentPaymentFlow
                     userId={user.id}
                     propertyId={activeLease?.property_id || ''}
-                    landlordId={activeLease?.landlord_id || ''}
+                    landlordId={activeLease?.owner_id || ''}
                     rentAmount={0} dueDate=""
                     onBankConnected={() => { setShowAddFlow(false); fetchAll(); toast.success('Bank account connected!'); }}
                     onCancel={() => setShowAddFlow(false)}
@@ -400,9 +424,14 @@ export default function DigitalWallet() {
                 <div className="text-center py-10">
                   <CreditCard className="h-12 w-12 text-gray-300 mx-auto mb-3" />
                   <p className="text-gray-500 text-sm mb-4">No payment methods yet</p>
-                  <button onClick={() => setShowAddFlow(true)} className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white" style={{background: 'linear-gradient(to right, #8B5CF6, #FF6B35)'}}>
-                    Connect Bank Account
-                  </button>
+                  <div className="space-y-3">
+                    <button onClick={() => setShowAddFlow(true)} className="w-full px-5 py-2.5 rounded-xl text-sm font-semibold text-white" style={{background: 'linear-gradient(to right, #8B5CF6, #FF6B35)'}}>
+                      Connect Bank Account
+                    </button>
+                    <button onClick={() => setShowAddFlow(true)} className="w-full px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700">
+                      Add Credit/Debit Card
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <>
@@ -479,6 +508,17 @@ export default function DigitalWallet() {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Security Deposit Section */}
+              <SecurityDepositSection 
+                leaseId={activeLease.id}
+                monthlyRent={activeLease.monthly_rent}
+                paymentMethods={paymentMethods}
+                onPaymentSuccess={() => {
+                  toast.success('Security deposit payment completed!');
+                  fetchAll(); // Refresh data
+                }}
+              />
 
               {/* Payment Day Selector */}
               <Card className="border-slate-200 shadow-sm">

@@ -149,9 +149,9 @@ export function MatchDetailView({ match, onClose }: MatchDetailViewProps) {
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="w-full">
       <Card className="overflow-hidden">
-        <CardHeader className="bg-gradient-to-r from-blue-50 to-purple-50">
+        <CardHeader className="bg-gradient-to-r from-roomie-purple/10 via-roomie-purple-light/10 to-roomie-orange/10">
           <div className="flex justify-between items-start">
             <div className="space-y-2">
               <CardTitle className="text-2xl flex items-center gap-2">
@@ -426,7 +426,7 @@ export function MatchDetailView({ match, onClose }: MatchDetailViewProps) {
 
         <CardFooter className="bg-muted/50 p-6">
           <div className="flex gap-3 w-full">
-            <Button className="flex-1" size="lg" onClick={handleSendMessage} disabled={isStartingChat}>
+            <Button className="flex-1 bg-gradient-to-r from-roomie-purple to-roomie-orange hover:from-roomie-purple-dark hover:to-roomie-orange-dark text-white font-bold" size="lg" onClick={handleSendMessage} disabled={isStartingChat}>
               {isStartingChat ? (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               ) : (
@@ -434,7 +434,7 @@ export function MatchDetailView({ match, onClose }: MatchDetailViewProps) {
               )}
               {isStartingChat ? "Starting Chat..." : "Send Message"}
             </Button>
-            <Button variant="outline" size="lg">
+            <Button variant="outline" className="border-roomie-purple/30 text-roomie-purple hover:bg-roomie-purple/5 hover:border-roomie-purple/50" size="lg">
               <Heart className="h-4 w-4 mr-2" />
               Save Match
             </Button>

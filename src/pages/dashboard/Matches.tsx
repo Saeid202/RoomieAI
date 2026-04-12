@@ -326,10 +326,10 @@ export default function MatchesPage() {
 
   if (loading || profileLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-purple-50/30">
+      <div className="min-h-screen bg-gradient-to-br from-roomie-light via-white to-roomie-purple/10">
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
-            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-roomie-purple" />
             <p className="text-muted-foreground">
               {profileLoading
                 ? "Loading your profile..."
@@ -381,14 +381,14 @@ export default function MatchesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-purple-50/30">
-      <div className="max-w-full px-6 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-roomie-light via-white to-roomie-purple/10">
+      <div className="w-full px-4 lg:px-6 xl:px-8 py-8">
       {selectedMatch ? (
         <MatchDetailView match={selectedMatch} onClose={handleCloseDetails} />
       ) : (
         <>
           {/* Brand Header */}
-          <div className="relative rounded-xl overflow-hidden shadow-lg mb-6" style={{background: 'linear-gradient(to right, #8B5CF6, #A855F7, #FF6B35)'}}>
+          <div className="relative rounded-xl overflow-hidden shadow-lg mb-6 bg-gradient-to-r from-roomie-purple via-roomie-purple-light to-roomie-orange">
             <div className="absolute inset-0 opacity-10">
               <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full -translate-y-1/2 translate-x-1/2" />
               <div className="absolute bottom-0 left-0 w-40 h-40 bg-white rounded-full translate-y-1/2 -translate-x-1/2" />
@@ -400,7 +400,7 @@ export default function MatchesPage() {
                 </div>
                 <div>
                   <h1 className="text-2xl font-black text-white tracking-tight leading-tight">Your Roommate Matches</h1>
-                  <p className="text-purple-100 text-sm font-medium mt-0.5">AI-powered compatibility matching based on your lifestyle</p>
+                  <p className="text-white/80 text-sm font-medium mt-0.5">AI-powered compatibility matching based on your lifestyle</p>
                 </div>
               </div>
               <button className="flex-shrink-0 flex items-center gap-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30 text-white rounded-xl px-4 py-2.5 text-sm font-semibold transition-all">
@@ -411,15 +411,15 @@ export default function MatchesPage() {
           </div>
           <div className="space-y-4">
             {/* Communities banner */}
-            <div className="bg-white border border-purple-100 rounded-xl p-4 flex items-center justify-between shadow-sm">
+            <div className="bg-white border border-roomie-purple/20 rounded-xl p-4 flex items-center justify-between shadow-sm">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-purple-100 to-indigo-100 flex items-center justify-center text-xl">👥</div>
+                <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-roomie-purple/10 to-roomie-orange/10 flex items-center justify-center text-xl">??</div>
                 <div>
                   <p className="font-semibold text-sm text-slate-900">Roommate Communities</p>
                   <p className="text-xs text-slate-500">Connect with seekers in your city</p>
                 </div>
               </div>
-              <button onClick={() => navigate('/dashboard/communities')} className="text-sm font-bold text-purple-600 hover:text-purple-700 border border-purple-200 hover:border-purple-400 px-4 py-2 rounded-lg transition-all hover:bg-purple-50">
+              <button onClick={() => navigate('/dashboard/communities')} className="text-sm font-bold text-roomie-purple hover:text-roomie-purple-dark border border-roomie-purple/30 hover:border-roomie-purple/50 px-4 py-2 rounded-lg transition-all hover:bg-roomie-purple/5">
                 Join Now
               </button>
             </div>
@@ -573,7 +573,7 @@ export default function MatchesPage() {
                     {/* 5) Actions - Strong CTA */}
                     <div className="pt-4 mt-auto flex items-center gap-3">
                       <Button
-                        className="flex-1 text-white font-bold text-sm h-11 rounded-xl transition-all active:scale-95 flex items-center justify-center gap-2 disabled:opacity-60" style={{background: "linear-gradient(to right, #8B5CF6, #FF6B35)"}}
+                        className="flex-1 text-white font-bold text-sm h-11 rounded-xl transition-all active:scale-95 flex items-center justify-center gap-2 disabled:opacity-60 bg-gradient-to-r from-roomie-purple to-roomie-orange hover:from-roomie-purple-dark hover:to-roomie-orange-dark"
                         onClick={() => handleContact(match.userId)}
                         disabled={startingChatId === match.userId}
                       >
@@ -592,7 +592,7 @@ export default function MatchesPage() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="text-[11px] font-bold text-slate-400 hover:text-slate-600 h-12 px-2"
+                        className="text-[11px] font-black text-purple-600 bg-gradient-to-r from-purple-100 to-orange-100 hover:from-purple-200 hover:to-orange-200 border border-purple-300 hover:border-purple-400 shadow-md hover:shadow-lg transition-all duration-200 h-12 px-3 rounded-lg"
                         onClick={() => handleViewDetails({
                           ...match,
                           compatibilityScore: match.compatibility,

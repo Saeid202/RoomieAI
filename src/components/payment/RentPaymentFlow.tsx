@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -37,7 +38,7 @@ interface RentPaymentFlowProps {
   connectOnly?: boolean; // New prop for Uber/Airbnb model
 }
 
-type PaymentStep = 'select-method' | 'connect-bank' | 'confirm' | 'processing' | 'complete';
+type PaymentStep = 'select-method' | 'connect-bank' | 'card-input' | 'confirm' | 'processing' | 'complete';
 
 export function RentPaymentFlow({
   userId,
@@ -58,6 +59,12 @@ export function RentPaymentFlow({
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [paymentId, setPaymentId] = useState<string | null>(null);
+  const [cardDetails, setCardDetails] = useState({
+    cardNumber: '',
+    expiryDate: '',
+    cvv: '',
+    cardholderName: ''
+  });
 
   const handleMethodChange = (method: PaymentMethodType) => {
     setSelectedMethod(method);
@@ -68,8 +75,8 @@ export function RentPaymentFlow({
     if (selectedMethod === 'acss_debit') {
       setCurrentStep('connect-bank');
     } else {
-      // For card payments, go directly to confirmation
-      setCurrentStep('confirm');
+      // For card payments, go to card input form
+      setCurrentStep('card-input');
     }
   };
 
@@ -112,6 +119,54 @@ export function RentPaymentFlow({
       console.error('Error connecting bank:', err);
       setError(err.message || 'Failed to connect bank account');
       toast.error('Failed to connect bank account');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleCardConnected = async () => {
+    // Validate card details
+    if (!cardDetails.cardNumber || !cardDetails.expiryDate || !cardDetails.cvv || !cardDetails.cardholderName) {
+      setError('Please fill in all card details');
+      return;
+    }
+
+    setIsProcessing(true);
+    setError(null);
+
+    try {
+      // Create a mock Stripe payment method ID for demo
+      const stripePaymentMethodId = 'pm_card_demo_' + Date.now();
+      
+      // Save to database
+      const dbPaymentMethodId = await savePaymentMethod(
+        userId,
+        'card',
+        stripePaymentMethodId,
+        {
+          last4: cardDetails.cardNumber.slice(-4), // Last 4 digits
+          brand: 'visa',
+          expMonth: parseInt(cardDetails.expiryDate.split('/')[0]),
+          expYear: parseInt('20' + cardDetails.expiryDate.split('/')[1]),
+        }
+      );
+
+      setPaymentMethodId(dbPaymentMethodId);
+      
+      // If connectOnly mode, close modal after connection
+      if (connectOnly && onBankConnected) {
+        toast.success('Card added successfully!');
+        onBankConnected();
+        return;
+      }
+      
+      // Otherwise, continue to confirmation step
+      setCurrentStep('confirm');
+      toast.success('Card added successfully!');
+    } catch (err: any) {
+      console.error('Error adding card:', err);
+      setError(err.message || 'Failed to add card');
+      toast.error('Failed to add card');
     } finally {
       setIsProcessing(false);
     }
@@ -215,6 +270,93 @@ export function RentPaymentFlow({
               onCancel={() => setCurrentStep('select-method')}
               isLoading={isProcessing}
             />
+          </div>
+        );
+
+      case 'card-input':
+        return (
+          <div className="space-y-6">
+            <Button
+              variant="ghost"
+              onClick={() => setCurrentStep('select-method')}
+              className="mb-4"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Payment Methods
+            </Button>
+            
+            <Card className="bg-white shadow-sm">
+              <CardHeader>
+                <CardTitle className="text-xl">Add Credit/Debit Card</CardTitle>
+                <CardDescription className="text-gray-600">Enter your card details for Affirm BNPL</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Card Number</label>
+                    <input
+                      type="text"
+                      placeholder="1234 5678 9012 3456"
+                      value={cardDetails.cardNumber}
+                      onChange={(e) => setCardDetails(prev => ({ ...prev, cardNumber: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
+                      <input
+                        type="text"
+                        placeholder="MM/YY"
+                        value={cardDetails.expiryDate}
+                        onChange={(e) => setCardDetails(prev => ({ ...prev, expiryDate: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">CVV</label>
+                      <input
+                        type="text"
+                        placeholder="123"
+                        value={cardDetails.cvv}
+                        onChange={(e) => setCardDetails(prev => ({ ...prev, cvv: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Cardholder Name</label>
+                    <input
+                      type="text"
+                      placeholder="John Doe"
+                      value={cardDetails.cardholderName}
+                      onChange={(e) => setCardDetails(prev => ({ ...prev, cardholderName: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-lg">
+                  <AlertCircle className="h-4 w-4 text-blue-600" />
+                  <p className="text-sm text-blue-800">Your card information is securely processed by Stripe for Affirm BNPL</p>
+                </div>
+              </CardContent>
+              <CardFooter>
+                <Button
+                  onClick={handleCardConnected}
+                  disabled={isProcessing}
+                  className="w-full bg-blue-600 hover:bg-blue-700"
+                >
+                  {isProcessing ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    'Continue to Confirmation'
+                  )}
+                </Button>
+              </CardFooter>
+            </Card>
           </div>
         );
 
