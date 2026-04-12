@@ -326,7 +326,7 @@ export default function MatchesPage() {
 
   if (loading || profileLoading) {
     return (
-      <div className="container mx-auto p-6 space-y-6">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-purple-50/30">
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
@@ -381,41 +381,47 @@ export default function MatchesPage() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-purple-50/30">
+      <div className="max-w-full px-6 py-8">
       {selectedMatch ? (
         <MatchDetailView match={selectedMatch} onClose={handleCloseDetails} />
       ) : (
         <>
-          {/* Header with Stats */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-lg md:text-3xl font-bold">Your Roommate Matches</h1>
-              </div>
-              <Button
-                variant="outline"
-                className="text-xs md:text-base gap-1 md:gap-2"
-              >
-                <Heart className="size-1 md:size-4 md:mr-2" />
-                Saved Matches
-
-              </Button>
+          {/* Brand Header */}
+          <div className="relative rounded-xl overflow-hidden shadow-lg mb-6" style={{background: 'linear-gradient(to right, #8B5CF6, #A855F7, #FF6B35)'}}>
+            <div className="absolute inset-0 opacity-10">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full -translate-y-1/2 translate-x-1/2" />
+              <div className="absolute bottom-0 left-0 w-40 h-40 bg-white rounded-full translate-y-1/2 -translate-x-1/2" />
             </div>
-
-
-
-            {/* Communities shortcut banner */}
-            <div className="bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-xl p-4 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <span className="text-2xl">👥</span>
+            <div className="relative px-6 py-5 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div className="flex-shrink-0 bg-white/20 backdrop-blur-sm rounded-xl p-2.5">
+                  <Sparkles className="h-7 w-7 text-white" />
+                </div>
                 <div>
-                  <p className="font-semibold text-sm text-purple-900">Roommate Communities</p>
-                  <p className="text-xs text-purple-600">Connect with seekers in your city</p>
+                  <h1 className="text-2xl font-black text-white tracking-tight leading-tight">Your Roommate Matches</h1>
+                  <p className="text-purple-100 text-sm font-medium mt-0.5">AI-powered compatibility matching based on your lifestyle</p>
                 </div>
               </div>
-              <Button size="sm" variant="outline" className="border-purple-300 text-purple-700 hover:bg-purple-100" onClick={() => navigate('/dashboard/communities')}>
+              <button className="flex-shrink-0 flex items-center gap-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30 text-white rounded-xl px-4 py-2.5 text-sm font-semibold transition-all">
+                <Heart className="h-4 w-4" />
+                Saved
+              </button>
+            </div>
+          </div>
+          <div className="space-y-4">
+            {/* Communities banner */}
+            <div className="bg-white border border-purple-100 rounded-xl p-4 flex items-center justify-between shadow-sm">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-purple-100 to-indigo-100 flex items-center justify-center text-xl">👥</div>
+                <div>
+                  <p className="font-semibold text-sm text-slate-900">Roommate Communities</p>
+                  <p className="text-xs text-slate-500">Connect with seekers in your city</p>
+                </div>
+              </div>
+              <button onClick={() => navigate('/dashboard/communities')} className="text-sm font-bold text-purple-600 hover:text-purple-700 border border-purple-200 hover:border-purple-400 px-4 py-2 rounded-lg transition-all hover:bg-purple-50">
                 Join Now
-              </Button>
+              </button>
             </div>
 
             {/* Mobile-optimized profile section */}
@@ -567,7 +573,7 @@ export default function MatchesPage() {
                     {/* 5) Actions - Strong CTA */}
                     <div className="pt-4 mt-auto flex items-center gap-3">
                       <Button
-                        className="flex-1 bg-gradient-to-r from-roomie-purple to-indigo-600 hover:from-roomie-purple/90 hover:to-indigo-600/90 text-white font-black text-sm h-12 rounded-2xl shadow-[0_8px_16px_rgba(110,89,255,0.25)] transition-all active:scale-95 flex items-center justify-center gap-2"
+                        className="flex-1 text-white font-bold text-sm h-11 rounded-xl transition-all active:scale-95 flex items-center justify-center gap-2 disabled:opacity-60" style={{background: "linear-gradient(to right, #8B5CF6, #FF6B35)"}}
                         onClick={() => handleContact(match.userId)}
                         disabled={startingChatId === match.userId}
                       >
@@ -642,6 +648,7 @@ export default function MatchesPage() {
           )}
         </>
       )}
+      </div>
     </div>
   );
 }
