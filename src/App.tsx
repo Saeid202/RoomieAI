@@ -274,7 +274,7 @@ function AppRoutes() {
           <Route path="tax-intelligence" element={<ErrorBoundary componentName="TaxIntelligencePage"><TaxIntelligencePage /></ErrorBoundary>} />
           <Route path="cleaners" element={<CleanersPage />} />
           <Route path="shop" element={<ShopPage />} />
-          <Route path="digital-wallet" element={<WalletPage />} />
+          <Route path="digital-wallet" element={<TenantPaymentsPage />} />
           <Route path="pad-test" element={<PADPaymentTest />} />
           <Route path="list-room" element={<ListRoomPage />} />
           <Route path="profile" element={<SeekerProfilePage />} />
@@ -446,7 +446,7 @@ function AppRoutes() {
         <Route path="tax-intelligence" element={<ErrorBoundary componentName="TaxIntelligencePage"><TaxIntelligencePage /></ErrorBoundary>} />
         <Route path="cleaners" element={<CleanersPage />} />
         <Route path="shop" element={<ShopPage />} />
-        <Route path="digital-wallet" element={<WalletPage />} />
+        <Route path="digital-wallet" element={<TenantPaymentsPage />} />
         <Route path="list-room" element={<ListRoomPage />} />
         <Route path="profile" element={<SeekerProfilePage />} />
         <Route path="user/:userId" element={<PublicProfilePage />} />
