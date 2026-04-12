@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { RentPaymentFlow } from "@/components/payment/RentPaymentFlow";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
 import {
   Info, Loader2, Building2, Plus, CreditCard, CheckCircle2,
   Trash2, Star, ArrowLeft, Calendar, Clock, DollarSign

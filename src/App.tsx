@@ -94,7 +94,6 @@ import RenovatorsPage from "@/pages/dashboard/Renovators";
 import CleanersPage from "@/pages/dashboard/Cleaners";
 import ShopPage from "@/pages/dashboard/Shop";
 import TenantPaymentsPage from "@/pages/dashboard/tenant/TenantPayments";
-import WalletPage from "@/pages/dashboard/Wallet";
 import LandlordPaymentsPage from "@/pages/dashboard/landlord/LandlordPayments";
 import PayoutSetupPage from "@/pages/dashboard/landlord/PayoutSetup";
 import ViewingAppointmentsPage from "@/pages/dashboard/landlord/ViewingAppointments";
