@@ -15,7 +15,7 @@ import {
   DollarSign
 } from 'lucide-react';
 import { PaymentMethodType } from '@/types/payment';
-import { getFeeComparison, formatCurrency } from '@/services/feeCalculationService';
+import { calculateCardFee, calculatePadFee, formatCurrency } from '@/services/feeCalculationService';
 
 interface PaymentMethodSelectorProps {
   amount: number;
@@ -30,12 +30,18 @@ export function PaymentMethodSelector({
   onMethodChange,
   disabled = false
 }: PaymentMethodSelectorProps) {
-  const feeComparison = getFeeComparison(amount);
+  // Calculate fees independently for each payment method
+  const cardFee = calculateCardFee(amount);
+  const padFee = calculatePadFee(amount);
+  
+  // Calculate savings: card fee - PAD fee
+  const savings = cardFee.fee - padFee.fee;
+  const savingsPercentage = savings > 0 ? (savings / cardFee.fee * 100).toFixed(1) : '0.0';
   
   // Debug logging to see what fees are calculated
   console.log('PaymentMethodSelector - Amount:', amount);
-  console.log('PaymentMethodSelector - Card Fee:', feeComparison.card.fee);
-  console.log('PaymentMethodSelector - PAD Fee:', feeComparison.pad.fee);
+  console.log('PaymentMethodSelector - Card Fee:', cardFee.fee);
+  console.log('PaymentMethodSelector - PAD Fee:', padFee.fee);
   console.log('PaymentMethodSelector - Selected Method:', selectedMethod);
 
   return (
@@ -79,7 +85,7 @@ export function PaymentMethodSelector({
               </div>
               <div className="flex items-center gap-2 group relative">
                 <DollarSign className="h-4 w-4" />
-                <span>Fee: {formatCurrency(feeComparison.card.fee)} ({feeComparison.card.percentage}% + {feeComparison.card.fixed})</span>
+                <span>Fee: {formatCurrency(cardFee.fee)} ({cardFee.percentage}% + {cardFee.fixed})</span>
                 <div className="absolute -top-8 left-0 w-64 p-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
                   <div className="font-medium mb-1">Affirm BNPL Fee:</div>
                   <div className="space-y-1 text-xs">
@@ -97,7 +103,7 @@ export function PaymentMethodSelector({
                 </div>
               </div>
               <div className="flex items-center gap-2 font-medium text-gray-900">
-                <span>Total: {formatCurrency(feeComparison.card.total)}</span>
+                <span>Total: {formatCurrency(cardFee.total)}</span>
               </div>
             </div>
           </div>
@@ -118,7 +124,7 @@ export function PaymentMethodSelector({
               <Label htmlFor="acss_debit" className="flex items-center gap-2 text-base font-semibold cursor-pointer">
                 <Building2 className="h-5 w-5 text-green-600" />
                 Canadian Bank Account (PAD)
-                <Badge variant="default" className="ml-2 bg-green-600 hover:bg-green-700">Save {formatCurrency(feeComparison.savings)}</Badge>
+                <Badge variant="default" className="ml-2 bg-green-600 hover:bg-green-700">Save {formatCurrency(savings)}</Badge>
               </Label>
             </div>
             
@@ -129,7 +135,7 @@ export function PaymentMethodSelector({
               </div>
               <div className="flex items-center gap-2 group relative">
                 <DollarSign className="h-4 w-4" />
-                <span>Fee: {formatCurrency(feeComparison.pad.fee)} ({feeComparison.pad.percentage} + {feeComparison.pad.fixed})</span>
+                <span>Fee: {formatCurrency(padFee.fee)} ({padFee.percentage} + {padFee.fixed})</span>
                 <div className="absolute -top-8 left-0 w-72 p-3 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
                   <div className="font-medium mb-2">How PAD Fees Work:</div>
                   <div className="space-y-2 text-xs">
@@ -152,13 +158,13 @@ export function PaymentMethodSelector({
               </div>
               <div className="flex items-center gap-2 font-medium text-green-700">
                 <CheckCircle2 className="h-4 w-4" />
-                <span>Total: {formatCurrency(feeComparison.pad.total)}</span>
+                <span>Total: {formatCurrency(padFee.total)}</span>
               </div>
             </div>
 
             {selectedMethod === 'acss_debit' && (
               <div className="mt-3 rounded-md bg-green-100 p-3 text-sm text-green-800">
-                <p className="font-medium">💰 You'll save {formatCurrency(feeComparison.savings)} with this payment method!</p>
+                <p className="font-medium">You'll save {formatCurrency(savings)} with this payment method!</p>
                 <p className="mt-1 text-xs">Pre-Authorized Debit (PAD) offers the lowest fees for rent payments.</p>
               </div>
             )}
@@ -179,22 +185,22 @@ export function PaymentMethodSelector({
             <>
               <div className="flex justify-between">
                 <span className="text-gray-600">Card Fee (6% + $0.30):</span>
-                <span className="font-medium text-blue-600">{formatCurrency(feeComparison.card.fee)}</span>
+                <span className="font-medium text-blue-600">{formatCurrency(cardFee.fee)}</span>
               </div>
               <div className="border-t border-gray-300 pt-2 flex justify-between">
                 <span className="font-semibold text-gray-900">Total:</span>
-                <span className="font-bold text-blue-600">{formatCurrency(feeComparison.card.total)}</span>
+                <span className="font-bold text-blue-600">{formatCurrency(cardFee.total)}</span>
               </div>
             </>
           ) : (
             <>
               <div className="flex justify-between">
-                <span className="text-gray-600">PAD Fee (1% + $0.25):</span>
-                <span className="font-medium text-green-600">{formatCurrency(feeComparison.pad.fee)}</span>
+                <span className="text-gray-600">PAD Fee (1% + $0.40):</span>
+                <span className="font-medium text-green-600">{formatCurrency(padFee.fee)}</span>
               </div>
               <div className="border-t border-gray-300 pt-2 flex justify-between">
                 <span className="font-semibold text-gray-900">Total:</span>
-                <span className="font-bold text-green-600">{formatCurrency(feeComparison.pad.total)}</span>
+                <span className="font-bold text-green-600">{formatCurrency(padFee.total)}</span>
               </div>
             </>
           )}
