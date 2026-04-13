@@ -55,7 +55,7 @@ export const calculatePadFee = (amount: number): PaymentFee => {
   } else {
     // For amounts > $460: flat $5.00
     fee = 5.00;
-    percentage = (5.00 / amount) * 100; // Show effective percentage
+    percentage = 1.0; // Keep consistent 1% display
   }
   
   return {
@@ -155,11 +155,20 @@ export const getFeeComparison = (amount: number) => {
   const cardFee = calculateCardFee(amount);
   const padFee = calculatePadFee(amount);
   
+  // Debug logging
+  console.log('getFeeComparison - Amount:', amount);
+  console.log('getFeeComparison - Card Fee:', cardFee.fee);
+  console.log('getFeeComparison - PAD Fee:', padFee.fee);
+  
+  // Calculate savings: card fee - PAD fee
+  const savings = cardFee.fee - padFee.fee;
+  const savingsPercentage = savings > 0 ? (savings / cardFee.fee * 100).toFixed(1) : '0.0';
+  
   return {
     card: cardFee,
     pad: padFee,
-    savings: padFee.savings || 0,
-    savingsPercentage: ((padFee.savings || 0) / cardFee.fee * 100).toFixed(1)
+    savings: savings > 0 ? savings : 0,
+    savingsPercentage
   };
 };
 

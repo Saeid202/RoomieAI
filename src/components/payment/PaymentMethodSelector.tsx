@@ -31,6 +31,12 @@ export function PaymentMethodSelector({
   disabled = false
 }: PaymentMethodSelectorProps) {
   const feeComparison = getFeeComparison(amount);
+  
+  // Debug logging to see what fees are calculated
+  console.log('PaymentMethodSelector - Amount:', amount);
+  console.log('PaymentMethodSelector - Card Fee:', feeComparison.card.fee);
+  console.log('PaymentMethodSelector - PAD Fee:', feeComparison.pad.fee);
+  console.log('PaymentMethodSelector - Selected Method:', selectedMethod);
 
   return (
     <div className="space-y-6">
