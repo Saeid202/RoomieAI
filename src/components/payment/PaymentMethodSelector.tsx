@@ -12,7 +12,8 @@ import {
   CreditCard,
   Building2,
   Info,
-  DollarSign
+  DollarSign,
+  Lock
 } from 'lucide-react';
 import { PaymentMethodType } from '@/types/payment';
 import { calculateCardFee, calculatePadFee, formatCurrency } from '@/services/feeCalculationService';
@@ -168,6 +169,46 @@ export function PaymentMethodSelector({
                 <p className="mt-1 text-xs">Pre-Authorized Debit (PAD) offers the lowest fees for rent payments.</p>
               </div>
             )}
+          </div>
+        </div>
+
+        {/* Homie Payment Option - Locked */}
+        <div
+          className={`relative flex items-start space-x-4 rounded-lg border-2 p-4 transition-all border-gray-200 bg-gray-50 opacity-75 cursor-not-allowed`}
+        >
+          <div className="mt-1">
+            <Lock className="h-5 w-5 text-gray-400" />
+          </div>
+          <div className="flex-1 space-y-2">
+            <div className="flex items-center justify-between">
+              <Label className="flex items-center gap-2 text-base font-semibold text-gray-500">
+                <div className="h-5 w-5 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">H</span>
+                </div>
+                Homie Payment
+                <Badge variant="secondary" className="ml-2 bg-gray-200 text-gray-600">Coming Soon</Badge>
+              </Label>
+            </div>
+            
+            <div className="space-y-1 text-sm text-gray-500">
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4" />
+                <span>Instant processing with lower fees</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <DollarSign className="h-4 w-4" />
+                <span>Competitive rates - Coming soon</span>
+              </div>
+              <div className="flex items-center gap-2 font-medium text-gray-500">
+                <Lock className="h-4 w-4" />
+                <span>This payment method is not yet available</span>
+              </div>
+            </div>
+
+            <div className="mt-3 rounded-md bg-gray-100 p-3 text-sm text-gray-600">
+              <p className="font-medium">Homie Payment is coming soon!</p>
+              <p className="mt-1 text-xs">Get ready for our own payment solution with exclusive benefits and lower fees.</p>
+            </div>
           </div>
         </div>
       </RadioGroup>
