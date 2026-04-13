@@ -10,10 +10,11 @@
 export interface PaymentFee {
   fee: number;
   total: number;
-  percentage: string;
+  percentage: number | string;
   fixed: string;
   processingTime: string;
   savings?: number;
+  description?: string;
 }
 
 export type PaymentMethodType = 'card' | 'acss_debit' | 'bank_account';
@@ -31,7 +32,7 @@ export const calculateCardFee = (amount: number): PaymentFee => {
   return {
     fee: parseFloat(totalFee.toFixed(2)),
     total: parseFloat((amount + totalFee).toFixed(2)),
-    percentage: '2.9%',
+    percentage: 2.9,
     fixed: '$0.30',
     processingTime: 'Instant'
   };
@@ -43,21 +44,22 @@ export const calculateCardFee = (amount: number): PaymentFee => {
  * @returns PaymentFee object with fee details and savings
  */
 export const calculatePadFee = (amount: number): PaymentFee => {
-  const percentageFee = amount * 0.01; // 1%
-  const fixedFee = 0.25; // $0.25 CAD
-  const totalFee = percentageFee + fixedFee;
+  // PAD: $5 base fee + 1% for amounts > $500, capped at $40
+  let fee = 5.00; // Base fee
   
-  // Calculate savings compared to card
-  const cardFee = (amount * 0.029) + 0.30;
-  const savings = cardFee - totalFee;
+  if (amount > 500) {
+    const percentageFee = amount * 0.01; // 1% of amount over $500
+    fee = Math.min(5.00 + percentageFee, 40.00); // Cap at $40
+  }
+  
+  const percentage = amount > 500 ? Math.min((fee - 5.00) / amount * 100, 4.0) : 0;
   
   return {
-    fee: parseFloat(totalFee.toFixed(2)),
-    total: parseFloat((amount + totalFee).toFixed(2)),
-    percentage: '1%',
-    fixed: '$0.25',
+    fee,
+    percentage,
+    fixed: 5.00,
     processingTime: '3-5 business days',
-    savings: parseFloat(savings.toFixed(2))
+    description: 'Low fees for bank transfers'
   };
 };
 

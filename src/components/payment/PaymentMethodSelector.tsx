@@ -3,7 +3,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { CreditCard, Building2, Clock, DollarSign, CheckCircle2 } from 'lucide-react';
+import { 
+  CheckCircle2, 
+  Clock, 
+  AlertCircle, 
+  Loader2,
+  ArrowLeft,
+  CreditCard,
+  Building2,
+  Info,
+  DollarSign
+} from 'lucide-react';
 import { PaymentMethodType } from '@/types/payment';
 import { getFeeComparison, formatCurrency } from '@/services/feeCalculationService';
 
@@ -96,9 +106,25 @@ export function PaymentMethodSelector({
                 <Clock className="h-4 w-4" />
                 <span>Takes 3-5 business days to clear</span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 group relative">
                 <DollarSign className="h-4 w-4" />
                 <span>Fee: {formatCurrency(feeComparison.pad.fee)} ({feeComparison.pad.percentage} + {feeComparison.pad.fixed})</span>
+                <div className="absolute -top-8 left-0 w-64 p-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                  <div className="font-medium mb-1">Fee Breakdown:</div>
+                  <div className="space-y-1 text-xs">
+                    <div>• Base fee: CA$5.00</div>
+                    <div>• Additional: {amount > 500 ? `${((feeComparison.pad.percentage as number || 0) * 100).toFixed(0)}% of amount over $500` : '0%'}</div>
+                    <div>• Maximum: CA$40.00</div>
+                    <div className="pt-1 border-t border-gray-600"></div>
+                    <div className="mt-1">
+                      <div className="font-semibold">Examples:</div>
+                      <div>• $100 payment: CA$5.00</div>
+                      <div>• $500 payment: CA$5.00</div>
+                      <div>• $1,000 payment: CA$10.00</div>
+                      <div>• $3,000 payment: CA$35.00</div>
+                    </div>
+                  </div>
+                </div>
               </div>
               <div className="flex items-center gap-2 font-medium text-green-700">
                 <CheckCircle2 className="h-4 w-4" />
