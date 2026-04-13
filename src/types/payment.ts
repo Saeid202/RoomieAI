@@ -10,7 +10,7 @@
 /**
  * Payment method type enum
  */
-export type PaymentMethodType = 'card' | 'acss_debit' | 'bank_account';
+export type PaymentMethodType = 'card' | 'acss_debit' | 'bank_account' | 'homie_payment';
 
 /**
  * Card type enum
@@ -347,32 +347,6 @@ export interface ValidationResult {
 // =====================================================
 // EXPORT ALL TYPES
 // =====================================================
-
-export type {
-  PaymentMethodType,
-  CardType,
-  PaymentMethod,
-  MandateStatus,
-  MandateDetails,
-  PadPaymentIntent,
-  CardPaymentIntent,
-  PaymentStatus,
-  PaymentFailureCode,
-  RentPayment,
-  PaymentFee,
-  FeeComparison,
-  PaymentExecutionRequest,
-  PaymentExecutionResponse,
-  BankDetails,
-  BankAccountDetails,
-  FinancialConnectionsSession,
-  FinancialConnectionsAccount,
-  WebhookEventType,
-  WebhookEvent,
-  PayoutStage,
-  PayoutTimeline,
-  ValidationResult
-};
 
 // =====================================================
 // LANDLORD PAYOUT TYPES

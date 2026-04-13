@@ -4,8 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Shield, DollarSign, Info, CheckCircle2, Loader2, Building2, CreditCard } from 'lucide-react';
-import { formatCurrency, getFeeComparison } from '@/services/feeCalculationService';
+import { Shield, DollarSign, Info, CheckCircle2, Loader2, Building2, CreditCard, Lock } from 'lucide-react';
+import { formatCurrency, getFeeComparison, calculateHomiePaymentFee, calculateCardFee, calculatePadFee } from '@/services/feeCalculationService';
 import { toast } from 'sonner';
 import { PaymentMethodType, PaymentMethod } from '@/types/payment';
 
@@ -16,7 +16,7 @@ interface SecurityDepositSectionProps {
   paymentMethods?: PaymentMethod[];
 }
 
-type DepositStatus = 'pending' | 'partial' | 'complete';
+type DepositStatus = 'pending' | 'partial' | 'complete' | 'locked';
 
 interface DepositState {
   amount: number;
@@ -83,50 +83,64 @@ export default function SecurityDepositSection({
 
   // Get available payment methods based on user's connected methods
   const getAvailablePaymentMethods = () => {
-    const methods: { type: PaymentMethodType; name: string; icon: React.ReactNode; description: string; processingTime: string }[] = [];
+    const methods: { type: PaymentMethodType; name: string; icon: React.ReactNode; description: string; processingTime: string; highlighted?: boolean }[] = [];
     
-    // Use real payment methods from props
-    const availableMethods = mockPaymentMethods;
+    // Always show Canadian Bank Account (PAD) for demo
+    methods.push({
+      type: 'acss_debit',
+      name: 'Canadian Bank Account (PAD)',
+      icon: <Building2 className="h-4 w-4" />,
+      description: 'Low fees for bank transfers',
+      processingTime: '3-5 business days'
+    });
     
-    // Check if user has PAD payment methods
-    const hasPad = availableMethods.some(m => m.payment_type === 'acss_debit');
-    if (hasPad) {
-      methods.push({
-        type: 'acss_debit',
-        name: 'Canadian Bank Account (PAD)',
-        icon: <Building2 className="h-4 w-4" />,
-        description: 'Low fees for bank transfers',
-        processingTime: '3-5 business days'
-      });
-    }
+    // Always show Affirm for demo
+    methods.push({
+      type: 'card',
+      name: 'Affirm - Buy Now Pay Later',
+      icon: (
+        <div className="h-4 w-4 flex items-center justify-center bg-blue-600 text-white text-xs font-bold rounded">
+          A
+        </div>
+      ),
+      description: 'Pay in installments with no hidden fees',
+      processingTime: 'Instant approval'
+    });
     
-    // Check if user has card payment methods (Affirm)
-    const hasCard = availableMethods.some(m => m.payment_type === 'card');
-    if (hasCard) {
-      methods.push({
-        type: 'card',
-        name: 'Affirm - Buy Now Pay Later',
-        icon: (
-          <div className="h-4 w-4 flex items-center justify-center bg-blue-600 text-white text-xs font-bold rounded">
-            A
-          </div>
-        ),
-        description: 'Pay in installments with no hidden fees',
-        processingTime: 'Instant approval'
-      });
-    }
+    // Add Homie Payment option
+    methods.push({
+      type: 'homie_payment',
+      name: 'Homie Payment',
+      icon: (
+        <div className="h-4 w-4 flex items-center justify-center bg-gradient-to-r from-roomie-purple to-roomie-orange text-white text-xs font-bold rounded">
+          H
+        </div>
+      ),
+      description: 'Direct payment platform with lowest fees',
+      processingTime: 'Instant transfer',
+      highlighted: true
+    });
     
     console.log('Available methods:', methods);
-    console.log('Real payment methods:', availableMethods);
     console.log('Selected method:', selectedPaymentMethod);
     
     return methods;
   };
 
+  // Get fee for specific payment method type
+  const getMethodFee = (methodType: PaymentMethodType) => {
+    if (methodType === 'card') {
+      return calculateCardFee(deposit.amount);
+    } else if (methodType === 'homie_payment') {
+      return calculateHomiePaymentFee(deposit.amount);
+    } else {
+      return calculatePadFee(deposit.amount);
+    }
+  };
+
   // Get fee comparison for selected method
   const getFeeInfo = () => {
-    const feeComparison = getFeeComparison(deposit.amount);
-    return selectedPaymentMethod === 'card' ? feeComparison.card : feeComparison.pad;
+    return getMethodFee(selectedPaymentMethod);
   };
 
   // Get default payment method
@@ -176,24 +190,55 @@ export default function SecurityDepositSection({
       // Mock payment processing
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      // Update status temporarily for demo
-      setDeposit(prev => ({
-        ...prev,
-        status: 'complete',
-        totalPaid: prev.amount
-      }));
-      
-      toast.success('Security deposit payment processed successfully!');
-      onPaymentSuccess?.();
-      
-      // Reset to pending after 3 seconds for continued testing
-      setTimeout(() => {
+      // Check payment method type
+      if (selectedPaymentMethod === 'card') {
+        // Show locked state for Affirm payments
         setDeposit(prev => ({
           ...prev,
-          status: 'pending',
-          totalPaid: 0
+          status: 'locked',
+          totalPaid: prev.amount
         }));
-      }, 3000);
+        
+        toast.success('Affirm payment processed successfully! Features coming soon.');
+      } else if (selectedPaymentMethod === 'homie_payment') {
+        // Show complete status for Homie Payment
+        setDeposit(prev => ({
+          ...prev,
+          status: 'complete',
+          totalPaid: prev.amount
+        }));
+        
+        toast.success('Homie Payment processed successfully with lowest fees!');
+        
+        // Reset to pending after 3 seconds for continued testing
+        setTimeout(() => {
+          setDeposit(prev => ({
+            ...prev,
+            status: 'pending',
+            totalPaid: 0
+          }));
+        }, 3000);
+      } else {
+        // Show complete status for other payments (PAD)
+        setDeposit(prev => ({
+          ...prev,
+          status: 'complete',
+          totalPaid: prev.amount
+        }));
+        
+        toast.success('Security deposit payment processed successfully!');
+        
+        // Reset to pending after 3 seconds for continued testing (non-Affirm only)
+        setTimeout(() => {
+          setDeposit(prev => ({
+            ...prev,
+            status: 'pending',
+            totalPaid: 0
+          }));
+        }, 3000);
+      }
+      
+      onPaymentSuccess?.();
       
     } catch (error) {
       toast.error('Payment failed. Please try again.');
@@ -218,9 +263,17 @@ export default function SecurityDepositSection({
             Partially Paid
           </Badge>
         );
+      case 'locked':
+        return (
+          <Badge className="bg-slate-100 text-slate-700 border-slate-200">
+            <Lock className="h-3 w-3 mr-1" />
+            Coming Soon
+          </Badge>
+        );
       default:
         return (
           <Badge className="bg-purple-100 text-purple-700 border-purple-200">
+            <Info className="h-3 w-3 mr-1" />
             Pending
           </Badge>
         );
@@ -249,6 +302,51 @@ export default function SecurityDepositSection({
                 <div className="flex justify-between">
                   <span className="text-slate-500">Status</span>
                   <span className="font-semibold text-green-600">Fully Paid</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // If deposit is locked (after Affirm payment), show coming soon state
+  if (deposit.status === 'locked') {
+    return (
+      <Card className="border-slate-200 bg-slate-50 shadow-sm">
+        <CardContent className="p-5">
+          <div className="flex items-start gap-3">
+            <div className="h-10 w-10 rounded-xl bg-slate-600 flex items-center justify-center flex-shrink-0">
+              <Lock className="h-5 w-5 text-white" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between mb-2">
+                <p className="font-bold text-slate-900 text-sm">Security Deposit</p>
+                {getStatusBadge()}
+              </div>
+              <div className="space-y-3">
+                <div className="space-y-1 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Amount Paid</span>
+                    <span className="font-bold text-slate-900">{formatCurrency(deposit.totalPaid)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Payment Method</span>
+                    <span className="font-semibold text-slate-700">Affirm - Buy Now Pay Later</span>
+                  </div>
+                </div>
+                
+                <Alert className="bg-slate-100 border-slate-200">
+                  <Lock className="h-4 w-4 text-slate-600" />
+                  <AlertDescription className="text-slate-700 text-sm">
+                    <strong>Coming Soon</strong><br />
+                    Your Affirm payment has been processed successfully. Advanced features and management options will be available soon.
+                  </AlertDescription>
+                </Alert>
+                
+                <div className="text-xs text-slate-500 text-center">
+                  Payment completed • Feature access locked until launch
                 </div>
               </div>
             </div>
@@ -334,12 +432,17 @@ export default function SecurityDepositSection({
                   <button
                     key={method.type}
                     onClick={() => {
-                      console.log('Clicked method:', method.type);
-                      setSelectedPaymentMethod(method.type);
+                      if (!method.highlighted) {
+                        console.log('Clicked method:', method.type);
+                        setSelectedPaymentMethod(method.type);
+                      }
                     }}
+                    disabled={method.highlighted}
                     className={`w-full flex items-center justify-between p-3 rounded-lg border-2 transition-all ${
                       selectedPaymentMethod === method.type
                         ? 'border-roomie-purple bg-roomie-purple/10'
+                        : method.highlighted
+                        ? 'border-slate-300 bg-slate-50 cursor-not-allowed opacity-60'
                         : 'border-slate-200 bg-white hover:border-slate-300'
                     }`}
                   >
@@ -347,21 +450,31 @@ export default function SecurityDepositSection({
                       <div className={`h-8 w-8 rounded-full flex items-center justify-center ${
                         selectedPaymentMethod === method.type
                           ? 'bg-roomie-purple text-white'
+                          : method.highlighted
+                          ? 'bg-gradient-to-r from-roomie-purple to-roomie-orange text-white'
                           : 'bg-slate-100 text-slate-600'
                       }`}>
                         {method.icon}
                       </div>
-                      <div className="text-left">
-                        <p className="text-sm font-medium text-slate-900">{method.name}</p>
+                      <div className="text-left flex-1">
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-medium text-slate-900">{method.name}</p>
+                          {method.highlighted && (
+                            <Badge className="bg-slate-500 text-white text-xs px-2 py-0.5 h-5 flex items-center gap-1">
+                              <Lock className="h-3 w-3" />
+                              Coming Soon
+                            </Badge>
+                          )}
+                        </div>
                         <p className="text-xs text-slate-500">{method.description} · {method.processingTime}</p>
                       </div>
                     </div>
                     <div className="text-right">
                       <p className="text-sm font-bold text-slate-900">
-                        {formatCurrency(getFeeInfo().total)}
+                        {formatCurrency(getMethodFee(method.type).total)}
                       </p>
                       <p className="text-xs text-slate-500">
-                        Fee: {formatCurrency(getFeeInfo().fee)}
+                        Fee: {formatCurrency(getMethodFee(method.type).fee)}
                       </p>
                     </div>
                   </button>

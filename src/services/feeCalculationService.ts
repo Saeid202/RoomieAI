@@ -17,7 +17,7 @@ export interface PaymentFee {
   description?: string;
 }
 
-export type PaymentMethodType = 'card' | 'acss_debit' | 'bank_account';
+export type PaymentMethodType = 'card' | 'acss_debit' | 'bank_account' | 'homie_payment';
 
 /**
  * Calculate fee for card payments (credit or debit)
@@ -69,9 +69,29 @@ export const calculatePadFee = (amount: number): PaymentFee => {
 };
 
 /**
+ * Calculate fee for Homie Payment (direct platform payment)
+ * @param amount - Payment amount in CAD
+ * @returns PaymentFee object with fee details
+ */
+export const calculateHomiePaymentFee = (amount: number): PaymentFee => {
+  const percentageFee = amount * 0.005; // 0.5% - lowest fees
+  const fixedFee = 0.10; // $0.10 CAD
+  const totalFee = percentageFee + fixedFee;
+  
+  return {
+    fee: parseFloat(totalFee.toFixed(2)),
+    total: parseFloat((amount + totalFee).toFixed(2)),
+    percentage: 0.5,
+    fixed: '$0.10',
+    processingTime: 'Instant',
+    description: 'Direct payment platform with lowest fees'
+  };
+};
+
+/**
  * Calculate payment fees based on payment method type
  * @param amount - Payment amount in CAD
- * @param paymentType - Type of payment method ('card' or 'acss_debit')
+ * @param paymentType - Type of payment method ('card', 'acss_debit', or 'homie_payment')
  * @returns PaymentFee object with fee details
  */
 export const calculatePaymentFees = (
@@ -80,6 +100,8 @@ export const calculatePaymentFees = (
 ): PaymentFee => {
   if (paymentType === 'card') {
     return calculateCardFee(amount);
+  } else if (paymentType === 'homie_payment') {
+    return calculateHomiePaymentFee(amount);
   } else {
     return calculatePadFee(amount);
   }
