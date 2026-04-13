@@ -71,9 +71,24 @@ export function PaymentMethodSelector({
                 <Clock className="h-4 w-4" />
                 <span>Processes immediately</span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 group relative">
                 <DollarSign className="h-4 w-4" />
-                <span>Fee: {formatCurrency(feeComparison.card.fee)} ({feeComparison.card.percentage} + {feeComparison.card.fixed})</span>
+                <span>Fee: {formatCurrency(feeComparison.card.fee)} ({feeComparison.card.percentage}% + {feeComparison.card.fixed})</span>
+                <div className="absolute -top-8 left-0 w-64 p-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                  <div className="font-medium mb-1">Affirm BNPL Fee:</div>
+                  <div className="space-y-1 text-xs">
+                    <div>• Standard rate: 6% + $0.30</div>
+                    <div>• Applies to all amounts</div>
+                    <div>• Instant processing</div>
+                    <div className="pt-1 border-t border-gray-600"></div>
+                    <div className="mt-1">
+                      <div className="font-semibold">Examples:</div>
+                      <div> $100 payment: 6% ($6.00) + $0.30 = $6.30</div>
+                      <div> $500 payment: 6% ($30.00) + $0.30 = $30.30</div>
+                      <div> $1,000 payment: 6% ($60.00) + $0.30 = $60.30</div>
+                    </div>
+                  </div>
+                </div>
               </div>
               <div className="flex items-center gap-2 font-medium text-gray-900">
                 <span>Total: {formatCurrency(feeComparison.card.total)}</span>
@@ -109,19 +124,22 @@ export function PaymentMethodSelector({
               <div className="flex items-center gap-2 group relative">
                 <DollarSign className="h-4 w-4" />
                 <span>Fee: {formatCurrency(feeComparison.pad.fee)} ({feeComparison.pad.percentage} + {feeComparison.pad.fixed})</span>
-                <div className="absolute -top-8 left-0 w-64 p-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-                  <div className="font-medium mb-1">Fee Breakdown:</div>
-                  <div className="space-y-1 text-xs">
-                    <div>• Base fee: CA$5.00</div>
-                    <div>• Additional: {amount > 500 ? `${((feeComparison.pad.percentage as number || 0) * 100).toFixed(0)}% of amount over $500` : '0%'}</div>
-                    <div>• Maximum: CA$40.00</div>
-                    <div className="pt-1 border-t border-gray-600"></div>
-                    <div className="mt-1">
+                <div className="absolute -top-8 left-0 w-72 p-3 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                  <div className="font-medium mb-2">How PAD Fees Work:</div>
+                  <div className="space-y-2 text-xs">
+                    <div className="font-semibold text-yellow-300">For amounts up to $460:</div>
+                    <div>Fee = 1% of amount + $0.40</div>
+                    <div className="font-semibold text-yellow-300">For amounts over $460:</div>
+                    <div>Fee = Flat $5.00 (capped)</div>
+                    <div className="pt-2 border-t border-gray-600"></div>
+                    <div className="mt-2">
                       <div className="font-semibold">Examples:</div>
-                      <div>• $100 payment: CA$5.00</div>
-                      <div>• $500 payment: CA$5.00</div>
-                      <div>• $1,000 payment: CA$10.00</div>
-                      <div>• $3,000 payment: CA$35.00</div>
+                      <div> $100 payment: 1% ($1.00) + $0.40 = $1.40</div>
+                      <div> $200 payment: 1% ($2.00) + $0.40 = $2.40</div>
+                      <div> $460 payment: 1% ($4.60) + $0.40 = $5.00</div>
+                      <div> $500 payment: $5.00 (capped)</div>
+                      <div> $1,000 payment: $5.00 (capped)</div>
+                      <div> $5,000 payment: $5.00 (capped)</div>
                     </div>
                   </div>
                 </div>
@@ -154,7 +172,7 @@ export function PaymentMethodSelector({
           {selectedMethod === 'card' ? (
             <>
               <div className="flex justify-between">
-                <span className="text-gray-600">Card Fee (2.9% + $0.30):</span>
+                <span className="text-gray-600">Card Fee (6% + $0.30):</span>
                 <span className="font-medium text-blue-600">{formatCurrency(feeComparison.card.fee)}</span>
               </div>
               <div className="border-t border-gray-300 pt-2 flex justify-between">

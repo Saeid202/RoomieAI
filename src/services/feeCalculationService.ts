@@ -3,8 +3,8 @@
  * Phase 1: Calculate transaction fees for different payment methods
  * 
  * Fee Structure:
- * - Card (Credit/Debit): 2.9% + $0.30 CAD
- * - PAD (ACSS Debit): 1% + $0.25 CAD
+ * - Card (Affirm BNPL): 6% + $0.30 CAD
+ * - PAD (ACSS Debit): 1% + $0.40 CAD (capped at $5.00)
  */
 
 export interface PaymentFee {
@@ -25,14 +25,14 @@ export type PaymentMethodType = 'card' | 'acss_debit' | 'bank_account';
  * @returns PaymentFee object with fee details
  */
 export const calculateCardFee = (amount: number): PaymentFee => {
-  const percentageFee = amount * 0.029; // 2.9%
+  const percentageFee = amount * 0.06; // 6% for Affirm
   const fixedFee = 0.30; // $0.30 CAD
   const totalFee = percentageFee + fixedFee;
   
   return {
     fee: parseFloat(totalFee.toFixed(2)),
     total: parseFloat((amount + totalFee).toFixed(2)),
-    percentage: 2.9,
+    percentage: 6.0,
     fixed: '$0.30',
     processingTime: 'Instant'
   };
@@ -44,20 +44,25 @@ export const calculateCardFee = (amount: number): PaymentFee => {
  * @returns PaymentFee object with fee details and savings
  */
 export const calculatePadFee = (amount: number): PaymentFee => {
-  // PAD: $5 base fee + 1% for amounts > $500, capped at $40
-  let fee = 5.00; // Base fee
+  // PAD: 1% + $0.40 for amounts <= $460, flat $5.00 for amounts > $460
+  let fee: number;
+  let percentage: number;
   
-  if (amount > 500) {
-    const percentageFee = amount * 0.01; // 1% of amount over $500
-    fee = Math.min(5.00 + percentageFee, 40.00); // Cap at $40
+  if (amount <= 460) {
+    // For amounts <= $460: 1% + $0.40
+    fee = (amount * 0.01) + 0.40;
+    percentage = 1.0;
+  } else {
+    // For amounts > $460: flat $5.00
+    fee = 5.00;
+    percentage = (5.00 / amount) * 100; // Show effective percentage
   }
-  
-  const percentage = amount > 500 ? Math.min((fee - 5.00) / amount * 100, 4.0) : 0;
   
   return {
     fee,
+    total: amount + fee,
     percentage,
-    fixed: 5.00,
+    fixed: '$0.40',
     processingTime: '3-5 business days',
     description: 'Low fees for bank transfers'
   };
