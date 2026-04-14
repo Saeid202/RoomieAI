@@ -1,16 +1,17 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Building, MapPin, DollarSign, Pencil, Eye, Trash2, Image as ImageIcon, AlertTriangle, Home, ShieldCheck, ExternalLink } from "lucide-react";
+import { Plus, Building, MapPin, DollarSign, Pencil, Eye, Trash2, Image as ImageIcon, AlertTriangle, Home, ShieldCheck, ExternalLink, Search, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { getPropertiesByOwnerId, Property, deleteProperty, getSalesListingsByOwnerId, SalesListing, deleteSalesListing, claimProperties, getArchivedProperties, relistProperty } from "@/services/propertyService";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
+import ZoningIntelligenceView from "@/components/landlord/ZoningIntelligenceView";
 
 
-export default function PropertiesPage() {
+export default function Properties() {
   const navigate = useNavigate();
   const [properties, setProperties] = useState<Property[]>([]);
   const [salesListings, setSalesListings] = useState<SalesListing[]>([]);
@@ -137,23 +138,43 @@ export default function PropertiesPage() {
         <p className="text-muted-foreground mt-1">Manage and monitor your property portfolio</p>
       </div>
 
+
       <Tabs defaultValue="rentals" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 mb-8 max-w-4xl">
-          <TabsTrigger value="rentals" className="flex items-center gap-2">
-            <Building className="h-4 w-4" />
+        <TabsList className="flex flex-wrap w-full mb-12 p-2 bg-gray-100/80 border-2 border-gray-200 rounded-3xl max-w-7xl min-h-[85px] shadow-inner">
+          <TabsTrigger 
+            value="rentals" 
+            className="flex-1 flex items-center justify-center gap-3 text-lg font-black transition-all rounded-2xl data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-[0_8px_20px_-6px_rgba(37,99,235,0.6)] py-5 px-6 border-r-2 border-gray-200/50 last:border-r-0 data-[state=active]:border-transparent"
+          >
+            <Building className="h-7 w-7 text-blue-500 data-[state=active]:text-white" />
             Rentals
           </TabsTrigger>
-          <TabsTrigger value="sales" className="flex items-center gap-2">
-            <DollarSign className="h-4 w-4" />
+          <TabsTrigger 
+            value="sales" 
+            className="flex-1 flex items-center justify-center gap-3 text-lg font-black transition-all rounded-2xl data-[state=active]:bg-green-600 data-[state=active]:text-white data-[state=active]:shadow-[0_8px_20px_-6px_rgba(22,163,74,0.6)] py-5 px-6 border-r-2 border-gray-200/50 last:border-r-0 data-[state=active]:border-transparent"
+          >
+            <DollarSign className="h-7 w-7 text-green-500 data-[state=active]:text-white" />
             Sales
           </TabsTrigger>
-          <TabsTrigger value="archived" className="flex items-center gap-2">
-            <Home className="h-4 w-4" />
-            Archived ({archivedProperties.length})
+          <TabsTrigger 
+            value="archived" 
+            className="flex-1 flex items-center justify-center gap-3 text-lg font-black transition-all rounded-2xl data-[state=active]:bg-slate-700 data-[state=active]:text-white data-[state=active]:shadow-[0_8px_20px_-6px_rgba(51,65,85,0.6)] py-5 px-6 border-r-2 border-gray-200/50 last:border-r-0 data-[state=active]:border-transparent"
+          >
+            <Home className="h-7 w-7 text-slate-500 data-[state=active]:text-white" />
+            Archived <span className="ml-1 opacity-70 text-sm">({archivedProperties.length})</span>
           </TabsTrigger>
-          <TabsTrigger value="screening" className="flex items-center gap-2">
-            <ShieldCheck className="h-4 w-4" />
-            Tenant Screening
+          <TabsTrigger 
+            value="screening" 
+            className="flex-1 flex items-center justify-center gap-3 text-lg font-black transition-all rounded-2xl data-[state=active]:bg-purple-600 data-[state=active]:text-white data-[state=active]:shadow-[0_8px_20px_-6px_rgba(147,51,234,0.6)] py-5 px-6 border-r-2 border-gray-200/50 last:border-r-0 data-[state=active]:border-transparent"
+          >
+            <ShieldCheck className="h-7 w-7 text-purple-500 data-[state=active]:text-white" />
+            Screening
+          </TabsTrigger>
+          <TabsTrigger 
+            value="zoning" 
+            className="flex-1 flex items-center justify-center gap-3 text-lg font-black transition-all rounded-2xl data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-[0_8px_20px_-6px_rgba(79,70,229,0.6)] py-5 px-6 last:border-r-0 data-[state=active]:border-transparent"
+          >
+            <Search className="h-7 w-7 text-indigo-500 data-[state=active]:text-white" />
+            Zoning 
           </TabsTrigger>
         </TabsList>
 
@@ -658,7 +679,12 @@ export default function PropertiesPage() {
             </CardContent>
           </Card>
         </TabsContent>
+        <TabsContent value="zoning" className="space-y-6">
+          <ZoningIntelligenceView properties={[...properties, ...salesListings]} />
+        </TabsContent>
       </Tabs>
-    </div >
+    </div>
   );
 }
+
+

@@ -20,7 +20,7 @@ import WorkExchangePage from "@/pages/dashboard/WorkExchange";
 import LGBTQMatchingPage from "@/pages/dashboard/LGBTQMatching";
 import LandlordDashboardPage from "@/pages/dashboard/landlord/LandlordDashboard";
 import LandlordProfilePage from "@/pages/dashboard/landlord/Profile";
-import PropertiesPage from "@/pages/dashboard/landlord/Properties";
+import PropertiesPage from "@/pages/dashboard/landlord/PropertiesIntelligence";
 import ApplicationsPage from "@/pages/dashboard/landlord/Applications";
 import AddPropertyPage from "@/pages/dashboard/landlord/AddProperty";
 import ContractReviewPage from "@/pages/dashboard/landlord/ContractReview";

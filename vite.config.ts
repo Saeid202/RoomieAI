@@ -14,8 +14,6 @@ export default defineConfig(({ mode }) => ({
     port: DEFAULT_PORT,
     strictPort: false,
     hmr: {
-      host: HMR_HOST,
-      protocol: "ws",
       overlay: false,
     },
     watch: {

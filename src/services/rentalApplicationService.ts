@@ -345,34 +345,79 @@ export async function getLandlordApplications(): Promise<any[]> {
     console.log("✅ Landlord has properties, fetching applications...");
 
     // Fetch direct applications for this landlord's properties
-    const { data, error } = await sb
-      .from('rental_applications')
-      .select(`
-        *,
-        property:properties!inner(
-          id, listing_title, address, city, state, monthly_rent, sales_price, user_id, images, listing_category
-        ),
-        lease_contract:lease_contracts(
-          id, 
-          status, 
-          landlord_signature, 
-          tenant_signature,
-          stored_contracts:contracts(id, file_path, status)
-        )
-      `)
-      .order('created_at', { ascending: false });
+    // We attempt a joined query first
+    try {
+      const { data, error } = await sb
+        .from('rental_applications')
+        .select(`
+          *,
+          property:properties!inner(
+            id, listing_title, address, city, state, monthly_rent, sales_price, user_id, images, listing_category
+          ),
+          lease_contract:lease_contracts(
+            id, 
+            status, 
+            landlord_signature, 
+            tenant_signature,
+            stored_contracts:contracts(id, file_path, status)
+          )
+        `)
+        .order('created_at', { ascending: false });
 
-    if (error) {
-      console.error("❌ Error fetching landlord applications:", error);
-      throw new Error(`Failed to fetch applications: ${error.message}`);
+      if (error) {
+        // If we get a relationship error, try manual fallback
+        if (error.message.includes("relationship") || error.code === 'PGRST204') {
+          console.warn("⚠️ Relationship not found in cache, falling back to manual join");
+          
+          // 1. Get applications
+          const { data: apps, error: appsError } = await sb
+            .from('rental_applications')
+            .select('*')
+            .order('created_at', { ascending: false });
+            
+          if (appsError) throw appsError;
+          
+          // 2. Get landlord's properties
+          const { data: props, error: propsError } = await sb
+            .from('properties')
+            .select('*')
+            .eq('user_id', user.id);
+            
+          if (propsError) throw propsError;
+          
+          // 3. Manual join
+          const propsMap = new Map(props.map(p => [p.id, p]));
+          const joinedData = apps
+            .filter((app: any) => propsMap.has(app.property_id))
+            .map((app: any) => ({
+              ...app,
+              property: propsMap.get(app.property_id)
+            }));
+            
+          console.log(`✅ Landlord applications manually joined: ${joinedData.length}`);
+          return joinedData;
+        }
+        
+        console.error("❌ Error fetching landlord applications:", error);
+        throw new Error(`Failed to fetch applications: ${error.message}`);
+      }
+
+      // Filter locally to be 100% sure we only show this landlord's properties
+      const filteredData = data?.filter((app: any) => app.property?.user_id === user.id) || [];
+      console.log(`✅ Landlord applications fetched successfully: ${filteredData.length} applications`);
+      return filteredData;
+    } catch (joinError: any) {
+        console.error("❌ Join query failed hard, manual fallback", joinError);
+        // Final fallback: fetch all and filter (least efficient but most stable)
+        const { data: apps } = await sb.from('rental_applications').select('*');
+        const { data: props } = await sb.from('properties').select('*').eq('user_id', user.id);
+        const pIds = new Set(props?.map(p => p.id) || []);
+        const results = apps?.filter((a: any) => pIds.has(a.property_id)).map((a: any) => ({
+          ...a,
+          property: props?.find(p => p.id === a.property_id)
+        })) || [];
+        return results;
     }
-
-    // Filter locally to be 100% sure we only show this landlord's properties
-    // This avoids any potential issues with complex inner join filtering in some Supabase versions
-    const filteredData = data?.filter((app: any) => app.property?.user_id === user.id) || [];
-
-    console.log(`✅ Landlord applications fetched successfully: ${filteredData.length} applications`);
-    return filteredData;
   } catch (error) {
     console.error("❌ Error in getLandlordApplications:", error);
     throw error;
