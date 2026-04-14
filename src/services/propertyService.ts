@@ -121,7 +121,7 @@ export async function getPropertiesByOwnerId(userId: string): Promise<Property[]
     const { data, error } = await sb
       .from('properties')
       .select('*')
-      .eq('owner_id', userId)
+      .or(`owner_id.eq.${userId},user_id.eq.${userId}`)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -337,6 +337,7 @@ export async function createProperty(propertyData: any): Promise<Property | null
   // Map frontend field names to database field names
   const payload: any = {
     owner_id: user.id, // Use owner_id to match database schema
+    user_id: user.id,  // Also set user_id for code compatibility
     status: 'active', // Set default status to 'active' so property shows in listings
     listing_title: propertyData.listingTitle || propertyData.listing_title,
     property_type: propertyData.propertyType || propertyData.property_type,
