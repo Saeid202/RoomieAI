@@ -121,7 +121,7 @@ export async function getPropertiesByOwnerId(userId: string): Promise<Property[]
     const { data, error } = await sb
       .from('properties')
       .select('*')
-      .eq('user_id', userId)
+      .eq('owner_id', userId)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -177,7 +177,7 @@ export async function getSalesListingsByOwnerId(userId: string): Promise<SalesLi
     const { data, error } = await sb
       .from('properties')
       .select('*')
-      .eq('user_id', userId)
+      .eq('owner_id', userId)
       .eq('listing_category', 'sale')
       .order('created_at', { ascending: false });
 
@@ -336,7 +336,7 @@ export async function createProperty(propertyData: any): Promise<Property | null
 
   // Map frontend field names to database field names
   const payload: any = {
-    user_id: user.id, // Ensure user_id is always set
+    owner_id: user.id, // Use owner_id to match database schema
     status: 'active', // Set default status to 'active' so property shows in listings
     listing_title: propertyData.listingTitle || propertyData.listing_title,
     property_type: propertyData.propertyType || propertyData.property_type,
@@ -385,14 +385,14 @@ export async function createProperty(propertyData: any): Promise<Property | null
     }
   }
 
-  console.log("📦 Final payload for database:", payload);
-  console.log("🔐 Payload user_id:", payload.user_id);
-  console.log("🔐 Authenticated user_id:", user.id);
+  console.log("Final payload for database:", payload);
+  console.log("Payload owner_id:", payload.owner_id);
+  console.log("Authenticated user_id:", user.id);
 
   try {
-    console.log("🚀 Inserting into properties table...");
-    console.log("🔐 Payload user_id before insert:", payload.user_id);
-    console.log("🔐 Authenticated user_id before insert:", user.id);
+    console.log("Inserting into properties table...");
+    console.log("Payload owner_id before insert:", payload.owner_id);
+    console.log("Authenticated user_id before insert:", user.id);
     
     const { data, error } = await sb
       .from('properties')
@@ -417,11 +417,11 @@ export async function createProperty(propertyData: any): Promise<Property | null
       throw new Error("Failed to create property: No data returned");
     }
 
-    console.log("✅ Property created successfully:", data);
-    console.log("✅ Created property ID:", data.id);
-    console.log("✅ Created property user_id:", data.user_id);
-    console.log("✅ Authenticated user_id:", user.id);
-    console.log("✅ user_id match:", data.user_id === user.id);
+    console.log(" Property created successfully:", data);
+    console.log(" Created property ID:", data.id);
+    console.log("Created property owner_id:", data.owner_id);
+    console.log("Authenticated user_id:", user.id);
+    console.log("owner_id match:", data.owner_id === user.id);
     
     // After successful property creation, check for Plan Ahead matches
     // Run in background — do not await so it doesn't slow down listing creation

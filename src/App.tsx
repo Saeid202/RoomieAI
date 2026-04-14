@@ -140,6 +140,10 @@ import { useEffect } from "react";
 
 function AppRoutes() {
   const { user, loading } = useAuth();
+  
+  // Debug logging
+  console.log("AppRoutes - User:", user?.id, "Loading:", loading);
+  console.log("AppRoutes - Current path:", window.location.pathname);
 
   // Construction routes render immediately — no auth gate
   const isConstructionRoute = window.location.pathname.startsWith('/construction');
@@ -166,11 +170,13 @@ function AppRoutes() {
 
   // Show loading state while checking authentication
   if (loading) {
+    console.log("AppRoutes - Showing loading state");
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
           <p>Loading...</p>
+          <p className="text-xs text-gray-500 mt-2">Debug: Loading authentication...</p>
         </div>
       </div>
     );
@@ -360,6 +366,7 @@ function AppRoutes() {
   }
 
   // If user is not authenticated, show normal routes
+  console.log("AppRoutes - Showing non-authenticated routes");
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />

@@ -573,7 +573,8 @@ export default function MatchesPage() {
                     {/* 5) Actions - Strong CTA */}
                     <div className="pt-4 mt-auto flex items-center gap-3">
                       <Button
-                        className="flex-1 text-white font-bold text-sm h-11 rounded-xl transition-all active:scale-95 flex items-center justify-center gap-2 disabled:opacity-60 bg-gradient-to-r from-roomie-purple to-roomie-orange hover:from-roomie-purple-dark hover:to-roomie-orange-dark"
+                        className="flex-1 text-white font-bold text-sm h-11 rounded-xl transition-all active:scale-95 flex items-center justify-center gap-2 disabled:opacity-60"
+                        style={{background: 'linear-gradient(to right, #8B5CF6, #FF6B35)'}}
                         onClick={() => handleContact(match.userId)}
                         disabled={startingChatId === match.userId}
                       >
@@ -585,14 +586,14 @@ export default function MatchesPage() {
                       </Button>
                       <Button
                         variant="ghost"
-                        className="w-12 h-12 rounded-2xl border border-slate-100 text-slate-400 hover:text-rose-500 hover:bg-rose-50 hover:border-rose-100 transition-all active:scale-95 group/save p-0"
+                        className="w-11 h-11 rounded-xl border border-slate-100 text-slate-400 hover:text-rose-500 hover:bg-rose-50 hover:border-rose-100 transition-all active:scale-95 p-0"
                       >
-                        <Heart className="h-5 w-5 transition-colors group-hover/save:fill-rose-500" />
+                        <Heart className="h-4 w-4" />
                       </Button>
                       <Button
-                        variant="ghost"
+                        variant="outline"
                         size="sm"
-                        className="text-[11px] font-black text-purple-600 bg-gradient-to-r from-purple-100 to-orange-100 hover:from-purple-200 hover:to-orange-200 border border-purple-300 hover:border-purple-400 shadow-md hover:shadow-lg transition-all duration-200 h-12 px-3 rounded-lg"
+                        className="text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 transition-all h-11 px-4 rounded-xl"
                         onClick={() => handleViewDetails({
                           ...match,
                           compatibilityScore: match.compatibility,
