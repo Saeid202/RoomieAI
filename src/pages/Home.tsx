@@ -16,7 +16,6 @@ export default function HomePage() {
 
   useEffect(() => {
     document.title = "Homie AI - Find Your Ideal Roommate";
-    console.log("Home page rendered");
   }, []);
 
   useEffect(() => {

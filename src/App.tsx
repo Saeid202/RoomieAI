@@ -1,182 +1,209 @@
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { Suspense, lazy } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/providers/ThemeProvider";
 import { AuthProvider } from "@/providers/AuthProvider";
 import { RoleProvider } from "@/contexts/RoleContext";
 import { InstallPrompt } from "@/components/PWA/InstallPrompt";
-import Dashboard from "@/pages/Dashboard";
-import HomePage from "@/pages/Home";
-import AboutUs from "./pages/AboutUs";
-import FAQPage from "./pages/FAQ";
-import SafetyCenter from "./pages/SafetyCenter";
-import CommunityGuidelines from "./pages/CommunityGuidelines";
-import ContactUsPage from "./pages/ContactUs";
-import PrivacyPolicy from "./pages/PrivacyPolicy";
-import RoommateRecommendationsPage from "@/pages/dashboard/RoommateRecommendations";
-import RentalOptionsPage from "@/pages/dashboard/RentalOptions";
-import PlanAheadMatchingPage from "@/pages/dashboard/PlanAheadMatching";
-import OppositeSchedulePage from "@/pages/dashboard/OppositeSchedule";
-import WorkExchangePage from "@/pages/dashboard/WorkExchange";
-import LGBTQMatchingPage from "@/pages/dashboard/LGBTQMatching";
-import LandlordDashboardPage from "@/pages/dashboard/landlord/LandlordDashboard";
-import LandlordProfilePage from "@/pages/dashboard/landlord/Profile";
-import PropertiesPage from "@/pages/dashboard/landlord/PropertiesIntelligence";
-import ApplicationsPage from "@/pages/dashboard/landlord/Applications";
-import AddPropertyPage from "@/pages/dashboard/landlord/AddProperty";
-import ContractReviewPage from "@/pages/dashboard/landlord/ContractReview";
-import FindPropertyPage from "@/pages/dashboard/FindProperty";
-import AuthPage from "@/pages/Auth";
-import Callback from "@/pages/auth/Callback";
+
+// Lazy load components for better performance
+const Dashboard = lazy(() => import("@/pages/Dashboard"));
+const HomePage = lazy(() => import("@/pages/Home"));
+const AboutUs = lazy(() => import("./pages/AboutUs"));
+const FAQPage = lazy(() => import("./pages/FAQ"));
+const SafetyCenter = lazy(() => import("./pages/SafetyCenter"));
+const CommunityGuidelines = lazy(() => import("./pages/CommunityGuidelines"));
+const ContactUsPage = lazy(() => import("./pages/ContactUs"));
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+// Dashboard pages - lazy loaded
+const RoommateRecommendationsPage = lazy(() => import("@/pages/dashboard/RoommateRecommendations"));
+const RentalOptionsPage = lazy(() => import("@/pages/dashboard/RentalOptions"));
+const PlanAheadMatchingPage = lazy(() => import("@/pages/dashboard/PlanAheadMatching"));
+const OppositeSchedulePage = lazy(() => import("@/pages/dashboard/OppositeSchedule"));
+const WorkExchangePage = lazy(() => import("@/pages/dashboard/WorkExchange"));
+const LGBTQMatchingPage = lazy(() => import("@/pages/dashboard/LGBTQMatching"));
+
+// Landlord pages - lazy loaded
+const LandlordDashboardPage = lazy(() => import("@/pages/dashboard/landlord/LandlordDashboard"));
+const LandlordProfilePage = lazy(() => import("@/pages/dashboard/landlord/Profile"));
+const PropertiesPage = lazy(() => import("@/pages/dashboard/landlord/PropertiesIntelligence"));
+const ApplicationsPage = lazy(() => import("@/pages/dashboard/landlord/Applications"));
+const AddPropertyPage = lazy(() => import("@/pages/dashboard/landlord/AddProperty"));
+const ContractReviewPage = lazy(() => import("@/pages/dashboard/landlord/ContractReview"));
+
+// Common pages - lazy loaded
+const FindPropertyPage = lazy(() => import("@/pages/dashboard/FindProperty"));
+const AuthPage = lazy(() => import("@/pages/Auth"));
+const Callback = lazy(() => import("@/pages/auth/Callback"));
+const PropertyDetailsPage = lazy(() => import("@/pages/dashboard/PropertyDetails"));
+const PropertyDocumentVault = lazy(() => import("@/pages/dashboard/PropertyDocumentVault"));
+const RentalApplicationPage = lazy(() => import("@/pages/dashboard/RentalApplication"));
+
+// Admin pages - lazy loaded
+const AdminLoginPage = lazy(() => import("@/pages/admin/AdminLogin"));
+const AdminHomePage = lazy(() => import("@/pages/dashboard/admin/AdminHome"));
+const PagesPage = lazy(() => import("@/pages/dashboard/admin/Pages"));
+const UsersPage = lazy(() => import("@/pages/dashboard/admin/Users"));
+const RenovationPartnersPage = lazy(() => import("@/pages/dashboard/admin/RenovationPartners"));
+const AdminCleanersPage = lazy(() => import("@/pages/dashboard/admin/Cleaners"));
+const AdminConstructionProducts = lazy(() => import("@/pages/dashboard/admin/AdminConstructionProducts"));
+const AdminConstructionSuppliers = lazy(() => import("@/pages/dashboard/admin/AdminConstructionSuppliers"));
+const AdminConstructionContent = lazy(() => import("@/pages/dashboard/admin/AdminConstructionContent"));
+const ReportingPreviewPage = lazy(() => import("@/pages/dashboard/admin/ReportingPreview"));
+const ReportingBatchesPage = lazy(() => import("@/pages/dashboard/admin/ReportingBatches"));
+const RateLimitManagementPage = lazy(() => import("@/pages/dashboard/admin/RateLimitManagement"));
+const AdminCommunities = lazy(() => import("@/pages/dashboard/admin/AdminCommunities"));
+const SettingsPage = lazy(() => import("@/pages/dashboard/Settings"));
+
+// Components that need to be loaded immediately
 import { ErrorBoundary } from "@/components/utility/ErrorBoundary";
 import { RenovatorLayout } from "@/components/renovator/RenovatorLayout";
-import PropertyDetailsPage from "@/pages/dashboard/PropertyDetails";
-import PropertyDocumentVault from "@/pages/dashboard/PropertyDocumentVault";
-import RentalApplicationPage from "@/pages/dashboard/RentalApplication";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { AdminRoute } from "@/components/AdminRoute";
-import AdminLoginPage from "@/pages/admin/AdminLogin";
-import AdminHomePage from "@/pages/dashboard/admin/AdminHome";
-import PagesPage from "@/pages/dashboard/admin/Pages";
-import UsersPage from "@/pages/dashboard/admin/Users";
-import RenovationPartnersPage from "@/pages/dashboard/admin/RenovationPartners";
-import AdminCleanersPage from "@/pages/dashboard/admin/Cleaners";
-import AdminConstructionProducts from "@/pages/dashboard/admin/AdminConstructionProducts";
-import AdminConstructionSuppliers from "@/pages/dashboard/admin/AdminConstructionSuppliers";
-import AdminConstructionContent from "@/pages/dashboard/admin/AdminConstructionContent";
-import ReportingPreviewPage from "@/pages/dashboard/admin/ReportingPreview";
-import ReportingBatchesPage from "@/pages/dashboard/admin/ReportingBatches";
-import RateLimitManagementPage from "@/pages/dashboard/admin/RateLimitManagement";
-import AdminCommunities from "@/pages/dashboard/admin/AdminCommunities";
-import SettingsPage from "@/pages/dashboard/Settings";
-import MatchesPage from "@/pages/dashboard/Matches";
-import DebugPropertiesPage from "@/pages/dashboard/DebugProperties";
-import MyApplicationsPage from "@/pages/dashboard/MyApplications";
-import ApplicationOverviewPage from "@/pages/dashboard/landlord/ApplicationOverview";
-import EmergencyMode from "@/pages/dashboard/EmergencyMode";
-import EmergencyAccept from "@/pages/EmergencyAccept";
-import RenovatorDashboard from "@/pages/renovator/RenovatorDashboard";
-import PublicPropertyDetails from "@/pages/PublicPropertyDetails";
-import EmergencyInbox from "@/pages/renovator/EmergencyInbox";
-import JobManager from "@/pages/renovator/JobManager";
-import Messages from "@/pages/renovator/Messages";
-import RenovatorProfile from "@/pages/renovator/RenovatorProfile";
-import Availability from "@/pages/renovator/Availability";
-import ServiceArea from "@/pages/renovator/ServiceArea";
-import RenovatorSettings from "@/pages/renovator/RenovatorSettings";
-import EducationCentrePage from "@/pages/dashboard/EducationCentre";
-import BuyingOpportunitiesPage from "@/pages/dashboard/BuyingOpportunities";
-import MortgageConsentPage from "@/pages/dashboard/MortgageConsentPage";
-import MortgageSubmissionResults from "@/pages/dashboard/MortgageSubmissionResults";
-import CoOwnershipGuidePage from "@/pages/dashboard/CoOwnershipGuide";
-import TaxIntelligencePage from "@/pages/dashboard/TaxIntelligence";
-import SeekerProfilePage from "@/pages/dashboard/SeekerProfile";
-import PublicProfilePage from "@/pages/dashboard/PublicProfile";
-import RentOpportunitiesPage from "@/pages/dashboard/RentOpportunities";
-import ChatsPage from "@/pages/dashboard/Chats";
-import TailorAIPage from "@/pages/dashboard/TailorAI";
-import LegalAssistantPage from "@/pages/dashboard/LegalAssistant";
-import LegalAIPage from "@/pages/dashboard/LegalAI";
-import PropertyCompliancePage from "@/pages/dashboard/forms/PropertyCompliance";
-import EvictionAssistantPage from "@/pages/dashboard/forms/EvictionAssistant";
-import N4FormPage from "@/pages/dashboard/forms/N4FormPage";
-import N5FormPage from "@/pages/dashboard/forms/N5FormPage";
-import N8FormPage from "@/pages/dashboard/forms/N8FormPage";
-import N12FormPage from "@/pages/dashboard/forms/N12FormPage";
-import N13FormPage from "@/pages/dashboard/forms/N13FormPage";
-import A2FormPage from "@/pages/dashboard/forms/A2FormPage";
-import T2FormPage from "@/pages/dashboard/forms/T2FormPage";
-import T6FormPage from "@/pages/dashboard/forms/T6FormPage";
-import T1FormPage from "@/pages/dashboard/forms/T1FormPage";
-import T3FormPage from "@/pages/dashboard/forms/T3FormPage";
-import T5FormPage from "@/pages/dashboard/forms/T5FormPage";
-import TenancyLegalAIPage from "@/pages/dashboard/forms/TenancyLegalAI";
-import RenovatorsPage from "@/pages/dashboard/Renovators";
-import CleanersPage from "@/pages/dashboard/Cleaners";
-import ShopPage from "@/pages/dashboard/Shop";
-import TenantPaymentsPage from "@/pages/dashboard/tenant/TenantPayments";
-import WalletPage from "@/pages/dashboard/Wallet";
-import LandlordPaymentsPage from "@/pages/dashboard/landlord/LandlordPayments";
-import PayoutSetupPage from "@/pages/dashboard/landlord/PayoutSetup";
-import ViewingAppointmentsPage from "@/pages/dashboard/landlord/ViewingAppointments";
-import AIScreeningSettingsPage from "@/pages/dashboard/landlord/AIScreeningSettingsPage";
-import PADPaymentTest from "@/pages/dashboard/PADPaymentTest";
-import ListRoomPage from "@/pages/dashboard/ListRoom";
-import LeaseContractPage from "@/pages/dashboard/LeaseContract";
-import AIChat from "@/pages/dashboard/AIChat";
-import MortgageBrokerDashboard from "@/pages/dashboard/MortgageBrokerDashboard";
-import MortgageBrokerProfile from "@/pages/dashboard/MortgageBrokerProfile";
-import MortgageBrokerClients from "@/pages/dashboard/MortgageBrokerClients";
-import LawyerDashboard from "@/pages/dashboard/LawyerDashboard";
-import LawyerProfile from "@/pages/dashboard/LawyerProfile";
-import LawyerClients from "@/pages/dashboard/LawyerClients";
-import LawyerDocuments from "@/pages/dashboard/LawyerDocuments";
-import LawyerDocumentReviews from "@/pages/dashboard/LawyerDocumentReviews";
-import FindLawyer from "@/pages/dashboard/FindLawyer";
-import LenderDashboard from "@/pages/dashboard/lender/LenderDashboard";
-import LenderProfile from "@/pages/dashboard/lender/LenderProfile";
-import LenderRates from "@/pages/dashboard/lender/LenderRates";
-import LenderRequests from "@/pages/dashboard/lender/LenderRequests";
-import CoBuyingScenario from "@/pages/dashboard/CoBuyingScenario";
-import CoOwnershipProfile from "@/pages/dashboard/CoOwnershipProfile";
-import ConstructionLogin from "@/construction/pages/ConstructionLogin";
-import ConstructionSignup from "@/construction/pages/ConstructionSignup";
-import ConstructionDashboardHome from "@/construction/pages/dashboard/ConstructionDashboardHome";
-import ConstructionProducts from "@/construction/pages/dashboard/ConstructionProducts";
-import ConstructionProductNew from "@/construction/pages/dashboard/ConstructionProductNew";
-import ConstructionProductEdit from "@/construction/pages/dashboard/ConstructionProductEdit";
-import ConstructionProfile from "@/construction/pages/dashboard/ConstructionProfile";
-import ConstructionQuotes from "@/construction/pages/dashboard/ConstructionQuotes";
-import ConstructionQuoteDetail from "@/construction/pages/dashboard/ConstructionQuoteDetail";
-import ConstructionMessages from "@/construction/pages/dashboard/ConstructionMessages";
-import ConstructionMessageDetail from "@/construction/pages/dashboard/ConstructionMessageDetail";
-import ConstructionProductDetail from "@/construction/pages/ConstructionProductDetail";
-import ConstructionPublicProducts from "@/construction/pages/ConstructionPublicProducts";
-import ConstructionCustomOrder from "@/construction/pages/ConstructionCustomOrder"
-import CommunitiesPage from "@/pages/dashboard/Communities";
-import CommunityDetailPage from "@/pages/dashboard/CommunityDetail";
+// Additional pages - lazy loaded
+const MatchesPage = lazy(() => import("@/pages/dashboard/Matches"));
+const DebugPropertiesPage = lazy(() => import("@/pages/dashboard/DebugProperties"));
+const MyApplicationsPage = lazy(() => import("@/pages/dashboard/MyApplications"));
+const ApplicationOverviewPage = lazy(() => import("@/pages/dashboard/landlord/ApplicationOverview"));
+const EmergencyMode = lazy(() => import("@/pages/dashboard/EmergencyMode"));
+const EmergencyAccept = lazy(() => import("@/pages/EmergencyAccept"));
+
+// Renovator pages - lazy loaded
+const RenovatorDashboard = lazy(() => import("@/pages/renovator/RenovatorDashboard"));
+const PublicPropertyDetails = lazy(() => import("@/pages/PublicPropertyDetails"));
+const EmergencyInbox = lazy(() => import("@/pages/renovator/EmergencyInbox"));
+const JobManager = lazy(() => import("@/pages/renovator/JobManager"));
+const Messages = lazy(() => import("@/pages/renovator/Messages"));
+const RenovatorProfile = lazy(() => import("@/pages/renovator/RenovatorProfile"));
+const Availability = lazy(() => import("@/pages/renovator/Availability"));
+const ServiceArea = lazy(() => import("@/pages/renovator/ServiceArea"));
+const RenovatorSettings = lazy(() => import("@/pages/renovator/RenovatorSettings"));
+
+// More dashboard pages - lazy loaded
+const EducationCentrePage = lazy(() => import("@/pages/dashboard/EducationCentre"));
+const BuyingOpportunitiesPage = lazy(() => import("@/pages/dashboard/BuyingOpportunities"));
+const MortgageConsentPage = lazy(() => import("@/pages/dashboard/MortgageConsentPage"));
+const MortgageSubmissionResults = lazy(() => import("@/pages/dashboard/MortgageSubmissionResults"));
+const CoOwnershipGuidePage = lazy(() => import("@/pages/dashboard/CoOwnershipGuide"));
+const TaxIntelligencePage = lazy(() => import("@/pages/dashboard/TaxIntelligence"));
+const SeekerProfilePage = lazy(() => import("@/pages/dashboard/SeekerProfile"));
+const PublicProfilePage = lazy(() => import("@/pages/dashboard/PublicProfile"));
+const RentOpportunitiesPage = lazy(() => import("@/pages/dashboard/RentOpportunities"));
+const ChatsPage = lazy(() => import("@/pages/dashboard/Chats"));
+const TailorAIPage = lazy(() => import("@/pages/dashboard/TailorAI"));
+const LegalAssistantPage = lazy(() => import("@/pages/dashboard/LegalAssistant"));
+const LegalAIPage = lazy(() => import("@/pages/dashboard/LegalAI"));
+
+// Form pages - lazy loaded
+const PropertyCompliancePage = lazy(() => import("@/pages/dashboard/forms/PropertyCompliance"));
+const EvictionAssistantPage = lazy(() => import("@/pages/dashboard/forms/EvictionAssistant"));
+const N4FormPage = lazy(() => import("@/pages/dashboard/forms/N4FormPage"));
+const N5FormPage = lazy(() => import("@/pages/dashboard/forms/N5FormPage"));
+const N8FormPage = lazy(() => import("@/pages/dashboard/forms/N8FormPage"));
+const N12FormPage = lazy(() => import("@/pages/dashboard/forms/N12FormPage"));
+const N13FormPage = lazy(() => import("@/pages/dashboard/forms/N13FormPage"));
+const A2FormPage = lazy(() => import("@/pages/dashboard/forms/A2FormPage"));
+const T2FormPage = lazy(() => import("@/pages/dashboard/forms/T2FormPage"));
+const T6FormPage = lazy(() => import("@/pages/dashboard/forms/T6FormPage"));
+const T1FormPage = lazy(() => import("@/pages/dashboard/forms/T1FormPage"));
+const T3FormPage = lazy(() => import("@/pages/dashboard/forms/T3FormPage"));
+const T5FormPage = lazy(() => import("@/pages/dashboard/forms/T5FormPage"));
+const TenancyLegalAIPage = lazy(() => import("@/pages/dashboard/forms/TenancyLegalAI"));
+
+// Service pages - lazy loaded
+const RenovatorsPage = lazy(() => import("@/pages/dashboard/Renovators"));
+const CleanersPage = lazy(() => import("@/pages/dashboard/Cleaners"));
+const ShopPage = lazy(() => import("@/pages/dashboard/Shop"));
+const TenantPaymentsPage = lazy(() => import("@/pages/dashboard/tenant/TenantPayments"));
+const WalletPage = lazy(() => import("@/pages/dashboard/Wallet"));
+const LandlordPaymentsPage = lazy(() => import("@/pages/dashboard/landlord/LandlordPayments"));
+const PayoutSetupPage = lazy(() => import("@/pages/dashboard/landlord/PayoutSetup"));
+const ViewingAppointmentsPage = lazy(() => import("@/pages/dashboard/landlord/ViewingAppointments"));
+const AIScreeningSettingsPage = lazy(() => import("@/pages/dashboard/landlord/AIScreeningSettingsPage"));
+const PADPaymentTest = lazy(() => import("@/pages/dashboard/PADPaymentTest"));
+const ListRoomPage = lazy(() => import("@/pages/dashboard/ListRoom"));
+const LeaseContractPage = lazy(() => import("@/pages/dashboard/LeaseContract"));
+const AIChat = lazy(() => import("@/pages/dashboard/AIChat"));
+
+// Mortgage broker pages - lazy loaded
+const MortgageBrokerDashboard = lazy(() => import("@/pages/dashboard/MortgageBrokerDashboard"));
+const MortgageBrokerProfile = lazy(() => import("@/pages/dashboard/MortgageBrokerProfile"));
+const MortgageBrokerClients = lazy(() => import("@/pages/dashboard/MortgageBrokerClients"));
+const LawyerDashboard = lazy(() => import("@/pages/dashboard/LawyerDashboard"));
+const LawyerProfile = lazy(() => import("@/pages/dashboard/LawyerProfile"));
+const LawyerClients = lazy(() => import("@/pages/dashboard/LawyerClients"));
+const LawyerDocuments = lazy(() => import("@/pages/dashboard/LawyerDocuments"));
+const LawyerDocumentReviews = lazy(() => import("@/pages/dashboard/LawyerDocumentReviews"));
+const FindLawyer = lazy(() => import("@/pages/dashboard/FindLawyer"));
+const LenderDashboard = lazy(() => import("@/pages/dashboard/lender/LenderDashboard"));
+const LenderProfile = lazy(() => import("@/pages/dashboard/lender/LenderProfile"));
+const LenderRates = lazy(() => import("@/pages/dashboard/lender/LenderRates"));
+const LenderRequests = lazy(() => import("@/pages/dashboard/lender/LenderRequests"));
+const CoBuyingScenario = lazy(() => import("@/pages/dashboard/CoBuyingScenario"));
+const CoOwnershipProfile = lazy(() => import("@/pages/dashboard/CoOwnershipProfile"));
+const ConstructionLogin = lazy(() => import("@/construction/pages/ConstructionLogin"));
+const ConstructionSignup = lazy(() => import("@/construction/pages/ConstructionSignup"));
+const ConstructionDashboardHome = lazy(() => import("@/construction/pages/dashboard/ConstructionDashboardHome"));
+const ConstructionProducts = lazy(() => import("@/construction/pages/dashboard/ConstructionProducts"));
+const ConstructionProductNew = lazy(() => import("@/construction/pages/dashboard/ConstructionProductNew"));
+const ConstructionProductEdit = lazy(() => import("@/construction/pages/dashboard/ConstructionProductEdit"));
+const ConstructionProfile = lazy(() => import("@/construction/pages/dashboard/ConstructionProfile"));
+const ConstructionQuotes = lazy(() => import("@/construction/pages/dashboard/ConstructionQuotes"));
+const ConstructionQuoteDetail = lazy(() => import("@/construction/pages/dashboard/ConstructionQuoteDetail"));
+const ConstructionMessages = lazy(() => import("@/construction/pages/dashboard/ConstructionMessages"));
+const ConstructionMessageDetail = lazy(() => import("@/construction/pages/dashboard/ConstructionMessageDetail"));
+const ConstructionProductDetail = lazy(() => import("@/construction/pages/ConstructionProductDetail"));
+const ConstructionPublicProducts = lazy(() => import("@/construction/pages/ConstructionPublicProducts"));
+const ConstructionCustomOrder = lazy(() => import("@/construction/pages/ConstructionCustomOrder"));
+const CommunitiesPage = lazy(() => import("@/pages/dashboard/Communities"));
+const CommunityDetailPage = lazy(() => import("@/pages/dashboard/CommunityDetail"));
 
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect } from "react";
 
+// Reusable Suspense wrapper for better performance
+const SuspenseWrapper = ({ children }: { children: React.ReactNode }) => (
+  <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+    {children}
+  </Suspense>
+);
+
 function AppRoutes() {
   const { user, loading } = useAuth();
   
-  // Debug logging
-  console.log("AppRoutes - User:", user?.id, "Loading:", loading);
-  console.log("AppRoutes - Current path:", window.location.pathname);
-
   // Construction routes render immediately — no auth gate
   const isConstructionRoute = window.location.pathname.startsWith('/construction');
   if (loading && isConstructionRoute) {
     return (
       <Routes>
-        <Route path="/construction" element={<ConstructionPublicProducts />} />
-        <Route path="/construction/custom" element={<ConstructionCustomOrder />} />
-        <Route path="/construction/login" element={<ConstructionLogin />} />
-        <Route path="/construction/signup" element={<ConstructionSignup />} />
-        <Route path="/construction/dashboard" element={<ConstructionDashboardHome />} />
-        <Route path="/construction/dashboard/products" element={<ConstructionProducts />} />
-        <Route path="/construction/dashboard/products/new" element={<ConstructionProductNew />} />
-        <Route path="/construction/dashboard/products/:id/edit" element={<ConstructionProductEdit />} />
-        <Route path="/construction/dashboard/profile" element={<ConstructionProfile />} />
-        <Route path="/construction/dashboard/quotes" element={<ConstructionQuotes />} />
-        <Route path="/construction/dashboard/quotes/:id" element={<ConstructionQuoteDetail />} />
-        <Route path="/construction/dashboard/messages" element={<ConstructionMessages />} />
-        <Route path="/construction/dashboard/messages/:id" element={<ConstructionMessageDetail />} />
-        <Route path="/construction/:slug" element={<ConstructionProductDetail />} />
+        <Route path="/construction" element={<SuspenseWrapper><ConstructionPublicProducts /></SuspenseWrapper>} />
+        <Route path="/construction/custom" element={<SuspenseWrapper><ConstructionCustomOrder /></SuspenseWrapper>} />
+        <Route path="/construction/login" element={<SuspenseWrapper><ConstructionLogin /></SuspenseWrapper>} />
+        <Route path="/construction/signup" element={<SuspenseWrapper><ConstructionSignup /></SuspenseWrapper>} />
+        <Route path="/construction/dashboard" element={<SuspenseWrapper><ConstructionDashboardHome /></SuspenseWrapper>} />
+        <Route path="/construction/dashboard/products" element={<SuspenseWrapper><ConstructionProducts /></SuspenseWrapper>} />
+        <Route path="/construction/dashboard/products/new" element={<SuspenseWrapper><ConstructionProductNew /></SuspenseWrapper>} />
+        <Route path="/construction/dashboard/products/:id/edit" element={<SuspenseWrapper><ConstructionProductEdit /></SuspenseWrapper>} />
+        <Route path="/construction/dashboard/profile" element={<SuspenseWrapper><ConstructionProfile /></SuspenseWrapper>} />
+        <Route path="/construction/dashboard/quotes" element={<SuspenseWrapper><ConstructionQuotes /></SuspenseWrapper>} />
+        <Route path="/construction/dashboard/quotes/:id" element={<SuspenseWrapper><ConstructionQuoteDetail /></SuspenseWrapper>} />
+        <Route path="/construction/dashboard/messages" element={<SuspenseWrapper><ConstructionMessages /></SuspenseWrapper>} />
+        <Route path="/construction/dashboard/messages/:id" element={<SuspenseWrapper><ConstructionMessageDetail /></SuspenseWrapper>} />
+        <Route path="/construction/:slug" element={<SuspenseWrapper><ConstructionProductDetail /></SuspenseWrapper>} />
+        
+        {/* Handle construction without leading slash */}
+        <Route path="construction" element={<Navigate to="/construction" replace />} />
       </Routes>
     );
   }
 
-  // Show loading state while checking authentication
+  // Show optimized loading state while checking authentication
   if (loading) {
-    console.log("AppRoutes - Showing loading state");
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p>Loading...</p>
-          <p className="text-xs text-gray-500 mt-2">Debug: Loading authentication...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <p className="text-lg font-medium text-gray-900">Loading Homie AI...</p>
         </div>
       </div>
     );
@@ -186,35 +213,90 @@ function AppRoutes() {
   if (user) {
     return (
       <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/about-us" element={<AboutUs />} />
-        <Route path="/faq" element={<FAQPage />} />
-        <Route path="/safety-center" element={<SafetyCenter />} />
-        <Route path="/community-guidelines" element={<CommunityGuidelines />} />
-        <Route path="/contact-us" element={<ContactUsPage />} />
-        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-        <Route path="/admin/login" element={<AdminLoginPage />} />
-        <Route path="/auth" element={<AuthPage />} />
+        <Route path="/" element={
+          <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+            <HomePage />
+          </Suspense>
+        } />
+        <Route path="/about-us" element={
+          <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+            <AboutUs />
+          </Suspense>
+        } />
+        <Route path="/faq" element={
+          <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+            <FAQPage />
+          </Suspense>
+        } />
+        <Route path="/safety-center" element={
+          <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+            <SafetyCenter />
+          </Suspense>
+        } />
+        <Route path="/community-guidelines" element={
+          <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+            <CommunityGuidelines />
+          </Suspense>
+        } />
+        <Route path="/contact-us" element={
+          <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+            <ContactUsPage />
+          </Suspense>
+        } />
+        <Route path="/privacy-policy" element={
+          <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+            <PrivacyPolicy />
+          </Suspense>
+        } />
+        <Route path="/admin/login" element={
+          <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+            <AdminLoginPage />
+          </Suspense>
+        } />
+        <Route path="/auth" element={
+          <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+            <AuthPage />
+          </Suspense>
+        } />
         <Route path="/auth/login" element={<Navigate to="/auth" replace />} />
-        <Route path="/auth/callback" element={<Callback />} />
-        <Route path="/emergency/accept/:token" element={<EmergencyAccept />} />
-        <Route path="/property/:id" element={<PublicPropertyDetails />} />
+        <Route path="/auth/callback" element={
+          <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+            <Callback />
+          </Suspense>
+        } />
+        <Route path="/emergency/accept/:token" element={
+          <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+            <EmergencyAccept />
+          </Suspense>
+        } />
+        <Route path="/property/:id" element={
+          <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+            <PublicPropertyDetails />
+          </Suspense>
+        } />
 
         {/* Construction Routes — accessible regardless of HomieAI auth state */}
-        <Route path="/construction" element={<ConstructionPublicProducts />} />
-        <Route path="/construction/custom" element={<ConstructionCustomOrder />} />
-        <Route path="/construction/login" element={<ConstructionLogin />} />
-        <Route path="/construction/signup" element={<ConstructionSignup />} />
-        <Route path="/construction/dashboard" element={<ConstructionDashboardHome />} />
-        <Route path="/construction/dashboard/products" element={<ConstructionProducts />} />
-        <Route path="/construction/dashboard/products/new" element={<ConstructionProductNew />} />
-        <Route path="/construction/dashboard/products/:id/edit" element={<ConstructionProductEdit />} />
-        <Route path="/construction/dashboard/profile" element={<ConstructionProfile />} />
-        <Route path="/construction/dashboard/quotes" element={<ConstructionQuotes />} />
-        <Route path="/construction/dashboard/quotes/:id" element={<ConstructionQuoteDetail />} />
-        <Route path="/construction/dashboard/messages" element={<ConstructionMessages />} />
-        <Route path="/construction/dashboard/messages/:id" element={<ConstructionMessageDetail />} />
-        <Route path="/construction/:slug" element={<ConstructionProductDetail />} />
+        <Route path="/construction" element={
+          <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+            <ConstructionPublicProducts />
+          </Suspense>
+        } />
+        
+        {/* Handle construction without leading slash */}
+        <Route path="construction" element={<Navigate to="/construction" replace />} />
+        <Route path="/construction/custom" element={<SuspenseWrapper><ConstructionCustomOrder /></SuspenseWrapper>} />
+        <Route path="/construction/login" element={<SuspenseWrapper><ConstructionLogin /></SuspenseWrapper>} />
+        <Route path="/construction/signup" element={<SuspenseWrapper><ConstructionSignup /></SuspenseWrapper>} />
+        <Route path="/construction/dashboard" element={<SuspenseWrapper><ConstructionDashboardHome /></SuspenseWrapper>} />
+        <Route path="/construction/dashboard/products" element={<SuspenseWrapper><ConstructionProducts /></SuspenseWrapper>} />
+        <Route path="/construction/dashboard/products/new" element={<SuspenseWrapper><ConstructionProductNew /></SuspenseWrapper>} />
+        <Route path="/construction/dashboard/products/:id/edit" element={<SuspenseWrapper><ConstructionProductEdit /></SuspenseWrapper>} />
+        <Route path="/construction/dashboard/profile" element={<SuspenseWrapper><ConstructionProfile /></SuspenseWrapper>} />
+        <Route path="/construction/dashboard/quotes" element={<SuspenseWrapper><ConstructionQuotes /></SuspenseWrapper>} />
+        <Route path="/construction/dashboard/quotes/:id" element={<SuspenseWrapper><ConstructionQuoteDetail /></SuspenseWrapper>} />
+        <Route path="/construction/dashboard/messages" element={<SuspenseWrapper><ConstructionMessages /></SuspenseWrapper>} />
+        <Route path="/construction/dashboard/messages/:id" element={<SuspenseWrapper><ConstructionMessageDetail /></SuspenseWrapper>} />
+        <Route path="/construction/:slug" element={<SuspenseWrapper><ConstructionProductDetail /></SuspenseWrapper>} />
 
         <Route path="/dashboard" element={
           <ProtectedRoute>
@@ -346,21 +428,6 @@ function AppRoutes() {
           <Route path="settings" element={<RenovatorSettings />} />
         </Route>
 
-        {/* Construction Routes — accessible regardless of HomieAI auth state */}
-        <Route path="/construction" element={<ConstructionPublicProducts />} />
-        <Route path="/construction/custom" element={<ConstructionCustomOrder />} />
-        <Route path="/construction/login" element={<ConstructionLogin />} />
-        <Route path="/construction/signup" element={<ConstructionSignup />} />
-        <Route path="/construction/dashboard" element={<ConstructionDashboardHome />} />
-        <Route path="/construction/dashboard/products" element={<ConstructionProducts />} />
-        <Route path="/construction/dashboard/products/new" element={<ConstructionProductNew />} />
-        <Route path="/construction/dashboard/products/:id/edit" element={<ConstructionProductEdit />} />
-        <Route path="/construction/dashboard/profile" element={<ConstructionProfile />} />
-        <Route path="/construction/dashboard/quotes" element={<ConstructionQuotes />} />
-        <Route path="/construction/dashboard/quotes/:id" element={<ConstructionQuoteDetail />} />
-        <Route path="/construction/dashboard/messages" element={<ConstructionMessages />} />
-        <Route path="/construction/dashboard/messages/:id" element={<ConstructionMessageDetail />} />
-        <Route path="/construction/:slug" element={<ConstructionProductDetail />} />
       </Routes>
     );
   }
@@ -379,9 +446,10 @@ function AppRoutes() {
       <Route path="/admin/login" element={<AdminLoginPage />} />
       <Route path="/auth" element={<AuthPage />} />
       <Route path="/auth/callback" element={<Callback />} />
-      <Route path="/auth" element={<AuthPage />} />
-      <Route path="/auth/callback" element={<Callback />} />
       <Route path="/construction" element={<ConstructionPublicProducts />} />
+      
+      {/* Handle construction without leading slash */}
+      <Route path="construction" element={<Navigate to="/construction" replace />} />
       <Route path="/construction/custom" element={<ConstructionCustomOrder />} />
       <Route path="/construction/login" element={<ConstructionLogin />} />
       <Route path="/construction/signup" element={<ConstructionSignup />} />

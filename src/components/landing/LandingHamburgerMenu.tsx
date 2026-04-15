@@ -21,6 +21,7 @@ const LandingHamburgerMenu = ({ isOpen, onClose }: LandingHamburgerMenuProps) =>
     { id: "how-it-works", label: "How It Works", href: "/#how-it-works" },
     { id: "features", label: "Features", href: "/#features" },
     { id: "faq", label: "FAQ", href: "/#faq" },
+    { id: "construction", label: "Construction", href: "/construction" },
     { id: "contact", label: "Contact Us", href: "/#contact" },
   ];
 

@@ -16,6 +16,7 @@ import { toast } from "@/hooks/use-toast";
 import { useRole } from "@/contexts/RoleContext";
 import { UserRole } from "@/contexts/RoleContext";
 import { supabase } from "@/integrations/supabase/client";
+import { TestComponent } from "@/components/auth/TestComponent";
 
 interface LoginDialogProps {
   isOpen: boolean;
@@ -174,7 +175,7 @@ export const LoginDialog = ({ isOpen, setIsOpen }: LoginDialogProps) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold text-center">
             {showForgotPassword ? "Reset Password" : "Login to your account"}
@@ -185,6 +186,9 @@ export const LoginDialog = ({ isOpen, setIsOpen }: LoginDialogProps) => {
               : "Welcome back to Homie AI! Enter your credentials to continue."}
           </DialogDescription>
         </DialogHeader>
+        
+        {/* TEST COMPONENT - This should be RED */}
+        <TestComponent />
 
         {showForgotPassword ? (
           <ForgotPasswordForm

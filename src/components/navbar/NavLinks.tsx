@@ -47,6 +47,13 @@ export const NavLinks = ({ isMobile = false, onClickMobile }: NavLinksProps) => 
         FAQ
       </Link>
       <Link 
+        to="/construction" 
+        className={`${linkClasses} ${mobileClasses}`}
+        onClick={handleClick}
+      >
+        Construction
+      </Link>
+      <Link 
         to="/contact-us" 
         className={`${linkClasses} ${mobileClasses}`}
         onClick={handleClick}

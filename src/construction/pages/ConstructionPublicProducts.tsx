@@ -35,6 +35,7 @@ export default function ConstructionPublicProducts() {
   const [products, setProducts] = useState<Product[]>([])
   const [activeFilter, setActiveFilter] = useState('all')
 
+  
   useEffect(() => {
     if (!document.getElementById('construction-fonts')) {
       const link = document.createElement('link')

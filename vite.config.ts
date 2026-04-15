@@ -190,4 +190,18 @@ export default defineConfig(({ mode }) => ({
   optimizeDeps: {
     include: ['pdfjs-dist'],
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          router: ['react-router-dom'],
+          ui: ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu'],
+          supabase: ['@supabase/supabase-js'],
+          stripe: ['@stripe/react-stripe-js', '@stripe/stripe-js'],
+        }
+      }
+    },
+    chunkSizeWarningLimit: 1000,
+  },
 }));
