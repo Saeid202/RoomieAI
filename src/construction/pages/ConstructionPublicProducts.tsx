@@ -31,6 +31,8 @@ const C = {
 }
 
 export default function ConstructionPublicProducts() {
+  console.log('ConstructionPublicProducts component rendering')
+  
   const [loading, setLoading] = useState(true)
   const [products, setProducts] = useState<Product[]>([])
   const [activeFilter, setActiveFilter] = useState('all')
@@ -57,42 +59,48 @@ export default function ConstructionPublicProducts() {
       setLoading(true)
       console.log('Loading products from frontend...')
       
-      const { data: productsData, error: productsError } = await supabase
-        .from('construction_products')
-        .select('id, title, product_type, price_cad, slug, status')
-        .eq('status', 'live')
-        .order('created_at', { ascending: false })
+      try {
+        const { data: productsData, error: productsError } = await supabase
+          .from('construction_products')
+          .select('id, title, product_type, price_cad, slug, status')
+          .eq('status', 'live')
+          .order('created_at', { ascending: false })
 
-      console.log('Products query result:', { productsData, productsError })
-      console.log('Products found:', productsData?.length || 0)
+        console.log('Products query result:', { productsData, productsError })
+        console.log('Products found:', productsData?.length || 0)
 
-      if (productsError || !productsData || productsData.length === 0) {
-        console.log('No products found or error occurred')
+        if (productsError || !productsData || productsData.length === 0) {
+          console.log('No products found or error occurred')
+          setProducts([])
+          setLoading(false)
+          return
+        }
+
+        const productIds = productsData.map((p: { id: string }) => p.id)
+        const { data: imagesData } = await supabase
+          .from('construction_product_images')
+          .select('product_id, public_url, is_primary')
+          .in('product_id', productIds)
+
+        const imagesByProduct: Record<string, { public_url: string; is_primary: boolean }[]> = {}
+        for (const img of (imagesData || [])) {
+          if (!imagesByProduct[img.product_id]) imagesByProduct[img.product_id] = []
+          imagesByProduct[img.product_id].push(img)
+        }
+
+        const finalProducts = productsData.map((p: { id: string; title: string; product_type: string; price_cad: number; slug: string }) => ({
+          ...p,
+          construction_product_images: imagesByProduct[p.id] || [],
+        }))
+        
+        console.log('Final products with images:', finalProducts)
+        setProducts(finalProducts)
+        setLoading(false)
+      } catch (error) {
+        console.error('Error loading products:', error)
         setProducts([])
         setLoading(false)
-        return
       }
-
-      const productIds = productsData.map((p: { id: string }) => p.id)
-      const { data: imagesData } = await supabase
-        .from('construction_product_images')
-        .select('product_id, public_url, is_primary')
-        .in('product_id', productIds)
-
-      const imagesByProduct: Record<string, { public_url: string; is_primary: boolean }[]> = {}
-      for (const img of (imagesData || [])) {
-        if (!imagesByProduct[img.product_id]) imagesByProduct[img.product_id] = []
-        imagesByProduct[img.product_id].push(img)
-      }
-
-      const finalProducts = productsData.map((p: { id: string; title: string; product_type: string; price_cad: number; slug: string }) => ({
-        ...p,
-        construction_product_images: imagesByProduct[p.id] || [],
-      }))
-      
-      console.log('Final products with images:', finalProducts)
-      setProducts(finalProducts)
-      setLoading(false)
     }
 
     loadProducts()
@@ -107,6 +115,7 @@ export default function ConstructionPublicProducts() {
     : products.filter(p => p.product_type === activeFilter)
 
   if (loading) {
+    console.log('ConstructionPublicProducts: Showing loading state')
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: '#ffffff', fontFamily: "'DM Sans', sans-serif" }}>
         <div style={{ color: C.charcoal, fontSize: '1.2rem', fontWeight: 500 }}>Loading marketplace...</div>
@@ -114,6 +123,8 @@ export default function ConstructionPublicProducts() {
     )
   }
 
+  console.log('ConstructionPublicProducts: Rendering main content with', products.length, 'products')
+  
   return (
     <div style={{ backgroundColor: '#ffffff', minHeight: '100vh', fontFamily: "'DM Sans', sans-serif", color: C.text }}>
       <ConstructionHeader />
