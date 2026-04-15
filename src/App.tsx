@@ -147,6 +147,7 @@ const ConstructionDashboardHome = lazy(() => import("@/construction/pages/dashbo
 const ConstructionProducts = lazy(() => import("@/construction/pages/dashboard/ConstructionProducts"));
 const ConstructionProductNew = lazy(() => import("@/construction/pages/dashboard/ConstructionProductNew"));
 const ConstructionProductEdit = lazy(() => import("@/construction/pages/dashboard/ConstructionProductEdit"));
+const ConstructionColorPatternTest = lazy(() => import("@/construction/pages/dashboard/ColorPatternTestPage"));
 const ConstructionProfile = lazy(() => import("@/construction/pages/dashboard/ConstructionProfile"));
 const ConstructionQuotes = lazy(() => import("@/construction/pages/dashboard/ConstructionQuotes"));
 const ConstructionQuoteDetail = lazy(() => import("@/construction/pages/dashboard/ConstructionQuoteDetail"));

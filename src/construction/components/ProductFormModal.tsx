@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { supabase } from '@/integrations/supabase/client-simple'
+import { Upload } from 'lucide-react'
 
 interface ProductImage {
   id: string
@@ -100,6 +101,8 @@ interface FormState {
   productSpecs: string
   weight: string
   existingImages: ExistingImage[]
+  enablePatternUpload: boolean
+  patternImages: Array<{ name: string; url: string; isPattern: boolean }>
 }
 
 const CATEGORIES = {
@@ -134,6 +137,7 @@ interface ProductFormModalProps {
   onSuccess?: () => void
   editingProduct?: Product
 }
+
 
 export default function ProductFormModal({ isOpen, onClose, onSuccess, editingProduct }: ProductFormModalProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -196,7 +200,9 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, editingPr
     customBuildEnabled: false,
     productSpecs: '',
     weight: '',
-    existingImages: []
+    existingImages: [],
+    enablePatternUpload: false,
+    patternImages: []
   })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -248,12 +254,21 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, editingPr
             leadTime: editingProduct.lead_time || '',
             shippingPort: editingProduct.shipping_port || '',
             badgeText: editingProduct.badge_label || '',
-            availableColors: editingProduct.available_colors || [],
+            availableColors: editingProduct.available_colors?.filter((color: any) => color.type !== 'pattern').map((color: any) => ({
+              name: color.name,
+              hex: color.hex
+            })) || [],
             customBuildEnabled: editingProduct.custom_build_enabled || false,
             productSpecs: editingProduct.product_specs || '',
             photoPreviews: photoPreviews,
             existingImages: existingImages,
             primaryPhotoIndex: 0,
+            enablePatternUpload: false,
+            patternImages: editingProduct.available_colors?.filter((color: any) => color.type === 'pattern').map((pattern: any) => ({
+              name: pattern.name,
+              url: pattern.imageUrl,
+              isPattern: true
+            })) || [],
             step: 1
           }))
         } else {
@@ -269,9 +284,14 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, editingPr
             leadTime: editingProduct.lead_time || '',
             shippingPort: editingProduct.shipping_port || '',
             badgeText: editingProduct.badge_label || '',
-            availableColors: editingProduct.available_colors || [],
+            availableColors: editingProduct.available_colors?.filter((color: any) => color.type !== 'pattern').map((color: any) => ({
+              name: color.name,
+              hex: color.hex
+            })) || [],
             customBuildEnabled: editingProduct.custom_build_enabled || false,
             productSpecs: editingProduct.product_specs || '',
+            enablePatternUpload: false,
+            patternImages: [],
             step: 1
           }))
         }
@@ -287,6 +307,13 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, editingPr
   const updateForm = (field: keyof FormState, value: any) => {
     setForm(prev => ({ ...prev, [field]: value }))
   }
+
+  // Auto-switch to pattern mode when patterns are added
+  useEffect(() => {
+    if (form.patternImages && form.patternImages.length > 0 && !form.enablePatternUpload) {
+      updateForm('enablePatternUpload', true)
+    }
+  }, [form.patternImages])
 
   const handleNext = () => {
     if (form.step < 5) {
@@ -332,15 +359,63 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, editingPr
         return
       }
 
+      // Check user role
+      const userRole = session.user.user_metadata?.role
+      console.log('User role:', userRole)
+      
+      if (userRole !== 'construction_supplier') {
+        console.warn('User is not a construction supplier, role:', userRole)
+        setError('You must be a construction supplier to create products')
+        setLoading(false)
+        return
+      }
+
       // Get supplier profile for this user
+      console.log('Current user ID:', session.user.id)
+      console.log('Current user email:', session.user.email)
+      
       const { data: supplierProfile } = await supabase
         .from('construction_supplier_profiles')
         .select('id')
         .eq('id', session.user.id)
         .maybeSingle()
+        
+      console.log('Supplier profile found:', supplierProfile)
 
-      // Use session.user.id directly as supplier_id (profiles.id = auth.users.id)
-      const supplierId = supplierProfile?.id || session.user.id
+      let supplierId: string
+      
+      if (supplierProfile) {
+        supplierId = supplierProfile.id
+      } else {
+        // Create supplier profile if it doesn't exist
+        const { data: newSupplierProfile, error: createError } = await supabase
+          .from('construction_supplier_profiles')
+          .insert({
+            id: session.user.id,
+            user_id: session.user.id,
+            company_name: 'Default Company',
+            contact_name: session.user.email?.split('@')[0] || 'Default Contact',
+            email: session.user.email,
+            phone: '',
+            verified: false
+          })
+          .select('id')
+          .single()
+          
+        if (createError) {
+          console.error('Error creating supplier profile:', createError)
+          console.error('Error details:', JSON.stringify(createError, null, 2))
+          console.error('User session:', session)
+          setError(`Failed to create supplier profile: ${createError.message || 'Unknown error'}`)
+          setLoading(false)
+          return
+        }
+        
+        supplierId = newSupplierProfile.id
+        console.log('Created new supplier profile with ID:', supplierId)
+      }
+      
+      console.log('Using supplier profile with ID:', supplierId)
 
       // Map category to product_type (must match database constraint)
       const categoryMap: Record<string, string> = {
@@ -349,6 +424,22 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, editingPr
         'Bath & Kitchen': 'bath_kitchen'
       }
       const productType = categoryMap[form.category] || 'modular'
+
+      // Combine colors and patterns for storage in available_colors field
+      const enhancedAvailableColors = [
+        ...form.availableColors.map(color => ({
+          name: color.name,
+          hex: color.hex,
+          type: 'color',
+          imageUrl: null
+        })),
+        ...form.patternImages.map(pattern => ({
+          name: pattern.name,
+          hex: null,
+          type: 'pattern',
+          imageUrl: pattern.url
+        }))
+      ]
 
       // Create or update product
       const productData = {
@@ -363,12 +454,15 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, editingPr
         lead_time: form.leadTime || null,
         shipping_port: form.shippingPort || null,
         badge_label: form.badgeText || null,
-        available_colors: form.availableColors.length > 0 ? form.availableColors : null,
+        available_colors: enhancedAvailableColors.length > 0 ? enhancedAvailableColors : null,
         custom_build_enabled: form.customBuildEnabled,
         product_specs: form.productSpecs || null,
         status: 'live',
         supplier_id: supplierId
       }
+
+      console.log('Product data to be created:', productData)
+      console.log('Product status:', productData.status)
 
       let product: any
       let productError: any
@@ -398,6 +492,9 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, editingPr
         console.error('Product operation error:', productError)
         throw new Error(`Failed to ${editingProduct ? 'update' : 'create'} product: ${productError.message}`)
       }
+
+      console.log('Product created/updated successfully:', product)
+      console.log('Product array length:', Array.isArray(product) ? product.length : 'not array')
 
       if (!product || (Array.isArray(product) && product.length === 0)) {
         throw new Error(`Product was ${editingProduct ? 'updated but' : 'created but'} no data returned`)
@@ -873,6 +970,148 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, editingPr
         <div style={{ marginBottom: 32 }}>
           <label style={labelStyle}>Available Colors <span style={{ fontWeight: 500, color: '#64748b', fontSize: 16 }}>(optional)</span></label>
 
+          {/* Mode Toggle */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20, padding: 12, background: '#f8fafc', borderRadius: 8, border: '1px solid #e2e8f0' }}>
+            <span style={{ fontSize: 14, fontWeight: 600, color: '#374151' }}>Input Mode:</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 13, color: '#6b7280' }}>Color</span>
+              <div 
+                style={{
+                  width: 48, height: 24, background: '#e5e7eb', borderRadius: 12, position: 'relative', cursor: 'pointer'
+                }}
+                onClick={() => {
+                  const newMode = !form.enablePatternUpload
+                  updateForm('enablePatternUpload', newMode)
+                }}
+              >
+                <div 
+                  style={{
+                    width: 20, height: 20, background: form.enablePatternUpload ? '#FF6B35' : '#d1d5db', borderRadius: 8, 
+                    position: 'absolute', top: 2, left: form.enablePatternUpload ? 26 : 2,
+                    transition: 'all 0.2s'
+                  }}
+                />
+              </div>
+              <span style={{ fontSize: 13, color: '#6b7280' }}>Pattern</span>
+            </div>
+          </div>
+
+          {/* Pattern Upload Mode */}
+          {form.enablePatternUpload && (
+            <div style={{ marginBottom: 20, padding: 16, background: '#fef3c7', border: '1px solid #f59e0b', borderRadius: 8 }}>
+              <p style={{ margin: '0 0 12px 0', fontSize: 13, fontWeight: 600, color: '#92400e' }}>
+                Upload Pattern Images (e.g., SPV flooring textures)
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <div 
+                  style={{ display: 'flex', gap: 12, alignItems: 'center' }}
+                  onDragOver={(e) => {
+                    e.preventDefault()
+                    e.currentTarget.style.background = '#fef9c3'
+                  }}
+                  onDragLeave={(e) => {
+                    e.preventDefault()
+                    e.currentTarget.style.background = 'transparent'
+                  }}
+                  onDrop={async (e) => {
+                    e.preventDefault()
+                    e.currentTarget.style.background = 'transparent'
+                    
+                    const files = Array.from(e.dataTransfer.files)
+                    const imageFiles = files.filter(file => file.type.startsWith('image/'))
+                    
+                    if (imageFiles.length > 0) {
+                      // Auto-switch to pattern mode when images are dropped
+                      updateForm('enablePatternUpload', true)
+                      
+                      for (const file of imageFiles) {
+                        const reader = new FileReader()
+                        reader.onload = (e) => {
+                          const patternImage = {
+                            name: file.name,
+                            url: e.target?.result as string,
+                            isPattern: true
+                          }
+                          updateForm('patternImages', [...(form.patternImages || []), patternImage])
+                        }
+                        reader.readAsDataURL(file)
+                      }
+                    }
+                  }}
+                >
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={async (e) => {
+                      const files = Array.from(e.target.files || [])
+                      if (files.length === 0) return
+                      
+                      // Auto-switch to pattern mode when images are uploaded
+                      updateForm('enablePatternUpload', true)
+                      
+                      for (const file of files) {
+                        const reader = new FileReader()
+                        reader.onload = (e) => {
+                          const patternImage = {
+                            name: file.name,
+                            url: e.target?.result as string,
+                            isPattern: true
+                          }
+                          updateForm('patternImages', [...(form.patternImages || []), patternImage])
+                        }
+                        reader.readAsDataURL(file)
+                      }
+                    }}
+                    style={{ display: 'none' }}
+                    id="pattern-upload"
+                  />
+                  <label 
+                    htmlFor="pattern-upload"
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 8, padding: 16, 
+                      background: '#fff', border: '2px dashed #f59e0b', borderRadius: 8,
+                      cursor: 'pointer', fontSize: 13, color: '#92400e', flex: 1,
+                      justifyContent: 'center', minHeight: 60
+                    }}
+                  >
+                    <Upload style={{ width: 20, height: 20 }} />
+                    <span>Click to upload or drag & drop pattern images</span>
+                  </label>
+                </div>
+                
+                {/* Pattern Preview */}
+                {form.patternImages && form.patternImages.length > 0 && (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                    {form.patternImages.map((pattern, index) => (
+                      <div key={index} style={{ position: 'relative' }}>
+                        <img 
+                          src={pattern.url} 
+                          alt={pattern.name}
+                          style={{ width: 60, height: 60, objectFit: 'cover', borderRadius: 8, border: '2px solid #f59e0b' }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const updatedPatterns = form.patternImages.filter((_, i) => i !== index)
+                            updateForm('patternImages', updatedPatterns)
+                          }}
+                          style={{
+                            position: 'absolute', top: -4, right: -4, width: 20, height: 20,
+                            background: '#ef4444', color: '#fff', border: 'none', borderRadius: '50%',
+                            cursor: 'pointer', fontSize: 12, fontWeight: 'bold'
+                          }}
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Predefined swatches */}
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: 16 }}>
             {PREDEFINED_COLORS.map(color => {
@@ -949,13 +1188,14 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, editingPr
             </button>
           </div>
 
-          {/* Selected colors chips */}
-          {form.availableColors.length > 0 && (
+          {/* Selected colors and patterns */}
+          {(form.availableColors.length > 0 || (form.patternImages && form.patternImages.length > 0)) && (
             <div style={{ background: '#f8fafc', border: '2px solid #e2e8f0', borderRadius: 12, padding: '14px 16px', marginTop: 4 }}>
               <p style={{ margin: '0 0 10px 0', fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                {form.availableColors.length} color{form.availableColors.length !== 1 ? 's' : ''} selected
+                {form.availableColors.length + (form.patternImages?.length || 0)} option{form.availableColors.length + (form.patternImages?.length || 0) !== 1 ? 's' : ''} selected
               </p>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                {/* Color chips */}
                 {form.availableColors.map(color => (
                   <div
                     key={color.hex}
@@ -972,7 +1212,35 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, editingPr
                       type="button"
                       onClick={() => updateForm('availableColors', form.availableColors.filter(c => c.hex?.toLowerCase() !== color.hex?.toLowerCase()))}
                       style={{ background: '#fee2e2', border: 'none', cursor: 'pointer', color: '#ef4444', fontSize: 13, padding: '2px 5px', lineHeight: 1, borderRadius: '50%', fontWeight: 700 }}
-                    >✕</button>
+                    >×</button>
+                  </div>
+                ))}
+                
+                {/* Pattern chips */}
+                {form.patternImages && form.patternImages.map((pattern, index) => (
+                  <div
+                    key={`pattern-${index}`}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 8,
+                      background: '#ffffff', border: '2px solid #f59e0b',
+                      borderRadius: 100, padding: '6px 14px 6px 8px', fontSize: 13, fontWeight: 600,
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.06)'
+                    }}
+                  >
+                    <img 
+                      src={pattern.url} 
+                      alt={pattern.name}
+                      style={{ width: 22, height: 22, borderRadius: '50%', objectFit: 'cover', border: '2px solid rgba(0,0,0,0.1)', flexShrink: 0 }} 
+                    />
+                    <span style={{ color: '#0f172a' }}>{pattern.name}</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const updatedPatterns = form.patternImages.filter((_, i) => i !== index)
+                        updateForm('patternImages', updatedPatterns)
+                      }}
+                      style={{ background: '#fee2e2', border: 'none', cursor: 'pointer', color: '#ef4444', fontSize: 13, padding: '2px 5px', lineHeight: 1, borderRadius: '50%', fontWeight: 700 }}
+                    >×</button>
                   </div>
                 ))}
               </div>

@@ -50,11 +50,25 @@ export default function ConstructionProductDetail() {
   // Get finishes from product or use defaults
   const getFinishes = () => {
     if (product?.available_colors && product.available_colors.length > 0) {
-      return product.available_colors.map((color: any) => ({
-        label: color.name,
-        color: color.hex,
-        border: color.hex === '#F5F5F3' || color.hex === '#FAF9F6' ? '#ddd' : '#333'
-      }))
+      return product.available_colors.map((option: any) => {
+        if (option.type === 'pattern') {
+          return {
+            label: option.name,
+            color: null,
+            border: '#ddd',
+            imageUrl: option.imageUrl,
+            isPattern: true
+          }
+        } else {
+          return {
+            label: option.name,
+            color: option.hex,
+            border: option.hex === '#F5F5F3' || option.hex === '#FAF9F6' ? '#ddd' : '#333',
+            imageUrl: null,
+            isPattern: false
+          }
+        }
+      })
     }
     return []
   }
@@ -414,16 +428,33 @@ export default function ConstructionProductDetail() {
                           onClick={() => setSelectedFinish(i)}
                           style={{ cursor: 'pointer', textAlign: 'center' }}
                         >
-                          <div style={{
-                            width: 56,
-                            height: 56,
-                            borderRadius: 8,
-                            background: finish.color,
-                            border: selectedFinish === i ? `2px solid ${C.gold}` : `1px solid ${finish.border}`,
-                            boxShadow: selectedFinish === i ? `0 0 0 3px ${C.goldLight}44` : 'none',
-                            transition: 'all 0.2s',
-                            marginBottom: 6,
-                          }} />
+                          {finish.isPattern ? (
+                            <img
+                              src={finish.imageUrl}
+                              alt={finish.label}
+                              style={{
+                                width: 56,
+                                height: 56,
+                                borderRadius: 8,
+                                objectFit: 'cover',
+                                border: selectedFinish === i ? `2px solid ${C.gold}` : `1px solid ${finish.border}`,
+                                boxShadow: selectedFinish === i ? `0 0 0 3px ${C.goldLight}44` : 'none',
+                                transition: 'all 0.2s',
+                                marginBottom: 6,
+                              }}
+                            />
+                          ) : (
+                            <div style={{
+                              width: 56,
+                              height: 56,
+                              borderRadius: 8,
+                              background: finish.color,
+                              border: selectedFinish === i ? `2px solid ${C.gold}` : `1px solid ${finish.border}`,
+                              boxShadow: selectedFinish === i ? `0 0 0 3px ${C.goldLight}44` : 'none',
+                              transition: 'all 0.2s',
+                              marginBottom: 6,
+                            }} />
+                          )}
                           <div style={{ fontSize: 10, color: C.charcoal, fontWeight: 500, lineHeight: 1.3, maxWidth: 56 }}>{finish.label}</div>
                           <div style={{ fontSize: 9, color: C.sage, fontWeight: 500, marginTop: 2 }}>In Stock</div>
                         </div>

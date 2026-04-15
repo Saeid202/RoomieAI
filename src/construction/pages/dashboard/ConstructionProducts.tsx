@@ -271,6 +271,7 @@ export default function ConstructionProducts() {
                   <th style={{ textAlign: 'left', padding: 16, fontWeight: 700, color: '#1a1f2e', fontSize: 14 }}>Type</th>
                   <th style={{ textAlign: 'left', padding: 16, fontWeight: 700, color: '#1a1f2e', fontSize: 14 }}>Status</th>
                   <th style={{ textAlign: 'left', padding: 16, fontWeight: 700, color: '#1a1f2e', fontSize: 14 }}>Price</th>
+                  <th style={{ textAlign: 'left', padding: 16, fontWeight: 700, color: '#1a1f2e', fontSize: 14 }}>Colors/Patterns</th>
                   <th style={{ textAlign: 'left', padding: 16, fontWeight: 700, color: '#1a1f2e', fontSize: 14 }}>Created</th>
                   <th style={{ textAlign: 'left', padding: 16, fontWeight: 700, color: '#1a1f2e', fontSize: 14 }}>Actions</th>
                 </tr>
@@ -304,6 +305,48 @@ export default function ConstructionProducts() {
                       </span>
                     </td>
                     <td style={{ padding: 16, color: '#1a1f2e', fontWeight: 600 }}>${product.price_cad.toLocaleString()}</td>
+                    <td style={{ padding: 16 }}>
+                      {product.available_colors && product.available_colors.length > 0 ? (
+                        <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+                          {product.available_colors.slice(0, 3).map((option: any, index: number) => (
+                            <div key={index} style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                              {option.type === 'pattern' ? (
+                                <img
+                                  src={option.imageUrl}
+                                  alt={option.name}
+                                  style={{
+                                    width: 24,
+                                    height: 24,
+                                    borderRadius: 4,
+                                    objectFit: 'cover',
+                                    border: '1px solid #e5e7eb'
+                                  }}
+                                  title={option.name}
+                                />
+                              ) : (
+                                <div
+                                  style={{
+                                    width: 24,
+                                    height: 24,
+                                    borderRadius: 4,
+                                    background: option.hex,
+                                    border: '1px solid #e5e7eb'
+                                  }}
+                                  title={option.name}
+                                />
+                              )}
+                            </div>
+                          ))}
+                          {product.available_colors.length > 3 && (
+                            <span style={{ fontSize: 12, color: '#6b7280', fontWeight: 500 }}>
+                              +{product.available_colors.length - 3}
+                            </span>
+                          )}
+                        </div>
+                      ) : (
+                        <span style={{ fontSize: 12, color: '#9ca3af', fontStyle: 'italic' }}>None</span>
+                      )}
+                    </td>
                     <td style={{ padding: 16, color: '#6b7280', fontSize: 14 }}>{new Date(product.created_at).toLocaleDateString()}</td>
                     <td style={{ padding: 16 }}>
                       <div style={{ display: 'flex', gap: 8 }}>

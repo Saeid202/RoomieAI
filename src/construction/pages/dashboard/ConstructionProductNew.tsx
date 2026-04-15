@@ -920,7 +920,7 @@ export default function ConstructionProductNew() {
         {form.step === 3 && (
           <div style={{ background: 'white', padding: 24, borderRadius: 12, border: '1px solid #e8e4dc' }}>
             <h3 style={{ margin: '0 0 20px 0', color: '#1a2332', fontFamily: "'Sora', sans-serif" }}>Customization Options</h3>
-            <p style={{ color: '#64748b', fontSize: 14, marginBottom: 20 }}>Configure customization options for buyers. Leave price blank for quote-based pricing.</p>
+            <p style={{ color: '#64748b', fontSize: 14, marginBottom: 20 }}>Configure customization options for buyers. Add color names or upload pattern images for flooring, colors, and finishes.</p>
             <div style={{ padding: 12, background: '#f5f3ef', borderRadius: 8, color: '#64748b', fontSize: 13, marginBottom: 20 }}>
               Global add-ons will be configured in the next section and apply to all your products.
             </div>

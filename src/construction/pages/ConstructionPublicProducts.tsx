@@ -55,13 +55,19 @@ export default function ConstructionPublicProducts() {
 
     const loadProducts = async () => {
       setLoading(true)
+      console.log('Loading products from frontend...')
+      
       const { data: productsData, error: productsError } = await supabase
         .from('construction_products')
-        .select('id, title, product_type, price_cad, slug')
+        .select('id, title, product_type, price_cad, slug, status')
         .eq('status', 'live')
         .order('created_at', { ascending: false })
 
+      console.log('Products query result:', { productsData, productsError })
+      console.log('Products found:', productsData?.length || 0)
+
       if (productsError || !productsData || productsData.length === 0) {
+        console.log('No products found or error occurred')
         setProducts([])
         setLoading(false)
         return
@@ -79,10 +85,13 @@ export default function ConstructionPublicProducts() {
         imagesByProduct[img.product_id].push(img)
       }
 
-      setProducts(productsData.map((p: { id: string; title: string; product_type: string; price_cad: number; slug: string }) => ({
+      const finalProducts = productsData.map((p: { id: string; title: string; product_type: string; price_cad: number; slug: string }) => ({
         ...p,
         construction_product_images: imagesByProduct[p.id] || [],
-      })))
+      }))
+      
+      console.log('Final products with images:', finalProducts)
+      setProducts(finalProducts)
       setLoading(false)
     }
 
