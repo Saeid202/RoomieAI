@@ -41,7 +41,8 @@ export function RoleSelectionDialog({
     }
     
     checkAdmin();
-  }, [user]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
   
   // Reset selected role when dialog opens
   useEffect(() => {

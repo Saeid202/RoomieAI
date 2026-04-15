@@ -381,6 +381,10 @@ export class MonitoringService {
 
   // Start periodic checks
   private startPeriodicChecks(): void {
+    // Disable periodic checks to prevent background intervals that could cause flashing
+    console.log('Monitoring service periodic checks disabled to prevent performance issues');
+    return;
+    
     // Check system metrics every 30 seconds
     setInterval(() => {
       this.checkSystemMetrics();

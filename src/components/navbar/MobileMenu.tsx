@@ -6,6 +6,7 @@ import { PWAInstallButton } from "../PWAInstallButton";
 import { User } from "@supabase/supabase-js";
 import { LogOut, User as UserIcon, LayoutDashboard, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useTransition } from "react";
 
 interface MobileMenuProps {
   isMenuOpen: boolean;
@@ -29,6 +30,7 @@ export const MobileMenu = ({
   handleSignOut,
 }: MobileMenuProps) => {
   const navigate = useNavigate();
+  const [, startTransition] = useTransition();
 
   if (!isMenuOpen) return null;
 
@@ -78,7 +80,7 @@ export const MobileMenu = ({
                 </div>
                 <Button
                   onClick={() => {
-                    navigate("/dashboard");
+                    startTransition(() => navigate("/dashboard"));
                     setIsMenuOpen(false);
                   }}
                   className="w-full bg-primary hover:bg-primary/90 text-white font-medium"

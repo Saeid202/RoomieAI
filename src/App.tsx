@@ -1,10 +1,15 @@
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
-import { Suspense, lazy } from "react";
+import * as React from "react";
+const { Suspense, lazy, startTransition } = React;
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/providers/ThemeProvider";
 import { AuthProvider } from "@/providers/AuthProvider";
 import { RoleProvider } from "@/contexts/RoleContext";
 import { InstallPrompt } from "@/components/PWA/InstallPrompt";
+import { useAuth } from "@/hooks/useAuth";
+import { useEffect } from "react";
+import ConstructionDashboardHome from "@/construction/pages/dashboard/ConstructionDashboardHome";
+
 
 // Lazy load components for better performance
 const Dashboard = lazy(() => import("@/pages/Dashboard"));
@@ -143,7 +148,7 @@ const CoBuyingScenario = lazy(() => import("@/pages/dashboard/CoBuyingScenario")
 const CoOwnershipProfile = lazy(() => import("@/pages/dashboard/CoOwnershipProfile"));
 const ConstructionLogin = lazy(() => import("@/construction/pages/ConstructionLogin"));
 const ConstructionSignup = lazy(() => import("@/construction/pages/ConstructionSignup"));
-const ConstructionDashboardHome = lazy(() => import("@/construction/pages/dashboard/ConstructionDashboardHome"));
+
 const ConstructionProducts = lazy(() => import("@/construction/pages/dashboard/ConstructionProducts"));
 const ConstructionProductNew = lazy(() => import("@/construction/pages/dashboard/ConstructionProductNew"));
 const ConstructionProductEdit = lazy(() => import("@/construction/pages/dashboard/ConstructionProductEdit"));
@@ -159,44 +164,16 @@ const ConstructionCustomOrder = lazy(() => import("@/construction/pages/Construc
 const CommunitiesPage = lazy(() => import("@/pages/dashboard/Communities"));
 const CommunityDetailPage = lazy(() => import("@/pages/dashboard/CommunityDetail"));
 
-import { useAuth } from "@/hooks/useAuth";
-import { useEffect } from "react";
 
 // Reusable Suspense wrapper for better performance
-const SuspenseWrapper = ({ children }: { children: React.ReactNode }) => (
+const SuspenseWrapper = ({ children }: { children: any }) => (
   <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
     {children}
   </Suspense>
-);
+)
 
 function AppRoutes() {
   const { user, loading } = useAuth();
-  
-  // Construction routes render immediately — no auth gate
-  const isConstructionRoute = window.location.pathname.startsWith('/construction');
-  if (loading && isConstructionRoute) {
-    return (
-      <Routes>
-        <Route path="/construction" element={<SuspenseWrapper><ConstructionPublicProducts /></SuspenseWrapper>} />
-        <Route path="/construction/custom" element={<SuspenseWrapper><ConstructionCustomOrder /></SuspenseWrapper>} />
-        <Route path="/construction/login" element={<SuspenseWrapper><ConstructionLogin /></SuspenseWrapper>} />
-        <Route path="/construction/signup" element={<SuspenseWrapper><ConstructionSignup /></SuspenseWrapper>} />
-        <Route path="/construction/dashboard" element={<SuspenseWrapper><ConstructionDashboardHome /></SuspenseWrapper>} />
-        <Route path="/construction/dashboard/products" element={<SuspenseWrapper><ConstructionProducts /></SuspenseWrapper>} />
-        <Route path="/construction/dashboard/products/new" element={<SuspenseWrapper><ConstructionProductNew /></SuspenseWrapper>} />
-        <Route path="/construction/dashboard/products/:id/edit" element={<SuspenseWrapper><ConstructionProductEdit /></SuspenseWrapper>} />
-        <Route path="/construction/dashboard/profile" element={<SuspenseWrapper><ConstructionProfile /></SuspenseWrapper>} />
-        <Route path="/construction/dashboard/quotes" element={<SuspenseWrapper><ConstructionQuotes /></SuspenseWrapper>} />
-        <Route path="/construction/dashboard/quotes/:id" element={<SuspenseWrapper><ConstructionQuoteDetail /></SuspenseWrapper>} />
-        <Route path="/construction/dashboard/messages" element={<SuspenseWrapper><ConstructionMessages /></SuspenseWrapper>} />
-        <Route path="/construction/dashboard/messages/:id" element={<SuspenseWrapper><ConstructionMessageDetail /></SuspenseWrapper>} />
-        <Route path="/construction/:slug" element={<SuspenseWrapper><ConstructionProductDetail /></SuspenseWrapper>} />
-        
-        {/* Handle construction without leading slash */}
-        <Route path="construction" element={<Navigate to="/construction" replace />} />
-      </Routes>
-    );
-  }
 
   // Show optimized loading state while checking authentication
   if (loading) {
@@ -210,9 +187,8 @@ function AppRoutes() {
     );
   }
 
-  // If user is authenticated, redirect from root to dashboard
-  if (user) {
-    return (
+  return (
+
       <Routes>
         <Route path="/" element={
           <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
@@ -288,7 +264,7 @@ function AppRoutes() {
         <Route path="/construction/custom" element={<SuspenseWrapper><ConstructionCustomOrder /></SuspenseWrapper>} />
         <Route path="/construction/login" element={<SuspenseWrapper><ConstructionLogin /></SuspenseWrapper>} />
         <Route path="/construction/signup" element={<SuspenseWrapper><ConstructionSignup /></SuspenseWrapper>} />
-        <Route path="/construction/dashboard" element={<SuspenseWrapper><ConstructionDashboardHome /></SuspenseWrapper>} />
+        <Route path="/construction/dashboard" element={<ConstructionDashboardHome />} />
         <Route path="/construction/dashboard/products" element={<SuspenseWrapper><ConstructionProducts /></SuspenseWrapper>} />
         <Route path="/construction/dashboard/products/new" element={<SuspenseWrapper><ConstructionProductNew /></SuspenseWrapper>} />
         <Route path="/construction/dashboard/products/:id/edit" element={<SuspenseWrapper><ConstructionProductEdit /></SuspenseWrapper>} />
@@ -431,148 +407,17 @@ function AppRoutes() {
 
       </Routes>
     );
-  }
-
-  // If user is not authenticated, show normal routes
-  console.log("AppRoutes - Showing non-authenticated routes");
-  return (
-    <Routes>
-      <Route path="/" element={<HomePage />} />
-      <Route path="/about-us" element={<AboutUs />} />
-      <Route path="/faq" element={<FAQPage />} />
-      <Route path="/safety-center" element={<SafetyCenter />} />
-      <Route path="/community-guidelines" element={<CommunityGuidelines />} />
-      <Route path="/contact-us" element={<ContactUsPage />} />
-      <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-      <Route path="/admin/login" element={<AdminLoginPage />} />
-      <Route path="/auth" element={<AuthPage />} />
-      <Route path="/auth/callback" element={<Callback />} />
-      <Route path="/construction" element={<ConstructionPublicProducts />} />
-      
-      {/* Handle construction without leading slash */}
-      <Route path="construction" element={<Navigate to="/construction" replace />} />
-      <Route path="/construction/custom" element={<ConstructionCustomOrder />} />
-      <Route path="/construction/login" element={<ConstructionLogin />} />
-      <Route path="/construction/signup" element={<ConstructionSignup />} />
-      <Route path="/construction/dashboard" element={<ConstructionDashboardHome />} />
-      <Route path="/construction/dashboard/products" element={<ConstructionProducts />} />
-      <Route path="/construction/dashboard/products/new" element={<ConstructionProductNew />} />
-      <Route path="/construction/dashboard/products/:id/edit" element={<ConstructionProductEdit />} />
-      <Route path="/construction/dashboard/profile" element={<ConstructionProfile />} />
-      <Route path="/construction/dashboard/messages" element={<ConstructionMessages />} />
-      <Route path="/construction/dashboard/messages/:id" element={<ConstructionMessageDetail />} />
-      <Route path="/construction/dashboard/quotes" element={<ConstructionQuotes />} />
-      <Route path="/construction/dashboard/quotes/:id" element={<ConstructionQuoteDetail />} />
-      <Route path="/construction/:slug" element={<ConstructionProductDetail />} />
-      <Route path="/emergency/accept/:token" element={<EmergencyAccept />} />
-      <Route path="/property/:id" element={<PublicPropertyDetails />} />
-      <Route path="/dashboard" element={
-        <ProtectedRoute>
-          <Dashboard />
-        </ProtectedRoute>
-      }>
-        <Route path="matches" element={<MatchesPage />} />
-        <Route path="roommate-recommendations" element={<RoommateRecommendationsPage />} />
-        <Route path="rental-options" element={<ErrorBoundary componentName="RentalOptionsPage"><RentalOptionsPage /></ErrorBoundary>} />
-        <Route path="debug-properties" element={<DebugPropertiesPage />} />
-        <Route path="rent/:id" element={<ErrorBoundary componentName="PropertyDetailsPage"><PropertyDetailsPage /></ErrorBoundary>} />
-        <Route path="buy/:id" element={<ErrorBoundary componentName="PropertyDetailsPage"><PropertyDetailsPage /></ErrorBoundary>} />
-        <Route path="co-ownership/:id" element={<ErrorBoundary componentName="PropertyDetailsPage"><PropertyDetailsPage /></ErrorBoundary>} />
-        <Route path="rental-application/:id" element={<ErrorBoundary componentName="RentalApplicationPage"><RentalApplicationPage /></ErrorBoundary>} />
-        <Route path="application-overview/:applicationId" element={<ApplicationOverviewPage />} />
-        <Route path="plan-ahead-matching" element={<PlanAheadMatchingPage />} />
-        <Route path="applications" element={<ErrorBoundary componentName="MyApplicationsPage"><MyApplicationsPage /></ErrorBoundary>} />
-        <Route path="opposite-schedule" element={<OppositeSchedulePage />} />
-        <Route path="work-exchange" element={<WorkExchangePage />} />
-        <Route path="buying-opportunities" element={<BuyingOpportunitiesPage />} />
-        <Route path="co-buying-scenario" element={<CoBuyingScenario />} />
-        <Route path="co-ownership-profile" element={<CoOwnershipProfile />} />
-        <Route path="lgbtq-matching" element={<LGBTQMatchingPage />} />
-        <Route path="landlord" element={<LandlordDashboardPage />} />
-        <Route path="landlord/properties" element={<PropertiesPage />} />
-        <Route path="landlord/applications" element={<ApplicationsPage />} />
-        <Route path="landlord/payments" element={<LandlordPaymentsPage />} />
-        <Route path="landlord/payout-setup" element={<PayoutSetupPage />} />
-        <Route path="landlord/add-property" element={<AddPropertyPage />} />
-        <Route path="rent-opportunities" element={<RentOpportunitiesPage />} />
-        <Route path="find-property" element={<FindPropertyPage />} />
-        <Route path="contracts/:applicationId" element={<LeaseContractPage />} />
-        <Route path="chats" element={<ChatsPage />} />
-        <Route path="tailor-ai" element={<TailorAIPage />} />
-        <Route path="legal-assistant" element={<LegalAssistantPage />} />
-        <Route path="legal-ai" element={<LegalAIPage />} />
-        <Route path="property-compliance-ai" element={<ErrorBoundary componentName="PropertyCompliancePage"><PropertyCompliancePage /></ErrorBoundary>} />
-        <Route path="eviction-assistant" element={<ErrorBoundary componentName="EvictionAssistantPage"><EvictionAssistantPage /></ErrorBoundary>} />
-        <Route path="forms/n4" element={<ErrorBoundary componentName="N4FormPage"><N4FormPage /></ErrorBoundary>} />
-        <Route path="forms/n5" element={<ErrorBoundary componentName="N5FormPage"><N5FormPage /></ErrorBoundary>} />
-        <Route path="forms/n8" element={<ErrorBoundary componentName="N8FormPage"><N8FormPage /></ErrorBoundary>} />
-        <Route path="forms/n12" element={<ErrorBoundary componentName="N12FormPage"><N12FormPage /></ErrorBoundary>} />
-        <Route path="forms/n13" element={<ErrorBoundary componentName="N13FormPage"><N13FormPage /></ErrorBoundary>} />
-        <Route path="forms/a2" element={<ErrorBoundary componentName="A2FormPage"><A2FormPage /></ErrorBoundary>} />
-        <Route path="forms/t2" element={<ErrorBoundary componentName="T2FormPage"><T2FormPage /></ErrorBoundary>} />
-        <Route path="forms/t6" element={<ErrorBoundary componentName="T6FormPage"><T6FormPage /></ErrorBoundary>} />
-        <Route path="forms/t1" element={<ErrorBoundary componentName="T1FormPage"><T1FormPage /></ErrorBoundary>} />
-        <Route path="forms/t3" element={<ErrorBoundary componentName="T3FormPage"><T3FormPage /></ErrorBoundary>} />
-        <Route path="forms/t5" element={<ErrorBoundary componentName="T5FormPage"><T5FormPage /></ErrorBoundary>} />
-        <Route path="tenancy-legal-ai" element={<TenancyLegalAIPage />} />
-        <Route path="education-centre" element={<EducationCentrePage />} />
-        <Route path="renovators" element={<RenovatorsPage />} />
-        <Route path="emergency" element={<EmergencyMode />} />
-        <Route path="emergency/:jobId" element={<EmergencyMode />} />
-        <Route path="tax-intelligence" element={<ErrorBoundary componentName="TaxIntelligencePage"><TaxIntelligencePage /></ErrorBoundary>} />
-        <Route path="cleaners" element={<CleanersPage />} />
-        <Route path="shop" element={<ShopPage />} />
-        <Route path="digital-wallet" element={<WalletPage />} />
-        <Route path="list-room" element={<ListRoomPage />} />
-        <Route path="profile" element={<SeekerProfilePage />} />
-        <Route path="user/:userId" element={<PublicProfilePage />} />
-        <Route path="settings" element={<SettingsPage />} />
-
-        {/* Mortgage Broker routes */}
-        <Route path="mortgage-broker" element={<MortgageBrokerDashboard />} />
-        <Route path="mortgage-broker/profile" element={<MortgageBrokerProfile />} />
-        <Route path="mortgage-broker/clients" element={<MortgageBrokerClients />} />
-
-        {/* Lawyer routes */}
-        <Route path="lawyer" element={<LawyerDashboard />} />
-        <Route path="lawyer/profile" element={<LawyerProfile />} />
-        <Route path="lawyer/clients" element={<LawyerClients />} />
-        <Route path="lawyer/documents" element={<LawyerDocuments />} />
-        <Route path="lawyer-document-reviews" element={<LawyerDocumentReviews />} />
-        <Route path="find-lawyer" element={<FindLawyer />} />
-
-        <Route path="find-lawyer" element={<FindLawyer />} />
-
-        {/* Admin routes - protected with AdminRoute */}
-        <Route path="admin" element={<AdminRoute><AdminHomePage /></AdminRoute>} />
-        <Route path="admin/pages" element={<AdminRoute><PagesPage /></AdminRoute>} />
-        <Route path="admin/users" element={<AdminRoute><UsersPage /></AdminRoute>} />
-        <Route path="admin/renovation-partners" element={<AdminRoute><RenovationPartnersPage /></AdminRoute>} />
-        <Route path="admin/cleaners" element={<AdminRoute><AdminCleanersPage /></AdminRoute>} />
-        <Route path="admin/construction" element={<AdminRoute><AdminConstructionProducts /></AdminRoute>} />
-        <Route path="admin/construction/suppliers" element={<AdminRoute><AdminConstructionSuppliers /></AdminRoute>} />
-        <Route path="admin/construction/content" element={<AdminRoute><AdminConstructionContent /></AdminRoute>} />
-        <Route path="admin/reporting" element={<AdminRoute><ReportingPreviewPage /></AdminRoute>} />
-        <Route path="admin/reporting-batches" element={<AdminRoute><ReportingBatchesPage /></AdminRoute>} />
-        <Route path="admin/settings" element={<AdminRoute><SettingsPage /></AdminRoute>} />
-          <Route path="admin/rate-limits" element={<AdminRoute><RateLimitManagementPage /></AdminRoute>} />
-        <Route path="admin/communities" element={<AdminRoute><AdminCommunities /></AdminRoute>} />
-
-        {/* Community routes */}
-        <Route path="communities" element={<CommunitiesPage />} />
-        <Route path="communities/:id" element={<CommunityDetailPage />} />
-      </Route>
-
-    </Routes>
-  );
 }
 
 function App() {
   const path = useLocation().pathname;
   useEffect(() => {
-    scrollTo(0, 0)
-  }, [path]
-  )
+    const timer = setTimeout(() => {
+      window.scrollTo(0, 0);
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, [path]);
 
   return (
     <ThemeProvider>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useTransition } from "react";
 import { Menu, X, LogOut, User } from "lucide-react";
 import { NavLogo } from "./navbar/NavLogo";
 import { NavLinks } from "./navbar/NavLinks";
@@ -27,12 +27,17 @@ const Navbar = ({ hideMobileMenu = false, onMobileMenuToggle }: NavbarProps) => 
   const [isSignupOpen, setIsSignupOpen] = useState(false);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [, startTransition] = useTransition();
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
     await signOut();
     navigate("/");
+  };
+
+  const goTo = (path: string) => {
+    startTransition(() => navigate(path));
   };
 
   useEffect(() => {
@@ -82,7 +87,7 @@ const Navbar = ({ hideMobileMenu = false, onMobileMenuToggle }: NavbarProps) => 
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => navigate("/dashboard")}>
+                  <DropdownMenuItem onClick={() => goTo("/dashboard")}>
                     Dashboard
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleSignOut} className="text-red-500">
@@ -139,7 +144,7 @@ const Navbar = ({ hideMobileMenu = false, onMobileMenuToggle }: NavbarProps) => 
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-44 z-[70]">
-                <DropdownMenuItem onClick={() => navigate("/dashboard")} className="font-semibold">
+                <DropdownMenuItem onClick={() => goTo("/dashboard")} className="font-semibold">
                   Dashboard
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleSignOut} className="text-red-500">

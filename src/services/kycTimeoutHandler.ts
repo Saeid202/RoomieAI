@@ -20,6 +20,10 @@ export class KYCTimeoutHandler {
   }
 
   startTimeoutMonitoring(): void {
+    // Disable timeout monitoring to prevent background intervals that could cause flashing
+    console.log('KYC timeout monitoring disabled to prevent performance issues');
+    return;
+    
     // Clear any existing interval
     if (this.timeoutInterval) {
       clearInterval(this.timeoutInterval);

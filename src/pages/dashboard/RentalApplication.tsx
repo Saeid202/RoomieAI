@@ -331,7 +331,8 @@ export default function RentalApplicationPage() {
     };
 
     loadUserProfile();
-  }, [user]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   useEffect(() => {
     // Check if user has already applied for this property (only if not editing existing application)
@@ -394,7 +395,8 @@ export default function RentalApplicationPage() {
     };
 
     checkExistingApplication();
-  }, [id, user]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, user?.id]);
 
   useEffect(() => {
     // Check URL parameters for step and applicationId
@@ -433,7 +435,8 @@ export default function RentalApplicationPage() {
       }
     };
     fetchWallet();
-  }, [user]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   // Monitor createdApplicationId
   useEffect(() => {

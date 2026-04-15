@@ -63,7 +63,8 @@ export default function LandlordPayments() {
       .then(([p, s]) => { setPayments(p); setPayoutStatus(s); })
       .catch(e => setError(e.message || 'Failed to load payments'))
       .finally(() => setIsLoading(false));
-  }, [user]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   if (!user) return <div className="flex items-center justify-center min-h-screen"><p className="text-slate-600">Please log in.</p></div>;
 

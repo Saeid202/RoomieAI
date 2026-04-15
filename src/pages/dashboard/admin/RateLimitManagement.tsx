@@ -269,7 +269,7 @@ export default function RateLimitManagementPage() {
     }, 60000);
 
     return () => clearInterval(interval);
-  }, [fetchStats]);
+  }, []);
 
   return (
     <EnhancedPageLayout>

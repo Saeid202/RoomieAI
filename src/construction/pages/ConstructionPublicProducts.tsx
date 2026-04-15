@@ -11,7 +11,7 @@ interface Product {
   product_type: string
   price_cad: number
   slug: string
-  construction_product_images: { public_url: string; is_primary: boolean }[]
+  construction_product_images: { public_url: string; is_primary: boolean; code?: string }[]
 }
 
 const C = {
@@ -79,10 +79,10 @@ export default function ConstructionPublicProducts() {
         const productIds = productsData.map((p: { id: string }) => p.id)
         const { data: imagesData } = await supabase
           .from('construction_product_images')
-          .select('product_id, public_url, is_primary')
+          .select('product_id, public_url, is_primary, code')
           .in('product_id', productIds)
 
-        const imagesByProduct: Record<string, { public_url: string; is_primary: boolean }[]> = {}
+        const imagesByProduct: Record<string, { public_url: string; is_primary: boolean; code?: string }[]> = {}
         for (const img of (imagesData || [])) {
           if (!imagesByProduct[img.product_id]) imagesByProduct[img.product_id] = []
           imagesByProduct[img.product_id].push(img)
@@ -124,6 +124,7 @@ export default function ConstructionPublicProducts() {
   }
 
   console.log('ConstructionPublicProducts: Rendering main content with', products.length, 'products')
+  console.log('Products with slugs:', products.map(p => ({ title: p.title, slug: p.slug })))
   
   return (
     <div style={{ backgroundColor: '#ffffff', minHeight: '100vh', fontFamily: "'DM Sans', sans-serif", color: C.text }}>
@@ -206,18 +207,38 @@ export default function ConstructionPublicProducts() {
                       e.currentTarget.style.borderColor = C.border
                     }}
                   >
-                    <Link to={`/construction/${product.slug}`} style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}>
+                    <Link to={`/construction/${product.slug}`} style={{ textDecoration: 'none', color: 'inherit', display: 'block' }} onClick={() => console.log('Clicked product:', product.title, 'slug:', product.slug)}>
                       <div style={{ width: '100%', height: '280px', backgroundColor: C.greyLight, overflow: 'hidden', position: 'relative' }}>
                         {primaryImage ? (
-                          <img
-                            src={primaryImage.public_url}
-                            alt={product.title}
-                            style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s ease' }}
-                            onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.04)' }}
-                            onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)' }}
-                          />
+                          <>
+                            <img
+                              src={primaryImage.public_url}
+                              alt={product.title}
+                              style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s ease' }}
+                              onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.04)' }}
+                              onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)' }}
+                            />
+                            {/* Code overlay on product card */}
+                            {primaryImage.code && (
+                              <div style={{
+                                position: 'absolute',
+                                top: 8,
+                                right: 8,
+                                background: 'rgba(0, 0, 0, 0.85)',
+                                color: C.white,
+                                fontSize: 11,
+                                fontWeight: 600,
+                                padding: '4px 6px',
+                                borderRadius: 4,
+                                backdropFilter: 'blur(6px)',
+                                border: `1px solid ${C.gold}`,
+                              }}>
+                                {primaryImage.code}
+                              </div>
+                            )}
+                          </>
                         ) : (
-                          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: C.grey, fontSize: '48px' }}>🏠</div>
+                          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: C.grey, fontSize: '48px' }}>??</div>
                         )}
                       </div>
                       <div style={{ padding: '24px 24px 20px', backgroundColor: '#ffffff' }}>

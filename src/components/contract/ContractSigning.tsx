@@ -34,7 +34,7 @@ export function ContractSigning({ contract, onSigningComplete, onError }: Contra
     if (user?.email) {
       setFullName(user.email.split('@')[0].replace(/[._]/g, ' '));
     }
-  }, [user]);
+  }, [user?.email]);
 
   const handleSign = async () => {
     if (!sigCanvas.current || sigCanvas.current.isEmpty()) {

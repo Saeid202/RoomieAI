@@ -28,7 +28,8 @@ export default function OppositeSchedulePage() {
       loadProfile();
       loadMatches();
     }
-  }, [user]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   const loadProfile = async () => {
     try {

@@ -56,21 +56,21 @@ export async function createNotification(input: CreateNotificationInput): Promis
  * Get notifications for the current user
  */
 export async function getNotifications(): Promise<Notification[]> {
-  console.log("Fetching notifications for current user");
-  
   try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user?.id) return [];
+
     const { data, error } = await supabase
       .from('notifications')
       .select('*')
-      .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
+      .eq('user_id', session.user.id)
       .order('created_at', { ascending: false });
 
     if (error) {
       console.error("Error fetching notifications:", error);
-      throw new Error(`Failed to fetch notifications: ${error.message}`);
+      return [];
     }
 
-    console.log("Notifications fetched successfully:", data?.length || 0);
     return (data as Notification[]) || [];
   } catch (error) {
     console.error("Error in getNotifications:", error);
@@ -82,13 +82,14 @@ export async function getNotifications(): Promise<Notification[]> {
  * Get unread notifications count
  */
 export async function getUnreadCount(): Promise<number> {
-  console.log("Fetching unread notifications count");
-  
   try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user?.id) return 0;
+
     const { data, error } = await supabase
       .from('notifications')
       .select('id', { count: 'exact' })
-      .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
+      .eq('user_id', session.user.id)
       .eq('read', false);
 
     if (error) {
@@ -134,16 +135,17 @@ export async function markAsRead(notificationId: string): Promise<void> {
  * Mark all notifications as read for current user
  */
 export async function markAllAsRead(): Promise<number> {
-  console.log("Marking all notifications as read");
-  
   try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user?.id) return 0;
+
     const { data, error } = await supabase
       .from('notifications')
       .update({ 
         read: true,
         updated_at: new Date().toISOString()
       })
-      .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
+      .eq('user_id', session.user.id)
       .eq('read', false)
       .select('id');
 
@@ -152,9 +154,7 @@ export async function markAllAsRead(): Promise<number> {
       throw new Error(`Failed to mark all notifications as read: ${error.message}`);
     }
 
-    const updatedCount = data?.length || 0;
-    console.log(`Marked ${updatedCount} notifications as read`);
-    return updatedCount;
+    return data?.length || 0;
   } catch (error) {
     console.error("Error in markAllAsRead:", error);
     return 0;

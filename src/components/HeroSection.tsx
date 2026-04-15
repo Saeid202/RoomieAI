@@ -1,12 +1,13 @@
 
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useTransition } from "react";
 import { X, ZoomIn } from "lucide-react";
 
 const HeroSection = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [, startTransition] = useTransition();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Cleanup body scroll on unmount
@@ -17,11 +18,13 @@ const HeroSection = () => {
   }, []);
 
   const handleFindMatchClick = () => {
-    if (user) {
-      navigate("/dashboard");
-      return;
-    }
-    navigate("/login");
+    startTransition(() => {
+      if (user) {
+        navigate("/dashboard");
+      } else {
+        navigate("/login");
+      }
+    });
   };
 
   const openModal = () => {
@@ -94,24 +97,7 @@ const HeroSection = () => {
               </div>
               
               <div className="absolute inset-0 flex items-center justify-center p-6">
-                {/* Try to load the actual flowchart image */}
-                <img 
-                  src="/roomie-ai-flowchart.png" 
-                  alt="Homie AI Flowchart - Tenant, Landlord, and Renovation Companies Features"
-                  className="w-full h-full object-contain rounded-lg shadow-lg transition-opacity duration-300"
-                  style={{ maxHeight: '100%', maxWidth: '100%', display: 'none' }} // Hide by default
-                  loading="eager"
-                  onLoad={() => console.log('Flowchart image loaded successfully')}
-                  onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-                    console.error('Image failed to load, showing detailed flowchart placeholder');
-                    const target = e.currentTarget;
-                    target.style.display = 'none';
-                    const fallback = target.parentElement?.querySelector('.flowchart-placeholder');
-                    if (fallback) (fallback as HTMLElement).style.display = 'flex';
-                  }}
-                />
-                
-                {/* Detailed Flowchart Placeholder - show by default */}
+                {/* Detailed Flowchart Placeholder */}
                 <div className="flowchart-placeholder flex flex-col items-center justify-center text-center p-4 w-full h-full">
                   <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-lg max-w-full max-h-full overflow-auto">
                     <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-4 text-center">Homie AI Platform</h3>
@@ -217,24 +203,7 @@ const HeroSection = () => {
 
             {/* Enlarged Flowchart Content */}
             <div className="p-8 h-full overflow-auto">
-              {/* Try to load the image */}
-              <img 
-                src="/roomie-ai-flowchart.png" 
-                alt="Homie AI Flowchart - Tenant, Landlord, and Renovation Companies Features"
-                className="w-full h-auto max-h-[70vh] object-contain rounded-lg"
-                loading="eager"
-                style={{ display: 'none' }} // Hide by default since file doesn't exist
-                onLoad={() => console.log('Modal image loaded successfully')}
-                onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-                  console.error('Modal image failed to load, showing placeholder');
-                  const target = e.currentTarget;
-                  target.style.display = 'none';
-                  const fallback = target.parentElement?.querySelector('.modal-flowchart-placeholder');
-                  if (fallback) (fallback as HTMLElement).style.display = 'block';
-                }}
-              />
-              
-              {/* Modal Flowchart Placeholder - show by default */}
+              {/* Modal Flowchart Placeholder */}
               <div className="modal-flowchart-placeholder block">
                 <div className="bg-white dark:bg-slate-800 rounded-xl p-8 shadow-lg max-w-full mx-auto">
                   <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-6 text-center">Homie AI Platform</h3>

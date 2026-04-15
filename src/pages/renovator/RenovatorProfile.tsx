@@ -58,7 +58,8 @@ export default function RenovatorProfile() {
                 setJoinedDate(new Date(user.created_at).toLocaleDateString());
             }
         }
-    }, [user]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [user?.id]);
 
     const fetchProfile = async () => {
         setLoading(true);

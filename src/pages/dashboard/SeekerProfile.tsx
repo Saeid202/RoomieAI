@@ -171,13 +171,13 @@ export default function SeekerProfilePage() {
 
                 // 3. Merge data from both tables
                 const defaultValues: Partial<ProfileFormValues> = {
-                    // From user_profiles (common fields)
+                    // From user_profiles (only columns that exist in schema)
                     full_name: userProfile?.full_name || user.user_metadata?.full_name || "",
-                    age: userProfile?.age || 18,
+                    age: 18, // age column doesn't exist in schema
                     email: userProfile?.email || user.email || "",
-                    phone: userProfile?.phone || "",
+                    phone: userProfile?.phone_number || "",  // schema uses phone_number
                     nationality: userProfile?.nationality || "",
-                    language: userProfile?.language || "",
+                    language: "",  // language column doesn't exist in schema
                     ethnicity: userProfile?.ethnicity || "",
                     religion: userProfile?.religion || "",
                     occupation: userProfile?.occupation || "",
@@ -227,7 +227,8 @@ export default function SeekerProfilePage() {
         };
 
         fetchProfile();
-    }, [user, form, toast]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [user?.id]);
 
     const onSubmit = async (values: ProfileFormValues) => {
         if (!user) return;
@@ -236,20 +237,19 @@ export default function SeekerProfilePage() {
             console.log("Saving profile for user:", user.id, values);
 
             // 1. Save COMMON fields to user_profiles
+            // Only include columns that exist in the schema
             const commonFields = {
                 id: user.id,
                 full_name: values.full_name,
-                age: values.age,
                 email: values.email,
-                phone: values.phone,
-                nationality: values.nationality,
-                language: values.language,
-                ethnicity: values.ethnicity,
-                religion: values.religion,
-                occupation: values.occupation,
-                gender: values.gender,
-                user_type: userType,
+                phone_number: values.phone || null,  // schema uses phone_number not phone
+                nationality: values.nationality || null,
+                ethnicity: values.ethnicity || null,
+                religion: values.religion || null,
+                occupation: values.occupation || null,
+                gender: values.gender || null,
                 updated_at: new Date().toISOString(),
+                // NOTE: age, language, user_type do not exist in user_profiles schema
             };
 
             const { error: profileError } = await supabase
@@ -262,35 +262,22 @@ export default function SeekerProfilePage() {
             }
 
             // 2. Save TENANT-SPECIFIC fields to tenant_profiles
+            // Only include columns that exist in the schema:
+            // bio, company, email, first_name, last_name, occupation, phone_number, is_profile_public
+            const nameParts = values.full_name.trim().split(' ');
             const tenantFields = {
                 user_id: user.id,
-                linkedin: values.linkedin || null,
-                about_me: values.about_me || null,
-                prefer_not_to_say: values.prefer_not_to_say || null,
-                profile_visibility: values.profile_visibility || 'public',
-                preferred_location: values.preferred_location || null,
-                budget_range: values.budget_range || null,
-                move_in_date_start: values.move_in_date_start || null,
-                move_in_date_end: values.move_in_date_end || null,
-                housing_type: values.housing_type || null,
-                living_space: values.living_space || null,
-                work_location: values.work_location || null,
-                work_location_legacy: values.work_location_legacy || null,
-                work_schedule: values.work_schedule || null,
-                pet_preference: values.pet_preference || null,
-                has_pets: values.has_pets || false,
-                pet_type: values.pet_type || null,
-                smoking: values.smoking || null,
-                lives_with_smokers: values.lives_with_smokers || null,
-                diet: values.diet || null,
-                diet_other: values.diet_other || null,
-                hobbies: values.hobbies || [],
-                // New Phase 1 fields
-                monthly_income: values.monthly_income ? parseFloat(values.monthly_income) : null,
-                emergency_contact_name: values.emergency_contact_name || null,
-                emergency_contact_phone: values.emergency_contact_phone || null,
-                emergency_contact_relationship: values.emergency_contact_relationship || null,
+                first_name: nameParts[0] || values.full_name,
+                last_name: nameParts.slice(1).join(' ') || '-',
+                occupation: values.occupation || 'Not specified',
+                bio: values.about_me || null,
+                email: values.email || null,
+                phone_number: values.phone || null,
+                is_profile_public: values.profile_visibility === 'public',
                 updated_at: new Date().toISOString(),
+                // NOTE: linkedin, preferred_location, budget_range, housing_type, work_location,
+                // work_schedule, pet_preference, hobbies, smoking, diet, monthly_income,
+                // emergency_contact_* etc. do NOT exist in tenant_profiles schema
             };
 
             const { error: tenantError } = await supabase

@@ -90,6 +90,7 @@ interface FormState {
   globalAddons: Array<{ name: string; price: string; description: string }>
   photos: File[]
   photoPreviews: string[]
+  photoCodes: string[]
   primaryPhotoIndex: number
   documents: Record<string, File | null>
   badgeText: string
@@ -184,6 +185,7 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, editingPr
     globalAddons: [],
     photos: [],
     photoPreviews: [],
+    photoCodes: [],
     primaryPhotoIndex: 0,
     documents: {
       brochure: null,
@@ -237,6 +239,7 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, editingPr
         
         if (images && images.length > 0) {
           const photoPreviews = images.map(img => img.public_url)
+          const photoCodes = images.map(img => img.code || '')
           const existingImages = images.map(img => ({
             id: img.id,
             public_url: img.public_url,
@@ -260,7 +263,8 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, editingPr
             })) || [],
             customBuildEnabled: editingProduct.custom_build_enabled || false,
             productSpecs: editingProduct.product_specs || '',
-            photoPreviews: photoPreviews,
+            photoPreviews,
+            photoCodes,
             existingImages: existingImages,
             primaryPhotoIndex: 0,
             enablePatternUpload: false,
@@ -500,14 +504,15 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, editingPr
         throw new Error(`Product was ${editingProduct ? 'updated but' : 'created but'} no data returned`)
       }
 
-      // Update existing images' image_order if they were reordered
+      // Update existing images' image_order and codes if they were reordered
       if (editingProduct && form.existingImages.length > 0) {
         const updatePromises = form.existingImages.map((img, idx) => {
           return supabase
             .from('construction_product_images')
             .update({ 
               image_order: idx,
-              is_primary: idx === 0  // First image is always primary
+              is_primary: idx === 0,  // First image is always primary
+              code: form.photoCodes[idx] || null
             })
             .eq('id', img.id)
         })
@@ -545,7 +550,8 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, editingPr
                 storage_path: filename,
                 public_url: urlData?.publicUrl,
                 is_primary: false,
-                image_order: form.existingImages.length + i
+                image_order: form.existingImages.length + i,
+                code: form.photoCodes[form.existingImages.length + i] || null
               }
             } catch (err) {
               return null
@@ -718,8 +724,12 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, editingPr
                 const files = Array.from(e.target.files || [])
                 const newPhotos = [...form.photos, ...files]
                 const newPreviews = files.map(f => URL.createObjectURL(f))
+                const newCodes = files.map(() => '') // Empty codes for new photos
+                console.log('Adding new photos:', files.length, 'Current photoCodes:', form.photoCodes.length)
                 updateForm('photos', newPhotos)
                 updateForm('photoPreviews', [...form.photoPreviews, ...newPreviews])
+                updateForm('photoCodes', [...form.photoCodes, ...newCodes])
+                console.log('Updated photoCodes length:', [...form.photoCodes, ...newCodes].length)
               }}
             />
           </div>
@@ -750,6 +760,11 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, editingPr
                 >
                   + Add More Photos
                 </button>
+              </div>
+              <div style={{ marginBottom: 8, padding: '8px 12px', background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: 6 }}>
+                <p style={{ fontSize: 12, color: '#0369a1', margin: 0, fontWeight: 500 }}>
+                  <strong>Product Codes:</strong> Enter reference codes (e.g., MOD-001, CAB-2024) for each photo below. These will be displayed to customers.
+                </p>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))', gap: 12 }}>
                 {form.photoPreviews.map((preview, idx) => {
@@ -789,6 +804,7 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, editingPr
                           // Swap photos
                           ;[newPhotos[sourceIdx], newPhotos[idx]] = [newPhotos[idx], newPhotos[sourceIdx]]
                           ;[newPreviews[sourceIdx], newPreviews[idx]] = [newPreviews[idx], newPreviews[sourceIdx]]
+                          ;[form.photoCodes[sourceIdx], form.photoCodes[idx]] = [form.photoCodes[idx], form.photoCodes[sourceIdx]]
                           
                           // Swap existing images if both are existing
                           if (sourceIdx < form.existingImages.length && idx < form.existingImages.length) {
@@ -797,6 +813,7 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, editingPr
                           
                           updateForm('photos', newPhotos)
                           updateForm('photoPreviews', newPreviews)
+                          updateForm('photoCodes', form.photoCodes)
                           updateForm('existingImages', newExistingImages)
                         }
                         setDraggedIndex(null)
@@ -894,10 +911,12 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, editingPr
                           // Remove from form state
                           const newPhotos = form.photos.filter((_, i) => i !== idx)
                           const newPreviews = form.photoPreviews.filter((_, i) => i !== idx)
+                          const newCodes = form.photoCodes.filter((_, i) => i !== idx)
                           const newExistingImages = form.existingImages.filter((_, i) => i !== idx)
                           
                           updateForm('photos', newPhotos)
                           updateForm('photoPreviews', newPreviews)
+                          updateForm('photoCodes', newCodes)
                           updateForm('existingImages', newExistingImages)
                           
                           if (form.primaryPhotoIndex === idx) {
@@ -924,10 +943,44 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, editingPr
                         }}>
                         ✕
                       </button>
+                      {/* Code input field */}
+                      {console.log('Rendering code input for index:', idx, 'photoCodes length:', form.photoCodes.length, 'value:', form.photoCodes[idx] || '')}
+                      <input
+                        type="text"
+                        placeholder="Code (e.g., MOD-001)"
+                        value={form.photoCodes[idx] || ''}
+                        onChange={(e) => {
+                          const newCodes = [...form.photoCodes]
+                          newCodes[idx] = e.target.value
+                          updateForm('photoCodes', newCodes)
+                        }}
+                        style={{
+                          position: 'absolute',
+                          bottom: -35,
+                          left: 0,
+                          right: 0,
+                          width: '100%',
+                          height: 28,
+                          fontSize: 11,
+                          padding: '4px 6px',
+                          border: '1px solid #e2e8f0',
+                          borderRadius: 4,
+                          background: '#ffffff',
+                          textAlign: 'center',
+                          fontWeight: 500,
+                          color: '#475569',
+                          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                          zIndex: 10,
+                        }}
+                        onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#FF6B35'; e.currentTarget.style.background = '#fff5f0' }}
+                        onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.background = '#f8fafc' }}
+                      />
                     </div>
                   )
                 })}
               </div>
+              {/* Add spacing for code inputs */}
+              <div style={{ height: 45 }}></div>
             </div>
           )}
         </div>

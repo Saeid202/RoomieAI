@@ -55,7 +55,8 @@ export default function PayoutSetup() {
       })
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [user]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   const handleBankSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const bank = CANADIAN_BANKS.find(b => b.name === e.target.value);

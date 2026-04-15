@@ -8,13 +8,12 @@ let lastLogTime = 0;
 export const useAuth = () => {
   const auth = useAuthOriginal();
   
-  // Use memoized logging to prevent excessive console output
+  // Simplified auth hook to prevent performance issues
   const loggedAuth = useMemo(() => {
-    // Only log in development environment and throttle logging
+    // Only log in development environment and reduce frequency
     if (process.env.NODE_ENV === 'development') {
-      // Throttle logging to prevent console spam
       const now = Date.now();
-      if (!lastLogTime || now - lastLogTime > 1000) {
+      if (!lastLogTime || now - lastLogTime > 5000) { // Reduced frequency to 5 seconds
         console.log("useAuth hook called, auth state:", { 
           user: auth.user?.email || null, 
           authenticated: !!auth.user, 

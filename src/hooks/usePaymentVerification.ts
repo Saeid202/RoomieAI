@@ -11,7 +11,8 @@ export function usePaymentVerification() {
 
   useEffect(() => {
     checkVerificationStatus();
-  }, [user, session]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, !!session]);
 
   const checkVerificationStatus = async () => {
     if (!session) {

@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useMemo, useState, ReactNode } from 'react';
 
 // Define possible user roles
 export type UserRole = 'seeker' | 'landlord' | 'admin' | 'developer' | 'renovator' | 'mortgage_broker' | 'lawyer' | 'lender';
@@ -14,8 +14,10 @@ export function RoleProvider({ children }: { children: ReactNode }) {
   // Don't default to 'seeker' - let RoleInitializer set it
   const [role, setRole] = useState<UserRole | null>(null);
 
+  const value = useMemo(() => ({ role, setRole }), [role]);
+
   return (
-    <RoleContext.Provider value={{ role, setRole }}>
+    <RoleContext.Provider value={value}>
       {children}
     </RoleContext.Provider>
   );

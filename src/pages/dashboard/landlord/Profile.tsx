@@ -80,7 +80,8 @@ export default function LandlordProfilePage() {
         if (user) {
             loadProfileData();
         }
-    }, [user]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [user?.id]);
 
     const loadProfileData = async () => {
         if (!user) return;

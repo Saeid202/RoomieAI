@@ -35,9 +35,15 @@ const DEFAULT_FINISHES = [
 ]
 
 export default function ConstructionProductDetail() {
+  console.log('ConstructionProductDetail component rendering')
+  
   const { slug } = useParams<{ slug: string }>()
+  console.log('Slug from params:', slug)
+  
   const navigate = useNavigate()
   const { data: product, isLoading, error } = useProductBySlug(slug || '')
+  console.log('Product data:', { product, isLoading, error })
+  
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState(0)
   const [selectedFinish, setSelectedFinish] = useState(0)
@@ -57,7 +63,8 @@ export default function ConstructionProductDetail() {
             color: null,
             border: '#ddd',
             imageUrl: option.imageUrl,
-            isPattern: true
+            isPattern: true,
+            code: option.code || null
           }
         } else {
           return {
@@ -65,7 +72,8 @@ export default function ConstructionProductDetail() {
             color: option.hex,
             border: option.hex === '#F5F5F3' || option.hex === '#FAF9F6' ? '#ddd' : '#333',
             imageUrl: null,
-            isPattern: false
+            isPattern: false,
+            code: option.code || null
           }
         }
       })
@@ -117,9 +125,13 @@ export default function ConstructionProductDetail() {
     setDownloadingDocs(false)
   }
 
-  if (isLoading) return <ProductDetailSkeleton />
+  if (isLoading) {
+    console.log('ConstructionProductDetail: Showing loading skeleton')
+    return <ProductDetailSkeleton />
+  }
 
   if (error || !product) {
+    console.log('ConstructionProductDetail: Showing error state', { error, product })
     return (
       <div style={{ fontFamily: 'system-ui, sans-serif', minHeight: '100vh', background: C.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ textAlign: 'center' }}>
@@ -132,6 +144,8 @@ export default function ConstructionProductDetail() {
       </div>
     )
   }
+
+  console.log('ConstructionProductDetail: Rendering main content for product:', product?.title)
 
   const images = product.construction_product_images || []
   const displayImage = selectedImage || images.find(img => img.is_primary)?.public_url || images[0]?.public_url
@@ -242,6 +256,23 @@ export default function ConstructionProductDetail() {
                     alt={`${product.title} - ${idx + 1}`}
                     style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                   />
+                  {/* Code overlay on thumbnail */}
+                  {img.code && (
+                    <div style={{
+                      position: 'absolute',
+                      top: 4,
+                      left: 4,
+                      background: 'rgba(0, 0, 0, 0.8)',
+                      color: C.white,
+                      fontSize: 10,
+                      fontWeight: 600,
+                      padding: '2px 4px',
+                      borderRadius: 3,
+                      backdropFilter: 'blur(4px)',
+                    }}>
+                      {img.code}
+                    </div>
+                  )}
                   {displayImage === img.public_url && (
                     <div style={{
                       position: 'absolute',
@@ -275,12 +306,36 @@ export default function ConstructionProductDetail() {
               }}>
                 <div style={{ borderRadius: 8, overflow: 'hidden', background: '#e8e4dc', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: displayImage ? 'none' : 'default', position: 'relative' }} onClick={() => displayImage && setEnlargedImage(displayImage)} onMouseEnter={(e) => { if (displayImage) { const div = document.createElement('div'); div.textContent = '👷'; div.style.position = 'fixed'; div.style.pointerEvents = 'none'; div.style.fontSize = '48px'; div.style.zIndex = '10000'; div.id = 'emoji-cursor'; document.body.appendChild(div); const moveCursor = (ev: MouseEvent) => { const el = document.getElementById('emoji-cursor'); if (el) { el.style.left = (ev.clientX - 24) + 'px'; el.style.top = (ev.clientY - 24) + 'px'; } }; e.currentTarget.addEventListener('mousemove', moveCursor as any); e.currentTarget.addEventListener('mouseleave', () => { const el = document.getElementById('emoji-cursor'); if (el) el.remove(); e.currentTarget.removeEventListener('mousemove', moveCursor as any); }); } }}>
                   {displayImage ? (
-                    <img
-                      src={displayImage}
-                      alt={product.title}
-                      style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
-                      loading="eager"
-                    />
+                    <>
+                      <img
+                        src={displayImage}
+                        alt={product.title}
+                        style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
+                        loading="eager"
+                      />
+                      {/* Code overlay on main image */}
+                      {(() => {
+                        const currentImage = images.find(img => img.public_url === displayImage)
+                        return currentImage?.code && (
+                          <div style={{
+                            position: 'absolute',
+                            top: 12,
+                            right: 12,
+                            background: 'rgba(0, 0, 0, 0.85)',
+                            color: C.white,
+                            fontSize: 14,
+                            fontWeight: 600,
+                            padding: '6px 10px',
+                            borderRadius: 6,
+                            backdropFilter: 'blur(8px)',
+                            border: `1px solid ${C.gold}`,
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                          }}>
+                            {currentImage.code}
+                          </div>
+                        )
+                      })()}
+                    </>
                   ) : (
                     <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#e8e4dc', color: C.subtext, fontSize: 14, fontWeight: 500 }}>
                       No image available
@@ -428,6 +483,7 @@ export default function ConstructionProductDetail() {
                           onClick={() => setSelectedFinish(i)}
                           style={{ cursor: 'pointer', textAlign: 'center' }}
                         >
+                          <div style={{ position: 'relative', display: 'inline-block' }}>
                           {finish.isPattern ? (
                             <img
                               src={finish.imageUrl}
@@ -455,6 +511,24 @@ export default function ConstructionProductDetail() {
                               marginBottom: 6,
                             }} />
                           )}
+                          {/* Code overlay on pattern/color */}
+                          {finish.code && (
+                            <div style={{
+                              position: 'absolute',
+                              top: 2,
+                              right: 2,
+                              background: 'rgba(0, 0, 0, 0.8)',
+                              color: C.white,
+                              fontSize: 8,
+                              fontWeight: 600,
+                              padding: '1px 3px',
+                              borderRadius: 2,
+                              backdropFilter: 'blur(2px)',
+                            }}>
+                              {finish.code}
+                            </div>
+                          )}
+                        </div>
                           <div style={{ fontSize: 10, color: C.charcoal, fontWeight: 500, lineHeight: 1.3, maxWidth: 56 }}>{finish.label}</div>
                           <div style={{ fontSize: 9, color: C.sage, fontWeight: 500, marginTop: 2 }}>In Stock</div>
                         </div>

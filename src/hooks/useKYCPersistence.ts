@@ -38,7 +38,8 @@ export function useKYCPersistence(): UseKYCPersistenceReturn {
     } else {
       setLoading(false);
     }
-  }, [user, session]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, !!session]);
 
   const saveVerificationState = (state: Partial<VerificationState>) => {
     try {

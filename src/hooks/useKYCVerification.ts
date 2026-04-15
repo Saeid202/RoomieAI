@@ -26,7 +26,8 @@ export function useKYCVerification(): UseKYCVerificationReturn {
     } else {
       setLoading(false);
     }
-  }, [user, session]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, !!session]);
 
   const fetchStatus = async () => {
     if (!session) return;

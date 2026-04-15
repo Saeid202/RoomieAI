@@ -52,6 +52,7 @@ export interface ConstructionColorPattern {
   sort_order: number;
   created_at: string;
   updated_at: string;
+  code?: string;
 }
 
 export interface ColorPatternUploadData {

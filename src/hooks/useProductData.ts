@@ -27,6 +27,7 @@ export interface Product {
     public_url: string;
     is_primary: boolean;
     image_order: number;
+    code?: string | null;
   }>;
   construction_product_documents: Array<{
     id: string;
@@ -54,7 +55,7 @@ async function fetchProductWithRelations(slug: string): Promise<Product> {
   const [imagesResult, supplierResult] = await Promise.all([
     supabase
       .from('construction_product_images')
-      .select('id, public_url, is_primary, image_order')
+      .select('id, public_url, is_primary, image_order, code')
       .eq('product_id', productData.id)
       .order('is_primary', { ascending: false })
       .order('image_order', { ascending: true }),
@@ -93,7 +94,7 @@ export const useProducts = (filter: string = 'all') => {
       const productIds = productsData.map(p => p.id);
       const { data: imagesData } = await supabase
         .from('construction_product_images')
-        .select('id, product_id, public_url, is_primary, image_order')
+        .select('id, product_id, public_url, is_primary, image_order, code')
         .in('product_id', productIds)
         .order('is_primary', { ascending: false })
         .order('image_order', { ascending: true });
@@ -101,7 +102,7 @@ export const useProducts = (filter: string = 'all') => {
       const imagesByProduct: Record<string, Product['construction_product_images']> = {};
       for (const img of (imagesData ?? [])) {
         if (!imagesByProduct[img.product_id]) imagesByProduct[img.product_id] = [];
-        imagesByProduct[img.product_id].push({ id: img.id, public_url: img.public_url, is_primary: img.is_primary, image_order: img.image_order });
+        imagesByProduct[img.product_id].push({ id: img.id, public_url: img.public_url, is_primary: img.is_primary, image_order: img.image_order, code: img.code });
       }
 
       return productsData.map(p => ({

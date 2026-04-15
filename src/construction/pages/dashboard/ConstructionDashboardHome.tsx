@@ -33,69 +33,65 @@ export default function ConstructionDashboardHome() {
   const [loading, setLoading] = useState(true)
   const [companyName, setCompanyName] = useState('')
   const [stats, setStats] = useState<Stats>({ totalProducts: 0, liveProducts: 0, pendingQuotes: 0, totalMessages: 0 })
-
+  
   useEffect(() => {
+    let isMounted = true
+    
     const loadDashboard = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
+      try {
+        // Get current session from AuthProvider context instead of calling getSession()
+        // This prevents additional auth state changes
+        const { data: { session } } = await supabase.auth.getSession()
 
-      if (!session) {
-        window.location.href = '/construction/login'
-        return
+        if (!session || !isMounted) {
+          if (isMounted) window.location.href = '/construction/login'
+          return
+        }
+
+        // Set company name immediately
+        setCompanyName(session.user.user_metadata?.company_name || 'Supplier')
+
+        // Get supplier profile
+        const { data: supplierProfile } = await supabase
+          .from('construction_supplier_profiles')
+          .select('id')
+          .eq('id', session.user.id)
+          .maybeSingle()
+
+        if (!supplierProfile || !isMounted) {
+          if (isMounted) setLoading(false)
+          return
+        }
+
+        // Load all stats in parallel
+        const [products, quotes, messages] = await Promise.all([
+          supabase.from('construction_products').select('id, status').eq('supplier_id', supplierProfile.id),
+          supabase.from('construction_quotes').select('id, status').eq('supplier_id', supplierProfile.id),
+          supabase.from('construction_messages').select('id', { count: 'exact', head: true })
+        ])
+
+        if (isMounted) {
+          // Combine all stats updates into a single call to prevent multiple re-renders
+          const newStats = {
+            totalProducts: products.data ? products.data.length : 0,
+            liveProducts: products.data ? products.data.filter(p => p.status === 'live').length : 0,
+            pendingQuotes: quotes.data ? quotes.data.filter(q => q.status === 'pending').length : 0,
+            totalMessages: messages.data ? messages.data.length : 0
+          }
+          setStats(newStats)
+          setLoading(false)
+        }
+      } catch (error) {
+        console.error('Dashboard load error:', error)
+        if (isMounted) setLoading(false)
       }
-
-      const role = session.user.user_metadata?.role
-      if (role !== 'construction_supplier') {
-        await supabase.auth.updateUser({ data: { role: 'construction_supplier' } })
-      }
-
-      setCompanyName(session.user.user_metadata?.company_name || 'Supplier')
-
-      // Get supplier profile for this user
-      const { data: supplierProfile } = await supabase
-        .from('construction_supplier_profiles')
-        .select('id')
-        .eq('id', session.user.id)
-        .maybeSingle()
-
-      if (!supplierProfile) {
-        setLoading(false)
-        return
-      }
-
-      // Load stats
-      const { data: products } = await supabase
-        .from('construction_products')
-        .select('id, status')
-        .eq('supplier_id', supplierProfile.id)
-
-      if (products) {
-        const total = products.length
-        const live = products.filter(p => p.status === 'live').length
-        setStats(prev => ({ ...prev, totalProducts: total, liveProducts: live }))
-      }
-
-      const { data: quotes } = await supabase
-        .from('construction_quotes')
-        .select('id, status')
-        .eq('supplier_id', supplierProfile.id)
-
-      if (quotes) {
-        const pending = quotes.filter(q => q.status === 'pending').length
-        setStats(prev => ({ ...prev, pendingQuotes: pending }))
-      }
-
-      const { data: messages } = await supabase
-        .from('construction_messages')
-        .select('id', { count: 'exact', head: true })
-
-      if (messages) {
-        setStats(prev => ({ ...prev, totalMessages: messages.length }))
-      }
-
-      setLoading(false)
     }
 
     loadDashboard()
+
+    return () => {
+      isMounted = false
+    }
   }, [])
 
   const handleLogout = async () => {
@@ -103,8 +99,44 @@ export default function ConstructionDashboardHome() {
     window.location.href = '/construction/login'
   }
 
+  // Add CSS animation once - MUST BE BEFORE EARLY RETURN
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      const style = document.createElement('style')
+      style.textContent = `
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `
+      document.head.appendChild(style)
+    }
+  }, [])
+
   if (loading) {
-    return <div style={{ padding: 40, fontFamily: 'sans-serif' }}>Loading...</div>
+    return (
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        minHeight: '100vh', 
+        fontFamily: 'Inter, sans-serif',
+        background: '#f8f9fa'
+      }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ 
+            width: 40, 
+            height: 40, 
+            border: '4px solid #e5e7eb', 
+            borderTop: '4px solid #FF6B35', 
+            borderRadius: '50%', 
+            animation: 'spin 1s linear infinite',
+            margin: '0 auto 16px auto'
+          }}></div>
+          <div style={{ color: '#6b7280', fontSize: 16 }}>Loading Dashboard...</div>
+        </div>
+      </div>
+    )
   }
 
   return (

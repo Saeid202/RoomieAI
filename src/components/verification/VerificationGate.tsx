@@ -21,10 +21,11 @@ export function VerificationGate({ children, feature = "this feature", redirectT
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    if (user && session) {
+    if (user?.id && session) {
       checkVerificationStatus();
     }
-  }, [user, session]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, !!session]);
 
   const checkVerificationStatus = async () => {
     if (!session) return;

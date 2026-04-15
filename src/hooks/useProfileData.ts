@@ -23,7 +23,6 @@ export function useProfileData() {
     }
 
     const savedPreference = localStorage.getItem('userPreference') as UserPreference;
-    
     const validPreference = savedPreference === 'co-owner' ? savedPreference : null;
     setUserPreference(validPreference);
 
@@ -50,8 +49,6 @@ export function useProfileData() {
         }
 
         if (data) {
-          console.log("Fetched data:", data);
-          
           setProfileData(mapDbRowToFormValues(data));
         }
       } catch (error: any) {
@@ -67,7 +64,8 @@ export function useProfileData() {
     };
 
     loadProfileData();
-  }, [user, navigate, toast]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   const handleSaveProfile = async (formData: ProfileFormValues) => {
     try {
