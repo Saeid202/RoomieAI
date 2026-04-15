@@ -162,7 +162,7 @@ export const PropertyVideoPlayer: React.FC<PropertyVideoPlayerProps> = ({
                         <img
                             src={img}
                             alt={`Slide ${index}`}
-                            className={`w-full h-full object-cover transition-transform duration-[10000ms] ease-linear ${index === currentImageIndex && isPlaying ? 'scale-110' : 'scale-100'}`}
+                            className={`w-full h-full object-cover transition-transform duration-&lsqb;10000ms&rsqb; ease-linear ${index === currentImageIndex && isPlaying ? 'scale-110' : 'scale-100'}`}
                         />
                         {/* Cinematic Vignette */}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-black/30" />

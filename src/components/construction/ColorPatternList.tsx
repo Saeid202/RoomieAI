@@ -3,13 +3,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { 
-  DotsVerticalIcon, 
-  Pencil1Icon, 
-  TrashIcon,
-  ImageIcon,
+  MoreVertical, 
+  Edit, 
+  Trash2,
+  Image,
   Palette,
-  DragHandleDots2Icon
-} from '@radix-ui/react-icons';
+  GripVertical
+} from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -231,7 +231,7 @@ const PatternCard: React.FC<PatternCardProps> = ({
                 disabled={isFirst}
                 onClick={() => onReorder(index, index - 1)}
               >
-                <DragHandleDots2Icon className="h-4 w-4" />
+                <GripVertical className="h-4 w-4" />
               </Button>
               <Button
                 variant="ghost"
@@ -240,7 +240,7 @@ const PatternCard: React.FC<PatternCardProps> = ({
                 disabled={isLast}
                 onClick={() => onReorder(index, index + 1)}
               >
-                <DragHandleDots2Icon className="h-4 w-4 rotate-180" />
+                <GripVertical className="h-4 w-4 rotate-180" />
               </Button>
             </div>
           )}
@@ -256,11 +256,11 @@ const PatternCard: React.FC<PatternCardProps> = ({
             ) : (
               <div className="w-16 h-16 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center bg-gray-50">
                 {pattern.is_pattern_based ? (
-                  <ImageIcon className="h-6 w-6 text-gray-400" />
+                  <Image className="h-6 w-6 text-gray-400" />
                 ) : (
                   <div 
                     className="w-10 h-10 rounded"
-                    style={{ backgroundColor: pattern.hex_code || '#e5e7eb' }}
+                    style={{ backgroundColor: '#e5e7eb' }}
                   />
                 )}
               </div>
@@ -277,11 +277,6 @@ const PatternCard: React.FC<PatternCardProps> = ({
                 {pattern.is_pattern_based ? 'Pattern' : 'Color'}
               </Badge>
             </div>
-            {pattern.hex_code && (
-              <p className="text-xs text-muted-foreground">
-                {pattern.hex_code}
-              </p>
-            )}
           </div>
 
           {/* Actions */}
@@ -289,19 +284,19 @@ const PatternCard: React.FC<PatternCardProps> = ({
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                  <DotsVerticalIcon className="h-4 w-4" />
+                  <MoreVertical className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={onEdit}>
-                  <Pencil1Icon className="h-4 w-4 mr-2" />
+                  <Edit className="h-4 w-4 mr-2" />
                   Edit
                 </DropdownMenuItem>
                 <DropdownMenuItem 
                   onClick={onDelete}
                   className="text-red-600"
                 >
-                  <TrashIcon className="h-4 w-4 mr-2" />
+                  <Trash2 className="h-4 w-4 mr-2" />
                   Delete
                 </DropdownMenuItem>
               </DropdownMenuContent>
