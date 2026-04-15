@@ -78,28 +78,28 @@ export const SignupDialog = ({ isOpen, setIsOpen }: SignupDialogProps) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto p-4 sm:p-6">
-        <DialogHeader className="space-y-2">
-          <DialogTitle className="text-lg sm:text-xl font-bold text-center">
+      <DialogContent className="sm:max-w-[480px] max-h-[90vh] overflow-y-auto p-6 sm:p-8">
+        <DialogHeader className="space-y-4 text-center">
+          <DialogTitle className="text-2xl font-bold text-gray-900">
             Create an account
           </DialogTitle>
-          <DialogDescription className="text-center text-sm">
+          <DialogDescription className="text-base text-gray-600">
             Join Homie AI to find your perfect match!
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-3">
+        <div className="space-y-6">
           <SignupForm
             onSubmit={handleSignupSubmit}
             isLoading={isLoading}
           />
 
-          <div className="relative my-3">
+          <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-gray-300"></div>
             </div>
-            <div className="relative flex justify-center text-xs">
-              <span className="px-2 bg-white text-gray-500">Or continue with</span>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-4 bg-white text-gray-500 font-medium">Or continue with</span>
             </div>
           </div>
 
@@ -109,16 +109,18 @@ export const SignupDialog = ({ isOpen, setIsOpen }: SignupDialogProps) => {
             onLinkedInClick={() => handleSocialLogin('linkedin')}
           />
 
-          <div className="text-xs text-center pt-2">
-            Already have an account?{" "}
-            <button
-              onClick={() => {
-                setIsOpen(false);
-              }}
-              className="text-roomie-purple hover:underline font-semibold"
-            >
-              Sign in
-            </button>
+          <div className="text-center pt-4 border-t border-gray-100">
+            <p className="text-sm text-gray-600">
+              Already have an account?{" "}
+              <button
+                onClick={() => {
+                  setIsOpen(false);
+                }}
+                className="text-roomie-purple hover:text-roomie-dark font-semibold transition-colors duration-200"
+              >
+                Sign in
+              </button>
+            </p>
           </div>
         </div>
       </DialogContent>

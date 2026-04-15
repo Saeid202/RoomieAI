@@ -16,7 +16,6 @@ import { toast } from "@/hooks/use-toast";
 import { useRole } from "@/contexts/RoleContext";
 import { UserRole } from "@/contexts/RoleContext";
 import { supabase } from "@/integrations/supabase/client";
-import { TestComponent } from "@/components/auth/TestComponent";
 
 interface LoginDialogProps {
   isOpen: boolean;
@@ -175,57 +174,70 @@ export const LoginDialog = ({ isOpen, setIsOpen }: LoginDialogProps) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="sm:max-w-[600px]">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-bold text-center">
+      <DialogContent className="sm:max-w-[480px] max-h-[90vh] overflow-y-auto p-6 sm:p-8">
+        <DialogHeader className="space-y-4 text-center">
+          <DialogTitle className="text-2xl font-bold text-gray-900">
             {showForgotPassword ? "Reset Password" : "Login to your account"}
           </DialogTitle>
-          <DialogDescription className="text-center">
+          <DialogDescription className="text-base text-gray-600">
             {showForgotPassword
               ? "Enter your email to receive a password reset link"
               : "Welcome back to Homie AI! Enter your credentials to continue."}
           </DialogDescription>
         </DialogHeader>
-        
-        {/* TEST COMPONENT - This should be RED */}
-        <TestComponent />
 
-        {showForgotPassword ? (
-          <ForgotPasswordForm
-            email={forgotEmail}
-            setEmail={setForgotEmail}
-            isLoading={isLoading}
-            onSubmit={handleForgotPassword}
-            onBackToLogin={() => setShowForgotPassword(false)}
-          />
-        ) : (
-          <>
-            <LoginForm
-              email={email}
-              setEmail={setEmail}
-              password={password}
-              setPassword={setPassword}
+        <div className="space-y-6">
+          {showForgotPassword ? (
+            <ForgotPasswordForm
+              email={forgotEmail}
+              setEmail={setForgotEmail}
               isLoading={isLoading}
-              onSubmit={handleLoginSubmit}
-              onForgotPassword={() => setShowForgotPassword(true)}
+              onSubmit={handleForgotPassword}
+              onBackToLogin={() => setShowForgotPassword(false)}
             />
+          ) : (
+            <>
+              <LoginForm
+                email={email}
+                setEmail={setEmail}
+                password={password}
+                setPassword={setPassword}
+                isLoading={isLoading}
+                onSubmit={handleLoginSubmit}
+                onForgotPassword={() => setShowForgotPassword(true)}
+              />
 
-            <div className="relative mt-6 mb-4">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300"></div>
+              <div className="relative my-6">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-300"></div>
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-4 bg-white text-gray-500 font-medium">Or continue with</span>
+                </div>
               </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">Or continue with</span>
-              </div>
-            </div>
 
-            <SocialLoginButtons
-              onGoogleClick={() => handleSocialLogin('google')}
-              onFacebookClick={() => handleSocialLogin('facebook')}
-              onLinkedInClick={() => handleSocialLogin('linkedin')}
-            />
-          </>
-        )}
+              <SocialLoginButtons
+                onGoogleClick={() => handleSocialLogin('google')}
+                onFacebookClick={() => handleSocialLogin('facebook')}
+                onLinkedInClick={() => handleSocialLogin('linkedin')}
+              />
+
+              <div className="text-center pt-4 border-t border-gray-100">
+                <p className="text-sm text-gray-600">
+                  Don't have an account?{" "}
+                  <button
+                    onClick={() => {
+                      setIsOpen(false);
+                    }}
+                    className="text-roomie-purple hover:text-roomie-dark font-semibold transition-colors duration-200"
+                  >
+                    Sign up
+                  </button>
+                </p>
+              </div>
+            </>
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   );
