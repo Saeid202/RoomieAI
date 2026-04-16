@@ -30,10 +30,80 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Ensure a user_profiles row exists for the given user.
+  // Safety net for cases where the DB trigger didn't fire
+  // (e.g. existing OAuth users, trigger failures, etc.)
+  const ensureProfile = async (user: User) => {
+    try {
+      const { data: existing } = await supabase
+        .from("user_profiles")
+        .select("id")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (!existing) {
+        const meta = user.user_metadata ?? {};
+
+        // Resolve first_name from multiple OAuth provider formats
+        const firstName =
+          meta.first_name ||
+          meta.given_name ||
+          (meta.full_name || meta.name || meta.display_name || "").split(" ")[0] ||
+          "User";
+
+        // Resolve last_name
+        const lastName =
+          meta.last_name ||
+          meta.family_name ||
+          (meta.full_name || meta.name || meta.display_name || "")
+            .split(" ")
+            .slice(1)
+            .join(" ") ||
+          "Unknown";
+
+        await supabase.from("user_profiles").upsert(
+          {
+            id: user.id,
+            first_name: firstName,
+            last_name: lastName,
+            email: user.email ?? "",
+            role: meta.role ?? "seeker",
+          } as any,
+          { onConflict: "id" }
+        );
+      }
+    } catch (err) {
+      // Non-fatal — profile will be created on next login or by the trigger
+      console.warn("ensureProfile failed:", err);
+    }
+  };
+
   useEffect(() => {
     let mounted = true;
+    let initialSessionHandled = false;
 
-    // Get initial session first, then subscribe to changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!mounted) return;
+
+      if (session?.user?.id === user?.id && initialSessionHandled) {
+        // Same user, same session — skip to avoid unnecessary re-renders
+        setLoading(false);
+        return;
+      }
+
+      initialSessionHandled = true;
+      setSession(session);
+      setUser(session?.user ?? null);
+      setLoading(false);
+
+      if (session?.user) {
+        ensureProfile(session.user);
+      }
+    });
+
+    // Get initial session to bootstrap — onAuthStateChange will also fire
     supabase.auth.getSession().then(({ data: { session }, error }) => {
       if (!mounted) return;
 
@@ -43,18 +113,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (mounted) {
+      // Only set if onAuthStateChange hasn't already handled it
+      if (!initialSessionHandled) {
+        initialSessionHandled = true;
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+
+        if (session?.user) {
+          ensureProfile(session.user);
+        }
       }
     });
 
@@ -62,6 +130,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       mounted = false;
       subscription.unsubscribe();
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const signIn = async (email: string, password: string) => {
