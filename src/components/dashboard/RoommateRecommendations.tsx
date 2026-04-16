@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, startTransition } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useRoommateMatching } from "@/hooks/useRoommateMatching";
 import { ProfileLoadingHandler } from "./recommendations/ProfileLoadingHandler";
@@ -91,33 +91,33 @@ export function RoommateRecommendations({
           title="1. Matches"
           description="AI-powered roommate compatibility and planning tools."
           icon={Users}
-          onClick={() => navigate("/dashboard/matches")}
+          onClick={() => startTransition(() => navigate("/dashboard/matches"))}
         >
           <div className="space-y-1">
             <SubFeatureButton 
-              emoji="🔍" 
-              label="Ideal Roommate"
-              onClick={() => navigate("/dashboard/roommate-recommendations")}
+              emoji="🏠" 
+              label="My Profile"
+              onClick={() => startTransition(() => navigate("/dashboard/roommate-recommendations"))}
             />
             <SubFeatureButton 
               emoji="📅" 
               label="View Matches"
-              onClick={() => navigate("/dashboard/matches")}
+              onClick={() => startTransition(() => navigate("/dashboard/matches"))}
             />
             <SubFeatureButton 
               emoji="📅" 
               label="Plan Ahead"
-              onClick={() => navigate("/dashboard/plan-ahead-matching")}
+              onClick={() => startTransition(() => navigate("/dashboard/plan-ahead-matching"))}
             />
             <SubFeatureButton 
               emoji="🌙" 
               label="Opposite Schedule"
-              onClick={() => navigate("/dashboard/opposite-schedule")}
+              onClick={() => startTransition(() => navigate("/dashboard/opposite-schedule"))}
             />
             <SubFeatureButton 
               emoji="💼" 
               label="Work Exchange"
-              onClick={() => navigate("/dashboard/work-exchange")}
+              onClick={() => startTransition(() => navigate("/dashboard/work-exchange"))}
             />
           </div>
         </MasterBox>
@@ -127,7 +127,7 @@ export function RoommateRecommendations({
           title="2. Rental Options"
           description="Browse available rental listings and recommendations."
           icon={Home}
-          onClick={() => navigate("/dashboard/rental-options")}
+          onClick={() => startTransition(() => navigate("/dashboard/rental-options"))}
         />
         
         {/* My Applications Master Box */}
@@ -135,7 +135,7 @@ export function RoommateRecommendations({
           title="3. My Applications"
           description="Track rental applications, statuses, and decisions."
           icon={FileText}
-          onClick={() => navigate("/dashboard/applications")}
+          onClick={() => startTransition(() => navigate("/dashboard/applications"))}
         />
         
         {/* Payments Master Box */}
@@ -143,7 +143,7 @@ export function RoommateRecommendations({
           title="4. Payments"
           description="Rent payments, digital wallet, and transaction history."
           icon={CreditCard}
-          onClick={() => navigate("/dashboard/digital-wallet")}
+          onClick={() => startTransition(() => navigate("/dashboard/digital-wallet"))}
         />
         
         {/* Buying Opportunities Master Box */}
@@ -151,18 +151,18 @@ export function RoommateRecommendations({
           title="5. Buying Opportunities"
           description="Alternative paths to ownership through Homie AI."
           icon={TrendingUp}
-          onClick={() => navigate("/dashboard/buying-opportunities")}
+          onClick={() => startTransition(() => navigate("/dashboard/buying-opportunities"))}
         >
           <div className="space-y-1">
             <SubFeatureButton 
               emoji="🤝" 
               label="Co-ownership"
-              onClick={() => navigate("/dashboard/co-ownership-guide")}
+              onClick={() => startTransition(() => navigate("/dashboard/co-ownership-guide"))}
             />
             <SubFeatureButton 
               emoji="🏠" 
               label="Buy Unit"
-              onClick={() => navigate("/dashboard/buying-opportunities")}
+              onClick={() => startTransition(() => navigate("/dashboard/buying-opportunities"))}
             />
           </div>
         </MasterBox>
@@ -172,7 +172,7 @@ export function RoommateRecommendations({
           title="6. Renovators"
           description="Access trusted renovators and request emergency or planned renovations."
           icon={Hammer}
-          onClick={() => navigate("/dashboard/renovators")}
+          onClick={() => startTransition(() => navigate("/dashboard/renovators"))}
         />
         
         {/* Education Centre Master Box */}
@@ -180,7 +180,7 @@ export function RoommateRecommendations({
           title="7. Education Centre"
           description="Learn about renting, rights, ownership, and financial literacy."
           icon={BookOpen}
-          onClick={() => navigate("/dashboard/education-centre")}
+          onClick={() => startTransition(() => navigate("/dashboard/education-centre"))}
         />
         
         {/* AI Legal Assistant Master Box */}
@@ -188,7 +188,7 @@ export function RoommateRecommendations({
           title="8. AI Legal Assistant"
           description="Instant legal guidance for rental, housing, and disputes."
           icon={Bot}
-          onClick={() => navigate("/dashboard/legal-ai")}
+          onClick={() => startTransition(() => navigate("/dashboard/legal-ai"))}
         />
         
         {/* Space for more Master Boxes */}

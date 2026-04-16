@@ -1,14 +1,8 @@
-import { Routes, Route, Navigate, useLocation } from "react-router-dom";
-import * as React from "react";
-const { Suspense, lazy, startTransition } = React;
+﻿import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+import React, { Suspense, lazy, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
-import { ThemeProvider } from "@/providers/ThemeProvider";
-import { AuthProvider } from "@/providers/AuthProvider";
-import { RoleProvider } from "@/contexts/RoleContext";
 import { InstallPrompt } from "@/components/PWA/InstallPrompt";
 import { useAuth } from "@/hooks/useAuth";
-import { useEffect } from "react";
-import ConstructionDashboardHome from "@/construction/pages/dashboard/ConstructionDashboardHome";
 
 
 // Lazy load components for better performance
@@ -27,6 +21,7 @@ const PlanAheadMatchingPage = lazy(() => import("@/pages/dashboard/PlanAheadMatc
 const OppositeSchedulePage = lazy(() => import("@/pages/dashboard/OppositeSchedule"));
 const WorkExchangePage = lazy(() => import("@/pages/dashboard/WorkExchange"));
 const LGBTQMatchingPage = lazy(() => import("@/pages/dashboard/LGBTQMatching"));
+const IdealRoommatePage = lazy(() => import("@/pages/dashboard/IdealRoommate"));
 
 // Landlord pages - lazy loaded
 const LandlordDashboardPage = lazy(() => import("@/pages/dashboard/landlord/LandlordDashboard"));
@@ -148,6 +143,7 @@ const CoBuyingScenario = lazy(() => import("@/pages/dashboard/CoBuyingScenario")
 const CoOwnershipProfile = lazy(() => import("@/pages/dashboard/CoOwnershipProfile"));
 const ConstructionLogin = lazy(() => import("@/construction/pages/ConstructionLogin"));
 const ConstructionSignup = lazy(() => import("@/construction/pages/ConstructionSignup"));
+const ConstructionDashboardHome = lazy(() => import("@/construction/pages/dashboard/ConstructionDashboardHome"));
 
 const ConstructionProducts = lazy(() => import("@/construction/pages/dashboard/ConstructionProducts"));
 const ConstructionProductNew = lazy(() => import("@/construction/pages/dashboard/ConstructionProductNew"));
@@ -264,7 +260,7 @@ function AppRoutes() {
         <Route path="/construction/custom" element={<SuspenseWrapper><ConstructionCustomOrder /></SuspenseWrapper>} />
         <Route path="/construction/login" element={<SuspenseWrapper><ConstructionLogin /></SuspenseWrapper>} />
         <Route path="/construction/signup" element={<SuspenseWrapper><ConstructionSignup /></SuspenseWrapper>} />
-        <Route path="/construction/dashboard" element={<ConstructionDashboardHome />} />
+        <Route path="/construction/dashboard" element={<SuspenseWrapper><ConstructionDashboardHome /></SuspenseWrapper>} />
         <Route path="/construction/dashboard/products" element={<SuspenseWrapper><ConstructionProducts /></SuspenseWrapper>} />
         <Route path="/construction/dashboard/products/new" element={<SuspenseWrapper><ConstructionProductNew /></SuspenseWrapper>} />
         <Route path="/construction/dashboard/products/:id/edit" element={<SuspenseWrapper><ConstructionProductEdit /></SuspenseWrapper>} />
@@ -280,44 +276,59 @@ function AppRoutes() {
             <Dashboard />
           </ProtectedRoute>
         }>
+          {/* Seeker Profile & Core */}
+          <Route path="profile" element={
+          <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading profile...</div>}>
+            <SeekerProfilePage />
+          </Suspense>
+        } />
+          <Route path="user/:userId" element={<PublicProfilePage />} />
+          <Route path="settings" element={<SettingsPage />} />
+          <Route path="ai-chat" element={<AIChat />} />
+          
+          {/* Matching & Discovery */}
           <Route path="matches" element={<MatchesPage />} />
           <Route path="roommate-recommendations" element={<RoommateRecommendationsPage />} />
+          <Route path="ideal-roommate" element={<IdealRoommatePage />} />
+          <Route path="plan-ahead-matching" element={<PlanAheadMatchingPage />} />
+          <Route path="opposite-schedule" element={<OppositeSchedulePage />} />
+          <Route path="work-exchange" element={<WorkExchangePage />} />
+          <Route path="lgbtq-matching" element={<LGBTQMatchingPage />} />
+          
+          {/* Property Search & Applications */}
           <Route path="rental-options" element={<ErrorBoundary componentName="RentalOptionsPage"><RentalOptionsPage /></ErrorBoundary>} />
+          <Route path="find-property" element={<FindPropertyPage />} />
+          <Route path="rent-opportunities" element={<RentOpportunitiesPage />} />
+          <Route path="buying-opportunities" element={<BuyingOpportunitiesPage />} />
+          <Route path="applications" element={<ErrorBoundary componentName="MyApplicationsPage"><MyApplicationsPage /></ErrorBoundary>} />
+          <Route path="rental-application/:id" element={<ErrorBoundary componentName="RentalApplicationPage"><RentalApplicationPage /></ErrorBoundary>} />
+          <Route path="application-overview/:applicationId" element={<ApplicationOverviewPage />} />
+          
+          {/* Property Details */}
           <Route path="debug-properties" element={<DebugPropertiesPage />} />
           <Route path="rent/:id" element={<ErrorBoundary componentName="PropertyDetailsPage"><PropertyDetailsPage /></ErrorBoundary>} />
           <Route path="buy/:id" element={<ErrorBoundary componentName="PropertyDetailsPage"><PropertyDetailsPage /></ErrorBoundary>} />
           <Route path="co-ownership/:id" element={<ErrorBoundary componentName="PropertyDetailsPage"><PropertyDetailsPage /></ErrorBoundary>} />
           <Route path="property/:id/documents" element={<ErrorBoundary componentName="PropertyDocumentVault"><PropertyDocumentVault /></ErrorBoundary>} />
           <Route path="property-documents/:id" element={<ErrorBoundary componentName="PropertyDocumentVault"><PropertyDocumentVault /></ErrorBoundary>} />
-          <Route path="rental-application/:id" element={<ErrorBoundary componentName="RentalApplicationPage"><RentalApplicationPage /></ErrorBoundary>} />
-          <Route path="application-overview/:applicationId" element={<ApplicationOverviewPage />} />
-          <Route path="plan-ahead-matching" element={<PlanAheadMatchingPage />} />
-          <Route path="applications" element={<ErrorBoundary componentName="MyApplicationsPage"><MyApplicationsPage /></ErrorBoundary>} />
-          <Route path="opposite-schedule" element={<OppositeSchedulePage />} />
-          <Route path="work-exchange" element={<WorkExchangePage />} />
-          <Route path="buying-opportunities" element={<BuyingOpportunitiesPage />} />
+          
+          {/* Financial Tools */}
           <Route path="mortgage-consent" element={<MortgageConsentPage />} />
           <Route path="mortgage-results" element={<MortgageSubmissionResults />} />
           <Route path="co-buying-scenario" element={<CoBuyingScenario />} />
           <Route path="co-ownership-profile" element={<CoOwnershipProfile />} />
-          <Route path="lgbtq-matching" element={<LGBTQMatchingPage />} />
-          <Route path="landlord" element={<LandlordDashboardPage />} />
-          <Route path="landlord/properties" element={<PropertiesPage />} />
-          <Route path="landlord/applications" element={<ApplicationsPage />} />
-          <Route path="landlord/viewing-appointments" element={<ViewingAppointmentsPage />} />
-          <Route path="landlord/payments" element={<LandlordPaymentsPage />} />
-          <Route path="landlord/payout-setup" element={<PayoutSetupPage />} />
-          <Route path="landlord/profile" element={<LandlordProfilePage />} />
-          <Route path="landlord/add-property" element={<AddPropertyPage />} />
-          <Route path="landlord/contracts" element={<ContractReviewPage />} />
-          <Route path="landlord/ai-screening" element={<AIScreeningSettingsPage />} />
-          <Route path="rent-opportunities" element={<RentOpportunitiesPage />} />
-          <Route path="find-property" element={<FindPropertyPage />} />
-          <Route path="contracts/:applicationId" element={<LeaseContractPage />} />
+          <Route path="tax-intelligence" element={<ErrorBoundary componentName="TaxIntelligencePage"><TaxIntelligencePage /></ErrorBoundary>} />
+          
+          {/* Communication */}
           <Route path="chats" element={<ChatsPage />} />
+          
+          {/* AI Tools */}
           <Route path="tailor-ai" element={<TailorAIPage />} />
           <Route path="legal-assistant" element={<LegalAssistantPage />} />
           <Route path="legal-ai" element={<LegalAIPage />} />
+          <Route path="tenancy-legal-ai" element={<TenancyLegalAIPage />} />
+          
+          {/* Forms & Legal */}
           <Route path="property-compliance-ai" element={<ErrorBoundary componentName="PropertyCompliancePage"><PropertyCompliancePage /></ErrorBoundary>} />
           <Route path="eviction-assistant" element={<ErrorBoundary componentName="EvictionAssistantPage"><EvictionAssistantPage /></ErrorBoundary>} />
           <Route path="forms/n4" element={<ErrorBoundary componentName="N4FormPage"><N4FormPage /></ErrorBoundary>} />
@@ -331,21 +342,34 @@ function AppRoutes() {
           <Route path="forms/t1" element={<ErrorBoundary componentName="T1FormPage"><T1FormPage /></ErrorBoundary>} />
           <Route path="forms/t3" element={<ErrorBoundary componentName="T3FormPage"><T3FormPage /></ErrorBoundary>} />
           <Route path="forms/t5" element={<ErrorBoundary componentName="T5FormPage"><T5FormPage /></ErrorBoundary>} />
-          <Route path="tenancy-legal-ai" element={<TenancyLegalAIPage />} />
+          
+          {/* Services & Tools */}
           <Route path="education-centre" element={<EducationCentrePage />} />
           <Route path="renovators" element={<RenovatorsPage />} />
-          <Route path="emergency" element={<EmergencyMode />} />
-          <Route path="emergency/:jobId" element={<EmergencyMode />} />
-          <Route path="tax-intelligence" element={<ErrorBoundary componentName="TaxIntelligencePage"><TaxIntelligencePage /></ErrorBoundary>} />
           <Route path="cleaners" element={<CleanersPage />} />
           <Route path="shop" element={<ShopPage />} />
           <Route path="digital-wallet" element={<WalletPage />} />
           <Route path="pad-test" element={<PADPaymentTest />} />
           <Route path="list-room" element={<ListRoomPage />} />
-          <Route path="profile" element={<SeekerProfilePage />} />
-          <Route path="user/:userId" element={<PublicProfilePage />} />
-          <Route path="settings" element={<SettingsPage />} />
-          <Route path="ai-chat" element={<AIChat />} />
+          <Route path="emergency" element={<EmergencyMode />} />
+          <Route path="emergency/:jobId" element={<EmergencyMode />} />
+          
+          {/* Community */}
+          <Route path="communities" element={<CommunitiesPage />} />
+          <Route path="communities/:id" element={<CommunityDetailPage />} />
+          
+          {/* Landlord Routes */}
+          <Route path="landlord" element={<LandlordDashboardPage />} />
+          <Route path="landlord/properties" element={<PropertiesPage />} />
+          <Route path="landlord/applications" element={<ApplicationsPage />} />
+          <Route path="landlord/viewing-appointments" element={<ViewingAppointmentsPage />} />
+          <Route path="landlord/payments" element={<LandlordPaymentsPage />} />
+          <Route path="landlord/payout-setup" element={<PayoutSetupPage />} />
+          <Route path="landlord/profile" element={<LandlordProfilePage />} />
+          <Route path="landlord/add-property" element={<AddPropertyPage />} />
+          <Route path="landlord/contracts" element={<ContractReviewPage />} />
+          <Route path="landlord/ai-screening" element={<AIScreeningSettingsPage />} />
+          <Route path="contracts/:applicationId" element={<LeaseContractPage />} />
 
           {/* Mortgage Broker routes */}
           <Route path="mortgage-broker" element={<MortgageBrokerDashboard />} />
@@ -420,15 +444,11 @@ function App() {
   }, [path]);
 
   return (
-    <ThemeProvider>
-      <AuthProvider>
-        <RoleProvider>
-          <InstallPrompt />
-          <AppRoutes />
-          <Toaster />
-        </RoleProvider>
-      </AuthProvider>
-    </ThemeProvider>
+    <>
+      <InstallPrompt />
+      <AppRoutes />
+      <Toaster />
+    </>
   );
 }
 

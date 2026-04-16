@@ -43,12 +43,13 @@ export function SeekerSidebar({ isActive, showLabels }: SeekerSidebarProps) {
           location.pathname.includes('/dashboard/plan-ahead-matching') ||
           location.pathname.includes('/dashboard/opposite-schedule') ||
           location.pathname.includes('/dashboard/work-exchange') ||
-          location.pathname.includes('/dashboard/communities')
+          location.pathname.includes('/dashboard/communities') ||
+          location.pathname.includes('/dashboard/ideal-roommate')
         }
         subItems={[
           {
             label: "Ideal Roommate",
-            path: "/dashboard/matches?tab=ideal-roommate",
+            path: "/dashboard/ideal-roommate",
             icon: <span className="text-sm">❤️</span>
           },
           {

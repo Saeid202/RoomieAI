@@ -54,7 +54,7 @@ export function IdealRoommateForm({ form, onSubmit, isSaving }: IdealRoommateFor
       <Form {...form}>
         <form onSubmit={handleSubmit} className="space-y-6">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            {/*<IdealRoommateTabs activeTab={activeTab} onTabChange={setActiveTab} />*/}
+            <IdealRoommateTabs activeTab={activeTab} onTabChange={setActiveTab} />
             
             <TabsContent value="preferences">
               <PreferencesTab form={form} handleTraitToggle={handleTraitToggle} />

@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, startTransition } from "react";
 import { useRole } from "@/contexts/RoleContext";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client-simple";
@@ -15,20 +15,24 @@ export function RoleInitializer({ children }: RoleInitializerProps) {
 
   useEffect(() => {
     if (!user) {
-      setIsLoading(false);
+      startTransition(() => {
+        setIsLoading(false);
+      });
       return;
     }
 
     // Add timeout to prevent infinite loading
     const timeoutId = setTimeout(() => {
       console.warn("⏱️ RoleInitializer - Timeout reached, forcing load completion");
-      setIsLoading(false);
-      // If role is still null after timeout, set a default
-      if (!role) {
-        const fallbackRole = user.user_metadata?.role || 'seeker';
-        console.log("⚠️ RoleInitializer - Setting fallback role after timeout:", fallbackRole);
-        setRole(fallbackRole);
-      }
+      startTransition(() => {
+        setIsLoading(false);
+        // If role is still null after timeout, set a default
+        if (!role) {
+          const fallbackRole = user.user_metadata?.role || 'seeker';
+          console.log("⚠️ RoleInitializer - Setting fallback role after timeout:", fallbackRole);
+          setRole(fallbackRole);
+        }
+      });
     }, 5000); // 5 second timeout
 
     const loadUserRole = async () => {
@@ -73,17 +77,23 @@ export function RoleInitializer({ children }: RoleInitializerProps) {
         }
 
         // CRITICAL: Always update role context with database value
-        console.log("🔄 RoleInitializer - Setting role to context:", userRole);
-        setRole(userRole);
+        console.log("RoleInitializer - Setting role to context:", userRole);
+        startTransition(() => {
+          setRole(userRole);
+        });
       } catch (error) {
-        console.error("❌ RoleInitializer - Error loading role:", error);
+        console.error("RoleInitializer - Error loading role:", error);
         // Set fallback role on error
         const fallbackRole = user.user_metadata?.role || 'seeker';
-        console.log("⚠️ RoleInitializer - Setting fallback role after error:", fallbackRole);
-        setRole(fallbackRole);
+        console.log("RoleInitializer - Setting fallback role after error:", fallbackRole);
+        startTransition(() => {
+          setRole(fallbackRole);
+        });
       } finally {
         clearTimeout(timeoutId);
-        setIsLoading(false);
+        startTransition(() => {
+          setIsLoading(false);
+        });
       }
     };
 

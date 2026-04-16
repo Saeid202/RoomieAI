@@ -2,7 +2,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Accordion } from "@/components/ui/accordion";
 import { AboutMeSection } from "../AboutMeSection";
 import { IdealRoommateSection } from "../IdealRoommateSection";
-import { ChatInterface } from "../chat/ChatInterface";
+import { ChatInterface } from "@/components/dashboard/recommendations/chat/ChatInterface";
 import { ProfileFormValues } from "@/types/profile";
 
 interface TabsSectionProps {
@@ -26,10 +26,10 @@ export function TabsSection({
 }: TabsSectionProps) {
   return (
     <Tabs value={activeTab} onValueChange={handleTabChange}>
-      <TabsList className="hidden">
-        <TabsTrigger value="matches">View Matches</TabsTrigger>
-        <TabsTrigger value="about-me">About Me</TabsTrigger>
-        <TabsTrigger value="ideal-roommate">Ideal Roommate</TabsTrigger>
+      <TabsList className="grid w-full grid-cols-3 h-auto bg-muted p-1 rounded-lg border border-border">
+        <TabsTrigger value="matches" className="data-[state=active]:bg-background data-[state=active]:shadow-sm">View Matches</TabsTrigger>
+        <TabsTrigger value="about-me" className="data-[state=active]:bg-background data-[state=active]:shadow-sm">About Me</TabsTrigger>
+        <TabsTrigger value="ideal-roommate" className="data-[state=active]:bg-background data-[state=active]:shadow-sm">Ideal Roommate</TabsTrigger>
       </TabsList>
 
       <TabsContent value="matches">
@@ -49,7 +49,7 @@ export function TabsSection({
         </Accordion>
       </TabsContent>
 
-      <TabsContent value="ideal-roommate">
+      <TabsContent value="ideal-roommate" className="mt-2">
         <Accordion
           type="multiple"
           value={expandedSections}

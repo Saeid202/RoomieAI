@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useState, startTransition } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client-simple";
 
@@ -89,14 +89,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (session?.user?.id === user?.id && initialSessionHandled) {
         // Same user, same session — skip to avoid unnecessary re-renders
-        setLoading(false);
+        startTransition(() => {
+          setLoading(false);
+        });
         return;
       }
 
       initialSessionHandled = true;
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
+      startTransition(() => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        setLoading(false);
+      });
 
       if (session?.user) {
         ensureProfile(session.user);
@@ -116,9 +120,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Only set if onAuthStateChange hasn't already handled it
       if (!initialSessionHandled) {
         initialSessionHandled = true;
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
+        startTransition(() => {
+          setSession(session);
+          setUser(session?.user ?? null);
+          setLoading(false);
+        });
 
         if (session?.user) {
           ensureProfile(session.user);

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, startTransition } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useForm } from "react-hook-form";
@@ -126,7 +126,9 @@ export default function SeekerProfilePage() {
             if (!user) return;
 
             try {
-                setLoading(true);
+                startTransition(() => {
+                    setLoading(true);
+                });
                 console.log("Fetching profile for user:", user.id);
 
                 // 1. Fetch from user_profiles table (common fields)
@@ -153,21 +155,6 @@ export default function SeekerProfilePage() {
 
                 console.log("User profile data:", userProfile);
                 console.log("Tenant profile data:", tenantProfile);
-
-                // Set user_type if available
-                if (userProfile?.user_type) {
-                    setUserType(userProfile.user_type);
-                }
-
-                // Set document URLs from tenant profile
-                if (tenantProfile) {
-                    setDocumentUrls({
-                        reference_letters: tenantProfile.reference_letters || null,
-                        employment_letter: tenantProfile.employment_letter || null,
-                        credit_score_report: tenantProfile.credit_score_report || null,
-                        additional_documents: tenantProfile.additional_documents || null,
-                    });
-                }
 
                 // 3. Merge data from both tables
                 const defaultValues: Partial<ProfileFormValues> = {
@@ -213,16 +200,37 @@ export default function SeekerProfilePage() {
                 };
 
                 console.log("Merged default values:", defaultValues);
-                form.reset(defaultValues as ProfileFormValues);
+                
+                // Wrap all state updates in startTransition
+                startTransition(() => {
+                    // Set user_type if available
+                    if (userProfile?.user_type) {
+                        setUserType(userProfile.user_type);
+                    }
+
+                    // Set document URLs from tenant profile
+                    if (tenantProfile) {
+                        setDocumentUrls({
+                            reference_letters: tenantProfile.reference_letters || null,
+                            employment_letter: tenantProfile.employment_letter || null,
+                            credit_score_report: tenantProfile.credit_score_report || null,
+                            additional_documents: tenantProfile.additional_documents || null,
+                        });
+                    }
+
+                    form.reset(defaultValues as ProfileFormValues);
+                    setLoading(false);
+                });
             } catch (err) {
                 console.error("Unexpected error:", err);
+                startTransition(() => {
+                    setLoading(false);
+                });
                 toast({
                     title: "Error loading profile",
                     description: "Could not load your profile data.",
                     variant: "destructive",
                 });
-            } finally {
-                setLoading(false);
             }
         };
 

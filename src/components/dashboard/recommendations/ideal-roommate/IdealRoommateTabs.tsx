@@ -4,7 +4,8 @@ import { Settings, Ban } from "lucide-react";
 
 // Define the tabs for the Ideal Roommate section
 const ROOMMATE_TABS = [
-  { id: "preferences", label: "Roommate Preferences", icon: Settings }
+  { id: "preferences", label: "Roommate Preferences", icon: Settings },
+  { id: "deal-breakers", label: "Deal Breakers", icon: Ban }
 ];
 
 interface IdealRoommateTabsProps {
@@ -14,7 +15,7 @@ interface IdealRoommateTabsProps {
 
 export function IdealRoommateTabs({ activeTab, onTabChange }: IdealRoommateTabsProps) {
   return (
-    <TabsList className="w-full grid grid-cols-1 h-auto">
+    <TabsList className="w-full grid grid-cols-2 h-auto">
       {ROOMMATE_TABS.map(tab => (
         <TabsTrigger 
           key={tab.id} 

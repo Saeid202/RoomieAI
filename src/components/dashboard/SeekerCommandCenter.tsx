@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, startTransition } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -193,7 +193,7 @@ export function SeekerCommandCenter() {
                             </div>
                         </div>
                         <Button
-                            onClick={() => navigate(nextAction.path)}
+                            onClick={() => startTransition(() => navigate(nextAction.path))}
                             className="bg-roomie-purple hover:bg-roomie-purple/90 text-white font-black px-10 h-16 rounded-2xl shadow-xl shadow-roomie-purple/20 group transition-all text-lg"
                         >
                             Continue My Plan
@@ -219,7 +219,7 @@ export function SeekerCommandCenter() {
                         </div>
                         <Button
                             size="lg"
-                            onClick={() => navigate(nextAction.path)}
+                            onClick={() => startTransition(() => navigate(nextAction.path))}
                             className="bg-slate-900 hover:bg-slate-800 text-white font-black px-12 h-16 rounded-2xl w-full md:w-auto text-lg shadow-xl"
                         >
                             {nextAction.cta}
@@ -234,7 +234,7 @@ export function SeekerCommandCenter() {
                 <section className="space-y-8">
                     <div className="flex items-center justify-between px-4">
                         <h3 className="text-2xl font-black text-slate-900 tracking-tight">Your Matches</h3>
-                        <Button variant="ghost" onClick={() => navigate("/dashboard/matches")} className="text-roomie-purple font-black hover:bg-roomie-purple/5 transition-colors">
+                        <Button variant="ghost" onClick={() => startTransition(() => navigate("/dashboard/matches"))} className="text-roomie-purple font-black hover:bg-roomie-purple/5 transition-colors">
                             View All <ArrowUpRight className="ml-1 h-5 w-5" />
                         </Button>
                     </div>
@@ -253,7 +253,7 @@ export function SeekerCommandCenter() {
                                         <p className="text-slate-900 font-black text-xl leading-snug">Complete your profile to unlock matches</p>
                                         <Button
                                             size="lg"
-                                            onClick={() => navigate("/dashboard/profile")}
+                                            onClick={() => startTransition(() => navigate("/dashboard/profile"))}
                                             className="bg-roomie-purple text-white font-black rounded-2xl px-8 shadow-lg shadow-roomie-purple/20"
                                         >
                                             Go to Profile
@@ -282,7 +282,7 @@ export function SeekerCommandCenter() {
                 <section className="space-y-8">
                     <div className="flex items-center justify-between px-4">
                         <h3 className="text-2xl font-black text-slate-900 tracking-tight">Your Finances</h3>
-                        <Button variant="ghost" onClick={() => navigate("/dashboard/wallet")} className="text-roomie-purple font-black hover:bg-roomie-purple/5 transition-colors">
+                        <Button variant="ghost" onClick={() => startTransition(() => navigate("/dashboard/wallet"))} className="text-roomie-purple font-black hover:bg-roomie-purple/5 transition-colors">
                             Manage Payments <ChevronRight className="ml-1 h-5 w-5" />
                         </Button>
                     </div>
@@ -351,15 +351,15 @@ export function SeekerCommandCenter() {
             {/* 6️⃣ Support & Trust Strip (Footer) */}
             <section className="pt-12">
                 <div className="flex flex-wrap items-center justify-center gap-x-16 gap-y-8 py-8 bg-slate-50/50 rounded-[32px]">
-                    <button onClick={() => navigate("/dashboard/legal-ai")} className="flex items-center gap-3 text-slate-500 hover:text-roomie-purple font-black transition-all group active:scale-95">
+                    <button onClick={() => startTransition(() => navigate("/dashboard/legal-ai"))} className="flex items-center gap-3 text-slate-500 hover:text-roomie-purple font-black transition-all group active:scale-95">
                         <Shield className="h-6 w-6 group-hover:scale-110 group-hover:fill-roomie-purple/10 transition-transform" />
                         <span className="text-sm tracking-wide">ASK LEGAL AI</span>
                     </button>
-                    <button onClick={() => navigate("/dashboard/chats")} className="flex items-center gap-3 text-slate-500 hover:text-roomie-purple font-black transition-all group active:scale-95">
+                    <button onClick={() => startTransition(() => navigate("/dashboard/chats"))} className="flex items-center gap-3 text-slate-500 hover:text-roomie-purple font-black transition-all group active:scale-95">
                         <MessageSquare className="h-6 w-6 group-hover:scale-110 group-hover:fill-roomie-purple/10 transition-transform" />
                         <span className="text-sm tracking-wide">MESSAGES</span>
                     </button>
-                    <button onClick={() => navigate("/faq")} className="flex items-center gap-3 text-slate-500 hover:text-roomie-purple font-black transition-all group active:scale-95">
+                    <button onClick={() => startTransition(() => navigate("/faq"))} className="flex items-center gap-3 text-slate-500 hover:text-roomie-purple font-black transition-all group active:scale-95">
                         <HelpCircle className="h-6 w-6 group-hover:scale-110 group-hover:fill-roomie-purple/10 transition-transform" />
                         <span className="text-sm tracking-wide">HELP CENTER</span>
                     </button>
@@ -387,12 +387,13 @@ function StatusChip({ label, status, active }: { label: string; status: string; 
 
 function MatchBriefCard({ match }: { match: any }) {
     const navigate = useNavigate();
+    const { startTransition } = useTransition();
     const initials = match.name.split(" ").map((n: string) => n[0]).join("");
 
     return (
         <Card
-            onClick={() => navigate("/dashboard/matches")}
-            className="border-none shadow-[0_4px_15px_rgb(0,0,0,0.02)] bg-white p-6 rounded-[24px] hover:shadow-[0_15px_35px_rgba(110,89,255,0.08)] hover:-translate-y-1 transition-all flex items-center gap-5 group cursor-pointer border-l-4 border-transparent hover:border-roomie-purple"
+            onClick={() => startTransition(() => navigate("/dashboard/matches"))}
+            className="border-none shadow-[0_4px_15px_rgb(0,0,0,0.02)] bg-white p-6 rounded-[24px] hover:shadow-[0_25px_50px_rgba(0,0,0,0.05)] hover:-translate-y-2 transition-all cursor-pointer border-l-4 border-transparent hover:border-roomie-purple"
         >
             <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-roomie-purple to-indigo-500 flex items-center justify-center font-black text-white text-xl shadow-lg shadow-roomie-purple/10">
                 {initials}

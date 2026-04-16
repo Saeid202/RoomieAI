@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, startTransition } from "react";
 import { MessagingService } from "@/services/messagingService";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Accordion } from "@/components/ui/accordion";
 import {
   MapPin,
   Calendar,
@@ -32,6 +33,7 @@ import {
   Home,
   Briefcase,
 } from "lucide-react";
+import { IdealRoommateSection } from "@/components/dashboard/recommendations/IdealRoommateSection";
 import { MatchResult } from "@/utils/matchingAlgorithm/types";
 import { idealRoommateMatchingEngine } from "@/services/idealRoommateMatchingService";
 import { useRoommateProfile } from "@/hooks/useRoommateProfile";
@@ -187,7 +189,9 @@ export default function MatchesPage() {
     try {
       setStartingChatId(matchUserId);
       const conversationId = await MessagingService.startDirectChat(user.id, matchUserId);
-      navigate(`/dashboard/chats?conversation=${conversationId}`);
+      startTransition(() => {
+        navigate(`/dashboard/chats?conversation=${conversationId}`);
+      });
     } catch (error) {
       console.error("Failed to start chat:", error);
       toast({
@@ -208,9 +212,13 @@ export default function MatchesPage() {
 
       if (value !== currentTab) {
         if (value === "matches") {
-          navigate("/dashboard/matches");
+          startTransition(() => {
+            navigate("/dashboard/matches");
+          });
         } else {
-          navigate(`/dashboard/matches?tab=${value}`);
+          startTransition(() => {
+            navigate(`/dashboard/matches?tab=${value}`);
+          });
         }
       }
 
@@ -241,6 +249,13 @@ export default function MatchesPage() {
     }
   }, [handleTabChange, location.search]);
 
+  // Ensure ideal-roommate section is expanded when tab is active
+  useEffect(() => {
+    if (activeTab === "ideal-roommate" && !expandedSections.includes("ideal-roommate")) {
+      setExpandedSections(prev => [...prev, "ideal-roommate"]);
+    }
+  }, [activeTab, expandedSections]);
+
   useEffect(() => {
     const loadMatches = async () => {
       if (!profileData || profileLoading) {
@@ -252,6 +267,8 @@ export default function MatchesPage() {
         setError(null);
 
         console.log("Loading matches with profile data:", profileData);
+        console.log("User ID:", user?.id);
+        console.log("About to call matching engine...");
 
         // Use the enhanced matching algorithm with importance from roommate table
         const idealRoommateResults =
@@ -261,6 +278,8 @@ export default function MatchesPage() {
             maxResults: 20, // Increased to get more results
             minScore: 30, // Lower minimum score to get more results
           });
+
+        console.log("Matching engine returned:", idealRoommateResults);
 
         console.log(
           "Raw ideal roommate matches from algorithm:",
@@ -279,6 +298,8 @@ export default function MatchesPage() {
 
         console.log("Processed display matches:", displayMatches);
         console.log("Total matches found:", displayMatches.length);
+        console.log("Matches array state:", matches);
+        console.log("Current activeTab:", activeTab);
         displayMatches.forEach((match, index) => {
           console.log(`Match ${index + 1}:`, {
             name: match.name,
@@ -326,10 +347,10 @@ export default function MatchesPage() {
 
   if (loading || profileLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-roomie-light via-white to-roomie-purple/10">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-100">
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
-            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-roomie-purple" />
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-purple-600" />
             <p className="text-muted-foreground">
               {profileLoading
                 ? "Loading your profile..."
@@ -347,14 +368,36 @@ export default function MatchesPage() {
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <p className="text-destructive mb-4">{error}</p>
-            <Button onClick={() => window.location.reload()}>Try Again</Button>
+            <Button onClick={() => startTransition(() => window.location.reload())}>Try Again</Button>
           </div>
         </div>
       </div>
     );
   }
 
-  if (!profileData) {
+  // Show loading state while profile data is being loaded
+  if (profileLoading) {
+    return (
+      <div className="container mx-auto p-6 space-y-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <Loader2 className="w-8 h-8 mx-auto animate-spin text-muted-foreground mb-4" />
+            <p className="text-muted-foreground">Loading your matches...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Check if profile is incomplete (only basic info, no preferences)
+  const isProfileIncomplete = profileData && (
+    !profileData.fullName || 
+    !profileData.age || 
+    !profileData.budgetRange || 
+    !profileData.preferredLocation?.length
+  );
+
+  if (isProfileIncomplete) {
     return (
       <div className="container mx-auto p-6 space-y-6">
         <Card className="text-center py-12">
@@ -368,9 +411,11 @@ export default function MatchesPage() {
               preferences to start finding compatible roommates
             </p>
             <Button
-              onClick={() =>
-                (window.location.href = "/dashboard/roommate-recommendations")
-              }
+              onClick={() => {
+                startTransition(() => {
+                  window.location.href = "/dashboard/roommate-recommendations";
+                });
+              }}
             >
               Complete Profile
             </Button>
@@ -380,15 +425,59 @@ export default function MatchesPage() {
     );
   }
 
+  // Show dedicated Ideal Roommate form when tab is ideal-roommate
+  if (activeTab === "ideal-roommate") {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-100">
+        <div className="w-full px-4 lg:px-6 xl:px-8 py-8">
+          {/* Dedicated Ideal Roommate Header */}
+          <div className="relative rounded-xl overflow-hidden shadow-lg mb-6 bg-gradient-to-r from-purple-600 via-purple-500 to-orange-500">
+            <div className="absolute inset-0 opacity-10">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full -translate-y-1/2 translate-x-1/2" />
+              <div className="absolute bottom-0 left-0 w-40 h-40 bg-white rounded-full translate-y-1/2 -translate-x-1/2" />
+            </div>
+            <div className="relative px-6 py-5 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div className="flex-shrink-0 bg-white/20 backdrop-blur-sm rounded-xl p-2.5">
+                  <Users className="h-7 w-7 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-black text-white tracking-tight leading-tight">My Ideal Roommate</h1>
+                  <p className="text-white/80 text-sm font-medium mt-0.5">Set your preferences for the perfect roommate match</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => handleTabChange("matches")}
+                className="flex-shrink-0 flex items-center gap-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30 text-white rounded-xl px-4 py-2.5 text-sm font-semibold transition-all"
+              >
+                <span>View Matches</span>
+              </button>
+            </div>
+          </div>
+          
+          {/* Ideal Roommate Form */}
+          <div className="bg-background/95 backdrop-blur-sm rounded-xl p-6">
+            <Accordion type="multiple" className="space-y-4">
+              <IdealRoommateSection
+                profileData={profileData}
+                onSaveProfile={handleSaveProfile}
+              />
+            </Accordion>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-roomie-light via-white to-roomie-purple/10">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-100">
       <div className="w-full px-4 lg:px-6 xl:px-8 py-8">
       {selectedMatch ? (
         <MatchDetailView match={selectedMatch} onClose={handleCloseDetails} />
       ) : (
         <>
           {/* Brand Header */}
-          <div className="relative rounded-xl overflow-hidden shadow-lg mb-6 bg-gradient-to-r from-roomie-purple via-roomie-purple-light to-roomie-orange">
+          <div className="relative rounded-xl overflow-hidden shadow-lg mb-6 bg-gradient-to-r from-purple-600 via-purple-500 to-orange-500">
             <div className="absolute inset-0 opacity-10">
               <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full -translate-y-1/2 translate-x-1/2" />
               <div className="absolute bottom-0 left-0 w-40 h-40 bg-white rounded-full translate-y-1/2 -translate-x-1/2" />
@@ -411,15 +500,15 @@ export default function MatchesPage() {
           </div>
           <div className="space-y-4">
             {/* Communities banner */}
-            <div className="bg-white border border-roomie-purple/20 rounded-xl p-4 flex items-center justify-between shadow-sm">
+            <div className="bg-white border border-purple-200 rounded-xl p-4 flex items-center justify-between shadow-sm">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-roomie-purple/10 to-roomie-orange/10 flex items-center justify-center text-xl">??</div>
+                <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-purple-100 to-orange-100 flex items-center justify-center text-xl">??</div>
                 <div>
                   <p className="font-semibold text-sm text-slate-900">Roommate Communities</p>
                   <p className="text-xs text-slate-500">Connect with seekers in your city</p>
                 </div>
               </div>
-              <button onClick={() => navigate('/dashboard/communities')} className="text-sm font-bold text-roomie-purple hover:text-roomie-purple-dark border border-roomie-purple/30 hover:border-roomie-purple/50 px-4 py-2 rounded-lg transition-all hover:bg-roomie-purple/5">
+              <button onClick={() => startTransition(() => navigate('/dashboard/communities'))} className="text-sm font-bold text-purple-600 hover:text-purple-700 border border-purple-300 hover:border-purple-400 px-4 py-2 rounded-lg transition-all hover:bg-purple-50">
                 Join Now
               </button>
             </div>
@@ -515,7 +604,7 @@ export default function MatchesPage() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
                         <Avatar className="h-12 w-12 border-2 border-slate-50 shadow-sm">
-                          <AvatarFallback className="bg-gradient-to-tr from-roomie-purple to-indigo-500 text-white font-bold text-base">
+                          <AvatarFallback className="bg-gradient-to-tr from-purple-600 to-indigo-500 text-white font-bold text-base">
                             {match.image}
                           </AvatarFallback>
                         </Avatar>
@@ -530,7 +619,7 @@ export default function MatchesPage() {
                       </div>
                       <Badge
                         className={`rounded-full px-3 py-1 border-none font-bold text-[10px] tracking-tight shadow-sm ${match.compatibility >= 85 ? 'bg-gradient-to-r from-emerald-400 to-teal-500 text-white' :
-                          match.compatibility >= 70 ? 'bg-gradient-to-r from-roomie-purple to-indigo-500 text-white' :
+                          match.compatibility >= 70 ? 'bg-gradient-to-r from-purple-600 to-indigo-500 text-white' :
                             'bg-gradient-to-r from-amber-400 to-orange-500 text-white'
                           }`}
                       >
@@ -555,7 +644,7 @@ export default function MatchesPage() {
                         <Home className="h-3.5 w-3.5" />
                         {match.housingType}
                       </div>
-                      <div className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-50 text-roomie-purple rounded-full text-[11px] font-bold">
+                      <div className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-50 text-purple-600 rounded-full text-[11px] font-bold">
                         <Calendar className="h-3.5 w-3.5" />
                         {match.moveInDate.includes('20') ? 'Timeline Set' : match.moveInDate}
                       </div>

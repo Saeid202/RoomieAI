@@ -115,16 +115,16 @@ export function IdealRoommateSection({
   };
 
   return (
-    <AccordionItem value="ideal-roommate" className="border rounded-lg">
-      <AccordionTrigger className="px-4 py-2 hover:no-underline">
+    <AccordionItem value="ideal-roommate" className="border rounded-lg bg-background">
+      <AccordionTrigger className="px-4 py-3 hover:no-underline bg-muted/50">
         <div className="flex items-center gap-2">
-          <Users className="h-5 w-5" />
+          <Users className="h-5 w-5 text-primary" />
           <span className="text-xl font-semibold">My Ideal Roommate</span>
         </div>
       </AccordionTrigger>
       <AccordionContent className="px-4 pb-4">
-        <Card>
-          <CardContent className="p-4">
+        <Card className="border-2 border-border/50 shadow-sm">
+          <CardContent className="p-6">
             <IdealRoommateForm
               form={form}
               onSubmit={onSubmit}
