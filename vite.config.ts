@@ -6,7 +6,7 @@ import { VitePWA } from "vite-plugin-pwa";
 
 const DEFAULT_PORT = Number(process.env.VITE_PORT ?? process.env.PORT ?? 5173);
 const DEFAULT_HOST = process.env.VITE_HOST ?? "0.0.0.0";
-const HMR_HOST = DEFAULT_HOST === "0.0.0.0" ? "127.0.0.1" : DEFAULT_HOST;
+const HMR_HOST = DEFAULT_HOST;
 
 export default defineConfig(({ mode }) => ({
   server: {

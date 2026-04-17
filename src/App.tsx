@@ -61,7 +61,6 @@ import { RenovatorLayout } from "@/components/renovator/RenovatorLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { AdminRoute } from "@/components/AdminRoute";
 // Additional pages - lazy loaded
-const MatchesPage = lazy(() => import("@/pages/dashboard/Matches"));
 const DebugPropertiesPage = lazy(() => import("@/pages/dashboard/DebugProperties"));
 const MyApplicationsPage = lazy(() => import("@/pages/dashboard/MyApplications"));
 const ApplicationOverviewPage = lazy(() => import("@/pages/dashboard/landlord/ApplicationOverview"));
@@ -287,7 +286,6 @@ function AppRoutes() {
           <Route path="ai-chat" element={<AIChat />} />
           
           {/* Matching & Discovery */}
-          <Route path="matches" element={<MatchesPage />} />
           <Route path="roommate-recommendations" element={<RoommateRecommendationsPage />} />
           <Route path="ideal-roommate" element={<IdealRoommatePage />} />
           <Route path="plan-ahead-matching" element={<PlanAheadMatchingPage />} />

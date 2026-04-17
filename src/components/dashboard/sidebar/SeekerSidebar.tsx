@@ -39,7 +39,6 @@ export function SeekerSidebar({ isActive, showLabels }: SeekerSidebarProps) {
         icon={() => <span className="text-lg">🤝</span>}
         isActive={isActive}
         defaultExpanded={
-          location.pathname.includes('/dashboard/matches') ||
           location.pathname.includes('/dashboard/plan-ahead-matching') ||
           location.pathname.includes('/dashboard/opposite-schedule') ||
           location.pathname.includes('/dashboard/work-exchange') ||
@@ -51,16 +50,6 @@ export function SeekerSidebar({ isActive, showLabels }: SeekerSidebarProps) {
             label: "Ideal Roommate",
             path: "/dashboard/ideal-roommate",
             icon: <span className="text-sm">❤️</span>
-          },
-          {
-            label: "View Matches",
-            path: "/dashboard/matches?tab=matches",
-            icon: <span className="text-sm">🔍</span>
-          },
-          {
-            label: "Communities",
-            path: "/dashboard/communities",
-            icon: <span className="text-sm">👥</span>
           },
           {
             label: "Plan Ahead",

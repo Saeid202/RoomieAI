@@ -1,4 +1,4 @@
-import React, { useEffect, startTransition } from "react";
+import React, { useEffect, startTransition, useState } from "react";
 import { Users } from "lucide-react";
 import {
   Card,
@@ -13,12 +13,15 @@ import { useRoommateProfile } from "@/hooks/useRoommateProfile";
 import { useRoommateMatching } from "@/hooks/useRoommateMatching";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
+import { MatchesSection } from "../../components/dashboard/MatchesSection";
+import { ProfileFormValues } from "@/types/profile";
 
 export default function IdealRoommatePage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { profileData, loading } = useRoommateProfile();
   const { handleSaveProfile } = useRoommateMatching();
+  const [showMatches, setShowMatches] = useState(false);
 
   useEffect(() => {
     console.log("IdealRoommatePage component is rendering!");
@@ -40,6 +43,16 @@ export default function IdealRoommatePage() {
     );
   }
 
+  const handleProfileSave = async (formData: ProfileFormValues) => {
+    setShowMatches(true);
+    await handleSaveProfile(formData);
+  };
+
+  const handleProfileSaved = () => {
+    // This is called by MatchesSection when profile is saved
+    // No additional logic needed since matches are already shown
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 md:px-6 py-6">
       <header className="flex items-center justify-between mb-6">
@@ -52,12 +65,6 @@ export default function IdealRoommatePage() {
             <p className="text-gray-600">Set your preferences for the perfect roommate match</p>
           </div>
         </div>
-        <button 
-          onClick={() => startTransition(() => navigate('/dashboard/matches'))}
-          className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-        >
-          View Matches
-        </button>
       </header>
 
       <Card>
@@ -71,11 +78,17 @@ export default function IdealRoommatePage() {
           <Accordion type="multiple" className="space-y-4">
             <IdealRoommateSection
               profileData={profileData}
-              onSaveProfile={handleSaveProfile}
+              onSaveProfile={handleProfileSave}
             />
           </Accordion>
         </CardContent>
       </Card>
+
+      {/* Matches Section */}
+      <MatchesSection 
+        showMatches={showMatches} 
+        onProfileSaved={handleProfileSaved}
+      />
     </div>
   );
 }

@@ -10,7 +10,7 @@ export interface DatabaseRoommate {
   gender: string;
   phone_number: string;
   preferred_location: string;
-  budget_range: string;
+  budget_range: string | number[] | { min: number; max: number };
   move_in_date_start?: string;
   move_in_date_end?: string;
   move_in_date: string; // Legacy field for compatibility
@@ -47,9 +47,29 @@ export async function fetchRoommateProfiles(): Promise<DatabaseRoommate[]> {
 }
 
 export function convertRoommateToMatchResult(roommate: DatabaseRoommate): MatchResult {
-  // Parse budget range (e.g., "$1200-$1800" -> [1200, 1800])
-  const budgetMatch = roommate.budget_range?.match(/\$?(\d+)-?\$?(\d+)?/);
-  const budget = budgetMatch ? [parseInt(budgetMatch[1]), parseInt(budgetMatch[2] || budgetMatch[1])] : [0, 0];
+  // Handle budget range - can be string, array, or other formats
+  let budget: [number, number] = [0, 0];
+  
+  if (roommate.budget_range) {
+    console.log('Processing budget_range:', roommate.budget_range, 'Type:', typeof roommate.budget_range);
+    
+    if (Array.isArray(roommate.budget_range)) {
+      // If it's already an array
+      budget = [roommate.budget_range[0] || 0, roommate.budget_range[1] || roommate.budget_range[0] || 0];
+      console.log('Parsed as array:', budget);
+    } else if (typeof roommate.budget_range === 'string') {
+      // If it's a string, try to parse it
+      const budgetMatch = roommate.budget_range.match(/\$?(\d+)-?\$?(\d+)?/);
+      budget = budgetMatch ? [parseInt(budgetMatch[1]), parseInt(budgetMatch[2] || budgetMatch[1])] : [0, 0];
+      console.log('Parsed as string:', budget);
+    } else if (typeof roommate.budget_range === 'object') {
+      // If it's an object with min/max properties
+      budget = [(roommate.budget_range as any).min || 0, (roommate.budget_range as any).max || 0];
+      console.log('Parsed as object:', budget);
+    } else {
+      console.log('Unknown budget_range format, using default [0,0]');
+    }
+  }
 
   return {
     name: roommate.full_name || "Unknown",

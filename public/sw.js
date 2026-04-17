@@ -1,10 +1,9 @@
 // Service Worker for HomieAI PWA
-const CACHE_NAME = 'homieai-v1';
+const CACHE_NAME = 'homieai-v2';
 const urlsToCache = [
-  '/',
-  '/index.html',
   '/manifest.json',
   '/og.png',
+  '/offline.html',
 ];
 
 // Install event - cache essential files
@@ -54,15 +53,46 @@ self.addEventListener('fetch', (event) => {
   }
 
   event.respondWith(
-    caches.match(event.request).then((response) => {
-      // Return cached response if available
-      if (response) {
-        return response;
+    (async () => {
+      // Skip external requests - don't cache them
+      if (!event.request.url.includes(self.location.origin)) {
+        return fetch(event.request);
       }
 
-      // Otherwise fetch from network
-      return fetch(event.request)
-        .then((response) => {
+      // Check if this is an HTML request
+      const isHtmlRequest = event.request.headers.get('accept')?.includes('text/html');
+      
+      // Check if this is a static asset
+      const staticAssetExtensions = ['.js', '.css', '.png', '.jpg', '.jpeg', '.svg', '.webp'];
+      const isStaticAsset = staticAssetExtensions.some(ext => event.request.url.endsWith(ext));
+      
+      if (isHtmlRequest) {
+        // Network-first strategy for HTML requests (no caching)
+        try {
+          const response = await fetch(event.request);
+          return response;
+        } catch (error) {
+          // Fallback to offline page
+          return caches.match('/offline.html').catch(() => {
+            return new Response('Offline - please check your connection', {
+              status: 503,
+              statusText: 'Service Unavailable',
+              headers: new Headers({
+                'Content-Type': 'text/plain',
+              }),
+            });
+          });
+        }
+      } else if (isStaticAsset) {
+        // Cache-first strategy for static assets
+        const cachedResponse = await caches.match(event.request);
+        if (cachedResponse) {
+          return cachedResponse;
+        }
+
+        // Otherwise fetch from network
+        try {
+          const response = await fetch(event.request);
           // Don't cache non-successful responses
           if (!response || response.status !== 200 || response.type === 'error') {
             return response;
@@ -77,8 +107,7 @@ self.addEventListener('fetch', (event) => {
           });
 
           return response;
-        })
-        .catch(() => {
+        } catch (error) {
           // Return offline page if available
           return caches.match('/offline.html').catch(() => {
             return new Response('Offline - please check your connection', {
@@ -89,7 +118,11 @@ self.addEventListener('fetch', (event) => {
               }),
             });
           });
-        });
-    })
+        }
+      } else {
+        // For all other requests, fetch directly without caching
+        return fetch(event.request);
+      }
+    })()
   );
 });
