@@ -158,45 +158,56 @@ export default function SeekerProfilePage() {
 
                 // 3. Merge data from both tables
                 const defaultValues: Partial<ProfileFormValues> = {
-                    // From user_profiles (only columns that exist in schema)
-                    full_name: userProfile?.full_name || user.user_metadata?.full_name || "",
-                    age: 18, // age column doesn't exist in schema
-                    email: userProfile?.email || user.email || "",
-                    phone: userProfile?.phone_number || "",  // schema uses phone_number
-                    nationality: userProfile?.nationality || "",
-                    language: "",  // language column doesn't exist in schema
-                    ethnicity: userProfile?.ethnicity || "",
-                    religion: userProfile?.religion || "",
-                    occupation: userProfile?.occupation || "",
-                    gender: userProfile?.gender || undefined,
+                    // From user_profiles (all columns that exist in schema)
+                    full_name: (userProfile as any)?.full_name || user.user_metadata?.full_name || "",
+                    age: (userProfile as any)?.age || 18,
+                    email: (userProfile as any)?.email || user.email || "",
+                    phone: (userProfile as any)?.phone_number || "",
+                    linkedin: (userProfile as any)?.linkedin_profile || "",
+                    language: (userProfile as any)?.language || "",
+                    about_me: (userProfile as any)?.about_me || "",
+                    nationality: (userProfile as any)?.nationality || "",
+                    ethnicity: (userProfile as any)?.ethnicity || "",
+                    religion: (userProfile as any)?.religion || "",
+                    occupation: (userProfile as any)?.occupation || "",
+                    gender: (userProfile as any)?.gender || undefined,
                     
                     // From tenant_profiles (tenant-specific fields)
-                    linkedin: tenantProfile?.linkedin || "",
-                    about_me: tenantProfile?.about_me || "",
-                    prefer_not_to_say: tenantProfile?.prefer_not_to_say || "",
-                    profile_visibility: tenantProfile?.profile_visibility || "public",
-                    preferred_location: tenantProfile?.preferred_location || "",
-                    budget_range: tenantProfile?.budget_range || "",
-                    move_in_date_start: tenantProfile?.move_in_date_start || "",
-                    move_in_date_end: tenantProfile?.move_in_date_end || "",
-                    housing_type: tenantProfile?.housing_type || undefined,
-                    living_space: tenantProfile?.living_space || "",
-                    work_location: tenantProfile?.work_location || undefined,
-                    work_location_legacy: tenantProfile?.work_location_legacy || "",
-                    work_schedule: tenantProfile?.work_schedule || undefined,
-                    pet_preference: tenantProfile?.pet_preference || "",
-                    has_pets: tenantProfile?.has_pets || false,
-                    pet_type: tenantProfile?.pet_type || "",
-                    smoking: tenantProfile?.smoking || "No",
-                    lives_with_smokers: tenantProfile?.lives_with_smokers || "no",
-                    diet: tenantProfile?.diet || "",
-                    diet_other: tenantProfile?.diet_other || "",
-                    hobbies: tenantProfile?.hobbies || [],
-                    // New Phase 1 fields
-                    monthly_income: tenantProfile?.monthly_income?.toString() || "",
-                    emergency_contact_name: tenantProfile?.emergency_contact_name || "",
-                    emergency_contact_phone: tenantProfile?.emergency_contact_phone || "",
-                    emergency_contact_relationship: tenantProfile?.emergency_contact_relationship || "",
+                    prefer_not_to_say: (tenantProfile as any)?.prefer_not_to_say || "",
+                    profile_visibility: (tenantProfile as any)?.profile_visibility || "public",
+                    preferred_location: (tenantProfile as any)?.preferred_location 
+                        ? (typeof (tenantProfile as any).preferred_location === 'string' 
+                            ? (tenantProfile as any).preferred_location.split(', ').filter(Boolean)
+                            : (tenantProfile as any).preferred_location) 
+                        : [],
+                    budget_range: (tenantProfile as any)?.budget_range 
+                        ? (typeof (tenantProfile as any).budget_range === 'string' 
+                            ? (tenantProfile as any).budget_range.split('-').map(Number)
+                            : (tenantProfile as any).budget_range) 
+                        : [],
+                    move_in_date_start: (tenantProfile as any)?.move_in_date_start || "",
+                    move_in_date_end: (tenantProfile as any)?.move_in_date_end || "",
+                    housing_type: (tenantProfile as any)?.housing_type || undefined,
+                    living_space: (tenantProfile as any)?.living_space || undefined,
+                    work_location: (tenantProfile as any)?.work_location || undefined,
+                    work_location_legacy: (tenantProfile as any)?.work_location_legacy || "",
+                    work_schedule: (tenantProfile as any)?.work_schedule || undefined,
+                    pet_preference: (tenantProfile as any)?.pet_preference || "",
+                    has_pets: (tenantProfile as any)?.has_pets || undefined,
+                    pet_type: (tenantProfile as any)?.pet_type || "",
+                    smoking: (tenantProfile as any)?.smoking || undefined,
+                    lives_with_smokers: (tenantProfile as any)?.lives_with_smokers || undefined,
+                    diet: (tenantProfile as any)?.diet || undefined,
+                    diet_other: (tenantProfile as any)?.diet_other || "",
+                    hobbies: (tenantProfile as any)?.hobbies 
+                        ? (typeof (tenantProfile as any).hobbies === 'string' 
+                            ? (tenantProfile as any).hobbies.split(', ').filter(Boolean)
+                            : (tenantProfile as any).hobbies) 
+                        : [],
+                    monthly_income: (tenantProfile as any)?.monthly_income || "",
+                    emergency_contact_name: (tenantProfile as any)?.emergency_contact_name || "",
+                    emergency_contact_phone: (tenantProfile as any)?.emergency_contact_phone || "",
+                    emergency_contact_relationship: (tenantProfile as any)?.emergency_contact_relationship || "",
                 };
 
                 console.log("Merged default values:", defaultValues);
@@ -245,19 +256,22 @@ export default function SeekerProfilePage() {
             console.log("Saving profile for user:", user.id, values);
 
             // 1. Save COMMON fields to user_profiles
-            // Only include columns that exist in the schema
+            // Include all fields that exist in the schema
             const commonFields = {
                 id: user.id,
                 full_name: values.full_name,
                 email: values.email,
-                phone_number: values.phone || null,  // schema uses phone_number not phone
+                phone_number: values.phone || null,
+                age: values.age || null,
+                linkedin_profile: values.linkedin || null,
+                language: values.language || null,
+                about_me: values.about_me || null,
                 nationality: values.nationality || null,
                 ethnicity: values.ethnicity || null,
                 religion: values.religion || null,
                 occupation: values.occupation || null,
                 gender: values.gender || null,
                 updated_at: new Date().toISOString(),
-                // NOTE: age, language, user_type do not exist in user_profiles schema
             };
 
             const { error: profileError } = await supabase
@@ -270,8 +284,7 @@ export default function SeekerProfilePage() {
             }
 
             // 2. Save TENANT-SPECIFIC fields to tenant_profiles
-            // Only include columns that exist in the schema:
-            // bio, company, email, first_name, last_name, occupation, phone_number, is_profile_public
+            // Include all fields that exist in the schema
             const nameParts = values.full_name.trim().split(' ');
             const tenantFields = {
                 user_id: user.id,
@@ -279,13 +292,30 @@ export default function SeekerProfilePage() {
                 last_name: nameParts.slice(1).join(' ') || '-',
                 occupation: values.occupation || 'Not specified',
                 bio: values.about_me || null,
+                linkedin: values.linkedin || null,
                 email: values.email || null,
                 phone_number: values.phone || null,
-                is_profile_public: values.profile_visibility === 'public',
+                profile_visibility: values.profile_visibility || 'public',
+                preferred_location: Array.isArray(values.preferred_location) 
+                    ? values.preferred_location.join(', ') 
+                    : values.preferred_location || null,
+                budget_range: Array.isArray(values.budget_range) 
+                    ? values.budget_range.join('-') 
+                    : values.budget_range || null,
+                housing_type: values.housing_type || null,
+                work_location: values.work_location || null,
+                work_schedule: values.work_schedule || null,
+                pet_preference: values.pet_preference || null,
+                hobbies: Array.isArray(values.hobbies) 
+                    ? values.hobbies.join(', ') 
+                    : values.hobbies || null,
+                smoking: values.smoking || null,
+                diet: values.diet || null,
+                monthly_income: values.monthly_income || null,
+                emergency_contact_name: values.emergency_contact_name || null,
+                emergency_contact_phone: values.emergency_contact_phone || null,
+                emergency_contact_relationship: values.emergency_contact_relationship || null,
                 updated_at: new Date().toISOString(),
-                // NOTE: linkedin, preferred_location, budget_range, housing_type, work_location,
-                // work_schedule, pet_preference, hobbies, smoking, diet, monthly_income,
-                // emergency_contact_* etc. do NOT exist in tenant_profiles schema
             };
 
             const { error: tenantError } = await supabase
