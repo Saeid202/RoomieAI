@@ -5,7 +5,7 @@ import { RouteGuard } from "@/components/dashboard/RouteGuard";
 import { RoleInitializer } from "@/components/dashboard/RoleInitializer";
 import { useRole } from "@/contexts/RoleContext";
 import { useAuth } from "@/hooks/useAuth";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { RoleSelectionDialog } from "@/components/auth/RoleSelectionDialog";
 import { GeminiChat } from "@/components/chat/GeminiChat";
 import { Button } from "@/components/ui/button";
@@ -109,10 +109,21 @@ function DashboardContent({ role, location, showRoleDialog }: any) {
     }
   }
 
-  // For all other routes, show the layout with outlet
+    // For all other routes, show the layout with outlet
   return (
     <DashboardLayout>
-      <Outlet />
+      <Suspense
+        fallback={
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+              <p>Loading...</p>
+            </div>
+          </div>
+        }
+      >
+        <Outlet />
+      </Suspense>
     </DashboardLayout>
   );
 }
