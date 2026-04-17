@@ -63,20 +63,30 @@ export function RoleInitializer({ children }: RoleInitializerProps) {
           userRole = user.user_metadata?.role || 'seeker';
           console.warn("⚠️ RoleInitializer - profile.role is null, using metadata:", userRole);
 
-          // Also patch the DB so this doesn't happen again
-          if (userRole !== 'seeker') {
+          // Also patch DB to convert tenant to seeker permanently
+          if (userRole === 'tenant') {
             supabase
               .from('user_profiles')
-              .update({ role: userRole })
+              .update({ role: 'seeker' })
+              .eq('id', user.id)
+              .then(({ error: updateError }) => {
+                if (updateError) console.error("❌ RoleInitializer - Failed to convert tenant to seeker:", updateError);
+                else console.log("✅ RoleInitializer - Converted tenant to seeker in DB:", user.id);
+              });
+          } else if (!userRole || userRole === 'seeker') {
+            // Handle null roles or already seeker
+            supabase
+              .from('user_profiles')
+              .update({ role: 'seeker' })
               .eq('id', user.id)
               .then(({ error: updateError }) => {
                 if (updateError) console.error("❌ RoleInitializer - Failed to patch null role:", updateError);
-                else console.log("✅ RoleInitializer - Patched null role in DB to:", userRole);
+                else console.log("✅ RoleInitializer - Patched null role in DB to: seeker");
               });
           }
         }
 
-        // CRITICAL: Always update role context with database value
+        // CRITICAL: Set role from database (already converted to seeker if was tenant)
         console.log("RoleInitializer - Setting role to context:", userRole);
         startTransition(() => {
           setRole(userRole);
