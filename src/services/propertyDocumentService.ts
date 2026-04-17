@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { PropertyDocument, DocumentAccessRequest, PropertyDocumentType } from "@/types/propertyCategories";
 import { processDocumentForAI } from "./aiPropertyAssistantService";
 
-const STORAGE_BUCKET = 'property-documents';
+const STORAGE_BUCKET = 'rental-documents';
 
 /**
  * Trigger AI processing for a document (non-blocking)
@@ -46,6 +46,11 @@ export async function uploadPropertyDocument(
   isPublic: boolean = false
 ): Promise<PropertyDocument> {
   try {
+    // Prevent invalid UUID 'new' from being passed to database
+    if (propertyId === 'new') {
+      throw new Error("Cannot upload documents for unsaved property. Please save the property first.");
+    }
+
     console.log("🔵 Starting document upload...", { propertyId, documentType, documentLabel, fileName: file.name, fileSize: file.size });
     
     // Check authentication
@@ -144,6 +149,12 @@ export async function getPropertyDocuments(
   propertyId: string
 ): Promise<PropertyDocument[]> {
   try {
+    // Handle new properties gracefully - return empty array instead of error
+    if (propertyId === 'new' || !propertyId) {
+      console.log("New property detected, returning empty documents array");
+      return [];
+    }
+
     console.log('🔍 getPropertyDocuments called with propertyId:', propertyId);
 
     const { data, error } = await supabase

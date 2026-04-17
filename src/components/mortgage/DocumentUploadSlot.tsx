@@ -37,8 +37,27 @@ export function DocumentUploadSlot({
     const file = event.target.files?.[0];
     if (!file) return;
 
+    // Comprehensive logging for debugging
+    console.log('DOCUMENT UPLOAD DEBUG:');
+    console.log('  File name:', file.name);
+    console.log('  File type:', file.type);
+    console.log('  File size:', file.size);
+    console.log('  Mortgage Profile ID:', mortgageProfileId);
+    console.log('  Category:', category);
+    console.log('  Document Type:', documentType.type);
+
+    // Check if mortgage profile is saved
+    if (mortgageProfileId === 'new') {
+      toast({
+        title: 'Profile Not Saved',
+        description: 'Please save the mortgage profile before uploading documents',
+        variant: 'destructive'
+      });
+      return;
+    }
+
     // Validate file
-    const validation = validateFile(file, category, documentType.type);
+    const validation = await validateFile(file, category, documentType.type);
     if (!validation.valid) {
       toast({
         title: 'Invalid File',

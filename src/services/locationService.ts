@@ -70,11 +70,17 @@ export class LocationService implements LocationServiceType {
   }
 
   async searchAddress(query: string): Promise<AddressSuggestion[]> {
-    if (!query || query.trim().length < 2) return [];
+    console.log('LocationService: searchAddress called with:', query);
+    
+    if (!query || query.trim().length < 2) {
+      console.log('LocationService: Query too short, returning empty array');
+      return [];
+    }
 
     const cacheKey = query.trim().toLowerCase();
     const cached = searchCache.get(cacheKey);
     if (cached && Date.now() - cached.ts < CACHE_TTL) {
+      console.log('LocationService: Returning cached results');
       return cached.results;
     }
 
@@ -87,14 +93,21 @@ export class LocationService implements LocationServiceType {
       // Bias toward Canada bounding box
       url.searchParams.set('bbox', '-141,41,-52,84');
 
+      console.log('LocationService: Fetching from URL:', url.toString());
+
       const res = await fetch(url.toString(), {
         signal: AbortSignal.timeout(4000), // 4s hard timeout
       });
+
+      console.log('LocationService: API response status:', res.status);
 
       if (!res.ok) throw new Error(`Photon error: ${res.status}`);
 
       const data = await res.json();
       const features: any[] = data.features || [];
+      
+      console.log('LocationService: API returned features:', features.length);
+      console.log('LocationService: First feature sample:', features[0]);
 
       let results: AddressSuggestion[] = features
         .filter((f: any) => {
@@ -117,13 +130,16 @@ export class LocationService implements LocationServiceType {
           const province = normalizeProvince(p.state || p.county || '');
           if (province) parts.push(province);
 
+          // DEBUG: Log what the API returns for postal codes
+          console.log('🔍 Photon API postal code data:', p.postcode);
+          console.log('🔍 Full API response:', p);
+
           if (p.postcode) parts.push(formatPostalCode(p.postcode));
 
           const text = parts.join(', ');
           const place_name = [text, 'Canada'].filter(Boolean).join(', ');
-
           return {
-            id: `${f.properties.osm_id || Math.random()}`,
+            id: `${lng}_${lat}`, // Create unique ID from coordinates
             text,
             place_name,
             center: [lng, lat] as [number, number],

@@ -105,7 +105,7 @@ function DashboardContent({ role, location, showRoleDialog }: any) {
       return <Navigate to="/dashboard/lender" replace />;
     } else {
       // seeker or any unknown role → seeker dashboard
-      return <Navigate to="/dashboard/matches" replace />;
+      return <Navigate to="/dashboard/roommate-recommendations" replace />;
     }
   }
 

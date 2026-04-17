@@ -11,7 +11,7 @@ import { useNavigate } from "react-router-dom";
 interface ChatInfoPanelProps {
     userId: string;
     userName: string;
-    role: "landlord" | "tenant" | "renovator";
+    role: "landlord" | "seeker" | "renovator";
     onClose?: () => void;
     className?: string;
 }
@@ -101,7 +101,7 @@ export function ChatInfoPanel({ userId, userName, role, onClose, className }: Ch
 
                 <div className="flex flex-wrap justify-center gap-2 mt-3">
                     <Badge variant="secondary" className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-semibold border-transparent hover:bg-slate-200">
-                        {isRenovator ? "Renovator" : role === "landlord" ? "Landlord" : "Tenant"}
+                        {isRenovator ? "Renovator" : role === "landlord" ? "Landlord" : "Seeker"}
                     </Badge>
                     {isRenovator && (
                         <Badge variant="outline" className="text-blue-600 border-blue-200 bg-blue-50">Verified Pro</Badge>
@@ -151,8 +151,8 @@ export function ChatInfoPanel({ userId, userName, role, onClose, className }: Ch
                     </div>
                 )}
 
-                {/* Tenant/Seeker Specifics - Placeholder for future logic */}
-                {!isRenovator && (role === 'tenant') && (
+                {/* Seeker Specifics - Placeholder for future logic */}
+                {!isRenovator && (role === 'seeker') && (
                     <div className="space-y-4">
                         <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-4">Rental Preferences</h4>
                         <div className="grid grid-cols-2 gap-3">

@@ -56,7 +56,12 @@ self.addEventListener('fetch', (event) => {
     (async () => {
       // Skip external requests - don't cache them
       if (!event.request.url.includes(self.location.origin)) {
-        return fetch(event.request);
+        try {
+          return fetch(event.request);
+        } catch (error) {
+          console.log('External fetch failed:', error);
+          return new Response('Network error', { status: 500 });
+        }
       }
 
       // Check if this is an HTML request

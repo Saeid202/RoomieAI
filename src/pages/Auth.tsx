@@ -102,7 +102,7 @@ export default function AuthPage() {
                   className={`cursor-pointer border rounded-lg p-3 text-center transition-all ${role === 'seeker' ? 'bg-primary/10 border-primary ring-2 ring-primary/20' : 'hover:bg-gray-50'}`}
                   onClick={() => setRole('seeker')}
                 >
-                  <div className="font-semibold text-sm">Tenant / Landlord</div>
+                  <div className="font-semibold text-sm">Seeker / Landlord</div>
                   <div className="text-xs text-muted-foreground mt-1">Find roommates & rentals</div>
                 </div>
                 <div

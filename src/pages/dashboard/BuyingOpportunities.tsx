@@ -2728,7 +2728,27 @@ export default function BuyingOpportunitiesPage() {
 
                     <TabsContent value="documents">
                         {activeTab === 'documents' && mortgageProfile?.id && (
-                            <MortgageDocumentsTab mortgageProfileId={mortgageProfile.id} />
+                            <div className="max-w-4xl">
+                                <MortgageDocumentsTab mortgageProfileId={mortgageProfile.id} />
+                                
+                                {/* Save Button at bottom of documents tab */}
+                                <div className="sticky bottom-0 left-0 right-0 bg-white border-t-2 border-blue-200 p-4 shadow-lg z-10 mt-8">
+                                    <div className="flex justify-center">
+                                        <Button
+                                            onClick={() => {
+                                                toast({
+                                                    title: "Documents Saved",
+                                                    description: "Your document uploads have been saved successfully!",
+                                                });
+                                            }}
+                                            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 h-12 text-base font-semibold shadow-md"
+                                        >
+                                            <FileText className="h-4 w-4 mr-2" />
+                                            Save Documents
+                                        </Button>
+                                    </div>
+                                </div>
+                            </div>
                         )}
                         {activeTab === 'documents' && !mortgageProfile?.id && (
                             <div className="max-w-4xl">

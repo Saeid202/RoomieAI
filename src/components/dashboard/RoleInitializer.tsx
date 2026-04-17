@@ -58,6 +58,17 @@ export function RoleInitializer({ children }: RoleInitializerProps) {
         } else if (profile?.role) {
           userRole = profile.role;
           console.log("✅ RoleInitializer - Loaded role from database:", userRole);
+          
+          // Convert tenant to seeker if found in database
+          if (userRole === 'tenant') {
+            console.log("RoleInitializer - Converting tenant to seeker in database...");
+            await supabase
+              .from('user_profiles')
+              .update({ role: 'seeker' })
+              .eq('id', user.id);
+            userRole = 'seeker';
+            console.log("RoleInitializer - Converted to seeker:", userRole);
+          }
         } else {
           // profile.role is null — fall back to auth metadata, then default
           userRole = user.user_metadata?.role || 'seeker';

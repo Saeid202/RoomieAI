@@ -73,7 +73,16 @@ export const SECURITY_CONFIG = {
     maxStringLength: 1000,
     maxArrayLength: 100,
     maxFileSize: 10 * 1024 * 1024, // 10MB
-    allowedFileTypes: ['image/jpeg', 'image/png', 'image/gif', 'application/pdf'],
+    allowedFileTypes: [
+      // Images
+      'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml', 
+      'image/bmp', 'image/tiff', 'image/heic', 'image/heif',
+      // Documents
+      'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+      'text/plain', 'text/csv', 'application/rtf'
+    ],
     sanitizeHtml: true,
     validateEmail: true,
     validatePhone: true

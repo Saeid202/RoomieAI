@@ -14,7 +14,7 @@ export function RouteGuard({ children }: RouteGuardProps) {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const { role } = useRole();
+  const { role, setRole } = useRole();
 
   useEffect(() => {
     if (loading || !user) return;
@@ -22,9 +22,22 @@ export function RouteGuard({ children }: RouteGuardProps) {
     // Only use role from context (set by RoleInitializer from DB)
     // Do NOT fall back to metadata - it can be stale
     // If role is null, RoleInitializer is still loading - wait
-    if (!role) return;
+    if (!role) {
+      console.log('🔄 RouteGuard: Role is null, waiting for RoleInitializer...');
+      return;
+    }
 
     const currentRole = role;
+
+    // Add a small delay to ensure RoleInitializer has time to set the role
+    const timeoutId = setTimeout(() => {
+      if (!role) {
+        console.warn('⏱️ RoleInitializer timeout - role still null, forcing fallback');
+        const fallbackRole = user?.user_metadata?.role || 'seeker';
+        setRole(fallbackRole);
+        console.log('🔧 RoleInitializer - Using fallback role:', fallbackRole);
+      }
+    }, 1000);
 
     // 30. STRICT BILATERAL BLOCKING
     const path = location.pathname;
@@ -33,7 +46,7 @@ export function RouteGuard({ children }: RouteGuardProps) {
     const isSeekerOnlyPath = 
       path === '/dashboard' || 
       path.startsWith('/dashboard/roommate-recommendations') ||
-      path.startsWith('/dashboard/matches') ||
+      path.startsWith('/dashboard/ideal-roommate') ||
       path.startsWith('/dashboard/rental-options') ||
       path.startsWith('/dashboard/buying-opportunities') ||
       path.startsWith('/dashboard/applications') ||

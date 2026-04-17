@@ -73,6 +73,7 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
     debounceRef.current = setTimeout(async () => {
       if (isLoading) return;
 
+      console.log('AddressAutocomplete: Searching for:', query);
       setIsLoading(true);
 
       try {
@@ -84,10 +85,14 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
         let results: AddressSuggestion[] = [];
 
         if (searchMode === AddressSearchMode.POSTAL_CODE) {
+          console.log('AddressAutocomplete: Using postal code search');
           results = await postalCodeService.searchByPostalCode(query);
         } else {
+          console.log('AddressAutocomplete: Using address search');
           results = await locationService.searchAddress(query);
         }
+
+        console.log('AddressAutocomplete: Search results:', results);
 
         if (Array.isArray(results)) {
           const validResults = results.filter(result =>
@@ -152,6 +157,7 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     try {
       const newQuery = e.target?.value || '';
+      console.log('AddressAutocomplete: Input changed to:', newQuery);
       setQuery(newQuery);
       setSelected(false);
 

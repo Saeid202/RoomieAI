@@ -33,8 +33,17 @@ export function PropertyCategorySelector({
   disabled = false,
   error,
 }: PropertyCategorySelectorProps) {
+  // Debug logging
+  console.log('PropertyCategorySelector props:', { category, configuration, disabled, error });
+  
   // Get available configurations based on selected category
   const availableConfigurations = category ? getConfigurationsForCategory(category) : [];
+  console.log('Available configurations:', availableConfigurations);
+  
+  // Add useEffect to track prop changes
+  React.useEffect(() => {
+    console.log('PropertyCategorySelector props changed:', { category, configuration });
+  }, [category, configuration]);
 
   // Handle category change - reset configuration when category changes
   const handleCategoryChange = (value: string) => {

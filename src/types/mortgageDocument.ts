@@ -59,7 +59,10 @@ export const DOCUMENT_TYPES: Record<MortgageDocumentCategory, DocumentTypeConfig
       type: 'drivers_license',
       label: "Driver's License",
       required: true,
-      acceptedFormats: ['image/jpeg', 'image/png', 'image/heic', 'application/pdf'],
+      acceptedFormats: [
+        'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml', 
+        'image/bmp', 'image/tiff', 'image/heic', 'image/heif', 'application/pdf'
+      ],
       maxSize: 10 * 1024 * 1024, // 10MB
       description: 'Front and back of your driver\'s license'
     },
@@ -67,7 +70,10 @@ export const DOCUMENT_TYPES: Record<MortgageDocumentCategory, DocumentTypeConfig
       type: 'passport',
       label: 'Passport',
       required: false,
-      acceptedFormats: ['image/jpeg', 'image/png', 'image/heic', 'application/pdf'],
+      acceptedFormats: [
+        'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml', 
+        'image/bmp', 'image/tiff', 'image/heic', 'image/heif', 'application/pdf'
+      ],
       maxSize: 10 * 1024 * 1024,
       description: 'Photo page of your passport'
     }
@@ -77,23 +83,35 @@ export const DOCUMENT_TYPES: Record<MortgageDocumentCategory, DocumentTypeConfig
       type: 'pay_stub',
       label: 'Pay Stubs (Recent 2 months)',
       required: true,
-      acceptedFormats: ['application/pdf', 'image/jpeg', 'image/png'],
+      acceptedFormats: [
+        'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml', 
+        'image/bmp', 'image/tiff', 'image/heic', 'image/heif', 'application/pdf',
+        'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      ],
       maxSize: 10 * 1024 * 1024,
       description: 'Most recent 2 months of pay stubs'
     },
     {
       type: 't4',
-      label: 'T4 (Last 2 years)',
+      label: 'T4 Slips (Last 2 years)',
       required: true,
-      acceptedFormats: ['application/pdf'],
+      acceptedFormats: [
+        'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml', 
+        'image/bmp', 'image/tiff', 'image/heic', 'image/heif', 'application/pdf',
+        'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      ],
       maxSize: 10 * 1024 * 1024,
-      description: 'T4 slips for the last 2 years'
+      description: 'T4 slips from the last 2 tax years'
     },
     {
       type: 'noa',
       label: 'Notice of Assessment (Last 2 years)',
       required: true,
-      acceptedFormats: ['application/pdf'],
+      acceptedFormats: [
+        'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml', 
+        'image/bmp', 'image/tiff', 'image/heic', 'image/heif', 'application/pdf',
+        'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      ],
       maxSize: 10 * 1024 * 1024,
       description: 'CRA Notice of Assessment for last 2 years'
     }
@@ -103,7 +121,11 @@ export const DOCUMENT_TYPES: Record<MortgageDocumentCategory, DocumentTypeConfig
       type: 'employment_letter',
       label: 'Employment Letter',
       required: true,
-      acceptedFormats: ['application/pdf'],
+      acceptedFormats: [
+        'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml', 
+        'image/bmp', 'image/tiff', 'image/heic', 'image/heif', 'application/pdf',
+        'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      ],
       maxSize: 10 * 1024 * 1024,
       description: 'Letter from employer confirming employment'
     }
@@ -113,7 +135,11 @@ export const DOCUMENT_TYPES: Record<MortgageDocumentCategory, DocumentTypeConfig
       type: 'bank_statement',
       label: 'Bank Statements (Last 3 months)',
       required: true,
-      acceptedFormats: ['application/pdf'],
+      acceptedFormats: [
+        'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml', 
+        'image/bmp', 'image/tiff', 'image/heic', 'image/heif', 'application/pdf',
+        'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      ],
       maxSize: 10 * 1024 * 1024,
       description: 'Last 3 months of bank statements'
     },
@@ -121,7 +147,11 @@ export const DOCUMENT_TYPES: Record<MortgageDocumentCategory, DocumentTypeConfig
       type: 'investment_statement',
       label: 'Investment Statements',
       required: false,
-      acceptedFormats: ['application/pdf'],
+      acceptedFormats: [
+        'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml', 
+        'image/bmp', 'image/tiff', 'image/heic', 'image/heif', 'application/pdf',
+        'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      ],
       maxSize: 10 * 1024 * 1024,
       description: 'Recent investment account statements'
     }
@@ -131,7 +161,11 @@ export const DOCUMENT_TYPES: Record<MortgageDocumentCategory, DocumentTypeConfig
       type: 'credit_report',
       label: 'Credit Report',
       required: false,
-      acceptedFormats: ['application/pdf'],
+      acceptedFormats: [
+        'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml', 
+        'image/bmp', 'image/tiff', 'image/heic', 'image/heif', 'application/pdf',
+        'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      ],
       maxSize: 10 * 1024 * 1024,
       description: 'Recent credit report from Equifax or TransUnion'
     }
@@ -141,7 +175,11 @@ export const DOCUMENT_TYPES: Record<MortgageDocumentCategory, DocumentTypeConfig
       type: 'purchase_agreement',
       label: 'Purchase Agreement',
       required: false,
-      acceptedFormats: ['application/pdf'],
+      acceptedFormats: [
+        'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml', 
+        'image/bmp', 'image/tiff', 'image/heic', 'image/heif', 'application/pdf',
+        'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      ],
       maxSize: 10 * 1024 * 1024,
       description: 'Signed purchase agreement for the property'
     },
@@ -149,7 +187,11 @@ export const DOCUMENT_TYPES: Record<MortgageDocumentCategory, DocumentTypeConfig
       type: 'property_listing',
       label: 'Property Listing',
       required: false,
-      acceptedFormats: ['application/pdf', 'image/jpeg', 'image/png'],
+      acceptedFormats: [
+        'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml', 
+        'image/bmp', 'image/tiff', 'image/heic', 'image/heif', 'application/pdf',
+        'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      ],
       maxSize: 10 * 1024 * 1024,
       description: 'Property listing or details'
     }
@@ -159,7 +201,14 @@ export const DOCUMENT_TYPES: Record<MortgageDocumentCategory, DocumentTypeConfig
       type: 'other',
       label: 'Other Documents',
       required: false,
-      acceptedFormats: ['application/pdf', 'image/jpeg', 'image/png'],
+      acceptedFormats: [
+        'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml', 
+        'image/bmp', 'image/tiff', 'image/heic', 'image/heif', 'application/pdf',
+        'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        'text/plain', 'text/csv', 'application/rtf'
+      ],
       maxSize: 10 * 1024 * 1024,
       description: 'Any additional supporting documents'
     }

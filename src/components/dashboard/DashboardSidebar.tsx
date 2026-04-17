@@ -79,7 +79,7 @@ export function DashboardSidebar() {
                 // If we're on a "Seeker" route (general dashboard routes), prefer SeekerSidebar
                 const isSeekerRoute =
                   location.pathname.startsWith('/dashboard/roommate-recommendations') ||
-                  location.pathname.startsWith('/dashboard/matches') ||
+                  location.pathname.startsWith('/dashboard/ideal-roommate') ||
                   location.pathname.startsWith('/dashboard/rental-options') ||
                   location.pathname.startsWith('/dashboard/buying-opportunities') ||
                   location.pathname.startsWith('/dashboard/buy/') ||

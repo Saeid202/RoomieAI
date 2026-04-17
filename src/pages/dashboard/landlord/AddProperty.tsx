@@ -441,16 +441,47 @@ export default function AddPropertyPage() {
 
   const queryParams = new URLSearchParams(window.location.search);
   const prefillId = queryParams.get('prefill');
+  
+  // Debug URL parameters immediately
+  console.log('URL DEBUG - Full URL:', window.location.href);
+  console.log('URL DEBUG - Search params:', window.location.search);
+  console.log('URL DEBUG - Parsed queryParams:', Object.fromEntries(queryParams.entries()));
+  console.log('URL DEBUG - prefillId:', prefillId);
+  
+  // Debug current form state
+  console.log("FORM DEBUG - Current formData:", formData);
+  console.log("FORM DEBUG - propertyCategory:", formData.propertyCategory);
+  console.log("FORM DEBUG - propertyConfiguration:", formData.propertyConfiguration);
+  
+  // Add a useEffect to track formData changes
+  useEffect(() => {
+    console.log("FORM DEBUG - formData changed:", {
+      propertyCategory: formData.propertyCategory,
+      propertyConfiguration: formData.propertyConfiguration,
+      listingTitle: formData.listingTitle,
+      salesPrice: formData.salesPrice
+    });
+  }, [formData.propertyCategory, formData.propertyConfiguration, formData.listingTitle, formData.salesPrice]);
 
   // Detect edit mode (?prefill=:id) and load existing property
   useEffect(() => {
-    if (!prefillId) return;
+    console.log('Edit mode useEffect triggered', { prefillId });
+    if (!prefillId) {
+      console.log('No prefillId found, not loading property');
+      return;
+    }
     (async () => {
       try {
+        console.log('Setting editId to:', prefillId);
         setEditId(prefillId);
         // Always use properties table (unified approach)
+        console.log('Fetching property data...');
         const data = await fetchPropertyById(prefillId);
-        if (!data) return;
+        console.log('Property data fetched:', data);
+        if (!data) {
+          console.log('No property data returned');
+          return;
+        }
 
         console.log("📋 Loaded property data for editing:", data);
         console.log("📋 Property category:", data.property_category);
@@ -460,13 +491,29 @@ export default function AddPropertyPage() {
 
         // Prefill form
         setFormData(prev => {
-          console.log("🛠️ Preparing newData from fetched data:", data);
+          console.log("Preparing newData from fetched data:", data);
+          
+          // Parse propertyType if propertyCategory and propertyConfiguration are not available
+          let parsedCategory = data.property_category || null;
+          let parsedConfiguration = data.property_configuration || null;
+          
+          if (!parsedCategory && !parsedConfiguration && data.property_type) {
+            // Parse combined propertyType like "Condo - 2-Bedroom"
+            const propertyTypeParts = data.property_type.split(' - ');
+            if (propertyTypeParts.length >= 2) {
+              parsedCategory = propertyTypeParts[0];
+              parsedConfiguration = propertyTypeParts[1];
+            }
+          }
+          
+          console.log("Parsed values:", { parsedCategory, parsedConfiguration });
+          
           const newData = {
             ...prev,
             listingTitle: data.listing_title || "",
             propertyType: data.property_type || "",
-            propertyCategory: data.property_category || null,
-            propertyConfiguration: data.property_configuration || null,
+            propertyCategory: parsedCategory,
+            propertyConfiguration: parsedConfiguration,
             propertyAddress: data.address || "",
             description: data.description || "",
             address: data.address || "",
@@ -1027,9 +1074,9 @@ export default function AddPropertyPage() {
                   </div>
 
                   {/* Document Vault Section - Only for Sales Listings */}
-                  {formData.listingCategory === 'sale' && editId && (
+                  {formData.listingCategory === 'sale' && (
                     <DocumentVault
-                      propertyId={editId}
+                      propertyId={editId || 'new'}
                       propertyCategory={formData.propertyCategory}
                       onStrengthChange={(score) => {
                         console.log('Listing strength updated:', score);

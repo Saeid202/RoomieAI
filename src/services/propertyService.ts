@@ -339,7 +339,7 @@ export async function createProperty(propertyData: any): Promise<Property | null
     owner_id: user.id, // Use owner_id to match database schema
     user_id: user.id,  // Also set user_id for code compatibility
     status: 'active', // Set default status to 'active' so property shows in listings
-    listing_title: propertyData.listingTitle || propertyData.listing_title,
+    title: propertyData.listingTitle || propertyData.listing_title || propertyData.title,
     property_type: propertyData.propertyType || propertyData.property_type,
     listing_category: propertyData.listingCategory || propertyData.listing_category || 'rental',
 
@@ -352,11 +352,13 @@ export async function createProperty(propertyData: any): Promise<Property | null
     address: propertyData.address || propertyData.propertyAddress,
     city: propertyData.city,
     state: propertyData.state,
-    zip_code: propertyData.zipCode || propertyData.zip_code,
+    province: propertyData.state || propertyData.province, // Database expects province
+    postal_code: propertyData.zipCode || propertyData.zip_code,
     latitude: propertyData.latitude,
     longitude: propertyData.longitude,
     public_transport_access: propertyData.publicTransportAccess || propertyData.public_transport_access,
     nearby_amenities: propertyData.nearbyAmenities || propertyData.nearby_amenities,
+    rent_amount: parseFloat(propertyData.monthlyRent || propertyData.monthly_rent || propertyData.salesPrice || '0'),
     monthly_rent: parseFloat(propertyData.monthlyRent || propertyData.monthly_rent || '0'),
     security_deposit: parseFloat(propertyData.securityDeposit || propertyData.security_deposit || '0'),
     lease_terms: propertyData.leaseTerms || propertyData.lease_terms,
@@ -369,10 +371,6 @@ export async function createProperty(propertyData: any): Promise<Property | null
     parking: propertyData.parking,
     pet_policy: propertyData.petPolicy || propertyData.pet_policy,
     utilities_included: propertyData.utilitiesIncluded || propertyData.utilities_included || [],
-    special_instructions: propertyData.specialInstructions || propertyData.special_instructions,
-    roommate_preference: propertyData.roommatePreference || propertyData.roommate_preference,
-    property_category: propertyData.propertyCategory || propertyData.property_category,
-    property_configuration: propertyData.propertyConfiguration || propertyData.property_configuration,
     sales_price: propertyData.salesPrice ? parseFloat(String(propertyData.salesPrice).replace(/[^0-9.]/g, '')) : (propertyData.sales_price ? parseFloat(String(propertyData.sales_price).replace(/[^0-9.]/g, '')) : null),
     downpayment_target: propertyData.downpaymentTarget ? parseFloat(String(propertyData.downpaymentTarget).replace(/[^0-9.]/g, '')) : (propertyData.downpayment_target ? parseFloat(String(propertyData.downpayment_target).replace(/[^0-9.]/g, '')) : null),
     is_co_ownership: propertyData.isCoOwnership || propertyData.is_co_ownership || false,
@@ -389,6 +387,21 @@ export async function createProperty(propertyData: any): Promise<Property | null
   console.log("Final payload for database:", payload);
   console.log("Payload owner_id:", payload.owner_id);
   console.log("Authenticated user_id:", user.id);
+  console.log("Specific field checks:");
+  console.log("- postal_code:", payload.postal_code);
+  console.log("- zipCode (from input):", propertyData.zipCode);
+  console.log("- zip_code (from input):", propertyData.zip_code);
+
+  // Check for any null values in NOT NULL columns
+  const notNullColumns = ['title', 'address', 'city', 'state', 'postal_code', 'rent_amount', 'user_id'];
+  const nullColumns = notNullColumns.filter(col => payload[col] === null || payload[col] === undefined);
+  if (nullColumns.length > 0) {
+    console.error("NULL VALUES FOUND in NOT NULL columns:", nullColumns);
+    console.error("Payload details:", JSON.stringify(payload, null, 2));
+    console.error("Original input data zipCode:", propertyData.zipCode);
+    console.error("Original input data zip_code:", propertyData.zip_code);
+    throw new Error(`Cannot create property: Missing required fields: ${nullColumns.join(', ')}`);
+  }
 
   try {
     console.log("Inserting into properties table...");
@@ -675,48 +688,29 @@ export async function fetchPropertyById(id: string) {
     let landlord_name = 'Property Owner';
     let listing_agent: string | undefined;
 
-    // Prefer the non-recursive view to resolve owner name by property_id
+    // Fetch owner name from user_profiles
     try {
-      const { data: owner, error: ownerError } = await sb
-        .from('public_property_owners')
-        .select('owner_name')
-        .eq('property_id', property.id)
+      console.log("Fetching profile for user_id:", property.user_id);
+      const { data: profile, error: profileError } = await sb
+        .from('user_profiles')
+        .select('full_name, role')
+        .eq('id', property.user_id)
         .single();
 
-      if (!ownerError && owner?.owner_name) {
-        landlord_name = owner.owner_name;
-      } else if (ownerError) {
-        console.error('Error fetching owner from public_property_owners:', ownerError);
-      }
-    } catch (e) {
-      console.error('Exception fetching owner from public_property_owners:', e);
-    }
+      console.log("Profile data:", profile, "Error:", profileError);
 
-    // Fallback to user_profiles if view didn't resolve it, and also fetch role
-    if (landlord_name === 'Property Owner' || !listing_agent) {
-      try {
-        console.log("Fetching profile for user_id:", property.user_id);
-        const { data: profile, error: profileError } = await sb
-          .from('user_profiles')
-          .select('full_name, role')
-          .eq('id', property.user_id)
-          .single();
-
-        console.log("Profile data:", profile, "Error:", profileError);
-
-        if (!profileError && profile) {
-          if (!landlord_name || landlord_name === 'Property Owner') {
-            landlord_name = profile.full_name || 'Property Owner';
-          }
-          // Capitalize role for display (landlord -> Landlord, realtor -> Realtor)
-          listing_agent = profile.role ? profile.role.charAt(0).toUpperCase() + profile.role.slice(1) : undefined;
-          console.log("Found landlord name:", landlord_name, "role:", listing_agent);
-        } else {
-          console.log("Using fallback landlord name");
+      if (!profileError && profile) {
+        if (!landlord_name || landlord_name === 'Property Owner') {
+          landlord_name = profile.full_name || 'Property Owner';
         }
-      } catch (err) {
-        console.error('Exception fetching profile for rental property:', err);
+        // Capitalize role for display (landlord -> Landlord, realtor -> Realtor)
+        listing_agent = profile.role ? profile.role.charAt(0).toUpperCase() + profile.role.slice(1) : undefined;
+        console.log("Found landlord name:", landlord_name, "role:", listing_agent);
+      } else {
+        console.log("Using fallback landlord name");
       }
+    } catch (err) {
+      console.error('Exception fetching profile for rental property:', err);
     }
 
     // Add landlord_name and listing_agent to property data
@@ -727,6 +721,11 @@ export async function fetchPropertyById(id: string) {
     };
 
     console.log("Property fetched successfully:", propertyWithOwner);
+    console.log("Raw property data:", property);
+    console.log("Property keys:", Object.keys(property));
+    console.log("Property category field:", property.property_category);
+    console.log("Property configuration field:", property.property_configuration);
+    console.log("All property data:", JSON.stringify(property, null, 2));
     return propertyWithOwner;
   } catch (error) {
     console.error("Error in fetchPropertyById:", error);

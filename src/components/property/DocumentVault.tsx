@@ -55,8 +55,9 @@ export function DocumentVault({
   isBuyerView = false,
 }: DocumentVaultProps) {
   const [documents, setDocuments] = useState<PropertyDocument[]>([]);
-  const [pendingDocuments, setPendingDocuments] = useState<Map<PropertyDocumentType, PendingDocument>>(new Map());
+  const [pendingDocuments, setPendingDocuments] = useState<Map<string, PendingDocument>>(new Map());
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [listingStrength, setListingStrength] = useState(0);
   const [isExpanded, setIsExpanded] = useState(false);
   const [showAIChat, setShowAIChat] = useState(false);
@@ -66,19 +67,22 @@ export function DocumentVault({
   const commonSlots = documentSlots.filter(slot => slot.isCommon);
   const categorySlots = documentSlots.filter(slot => !slot.isCommon);
 
-  // Load documents when property ID is available
+  // Load documents when property ID is available (but not for new properties)
   useEffect(() => {
-    console.log('📄 DocumentVault useEffect triggered', {
+    console.log('DocumentVault useEffect triggered', {
       propertyId,
       hasPropertyId: !!propertyId,
       timestamp: new Date().toISOString()
     });
 
-    if (propertyId) {
-      console.log('📄 Loading documents for propertyId:', propertyId);
+    // Only load documents for existing properties (valid UUID), not new properties ('new')
+    if (propertyId && propertyId !== 'new') {
+      console.log('Loading documents for existing propertyId:', propertyId);
       loadDocuments();
+    } else if (propertyId === 'new') {
+      console.log('New property detected, skipping document load (propertyId = new)');
     } else {
-      console.log('⚠️ propertyId is null, skipping document load');
+      console.log('propertyId is null, skipping document load');
     }
   }, [propertyId]);
 
@@ -127,8 +131,8 @@ export function DocumentVault({
   };
 
   const handleUpload = async (type: PropertyDocumentType, label: string, file: File) => {
-    if (!propertyId) {
-      // Store as pending document with preview
+    // Store as pending document for new properties (propertyId = 'new' or null)
+    if (!propertyId || propertyId === 'new') {
       const previewUrl = URL.createObjectURL(file);
       const pending: PendingDocument = { type, label, file, previewUrl };
 
@@ -143,6 +147,7 @@ export function DocumentVault({
     }
 
     try {
+      // Only attempt actual upload for existing properties (valid UUID)
       const newDoc = await uploadPropertyDocument(
         propertyId,
         file,

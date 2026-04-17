@@ -52,7 +52,7 @@ export function MobileNavigation() {
   };
 
   const getRentRoommateRoute = () => {
-    return role === "seeker" ? "/dashboard/matches" : "/dashboard/landlord";
+    return role === "seeker" ? "/dashboard/roommate-recommendations" : "/dashboard/landlord";
   };
 
   return (

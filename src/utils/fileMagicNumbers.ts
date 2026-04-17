@@ -19,13 +19,22 @@ export interface MagicNumberEntry {
 export const FILE_SIGNATURES: MagicNumberEntry[] = [
   // JPEG – FF D8 FF
   { mimeType: 'image/jpeg', offset: 0, hex: 'ffd8ff' },
+  { mimeType: 'image/jpg', offset: 0, hex: 'ffd8ff' },
   // PNG – 89 50 4E 47 0D 0A 1A 0A
   { mimeType: 'image/png', offset: 0, hex: '89504e470d0a1a0a' },
   // GIF87a / GIF89a
   { mimeType: 'image/gif', offset: 0, hex: '474946383761' },
   { mimeType: 'image/gif', offset: 0, hex: '474946383961' },
+  // BMP – BM
+  { mimeType: 'image/bmp', offset: 0, hex: '424d' },
+  // TIFF – II*\0 or MM\0*
+  { mimeType: 'image/tiff', offset: 0, hex: '49492a00' },
+  { mimeType: 'image/tiff', offset: 0, hex: '4d4d002a' },
+  // HEIC – HEIC / HEIF (ftyp box)
+  { mimeType: 'image/heic', offset: 4, hex: '66747970' },
+  { mimeType: 'image/heif', offset: 4, hex: '66747970' },
   // WebP – RIFF????WEBP (check bytes 0-3 and 8-11)
-  { mimeType: 'image/webp', offset: 0, hex: '52494646' }, // "RIFF" – paired with webp check below
+  { mimeType: 'image/webp', offset: 0, hex: '52494646' },
   // PDF – %PDF
   { mimeType: 'application/pdf', offset: 0, hex: '25504446' },
   // DOC (OLE2 Compound Document) – D0 CF 11 E0
@@ -34,6 +43,14 @@ export const FILE_SIGNATURES: MagicNumberEntry[] = [
   { mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', offset: 0, hex: '504b0304' },
   { mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', offset: 0, hex: '504b0304' },
   { mimeType: 'application/vnd.openxmlformats-officedocument.presentationml.presentation', offset: 0, hex: '504b0304' },
+  // XLS (OLE2 Compound Document) – D0 CF 11 E0
+  { mimeType: 'application/vnd.ms-excel', offset: 0, hex: 'd0cf11e0' },
+  // PPT (OLE2 Compound Document) – D0 CF 11 E0
+  { mimeType: 'application/vnd.ms-powerpoint', offset: 0, hex: 'd0cf11e0' },
+  // Plain text – Allow any text file (no signature check)
+  // RTF – {\rtf
+  { mimeType: 'application/rtf', offset: 0, hex: '7b727466' },
+  // CSV – Allow any text file (no signature check)
 ];
 
 /** How many bytes we need to read (longest signature + max offset) */
@@ -109,19 +126,31 @@ export async function validateFileWithMagicNumber(
   file: File,
   allowedTypes: string[]
 ): Promise<{ valid: boolean; error?: string }> {
+  console.log('MAGIC NUMBER VALIDATION DEBUG:');
+  console.log('  File type:', file.type);
+  console.log('  Allowed types:', allowedTypes);
+  
   // 1. MIME type allowlist check (fast, synchronous-ish)
   if (!allowedTypes.includes(file.type)) {
+    console.log('  ERROR: File type not in allowed list');
     return { valid: false, error: 'File type not allowed' };
   }
 
+  console.log('  MIME type check PASSED');
+
   // 2. Magic number / file signature check
+  console.log('  Checking magic number verification...');
   const signatureValid = await verifyFileMagicNumber(file, file.type);
+  console.log('  Signature verification result:', signatureValid);
+  
   if (!signatureValid) {
+    console.log('  ERROR: Magic number verification failed');
     return {
       valid: false,
       error: 'File content does not match its declared type. The file may be corrupted or malicious.',
     };
   }
 
+  console.log('  Magic number validation PASSED');
   return { valid: true };
 }

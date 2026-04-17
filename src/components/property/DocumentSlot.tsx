@@ -87,7 +87,7 @@ export function DocumentSlot({
       return;
     }
 
-    // Validate file type – MIME allowlist + magic number verification
+    // Validate file type MIME allowlist + magic number verification
     const allowedTypes = [
       'application/pdf',
       'image/jpeg',
@@ -102,11 +102,11 @@ export function DocumentSlot({
       toast.error(typeCheck.error ?? "Please upload PDF, JPG, PNG, or DOC files only");
       return;
     }
-
+    
     setIsUploading(true);
     try {
       await onUpload(file);
-      toast.success(`${label} uploaded successfully!`);
+      // Success message will be shown by DocumentVault
       // Reset file input
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
@@ -400,11 +400,9 @@ export function DocumentSlot({
               className="hidden"
               disabled={disabled || isUploading}
             />
-            <Button
-              variant="outline"
-              className="w-full h-24 border-4 border-dashed border-purple-300 hover:border-purple-500 hover:bg-purple-50 transition-all shadow-md hover:shadow-lg"
+            <div
+              className="w-full h-24 border-4 border-dashed border-purple-300 hover:border-purple-500 hover:bg-purple-50 transition-all shadow-md hover:shadow-lg rounded-lg cursor-pointer flex flex-col items-center justify-center"
               onClick={() => fileInputRef.current?.click()}
-              disabled={disabled || isUploading}
             >
               <div className="flex flex-col items-center gap-2">
                 <Upload className={`h-6 w-6 ${isUploading ? 'animate-bounce' : ''} text-purple-500`} />
@@ -415,7 +413,7 @@ export function DocumentSlot({
                   PDF, JPG, PNG, DOC (10MB)
                 </span>
               </div>
-            </Button>
+            </div>
           </div>
         )}
       </div>

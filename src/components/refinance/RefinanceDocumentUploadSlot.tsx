@@ -37,9 +37,39 @@ export function RefinanceDocumentUploadSlot({
     const file = event.target.files?.[0];
     if (!file) return;
 
+    // Comprehensive logging for debugging
+    console.log('REFINANCE DOCUMENT UPLOAD DEBUG:');
+    console.log('  File name:', file.name);
+    console.log('  File type:', file.type);
+    console.log('  File size:', file.size);
+    console.log('  Mortgage Profile ID:', mortgageProfileId);
+    console.log('  Category:', category);
+    console.log('  Document Type:', documentType.type);
+
+    // Check if mortgage profile is saved
+    if (mortgageProfileId === 'new') {
+      toast({
+        title: 'Profile Not Saved',
+        description: 'Please save the mortgage profile before uploading documents',
+        variant: 'destructive'
+      });
+      return;
+    }
+
     // Validate file
-    const validation = validateFile(file, category, documentType.type);
+    console.log('DEBUG: File details before validation:');
+    console.log('  - file.type:', file.type);
+    console.log('  - file.name:', file.name);
+    console.log('  - file.size:', file.size);
+    console.log('  - category:', category);
+    console.log('  - documentType.type:', documentType.type);
+    console.log('  - acceptedFormats:', documentType.acceptedFormats);
+    
+    const validation = await validateFile(file, category, documentType.type);
+    console.log('DEBUG: Validation result:', validation);
+    
     if (!validation.valid) {
+      console.log('DEBUG: Validation error reason:', validation.error);
       toast({
         title: 'Invalid File',
         description: validation.error,
