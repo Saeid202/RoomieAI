@@ -1,7 +1,6 @@
 
 import { Users } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import { ProfileFormValues } from "@/types/profile";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -115,24 +114,20 @@ export function IdealRoommateSection({
   };
 
   return (
-    <AccordionItem value="ideal-roommate" className="border rounded-lg bg-background">
-      <AccordionTrigger className="px-4 py-3 hover:no-underline bg-muted/50">
+    <Card className="border rounded-lg bg-background">
+      <div className="px-4 py-3 bg-muted/50 border-b">
         <div className="flex items-center gap-2">
           <Users className="h-5 w-5 text-primary" />
           <span className="text-xl font-semibold">My Ideal Roommate</span>
         </div>
-      </AccordionTrigger>
-      <AccordionContent className="px-4 pb-4">
-        <Card className="border-2 border-border/50 shadow-sm">
-          <CardContent className="p-6">
-            <IdealRoommateForm
-              form={form}
-              onSubmit={onSubmit}
-              isSaving={isSaving}
-            />
-          </CardContent>
-        </Card>
-      </AccordionContent>
-    </AccordionItem>
+      </div>
+      <CardContent className="p-6">
+        <IdealRoommateForm
+          form={form}
+          onSubmit={onSubmit}
+          isSaving={isSaving}
+        />
+      </CardContent>
+    </Card>
   );
 }

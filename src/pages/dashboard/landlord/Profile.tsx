@@ -258,34 +258,43 @@ export default function LandlordProfilePage() {
     };
 
     return (
-        <div className="space-y-6">
-            {/* Header Section */}
-            <div className="mb-6">
-                <div className="flex justify-between items-center">
-                    <div>
-                        <h1 className="text-3xl font-bold tracking-tight">Landlord Profile</h1>
-                        <p className="text-muted-foreground mt-1">Manage your identity and verification status</p>
-                    </div>
-                    {verificationStatus === 'verified' && (
-                        <div className="flex items-center gap-2 bg-green-100 text-green-800 px-4 py-2 rounded-md border border-green-200">
-                            <ShieldCheck className="h-5 w-5" />
-                            <span className="font-semibold">Verified Landlord</span>
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 p-4 md:p-8">
+            {/* Enhanced Header Section */}
+            <div className="mb-8">
+                <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 text-white shadow-2xl">
+                    <div className="flex justify-between items-start">
+                        <div>
+                            <div className="flex items-center gap-3 mb-2">
+                                <div className="p-3 bg-white/20 rounded-lg backdrop-blur-sm">
+                                    <ShieldCheck className="h-6 w-6 text-white" />
+                                </div>
+                                <div>
+                                    <h1 className="text-4xl font-bold tracking-tight">Landlord Profile</h1>
+                                    <p className="text-blue-100 text-lg">Complete your profile to build trust with tenants</p>
+                                </div>
+                            </div>
                         </div>
-                    )}
+                        {verificationStatus === 'verified' && (
+                            <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/30">
+                                <ShieldCheck className="h-5 w-5 text-white" />
+                                <span className="font-semibold text-white">Verified Landlord</span>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Left Column: Form - Takes 2/3 width */}
-                <div className="lg:col-span-2 space-y-6">
+                <div className="lg:col-span-2 space-y-8">
                     <form onSubmit={form.handleSubmit(onSubmit)}>
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Personal Information</CardTitle>
-                                <CardDescription>
-                                    This information will be used for your official Landlord profile.
-                                </CardDescription>
-                            </CardHeader>
+                        <Card className="border-2 border-slate-200 shadow-lg overflow-hidden">
+                            <div className="bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-4">
+                                <div className="flex items-center gap-3">
+                                    <ShieldCheck className="h-6 w-6 text-white" />
+                                    <h2 className="text-2xl font-bold text-white">Personal Information</h2>
+                                </div>
+                            </div>
                             <CardContent className="space-y-4">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="space-y-2">
@@ -315,62 +324,76 @@ export default function LandlordProfilePage() {
                             </CardContent>
                         </Card>
 
-                        <LandlordContactInfoCard
-                            data={{
-                                contactUnit: contactUnit,
-                                contactStreetNumber: contactStreetNumber,
-                                contactStreetName: contactStreetName,
-                                contactPoBox: contactPoBox,
-                                contactCityTown: contactCityTown,
-                                contactProvince: contactProvince,
-                                contactPostalCode: contactPostalCode,
-                            }}
-                            errors={contactErrors}
-                            onChange={(field, value) => {
-                                // Map field names to form field names
-                                const fieldMap: Record<string, any> = {
-                                    'contactUnit': 'contactUnit',
-                                    'contactStreetNumber': 'contactStreetNumber',
-                                    'contactStreetName': 'contactStreetName',
-                                    'contactPoBox': 'contactPoBox',
-                                    'contactCityTown': 'contactCityTown',
-                                    'contactProvince': 'contactProvince',
-                                    'contactPostalCode': 'contactPostalCode',
-                                };
-                                
-                                const formField = fieldMap[field] as any;
-                                if (formField) {
-                                    form.setValue(formField, value);
-                                    // Clear error for this field when user starts typing
-                                    if (contactErrors[field]) {
-                                        setContactErrors(prev => {
-                                            const newErrors = { ...prev };
-                                            delete newErrors[field];
-                                            return newErrors;
-                                        });
-                                    }
-                                }
-                            }}
-                            isLoading={loading}
-                        />
+                        <Card className="border-2 border-slate-200 shadow-lg overflow-hidden">
+                            <div className="bg-gradient-to-r from-purple-500 to-purple-600 px-6 py-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-3 bg-white/20 rounded-lg backdrop-blur-sm">
+                                        <ShieldCheck className="h-6 w-6 text-white" />
+                                    </div>
+                                    <h2 className="text-2xl font-bold text-white">Contact Information</h2>
+                                </div>
+                            </div>
+                            <CardContent className="p-6">
+                                <LandlordContactInfoCard
+                                    data={{
+                                        contactUnit: contactUnit,
+                                        contactStreetNumber: contactStreetNumber,
+                                        contactStreetName: contactStreetName,
+                                        contactPoBox: contactPoBox,
+                                        contactCityTown: contactCityTown,
+                                        contactProvince: contactProvince,
+                                        contactPostalCode: contactPostalCode,
+                                    }}
+                                    errors={contactErrors}
+                                    onChange={(field, value) => {
+                                        // Map field names to form field names
+                                        const fieldMap: Record<string, any> = {
+                                            'contactUnit': 'contactUnit',
+                                            'contactStreetNumber': 'contactStreetNumber',
+                                            'contactStreetName': 'contactStreetName',
+                                            'contactPoBox': 'contactPoBox',
+                                            'contactCityTown': 'contactCityTown',
+                                            'contactProvince': 'contactProvince',
+                                            'contactPostalCode': 'contactPostalCode',
+                                        };
+                                        
+                                        const formField = fieldMap[field] as any;
+                                        if (formField) {
+                                            form.setValue(formField, value);
+                                            // Clear error for this field when user starts typing
+                                            if (contactErrors[field]) {
+                                                setContactErrors(prev => {
+                                                    const newErrors = { ...prev };
+                                                    delete newErrors[field];
+                                                    return newErrors;
+                                                });
+                                            }
+                                        }
+                                    }}
+                                    isLoading={loading}
+                                />
+                            </CardContent>
+                        </Card>
 
-                        <Card className="mt-6">
-                            <CardHeader>
-                                <CardTitle>Professional Verification</CardTitle>
-                                <CardDescription>
-                                    Help us verify your identity to build trust with tenants.
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-6">
+                        <Card className="border-2 border-slate-200 shadow-lg overflow-hidden">
+                            <div className="bg-gradient-to-r from-green-500 to-emerald-600 px-6 py-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-3 bg-white/20 rounded-lg backdrop-blur-sm">
+                                        <ShieldCheck className="h-6 w-6 text-white" />
+                                    </div>
+                                    <h2 className="text-2xl font-bold text-white">Professional Verification</h2>
+                                </div>
+                            </div>
+                            <CardContent className="p-6 space-y-6">
 
-                                <div className="space-y-2">
-                                    <Label>I am a...</Label>
+                                <div className="space-y-4">
+                                    <Label className="text-base font-semibold">I am a...</Label>
                                     <Select
                                         onValueChange={(val) => form.setValue("userType", val as any)}
                                         defaultValue={form.getValues("userType")}
                                         value={userType}
                                     >
-                                        <SelectTrigger>
+                                        <SelectTrigger className="h-12 text-base">
                                             <SelectValue placeholder="Select your role" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -381,8 +404,8 @@ export default function LandlordProfilePage() {
                                         </SelectContent>
                                     </Select>
                                     {form.formState.errors.userType && (
-                                        <p className="text-red-600 text-sm flex items-center gap-1">
-                                            <AlertCircle className="h-3 w-3" />
+                                        <p className="text-red-600 text-sm flex items-center gap-1 bg-red-50 p-3 rounded-lg border border-red-200">
+                                            <AlertCircle className="h-4 w-4" />
                                             {form.formState.errors.userType.message}
                                         </p>
                                     )}
@@ -469,34 +492,44 @@ export default function LandlordProfilePage() {
 
                 {/* Right Column: Info - Takes 1/3 width */}
                 <div className="space-y-6">
-                    <Card>
-                        <CardHeader className="pb-3">
-                            <CardTitle className="text-sm font-medium flex items-center gap-2">
-                                <ShieldCheck className="h-4 w-4 text-primary" />
-                                Account Overview
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-3">
-                            <div className="flex justify-between text-sm">
-                                <span className="text-muted-foreground">Signup Role:</span>
-                                <span className="font-semibold capitalize">{systemRole || 'N/A'}</span>
+                    <Card className="border-2 border-slate-200 shadow-lg overflow-hidden">
+                        <div className="bg-gradient-to-r from-indigo-500 to-purple-600 px-6 py-4">
+                            <div className="flex items-center gap-3">
+                                <div className="p-3 bg-white/20 rounded-lg backdrop-blur-sm">
+                                    <ShieldCheck className="h-6 w-6 text-white" />
+                                </div>
+                                <h2 className="text-xl font-bold text-white">Account Overview</h2>
                             </div>
-                            <div className="flex justify-between text-sm">
-                                <span className="text-muted-foreground">Joined Date:</span>
-                                <span className="font-semibold">{joinedDate || 'N/A'}</span>
+                        </div>
+                        <CardContent className="p-6 space-y-4">
+                            <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
+                                <span className="text-sm font-medium text-slate-600">Signup Role:</span>
+                                <span className="font-semibold text-slate-900 capitalize">{systemRole || 'N/A'}</span>
                             </div>
-                            <div className="flex justify-between text-sm border-t pt-2 mt-2">
-                                <span className="text-muted-foreground">Login Email:</span>
-                                <span className="font-semibold text-xs truncate max-w-[140px]" title={user?.email}>
+                            <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
+                                <span className="text-sm font-medium text-slate-600">Joined Date:</span>
+                                <span className="font-semibold text-slate-900">{joinedDate || 'N/A'}</span>
+                            </div>
+                            <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
+                                <span className="text-sm font-medium text-slate-600">Login Email:</span>
+                                <span className="font-semibold text-xs text-slate-900 truncate max-w-[140px]" title={user?.email}>
                                     {user?.email}
                                 </span>
                             </div>
                         </CardContent>
                     </Card>
 
-                    <Card className="bg-blue-50/50 border-blue-100">
-                        <CardHeader>
-                            <CardTitle className="text-blue-900 flex items-center gap-2">
+                    <Card className="border-2 border-slate-200 shadow-lg overflow-hidden">
+                        <div className="bg-gradient-to-r from-amber-500 to-orange-600 px-6 py-4">
+                            <div className="flex items-center gap-3">
+                                <div className="p-3 bg-white/20 rounded-lg backdrop-blur-sm">
+                                    <ShieldCheck className="h-6 w-6 text-white" />
+                                </div>
+                                <h2 className="text-xl font-bold text-white">Trust & Security</h2>
+                            </div>
+                        </div>
+                        <CardHeader className="pb-3">
+                            <CardTitle className="text-amber-900 flex items-center gap-2">
                                 <ShieldCheck className="h-5 w-5" />
                                 Why Verify?
                             </CardTitle>

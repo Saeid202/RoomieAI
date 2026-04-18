@@ -25,16 +25,16 @@ import { Separator } from "@/components/ui/separator";
 import { DocumentUploadField } from "@/components/profile/DocumentUploadField";
 
 const profileSchema = z.object({
-    full_name: z.string().min(1, "Full name is required"),
-    age: z.coerce.number().min(18, "You must be at least 18 years old").max(120, "Invalid age"),
-    email: z.string().email("Invalid email address"),
+    full_name: z.string().optional(),
+    age: z.coerce.number().optional(),
+    email: z.string().email("Invalid email address").optional(),
     linkedin: z.string().url("Invalid LinkedIn URL").optional().or(z.literal("")),
-    nationality: z.string().min(1, "Nationality is required"),
+    nationality: z.string().optional(),
     about_me: z.string().optional(),
-    gender: z.enum(["male", "female", "lesbian", "gay", "transgender"], { required_error: "Gender is required" }),
+    gender: z.enum(["male", "female", "lesbian", "gay", "transgender"]).optional(),
     prefer_not_to_say: z.string().optional(),
     phone: z.string().optional(),
-    profile_visibility: z.enum(["public", "private"], { required_error: "Profile visibility is required" }),
+    profile_visibility: z.enum(["public", "private"]).optional(),
     language: z.string().optional(),
     ethnicity: z.string().optional(),
     religion: z.string().optional(),
@@ -57,7 +57,7 @@ const profileSchema = z.object({
     smoking: z.enum(["Yes", "No"]).optional(),
     lives_with_smokers: z.enum(["yes", "no"]).optional(),
     // New fields for Phase 1
-    monthly_income: z.string().optional(),
+    monthly_income: z.union([z.string(), z.number()]).optional(),
     emergency_contact_name: z.string().optional(),
     emergency_contact_phone: z.string().optional(),
     emergency_contact_relationship: z.string().optional(),
@@ -83,7 +83,7 @@ export default function SeekerProfilePage() {
         resolver: zodResolver(profileSchema),
         defaultValues: {
             full_name: "",
-            age: 18,
+            age: undefined,
             email: "",
             linkedin: "",
             nationality: "",
@@ -158,11 +158,10 @@ export default function SeekerProfilePage() {
 
                 // 3. Merge data from both tables
                 const defaultValues: Partial<ProfileFormValues> = {
-                    // From user_profiles (all columns that exist in schema)
+                    // From user_profiles (load all fields that might exist)
                     full_name: (userProfile as any)?.full_name || user.user_metadata?.full_name || "",
-                    age: (userProfile as any)?.age || 18,
+                    age: (userProfile as any)?.age || undefined,
                     email: (userProfile as any)?.email || user.email || "",
-                    phone: (userProfile as any)?.phone_number || "",
                     linkedin: (userProfile as any)?.linkedin_profile || "",
                     language: (userProfile as any)?.language || "",
                     about_me: (userProfile as any)?.about_me || "",
@@ -172,19 +171,12 @@ export default function SeekerProfilePage() {
                     occupation: (userProfile as any)?.occupation || "",
                     gender: (userProfile as any)?.gender || undefined,
                     
-                    // From tenant_profiles (tenant-specific fields)
+                    // From tenant_profiles (load all fields that might exist)
+                    profile_visibility: (tenantProfile as any)?.profile_visibility || ((tenantProfile as any)?.is_profile_public ? "public" : "private"),
+                    phone: (tenantProfile as any)?.phone_number || "",
                     prefer_not_to_say: (tenantProfile as any)?.prefer_not_to_say || "",
-                    profile_visibility: (tenantProfile as any)?.profile_visibility || "public",
-                    preferred_location: (tenantProfile as any)?.preferred_location 
-                        ? (typeof (tenantProfile as any).preferred_location === 'string' 
-                            ? (tenantProfile as any).preferred_location.split(', ').filter(Boolean)
-                            : (tenantProfile as any).preferred_location) 
-                        : [],
-                    budget_range: (tenantProfile as any)?.budget_range 
-                        ? (typeof (tenantProfile as any).budget_range === 'string' 
-                            ? (tenantProfile as any).budget_range.split('-').map(Number)
-                            : (tenantProfile as any).budget_range) 
-                        : [],
+                    preferred_location: (tenantProfile as any)?.preferred_location || "",
+                    budget_range: (tenantProfile as any)?.budget_range || "",
                     move_in_date_start: (tenantProfile as any)?.move_in_date_start || "",
                     move_in_date_end: (tenantProfile as any)?.move_in_date_end || "",
                     housing_type: (tenantProfile as any)?.housing_type || undefined,
@@ -204,28 +196,32 @@ export default function SeekerProfilePage() {
                             ? (tenantProfile as any).hobbies.split(', ').filter(Boolean)
                             : (tenantProfile as any).hobbies) 
                         : [],
-                    monthly_income: (tenantProfile as any)?.monthly_income || "",
+                    monthly_income: (tenantProfile as any)?.monthly_income ? 
+                        typeof (tenantProfile as any).monthly_income === 'number' 
+                            ? (tenantProfile as any).monthly_income.toString()
+                            : (tenantProfile as any).monthly_income
+                        : "",
                     emergency_contact_name: (tenantProfile as any)?.emergency_contact_name || "",
                     emergency_contact_phone: (tenantProfile as any)?.emergency_contact_phone || "",
-                    emergency_contact_relationship: (tenantProfile as any)?.emergency_contact_relationship || "",
+                    emergency_contact_relationship: (tenantProfile as any)?.emergency_contact_relationship || ""
                 };
 
                 console.log("Merged default values:", defaultValues);
                 
                 // Wrap all state updates in startTransition
                 startTransition(() => {
-                    // Set user_type if available
-                    if (userProfile?.user_type) {
-                        setUserType(userProfile.user_type);
+                    // Set user_type if available (handle missing column gracefully)
+                    if ((userProfile as any)?.user_type) {
+                        setUserType((userProfile as any).user_type);
                     }
 
-                    // Set document URLs from tenant profile
+                    // Set document URLs from tenant profile (handle missing columns gracefully)
                     if (tenantProfile) {
                         setDocumentUrls({
-                            reference_letters: tenantProfile.reference_letters || null,
-                            employment_letter: tenantProfile.employment_letter || null,
-                            credit_score_report: tenantProfile.credit_score_report || null,
-                            additional_documents: tenantProfile.additional_documents || null,
+                            reference_letters: (tenantProfile as any)?.reference_letters || null,
+                            employment_letter: (tenantProfile as any)?.employment_letter || null,
+                            credit_score_report: (tenantProfile as any)?.credit_score_report || null,
+                            additional_documents: (tenantProfile as any)?.additional_documents || null,
                         });
                     }
 
@@ -256,75 +252,97 @@ export default function SeekerProfilePage() {
             console.log("Saving profile for user:", user.id, values);
 
             // 1. Save COMMON fields to user_profiles
-            // Include all fields that exist in the schema
-            const commonFields = {
+            // Only include fields that exist in the current schema
+            const commonFields: any = {
                 id: user.id,
-                full_name: values.full_name,
                 email: values.email,
-                phone_number: values.phone || null,
-                age: values.age || null,
-                linkedin_profile: values.linkedin || null,
-                language: values.language || null,
-                about_me: values.about_me || null,
-                nationality: values.nationality || null,
-                ethnicity: values.ethnicity || null,
-                religion: values.religion || null,
-                occupation: values.occupation || null,
-                gender: values.gender || null,
                 updated_at: new Date().toISOString(),
             };
+            
+            // Add fields that exist in current database schema
+            if (values.occupation) commonFields.occupation = values.occupation;
+            
+            // Add new fields that should exist (will work if migration is applied)
+            if (values.age !== undefined) commonFields.age = values.age;
+            if (values.linkedin) commonFields.linkedin_profile = values.linkedin;
+            if (values.language) commonFields.language = values.language;
+            if (values.about_me) commonFields.about_me = values.about_me;
+            if (values.nationality) commonFields.nationality = values.nationality;
+            if (values.ethnicity) commonFields.ethnicity = values.ethnicity;
+            if (values.religion) commonFields.religion = values.religion;
+            if (values.gender) commonFields.gender = values.gender;
 
+            console.log("Attempting to save to user_profiles with data:", commonFields);
             const { error: profileError } = await supabase
                 .from('user_profiles')
                 .upsert(commonFields);
 
             if (profileError) {
                 console.error("Error saving to user_profiles:", profileError);
-                throw profileError;
+                console.error("Error details:", JSON.stringify(profileError, null, 2));
+                toast({
+                    title: "Profile Update Failed",
+                    description: `Database error: ${profileError.message}`,
+                    variant: "destructive"
+                });
+                return;
             }
 
             // 2. Save TENANT-SPECIFIC fields to tenant_profiles
-            // Include all fields that exist in the schema
+            // Only include fields that exist in the current schema
             const nameParts = values.full_name.trim().split(' ');
-            const tenantFields = {
-                user_id: user.id,
-                first_name: nameParts[0] || values.full_name,
-                last_name: nameParts.slice(1).join(' ') || '-',
-                occupation: values.occupation || 'Not specified',
-                bio: values.about_me || null,
-                linkedin: values.linkedin || null,
-                email: values.email || null,
-                phone_number: values.phone || null,
-                profile_visibility: values.profile_visibility || 'public',
-                preferred_location: Array.isArray(values.preferred_location) 
-                    ? values.preferred_location.join(', ') 
-                    : values.preferred_location || null,
-                budget_range: Array.isArray(values.budget_range) 
-                    ? values.budget_range.join('-') 
-                    : values.budget_range || null,
-                housing_type: values.housing_type || null,
-                work_location: values.work_location || null,
-                work_schedule: values.work_schedule || null,
-                pet_preference: values.pet_preference || null,
-                hobbies: Array.isArray(values.hobbies) 
-                    ? values.hobbies.join(', ') 
-                    : values.hobbies || null,
-                smoking: values.smoking || null,
-                diet: values.diet || null,
-                monthly_income: values.monthly_income || null,
-                emergency_contact_name: values.emergency_contact_name || null,
-                emergency_contact_phone: values.emergency_contact_phone || null,
-                emergency_contact_relationship: values.emergency_contact_relationship || null,
+            const tenantFields: any = {
                 updated_at: new Date().toISOString(),
             };
+            
+            // Only add fields if they exist (handle schema cache issues)
+            if (user.id) tenantFields.user_id = user.id;
+            if (nameParts[0] || values.full_name) tenantFields.first_name = nameParts[0] || values.full_name;
+            if (nameParts.slice(1).join(' ') || '-') tenantFields.last_name = nameParts.slice(1).join(' ') || '-';
+            if (values.occupation || 'Not specified') tenantFields.occupation = values.occupation || 'Not specified';
+            if (values.phone) tenantFields.phone_number = values.phone;
+            if (values.profile_visibility === 'public') tenantFields.is_profile_public = true;
+            
+            // Note: Additional fields (linkedin, profile_visibility, preferred_location, budget_range, 
+            // housing_type, work_location, work_schedule, pet_preference, hobbies, smoking, diet, 
+            // monthly_income, emergency_contact_*) will be added after database migration is applied
+            // Only use existing columns to avoid errors
+            
+            // Handle monthly_income conversion (number to string for database)
+            if (values.monthly_income !== undefined && values.monthly_income !== "") {
+                tenantFields.monthly_income = typeof values.monthly_income === 'number' 
+                    ? values.monthly_income.toString()
+                    : values.monthly_income;
+            }
+            
+            // Handle preferred_location as comma-separated string
+            if (values.preferred_location && values.preferred_location.length > 0) {
+                tenantFields.preferred_location = Array.isArray(values.preferred_location)
+                    ? values.preferred_location.join(', ')
+                    : values.preferred_location;
+            }
+            
+            // Handle budget_range as string
+            if (values.budget_range && values.budget_range.length > 0) {
+                tenantFields.budget_range = Array.isArray(values.budget_range)
+                    ? values.budget_range.join(' - ')
+                    : values.budget_range;
+            }
 
+            console.log("Attempting to save to tenant_profiles with data:", tenantFields);
             const { error: tenantError } = await supabase
                 .from('tenant_profiles')
                 .upsert(tenantFields);
 
             if (tenantError) {
                 console.error("Error saving to tenant_profiles:", tenantError);
-                throw tenantError;
+                console.error("Error details:", JSON.stringify(tenantError, null, 2));
+                toast({
+                    title: "Profile Update Failed",
+                    description: `Tenant profile error: ${tenantError.message}`,
+                    variant: "destructive"
+                });
+                return;
             }
 
             console.log("Profile saved successfully to both tables");
@@ -335,9 +353,10 @@ export default function SeekerProfilePage() {
             });
         } catch (error) {
             console.error("Error updating profile:", error);
+            console.error("Error details:", JSON.stringify(error, null, 2));
             toast({
-                title: "Error",
-                description: "Failed to save profile. Please try again.",
+                title: "Error updating profile",
+                description: `Could not update your profile: ${error instanceof Error ? error.message : 'Unknown error'}`,
                 variant: "destructive",
             });
         }
@@ -994,7 +1013,7 @@ export default function SeekerProfilePage() {
                                     name="monthly_income"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel className="text-base font-semibold">Monthly Income</FormLabel>
+                                            <FormLabel className="text-base font-semibold">Monthly Income <span className="text-slate-400 font-normal">(Optional)</span></FormLabel>
                                             <FormControl>
                                                 <div className="relative">
                                                     <DollarSign className="absolute left-3 top-4 h-5 w-5 text-slate-400" />
@@ -1002,7 +1021,7 @@ export default function SeekerProfilePage() {
                                                         type="number" 
                                                         className="pl-10 h-12 text-base" 
                                                         placeholder="5000" 
-                                                        {...field} 
+                                                        {...field}
                                                     />
                                                 </div>
                                             </FormControl>

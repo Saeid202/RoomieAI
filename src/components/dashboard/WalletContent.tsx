@@ -31,7 +31,7 @@ export function WalletContent() {
   const [deletingMethodId, setDeletingMethodId] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [showAddFlow, setShowAddFlow] = useState(false);
-  const [activeFlow, setActiveFlow] = useState<"none" | "rent" | "mortgage">("rent");
+  const [activeFlow, setActiveFlow] = useState<"none" | "rent" | "mortgage" | "rent-smoothing">("rent");
   const [isProcessing, setIsProcessing] = useState(false);
   const [applications, setApplications] = useState<any[]>([]);
   const [selectedAppId, setSelectedAppId] = useState<string | null>(null);
@@ -380,6 +380,17 @@ export function WalletContent() {
             <ShieldCheck className={`h-4 w-4 ${activeFlow === "mortgage" ? "text-orange-600" : "text-slate-400"}`} />
             Pay Your Mortgage
           </button>
+          <button
+            onClick={() => setActiveFlow("rent-smoothing")}
+            className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-lg text-sm font-bold transition-all ${
+              activeFlow === "rent-smoothing" 
+                ? "bg-white text-green-600 shadow-sm border border-slate-200" 
+                : "text-slate-500 hover:text-slate-700 hover:bg-slate-50"
+            }`}
+          >
+            <TrendingUp className={`h-4 w-4 ${activeFlow === "rent-smoothing" ? "text-green-600" : "text-slate-400"}`} />
+            Rent Smoothing
+          </button>
         </div>
       </div>
 
@@ -387,11 +398,17 @@ export function WalletContent() {
         <div className="max-w-4xl mx-auto animate-in fade-in zoom-in-95 duration-500 mb-20">
           <div className="bg-white rounded-[3rem] p-10 md:p-14 shadow-2xl shadow-purple-50 border-2 border-gray-50">
             <div className="text-center mb-12">
-              <div className={`h-20 w-20 rounded-3xl mx-auto mb-6 flex items-center justify-center ${activeFlow === 'rent' ? 'bg-purple-100' : 'bg-red-100'}`}>
+              <div className={`h-20 w-20 rounded-3xl mx-auto mb-6 flex items-center justify-center ${
+                  activeFlow === 'rent' ? 'bg-purple-100' : 
+                  activeFlow === 'mortgage' ? 'bg-red-100' : 
+                  'bg-green-100'
+                }`}>
                 {activeFlow === 'rent' ? (
                   <Building2 className="h-10 w-10 text-purple-600" />
-                ) : (
+                ) : activeFlow === 'mortgage' ? (
                   <ShieldCheck className="h-10 w-10 text-red-600" />
+                ) : (
+                  <TrendingUp className="h-10 w-10 text-green-600" />
                 )}
               </div>
               <h2 className="text-4xl font-black text-gray-900 mb-3 capitalize">
@@ -524,8 +541,8 @@ export function WalletContent() {
               </div>
             ) : (
               <SimplePaymentForm
-                type={activeFlow === "rent" ? "rent" : "mortgage"}
-                defaultAmount={activeFlow === "rent" ? currentRentAmount : mortgageAmount}
+                type={activeFlow === "rent" ? "rent" : activeFlow === "mortgage" ? "mortgage" : "rent-smoothing"}
+                defaultAmount={activeFlow === "rent" ? currentRentAmount : activeFlow === "mortgage" ? mortgageAmount : 500}
                 paymentMethods={paymentMethods}
                 onPay={handlePayment}
                 metadata={activeFlow === "rent" ? {

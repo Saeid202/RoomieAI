@@ -7,7 +7,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Accordion } from "@/components/ui/accordion";
 import { IdealRoommateSection } from "@/components/dashboard/recommendations/IdealRoommateSection";
 import { useRoommateProfile } from "@/hooks/useRoommateProfile";
 import { useRoommateMatching } from "@/hooks/useRoommateMatching";
@@ -75,12 +74,10 @@ export default function IdealRoommatePage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Accordion type="multiple" className="space-y-4">
-            <IdealRoommateSection
-              profileData={profileData}
-              onSaveProfile={handleProfileSave}
-            />
-          </Accordion>
+          <IdealRoommateSection
+            profileData={profileData}
+            onSaveProfile={handleProfileSave}
+          />
         </CardContent>
       </Card>
 

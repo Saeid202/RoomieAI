@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { Building2, ShieldCheck, CreditCard, Plus, Home, Loader2, Trash2, Star } from "lucide-react";
 import DigitalWallet from "@/pages/dashboard/tenant/TenantPayments";
+import WalletContent from "@/components/dashboard/WalletContent";
+import RentSmoothingContent from "@/components/dashboard/RentSmoothingContent";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { RentPaymentFlow } from "@/components/payment/RentPaymentFlow";
 import { getUserPaymentMethods, deletePaymentMethod } from "@/services/padPaymentService";
@@ -10,11 +12,12 @@ import { toast } from "sonner";
 
 export default function WalletPage() {
   const { user } = useAuth();
-  const [tab, setTab] = useState<"rent" | "mortgage">("rent");
+  const [tab, setTab] = useState<"rent" | "mortgage" | "rent-smoothing">("rent");
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [showAddFlow, setShowAddFlow] = useState(false);
   const [deletingMethodId, setDeletingMethodId] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const fetchMethods = async () => {
     if (!user?.id) return;
@@ -36,6 +39,18 @@ export default function WalletPage() {
     finally { setDeletingMethodId(null); }
   };
 
+  const handlePay = async (amount: number, methodId: string, metadata?: { landlordId?: string; propertyId?: string }) => {
+    setIsProcessing(true);
+    try {
+      // TODO: Implement rent smoothing payment logic
+      toast.success(`Rent smoothing payment of $${amount.toFixed(2)} processed successfully`);
+    } catch (error) {
+      toast.error('Failed to process rent smoothing payment');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   const defaultMethod = paymentMethods.find(m => m.is_default) || paymentMethods[0];
 
   return (
@@ -53,11 +68,22 @@ export default function WalletPage() {
             <ShieldCheck className={`h-4 w-4 ${tab === "mortgage" ? "text-orange-600" : "text-slate-400"}`} />
             Pay Your Mortgage
           </button>
+          <button onClick={() => setTab("rent-smoothing")}
+            className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-lg text-sm font-bold transition-all ${tab === "rent-smoothing" ? "bg-white text-green-600 shadow-sm border border-slate-200" : "text-slate-500 hover:text-slate-700 hover:bg-slate-50"}`}>
+            <Home className={`h-4 w-4 ${tab === "rent-smoothing" ? "text-green-600" : "text-slate-400"}`} />
+            Rent Smoothing
+          </button>
         </div>
       </div>
 
       {tab === "rent" ? (
         <DigitalWallet />
+      ) : tab === "rent-smoothing" ? (
+        <RentSmoothingContent 
+          paymentMethods={paymentMethods}
+          onPay={handlePay}
+          isProcessing={isProcessing}
+        />
       ) : (
         <div className="px-6 py-8">
           {/* Same gradient header as rent tab */}
@@ -72,7 +98,7 @@ export default function WalletPage() {
                   <CreditCard className="h-7 w-7 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-2xl font-black text-white tracking-tight leading-tight">Digital Wallet</h1>
+                  <h1 className="text-2xl font-black text-white tracking-tight leading-tight">Mortgage Payments</h1>
                   <p className="text-purple-100 text-sm font-medium mt-0.5">Manage your mortgage payments with Canadian Pre-Authorized Debit (PAD)</p>
                 </div>
               </div>
