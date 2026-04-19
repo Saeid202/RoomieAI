@@ -5,7 +5,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useAuth } from "@/hooks/useAuth";
-import { DollarSign, TrendingUp, Wallet, Clock, Building2, CheckCircle2, ChevronRight, Plus } from "lucide-react";
+import { DollarSign, TrendingUp, Wallet, Clock, Building2, CheckCircle2, ChevronRight, Plus, CreditCard } from "lucide-react";
 import {
   getLandlordPayments,
   calculatePaymentSummary,
@@ -15,6 +15,8 @@ import {
   type LandlordPayment
 } from "@/services/landlordPaymentService";
 import { formatCurrency } from "@/services/feeCalculationService";
+import { LandlordWallet } from "@/components/dashboard/LandlordWallet";
+import { DbWalletService } from "@/services/rent-smoothing/DbWalletService";
 import { getPayoutStatus, savePayoutBankAccount, type PayoutStatus } from "@/services/payoutService";
 import { toast } from "sonner";
 
@@ -54,6 +56,25 @@ export default function LandlordPayments() {
   const [accountConfirm, setAccountConfirm] = useState('');
   const [showCheque, setShowCheque] = useState(false);
 
+  // Wallet balance — reads from DB wallet_accounts
+  const [walletBalance, setWalletBalance] = useState(0);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    DbWalletService.getBalance(user.id).then(bal => {
+      setWalletBalance(bal / 100); // cents → dollars for display
+    }).catch(() => {});
+
+    // Poll every 5 seconds to catch incoming payments
+    const interval = setInterval(() => {
+      DbWalletService.getBalance(user.id!).then(bal => {
+        setWalletBalance(bal / 100);
+      }).catch(() => {});
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [user?.id]);
+
   useEffect(() => {
     if (!user) { setIsLoading(false); return; }
     Promise.all([
@@ -84,6 +105,15 @@ export default function LandlordPayments() {
   );
 
   const summary = calculatePaymentSummary(payments);
+
+  const handleWithdraw = async (amount: number) => {
+    await new Promise(r => setTimeout(r, 800));
+    if (user?.id) {
+      await DbWalletService.addBalance(user.id, -Math.round(amount * 100));
+      const newBal = await DbWalletService.getBalance(user.id);
+      setWalletBalance(newBal / 100);
+    }
+  };
 
   const openBankModal = () => {
     setHolderName(payoutStatus?.account_holder_name || '');
@@ -136,90 +166,129 @@ export default function LandlordPayments() {
     <>
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
       <div className="max-w-full px-6 py-8">
-        {/* Header */}
-        <div className="relative rounded-xl overflow-hidden shadow-lg mb-8" style={{background: 'linear-gradient(to right, #8B5CF6, #A855F7, #FF6B35)'}}>
-          <div className="absolute inset-0 opacity-10">
-            <div className="absolute top-0 right-0 w-48 h-48 bg-white rounded-full -translate-y-1/2 translate-x-1/2" />
-            <div className="absolute bottom-0 left-0 w-32 h-32 bg-white rounded-full translate-y-1/2 -translate-x-1/2" />
-          </div>
-          <div className="relative px-6 py-5 flex items-center gap-4">
-            <div className="flex-shrink-0 bg-white/20 backdrop-blur-sm rounded-xl p-2.5">
-              <DollarSign className="h-7 w-7 text-white" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-black text-white tracking-tight leading-tight">Payment Dashboard</h1>
-              <p className="text-purple-100 text-sm font-medium mt-0.5">Track and manage rent payments from your tenants</p>
-            </div>
-          </div>
-        </div>
+        {/* Landlord Wallet — serves as the page header */}
+        <LandlordWallet
+          balance={walletBalance}
+          payments={payments.map(p => ({
+            id: p.id,
+            tenant_name: p.tenant_name,
+            amount: p.net_amount,
+            created_at: p.created_at,
+            status: p.status,
+          }))}
+          payoutConnected={!!payoutStatus?.connected}
+          payoutBankName={payoutStatus?.bank_name}
+          payoutLast4={payoutStatus?.last4}
+          onWithdraw={handleWithdraw}
+        />
 
         {/* Bank Account Section */}
-        <div className="bg-white border border-slate-200 rounded-xl shadow-sm mb-6 overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100 bg-slate-50">
-            <p className="text-sm font-semibold text-slate-700">Payout Bank Account</p>
-            <button
-              onClick={openBankModal}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
-              style={{background: 'linear-gradient(to right, #8B5CF6, #FF6B35)', color: 'white'}}
-            >
-              <Plus className="h-3.5 w-3.5" />
-              {payoutStatus?.connected ? 'Update Account' : 'Add Payment'}
-            </button>
+        <div className="bg-white border-2 border-slate-200 rounded-2xl shadow-sm mb-6 overflow-hidden">
+          {/* Section header */}
+          <div className="px-5 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-purple-500 to-orange-400 flex items-center justify-center">
+                  <Building2 className="h-4 w-4 text-white" />
+                </div>
+                <div>
+                  <p className="text-sm font-black text-slate-900">Payout Accounts</p>
+                  <p className="text-xs text-slate-400">Where your rent payments are sent</p>
+                </div>
+              </div>
+            </div>
           </div>
 
-          {payoutStatus?.connected ? (
-            <div className="flex items-center justify-between px-5 py-4">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-gradient-to-br from-purple-500 to-orange-400 flex items-center justify-center flex-shrink-0">
-                  <Building2 className="h-5 w-5 text-white" />
+          <div className="p-4 space-y-3">
+            {payoutStatus?.connected ? (
+              <>
+                {/* Connected account card */}
+                <div className="flex items-center gap-3 p-4 rounded-xl bg-green-50 border-2 border-green-200">
+                  <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-purple-500 to-orange-400 flex items-center justify-center flex-shrink-0">
+                    <Building2 className="h-5 w-5 text-white" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-slate-900 text-sm">
+                      {payoutStatus.bank_name || 'Bank Account'}
+                      {payoutStatus.last4 && <span className="text-slate-500 font-normal ml-2">••••{payoutStatus.last4}</span>}
+                    </p>
+                    <p className="text-xs text-slate-500 mt-0.5">Pre-Authorized Debit · Default payout</p>
+                  </div>
+                  <div className="flex flex-col items-end gap-1.5">
+                    <span className="flex items-center gap-1 text-[10px] font-bold text-green-700 bg-green-100 border border-green-300 px-2 py-0.5 rounded-full">
+                      <CheckCircle2 className="h-3 w-3" /> Connected
+                    </span>
+                    <button onClick={openBankModal} className="text-[10px] font-semibold text-purple-600 hover:underline">
+                      Update
+                    </button>
+                  </div>
                 </div>
-                <div>
-                  <p className="font-semibold text-slate-900 text-sm">
-                    {payoutStatus.bank_name || 'Bank Account'}
-                    {payoutStatus.last4 && <span className="text-slate-500 font-normal ml-2">••••{payoutStatus.last4}</span>}
-                  </p>
-                  <p className="text-xs text-slate-500">Pre-Authorized Debit · Payout account</p>
+
+                {/* Add more options */}
+                <div className="grid grid-cols-2 gap-3">
+                  <button onClick={openBankModal}
+                    className="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-dashed border-purple-200 hover:border-purple-400 hover:bg-purple-50 transition-all group">
+                    <div className="h-10 w-10 rounded-xl bg-purple-100 group-hover:bg-purple-200 flex items-center justify-center transition-colors">
+                      <Plus className="h-5 w-5 text-purple-600" />
+                    </div>
+                    <div className="text-center">
+                      <p className="text-xs font-bold text-slate-700">Add Bank Account</p>
+                      <p className="text-[10px] text-slate-400 mt-0.5">TD, RBC, BMO & more</p>
+                    </div>
+                  </button>
+                  <button onClick={openBankModal}
+                    className="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-dashed border-slate-200 hover:border-purple-400 hover:bg-purple-50 transition-all group">
+                    <div className="h-10 w-10 rounded-xl bg-slate-100 group-hover:bg-purple-100 flex items-center justify-center transition-colors">
+                      <CreditCard className="h-5 w-5 text-slate-500 group-hover:text-purple-600 transition-colors" />
+                    </div>
+                    <div className="text-center">
+                      <p className="text-xs font-bold text-slate-700">Add Debit Card</p>
+                      <p className="text-[10px] text-slate-400 mt-0.5">Instant payout · 1% fee</p>
+                    </div>
+                  </button>
+                </div>
+              </>
+            ) : (
+              /* Not connected state */
+              <div className="flex flex-col items-center py-6 text-center">
+                <div className="h-14 w-14 rounded-2xl bg-amber-100 flex items-center justify-center mb-3">
+                  <Building2 className="h-7 w-7 text-amber-500" />
+                </div>
+                <p className="font-bold text-slate-800 text-sm mb-1">No payout account connected</p>
+                <p className="text-xs text-slate-400 mb-4 max-w-[200px]">Connect your bank to receive rent payments automatically</p>
+                <div className="flex gap-3 w-full">
+                  <button onClick={openBankModal}
+                    className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold text-white transition-all"
+                    style={{background: 'linear-gradient(to right, #8B5CF6, #FF6B35)'}}>
+                    <Plus className="h-4 w-4" /> Add Bank Account
+                  </button>
+                  <button onClick={openBankModal}
+                    className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold border-2 border-slate-200 text-slate-700 hover:border-purple-400 hover:bg-purple-50 transition-all">
+                    <CreditCard className="h-4 w-4" /> Add Card
+                  </button>
                 </div>
               </div>
-              <span className="flex items-center gap-1 text-xs font-semibold text-green-700 bg-green-50 border border-green-200 px-2.5 py-1 rounded-full">
-                <CheckCircle2 className="h-3.5 w-3.5" /> Connected
-              </span>
-            </div>
-          ) : (
-            <div className="flex items-center justify-between px-5 py-4">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
-                  <Building2 className="h-5 w-5 text-amber-600" />
-                </div>
-                <div>
-                  <p className="font-semibold text-slate-900 text-sm">No bank account connected</p>
-                  <p className="text-xs text-slate-500">Connect your account to receive rent payments</p>
-                </div>
-              </div>
-              <span className="text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full">
-                Not set up
-              </span>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
         {/* Balance Cards */}
-        <div className="grid gap-6 lg:grid-cols-3 mb-8">
+        <div className="grid gap-4 lg:grid-cols-3 mb-8">
           {[
-            { label: 'Available Balance', value: summary.available_balance, sub: 'Ready for payout', icon: <Wallet className="h-5 w-5 text-white" />, grad: 'from-green-400 to-emerald-500' },
-            { label: 'Pending', value: summary.pending_balance, sub: 'Processing payments', icon: <TrendingUp className="h-5 w-5 text-white" />, grad: 'from-amber-400 to-orange-500' },
-            { label: 'This Month', value: summary.total_this_month, sub: 'Total received', icon: <DollarSign className="h-5 w-5 text-white" />, grad: 'from-purple-400 to-pink-500' },
+            { label: 'Available Balance', value: summary.available_balance, sub: 'Ready for payout', icon: <Wallet className="h-5 w-5 text-white" />, grad: 'from-purple-500 to-orange-400', border: 'border-purple-200' },
+            { label: 'Pending', value: summary.pending_balance, sub: 'Processing payments', icon: <TrendingUp className="h-5 w-5 text-white" />, grad: 'from-amber-400 to-orange-500', border: 'border-amber-200' },
+            { label: 'This Month', value: summary.total_this_month, sub: 'Total received', icon: <DollarSign className="h-5 w-5 text-white" />, grad: 'from-green-400 to-emerald-500', border: 'border-green-200' },
           ].map(c => (
-            <Card key={c.label} className="border-slate-200 shadow-sm">
-              <CardHeader className="pb-3">
+            <Card key={c.label} className={"border-2 shadow-sm " + c.border}>
+              <CardHeader className="pb-2 pt-4">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm font-semibold text-slate-600 uppercase tracking-wide">{c.label}</CardTitle>
-                  <div className={`h-10 w-10 rounded-full bg-gradient-to-br ${c.grad} flex items-center justify-center`}>{c.icon}</div>
+                  <CardTitle className="text-xs font-bold text-slate-500 uppercase tracking-widest">{c.label}</CardTitle>
+                  <div className={"h-9 w-9 rounded-xl bg-gradient-to-br " + c.grad + " flex items-center justify-center"}>{c.icon}</div>
                 </div>
               </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold text-slate-900">{formatCurrency(c.value)}</div>
-                <p className="text-sm text-slate-500 mt-1">{c.sub}</p>
+              <CardContent className="pb-4">
+                <div className="text-2xl font-black text-slate-900">{formatCurrency(c.value)}</div>
+                <p className="text-xs text-slate-500 mt-1">{c.sub}</p>
               </CardContent>
             </Card>
           ))}

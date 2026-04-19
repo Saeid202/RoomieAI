@@ -400,6 +400,11 @@ const DefaultErrorFallback: React.FC<{ error: Error }> = ({ error }) => (
 export const useErrorHandler = () => {
   const logger = Logger.getInstance();
 
+  const handleApiError = (error: unknown): string => {
+    if (error instanceof Error) return error.message;
+    return String(error) || 'Unknown error';
+  };
+
   const handleError = (error: Error | AppError, context?: Record<string, any>) => {
     if (error instanceof AppError) {
       logger.error(error.message, error, context);

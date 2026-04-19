@@ -6,7 +6,8 @@ export type DocumentType =
   | "reference_letters"
   | "employment_letter"
   | "credit_score_report"
-  | "additional_documents";
+  | "additional_documents"
+  | "bank_statement";
 
 export interface UploadResult {
   success: boolean;

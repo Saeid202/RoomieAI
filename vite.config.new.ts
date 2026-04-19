@@ -1,6 +1,7 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
+import { componentTagger } from "lovable-tagger";
 
 const DEFAULT_PORT = Number(process.env.VITE_PORT ?? process.env.PORT ?? 5173);
 const DEFAULT_HOST = process.env.VITE_HOST ?? "0.0.0.0";
@@ -16,31 +17,32 @@ export default defineConfig(({ mode }) => ({
     watch: {
       usePolling: false,
       ignored: ["**/node_modules/**", "**/.git/**"]
-    }
-  },
-  plugins: [
-    react()
-  ],
-  resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "src")
+    },
+    plugins: [
+      react(),
+      componentTagger()
+    ],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          react: {
+            manualChunks: {
+              react: React,
+              "react-dom": "react-dom",
+              "react-router-dom": "react-router-dom"
+            }
+          }
+        }
+      }
     }
   },
   optimizeDeps: {
     include: ["react", "react-dom"]
   },
-  build: {
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          react: ["react", "react-dom"],
-          router: ["react-router-dom"],
-          ui: ["@radix-ui/react-dialog", "@radix-ui/react-dropdown-menu"],
-          supabase: ["@supabase/supabase-js"],
-          stripe: ["@stripe/react-stripe-js", "@stripe/stripe-js"]
-        }
-      }
-    },
-    chunkSizeWarningLimit: 1000
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "src")
+    }
   }
-}));
+});

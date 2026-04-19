@@ -48,3 +48,11 @@ export default function PropertyDetailsPage() {
   const [editingPrice, setEditingPrice] = useState(false);
   const [priceDraft, setPriceDraft] = useState<string>("");
   const [securityDraft, setSecurityDraft] = useState<string>("");
+
+  return (
+    <div>
+      <h1>Property Details</h1>
+      {/* Component content would go here */}
+    </div>
+  );
+}

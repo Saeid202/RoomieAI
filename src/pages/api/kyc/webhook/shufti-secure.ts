@@ -27,7 +27,7 @@ interface WebhookLog {
   event_type: string;
   received_at: string;
   processed_at: string;
-  signature_valid: boolean;
+  signatureValid: boolean;
   duplicate: boolean;
   ip_address: string;
   user_agent: string;
@@ -85,7 +85,7 @@ export default async function handler(
         event_type: 'invalid_request',
         received_at: new Date(startTime).toISOString(),
         processed_at: new Date().toISOString(),
-        signature_valid: false,
+        signatureValid: false,
         duplicate: false,
         ip_address: clientIP,
         user_agent: userAgent,
@@ -107,7 +107,7 @@ export default async function handler(
         event_type: 'invalid_request',
         received_at: new Date(startTime).toISOString(),
         processed_at: new Date().toISOString(),
-        signature_valid: false,
+        signatureValid: false,
         duplicate: false,
         ip_address: clientIP,
         user_agent: userAgent,
@@ -130,7 +130,7 @@ export default async function handler(
         event_type: event.event || 'unknown',
         received_at: new Date(startTime).toISOString(),
         processed_at: new Date().toISOString(),
-        signature_valid: false,
+        signatureValid: false,
         duplicate: false,
         ip_address: clientIP,
         user_agent: userAgent,
@@ -154,7 +154,7 @@ export default async function handler(
         event_type: event.event,
         received_at: new Date(startTime).toISOString(),
         processed_at: new Date().toISOString(),
-        signature_valid: false,
+        signatureValid: false,
         duplicate: true,
         ip_address: clientIP,
         user_agent: userAgent,
@@ -181,7 +181,7 @@ export default async function handler(
           event_type: event.event,
           received_at: new Date(startTime).toISOString(),
           processed_at: new Date().toISOString(),
-          signature_valid: false,
+          signatureValid: false,
           duplicate: false,
           ip_address: clientIP,
           user_agent: userAgent,
@@ -216,7 +216,7 @@ export default async function handler(
         event_type: event.event,
         received_at: new Date(startTime).toISOString(),
         processed_at: new Date().toISOString(),
-        signature_valid,
+        signatureValid,
         duplicate: false,
         ip_address: clientIP,
         user_agent: userAgent,
@@ -241,7 +241,8 @@ export default async function handler(
           completed_at: new Date().toISOString(),
           verification_result: event,
           webhook_processed_at: new Date().toISOString(),
-          webhook_request_        };
+          webhook_request_signature: signatureValid
+        };
         break;
 
       case 'verification.declined':
@@ -252,7 +253,8 @@ export default async function handler(
           verification_result: event,
           rejection_reason: event.error?.message || 'Verification declined',
           webhook_processed_at: new Date().toISOString(),
-          webhook_request_        };
+          webhook_request_signature: signatureValid
+        };
         break;
 
       case 'request.cancelled':
@@ -262,7 +264,8 @@ export default async function handler(
           cancelled_at: new Date().toISOString(),
           cancellation_reason: event.error?.message || 'User cancelled',
           webhook_processed_at: new Date().toISOString(),
-          webhook_request_        };
+          webhook_request_signature: signatureValid
+        };
         break;
 
       case 'request.timeout':
@@ -272,7 +275,8 @@ export default async function handler(
           expired_at: new Date().toISOString(),
           timeout_reason: event.error?.message || 'Request timed out',
           webhook_processed_at: new Date().toISOString(),
-          webhook_request_        };
+          webhook_request_signature: signatureValid
+        };
         break;
 
       default:
@@ -282,7 +286,7 @@ export default async function handler(
           event_type: event.event,
           received_at: new Date(startTime).toISOString(),
           processed_at: new Date().toISOString(),
-          signature_valid,
+          signatureValid,
           duplicate: false,
           ip_address: clientIP,
           user_agent: userAgent,
@@ -315,7 +319,7 @@ export default async function handler(
         event_type: event.event,
         received_at: new Date(startTime).toISOString(),
         processed_at: new Date().toISOString(),
-        signature_valid,
+        signatureValid,
         duplicate: false,
         ip_address: clientIP,
         user_agent: userAgent,
@@ -357,7 +361,7 @@ export default async function handler(
       user_agent: userAgent,
       timestamp: new Date().toISOString(),
       metadata: {
-        webhook_request_        signature_valid,
+        signatureValid,
         processing_time_ms: Date.now() - startTime,
       }
     });
@@ -374,7 +378,7 @@ export default async function handler(
       event_type: event.event,
       received_at: new Date(startTime).toISOString(),
       processed_at: new Date().toISOString(),
-      signature_valid,
+      signatureValid,
       duplicate: false,
       ip_address: clientIP,
       user_agent: userAgent,
@@ -395,7 +399,8 @@ export default async function handler(
       message: 'Webhook processed successfully',
       reference_id: event.reference,
       status: newStatus,
-      request_    });
+      request_id: requestId
+    });
 
   } catch (error: any) {
     const processingTime = Date.now() - startTime;
@@ -405,7 +410,7 @@ export default async function handler(
       event_type: 'error',
       received_at: new Date(startTime).toISOString(),
       processed_at: new Date().toISOString(),
-      signature_valid: false,
+      signatureValid: false,
       duplicate: false,
       ip_address: getClientIP(req),
       user_agent: req.headers['user-agent'] || 'unknown',

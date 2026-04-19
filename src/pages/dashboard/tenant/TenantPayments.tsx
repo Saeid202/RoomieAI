@@ -15,6 +15,9 @@ import { getUserPaymentMethods, createRentPaymentIntent, recordRentPayment, dele
 import { PaymentMethod } from "@/types/payment";
 import { formatCurrency } from "@/services/feeCalculationService";
 import SecurityDepositSection from "@/components/lease/SecurityDepositSection";
+import { BankStatementAnalysis } from "@/components/payment/BankStatementUpload";
+import { BankManagementHub } from "@/components/payment/BankManagementHub";
+import RentSmoothingWallet from "@/components/dashboard/RentSmoothingWallet";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -115,6 +118,9 @@ export default function DigitalWallet() {
   const [view, setView] = useState<'schedule' | 'confirm'>('schedule');
   const [selectedRow, setSelectedRow] = useState<ScheduleRow | null>(null);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+
+  // Bank statement analysis
+  const [bankStatementAnalysis, setBankStatementAnalysis] = useState<BankStatementAnalysis | null>(null);
 
   // ── Fetch ──────────────────────────────────────────────────────────────────
   const sb = supabase as any;
@@ -492,22 +498,61 @@ export default function DigitalWallet() {
                     </div>
                     <span className="flex-shrink-0 text-[10px] font-bold px-2 py-1 rounded-full bg-green-100 text-green-700 border border-green-200">ACTIVE</span>
                   </div>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-slate-500">Monthly Rent</span>
-                      <span className="font-bold text-slate-900">{formatCurrency(activeLease.monthly_rent)}</span>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center py-2 px-3 rounded-lg bg-gradient-to-r from-purple-50 to-orange-50 border border-purple-100">
+                      <span className="text-slate-600 font-medium flex items-center gap-2">
+                        <div className="h-2 w-2 rounded-full bg-purple-500"></div>
+                        Monthly Rent
+                      </span>
+                      <span className="font-bold text-lg text-slate-900">{formatCurrency(activeLease.monthly_rent)}</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-500">Payment Day</span>
+                    <div className="flex justify-between items-center py-2 px-3 rounded-lg bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-100">
+                      <span className="text-slate-600 font-medium flex items-center gap-2">
+                        <div className="h-2 w-2 rounded-full bg-blue-500"></div>
+                        Daily Breakdown
+                      </span>
+                      <span className="font-semibold text-slate-900">{formatCurrency(activeLease.monthly_rent / 30.4)}/day</span>
+                    </div>
+                    <div className="flex justify-between items-center py-2 px-3 rounded-lg bg-gradient-to-r from-green-50 to-emerald-50 border border-green-100">
+                      <span className="text-slate-600 font-medium flex items-center gap-2">
+                        <div className="h-2 w-2 rounded-full bg-green-500"></div>
+                        Weekly Breakdown
+                      </span>
+                      <span className="font-semibold text-slate-900">{formatCurrency(activeLease.monthly_rent / 4.33)}/week</span>
+                    </div>
+                    <div className="flex justify-between items-center py-2 px-3 rounded-lg bg-slate-50 border border-slate-200">
+                      <span className="text-slate-600 font-medium flex items-center gap-2">
+                        <div className="h-2 w-2 rounded-full bg-slate-400"></div>
+                        Payment Day
+                      </span>
                       <span className="font-semibold text-slate-900">{ordinal(activeLease.payment_day || 1)} of month</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-500">Payment Methods</span>
+                    <div className="flex justify-between items-center py-2 px-3 rounded-lg bg-slate-50 border border-slate-200">
+                      <span className="text-slate-600 font-medium flex items-center gap-2">
+                        <div className="h-2 w-2 rounded-full bg-slate-400"></div>
+                        Payment Methods
+                      </span>
                       <span className="font-semibold text-slate-900">{paymentMethods.length} connected</span>
                     </div>
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Bank Management Hub - Unified bank services */}
+              <BankManagementHub
+                userId={user!.id}
+                paymentMethods={paymentMethods}
+                bankStatementAnalysis={bankStatementAnalysis}
+                onAddPaymentMethod={() => setDrawerOpen(true)}
+                onDeletePaymentMethod={handleDeletePaymentMethod}
+                onBankStatementAnalysisComplete={(analysis: BankStatementAnalysis) => {
+                  setBankStatementAnalysis(analysis);
+                  console.log('Bank statement analysis:', analysis);
+                }}
+              />
+
+              {/* Rent Smoothing Wallet */}
+              <RentSmoothingWallet />
 
               {/* Security Deposit Section */}
               <SecurityDepositSection 
