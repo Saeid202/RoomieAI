@@ -106,7 +106,7 @@ const T6FormPage = lazy(() => import("./pages/dashboard/forms/T6FormPage"));
 const T1FormPage = lazy(() => import("./pages/dashboard/forms/T1FormPage"));
 const T3FormPage = lazy(() => import("./pages/dashboard/forms/T3FormPage"));
 const T5FormPage = lazy(() => import("./pages/dashboard/forms/T5FormPage"));
-const TenancyLegalAIPage = lazy(() => import("./pages/dashboard/forms/tenancyLegalAI"));
+const TenancyLegalAIPage = lazy(() => import("./pages/dashboard/forms/TenancyLegalAI"));
 
 // Service pages - lazy loaded
 const RenovatorsPage = lazy(() => import("./pages/dashboard/Renovators"));
