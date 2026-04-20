@@ -150,7 +150,7 @@ export function EnhancedCard({
 }) {
   return (
     <Card
-      className={`border-0 shadow-xl bg-white/80 backdrop-blur-sm ${hover ? 'hover:shadow-2xl transition-all duration-300 hover:scale-105 transform' : ''} ${className}`}
+      className={`border-0 shadow-xl bg-white/80 backdrop-blur-sm ${hover ? 'hover:shadow-2xl transition-shadow duration-300' : ''} ${className}`}
       {...props}
     >
       {children}
