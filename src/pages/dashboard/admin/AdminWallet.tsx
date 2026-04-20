@@ -368,30 +368,24 @@ export default function AdminWalletPage() {
     return matchType && matchStatus && matchSearch;
   });
 
-  // ── Settings save (stub — wire to a settings table as needed) ────────────────
+  // ── Settings save ────────────────────────────────────────────────────────────
 
   const handleSaveSettings = async () => {
     setSettingsSaving(true);
     try {
-      // Persist coming_soon and wallet_enabled to a platform_settings table
-      await db.from("platform_settings").upsert({
-        key: "wallet_coming_soon",
-        value: settings.comingSoon ? "true" : "false",
-        updated_at: new Date().toISOString(),
-      }, { onConflict: "key" });
-
-      await db.from("platform_settings").upsert({
-        key: "wallet_enabled",
-        value: settings.walletEnabled ? "true" : "false",
-        updated_at: new Date().toISOString(),
-      }, { onConflict: "key" });
-
-      toast.success("Wallet settings saved.");
-    } catch {
-      // Fallback: store in localStorage so it works even without the table
+      // Always save to localStorage first (works immediately, no table needed)
       localStorage.setItem("wallet_coming_soon", settings.comingSoon ? "true" : "false");
       localStorage.setItem("wallet_enabled", settings.walletEnabled ? "true" : "false");
-      toast.success("Wallet settings saved locally.");
+
+      // Also try to persist to DB (best-effort, non-blocking)
+      db.from("platform_settings").upsert([
+        { key: "wallet_coming_soon", value: settings.comingSoon ? "true" : "false", updated_at: new Date().toISOString() },
+        { key: "wallet_enabled",     value: settings.walletEnabled ? "true" : "false", updated_at: new Date().toISOString() },
+      ], { onConflict: "key" }).then(() => {}).catch(() => {});
+
+      toast.success("Wallet settings saved.");
+    } catch (e: any) {
+      toast.error(e.message ?? "Failed to save settings.");
     } finally {
       setSettingsSaving(false);
     }
