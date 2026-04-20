@@ -762,14 +762,23 @@ export default function AdminWalletPage() {
         </div>
 
         <div className="mt-6 flex justify-end">
-          <Button
-            onClick={handleSaveSettings}
-            disabled={settingsSaving}
-            className="bg-gradient-to-r from-purple-600 to-orange-500 text-white hover:opacity-90 px-8"
+          <button
+            type="button"
+            onClick={() => {
+              console.log('[AdminWallet] Save clicked');
+              localStorage.setItem("wallet_coming_soon", settings.comingSoon ? "true" : "false");
+              localStorage.setItem("wallet_enabled", settings.walletEnabled ? "true" : "false");
+              localStorage.setItem("wallet_fee_rate", String(settings.feeRate));
+              localStorage.setItem("wallet_min_amount", String(settings.minAmount));
+              localStorage.setItem("wallet_max_amount", String(settings.maxAmount));
+              toast.success("Wallet settings saved.");
+            }}
+            className="bg-gradient-to-r from-purple-600 to-orange-500 text-white hover:opacity-90 px-8 py-2 rounded-lg font-semibold cursor-pointer relative z-50"
+            style={{ position: 'relative', zIndex: 9999 }}
           >
-            {settingsSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+            {settingsSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2 inline" /> : null}
             Save Settings
-          </Button>
+          </button>
         </div>
       </EnhancedCard>
     </EnhancedPageLayout>
