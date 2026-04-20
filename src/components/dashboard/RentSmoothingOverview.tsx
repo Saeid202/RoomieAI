@@ -23,26 +23,10 @@ export function RentSmoothingOverview(props: Props) {
 
   useEffect(() => {
     const check = async () => {
-      try {
-        const { supabase } = await import("@/integrations/supabase/client");
-        const { data } = await (supabase as any)
-          .from("wallet_accounts")
-          .select("metadata")
-          .eq("user_id", "00000000-0000-0000-0000-000000000000")
-          .eq("account_type", "config")
-          .maybeSingle();
-
-        if (data?.metadata?.wallet_settings) {
-          const cfg = JSON.parse(data.metadata.wallet_settings);
-          setComingSoon(!!cfg.wallet_coming_soon);
-        } else {
-          const local = localStorage.getItem("wallet_coming_soon");
-          setComingSoon(local === null ? true : local === "true");
-        }
-      } catch {
-        const local = localStorage.getItem("wallet_coming_soon");
-        setComingSoon(local === null ? true : local === "true");
-      }
+      // Read from localStorage (set by admin)
+      const local = localStorage.getItem("wallet_coming_soon");
+      // Default: true (locked) until admin explicitly turns it off
+      setComingSoon(local === null ? true : local === "true");
     };
     check();
   }, []);
