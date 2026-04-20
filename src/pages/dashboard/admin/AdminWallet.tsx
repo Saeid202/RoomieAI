@@ -181,15 +181,15 @@ export default function AdminWalletPage() {
 
       const { data: txMonth } = await db
         .from("wallet_transactions")
-        .select("id, type, amount")
+        .select("id, transaction_type, amount")
         .gte("created_at", startOfMonth.toISOString());
 
       const txThisMonth = (txMonth ?? []).length;
       const rentPaid = (txMonth ?? [])
-        .filter((t: any) => t.type === "rent_payment")
+        .filter((t: any) => t.transaction_type === "rent_payment")
         .reduce((s: number, t: any) => s + (t.amount ?? 0), 0);
       const topUps = (txMonth ?? [])
-        .filter((t: any) => t.type === "top_up")
+        .filter((t: any) => t.transaction_type === "deposit")
         .reduce((s: number, t: any) => s + (t.amount ?? 0), 0);
 
       setStats({ totalBalance, txThisMonth, rentPaid, topUps });
