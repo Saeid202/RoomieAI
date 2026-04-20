@@ -30,7 +30,7 @@ export function EnhancedHeader({
                   p-8 text-white shadow-xl ${className}`}
     >
       {/* Overlay for depth */}
-      <div className="absolute inset-0 bg-white/5"></div>
+      <div className="absolute inset-0 bg-white/5 pointer-events-none"></div>
 
       <div className="relative z-10 flex items-center justify-between">
         <div>
@@ -41,8 +41,8 @@ export function EnhancedHeader({
       </div>
 
       {/* Decorative floating circles */}
-      <div className="absolute -top-6 -right-6 w-28 h-28 bg-white/10 rounded-full"></div>
-      <div className="absolute -bottom-4 -left-4 w-20 h-20 bg-white/5 rounded-full"></div>
+      <div className="absolute -top-6 -right-6 w-28 h-28 bg-white/10 rounded-full pointer-events-none"></div>
+      <div className="absolute -bottom-4 -left-4 w-20 h-20 bg-white/5 rounded-full pointer-events-none"></div>
     </div>
   );
 }
@@ -64,7 +64,7 @@ export function StatCard({
   subtitle?: string;
 }) {
   return (
-    <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform bg-white/90 backdrop-blur-sm">
+    <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300 bg-white/90 backdrop-blur-sm">
       <CardContent className="p-6">
         <div className="flex items-center justify-between mb-4">
           <div className={`bg-gradient-to-r ${gradient} p-3 rounded-xl shadow-lg`}>
