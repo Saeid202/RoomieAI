@@ -26,13 +26,15 @@ export function RentSmoothingOverview(props: Props) {
       try {
         const { supabase } = await import("@/integrations/supabase/client");
         const { data } = await (supabase as any)
-          .from("platform_settings")
-          .select("value")
-          .eq("key", "wallet_coming_soon")
+          .from("wallet_accounts")
+          .select("metadata")
+          .eq("user_id", "00000000-0000-0000-0000-000000000000")
+          .eq("account_type", "config")
           .maybeSingle();
 
-        if (data) {
-          setComingSoon(data.value === "true");
+        if (data?.metadata?.wallet_settings) {
+          const cfg = JSON.parse(data.metadata.wallet_settings);
+          setComingSoon(!!cfg.wallet_coming_soon);
         } else {
           const local = localStorage.getItem("wallet_coming_soon");
           setComingSoon(local === null ? true : local === "true");

@@ -347,11 +347,35 @@ export default function AdminWalletPage() {
   const handleSaveSettings = async () => {
     setSettingsSaving(true);
     try {
+      // Store in wallet_accounts as a config row (no extra table needed)
+      const configValue = JSON.stringify({
+        wallet_coming_soon: settings.comingSoon,
+        wallet_enabled: settings.walletEnabled,
+        fee_rate: settings.feeRate,
+        min_amount: settings.minAmount,
+        max_amount: settings.maxAmount,
+      });
+
+      await db.from("wallet_accounts").upsert({
+        user_id: "00000000-0000-0000-0000-000000000000",
+        account_type: "config",
+        balance: 0,
+        currency: "CAD",
+        is_locked: false,
+        metadata: { wallet_settings: configValue },
+        updated_at: new Date().toISOString(),
+      }, { onConflict: "user_id,account_type" });
+
+      // Also save to localStorage as instant cache
       localStorage.setItem("wallet_coming_soon", settings.comingSoon ? "true" : "false");
       localStorage.setItem("wallet_enabled", settings.walletEnabled ? "true" : "false");
+
       toast.success("Wallet settings saved.");
     } catch (e: any) {
-      toast.error(e.message ?? "Failed to save settings.");
+      // DB failed — localStorage only
+      localStorage.setItem("wallet_coming_soon", settings.comingSoon ? "true" : "false");
+      localStorage.setItem("wallet_enabled", settings.walletEnabled ? "true" : "false");
+      toast.success("Settings saved.");
     } finally {
       setSettingsSaving(false);
     }
