@@ -53,6 +53,7 @@ const ReportingPreviewPage = lazy(() => import("./pages/dashboard/admin/Reportin
 const ReportingBatchesPage = lazy(() => import("./pages/dashboard/admin/ReportingBatches"));
 const RateLimitManagementPage = lazy(() => import("./pages/dashboard/admin/RateLimitManagement"));
 const AdminCommunities = lazy(() => import("./pages/dashboard/admin/AdminCommunities"));
+const AdminWalletPage = lazy(() => import("./pages/dashboard/admin/AdminWallet"));
 const SettingsPage = lazy(() => import("./pages/dashboard/Settings"));
 
 // Components that need to be loaded immediately
@@ -401,6 +402,7 @@ function AppRoutes() {
           <Route path="admin/settings" element={<AdminRoute><SettingsPage /></AdminRoute>} />
           <Route path="admin/rate-limits" element={<AdminRoute><RateLimitManagementPage /></AdminRoute>} />
           <Route path="admin/communities" element={<AdminRoute><AdminCommunities /></AdminRoute>} />
+          <Route path="admin/wallet" element={<AdminRoute><AdminWalletPage /></AdminRoute>} />
 
           {/* Community routes */}
           <Route path="communities" element={<CommunitiesPage />} />

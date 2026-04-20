@@ -10,7 +10,8 @@ import {
   Database,
   Settings,
   Package,
-  Shield
+  Shield,
+  Wallet
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "react-router-dom";
@@ -174,6 +175,20 @@ export default function AdminHomePage() {
             <CardContent>
               <p className="text-sm text-muted-foreground">
                 Manage seeker communities, moderate posts, and handle reports
+              </p>
+            </CardContent>
+          </EnhancedCard>
+        </Link>
+
+        <Link to="/dashboard/admin/wallet" className="block">
+          <EnhancedCard className="h-full border-purple-200 bg-gradient-to-br from-purple-50 to-white">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-lg font-medium text-purple-900">Digital Wallet</CardTitle>
+              <Wallet className="h-5 w-5 text-purple-600" />
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                Monitor balances, manage user wallets, adjust funds, and configure wallet settings
               </p>
             </CardContent>
           </EnhancedCard>
