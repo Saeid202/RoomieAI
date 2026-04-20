@@ -149,7 +149,7 @@ export default function AdminWalletPage() {
     minAmount: 10,
     maxAmount: 10000,
     walletEnabled: true,
-    comingSoon: false,
+    comingSoon: true,  // default locked until admin explicitly unlocks
   });
   const [settingsSaving, setSettingsSaving] = useState(false);
 
