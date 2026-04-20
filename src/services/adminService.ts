@@ -50,16 +50,30 @@ export async function checkIsAdmin(userId: string): Promise<boolean> {
 
 /**
  * Verify current user has admin access
+ * Checks both user_roles table AND user_profiles.role
  */
 export async function verifyAdminAccess(): Promise<boolean> {
   try {
     const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return false;
 
-    if (!user) {
-      return false;
+    // Check user_roles table first
+    const hasRoleEntry = await checkIsAdmin(user.id);
+    if (hasRoleEntry) return true;
+
+    // Fallback: check user_profiles.role
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('role')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    const isAdmin = profile?.role === 'admin';
+    // Cache the positive result so future checks are fast
+    if (isAdmin) {
+      adminCache.set(user.id, { isAdmin: true, checkedAt: Date.now() });
     }
-
-    return await checkIsAdmin(user.id);
+    return isAdmin;
   } catch (error) {
     console.error('Error verifying admin access:', error);
     return false;

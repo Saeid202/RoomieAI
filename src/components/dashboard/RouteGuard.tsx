@@ -54,19 +54,22 @@ export function RouteGuard({ children }: RouteGuardProps) {
 
     // B. Rejection Logic
     
-    // 1. Block Non-Landlords from Landlord dashboard
-    if (path.startsWith('/dashboard/landlord') && currentRole !== 'landlord') {
+    // 1. Block Non-Landlords from Landlord dashboard (admin can access)
+    if (path.startsWith('/dashboard/landlord') && currentRole !== 'landlord' && currentRole !== 'admin') {
       redirectToHome(currentRole, "Landlord");
       return;
     }
 
-    // 2. Block Non-Seekers from Seeker-only sections
-    if (isSeekerOnlyPath && currentRole !== 'seeker') {
+    // 2. Block Non-Seekers from Seeker-only sections (admin can access all)
+    if (isSeekerOnlyPath && currentRole !== 'seeker' && currentRole !== 'admin') {
       redirectToHome(currentRole, "Seeker");
       return;
     }
-
-    // 3. Block Non-Admins from Admin dashboard
+    // Admin can access digital-wallet and other shared paths
+    if (path.startsWith('/dashboard/digital-wallet') && currentRole !== 'seeker' && currentRole !== 'admin') {
+      redirectToHome(currentRole, "Seeker");
+      return;
+    }
     if (path.startsWith('/dashboard/admin') && currentRole !== 'admin') {
       redirectToHome(currentRole, "Administrator");
       return;
