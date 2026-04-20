@@ -155,6 +155,40 @@ export default function AdminWalletPage() {
 
   // ── Data fetching ────────────────────────────────────────────────────────────
 
+  // Load persisted settings on mount
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const { data } = await db
+          .from("platform_settings")
+          .select("key, value")
+          .in("key", ["wallet_coming_soon", "wallet_enabled"]);
+
+        if (data && data.length > 0) {
+          const map: Record<string, string> = {};
+          data.forEach((r: any) => { map[r.key] = r.value; });
+          setSettings(s => ({
+            ...s,
+            comingSoon: map["wallet_coming_soon"] === "true",
+            walletEnabled: map["wallet_enabled"] !== "false",
+          }));
+        } else {
+          // Fallback to localStorage
+          const cs = localStorage.getItem("wallet_coming_soon");
+          const we = localStorage.getItem("wallet_enabled");
+          if (cs !== null) setSettings(s => ({ ...s, comingSoon: cs === "true" }));
+          if (we !== null) setSettings(s => ({ ...s, walletEnabled: we !== "false" }));
+        }
+      } catch {
+        const cs = localStorage.getItem("wallet_coming_soon");
+        const we = localStorage.getItem("wallet_enabled");
+        if (cs !== null) setSettings(s => ({ ...s, comingSoon: cs === "true" }));
+        if (we !== null) setSettings(s => ({ ...s, walletEnabled: we !== "false" }));
+      }
+    };
+    loadSettings();
+  }, []);
+
   const fetchStats = useCallback(async () => {
     setStatsLoading(true);
     try {
@@ -338,9 +372,29 @@ export default function AdminWalletPage() {
 
   const handleSaveSettings = async () => {
     setSettingsSaving(true);
-    await new Promise((r) => setTimeout(r, 600)); // simulate async
-    setSettingsSaving(false);
-    toast.success("Wallet settings saved.");
+    try {
+      // Persist coming_soon and wallet_enabled to a platform_settings table
+      await db.from("platform_settings").upsert({
+        key: "wallet_coming_soon",
+        value: settings.comingSoon ? "true" : "false",
+        updated_at: new Date().toISOString(),
+      }, { onConflict: "key" });
+
+      await db.from("platform_settings").upsert({
+        key: "wallet_enabled",
+        value: settings.walletEnabled ? "true" : "false",
+        updated_at: new Date().toISOString(),
+      }, { onConflict: "key" });
+
+      toast.success("Wallet settings saved.");
+    } catch {
+      // Fallback: store in localStorage so it works even without the table
+      localStorage.setItem("wallet_coming_soon", settings.comingSoon ? "true" : "false");
+      localStorage.setItem("wallet_enabled", settings.walletEnabled ? "true" : "false");
+      toast.success("Wallet settings saved locally.");
+    } finally {
+      setSettingsSaving(false);
+    }
   };
 
   // ─────────────────────────────────────────────────────────────────────────────

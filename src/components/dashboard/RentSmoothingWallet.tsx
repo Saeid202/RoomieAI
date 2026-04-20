@@ -21,16 +21,17 @@ export default function RentSmoothingWallet() {
   const [simulating, setSimulating] = useState(false);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [transactions, setTransactions] = useState<any[]>([]);
+  const [isFrozen, setIsFrozen] = useState(false);
   const sb = supabase as any;
 
   const refreshBalance = useCallback(async () => {
     if (!user?.id) return;
-    const bal = await DbWalletService.getBalance(user.id);
-    setWalletBalance(bal);
+    const wallet = await DbWalletService.getOrCreateWallet(user.id);
+    setWalletBalance(wallet.balance || 0);
+    setIsFrozen(!!(wallet as any).is_frozen);
     const txns = await DbWalletService.getTransactions(user.id);
     setTransactions(txns);
   }, [user?.id]);
-
   // Load lease + landlord info
   useEffect(() => {
     if (!user?.id) return;
@@ -173,6 +174,23 @@ export default function RentSmoothingWallet() {
     return (
       <div className="flex items-center justify-center py-6">
         <Loader2 className="h-5 w-5 animate-spin text-purple-500" />
+      </div>
+    );
+  }
+
+  // Frozen wallet — show message instead of wallet UI
+  if (isFrozen) {
+    return (
+      <div className="rounded-2xl border-2 border-blue-200 bg-blue-50 p-5 flex items-start gap-3">
+        <div className="h-10 w-10 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0">
+          <Loader2 className="h-5 w-5 text-blue-500" />
+        </div>
+        <div>
+          <p className="font-bold text-blue-900 text-sm">Wallet Temporarily Unavailable</p>
+          <p className="text-xs text-blue-700 mt-1">
+            Your wallet has been temporarily locked. Please contact support at support@homieai.ca for assistance.
+          </p>
+        </div>
       </div>
     );
   }
