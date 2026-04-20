@@ -25,6 +25,7 @@ export function RentSmoothingOverview(props: Props) {
     const check = async () => {
       // Read from localStorage (set by admin)
       const local = localStorage.getItem("wallet_coming_soon");
+      console.log('[WalletOverview] wallet_coming_soon =', local);
       // Default: true (locked) until admin explicitly turns it off
       setComingSoon(local === null ? true : local === "true");
     };
