@@ -472,11 +472,12 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, editingPr
       let productError: any
 
       if (editingProduct) {
-        // Update existing product
+        // Update existing product (scoped to this supplier only)
         const { data: updatedProduct, error: updateError } = await supabase
           .from('construction_products')
           .update(productData)
           .eq('id', editingProduct.id)
+          .eq('supplier_id', supplierId)
           .select()
 
         product = updatedProduct

@@ -39,6 +39,7 @@ const productTypeColors: Record<string, string> = {
 export default function ConstructionProducts() {
   const [loading, setLoading] = useState(true)
   const [products, setProducts] = useState<Product[]>([])
+  const [supplierId, setSupplierId] = useState<string | null>(null)
   const [filter, setFilter] = useState<'all' | 'live' | 'draft' | 'archived'>('all')
   const [showFormModal, setShowFormModal] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
@@ -57,15 +58,13 @@ export default function ConstructionProducts() {
         return
       }
 
-      const role = session.user.user_metadata?.role
-      if (role !== 'construction_supplier') {
-        console.warn('User role is not construction_supplier:', role)
-      }
+      setSupplierId(session.user.id)
 
-      // Fetch all products — single-supplier portal, no need to filter by supplier_id
+      // Fetch only this supplier's products
       let query = supabase
         .from('construction_products')
         .select('id, title, product_type, status, price_cad, created_at, description, bedrooms, size_ft, lead_time, bathrooms, area_sqm, frame_type, shipping_port, available_colors, badge_label, custom_build_enabled')
+        .eq('supplier_id', session.user.id)
         .order('created_at', { ascending: false })
 
       if (filter !== 'all') {
@@ -98,6 +97,7 @@ export default function ConstructionProducts() {
       .from('construction_products')
       .update({ status: newStatus })
       .eq('id', productId)
+      .eq('supplier_id', supplierId)
 
     if (error) {
       console.error('Failed to update status:', error)
@@ -114,6 +114,7 @@ export default function ConstructionProducts() {
       .from('construction_products')
       .update({ status: 'archived' })
       .eq('id', productId)
+      .eq('supplier_id', supplierId)
 
     setProducts(products.map(p => p.id === productId ? { ...p, status: 'archived' } : p))
   }
@@ -126,6 +127,7 @@ export default function ConstructionProducts() {
       .from('construction_products')
       .delete()
       .eq('id', productId)
+      .eq('supplier_id', supplierId)
 
     setProducts(products.filter(p => p.id !== productId))
   }
