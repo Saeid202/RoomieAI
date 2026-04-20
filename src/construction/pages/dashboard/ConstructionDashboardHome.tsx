@@ -44,7 +44,7 @@ export default function ConstructionDashboardHome() {
         const { data: { session } } = await supabase.auth.getSession()
 
         if (!session || !isMounted) {
-          if (isMounted) window.location.href = '/construction/login'
+          if (isMounted) window.location.href = '/construction'
           return
         }
 
@@ -96,7 +96,7 @@ export default function ConstructionDashboardHome() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
-    window.location.href = '/construction/login'
+    window.location.href = '/construction'
   }
 
   // Add CSS animation once - MUST BE BEFORE EARLY RETURN

@@ -70,7 +70,7 @@ export default function ConstructionProductEdit() {
     const loadProduct = async () => {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) {
-        window.location.href = '/construction/login'
+        window.location.href = '/construction'
         return
       }
 
@@ -209,7 +209,7 @@ export default function ConstructionProductEdit() {
     try {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) {
-        window.location.href = '/construction/login'
+        window.location.href = '/construction'
         return
       }
 
@@ -614,7 +614,7 @@ export default function ConstructionProductEdit() {
           <Link to="/construction/dashboard/messages" style={{ display: 'block', padding: '12px 0', color: '#aaa', textDecoration: 'none', marginTop: 16 }}>Messages</Link>
           <Link to="/construction/dashboard/profile" style={{ display: 'block', padding: '12px 0', color: '#aaa', textDecoration: 'none', marginTop: 16 }}>Profile</Link>
         </nav>
-        <Link to="/construction/login" style={{ padding: '10px 16px', background: '#e05a5a', color: 'white', border: 'none', cursor: 'pointer', borderRadius: 6, width: '100%', textAlign: 'center', textDecoration: 'none' }}>
+        <Link to="/construction" onClick={async (e) => { e.preventDefault(); await supabase.auth.signOut(); window.location.href = '/construction' }} style={{ padding: '10px 16px', background: '#e05a5a', color: 'white', border: 'none', cursor: 'pointer', borderRadius: 6, width: '100%', textAlign: 'center', textDecoration: 'none' }}>
           Logout
         </Link>
       </div>

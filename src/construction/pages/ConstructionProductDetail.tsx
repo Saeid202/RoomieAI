@@ -94,7 +94,7 @@ export default function ConstructionProductDetail() {
   const handleRequestQuote = async () => {
     if (!product) return
     const { data: { session } } = await supabase.auth.getSession()
-    if (!session) { navigate('/construction/login'); return }
+    if (!session) { navigate('/construction'); return }
     setSubmittingQuote(true)
     try {
       const { error } = await supabase.from('construction_quotes').insert({

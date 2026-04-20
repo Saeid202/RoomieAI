@@ -257,8 +257,8 @@ function AppRoutes() {
         {/* Handle construction without leading slash */}
         <Route path="construction" element={<Navigate to="/construction" replace />} />
         <Route path="/construction/custom" element={<SuspenseWrapper><ConstructionCustomOrder /></SuspenseWrapper>} />
-        <Route path="/construction/login" element={<SuspenseWrapper><ConstructionLogin /></SuspenseWrapper>} />
-        <Route path="/construction/signup" element={<SuspenseWrapper><ConstructionSignup /></SuspenseWrapper>} />
+        <Route path="/construction/login" element={<Navigate to="/construction" replace />} />
+        <Route path="/construction/signup" element={<Navigate to="/construction" replace />} />
         <Route path="/construction/dashboard" element={<SuspenseWrapper><ConstructionDashboardHome /></SuspenseWrapper>} />
         <Route path="/construction/dashboard/products" element={<SuspenseWrapper><ConstructionProducts /></SuspenseWrapper>} />
         <Route path="/construction/dashboard/products/new" element={<SuspenseWrapper><ConstructionProductNew /></SuspenseWrapper>} />

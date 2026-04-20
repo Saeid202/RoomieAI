@@ -21,7 +21,7 @@ export default function ConstructionMessages() {
     const loadConversations = async () => {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) {
-        window.location.href = '/construction/login'
+        window.location.href = '/construction'
         return
       }
 
@@ -84,7 +84,7 @@ export default function ConstructionMessages() {
           <Link to="/construction/dashboard/messages" style={{ display: 'block', padding: '12px 16px', color: 'white', textDecoration: 'none', borderLeft: '3px solid #FF6B35', paddingLeft: '13px', background: 'rgba(255, 107, 53, 0.1)', borderRadius: '0 8px 8px 0', marginBottom: 8 }}>Messages</Link>
           <Link to="/construction/dashboard/profile" style={{ display: 'block', padding: '12px 16px', color: '#b0b8c1', textDecoration: 'none', marginBottom: 8, borderRadius: 8, transition: 'all 0.3s ease', cursor: 'pointer' }} onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(139, 92, 246, 0.1)'; e.currentTarget.style.color = 'white' }} onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#b0b8c1' }}>Profile</Link>
         </nav>
-        <Link to="/construction/login" style={{ padding: '12px 16px', background: 'linear-gradient(135deg, #FF6B35 0%, #E55A2B 100%)', color: 'white', border: 'none', cursor: 'pointer', borderRadius: 8, width: '100%', textAlign: 'center', textDecoration: 'none', fontWeight: 600, transition: 'all 0.3s ease', boxShadow: '0 4px 12px rgba(255, 107, 53, 0.3)' }} onMouseEnter={(e) => { e.style.transform = 'translateY(-2px)'; e.style.boxShadow = '0 6px 16px rgba(255, 107, 53, 0.4)' }} onMouseLeave={(e) => { e.style.transform = 'translateY(0)'; e.style.boxShadow = '0 4px 12px rgba(255, 107, 53, 0.3)' }}>
+        <Link to="/construction" onClick={async (e) => { e.preventDefault(); await supabase.auth.signOut(); window.location.href = '/construction' }} style={{ padding: '12px 16px', background: 'linear-gradient(135deg, #FF6B35 0%, #E55A2B 100%)', color: 'white', border: 'none', cursor: 'pointer', borderRadius: 8, width: '100%', textAlign: 'center', textDecoration: 'none', fontWeight: 600, transition: 'all 0.3s ease', boxShadow: '0 4px 12px rgba(255, 107, 53, 0.3)' }} onMouseEnter={(e) => { e.style.transform = 'translateY(-2px)'; e.style.boxShadow = '0 6px 16px rgba(255, 107, 53, 0.4)' }} onMouseLeave={(e) => { e.style.transform = 'translateY(0)'; e.style.boxShadow = '0 4px 12px rgba(255, 107, 53, 0.3)' }}>
           Logout
         </Link>
       </div>
