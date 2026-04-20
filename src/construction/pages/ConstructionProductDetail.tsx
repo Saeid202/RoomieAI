@@ -616,6 +616,29 @@ export default function ConstructionProductDetail() {
                 </button>
               )}
               <button
+                onClick={() => {
+                  const { data: { session } } = supabase.auth.getSession() as any
+                  navigate('/construction/checkout', { state: { product } })
+                }}
+                style={{
+                  flex: 1,
+                  background: '#FF6B35',
+                  color: C.white,
+                  border: 'none',
+                  padding: '14px 20px',
+                  borderRadius: 100,
+                  fontWeight: 700,
+                  fontSize: 13,
+                  cursor: 'pointer',
+                  letterSpacing: '0.02em',
+                  transition: 'background 0.2s',
+                }}
+                onMouseEnter={e => (e.currentTarget.style.background = '#E55A2B')}
+                onMouseLeave={e => (e.currentTarget.style.background = '#FF6B35')}
+              >
+                Buy Now — ${product?.price_cad?.toLocaleString()} CAD
+              </button>
+              <button
                 onClick={() => setShowQuoteForm(!showQuoteForm)}
                 style={{
                   flex: 1,

@@ -143,6 +143,8 @@ const CoOwnershipProfile = lazy(() => import("./pages/dashboard/CoOwnershipProfi
 const ConstructionLogin = lazy(() => import("./construction/pages/ConstructionLogin"));
 const ConstructionSignup = lazy(() => import("./construction/pages/ConstructionSignup"));
 const ConstructionDashboardHome = lazy(() => import("./construction/pages/dashboard/ConstructionDashboardHome"));
+const ConstructionCheckout = lazy(() => import("./construction/pages/ConstructionCheckout"));
+const BuyerOrders = lazy(() => import("./construction/pages/buyer/BuyerOrders"));
 
 const ConstructionProducts = lazy(() => import("./construction/pages/dashboard/ConstructionProducts"));
 const ConstructionProductNew = lazy(() => import("./construction/pages/dashboard/ConstructionProductNew"));
@@ -259,6 +261,8 @@ function AppRoutes() {
         <Route path="/construction/custom" element={<SuspenseWrapper><ConstructionCustomOrder /></SuspenseWrapper>} />
         <Route path="/construction/login" element={<Navigate to="/construction" replace />} />
         <Route path="/construction/signup" element={<Navigate to="/construction" replace />} />
+        <Route path="/construction/checkout" element={<SuspenseWrapper><ConstructionCheckout /></SuspenseWrapper>} />
+        <Route path="/construction/buyer/orders" element={<SuspenseWrapper><BuyerOrders /></SuspenseWrapper>} />
         <Route path="/construction/dashboard" element={<SuspenseWrapper><ConstructionDashboardHome /></SuspenseWrapper>} />
         <Route path="/construction/dashboard/products" element={<SuspenseWrapper><ConstructionProducts /></SuspenseWrapper>} />
         <Route path="/construction/dashboard/products/new" element={<SuspenseWrapper><ConstructionProductNew /></SuspenseWrapper>} />

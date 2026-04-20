@@ -97,7 +97,12 @@ const ConstructionHeader = () => {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => navigate("/construction/dashboard")}>
+                  <DropdownMenuItem onClick={async () => {
+                    const { data: supplierProfile } = await supabase
+                      .from('construction_supplier_profiles')
+                      .select('id').eq('id', user.id).maybeSingle()
+                    navigate(supplierProfile ? "/construction/dashboard" : "/construction")
+                  }}>
                     Dashboard
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleSignOut} className="text-red-500">
@@ -157,8 +162,11 @@ const ConstructionHeader = () => {
                     </span>
                   </div>
                   <Button 
-                    onClick={() => {
-                      navigate("/construction/dashboard");
+                    onClick={async () => {
+                      const { data: supplierProfile } = await supabase
+                        .from('construction_supplier_profiles')
+                        .select('id').eq('id', user.id).maybeSingle()
+                      navigate(supplierProfile ? "/construction/dashboard" : "/construction")
                       setIsMenuOpen(false);
                     }}
                     className="w-full bg-roomie-purple hover:bg-roomie-dark text-white"

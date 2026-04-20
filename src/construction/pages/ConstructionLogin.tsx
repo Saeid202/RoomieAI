@@ -34,46 +34,18 @@ export default function ConstructionLogin() {
         return
       }
 
-      // Get fresh user data to ensure metadata is loaded
-      const { data: { user: freshUser }, error: refreshError } = await supabase.auth.getUser()
-      
-      if (refreshError || !freshUser) {
-        setError('Failed to verify account. Please try again.')
-        setLoading(false)
-        return
+      // Only redirect to supplier dashboard if they have a supplier profile
+      const { data: supplierProfile } = await supabase
+        .from('construction_supplier_profiles')
+        .select('id')
+        .eq('id', data.user.id)
+        .maybeSingle()
+
+      if (supplierProfile) {
+        window.location.href = '/construction/dashboard'
+      } else {
+        window.location.href = '/construction'
       }
-
-      const role = freshUser.user_metadata?.role
-      
-      if (role !== 'construction_supplier') {
-        console.error('Invalid role:', role, 'User metadata:', freshUser.user_metadata)
-        
-        // Try to fix the role if it's missing
-        const { error: updateError } = await supabase.auth.updateUser({
-          data: { role: 'construction_supplier' }
-        })
-
-        if (updateError) {
-          await supabase.auth.signOut()
-          setError('Account verification failed. Please sign up again.')
-          setLoading(false)
-          return
-        }
-
-        // Retry with updated metadata
-        const { data: { user: updatedUser } } = await supabase.auth.getUser()
-        if (updatedUser?.user_metadata?.role === 'construction_supplier') {
-          window.location.href = '/construction/dashboard'
-          return
-        }
-
-        await supabase.auth.signOut()
-        setError('You do not have access to this portal. Please sign up as a construction supplier.')
-        setLoading(false)
-        return
-      }
-
-      window.location.href = '/construction/dashboard'
     } catch (err) {
       console.error('Login error:', err)
       setError('An unexpected error occurred. Please try again.')
