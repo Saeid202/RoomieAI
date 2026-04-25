@@ -50,27 +50,15 @@ const Navbar = ({ hideMobileMenu = false, onMobileMenuToggle }: NavbarProps) => 
   }, []);
 
   return (
-    <nav className="w-full py-4 bg-white/90 backdrop-blur-sm fixed top-0 z-50 shadow-lg">
-      <div className="container mx-auto px-4 flex justify-between items-center relative">
+    <nav className="w-full py-4 bg-white/80 backdrop-blur-xl fixed top-0 z-50 shadow-xl border-b border-white/20">
+      <div className="w-full px-6 lg:px-8 flex justify-between items-center relative">
         
-        {/* Left side: hamburger (landing page only) + logo */}
-        <div className="flex items-center gap-3">
-          {hideMobileMenu && (
-            <button
-              id="landing-hamburger"
-              onClick={onMobileMenuToggle}
-              className="md:hidden text-purple-600 p-2 rounded-lg hover:bg-purple-50 transition-colors cursor-pointer flex-shrink-0"
-              aria-label="Open menu"
-              type="button"
-              style={{ touchAction: 'manipulation' }}
-            >
-              <Menu size={26} />
-            </button>
-          )}
+        {/* Left side: logo only */}
+        <div className="flex items-center -ml-2">
           <NavLogo />
         </div>
 
-        <div className="hidden md:flex items-center space-x-8">
+        <div className="hidden md:flex items-center">
           <NavLinks />
         </div>
 
@@ -117,6 +105,20 @@ const Navbar = ({ hideMobileMenu = false, onMobileMenuToggle }: NavbarProps) => 
 
         {/* Mobile right side */}
         <div className="md:hidden flex items-center gap-2">
+          {/* Landing page: hamburger on right */}
+          {hideMobileMenu && (
+            <button
+              id="landing-hamburger"
+              onClick={onMobileMenuToggle}
+              className="text-purple-600 p-2 rounded-lg hover:bg-purple-50 transition-colors cursor-pointer flex-shrink-0"
+              aria-label="Open menu"
+              type="button"
+              style={{ touchAction: 'manipulation' }}
+            >
+              <Menu size={26} />
+            </button>
+          )}
+          
           {/* Non-landing pages: hamburger on right */}
           {!hideMobileMenu && (
             <button

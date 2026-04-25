@@ -43,14 +43,14 @@ export const MobileMenu = ({
         aria-hidden="true"
       />
       
-      {/* Menu panel - slides from left */}
-      <div className="fixed inset-y-0 left-0 z-50 w-4/5 max-w-sm bg-white shadow-2xl overflow-y-auto animate-in slide-in-from-left-full duration-300">
+      {/* Menu panel - slides from right */}
+      <div className="fixed inset-y-0 right-0 z-50 w-4/5 max-w-sm bg-white/95 backdrop-blur-xl shadow-2xl border-l border-white/20 overflow-y-auto animate-in slide-in-from-right-full duration-300">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-100">
-          <h2 className="text-lg font-bold text-gray-900">Menu</h2>
+        <div className="flex items-center justify-between p-4 border-b border-gray-100 bg-gradient-to-r from-purple-50 to-orange-50">
+          <h2 className="text-lg font-bold text-gray-900 bg-gradient-to-r from-roomie-purple to-orange-500 bg-clip-text text-transparent">Menu</h2>
           <button
             onClick={() => setIsMenuOpen(false)}
-            className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2 hover:bg-white/50 rounded-lg transition-all duration-200 hover:scale-110 active:scale-95"
             aria-label="Close menu"
           >
             <X size={20} className="text-gray-600" />
@@ -68,7 +68,7 @@ export const MobileMenu = ({
           <div className="h-px bg-gray-100" />
 
           {/* Auth Section - sticky at bottom */}
-          <div className="border-t border-gray-100 bg-gray-50 p-4 space-y-3">
+          <div className="border-t border-gray-100 bg-gradient-to-br from-gray-50 to-purple-50 p-4 space-y-3">
             <PWAInstallButton />
             {user ? (
               <>
