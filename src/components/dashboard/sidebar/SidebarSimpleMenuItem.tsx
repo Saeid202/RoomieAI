@@ -1,17 +1,8 @@
-
 import { Link } from "react-router-dom";
 import { ReactNode } from "react";
-import {
-  SidebarMenuItem,
-  SidebarMenuButton
-} from "@/components/ui/sidebar";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger
-} from "@/components/ui/tooltip";
-
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useSidebar } from "@/components/ui/sidebar";
+import { cn } from "@/lib/utils";
 
 interface SidebarSimpleMenuItemProps {
   icon: ReactNode;
@@ -21,40 +12,48 @@ interface SidebarSimpleMenuItemProps {
   showLabel?: boolean;
 }
 
-export function SidebarSimpleMenuItem({
-  icon,
-  label,
-  to,
-  isActive,
-  showLabel
-}: SidebarSimpleMenuItemProps) {
+export function SidebarSimpleMenuItem({ icon, label, to, isActive, showLabel }: SidebarSimpleMenuItemProps) {
   const { open, isMobile, openMobile, setOpenMobile } = useSidebar();
   const shouldShowLabel = open || showLabel || (isMobile && openMobile);
 
   function handleClick() {
-    if (isMobile && openMobile) {
-      setOpenMobile(false);
-    }
+    if (isMobile && openMobile) setOpenMobile(false);
   }
 
   return (
-    <SidebarMenuItem>
-      <Tooltip delayDuration={150}>
-        <TooltipTrigger asChild>
-          <SidebarMenuButton asChild isActive={isActive} className="font-semibold">
-            <Link to={to} className="flex items-center gap-3" onClick={handleClick}>
-              {icon}
-              {shouldShowLabel && <span className="font-semibold">{label}</span>}
-            </Link>
-          </SidebarMenuButton>
-        </TooltipTrigger>
+    <Tooltip delayDuration={150}>
+      <TooltipTrigger asChild>
+        <Link
+          to={to}
+          onClick={handleClick}
+          className={cn(
+            "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-all duration-150 group",
+            isActive
+              ? "bg-gradient-to-r from-violet-500 to-purple-600 text-white shadow-md shadow-violet-200"
+              : "text-slate-500 hover:bg-violet-50 hover:text-violet-700"
+          )}
+        >
+          <span className={cn(
+            "shrink-0 text-[17px] leading-none transition-all",
+            isActive ? "opacity-100 drop-shadow-sm" : "opacity-70 group-hover:opacity-100"
+          )}>
+            {icon}
+          </span>
 
-        {!shouldShowLabel && (
-          <TooltipContent side="right" align="center">
-            {label}
-          </TooltipContent>
-        )}
-      </Tooltip>
-    </SidebarMenuItem>
+          {shouldShowLabel && (
+            <span className="truncate">{label}</span>
+          )}
+
+          {isActive && shouldShowLabel && (
+            <span className="ml-auto h-2 w-2 rounded-full bg-white/70 shrink-0" />
+          )}
+        </Link>
+      </TooltipTrigger>
+      {!shouldShowLabel && (
+        <TooltipContent side="right" align="center" className="font-semibold">
+          {label}
+        </TooltipContent>
+      )}
+    </Tooltip>
   );
 }

@@ -1,15 +1,8 @@
-
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ChevronDown, LucideIcon } from "lucide-react";
-import {
-  SidebarMenuItem,
-  SidebarMenuButton,
-  SidebarMenuSub,
-  SidebarMenuSubItem,
-  SidebarMenuSubButton,
-  useSidebar
-} from "@/components/ui/sidebar";
+import { ChevronDown } from "lucide-react";
+import { useSidebar } from "@/components/ui/sidebar";
+import { cn } from "@/lib/utils";
 
 interface MenuSubItem {
   label: string;
@@ -19,7 +12,7 @@ interface MenuSubItem {
 
 interface SidebarMenuSectionProps {
   title: string;
-  icon: any; // Allow customized icons including emojis
+  icon: any;
   subItems: MenuSubItem[];
   isActive: (path: string) => boolean;
   defaultExpanded?: boolean;
@@ -32,44 +25,66 @@ export function SidebarMenuSection({
   subItems,
   isActive,
   defaultExpanded = false,
-  showLabels
+  showLabels,
 }: SidebarMenuSectionProps) {
   const [expanded, setExpanded] = useState(defaultExpanded);
   const { open, isMobile, openMobile, setOpenMobile } = useSidebar();
   const shouldShowLabel = open || showLabels || (isMobile && openMobile);
+  const anyActive = subItems.some((item) => isActive(item.path));
 
   return (
-    <SidebarMenuItem>
-      <SidebarMenuButton
+    <div className="mb-0.5">
+      <button
         onClick={() => setExpanded(!expanded)}
-        className="justify-between"
-      >
-        <div className="flex items-center gap-2">
-          {typeof Icon === 'function' || typeof Icon === 'object' ? <Icon size={20} /> : Icon}
-          {shouldShowLabel && <span>{title}</span>}
-        </div>
-        {shouldShowLabel && (
-          <ChevronDown
-            size={16}
-            className={`transition-transform ${expanded ? "rotate-180" : ""}`}
-          />
+        className={cn(
+          "w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-all duration-150",
+          anyActive && !expanded
+            ? "text-violet-700 bg-violet-50"
+            : "text-slate-500 hover:bg-violet-50 hover:text-violet-700"
         )}
-      </SidebarMenuButton>
+      >
+        <span className={cn("shrink-0 text-[17px] leading-none", anyActive ? "opacity-100" : "opacity-70")}>
+          {typeof Icon === "function" ? <Icon size={17} /> : Icon}
+        </span>
+        {shouldShowLabel && (
+          <>
+            <span className="truncate flex-1 text-left">{title}</span>
+            <ChevronDown
+              size={14}
+              className={cn("shrink-0 text-slate-400 transition-transform duration-200", expanded && "rotate-180")}
+            />
+          </>
+        )}
+      </button>
 
-      {expanded && (
-        <SidebarMenuSub>
-          {subItems.map((item) => (
-            <SidebarMenuSubItem key={item.path}>
-              <SidebarMenuSubButton asChild isActive={isActive(item.path)}>
-                <Link to={item.path} className="flex items-center gap-2" onClick={() => { if (isMobile && openMobile) setOpenMobile(false); }}>
-                  {item.icon && <span className="opacity-70">{item.icon}</span>}
-                  <span>{item.label}</span>
-                </Link>
-              </SidebarMenuSubButton>
-            </SidebarMenuSubItem>
-          ))}
-        </SidebarMenuSub>
+      {expanded && shouldShowLabel && (
+        <div className="mt-1 ml-4 pl-3 border-l-2 border-violet-100 flex flex-col gap-0.5">
+          {subItems.map((item) => {
+            const active = isActive(item.path);
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                onClick={() => { if (isMobile && openMobile) setOpenMobile(false); }}
+                className={cn(
+                  "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150",
+                  active
+                    ? "bg-violet-100 text-violet-700 font-semibold"
+                    : "text-slate-500 hover:bg-violet-50 hover:text-violet-600"
+                )}
+              >
+                {item.icon && (
+                  <span className={cn("text-sm leading-none", active ? "opacity-100" : "opacity-60")}>
+                    {item.icon}
+                  </span>
+                )}
+                <span className="truncate">{item.label}</span>
+                {active && <span className="ml-auto h-1.5 w-1.5 rounded-full bg-violet-500 shrink-0" />}
+              </Link>
+            );
+          })}
+        </div>
       )}
-    </SidebarMenuItem>
+    </div>
   );
 }

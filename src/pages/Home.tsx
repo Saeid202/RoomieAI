@@ -39,8 +39,11 @@ export default function HomePage() {
       <LandingHamburgerMenu isOpen={menuOpen} onClose={() => setMenuOpen(false)} />
       <main className="flex-1">
         <HeroSection />
+        <div className="mx-6 md:mx-16 h-px bg-gradient-to-r from-transparent via-purple-400 to-transparent opacity-60" />
         <FeaturesSection />
+        <div className="mx-6 md:mx-16 h-px bg-gradient-to-r from-transparent via-purple-400 to-transparent opacity-60" />
         <HowItWorks />
+        <div className="mx-6 md:mx-16 h-px bg-gradient-to-r from-transparent via-purple-400 to-transparent opacity-60" />
         
         {/* Public Property Listings */}
         <section id="properties" className="py-16 bg-gradient-to-br from-slate-50 via-orange-50/20 to-purple-50/20">
@@ -65,6 +68,7 @@ export default function HomePage() {
           </div>
         </section>
       </main>
+      <div className="mx-6 md:mx-16 h-px bg-gradient-to-r from-transparent via-purple-400 to-transparent opacity-60" />
       <Footer />
     </div>
   );

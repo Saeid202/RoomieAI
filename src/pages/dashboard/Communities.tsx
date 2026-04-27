@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Users, Search, MapPin, Globe, ChevronRight, Sparkles, PenSquare } from 'lucide-react';
+import { Users, Search, MapPin, Globe, ChevronRight, PenSquare } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
@@ -119,7 +118,6 @@ type TabType = 'browse' | 'my-community';
 
 export default function CommunitiesPage() {
   const { user } = useAuth();
-  const navigate = useNavigate();
   const [communities, setCommunities] = useState<CommunityWithMeta[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -155,6 +153,12 @@ export default function CommunitiesPage() {
         })
       );
       setCommunities(withMeta);
+
+      // Auto-select the first joined community so Tab 2 is visible on load
+      const firstJoined = withMeta.find(c => c.membership?.status === 'active');
+      if (firstJoined && !selectedCommunity) {
+        setSelectedCommunity(firstJoined);
+      }
     } catch (e: any) {
       toast.error(e?.message || 'Failed to load communities');
     } finally {
@@ -239,11 +243,6 @@ export default function CommunitiesPage() {
     setFilter('all');
     setStructuredFilters({});
     setPosts([]);
-  }
-
-  function handleBackFromDetail() {
-    setActiveTab('browse');
-    setShowPostForm(false);
   }
 
   function handlePostCreated(post: CommunityPost) {
@@ -332,24 +331,24 @@ export default function CommunitiesPage() {
         </div>
       </div>
 
-      {/* Tab Navigation - Premium Style */}
-      {selectedCommunity && (
-        <div className="border-b border-gray-200 bg-white sticky top-0 z-10 shadow-sm">
-          <div className="max-w-7xl mx-auto px-4 md:px-8">
-            <div className="flex gap-6 md:gap-12">
-              <button
-                onClick={() => setActiveTab('browse')}
-                className={`py-4 px-1 border-b-2 font-semibold text-base transition-all ${
-                  activeTab === 'browse'
-                    ? 'border-roomie-purple text-roomie-purple'
-                    : 'border-transparent text-gray-600 hover:text-roomie-purple'
-                }`}
-              >
-                Browse Communities
-              </button>
+      {/* Tab Navigation - always visible, Tab 2 only when joined */}
+      <div className="border-b border-gray-200 bg-white sticky top-0 z-10 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 md:px-8">
+          <div className="flex gap-6 md:gap-12">
+            <button
+              onClick={() => setActiveTab('browse')}
+              className={`py-4 px-1 border-b-2 font-semibold text-base transition-all ${
+                activeTab === 'browse'
+                  ? 'border-roomie-purple text-roomie-purple'
+                  : 'border-transparent text-gray-600 hover:text-roomie-purple'
+              }`}
+            >
+              Browse Communities
+            </button>
+            {selectedCommunity && (
               <button
                 onClick={() => setActiveTab('my-community')}
-                className={`py-4 px-1 border-b-2 font-semibold text-base transition-all ${
+                className={`py-4 px-1 border-b-2 font-semibold text-base transition-all max-w-[200px] truncate ${
                   activeTab === 'my-community'
                     ? 'border-roomie-purple text-roomie-purple'
                     : 'border-transparent text-gray-600 hover:text-roomie-purple'
@@ -357,10 +356,10 @@ export default function CommunitiesPage() {
               >
                 {selectedCommunity.name}
               </button>
-            </div>
+            )}
           </div>
         </div>
-      )}
+      </div>
 
       {/* Content - Premium Layout */}
       <div className="max-w-7xl px-4 md:px-8 py-4 md:py-12 space-y-6 md:space-y-12">
@@ -427,7 +426,7 @@ export default function CommunitiesPage() {
                         <CommunityCard
                           key={community.id}
                           community={community}
-                          onNavigate={() => navigate(`/dashboard/communities/${community.id}`)}
+                          onNavigate={() => {/* join inline via button on card */}}
                           onMembershipChange={m => handleMembershipChange(community.id, m)}
                           showUser={!!user}
                         />
@@ -653,13 +652,15 @@ function CommunityCard({ community, onNavigate, onMembershipChange, showUser }: 
               />
             </div>
           )}
-          <button
-            onClick={e => { e.stopPropagation(); onNavigate(); }}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-gray-300 text-gray-700 text-sm font-semibold hover:bg-gradient-to-r hover:from-violet-50 hover:to-purple-50 hover:text-violet-700 hover:border-violet-300 transition-all"
-          >
-            View
-            <ChevronRight className="h-4 w-4" />
-          </button>
+          {isJoined && (
+            <button
+              onClick={e => { e.stopPropagation(); onNavigate(); }}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-gray-300 text-gray-700 text-sm font-semibold hover:bg-gradient-to-r hover:from-violet-50 hover:to-purple-50 hover:text-violet-700 hover:border-violet-300 transition-all"
+            >
+              View
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          )}
         </div>
       </div>
     </div>

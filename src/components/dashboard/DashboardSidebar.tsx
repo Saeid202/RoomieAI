@@ -4,10 +4,8 @@ import {
   SidebarContent,
   SidebarHeader,
   SidebarGroup,
-  SidebarGroupLabel,
   SidebarGroupContent,
   SidebarMenu,
-  SidebarSeparator,
   SidebarFooter,
   useSidebar
 } from "@/components/ui/sidebar";
@@ -45,30 +43,29 @@ export function DashboardSidebar() {
   };
 
   return (
-    <Sidebar collapsible="offcanvas" defaultOpen={!isMobile}>
-      <SidebarHeader className="flex items-center justify-center p-4 border-b">
-        <div className="w-full flex items-center gap-3 px-2">
-          <div className="bg-primary/10 p-2 rounded-lg">
-            <Home className="h-5 w-5 text-primary" />
+    <Sidebar collapsible="offcanvas" defaultOpen={!isMobile} className="border-r border-slate-200 shadow-[2px_0_16px_rgba(139,92,246,0.08)]">
+      {/* Header */}
+      <SidebarHeader className="px-5 py-5 border-b border-slate-100 bg-white">
+        <div className="flex items-center gap-3">
+          <div className="bg-gradient-to-br from-orange-400 to-violet-600 p-2.5 rounded-xl shadow-md shadow-violet-200 shrink-0">
+            <Home className="h-5 w-5 text-white" />
           </div>
           <div>
-            <h2 className="text-sm font-bold text-gradient leading-none mb-1">Homie AI</h2>
-            <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">
+            <h2 className="text-base font-black tracking-tight leading-none mb-0.5 bg-gradient-to-r from-orange-500 to-violet-600 bg-clip-text text-transparent">
+              Homie AI
+            </h2>
+            <p className="text-[10px] uppercase tracking-widest font-bold text-slate-400">
               {role?.replace('_', ' ') || 'Dashboard'}
             </p>
           </div>
         </div>
       </SidebarHeader>
 
-      <SidebarSeparator />
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Main</SidebarGroupLabel>
+      <SidebarContent className="px-3 py-3 bg-white">
+        <SidebarGroup className="p-0">
           <SidebarGroupContent>
             <SidebarMenu>
               {(() => {
-                // Determine which sidebar to show based on current path vs role
-                // If we're in a role-specific subpath, force that role's sidebar
                 if (location.pathname.includes('/dashboard/admin')) return <AdminSidebar isActive={isActive} />;
                 if (location.pathname.includes('/dashboard/landlord')) return <LandlordSidebar isActive={isActive} />;
                 if (location.pathname.includes('/renovator/')) return <RenovatorSidebar isActive={isActive} />;
@@ -76,7 +73,6 @@ export function DashboardSidebar() {
                 if (location.pathname.includes('/dashboard/lawyer')) return <LawyerSidebar isActive={isActive} />;
                 if (location.pathname.includes('/dashboard/lender')) return <LenderSidebar isActive={isActive} />;
 
-                // If we're on a "Seeker" route (general dashboard routes), prefer SeekerSidebar
                 const isSeekerRoute =
                   location.pathname.startsWith('/dashboard/roommate-recommendations') ||
                   location.pathname.startsWith('/dashboard/ideal-roommate') ||
@@ -91,7 +87,6 @@ export function DashboardSidebar() {
 
                 if (isSeekerRoute) return <SeekerSidebar isActive={isActive} />;
 
-                // Fallback to role-based selection
                 if (role === 'admin') return <AdminSidebar isActive={isActive} />;
                 if (role === 'landlord') return <LandlordSidebar isActive={isActive} />;
                 if (role === 'renovator') return <RenovatorSidebar isActive={isActive} />;
@@ -107,23 +102,22 @@ export function DashboardSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="p-4 border-t space-y-2">
-        {/* User Account Menu */}
+      {/* Footer */}
+      <SidebarFooter className="px-3 py-4 border-t border-slate-100 bg-white">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
-              className="w-full justify-start px-2 h-auto py-3 gap-2 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+              className="w-full justify-start px-3 h-auto py-2.5 gap-3 rounded-xl hover:bg-violet-50 text-slate-600 hover:text-violet-700 transition-all"
             >
-              <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-bold shrink-0">
+              <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-orange-400 to-violet-600 flex items-center justify-center text-white font-black shrink-0 text-sm shadow-md shadow-violet-200">
                 {user?.email?.[0].toUpperCase() || 'U'}
               </div>
-
               <div className="flex flex-col items-start text-left min-w-0 flex-1 overflow-hidden">
-                <span className="text-sm font-semibold truncate w-full">{user?.email?.split('@')[0]}</span>
-                <span className="text-xs text-muted-foreground truncate w-full">{user?.email}</span>
+                <span className="text-sm font-semibold truncate w-full text-slate-700">{user?.email?.split('@')[0]}</span>
+                <span className="text-[11px] text-slate-400 truncate w-full">{user?.email}</span>
               </div>
-              <ChevronUp className="h-4 w-4 ml-auto text-muted-foreground" />
+              <ChevronUp className="h-4 w-4 shrink-0 text-slate-300" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-56" align="start" side="top" sideOffset={8}>
@@ -142,10 +136,9 @@ export function DashboardSidebar() {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        {/* Back to Home Link */}
-        <Button variant="ghost" className="w-full justify-start gap-2 px-2" asChild>
+        <Button variant="ghost" className="w-full justify-start gap-3 px-3 rounded-xl text-slate-400 hover:text-violet-600 hover:bg-violet-50 text-sm" asChild>
           <Link to="/">
-            <Home className="h-4 w-4" />
+            <Home className="h-4 w-4 shrink-0" />
             <span>Back to Home</span>
           </Link>
         </Button>

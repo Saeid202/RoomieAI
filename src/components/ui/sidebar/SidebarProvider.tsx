@@ -90,7 +90,7 @@ export const SidebarProvider = React.forwardRef<
           <div
             style={
               {
-                "--sidebar-width": "16rem",
+                "--sidebar-width": "26rem",
                 "--sidebar-width-icon": "3rem",
                 ...style,
               } as React.CSSProperties

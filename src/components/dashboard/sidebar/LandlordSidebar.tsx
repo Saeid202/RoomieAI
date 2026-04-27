@@ -11,7 +11,7 @@ interface LandlordSidebarProps {
 
 export function LandlordSidebar({ isActive, showLabels }: LandlordSidebarProps) {
   return (
-    <>
+    <div className="flex flex-col gap-0.5 py-1">
       <SidebarSimpleMenuItem
         showLabel={showLabels}
         icon={<span className="text-lg">🏠</span>}
@@ -117,6 +117,6 @@ export function LandlordSidebar({ isActive, showLabels }: LandlordSidebarProps) 
         to="/dashboard/settings"
         isActive={isActive('/dashboard/settings')}
       />
-    </>
+    </div>
   );
 }

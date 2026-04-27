@@ -54,27 +54,26 @@ export default function UsersPage() {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      // Get the current session to get the JWT
+      // Check if user is authenticated first
       const { data: { session } } = await supabase.auth.getSession();
-
-      // Call the secure backend API
-      const response = await fetch('/api/admin/users', {
-        headers: {
-          'Authorization': `Bearer ${session?.access_token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || `Error: ${response.status}`);
+      if (!session) {
+        throw new Error('You must be logged in to view users');
       }
 
-      const { users: data } = await response.json();
+      // Call the Supabase Edge Function
+      const { data, error } = await supabase.functions.invoke('admin-users');
+
+      if (error) {
+        console.error('Edge function error:', error);
+        console.error('Response data:', data);
+        // Extract error message from the response
+        const errorMsg = data?.error || error.message || 'Failed to fetch users';
+        throw new Error(errorMsg);
+      }
 
       // Transform data if needed, assuming user_profiles has role
       // If role is missing, default to 'seeker'
-      const mappedUsers = data.map((u: any) => ({
+      const mappedUsers = (data.users || []).map((u: any) => ({
         id: u.id,
         name: u.full_name || "Unknown",
         email: u.email || "No Email",

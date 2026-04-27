@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { SidebarSimpleMenuItem } from "./SidebarSimpleMenuItem";
 import { SidebarMenuSection } from "./SidebarMenuSection";
+import { useFeatureFlag } from "@/hooks/useFeatureFlag";
 
 interface SeekerSidebarProps {
   isActive: (path: string) => boolean;
@@ -15,8 +16,10 @@ interface SeekerSidebarProps {
 
 export function SeekerSidebar({ isActive, showLabels }: SeekerSidebarProps) {
   const location = useLocation();
+  const communityEnabled = false; // temporarily hidden
+
   return (
-    <>
+    <div className="flex flex-col gap-0.5 py-1">
       <SidebarSimpleMenuItem
         showLabel={showLabels}
         icon={<span className="text-lg">🏠</span>}
@@ -65,7 +68,12 @@ export function SeekerSidebar({ isActive, showLabels }: SeekerSidebarProps) {
             label: "Work Exchange",
             path: "/dashboard/work-exchange",
             icon: <span className="text-sm">💼</span>
-          }
+          },
+          ...(communityEnabled ? [{
+            label: "Communities",
+            path: "/dashboard/communities",
+            icon: <span className="text-sm">🌐</span>
+          }] : [])
         ]}
       />
 
@@ -188,6 +196,6 @@ export function SeekerSidebar({ isActive, showLabels }: SeekerSidebarProps) {
         to="/dashboard/settings"
         isActive={isActive('/dashboard/settings')}
       />
-    </>
+    </div>
   );
 }

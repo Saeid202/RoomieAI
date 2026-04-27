@@ -6,6 +6,7 @@ import { MasterBox } from "./MasterBox";
 import { SubFeatureButton } from "./SubFeatureButton";
 import { Users, Home, FileText, CreditCard, TrendingUp, Hammer, BookOpen, Bot, Heart, Search, Calendar, DollarSign, HelpCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useFeatureFlag } from "@/hooks/useFeatureFlag";
 
 interface RoommateRecommendationsProps {
   onError?: (error: Error) => void;
@@ -17,6 +18,7 @@ export function RoommateRecommendations({
   const { toast } = useToast();
   const { loadProfileData, initialized } = useRoommateMatching();
   const navigate = useNavigate();
+  const communityEnabled = false; // temporarily hidden
 
   const handleError = useCallback(
     (error: Error) => {
@@ -119,6 +121,13 @@ export function RoommateRecommendations({
               label="Work Exchange"
               onClick={() => startTransition(() => navigate("/dashboard/work-exchange"))}
             />
+            {communityEnabled && (
+              <SubFeatureButton 
+                emoji="🌐" 
+                label="Communities"
+                onClick={() => startTransition(() => navigate("/dashboard/communities"))}
+              />
+            )}
           </div>
         </MasterBox>
         

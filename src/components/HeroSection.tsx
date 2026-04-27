@@ -1,181 +1,160 @@
-
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect, useTransition } from "react";
 import { X, ZoomIn } from "lucide-react";
+import { useHeroBanner } from "@/hooks/useHeroBanner";
 
 const HeroSection = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [, startTransition] = useTransition();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { bannerUrl, heroMode } = useHeroBanner();
 
-  // Cleanup body scroll on unmount
   useEffect(() => {
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
+    return () => { document.body.style.overflow = 'unset'; };
   }, []);
 
   const handleFindMatchClick = () => {
-    startTransition(() => {
-      if (user) {
-        navigate("/dashboard");
-      } else {
-        navigate("/login");
-      }
-    });
+    startTransition(() => navigate(user ? "/dashboard" : "/login"));
   };
 
-  const openModal = () => {
-    console.log('Opening modal...');
-    setIsModalOpen(true);
-    document.body.style.overflow = 'hidden';
-  };
-  const closeModal = () => {
-    console.log('Closing modal...');
-    setIsModalOpen(false);
-    document.body.style.overflow = 'unset';
-  };
+  const openModal = () => { setIsModalOpen(true); document.body.style.overflow = 'hidden'; };
+  const closeModal = () => { setIsModalOpen(false); document.body.style.overflow = 'unset'; };
 
+  // ── FULL BANNER MODE ─────────────────────────────────────────────────────────
+  if (heroMode === 'fullbanner' && bannerUrl) {
+    return (
+      <section className="w-full pt-20">
+        <img
+          src={bannerUrl}
+          alt="Homie AI hero banner"
+          className="w-full object-cover"
+          style={{ maxHeight: '90vh', minHeight: '420px' }}
+        />
+      </section>
+    );
+  }
+
+  // ── DEFAULT + SPLIT BANNER MODE ──────────────────────────────────────────────
   return (
     <section className="hero-section pt-20">
       {/* Floating Background Elements */}
       <div className="floating-element w-64 h-64 top-1/4 left-1/4 opacity-30"></div>
       <div className="floating-element w-96 h-96 bottom-1/4 right-1/4 opacity-20"></div>
       <div className="floating-element w-32 h-32 top-1/2 right-1/3 opacity-40"></div>
-      
+
       <div className="container mx-auto px-4 py-20 relative z-10">
         <div className="grid lg:grid-cols-2 gap-12 items-center min-h-[80vh]">
+          {/* Left: text content */}
           <div className="space-y-8 text-center lg:text-left">
             <div className="animate-fade-in">
               <span className="inline-block px-4 py-2 bg-primary/10 text-primary border border-primary/20 rounded-full text-sm font-medium">
                 ✨ AI-Powered Technology
               </span>
             </div>
-            
+
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight leading-tight animate-slide-up">
               <span className="block">Welcome to HomieAI City.</span>
               <span className="block text-gradient">Everything Real Estate Needs</span>
-              <span className="block text-2xl md:text-3xl lg:text-4xl font-bold text-primary animate-slide-up" style={{animationDelay: '0.3s'}}>Finally Under One Roof.</span>
+              <span className="block text-2xl md:text-3xl lg:text-4xl font-bold text-primary animate-slide-up" style={{ animationDelay: '0.3s' }}>
+                Finally Under One Roof.
+              </span>
             </h1>
-            
-            <p className="text-xl md:text-2xl text-primary/80 font-medium animate-slide-up" style={{animationDelay: '0.4s'}}>
+
+            <p className="text-xl md:text-2xl text-primary/80 font-medium animate-slide-up" style={{ animationDelay: '0.4s' }}>
               We Didn't Improve Real Estate. We Rebuilt It!
             </p>
-            
-            <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto lg:mx-0 leading-relaxed animate-slide-up" style={{animationDelay: '0.2s'}}>
-              HomieAI is the only platform where Seekers find homes and match roommates, Landlords manage portfolios, Brokers assess mortgages, Lawyers close deals inside secure document rooms, users manage rent payments, and Renovators deliver — all connected, all intelligent, all in real time.
+
+            <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto lg:mx-0 leading-relaxed animate-slide-up" style={{ animationDelay: '0.2s' }}>
+              HomieAI is the only platform where Seekers find homes and match roommates, Landlords manage portfolios,
+              Brokers assess mortgages, Lawyers close deals inside secure document rooms, users manage rent payments,
+              and Renovators deliver — all connected, all intelligent, all in real time.
             </p>
-            
-            {/* CTAs */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start animate-slide-up" style={{animationDelay: '0.8s'}}>
-              <button 
-                className="btn-primary text-lg h-14 px-8 shadow-glow hover:shadow-glow-lg transition-all duration-300 group"
-                onClick={handleFindMatchClick}
-              >
+
+            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start animate-slide-up" style={{ animationDelay: '0.8s' }}>
+              <button className="btn-primary text-lg h-14 px-8 shadow-glow hover:shadow-glow-lg transition-all duration-300 group" onClick={handleFindMatchClick}>
                 Find My Match
                 <span className="ml-2 group-hover:translate-x-1 transition-transform">→</span>
               </button>
-              <button 
-                className="btn-secondary text-lg h-14 px-8"
-                onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })}
-              >
+              <button className="btn-secondary text-lg h-14 px-8" onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })}>
                 How It Works
               </button>
             </div>
           </div>
-          {/* Media */}
-          <div className="relative animate-fade-in-scale" style={{animationDelay: '0.5s'}}>
-            <div 
+
+          {/* Right: media panel */}
+          <div className="relative animate-fade-in-scale" style={{ animationDelay: '0.5s' }}>
+            <div
               className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-gradient-to-br from-primary/10 to-secondary/10 backdrop-blur-sm border border-primary/20 shadow-2xl cursor-pointer group"
-              onClick={openModal}
+              onClick={heroMode === 'banner' && bannerUrl ? undefined : openModal}
             >
-              {/* Zoom Icon Overlay */}
-              <div className="absolute top-4 left-4 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm rounded-full p-2 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">
-                <ZoomIn className="w-4 h-4 text-slate-600 dark:text-slate-300" />
-              </div>
-              
-              <div className="absolute inset-0 flex items-center justify-center p-6">
-                {/* Detailed Flowchart Placeholder */}
-                <div className="flowchart-placeholder flex flex-col items-center justify-center text-center p-4 w-full h-full">
-                  <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-lg max-w-full max-h-full overflow-auto">
-                    <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-4 text-center">Homie AI Platform</h3>
-                    
-                    {/* Flowchart Structure */}
-                    <div className="space-y-4">
-                      {/* Main Box */}
-                      <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg p-4 text-center">
-                        <div className="font-bold text-lg">Homie AI</div>
-                        <div className="text-sm opacity-90">AI-Powered Platform</div>
-                      </div>
-                      
-                      {/* Three Branches */}
-                      <div className="grid grid-cols-3 gap-2 text-xs">
-                        {/* Tenant Branch */}
-                        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
-                          <div className="font-semibold text-blue-700 dark:text-blue-300 mb-2">Tenant (Seeker)</div>
-                          <div className="space-y-1 text-blue-600 dark:text-blue-400">
-                            <div>• Profile Creation</div>
-                            <div>• Property Search</div>
-                            <div>• Roommate Matching</div>
-                            <div>• Application Process</div>
-                            <div>• Co-buying Options</div>
+              {heroMode === 'banner' && bannerUrl ? (
+                <img src={bannerUrl} alt="Homie AI hero banner" className="w-full h-full object-cover" />
+              ) : (
+                <>
+                  <div className="absolute top-4 left-4 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm rounded-full p-2 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">
+                    <ZoomIn className="w-4 h-4 text-slate-600 dark:text-slate-300" />
+                  </div>
+
+                  <div className="absolute inset-0 flex items-center justify-center p-6">
+                    <div className="flowchart-placeholder flex flex-col items-center justify-center text-center p-4 w-full h-full">
+                      <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-lg max-w-full max-h-full overflow-auto">
+                        <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-4 text-center">Homie AI Platform</h3>
+                        <div className="space-y-4">
+                          <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg p-4 text-center">
+                            <div className="font-bold text-lg">Homie AI</div>
+                            <div className="text-sm opacity-90">AI-Powered Platform</div>
                           </div>
-                        </div>
-                        
-                        {/* Landlord Branch */}
-                        <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3">
-                          <div className="font-semibold text-green-700 dark:text-green-300 mb-2">Landlord</div>
-                          <div className="space-y-1 text-green-600 dark:text-green-400">
-                            <div>• Property Listing</div>
-                            <div>• Tenant Screening</div>
-                            <div>• Document Management</div>
-                            <div>• Rent Collection</div>
-                            <div>• Maintenance Requests</div>
+                          <div className="grid grid-cols-3 gap-2 text-xs">
+                            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+                              <div className="font-semibold text-blue-700 dark:text-blue-300 mb-2">Tenant (Seeker)</div>
+                              <div className="space-y-1 text-blue-600 dark:text-blue-400">
+                                <div>• Profile Creation</div><div>• Property Search</div>
+                                <div>• Roommate Matching</div><div>• Application Process</div>
+                                <div>• Co-buying Options</div>
+                              </div>
+                            </div>
+                            <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3">
+                              <div className="font-semibold text-green-700 dark:text-green-300 mb-2">Landlord</div>
+                              <div className="space-y-1 text-green-600 dark:text-green-400">
+                                <div>• Property Listing</div><div>• Tenant Screening</div>
+                                <div>• Document Management</div><div>• Rent Collection</div>
+                                <div>• Maintenance Requests</div>
+                              </div>
+                            </div>
+                            <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-3">
+                              <div className="font-semibold text-purple-700 dark:text-purple-300 mb-2">Renovation</div>
+                              <div className="space-y-1 text-purple-600 dark:text-purple-400">
+                                <div>• Project Bidding</div><div>• Cost Estimation</div>
+                                <div>• Timeline Planning</div><div>• Quality Assurance</div>
+                                <div>• Payment Processing</div>
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                        
-                        {/* Renovation Branch */}
-                        <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-3">
-                          <div className="font-semibold text-purple-700 dark:text-purple-300 mb-2">Renovation</div>
-                          <div className="space-y-1 text-purple-600 dark:text-purple-400">
-                            <div>• Project Bidding</div>
-                            <div>• Cost Estimation</div>
-                            <div>• Timeline Planning</div>
-                            <div>• Quality Assurance</div>
-                            <div>• Payment Processing</div>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* Connections */}
-                      <div className="flex justify-center">
-                        <div className="bg-slate-100 dark:bg-slate-700 rounded-lg px-4 py-2">
-                          <div className="text-xs text-slate-600 dark:text-slate-300 font-medium">
-                            Integrated AI Matching System
+                          <div className="flex justify-center">
+                            <div className="bg-slate-100 dark:bg-slate-700 rounded-lg px-4 py-2">
+                              <div className="text-xs text-slate-600 dark:text-slate-300 font-medium">Integrated AI Matching System</div>
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              </div>
-              
-              {/* Floating elements */}
-              <div className="absolute top-4 right-4 bg-background/90 backdrop-blur-sm rounded-full p-3 shadow-lg">
-                <span className="text-yellow-500">⭐</span>
-              </div>
-              
-              <div className="absolute bottom-4 left-4 bg-background/90 backdrop-blur-sm rounded-lg px-4 py-2 shadow-lg">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                  <span className="text-sm font-medium">Click to enlarge</span>
-                </div>
-              </div>
+
+                  <div className="absolute top-4 right-4 bg-background/90 backdrop-blur-sm rounded-full p-3 shadow-lg">
+                    <span className="text-yellow-500">⭐</span>
+                  </div>
+                  <div className="absolute bottom-4 left-4 bg-background/90 backdrop-blur-sm rounded-lg px-4 py-2 shadow-lg">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                      <span className="text-sm font-medium">Click to enlarge</span>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
-            
-            {/* AI Badge */}
+
             <div className="absolute -bottom-4 -right-4 w-20 h-20 bg-primary/10 backdrop-blur-sm rounded-full flex items-center justify-center animate-float shadow-glow hidden md:flex">
               <span className="font-bold text-primary">AI</span>
             </div>
@@ -185,83 +164,45 @@ const HeroSection = () => {
 
       {/* Enlargement Modal */}
       {isModalOpen && (
-        <div 
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
-          onClick={closeModal}
-        >
-          <div 
-            className="relative max-w-6xl max-h-[90vh] w-full bg-white dark:bg-slate-900 rounded-2xl shadow-2xl overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Close Button */}
-            <button
-              onClick={closeModal}
-              className="absolute top-4 right-4 z-10 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm rounded-full p-2 shadow-lg hover:bg-white dark:hover:bg-slate-800 transition-colors"
-            >
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" onClick={closeModal}>
+          <div className="relative max-w-6xl max-h-[90vh] w-full bg-white dark:bg-slate-900 rounded-2xl shadow-2xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            <button onClick={closeModal} className="absolute top-4 right-4 z-10 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm rounded-full p-2 shadow-lg hover:bg-white transition-colors">
               <X className="w-5 h-5 text-slate-600 dark:text-slate-300" />
             </button>
-
-            {/* Enlarged Flowchart Content */}
             <div className="p-8 h-full overflow-auto">
-              {/* Modal Flowchart Placeholder */}
-              <div className="modal-flowchart-placeholder block">
-                <div className="bg-white dark:bg-slate-800 rounded-xl p-8 shadow-lg max-w-full mx-auto">
-                  <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-6 text-center">Homie AI Platform</h3>
-                  
-                  {/* Flowchart Structure */}
-                  <div className="space-y-6">
-                    {/* Main Box */}
-                    <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl p-6 text-center">
-                      <div className="font-bold text-2xl mb-2">Homie AI</div>
-                      <div className="text-lg opacity-90">AI-Powered Platform</div>
-                    </div>
-                    
-                    {/* Three Branches */}
-                    <div className="grid grid-cols-3 gap-4">
-                      {/* Tenant Branch */}
-                      <div className="bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-800 rounded-xl p-6">
-                        <div className="font-bold text-blue-700 dark:text-blue-300 mb-3 text-lg">Tenant (Seeker)</div>
-                        <div className="space-y-2 text-blue-600 dark:text-blue-400">
-                          <div>• Profile Creation</div>
-                          <div>• Property Search</div>
-                          <div>• Roommate Matching</div>
-                          <div>• Application Process</div>
-                          <div>• Co-buying Options</div>
-                        </div>
-                      </div>
-                      
-                      {/* Landlord Branch */}
-                      <div className="bg-green-50 dark:bg-green-900/20 border-2 border-green-200 dark:border-green-800 rounded-xl p-6">
-                        <div className="font-bold text-green-700 dark:text-green-300 mb-3 text-lg">Landlord</div>
-                        <div className="space-y-2 text-green-600 dark:text-green-400">
-                          <div>• Property Listing</div>
-                          <div>• Tenant Screening</div>
-                          <div>• Document Management</div>
-                          <div>• Rent Collection</div>
-                          <div>• Maintenance Requests</div>
-                        </div>
-                      </div>
-                      
-                      {/* Renovation Branch */}
-                      <div className="bg-purple-50 dark:bg-purple-900/20 border-2 border-purple-200 dark:border-purple-800 rounded-xl p-6">
-                        <div className="font-bold text-purple-700 dark:text-purple-300 mb-3 text-lg">Renovation</div>
-                        <div className="space-y-2 text-purple-600 dark:text-purple-400">
-                          <div>• Project Bidding</div>
-                          <div>• Cost Estimation</div>
-                          <div>• Timeline Planning</div>
-                          <div>• Quality Assurance</div>
-                          <div>• Payment Processing</div>
-                        </div>
+              <div className="bg-white dark:bg-slate-800 rounded-xl p-8 shadow-lg max-w-full mx-auto">
+                <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-6 text-center">Homie AI Platform</h3>
+                <div className="space-y-6">
+                  <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl p-6 text-center">
+                    <div className="font-bold text-2xl mb-2">Homie AI</div>
+                    <div className="text-lg opacity-90">AI-Powered Platform</div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-800 rounded-xl p-6">
+                      <div className="font-bold text-blue-700 dark:text-blue-300 mb-3 text-lg">Tenant (Seeker)</div>
+                      <div className="space-y-2 text-blue-600 dark:text-blue-400">
+                        <div>• Profile Creation</div><div>• Property Search</div>
+                        <div>• Roommate Matching</div><div>• Application Process</div><div>• Co-buying Options</div>
                       </div>
                     </div>
-                    
-                    {/* Connections */}
-                    <div className="flex justify-center">
-                      <div className="bg-slate-100 dark:bg-slate-700 rounded-xl px-6 py-3">
-                        <div className="text-sm font-medium text-slate-600 dark:text-slate-300">
-                          Integrated AI Matching System
-                        </div>
+                    <div className="bg-green-50 dark:bg-green-900/20 border-2 border-green-200 dark:border-green-800 rounded-xl p-6">
+                      <div className="font-bold text-green-700 dark:text-green-300 mb-3 text-lg">Landlord</div>
+                      <div className="space-y-2 text-green-600 dark:text-green-400">
+                        <div>• Property Listing</div><div>• Tenant Screening</div>
+                        <div>• Document Management</div><div>• Rent Collection</div><div>• Maintenance Requests</div>
                       </div>
+                    </div>
+                    <div className="bg-purple-50 dark:bg-purple-900/20 border-2 border-purple-200 dark:border-purple-800 rounded-xl p-6">
+                      <div className="font-bold text-purple-700 dark:text-purple-300 mb-3 text-lg">Renovation</div>
+                      <div className="space-y-2 text-purple-600 dark:text-purple-400">
+                        <div>• Project Bidding</div><div>• Cost Estimation</div>
+                        <div>• Timeline Planning</div><div>• Quality Assurance</div><div>• Payment Processing</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex justify-center">
+                    <div className="bg-slate-100 dark:bg-slate-700 rounded-xl px-6 py-3">
+                      <div className="text-sm font-medium text-slate-600 dark:text-slate-300">Integrated AI Matching System</div>
                     </div>
                   </div>
                 </div>
@@ -275,4 +216,3 @@ const HeroSection = () => {
 };
 
 export default HeroSection;
-
