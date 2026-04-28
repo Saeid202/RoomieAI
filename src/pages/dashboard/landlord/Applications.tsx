@@ -27,6 +27,7 @@ export default function ApplicationsPage() {
 
   useEffect(() => {
     loadApplications();
+    loadDocumentRequests();
   }, []);
 
   useEffect(() => {
@@ -39,57 +40,57 @@ export default function ApplicationsPage() {
     try {
       setLoadingRequests(true);
       const { data: { user } } = await supabase.auth.getUser();
-      console.log('🔍 Loading document requests for user:', user?.id);
+      console.log('🔍 Loading document requests for user:', user?.id, user?.email);
       
       if (!user) {
         console.log('❌ No user found');
         return;
       }
 
-      // Get all properties owned by this landlord
+      // Get properties owned by this user
       const { data: properties, error: propsError } = await supabase
         .from('properties')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('listing_category', 'sale');
+        .select('id, address, listing_title')
+        .eq('user_id', user.id);
 
-      console.log('📦 Sales properties found:', properties?.length || 0, properties);
-      
+      console.log('📦 Properties owned by current user:', properties?.length || 0, properties);
+      console.log('📦 Properties error:', propsError);
+
       if (propsError) {
         console.error('❌ Error fetching properties:', propsError);
         throw propsError;
       }
 
       if (!properties || properties.length === 0) {
-        console.log('ℹ️ No sales properties found for this user');
+        console.log('ℹ️ No properties found for user:', user.id);
         setDocumentRequests([]);
         return;
       }
 
-      // Get all document requests for these properties
       const propertyIds = properties.map(p => p.id);
-      console.log('🔑 Property IDs to check:', propertyIds);
-      
+      console.log('🔑 Property IDs:', propertyIds);
+
       const { data: requests, error: reqError } = await supabase
         .from('document_access_requests')
-        .select(`
-          *,
-          property:properties!property_id(address, listing_title)
-        `)
+        .select('*')
         .in('property_id', propertyIds)
         .order('requested_at', { ascending: false });
 
-      console.log('📨 Document requests found:', requests?.length || 0, requests);
+      console.log('📨 Requests found:', requests?.length || 0, requests);
+      console.log('📨 Requests error:', reqError);
       
-      if (reqError) {
-        console.error('❌ Error fetching requests:', reqError);
-        throw reqError;
-      }
+      if (reqError) throw reqError;
 
-      setDocumentRequests(requests || []);
-    } catch (error) {
-      console.error('❌ Failed to load document requests:', error);
-      toast.error('Failed to load document access requests');
+      // Attach property info manually
+      const requestsWithProperty = (requests || []).map(r => ({
+        ...r,
+        property: properties.find(p => p.id === r.property_id) || null,
+      }));
+
+      setDocumentRequests(requestsWithProperty);
+    } catch (error: any) {
+      console.error('❌ Failed to load document requests — full error:', JSON.stringify(error), error?.message, error?.code, error?.details);
+      toast.error(`Failed to load document access requests: ${error?.message || 'Unknown error'}`);
     } finally {
       setLoadingRequests(false);
     }
@@ -380,16 +381,15 @@ export default function ApplicationsPage() {
             onViewContract={activeTab === 'rental' ? handleViewContract : undefined}
           />
 
-          {/* Document Access Requests (Sales Tab Only) */}
-          {activeTab === 'sales' && (
-            <div className="mt-8">
+          {/* Document Access Requests — always visible */}
+          <div className="mt-8">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <Lock className="h-5 w-5 text-purple-600" />
                   <h2 className="text-xl font-bold">Document Access Requests</h2>
                   {documentRequests.length > 0 && (
                     <Badge variant="secondary" className="ml-2">
-                      {documentRequests.length}
+                      {documentRequests.filter(r => r.status === 'pending').length} pending
                     </Badge>
                   )}
                 </div>
@@ -434,7 +434,6 @@ export default function ApplicationsPage() {
                 </div>
               )}
             </div>
-          )}
         </TabsContent>
       </Tabs>
 

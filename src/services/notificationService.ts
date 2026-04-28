@@ -14,7 +14,7 @@ export interface Notification {
 
 export interface CreateNotificationInput {
   user_id: string;
-  type: 'contract_ready' | 'contract_signed' | 'tenant_signed' | 'application_approved' | 'application_rejected' | 'general';
+  type: 'contract_ready' | 'contract_signed' | 'tenant_signed' | 'application_approved' | 'application_rejected' | 'document_access_request' | 'general';
   title: string;
   message: string;
   link?: string;

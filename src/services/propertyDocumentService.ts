@@ -250,12 +250,14 @@ export async function requestDocumentAccess(
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error("User not authenticated");
 
-    // Get user profile for name/email
+    // Get buyer profile for name/email
     const { data: profile } = await supabase
       .from('user_profiles')
       .select('full_name, email')
       .eq('id', user.id)
       .single();
+
+    const requesterName = profile?.full_name || 'A buyer';
 
     const { data, error } = await supabase
       .from('document_access_requests')
@@ -264,7 +266,7 @@ export async function requestDocumentAccess(
         property_id: propertyId,
         requester_id: user.id,
         requester_email: profile?.email || user.email,
-        requester_name: profile?.full_name || 'Unknown',
+        requester_name: requesterName,
         request_message: message,
         status: 'pending',
       })
@@ -272,6 +274,29 @@ export async function requestDocumentAccess(
       .single();
 
     if (error) throw error;
+
+    // Notify the property owner (seller/landlord)
+    try {
+      const { data: property } = await supabase
+        .from('properties')
+        .select('user_id, address, listing_title')
+        .eq('id', propertyId)
+        .single();
+
+      if (property?.user_id) {
+        await supabase.from('notifications').insert({
+          user_id: property.user_id,
+          type: 'general',
+          title: 'Document Access Request',
+          message: `${requesterName} has requested access to a private document for "${property.listing_title || property.address}". Review and approve or deny in your Sales Inquiries.`,
+          link: `/dashboard/landlord/applications`,
+          read: false,
+        });
+      }
+    } catch (notifError) {
+      // Non-fatal — request was already created, just log the notification failure
+      console.error('Failed to notify seller of document access request:', notifError);
+    }
 
     return data as DocumentAccessRequest;
   } catch (error) {
