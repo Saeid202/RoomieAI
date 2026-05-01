@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { useToast } from "@/hooks/use-toast";
 import { User, Building, Phone, Mail, MapPin, Edit2, Save, Loader2, Globe, ShieldCheck, CheckCircle2, FileText, Upload } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { generateSlug } from "@/utils/slugUtils";
 
 interface RenovatorProfileData {
     id?: string;
@@ -140,7 +141,7 @@ export default function RenovatorProfile() {
         setSaving(true);
 
         try {
-            const payload = {
+            const payload: Record<string, any> = {
                 user_id: user!.id,
                 company: formData.company,
                 name: formData.name,
@@ -155,6 +156,11 @@ export default function RenovatorProfile() {
                 government_id_url: formData.government_id_url,
                 updated_at: new Date().toISOString()
             };
+
+            // Auto-generate slug for new profiles
+            if (!profile?.id) {
+                payload.slug = generateSlug(formData.company);
+            }
 
             let result;
             if (profile?.id) {

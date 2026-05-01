@@ -68,6 +68,10 @@ const ApplicationOverviewPage = lazy(() => import("./pages/dashboard/landlord/Ap
 const EmergencyMode = lazy(() => import("./pages/dashboard/EmergencyMode"));
 const EmergencyAccept = lazy(() => import("./pages/EmergencyAccept"));
 
+// Contractor public page and dashboard - lazy loaded
+const ContractorPublicPage = lazy(() => import("./pages/pro/ContractorPublicPage"));
+const PublicPageDashboard = lazy(() => import("./pages/renovator/PublicPageDashboard"));
+
 // Renovator pages - lazy loaded
 const RenovatorDashboard = lazy(() => import("./pages/renovator/RenovatorDashboard"));
 const PublicPropertyDetails = lazy(() => import("./pages/PublicPropertyDetails"));
@@ -274,6 +278,13 @@ function AppRoutes() {
         <Route path="/construction/dashboard/messages/:id" element={<SuspenseWrapper><ConstructionMessageDetail /></SuspenseWrapper>} />
         <Route path="/construction/:slug" element={<SuspenseWrapper><ConstructionProductDetail /></SuspenseWrapper>} />
 
+        {/* Contractor Public Page — no auth required */}
+        <Route path="/pro/:slug" element={
+          <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+            <ContractorPublicPage />
+          </Suspense>
+        } />
+
         <Route path="/dashboard" element={
           <ProtectedRoute>
             <Dashboard />
@@ -430,6 +441,7 @@ function AppRoutes() {
           <Route path="service-area" element={<ServiceArea />} />
           <Route path="tax-intelligence" element={<ErrorBoundary componentName="TaxIntelligencePage"><TaxIntelligencePage /></ErrorBoundary>} />
           <Route path="settings" element={<RenovatorSettings />} />
+          <Route path="public-page" element={<PublicPageDashboard />} />
         </Route>
 
       </Routes>

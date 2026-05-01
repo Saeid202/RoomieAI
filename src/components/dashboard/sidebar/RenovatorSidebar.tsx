@@ -28,6 +28,14 @@ export function RenovatorSidebar({ isActive, showLabels }: RenovatorSidebarProps
 
             <SidebarSimpleMenuItem
                 showLabel={showLabels}
+                icon={<span className="text-lg">🌐</span>}
+                label="My Public Page"
+                to="/renovator/public-page"
+                isActive={isActive('/renovator/public-page')}
+            />
+
+            <SidebarSimpleMenuItem
+                showLabel={showLabels}
                 icon={<span className="text-lg">🚨</span>}
                 label="Emergency Inbox"
                 to="/renovator/emergency"
