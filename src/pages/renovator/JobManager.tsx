@@ -178,7 +178,7 @@ export default function JobManager() {
     </div>;
 
     return (
-        <div className="container mx-auto p-6 space-y-6">
+        <div className="p-6 space-y-6">
             {error && (
                 <Alert variant="destructive">
                     <AlertTriangle className="h-4 w-4" />
@@ -187,13 +187,13 @@ export default function JobManager() {
                 </Alert>
             )}
 
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                    <Hammer className="h-6 w-6 text-blue-600" />
-                    <div>
-                        <h1 className="text-3xl font-bold">My Jobs</h1>
-                        <p className="text-muted-foreground">Manage your active and pending work.</p>
-                    </div>
+            <div className="flex items-center gap-3">
+                <div className="p-2 bg-violet-100 rounded-xl">
+                    <Hammer className="h-6 w-6 text-violet-600" />
+                </div>
+                <div>
+                    <h1 className="text-2xl font-bold text-slate-900">My Jobs</h1>
+                    <p className="text-sm text-slate-500">Manage your active and pending work.</p>
                 </div>
             </div>
 

@@ -143,7 +143,7 @@ export default function ServiceArea() {
 
     if (!renovatorId) {
         return (
-            <div className="container mx-auto p-6">
+            <div className="p-6">
                 <Alert variant="destructive">
                     <Navigation className="h-4 w-4" />
                     <AlertTitle>Profile Required</AlertTitle>
@@ -156,17 +156,15 @@ export default function ServiceArea() {
     }
 
     return (
-        <div className="container mx-auto p-6 max-w-4xl space-y-8 animate-in fade-in duration-500">
-            <div className="flex flex-col gap-1">
-                <div className="flex items-center gap-2">
-                    <div className="p-2 bg-primary/10 rounded-lg">
-                        <MapPin className="h-6 w-6 text-primary" />
-                    </div>
-                    <h1 className="text-3xl font-bold tracking-tight text-gray-900">Service Area</h1>
+        <div className="p-6 max-w-5xl space-y-8 animate-in fade-in duration-500">
+            <div className="flex items-center gap-3">
+                <div className="p-2 bg-violet-100 rounded-xl">
+                    <MapPin className="h-6 w-6 text-violet-600" />
                 </div>
-                <p className="text-muted-foreground ml-12">
-                    Manage the geographical regions where you offer your renovation services.
-                </p>
+                <div>
+                    <h1 className="text-2xl font-bold text-slate-900">Service Area</h1>
+                    <p className="text-sm text-slate-500">Manage the geographical regions where you offer renovation services.</p>
+                </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">

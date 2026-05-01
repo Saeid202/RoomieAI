@@ -141,7 +141,7 @@ export default function EmergencyInbox() {
     </div>;
 
     return (
-        <div className="container mx-auto p-6 space-y-6">
+        <div className="p-6 space-y-6">
             {error && (
                 <Alert variant="destructive">
                     <AlertTriangle className="h-4 w-4" />
@@ -151,11 +151,13 @@ export default function EmergencyInbox() {
             )}
 
             <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                    <Zap className="h-6 w-6 text-red-600" />
+                <div className="flex items-center gap-3">
+                    <div className="p-2 bg-red-100 rounded-xl">
+                        <Zap className="h-6 w-6 text-red-600" />
+                    </div>
                     <div>
-                        <h1 className="text-3xl font-bold">Emergency Inbox</h1>
-                        <p className="text-muted-foreground">Live feed of urgent repair requests.</p>
+                        <h1 className="text-2xl font-bold text-slate-900">Emergency Inbox</h1>
+                        <p className="text-sm text-slate-500">Live feed of urgent repair requests.</p>
                     </div>
                 </div>
                 <Badge variant={invites.length > 0 ? "destructive" : "secondary"} className="text-sm px-4 py-1.5 rounded-full font-bold">

@@ -1,5 +1,5 @@
-import { Link } from "react-router-dom";
-import { ReactNode } from "react";
+import { useNavigate } from "react-router-dom";
+import { ReactNode, useTransition } from "react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useSidebar } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
@@ -15,16 +15,22 @@ interface SidebarSimpleMenuItemProps {
 export function SidebarSimpleMenuItem({ icon, label, to, isActive, showLabel }: SidebarSimpleMenuItemProps) {
   const { open, isMobile, openMobile, setOpenMobile } = useSidebar();
   const shouldShowLabel = open || showLabel || (isMobile && openMobile);
+  const navigate = useNavigate();
+  const [, startTransition] = useTransition();
 
-  function handleClick() {
+  function handleClick(e: React.MouseEvent) {
+    e.preventDefault();
     if (isMobile && openMobile) setOpenMobile(false);
+    startTransition(() => {
+      navigate(to);
+    });
   }
 
   return (
     <Tooltip delayDuration={150}>
       <TooltipTrigger asChild>
-        <Link
-          to={to}
+        <a
+          href={to}
           onClick={handleClick}
           className={cn(
             "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-all duration-150 group",
@@ -47,7 +53,7 @@ export function SidebarSimpleMenuItem({ icon, label, to, isActive, showLabel }: 
           {isActive && shouldShowLabel && (
             <span className="ml-auto h-2 w-2 rounded-full bg-white/70 shrink-0" />
           )}
-        </Link>
+        </a>
       </TooltipTrigger>
       {!shouldShowLabel && (
         <TooltipContent side="right" align="center" className="font-semibold">

@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useTransition } from "react";
+import { useNavigate } from "react-router-dom";
 import { ChevronDown } from "lucide-react";
 import { useSidebar } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
@@ -31,6 +31,16 @@ export function SidebarMenuSection({
   const { open, isMobile, openMobile, setOpenMobile } = useSidebar();
   const shouldShowLabel = open || showLabels || (isMobile && openMobile);
   const anyActive = subItems.some((item) => isActive(item.path));
+  const navigate = useNavigate();
+  const [, startTransition] = useTransition();
+
+  function handleNavClick(e: React.MouseEvent, path: string) {
+    e.preventDefault();
+    if (isMobile && openMobile) setOpenMobile(false);
+    startTransition(() => {
+      navigate(path);
+    });
+  }
 
   return (
     <div className="mb-0.5">
@@ -62,10 +72,10 @@ export function SidebarMenuSection({
           {subItems.map((item) => {
             const active = isActive(item.path);
             return (
-              <Link
+              <a
                 key={item.path}
-                to={item.path}
-                onClick={() => { if (isMobile && openMobile) setOpenMobile(false); }}
+                href={item.path}
+                onClick={(e) => handleNavClick(e, item.path)}
                 className={cn(
                   "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150",
                   active
@@ -80,7 +90,7 @@ export function SidebarMenuSection({
                 )}
                 <span className="truncate">{item.label}</span>
                 {active && <span className="ml-auto h-1.5 w-1.5 rounded-full bg-violet-500 shrink-0" />}
-              </Link>
+              </a>
             );
           })}
         </div>

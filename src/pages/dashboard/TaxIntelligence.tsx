@@ -704,35 +704,31 @@ export default function TaxIntelligencePage() {
     };
 
     return (
-        <div className="container mx-auto py-6 px-4 max-w-7xl">
+        <div className="p-6 max-w-7xl">
             {/* Header */}
             <div className="mb-6">
                 <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
-                    <div>
-                        <h1 className="text-3xl font-bold mb-2 flex items-center gap-3">
-                            <Calculator className="h-8 w-8 text-emerald-600" />
-                            Tax Intelligence
-                            {(isLoading || isSaving) && (
-                                <Loader2 className="h-5 w-5 animate-spin text-slate-400" />
-                            )}
-                        </h1>
-                        <p className="text-muted-foreground">
-                            Role-based Income / Expense capture with history and AI-powered tax explanations.
-                        </p>
-                        <div className="flex items-center gap-2 mt-2">
-                            <span className="text-xs text-slate-500">
-                                {entries.length} entries saved
-                            </span>
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={loadEntries}
-                                disabled={isLoading}
-                                className="h-6 px-2"
-                            >
-                                <RefreshCw className={`h-3 w-3 mr-1 ${isLoading ? 'animate-spin' : ''}`} />
-                                Refresh
-                            </Button>
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 bg-emerald-100 rounded-xl">
+                            <Calculator className="h-6 w-6 text-emerald-600" />
+                        </div>
+                        <div>
+                            <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+                                Tax Intelligence
+                                {(isLoading || isSaving) && (
+                                    <Loader2 className="h-4 w-4 animate-spin text-slate-400" />
+                                )}
+                            </h1>
+                            <p className="text-sm text-slate-500">
+                                Role-based income / expense capture with AI-powered tax explanations.
+                            </p>
+                            <div className="flex items-center gap-2 mt-1">
+                                <span className="text-xs text-slate-400">{entries.length} entries saved</span>
+                                <Button variant="ghost" size="sm" onClick={loadEntries} disabled={isLoading} className="h-6 px-2">
+                                    <RefreshCw className={`h-3 w-3 mr-1 ${isLoading ? 'animate-spin' : ''}`} />
+                                    Refresh
+                                </Button>
+                            </div>
                         </div>
                     </div>
 

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { fetchPublishedPageBySlug, CmsPage, CmsBlock } from "@/services/cmsService";
@@ -38,35 +38,41 @@ function renderBlock(block: CmsBlock, i: number) {
 
 export default function CmsPageRenderer({ slug, fallback }: CmsPageRendererProps) {
   const [page, setPage] = useState<CmsPage | null>(null);
-  const [loading, setLoading] = useState(true);
+  // Start as false so we render the fallback immediately on first paint
+  const [loading, setLoading] = useState(false);
+  const [fetched, setFetched] = useState(false);
+  const [, startTransition] = useTransition();
 
   useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
     fetchPublishedPageBySlug(slug)
-      .then(setPage)
-      .finally(() => setLoading(false));
+      .then((data) => {
+        if (!cancelled) {
+          startTransition(() => {
+            setPage(data);
+            setFetched(true);
+            setLoading(false);
+          });
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          startTransition(() => {
+            setFetched(true);
+            setLoading(false);
+          });
+        }
+      });
+    return () => { cancelled = true; };
   }, [slug]);
 
-  // Still loading — render nothing (avoids flash)
-  if (loading) {
-    return (
-      <div className="min-h-screen flex flex-col">
-        <Navbar />
-        <main className="flex-grow pt-20 pb-16">
-          <div className="container mx-auto px-4 py-8 animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-1/3 mx-auto mb-6" />
-            <div className="space-y-3 max-w-4xl mx-auto">
-              <div className="h-4 bg-gray-200 rounded w-full" />
-              <div className="h-4 bg-gray-200 rounded w-5/6" />
-              <div className="h-4 bg-gray-200 rounded w-4/6" />
-            </div>
-          </div>
-        </main>
-        <Footer />
-      </div>
-    );
+  // Not fetched yet or loading — render fallback immediately (no flash, no suspension)
+  if (!fetched || loading) {
+    return <>{fallback}</>;
   }
 
-  // No CMS page found — render the hardcoded fallback
+  // No CMS content — render fallback
   if (!page || !Array.isArray(page.content) || page.content.length === 0) {
     return <>{fallback}</>;
   }

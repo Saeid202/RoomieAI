@@ -5,11 +5,10 @@ import Footer from "@/components/Footer";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { UserMenu } from "@/components/dashboard/UserMenu";
 import { RenovatorSidebar } from "@/components/dashboard/sidebar/RenovatorSidebar";
-import { RoleSwitcher } from "@/components/dashboard/RoleSwitcher";
 import { useAuth } from "@/hooks/useAuth";
 import { Link, useLocation, Outlet } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Settings, LogOut, Home, ChevronUp } from "lucide-react";
+import { Settings, LogOut, Home, ChevronUp, Zap } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,11 +26,11 @@ export function RenovatorLayout({ children }: RenovatorLayoutProps) {
   const isMobile = useIsMobile();
   const location = useLocation();
   const { user, signOut } = useAuth();
-  
+
   const isActive = (path: string) => {
     return location.pathname === path || location.pathname.startsWith(path + '/');
   };
-  
+
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <SidebarProvider defaultOpen={!isMobile}>
@@ -39,7 +38,15 @@ export function RenovatorLayout({ children }: RenovatorLayoutProps) {
           {/* Fixed sidebar - hidden on mobile */}
           <Sidebar className="hidden md:flex">
             <SidebarHeader className="border-b p-4">
-              <RoleSwitcher variant="full-width" />
+              <div className="flex items-center gap-2 px-1">
+                <div className="h-8 w-8 rounded-lg bg-violet-600 flex items-center justify-center shrink-0">
+                  <Zap className="h-4 w-4 text-white" />
+                </div>
+                <div className="flex flex-col min-w-0">
+                  <span className="text-sm font-bold text-slate-900 truncate">Homie AI</span>
+                  <span className="text-xs text-violet-600 font-medium">Renovator Portal</span>
+                </div>
+              </div>
             </SidebarHeader>
             <SidebarContent>
               <SidebarMenu>
@@ -89,24 +96,24 @@ export function RenovatorLayout({ children }: RenovatorLayoutProps) {
               </Button>
             </SidebarFooter>
           </Sidebar>
-          
+
           {/* Main content container with header and scrollable area */}
           <div className="flex flex-col w-full min-h-screen">
             {/* Fixed top navbar */}
             <div className="sticky top-0 z-10 bg-background border-b">
               <UserMenu />
             </div>
-            
+
             {/* Scrollable content area - optimized for mobile */}
             <main className="flex-1 overflow-y-auto md:px-6 pb-32 md:pb-6 bg-background">
               {children || <Outlet />}
             </main>
-            
+
             {/* Footer that spans full width under content - hidden on mobile */}
             <Footer className="w-full mt-auto hidden md:block" />
           </div>
         </div>
-        
+
         {/* Mobile bottom navigation */}
         <MobileNavigation />
       </SidebarProvider>

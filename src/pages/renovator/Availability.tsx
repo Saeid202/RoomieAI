@@ -170,7 +170,7 @@ export default function Availability() {
 
     if (!isRegistered) {
         return (
-            <div className="container mx-auto p-6">
+            <div className="p-6">
                 <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 p-6 rounded-md flex items-start gap-4">
                     <AlertTriangle className="h-6 w-6 mt-1 flex-shrink-0" />
                     <div>
@@ -194,7 +194,7 @@ export default function Availability() {
     }
 
     return (
-        <div className="container mx-auto p-6 space-y-6">
+        <div className="p-6 space-y-6">
             {lastError && (
                 <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-md mb-4 animate-in fade-in slide-in-from-top-2">
                     <div className="flex items-start gap-3">
@@ -222,15 +222,20 @@ export default function Availability() {
                 </div>
             )}
 
-            <div className="flex items-center gap-2">
-                <Clock className="h-6 w-6 text-slate-600" />
-                <h1 className="text-3xl font-bold">Availability & Schedule</h1>
+            <div className="flex items-center gap-3">
+                <div className="p-2 bg-violet-100 rounded-xl">
+                    <Clock className="h-6 w-6 text-violet-600" />
+                </div>
+                <div>
+                    <h1 className="text-2xl font-bold text-slate-900">Availability & Schedule</h1>
+                    <p className="text-sm text-slate-500">Control your online status and emergency availability</p>
+                </div>
             </div>
 
             <div className="grid gap-6 md:grid-cols-2">
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
+                <Card className="border-slate-200 shadow-sm">
+                    <CardHeader className="pb-3">
+                        <CardTitle className="flex items-center gap-2 text-base">
                             <span className={`w-3 h-3 rounded-full ${status.is_online ? 'bg-green-500' : 'bg-slate-300'}`} />
                             General Status
                         </CardTitle>
@@ -242,13 +247,14 @@ export default function Availability() {
                             id="online-mode"
                             checked={status.is_online}
                             onCheckedChange={(checked) => toggleStatus('is_online', checked)}
+                            className="data-[state=checked]:bg-violet-600"
                         />
                     </CardContent>
                 </Card>
 
-                <Card className={`border ${status.emergency_available ? 'border-red-200 bg-red-50/10' : ''}`}>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
+                <Card className={`border shadow-sm ${status.emergency_available ? 'border-red-200 bg-red-50/20' : 'border-slate-200'}`}>
+                    <CardHeader className="pb-3">
+                        <CardTitle className="flex items-center gap-2 text-base">
                             <Zap className={`h-5 w-5 ${status.emergency_available ? 'text-red-600' : 'text-slate-400'}`} />
                             Emergency Availability
                         </CardTitle>
@@ -266,13 +272,13 @@ export default function Availability() {
                 </Card>
             </div>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle>Weekly Schedule</CardTitle>
+            <Card className="border-slate-200 shadow-sm">
+                <CardHeader className="pb-3">
+                    <CardTitle className="text-base">Weekly Schedule</CardTitle>
                     <CardDescription>Set your standard operating hours.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <div className="text-sm text-slate-500 italic">Weekly schedule editor coming soon...</div>
+                    <div className="text-sm text-slate-400 italic">Weekly schedule editor coming soon...</div>
                 </CardContent>
             </Card>
         </div>

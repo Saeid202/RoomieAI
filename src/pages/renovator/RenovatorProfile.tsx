@@ -192,10 +192,10 @@ export default function RenovatorProfile() {
     // View Mode (if profile exists)
     if (profile) {
         return (
-            <div className="container mx-auto p-6 space-y-8 max-w-5xl">
+            <div className="p-6 space-y-8 max-w-5xl">
                 {/* Header */}
-                <div className="flex items-center justify-between">
-                    <div>
+                <div className="flex items-start justify-between">
+                    <div className="text-left">
                         <h1 className="text-3xl font-bold text-gray-900">{profile.company}</h1>
                         <p className="text-gray-500 flex items-center gap-1 mt-1 font-medium">
                             <User className="h-4 w-4" /> {profile.name}

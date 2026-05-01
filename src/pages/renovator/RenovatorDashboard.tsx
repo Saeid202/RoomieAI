@@ -142,7 +142,7 @@ export default function RenovatorDashboard() {
 
     if (!isRegistered) {
         return (
-            <div className="container mx-auto p-6">
+            <div className="p-6">
                 <Card className="border-dashed border-2 border-yellow-200 bg-yellow-50/50">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2 text-yellow-800">
@@ -169,7 +169,7 @@ export default function RenovatorDashboard() {
     }
 
     return (
-    <div className="w-full max-w-screen-xl mx-auto px-4 space-y-10 pb-10">
+    <div className="p-6 space-y-8 pb-10">
       {/* Dashboard Orientation & Welcome Section */}
       <div className="relative bg-gradient-to-br from-pink-500/30 via-purple-500/30 to-indigo-500/30 rounded-3xl p-2 border-2 border-white/50 shadow-2xl backdrop-blur-sm overflow-hidden">
         {/* Animated Background Elements */}
