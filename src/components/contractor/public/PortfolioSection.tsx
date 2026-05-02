@@ -1,101 +1,124 @@
 import { useState } from "react";
-import { X, ChevronLeft, ChevronRight, Images, Expand, ArrowRight } from "lucide-react";
-import type { ContractorProject } from "@/types/contractor";
+import { X, ChevronLeft, ChevronRight, Home, Bath, Hammer, Trees, Zap, PaintBucket } from "lucide-react";
+
+interface Project {
+  id: string;
+  contractor_id: string;
+  title: string;
+  description: string | null;
+  images: string[];
+  sort_order: number;
+  category?: string;
+}
 
 interface PortfolioSectionProps {
-  projects: ContractorProject[];
+  projects: Project[];
   brandColor: string;
 }
 
-function Lightbox({
-  project,
-  onClose,
-  brandColor,
-}: {
-  project: ContractorProject;
+// Icon mapping for different project categories
+const categoryIcons: Record<string, any> = {
+  "Kitchen": Home,
+  "Bathroom": Bath,
+  "Addition": Hammer,
+  "Outdoor": Trees,
+  "Electrical": Zap,
+  "Painting": PaintBucket,
+  "Other": Hammer
+};
+
+// Lightbox Component
+function Lightbox({ project, isOpen, onClose, onNext, onPrev, hasNext, hasPrev }: {
+  project: Project | null;
+  isOpen: boolean;
   onClose: () => void;
-  brandColor: string;
+  onNext: () => void;
+  onPrev: () => void;
+  hasNext: boolean;
+  hasPrev: boolean;
 }) {
-  const [idx, setIdx] = useState(0);
-  const imgs = project.images.filter(Boolean);
+  if (!isOpen || !project) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 p-4 backdrop-blur-sm"
-      onClick={onClose}
-    >
-      <div
-        className="relative max-w-5xl w-full bg-white rounded-3xl overflow-hidden shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Top bar */}
-        <div
-          className="h-1 w-full"
-          style={{ background: `linear-gradient(90deg, ${brandColor}, ${brandColor}66)` }}
-        />
-
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+         onClick={onClose}>
+      <div className="relative max-w-6xl mx-4 max-h-[90vh] overflow-hidden rounded-3xl"
+           onClick={(e) => e.stopPropagation()}>
+        
+        {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 z-10 h-9 w-9 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center shadow transition-colors focus:outline-none"
+          className="absolute top-4 right-4 z-10 h-10 w-10 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 flex items-center justify-center text-white hover:bg-white/30 transition-colors"
         >
-          <X className="h-4 w-4 text-gray-700" />
+          <X className="h-5 w-5" />
         </button>
 
-        <div className="relative aspect-video bg-gray-100">
-          {imgs[idx] ? (
-            <img src={imgs[idx]} alt="" className="w-full h-full object-cover" />
-          ) : (
-            <div
-              className="w-full h-full flex items-center justify-center"
-              style={{ backgroundColor: `${brandColor}11` }}
-            >
-              <Images className="h-16 w-16 opacity-20" style={{ color: brandColor }} />
-            </div>
-          )}
+        {/* Navigation buttons */}
+        {hasPrev && (
+          <button
+            onClick={onPrev}
+            className="absolute left-4 top-1/2 -translate-y-1/2 z-10 h-12 w-12 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 flex items-center justify-center text-white hover:bg-white/30 transition-colors"
+          >
+            <ChevronLeft className="h-6 w-6" />
+          </button>
+        )}
+        {hasNext && (
+          <button
+            onClick={onNext}
+            className="absolute right-4 top-1/2 -translate-y-1/2 z-10 h-12 w-12 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 flex items-center justify-center text-white hover:bg-white/30 transition-colors"
+          >
+            <ChevronRight className="h-6 w-6" />
+          </button>
+        )}
 
-          {imgs.length > 1 && (
-            <>
-              <button
-                onClick={() => setIdx((i) => (i - 1 + imgs.length) % imgs.length)}
-                className="absolute left-4 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-white/90 hover:bg-white flex items-center justify-center shadow-lg transition-colors focus:outline-none"
-              >
-                <ChevronLeft className="h-5 w-5 text-gray-700" />
-              </button>
-              <button
-                onClick={() => setIdx((i) => (i + 1) % imgs.length)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-white/90 hover:bg-white flex items-center justify-center shadow-lg transition-colors focus:outline-none"
-              >
-                <ChevronRight className="h-5 w-5 text-gray-700" />
-              </button>
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-black/60 text-white text-xs font-bold tracking-wide">
-                {idx + 1} / {imgs.length}
+        {/* Project content */}
+        <div className="flex flex-col lg:flex-row h-full">
+          {/* Image */}
+          <div className="lg:w-2/3 bg-gray-900 flex items-center justify-center">
+            {project.images && project.images.length > 0 ? (
+              <img 
+                src={project.images[0]} 
+                alt={project.title}
+                className="max-w-full max-h-[70vh] object-contain"
+              />
+            ) : (
+              <div className="w-full h-64 lg:h-96 bg-gradient-to-br from-gray-800 to-gray-700 flex items-center justify-center">
+                <Home className="h-16 w-16 text-gray-600" />
               </div>
-            </>
-          )}
-        </div>
+            )}
+          </div>
 
-        <div className="p-6">
-          <h3 className="font-black text-gray-900 text-xl mb-1">{project.title}</h3>
-          {project.description && (
-            <p className="text-gray-500 text-sm leading-relaxed">{project.description}</p>
-          )}
-          {imgs.length > 1 && (
-            <div className="flex gap-2 mt-4 overflow-x-auto pb-1">
-              {imgs.map((src, i) => (
-                <button
-                  key={src}
-                  onClick={() => setIdx(i)}
-                  className="shrink-0 h-16 w-24 rounded-xl overflow-hidden focus:outline-none ring-2 transition-all"
-                  style={{
-                    opacity: i === idx ? 1 : 0.45,
-                    ringColor: i === idx ? brandColor : "transparent",
-                  }}
-                >
-                  <img src={src} alt="" className="w-full h-full object-cover" />
-                </button>
-              ))}
+          {/* Project details */}
+          <div className="lg:w-1/3 bg-gray-800 p-8 flex flex-col">
+            <h3 className="text-2xl font-light text-white mb-4">{project.title}</h3>
+            {project.category && (
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-light mb-4"
+                   style={{
+                     background: "linear-gradient(135deg, #fbbf24 0%, #fde047 50%, #fbbf24 100%)",
+                     color: "#1e293b"
+                   }}>
+                {(() => {
+                  const IconComponent = categoryIcons[project.category || "Other"];
+                  return IconComponent ? <IconComponent className="h-3 w-3" /> : null;
+                })()}
+                {project.category}
+              </div>
+            )}
+            <p className="text-gray-300 leading-relaxed flex-1">
+              {project.description || "Professional renovation project completed with attention to detail and quality craftsmanship."}
+            </p>
+            <div className="mt-6 pt-6 border-t border-gray-700">
+              <p className="text-gray-400 text-sm">Interested in a similar project?</p>
+              <button className="mt-3 w-full px-6 py-3 rounded-2xl font-semibold text-sm transition-all duration-300 hover:scale-105 focus:outline-none tracking-wide"
+                      style={{
+                        background: "linear-gradient(135deg, #fbbf24 0%, #fde047 50%, #fbbf24 100%)",
+                        color: "#1e293b",
+                        boxShadow: "0 4px 16px rgba(251, 191, 36, 0.3)"
+                      }}>
+                Get Quote for Similar Project
+              </button>
             </div>
-          )}
+          </div>
         </div>
       </div>
     </div>
@@ -103,196 +126,206 @@ function Lightbox({
 }
 
 export function PortfolioSection({ projects, brandColor }: PortfolioSectionProps) {
-  const [selected, setSelected] = useState<ContractorProject | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [lightboxProject, setLightboxProject] = useState<Project | null>(null);
+  const [currentProjectIndex, setCurrentProjectIndex] = useState(0);
+
+  // Demo projects to ensure cards are always visible
+  const demoProjects: Project[] = [
+    {
+      id: "demo-1",
+      contractor_id: "demo",
+      title: "Modern Kitchen Transformation",
+      description: "Complete kitchen renovation with custom cabinetry, quartz countertops, and professional-grade appliances. This project transformed an outdated kitchen into a modern culinary space.",
+      images: [],
+      sort_order: 1,
+      category: "Kitchen"
+    },
+    {
+      id: "demo-2",
+      contractor_id: "demo",
+      title: "Luxury Bathroom Remodel",
+      description: "Spa-like bathroom renovation featuring walk-in shower, double vanity, and premium fixtures. Created a relaxing retreat with modern amenities and elegant finishes.",
+      images: [],
+      sort_order: 2,
+      category: "Bathroom"
+    },
+    {
+      id: "demo-3",
+      contractor_id: "demo",
+      title: "Home Addition Expansion",
+      description: "Seamless home addition adding 400 sq ft of living space. Perfect blend with existing architecture while providing modern functionality and natural light.",
+      images: [],
+      sort_order: 3,
+      category: "Addition"
+    },
+    {
+      id: "demo-4",
+      contractor_id: "demo",
+      title: "Outdoor Living Space",
+      description: "Complete backyard transformation with deck, patio, and landscaping. Created an outdoor entertainment area perfect for gatherings and relaxation.",
+      images: [],
+      sort_order: 4,
+      category: "Outdoor"
+    },
+    {
+      id: "demo-5",
+      contractor_id: "demo",
+      title: "Electrical System Upgrade",
+      description: "Full electrical panel upgrade and rewiring throughout the home. Enhanced safety, capacity, and efficiency with modern electrical solutions.",
+      images: [],
+      sort_order: 5,
+      category: "Electrical"
+    },
+    {
+      id: "demo-6",
+      contractor_id: "demo",
+      title: "Interior Painting Project",
+      description: "Complete interior painting with premium finishes and detailed preparation. Transformed the entire home with a fresh, modern color palette.",
+      images: [],
+      sort_order: 6,
+      category: "Painting"
+    }
+  ];
+
+  const allProjects = projects.length > 0 ? projects : demoProjects;
+  
+  // Get unique categories
+  const categories = ["All", ...Array.from(new Set(allProjects.map(p => p.category || "").filter(Boolean)))];
+  
+  // Filter projects by category
+  const filteredProjects = selectedCategory === "All" 
+    ? allProjects 
+    : allProjects.filter(p => p.category === selectedCategory);
+  
+  // Show max 6 projects (2 rows × 3 columns)
+  const displayProjects = filteredProjects.slice(0, 6);
+
+  const openLightbox = (project: Project, index: number) => {
+    setLightboxProject(project);
+    setCurrentProjectIndex(index);
+  };
+
+  const closeLightbox = () => {
+    setLightboxProject(null);
+  };
+
+  const nextProject = () => {
+    const nextIndex = (currentProjectIndex + 1) % displayProjects.length;
+    setLightboxProject(displayProjects[nextIndex]);
+    setCurrentProjectIndex(nextIndex);
+  };
+
+  const prevProject = () => {
+    const prevIndex = (currentProjectIndex - 1 + displayProjects.length) % displayProjects.length;
+    setLightboxProject(displayProjects[prevIndex]);
+    setCurrentProjectIndex(prevIndex);
+  };
 
   return (
-    <section id="portfolio" className="py-24 bg-white relative overflow-hidden">
-      {/* Subtle background accents */}
-      <div
-        className="pointer-events-none absolute top-0 right-0 w-[500px] h-[500px] rounded-full opacity-[0.06]"
-        style={{ background: `radial-gradient(circle, ${brandColor} 0%, transparent 70%)` }}
-      />
-      <div
-        className="pointer-events-none absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full opacity-[0.05]"
-        style={{ background: `radial-gradient(circle, ${brandColor} 0%, transparent 70%)` }}
-      />
+    <>
+      <section id="portfolio" className="pt-2 pb-2 bg-transparent">
+        
+        <div className="w-full px-4 sm:px-8 lg:px-16">
 
-      {/* Full-width container */}
-      <div className="max-w-screen-2xl mx-auto px-4 sm:px-8 lg:px-16">
-
-        {/* ── Framed header card ── */}
-        <div
-          className="relative rounded-3xl overflow-hidden mb-14 p-10 sm:p-14"
-          style={{
-            background: `linear-gradient(135deg, ${brandColor}0d 0%, ${brandColor}18 60%, ${brandColor}08 100%)`,
-            border: `2px solid ${brandColor}2a`,
-          }}
-        >
-          {/* Top accent bar */}
-          <div
-            className="absolute top-0 left-0 right-0 h-1 rounded-t-3xl"
-            style={{ background: `linear-gradient(90deg, ${brandColor}, ${brandColor}55, transparent)` }}
-          />
-          {/* Decorative circles */}
-          <div
-            className="pointer-events-none absolute -top-10 -right-10 w-52 h-52 rounded-full opacity-20"
-            style={{ background: `radial-gradient(circle, ${brandColor} 0%, transparent 70%)` }}
-          />
-          <div
-            className="pointer-events-none absolute -bottom-12 -left-12 w-44 h-44 rounded-full opacity-15"
-            style={{ background: `radial-gradient(circle, ${brandColor} 0%, transparent 70%)` }}
-          />
-          {/* Dot grid */}
-          <div
-            className="pointer-events-none absolute inset-0 opacity-[0.04]"
-            style={{
-              backgroundImage: `radial-gradient(${brandColor} 1.5px, transparent 1.5px)`,
-              backgroundSize: "28px 28px",
-            }}
-          />
-
-          <div className="relative flex flex-col sm:flex-row sm:items-end justify-between gap-6">
-            <div>
-              <div className="flex items-center gap-3 mb-3">
-                <div className="h-0.5 w-8 rounded-full" style={{ backgroundColor: brandColor }} />
-                <span
-                  className="text-xs font-bold uppercase tracking-[0.2em]"
-                  style={{ color: brandColor }}
-                >
-                  Portfolio
-                </span>
-              </div>
-              <h2
-                className="text-5xl font-black text-gray-900 mb-3"
-                style={{ letterSpacing: "-0.03em" }}
-              >
-                Our Work
-              </h2>
-              <p className="text-gray-500 text-lg max-w-xl leading-relaxed">
-                A selection of projects we're proud of — crafted with precision and care.
-              </p>
-            </div>
-
-            {/* Project count badge */}
-            <div
-              className="shrink-0 flex flex-col items-center justify-center h-24 w-24 rounded-2xl shadow-inner"
-              style={{
-                background: `linear-gradient(135deg, ${brandColor} 0%, ${brandColor}cc 100%)`,
-              }}
+          {/* ── Section header ── */}
+          <div className="text-center mb-4">
+            <p
+              className="text-xs font-semibold tracking-[0.2em] uppercase mb-3"
+              style={{ color: brandColor }}
             >
-              <span className="text-4xl font-black text-white leading-none">
-                {String(projects.length).padStart(2, "0")}
-              </span>
-              <span className="text-white/70 text-[10px] font-bold uppercase tracking-widest mt-1">
-                Projects
-              </span>
-            </div>
+              Our Work
+            </p>
+            <h2 className="text-4xl lg:text-5xl font-light text-gray-900 tracking-tight">
+              Portfolio
+            </h2>
+            <div
+              className="mx-auto mt-4 h-px w-16"
+              style={{ backgroundColor: brandColor }}
+            />
           </div>
-        </div>
 
-        {/* ── Project cards grid ── */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8">
-          {projects.map((project, i) => {
-            const thumb = project.images?.find(Boolean);
-            const isWide = i % 5 === 0;
-
-            return (
-              <div
+          {/* ── Project Grid ── */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-4">
+            {displayProjects.map((project, index) => (
+              <article
                 key={project.id}
-                className={`group cursor-pointer rounded-3xl overflow-hidden flex flex-col transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl ${
-                  isWide ? "xl:col-span-2" : ""
-                }`}
-                style={{
-                  border: `1.5px solid ${brandColor}22`,
-                  boxShadow: `0 4px 24px ${brandColor}10`,
-                }}
-                onClick={() => setSelected(project)}
+                className="group flex flex-col rounded-xl overflow-hidden bg-white border border-gray-100 shadow-sm hover:shadow-lg transition-shadow duration-300 cursor-pointer"
+                onClick={() => openLightbox(project, index)}
               >
-                {/* Image area */}
-                <div
-                  className="relative overflow-hidden bg-gray-100"
-                  style={{ height: isWide ? 320 : 240 }}
-                >
-                  {thumb ? (
+                {/* ── Full image, no cropping ── */}
+                <div className="w-full overflow-hidden bg-gray-50">
+                  {project.images && project.images.length > 0 ? (
                     <img
-                      src={thumb}
+                      src={project.images[0]}
                       alt={project.title}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                       loading="lazy"
+                      className="w-full h-auto block"
+                      style={{ maxHeight: "400px", objectFit: "contain", background: "#f9fafb" }}
                     />
                   ) : (
                     <div
-                      className="w-full h-full flex flex-col items-center justify-center gap-3"
-                      style={{ backgroundColor: `${brandColor}0d` }}
+                      className="w-full flex items-center justify-center"
+                      style={{
+                        height: "220px",
+                        background: `linear-gradient(135deg, ${brandColor}22 0%, ${brandColor}55 100%)`,
+                      }}
                     >
-                      <Images className="h-12 w-12 opacity-25" style={{ color: brandColor }} />
-                      <span className="text-xs font-semibold text-gray-400">No photos yet</span>
+                      {(() => {
+                        const IconComponent = project.category ? categoryIcons[project.category] : null;
+                        return IconComponent
+                          ? <IconComponent className="h-12 w-12" style={{ color: brandColor, opacity: 0.35 }} />
+                          : <span className="text-5xl font-bold select-none" style={{ color: brandColor, opacity: 0.35 }}>{project.title.charAt(0).toUpperCase()}</span>;
+                      })()}
                     </div>
                   )}
-
-                  {/* Gradient overlay always visible at bottom */}
-                  <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black/60 to-transparent" />
-
-                  {/* Hover overlay */}
-                  <div
-                    className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-400 flex items-center justify-center"
-                    style={{ backgroundColor: `${brandColor}e0` }}
-                  >
-                    <div className="text-white text-center">
-                      <Expand className="h-8 w-8 mx-auto mb-2 opacity-90" />
-                      <p className="font-bold text-sm">View Project</p>
-                      {(project.images?.length ?? 0) > 1 && (
-                        <p className="text-white/70 text-xs mt-1">
-                          {project.images.length} photos
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Photo count badge */}
-                  {(project.images?.length ?? 0) > 1 && (
-                    <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-black/55 text-white text-xs font-bold flex items-center gap-1.5 backdrop-blur-sm">
-                      <Images className="h-3 w-3" />
-                      {project.images.length}
-                    </div>
-                  )}
-
-                  {/* Project number bottom-left */}
-                  <div className="absolute bottom-3 left-4 text-white/60 text-xs font-bold tracking-widest">
-                    {String(i + 1).padStart(2, "0")}
-                  </div>
                 </div>
 
-                {/* Card body */}
-                <div className="p-6 bg-white flex flex-col flex-1">
-                  <h3 className="font-black text-gray-900 text-lg mb-1.5 capitalize">
+                {/* ── Divider ── */}
+                <div className="h-px w-full bg-gray-200" />
+
+                {/* ── Text content ── */}
+                <div className="flex flex-col flex-1 p-6">
+                  <h3 className="text-gray-900 font-semibold text-xl mb-2 leading-snug">
                     {project.title}
                   </h3>
                   {project.description && (
-                    <p className="text-gray-400 text-sm leading-relaxed line-clamp-2 flex-1">
+                    <p className="text-gray-500 text-sm leading-relaxed flex-1 line-clamp-3">
                       {project.description}
                     </p>
                   )}
                   <div
-                    className="mt-4 flex items-center gap-1.5 text-xs font-bold transition-all group-hover:gap-2.5"
+                    className="inline-flex items-center gap-1.5 mt-5 text-sm font-medium"
                     style={{ color: brandColor }}
                   >
-                    View project <ArrowRight className="h-3.5 w-3.5" />
+                    View Project <ChevronRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
                   </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
+              </article>
+            ))}
+          </div>
 
-      {selected && (
-        <Lightbox
-          project={selected}
-          onClose={() => setSelected(null)}
-          brandColor={brandColor}
-        />
-      )}
-    </section>
+          {/* Show more projects indicator */}
+          {filteredProjects.length > 6 && (
+            <div className="text-center">
+              <p className="text-gray-600 text-sm">
+                Showing 6 of {filteredProjects.length} projects in {selectedCategory.toLowerCase()}
+              </p>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Lightbox */}
+      <Lightbox
+        project={lightboxProject}
+        isOpen={!!lightboxProject}
+        onClose={closeLightbox}
+        onNext={nextProject}
+        onPrev={prevProject}
+        hasNext={currentProjectIndex < displayProjects.length - 1}
+        hasPrev={currentProjectIndex > 0}
+      />
+    </>
   );
 }

@@ -60,6 +60,38 @@ export async function getProjects(
   return (data as ContractorProject[]) || [];
 }
 
+export async function getServiceById(
+  serviceId: string
+): Promise<ContractorService | null> {
+  const { data, error } = await (supabase as any)
+    .from("contractor_services")
+    .select("*")
+    .eq("id", serviceId)
+    .maybeSingle();
+
+  if (error) {
+    console.error("Error fetching service by id:", error);
+    return null;
+  }
+  return data as ContractorService | null;
+}
+
+export async function getProjectsByService(
+  serviceId: string
+): Promise<ContractorProject[]> {
+  const { data, error } = await (supabase as any)
+    .from("contractor_projects")
+    .select("*")
+    .eq("service_id", serviceId)
+    .order("sort_order", { ascending: true });
+
+  if (error) {
+    console.error("Error fetching projects by service:", error);
+    return [];
+  }
+  return (data as ContractorProject[]) || [];
+}
+
 export async function getApprovedReviews(
   contractorId: string
 ): Promise<ContractorReview[]> {

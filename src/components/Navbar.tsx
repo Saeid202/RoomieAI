@@ -50,7 +50,7 @@ const Navbar = ({ hideMobileMenu = false, onMobileMenuToggle }: NavbarProps) => 
   }, []);
 
   return (
-    <nav className="w-full py-4 bg-white/80 backdrop-blur-xl fixed top-0 z-50 shadow-xl border-b border-white/20">
+    <nav className="w-full py-4 bg-gradient-to-r from-slate-900 via-purple-900 to-slate-900 backdrop-blur-xl fixed top-0 z-50 shadow-2xl border-b border-white/10">
       <div className="w-full px-6 lg:px-8 flex justify-between items-center relative">
         
         {/* Left side: logo only */}
@@ -87,12 +87,16 @@ const Navbar = ({ hideMobileMenu = false, onMobileMenuToggle }: NavbarProps) => 
             </div>
           ) : (
             <>
-              <Button variant="outline" onClick={() => setIsLoginOpen(true)}>
+              <Button 
+                variant="outline" 
+                onClick={() => setIsLoginOpen(true)}
+                className="border-white/20 text-white/80 hover:text-white hover:bg-white/10 hover:border-white/30 backdrop-blur-sm transition-all duration-300 font-light tracking-wide"
+              >
                 Log in
               </Button>
               <Button 
                 onClick={() => setIsSignupOpen(true)}
-                className="bg-gradient-to-r from-purple-600 via-purple-500 to-orange-500 hover:from-purple-700 hover:via-purple-600 hover:to-orange-600 text-white font-bold hover:shadow-xl transition-all"
+                className="bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 hover:from-amber-600 hover:via-yellow-500 hover:to-amber-600 text-slate-900 font-semibold hover:shadow-xl hover:shadow-amber-400/30 transition-all duration-300 tracking-wide"
                 data-signup-button="true"
               >
                 Sign up

@@ -54,8 +54,11 @@ export function ContractorNavbar({ profile, onGetQuote }: ContractorNavbarProps)
 
   return (
     <nav
-      className="sticky top-0 z-50"
-      style={{ backgroundColor: brandColor }}
+      className="sticky top-0 z-50 shadow-2xl border-b border-white/10"
+      style={{ 
+        background: `linear-gradient(135deg, #1e293b 0%, #581c87 50%, #1e293b 100%)`,
+        backdropFilter: 'blur(20px)'
+      }}
     >
       <div className="max-w-screen-2xl mx-auto px-4 sm:px-8 lg:px-16">
         <div className="h-[72px] flex items-center justify-between gap-8">
@@ -76,41 +79,50 @@ export function ContractorNavbar({ profile, onGetQuote }: ContractorNavbarProps)
                 {profile.company.charAt(0).toUpperCase()}
               </div>
             )}
-            <span className="font-black text-white text-[17px] tracking-tight leading-tight">
+            <span className="font-light text-white text-[18px] tracking-wide leading-tight">
               {profile.company}
             </span>
           </div>
 
           {/* ── Desktop nav tabs ── */}
-          <div className="hidden md:flex items-center gap-1 flex-1 justify-center">
+          <div className="hidden md:flex items-center gap-2 lg:gap-3 flex-1 justify-center">
             {navLinks.map((link) => {
               const isActive = activeHref === link.href;
               return (
                 <button
                   key={link.label}
                   onClick={() => scrollTo(link.href)}
-                  className="relative px-5 py-2 text-[14px] font-bold rounded-lg transition-all duration-200 focus:outline-none"
+                  className="relative px-4 lg:px-6 py-2.5 text-[14px] lg:text-[15px] font-light rounded-xl transition-all duration-300 focus:outline-none tracking-wide hover:scale-105"
                   style={{
-                    color: isActive ? "#fff" : "rgba(255,255,255,0.75)",
-                    backgroundColor: isActive ? "rgba(255,255,255,0.18)" : "transparent",
+                    color: isActive ? "#fff" : "rgba(255,255,255,0.85)",
+                    backgroundColor: isActive ? "rgba(255,255,255,0.15)" : "transparent",
+                    boxShadow: isActive ? "0 4px 12px rgba(255,255,255,0.1)" : "none",
                   }}
                   onMouseEnter={(e) => {
                     if (!isActive) {
                       (e.currentTarget as HTMLElement).style.color = "#fff";
-                      (e.currentTarget as HTMLElement).style.backgroundColor = "rgba(255,255,255,0.12)";
+                      (e.currentTarget as HTMLElement).style.backgroundColor = "rgba(255,255,255,0.08)";
+                      (e.currentTarget as HTMLElement).style.boxShadow = "0 2px 8px rgba(255,255,255,0.05)";
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (!isActive) {
-                      (e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.75)";
+                      (e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.85)";
                       (e.currentTarget as HTMLElement).style.backgroundColor = "transparent";
+                      (e.currentTarget as HTMLElement).style.boxShadow = "none";
                     }
                   }}
                 >
                   {link.label}
-                  {/* active underline */}
+                  {/* luxurious gold underline */}
                   {isActive && (
-                    <span className="absolute bottom-0 left-3 right-3 h-0.5 rounded-full bg-white" />
+                    <span 
+                      className="absolute bottom-0 left-2 right-2 h-0.5 rounded-full"
+                      style={{
+                        background: "linear-gradient(90deg, #fbbf24, #fde047, #fbbf24)",
+                        boxShadow: "0 0 8px rgba(251, 191, 36, 0.5)"
+                      }}
+                    />
                   )}
                 </button>
               );
@@ -121,10 +133,17 @@ export function ContractorNavbar({ profile, onGetQuote }: ContractorNavbarProps)
           <div className="flex items-center gap-3 shrink-0">
             <button
               onClick={onGetQuote}
-              className="hidden sm:inline-flex items-center px-6 py-2.5 rounded-lg font-black text-[14px] tracking-wide transition-all duration-200 hover:opacity-90 hover:-translate-y-0.5 focus:outline-none shadow-lg"
+              className="hidden sm:inline-flex items-center px-6 py-3 rounded-xl font-semibold text-[14px] tracking-wide transition-all duration-300 hover:scale-105 hover:-translate-y-0.5 focus:outline-none shadow-xl hover:shadow-2xl"
               style={{
-                backgroundColor: "#F59E0B",
-                color: "#1a1a1a",
+                background: "linear-gradient(135deg, #fbbf24 0%, #fde047 50%, #fbbf24 100%)",
+                color: "#1e293b",
+                boxShadow: "0 8px 24px rgba(251, 191, 36, 0.3), 0 0 0 1px rgba(255,255,255,0.1)"
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLElement).style.boxShadow = "0 12px 32px rgba(251, 191, 36, 0.4), 0 0 0 1px rgba(255,255,255,0.2)";
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLElement).style.boxShadow = "0 8px 24px rgba(251, 191, 36, 0.3), 0 0 0 1px rgba(255,255,255,0.1)";
               }}
             >
               Get a Quote
@@ -142,31 +161,47 @@ export function ContractorNavbar({ profile, onGetQuote }: ContractorNavbarProps)
       {/* ── Mobile menu ── */}
       {mobileOpen && (
         <div
-          className="md:hidden border-t border-white/10"
-          style={{ backgroundColor: brandColor }}
+          className="md:hidden border-t border-white/10 backdrop-blur-xl"
+          style={{ 
+            background: "linear-gradient(180deg, rgba(30,41,59,0.95) 0%, rgba(88,28,135,0.95) 100%)"
+          }}
         >
-          <div className="max-w-screen-2xl mx-auto px-4 sm:px-8 py-3 space-y-1">
+          <div className="max-w-screen-2xl mx-auto px-4 sm:px-8 py-4 space-y-2">
             {navLinks.map((link) => {
               const isActive = activeHref === link.href;
               return (
                 <button
                   key={link.label}
                   onClick={() => scrollTo(link.href)}
-                  className="w-full text-left px-4 py-3 rounded-xl text-[15px] font-bold transition-all focus:outline-none"
+                  className="w-full text-left px-4 py-3 rounded-xl text-[15px] font-light transition-all duration-300 focus:outline-none tracking-wide"
                   style={{
                     color: "#fff",
-                    backgroundColor: isActive ? "rgba(255,255,255,0.18)" : "transparent",
+                    backgroundColor: isActive ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.05)",
+                    boxShadow: isActive ? "0 4px 12px rgba(255,255,255,0.1)" : "none",
                   }}
                 >
                   {link.label}
+                  {isActive && (
+                    <span 
+                      className="absolute right-4 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full"
+                      style={{
+                        background: "linear-gradient(135deg, #fbbf24, #fde047)",
+                        boxShadow: "0 0 8px rgba(251, 191, 36, 0.5)"
+                      }}
+                    />
+                  )}
                 </button>
               );
             })}
-            <div className="pt-2 pb-1">
+            <div className="pt-3 pb-1">
               <button
                 onClick={() => { setMobileOpen(false); onGetQuote(); }}
-                className="w-full py-3.5 rounded-xl font-black text-[15px] tracking-wide transition-opacity hover:opacity-90 focus:outline-none"
-                style={{ backgroundColor: "#F59E0B", color: "#1a1a1a" }}
+                className="w-full py-3.5 rounded-xl font-semibold text-[15px] tracking-wide transition-all duration-300 hover:scale-[1.02] focus:outline-none"
+                style={{ 
+                  background: "linear-gradient(135deg, #fbbf24 0%, #fde047 50%, #fbbf24 100%)",
+                  color: "#1e293b",
+                  boxShadow: "0 8px 24px rgba(251, 191, 36, 0.3)"
+                }}
               >
                 Get a Quote
               </button>

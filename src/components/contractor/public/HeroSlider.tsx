@@ -55,14 +55,33 @@ export function HeroSlider({ profile, onRequestQuote }: HeroSliderProps) {
   }, [next, images.length]);
 
   return (
-    /* White page background with padding — slider is a contained card */
-    <div className="w-full bg-white py-5 px-4 sm:px-10 lg:px-20">
-      <div className="max-w-5xl mx-auto relative">
+    /* Luxurious dark background matching other sections */
+    <div className="w-full relative overflow-hidden" 
+         style={{ 
+           background: "linear-gradient(135deg, #1e293b 0%, #581c87 50%, #1e293b 100%)",
+           height: "100vh"
+         }}>
+      {/* Background accents */}
+      <div className="pointer-events-none absolute inset-0 opacity-[0.05]" 
+           style={{
+             backgroundImage: "radial-gradient(circle, #fbbf24 1.5px, transparent 1.5px)",
+             backgroundSize: "40px 40px"
+           }} />
+      <div className="pointer-events-none absolute top-10 left-10 w-64 h-64 rounded-full opacity-[0.08]" 
+           style={{ background: "radial-gradient(circle, #fbbf24 0%, transparent 70%)" }} />
+      <div className="pointer-events-none absolute bottom-10 right-10 w-48 h-48 rounded-full opacity-[0.06]" 
+           style={{ background: "radial-gradient(circle, #fde047 0%, transparent 70%)" }} />
 
-        {/* ── The slider card ── */}
+      <div className="relative w-full h-full">
+
+        {/* ── The luxurious slider card ── */}
         <div
-          className="relative w-full overflow-hidden rounded-2xl"
-          style={{ height: 400 }}
+          className="relative w-full overflow-hidden rounded-3xl backdrop-blur-xl border border-white/10 shadow-2xl"
+          style={{ 
+            height: "100vh",
+            background: "linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%)",
+            boxShadow: "0 8px 32px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.05)"
+          }}
         >
           {/* ── Background: real photos ── */}
           {hasImages ? (
@@ -81,52 +100,62 @@ export function HeroSlider({ profile, onRequestQuote }: HeroSliderProps) {
               </div>
             ))
           ) : (
-            /* Fallback gradient when no images uploaded */
+            /* Luxurious fallback gradient when no images uploaded */
             <div
               className="absolute inset-0"
               style={{
-                background: `linear-gradient(135deg, #0f0520 0%, ${brandColor}cc 55%, #1a0a3d 100%)`,
+                background: "linear-gradient(135deg, #1e293b 0%, #581c87 50%, #1e293b 100%)",
               }}
             >
+              {/* Gold corner accents */}
+              <div className="absolute top-4 left-4 w-6 h-6 border-t border-l rounded-tl" 
+                   style={{ borderColor: "#fbbf24", boxShadow: "0 0 8px rgba(251, 191, 36, 0.3)" }} />
+              <div className="absolute top-4 right-4 w-6 h-6 border-t border-r rounded-tr" 
+                   style={{ borderColor: "#fbbf24", boxShadow: "0 0 8px rgba(251, 191, 36, 0.3)" }} />
+              <div className="absolute bottom-4 left-4 w-6 h-6 border-b border-l rounded-bl" 
+                   style={{ borderColor: "#fbbf24", boxShadow: "0 0 8px rgba(251, 191, 36, 0.3)" }} />
+              <div className="absolute bottom-4 right-4 w-6 h-6 border-b border-r rounded-br" 
+                   style={{ borderColor: "#fbbf24", boxShadow: "0 0 8px rgba(251, 191, 36, 0.3)" }} />
+
               <div
-                className="absolute inset-0 opacity-[0.07]"
+                className="absolute inset-0 opacity-[0.05]"
                 style={{
-                  backgroundImage: `radial-gradient(circle, white 1px, transparent 1px)`,
-                  backgroundSize: "36px 36px",
+                  backgroundImage: "radial-gradient(circle, #fbbf24 1.5px, transparent 1.5px)",
+                  backgroundSize: "40px 40px",
                 }}
               />
-              {/* Text content only shown on fallback gradient */}
-              <div className="absolute inset-0 flex items-center">
-                <div className="px-8 sm:px-10 max-w-lg">
+              {/* Luxurious text content only shown on fallback gradient */}
+              <div className="absolute inset-0 flex items-start justify-center px-8 sm:px-10 pt-12">
+                <div className="max-w-lg w-full mt-8">
                   <div
-                    className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full mb-4 border"
+                    className="inline-flex items-center gap-3 px-6 py-2 rounded-full mb-6 backdrop-blur-sm border border-white/20"
                     style={{
-                      backgroundColor: "rgba(255,255,255,0.08)",
-                      borderColor: `${brandColor}99`,
+                      background: "linear-gradient(135deg, rgba(251,191,36,0.2) 0%, rgba(253,224,71,0.1) 100%)",
+                      borderColor: "#fbbf24",
+                      boxShadow: "0 4px 16px rgba(251, 191, 36, 0.3)"
                     }}
                   >
                     <span
-                      className="text-[11px] font-bold uppercase tracking-[0.18em]"
-                      style={{ color: brandColor }}
+                      className="text-xs font-light uppercase tracking-[0.3em] text-amber-400"
                     >
                       {profile.location || profile.company}
                     </span>
-                    <ArrowRight className="h-3 w-3 text-white/40" />
+                    <ArrowRight className="h-4 w-4 text-white/80" />
                   </div>
                   <h1
-                    className="font-black text-white leading-tight"
-                    style={{ fontSize: "clamp(1.5rem, 2.8vw, 2.2rem)", letterSpacing: "-0.02em" }}
+                    className="font-light text-white leading-tight tracking-wide mb-4"
+                    style={{ fontSize: "clamp(1.6rem, 2.8vw, 2.4rem)", letterSpacing: "-0.02em" }}
                   >
                     {profile.tagline
                       ? profile.tagline.split(" ").slice(0, 3).join(" ")
                       : "Professional in"}
                   </h1>
                   <h2
-                    className="font-black leading-tight mb-5"
+                    className="font-light leading-tight mb-6"
                     style={{
-                      fontSize: "clamp(1.4rem, 2.5vw, 2rem)",
+                      fontSize: "clamp(1.4rem, 2.4vw, 2rem)",
                       letterSpacing: "-0.02em",
-                      color: "#F59E0B",
+                      color: "#fbbf24",
                     }}
                   >
                     {profile.tagline
@@ -137,14 +166,18 @@ export function HeroSlider({ profile, onRequestQuote }: HeroSliderProps) {
                     {DEFAULT_FEATURES.map((f) => (
                       <div key={f.title} className="flex items-start gap-3">
                         <div
-                          className="h-8 w-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5"
-                          style={{ backgroundColor: `${brandColor}66` }}
+                          className="h-8 w-8 rounded-xl flex items-center justify-center shrink-0 mt-0.5 backdrop-blur-sm border border-white/20"
+                          style={{ 
+                            background: "linear-gradient(135deg, #fbbf24 0%, #fde047 50%, #fbbf24 100%)",
+                            color: "#1e293b",
+                            boxShadow: "0 4px 16px rgba(251, 191, 36, 0.3)"
+                          }}
                         >
-                          <Shield className="h-4 w-4 text-white" />
+                          <Shield className="h-4 w-4" />
                         </div>
                         <div>
-                          <p className="text-white font-bold text-[13px] leading-tight">{f.title}</p>
-                          <p className="text-white/55 text-[12px] leading-snug mt-0.5">{f.desc}</p>
+                          <p className="text-white font-light text-sm leading-tight tracking-wide">{f.title}</p>
+                          <p className="text-white/70 text-xs leading-snug mt-1">{f.desc}</p>
                         </div>
                       </div>
                     ))}
@@ -162,65 +195,81 @@ export function HeroSlider({ profile, onRequestQuote }: HeroSliderProps) {
             }}
           />
 
-          {/* ── Left arrow ── */}
+          {/* ── Luxurious Left arrow ── */}
           {images.length > 1 && (
             <button
               onClick={prev}
-              className="absolute left-3 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full flex items-center justify-center text-white transition-all focus:outline-none border border-white/20 hover:bg-white/20 z-20"
-              style={{ backgroundColor: "rgba(255,255,255,0.15)" }}
+              className="absolute left-4 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full flex items-center justify-center text-white transition-all duration-300 focus:outline-none border border-white/20 hover:bg-white/10 hover:scale-110 z-20 backdrop-blur-sm"
+              style={{ 
+                backgroundColor: "rgba(255,255,255,0.1)",
+                boxShadow: "0 4px 16px rgba(0,0,0,0.3)"
+              }}
             >
-              <ChevronLeft className="h-4 w-4" />
+              <ChevronLeft className="h-6 w-6" />
             </button>
           )}
 
-          {/* ── Right arrow ── */}
+          {/* ── Luxurious Right arrow ── */}
           {images.length > 1 && (
             <button
               onClick={next}
-              className="absolute right-3 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full flex items-center justify-center text-white transition-all focus:outline-none border border-white/20 hover:bg-white/20 z-20"
-              style={{ backgroundColor: "rgba(255,255,255,0.15)" }}
+              className="absolute right-4 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full flex items-center justify-center text-white transition-all duration-300 focus:outline-none border border-white/20 hover:bg-white/10 hover:scale-110 z-20 backdrop-blur-sm"
+              style={{ 
+                backgroundColor: "rgba(255,255,255,0.1)",
+                boxShadow: "0 4px 16px rgba(0,0,0,0.3)"
+              }}
             >
-              <ChevronRight className="h-4 w-4" />
+              <ChevronRight className="h-6 w-6" />
             </button>
           )}
 
-          {/* ── Dot indicators ── */}
+          {/* ── Luxurious Dot indicators ── */}
           {images.length > 1 && (
-            <div className="absolute bottom-14 left-1/2 -translate-x-1/2 flex gap-2 z-20">
+            <div className="absolute bottom-16 left-1/2 -translate-x-1/2 flex gap-3 z-20">
               {images.map((_, i) => (
                 <button
                   key={i}
                   onClick={() => setCurrent(i)}
-                  className="rounded-full transition-all duration-300 focus:outline-none"
+                  className="rounded-full transition-all duration-300 focus:outline-none hover:scale-110"
                   style={{
-                    width: i === current ? 24 : 7,
-                    height: 7,
+                    width: i === current ? 28 : 8,
+                    height: 8,
                     backgroundColor:
-                      i === current ? "white" : "rgba(255,255,255,0.45)",
+                      i === current ? "#fbbf24" : "rgba(255,255,255,0.3)",
+                    boxShadow: i === current ? "0 0 12px rgba(251, 191, 36, 0.5)" : "none"
                   }}
                 />
               ))}
             </div>
           )}
 
-          {/* ── Bottom trust icon bar ── */}
+          {/* ── Luxurious Bottom trust icon bar ── */}
           <div
-            className="absolute bottom-0 left-0 right-0 z-20 flex items-center"
-            style={{ borderTop: "1px solid rgba(255,255,255,0.15)" }}
+            className="absolute bottom-0 left-0 right-0 z-20 flex items-center backdrop-blur-sm border-t border-white/10"
+            style={{ 
+              background: "linear-gradient(135deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.4) 100%)"
+            }}
           >
             {TRUST_ICONS.map(({ icon: Icon, label }, i) => (
               <div
                 key={label}
-                className="flex flex-col items-center gap-1 flex-1 py-2.5"
+                className="flex flex-col items-center gap-2 flex-1 py-3 group"
                 style={{
                   borderRight:
                     i < TRUST_ICONS.length - 1
-                      ? "1px solid rgba(255,255,255,0.15)"
+                      ? "1px solid rgba(255,255,255,0.1)"
                       : "none",
                 }}
               >
-                <Icon className="h-5 w-5 text-white/80" />
-                <span className="text-white/65 text-[10px] font-semibold uppercase tracking-wider hidden sm:block">
+                <div className="h-10 w-10 rounded-2xl flex items-center justify-center backdrop-blur-sm border border-white/20 transition-all duration-300 group-hover:scale-110"
+                     style={{ 
+                       background: "linear-gradient(135deg, rgba(251,191,36,0.2) 0%, rgba(253,224,71,0.1) 100%)",
+                       borderColor: "#fbbf24",
+                       boxShadow: "0 4px 16px rgba(251, 191, 36, 0.3)"
+                     }}>
+                  <Icon className="h-5 w-5" style={{ color: "#fbbf24" }} />
+                </div>
+                <span className="text-white/80 text-xs font-light uppercase tracking-wider hidden sm:block">
                   {label}
                 </span>
               </div>

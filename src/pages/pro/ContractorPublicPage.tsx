@@ -7,7 +7,7 @@ import { HeroSlider } from "@/components/contractor/public/HeroSlider";
 import { ServicesSection } from "@/components/contractor/public/ServicesSection";
 import { PortfolioSection } from "@/components/contractor/public/PortfolioSection";
 import { ReviewsSection } from "@/components/contractor/public/ReviewsSection";
-import { ContactSection } from "@/components/contractor/public/ContactSection";
+import { Footer } from "@/components/contractor/public/Footer";
 import { StickyMobileCTA } from "@/components/contractor/public/StickyMobileCTA";
 import { LeadCaptureModal } from "@/components/contractor/public/LeadCaptureModal";
 import { ReviewModal } from "@/components/contractor/public/ReviewModal";
@@ -56,7 +56,7 @@ export default function ContractorPublicPage() {
   const brandStyle = { "--brand": brandColor, "--accent": accentColor } as React.CSSProperties;
 
   return (
-    <div style={brandStyle} className="min-h-screen bg-white">
+    <div style={brandStyle} className="min-h-screen bg-gray-50">
       {/* Sticky header */}
       <ContractorNavbar
         profile={profile}
@@ -70,30 +70,35 @@ export default function ContractorPublicPage() {
       />
 
       {/* Services */}
-      {services.length > 0 && (
-        <div id="services" className="bg-gray-50">
-          <ServicesSection services={services} brandColor={brandColor} accentColor={accentColor} onGetQuote={() => setIsLeadModalOpen(true)} />
-        </div>
-      )}
-
-      {/* Portfolio */}
-      {projects.length > 0 && (
-        <div id="portfolio">
-          <PortfolioSection projects={projects} brandColor={brandColor} />
-        </div>
-      )}
-
-      {/* Reviews / Endorsements */}
-      <div id="reviews" className={projects.length > 0 ? "bg-gray-50" : ""}>
-        <ReviewsSection
-          reviews={reviews}
-          onLeaveReview={() => setIsReviewModalOpen(true)}
-          brandColor={brandColor}
+      <div id="services" className="bg-gray-50">
+        <ServicesSection 
+          services={services} 
+          brandColor={brandColor} 
+          accentColor={accentColor}
+          slug={slug}
+          onGetQuote={() => setIsLeadModalOpen(true)} 
         />
       </div>
 
-      {/* Contact */}
-      <ContactSection
+      {/* Portfolio */}
+      <div id="portfolio" className="bg-gray-50">
+        <PortfolioSection 
+          projects={projects} 
+          brandColor={brandColor} 
+        />
+      </div>
+
+      {/* Reviews */}
+      <div id="reviews" className="bg-gray-50">
+        <ReviewsSection 
+          reviews={reviews} 
+          brandColor={brandColor}
+          onLeaveReview={() => setIsReviewModalOpen(true)}
+        />
+      </div>
+
+      {/* Footer */}
+      <Footer 
         profile={profile}
         brandColor={brandColor}
         onGetQuote={() => setIsLeadModalOpen(true)}

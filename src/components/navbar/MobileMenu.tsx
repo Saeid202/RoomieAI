@@ -44,16 +44,16 @@ export const MobileMenu = ({
       />
       
       {/* Menu panel - slides from right */}
-      <div className="fixed inset-y-0 right-0 z-50 w-4/5 max-w-sm bg-white/95 backdrop-blur-xl shadow-2xl border-l border-white/20 overflow-y-auto animate-in slide-in-from-right-full duration-300">
+      <div className="fixed inset-y-0 right-0 z-50 w-4/5 max-w-sm bg-gradient-to-br from-slate-900/95 to-purple-900/95 backdrop-blur-xl shadow-2xl border-l border-white/10 overflow-y-auto animate-in slide-in-from-right-full duration-300">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-100 bg-gradient-to-r from-purple-50 to-orange-50">
-          <h2 className="text-lg font-bold text-gray-900 bg-gradient-to-r from-roomie-purple to-orange-500 bg-clip-text text-transparent">Menu</h2>
+        <div className="flex items-center justify-between p-4 border-b border-white/10 bg-gradient-to-r from-slate-800/50 to-purple-800/50 backdrop-blur-sm">
+          <h2 className="text-lg font-light text-white/90 tracking-wide">Menu</h2>
           <button
             onClick={() => setIsMenuOpen(false)}
-            className="p-2 hover:bg-white/50 rounded-lg transition-all duration-200 hover:scale-110 active:scale-95"
+            className="p-2 hover:bg-white/10 rounded-lg transition-all duration-200 hover:scale-110 active:scale-95"
             aria-label="Close menu"
           >
-            <X size={20} className="text-gray-600" />
+            <X size={20} className="text-white/60 hover:text-white/90" />
           </button>
         </div>
 
@@ -68,13 +68,13 @@ export const MobileMenu = ({
           <div className="h-px bg-gray-100" />
 
           {/* Auth Section - sticky at bottom */}
-          <div className="border-t border-gray-100 bg-gradient-to-br from-gray-50 to-purple-50 p-4 space-y-3">
+          <div className="border-t border-white/10 bg-gradient-to-br from-slate-800/50 to-purple-800/50 backdrop-blur-sm p-4 space-y-3">
             <PWAInstallButton />
             {user ? (
               <>
-                <div className="flex items-center gap-3 p-3 bg-white rounded-lg mb-2">
-                  <UserIcon size={18} className="text-primary flex-shrink-0" />
-                  <span className="font-medium text-gray-900 truncate">
+                <div className="flex items-center gap-3 p-3 bg-white/10 backdrop-blur-sm rounded-lg mb-2 border border-white/20">
+                  <UserIcon size={18} className="text-amber-400 flex-shrink-0" />
+                  <span className="font-medium text-white/90 truncate">
                     {user.email ? user.email.split('@')[0] : 'Account'}
                   </span>
                 </div>

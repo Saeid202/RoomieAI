@@ -20,11 +20,12 @@ import {
   ImageIcon,
   X,
 } from "lucide-react";
-import type { ContractorProject } from "@/types/contractor";
+import type { ContractorProject, ContractorService } from "@/types/contractor";
 
 interface PortfolioEditorProps {
   projects: ContractorProject[];
   contractorId: string;
+  services: ContractorService[];
   onRefresh: () => void;
 }
 
@@ -33,13 +34,15 @@ interface ProjectForm {
   title: string;
   description: string;
   images: string[];
+  service_id: string | null;
 }
 
-const emptyForm: ProjectForm = { title: "", description: "", images: [] };
+const emptyForm: ProjectForm = { title: "", description: "", images: [], service_id: null };
 
 export function PortfolioEditor({
   projects,
   contractorId,
+  services,
   onRefresh,
 }: PortfolioEditorProps) {
   const { toast } = useToast();
@@ -61,6 +64,7 @@ export function PortfolioEditor({
       title: project.title,
       description: project.description || "",
       images: project.images || [],
+      service_id: project.service_id || null,
     });
     setShowForm(true);
   }
@@ -106,6 +110,7 @@ export function PortfolioEditor({
         title: form.title,
         description: form.description || null,
         images: form.images,
+        service_id: form.service_id || null,
         sort_order: form.id
           ? projects.find((p) => p.id === form.id)?.sort_order ?? projects.length
           : projects.length,
@@ -195,6 +200,27 @@ export function PortfolioEditor({
                 rows={2}
               />
             </div>
+            {/* Link to service */}
+            {services.length > 0 && (
+              <div className="space-y-1">
+                <Label>Link to Service (optional)</Label>
+                <select
+                  value={form.service_id || ""}
+                  onChange={(e) =>
+                    setForm((p) => ({ ...p, service_id: e.target.value || null }))
+                  }
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                >
+                  <option value="">— No service —</option>
+                  {services.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.service_name}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-gray-400">This project will appear in the service's detail page gallery.</p>
+              </div>
+            )}
             {/* Images */}
             <div className="space-y-2">
               <Label>Images</Label>
@@ -281,6 +307,11 @@ export function PortfolioEditor({
                 {project.images?.length || 0} image
                 {(project.images?.length || 0) !== 1 ? "s" : ""}
               </p>
+              {project.service_id && (
+                <p className="text-xs text-violet-500 mt-0.5">
+                  {services.find((s) => s.id === project.service_id)?.service_name ?? "Linked to service"}
+                </p>
+              )}
             </div>
             <div className="flex items-center gap-1 flex-shrink-0">
               <button

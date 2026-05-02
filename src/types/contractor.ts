@@ -27,6 +27,7 @@ export interface ContractorService {
   service_name: string;
   description: string | null;
   icon_name: string | null;
+  image_url: string | null;
   sort_order: number;
   created_at: string;
 }
@@ -37,6 +38,7 @@ export interface ContractorProject {
   title: string;
   description: string | null;
   images: string[];
+  service_id: string | null;
   sort_order: number;
   created_at: string;
 }

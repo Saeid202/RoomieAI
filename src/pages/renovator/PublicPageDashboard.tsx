@@ -132,6 +132,7 @@ export default function PublicPageDashboard() {
           <PortfolioEditor
             projects={projects}
             contractorId={profile.id}
+            services={services}
             onRefresh={refresh}
           />
         </TabsContent>

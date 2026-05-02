@@ -70,6 +70,7 @@ const EmergencyAccept = lazy(() => import("./pages/EmergencyAccept"));
 
 // Contractor public page and dashboard - lazy loaded
 const ContractorPublicPage = lazy(() => import("./pages/pro/ContractorPublicPage"));
+const ServiceDetailPage = lazy(() => import("./pages/pro/ServiceDetailPage"));
 const PublicPageDashboard = lazy(() => import("./pages/renovator/PublicPageDashboard"));
 
 // Renovator pages - lazy loaded
@@ -282,6 +283,13 @@ function AppRoutes() {
         <Route path="/pro/:slug" element={
           <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
             <ContractorPublicPage />
+          </Suspense>
+        } />
+
+        {/* Service Detail Page — no auth required */}
+        <Route path="/pro/:slug/services/:serviceId" element={
+          <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+            <ServiceDetailPage />
           </Suspense>
         } />
 
