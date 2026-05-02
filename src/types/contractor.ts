@@ -26,10 +26,12 @@ export interface ContractorService {
   contractor_id: string;
   service_name: string;
   description: string | null;
+  description_html: string | null;
   icon_name: string | null;
   image_url: string | null;
   sort_order: number;
   created_at: string;
+  title_bold?: boolean;
 }
 
 export interface ContractorProject {

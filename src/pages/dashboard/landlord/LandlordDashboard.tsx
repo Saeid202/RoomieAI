@@ -74,38 +74,24 @@ export default function LandlordDashboardPage() {
 
   return (
     <div className="w-full max-w-screen-xl mx-auto px-4 space-y-10 pb-10">
-      {/* Dashboard Orientation & Welcome Section */}
-      <div className="relative bg-gradient-to-br from-pink-500/30 via-purple-500/30 to-indigo-500/30 rounded-3xl p-2 border-2 border-white/50 shadow-2xl backdrop-blur-sm overflow-hidden">
-        {/* Animated Background Elements */}
-        <div className="absolute inset-0">
-          <div className="absolute top-4 left-4 w-32 h-32 bg-gradient-to-br from-yellow-400/40 to-pink-400/40 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-4 right-4 w-24 h-24 bg-gradient-to-br from-purple-400/40 to-indigo-400/40 rounded-full blur-2xl animate-pulse delay-1000"></div>
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-r from-orange-400/20 via-pink-400/20 to-purple-400/20 opacity-50 rotate-45 animate-spin-slow"></div>
-          <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-yellow-300/50 to-orange-300/50 rounded-full blur-xl animate-bounce delay-500"></div>
-          <div className="absolute bottom-0 left-0 w-16 h-16 bg-gradient-to-br from-pink-300/50 to-purple-300/50 rounded-full blur-lg animate-ping delay-700"></div>
-        </div>
-
-        {/* Section Title */}
-        <div className="text-center mb-1 relative z-10">
-          <div className="inline-block bg-white/80 backdrop-blur-md rounded-2xl p-2 border border-white/50 shadow-xl">
-            <h1 className="text-3xl md:text-4xl font-black text-gray-900 mb-1 bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent animate-gradient">
-              Welcome to Homie AI
-            </h1>
-            <div className="h-2 w-32 bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 rounded-full mx-auto shadow-lg"></div>
-            <p className="text-xl text-gray-800 max-w-2xl mx-auto font-bold leading-relaxed">
-              Your all-in-one platform for property management, tenant matching, and building your rental empire.
-            </p>
-          </div>
-        </div>
-
-        {/* Short Explanation */}
-        <div className="text-center relative z-10">
-          <div className="bg-white/90 backdrop-blur-md rounded-2xl p-2 border-2 border-gradient-to-r from-pink-300 via-purple-300 to-indigo-300 shadow-xl relative overflow-hidden group">
-            <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/10 via-pink-400/10 to-purple-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-            <p className="text-gray-800 text-lg leading-relaxed relative z-10 font-medium">
-              Homie AI brings every step of property management into one secure platform — from listing properties and screening tenants, to collecting rent and handling legal compliance. The sections below guide you through each stage of your landlord journey.
-            </p>
-          </div>
+      {/* Welcome Banner — dark hero */}
+      <div className="relative bg-violet-700 rounded-2xl p-8 overflow-hidden shadow-lg">
+        {/* Subtle dot pattern overlay */}
+        <div
+          className="absolute inset-0 opacity-10"
+          style={{
+            backgroundImage: `radial-gradient(circle, #fff 1px, transparent 1px)`,
+            backgroundSize: "24px 24px",
+          }}
+        />
+        {/* Soft glow */}
+        <div className="absolute -top-10 -right-10 w-64 h-64 bg-violet-500 rounded-full opacity-20 blur-3xl pointer-events-none" />
+        <div className="relative z-10">
+          <p className="text-violet-200 text-xs font-semibold uppercase tracking-widest mb-2">Landlord Portal</p>
+          <h1 className="text-3xl font-bold text-white mb-2">Welcome to Homie AI</h1>
+          <p className="text-violet-100 text-sm leading-relaxed max-w-2xl">
+            Your all-in-one platform for property management, tenant matching, and building your rental empire. The sections below guide you through each stage of your landlord journey.
+          </p>
         </div>
       </div>
 

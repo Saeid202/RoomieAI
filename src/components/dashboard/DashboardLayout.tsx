@@ -1,8 +1,8 @@
 
-import { ReactNode } from "react";
+import { ReactNode, useEffect, useRef } from "react";
+import { useLocation } from "react-router-dom";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
-import Footer from "@/components/Footer";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { UserMenu } from "@/components/dashboard/UserMenu";
 
@@ -12,6 +12,13 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const isMobile = useIsMobile();
+  const { pathname } = useLocation();
+  const mainRef = useRef<HTMLElement>(null);
+
+  // Scroll to top of the main content area on every route change
+  useEffect(() => {
+    mainRef.current?.scrollTo({ top: 0, behavior: "instant" });
+  }, [pathname]);
   
   return (
     <div className="flex flex-col min-h-screen bg-background overflow-x-hidden">
@@ -24,11 +31,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               <UserMenu />
             </div>
             
-            <main className="flex-1 overflow-y-auto overflow-x-hidden md:px-6 pb-6 bg-background">
+            <main ref={mainRef} className="flex-1 overflow-y-auto overflow-x-hidden md:px-6 pb-6 bg-gray-100">
               {children}
             </main>
-            
-            <Footer className="w-full mt-auto hidden md:block" />
           </div>
         </div>
       </SidebarProvider>

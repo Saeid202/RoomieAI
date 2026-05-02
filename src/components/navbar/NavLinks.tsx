@@ -24,17 +24,17 @@ export const NavLinks = ({ isMobile = false, onClickMobile }: NavLinksProps) => 
     return location.pathname === path;
   };
   
-  const linkClasses = "text-white/90 hover:text-white font-light text-lg lg:text-xl xl:text-2xl flex items-center gap-2 transition-all duration-300 ease-out relative group tracking-wide";
+  const linkClasses = "text-gray-600 hover:text-gray-900 font-light text-lg lg:text-xl xl:text-2xl flex items-center gap-2 transition-all duration-300 ease-out relative group tracking-wide";
   const mobileClasses = isMobile ? "py-3 text-xl" : "px-3 lg:px-4 xl:px-6 py-2 lg:py-3";
-  const separatorClasses = isMobile ? "hidden" : "text-white/30 mx-3 lg:mx-4 xl:mx-6 text-xl lg:text-xl xl:text-2xl font-light";
-  const activeClasses = "text-white font-semibold bg-white/10 rounded-lg px-2 py-1";
+  const separatorClasses = isMobile ? "hidden" : "text-gray-300 mx-3 lg:mx-4 xl:mx-6 text-xl lg:text-xl xl:text-2xl font-light";
+  const activeClasses = "text-violet-700 font-semibold bg-violet-50 rounded-lg px-2 py-1";
   
   const navItems = [
-    { path: "/about-us", label: "About Us", emoji: "🏢" },
-    { path: "/#how-it-works", label: "How It Works", emoji: "⚙️" },
-    { path: "/#features", label: "Features", emoji: "✨" },
-    { path: "/faq", label: "FAQ", emoji: "❓" },
-    { path: "/contact-us", label: "Contact Us", emoji: "📞" }
+    { path: "/about-us", label: "About Us" },
+    { path: "/#how-it-works", label: "How It Works" },
+    { path: "/#features", label: "Features" },
+    { path: "/faq", label: "FAQ" },
+    { path: "/contact-us", label: "Contact Us" },
   ];
   
   return (
@@ -48,9 +48,6 @@ export const NavLinks = ({ isMobile = false, onClickMobile }: NavLinksProps) => 
             onMouseEnter={() => setHoveredItem(item.path)}
             onMouseLeave={() => setHoveredItem(null)}
           >
-            <span className={`transition-transform duration-300 text-lg lg:text-xl xl:text-2xl ${hoveredItem === item.path ? 'scale-125 rotate-12' : ''}`}>
-              {item.emoji}
-            </span>
             <span className="relative">
               {item.label}
               {/* Underline animation */}

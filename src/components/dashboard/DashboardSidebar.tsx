@@ -45,7 +45,7 @@ export function DashboardSidebar() {
   return (
     <Sidebar collapsible="offcanvas" defaultOpen={!isMobile} className="border-r border-slate-200 shadow-[2px_0_16px_rgba(139,92,246,0.08)]">
       {/* Header */}
-      <SidebarHeader className="px-5 py-5 border-b border-slate-100 bg-white">
+      <SidebarHeader className="px-5 py-5 border-b border-slate-100 bg-slate-50">
         <div className="flex items-center gap-3">
           <div className="bg-gradient-to-br from-orange-400 to-violet-600 p-2.5 rounded-xl shadow-md shadow-violet-200 shrink-0">
             <Home className="h-5 w-5 text-white" />
@@ -61,7 +61,7 @@ export function DashboardSidebar() {
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="px-3 py-3 bg-white">
+      <SidebarContent className="px-3 py-3 bg-slate-50">
         <SidebarGroup className="p-0">
           <SidebarGroupContent>
             <SidebarMenu>
@@ -103,7 +103,7 @@ export function DashboardSidebar() {
       </SidebarContent>
 
       {/* Footer */}
-      <SidebarFooter className="px-3 py-4 border-t border-slate-100 bg-white">
+      <SidebarFooter className="px-3 py-4 border-t border-slate-100 bg-slate-50">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button

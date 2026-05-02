@@ -58,6 +58,15 @@ const SettingsPage = lazy(() => import("./pages/dashboard/Settings"));
 
 // Components that need to be loaded immediately
 import { ErrorBoundary } from "./components/utility/ErrorBoundary";
+
+// Skeleton fallback that maintains layout height during lazy load
+const DashboardPageSkeleton = () => (
+  <div className="p-6 space-y-4 animate-pulse">
+    <div className="h-8 bg-gray-200 rounded w-1/3" />
+    <div className="h-4 bg-gray-200 rounded w-1/2" />
+    <div className="h-[500px] bg-gray-200 rounded-2xl mt-6" />
+  </div>
+);
 import { RenovatorLayout } from "./components/renovator/RenovatorLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { AdminRoute } from "./components/AdminRoute";
@@ -338,7 +347,7 @@ function AppRoutes() {
           <Route path="mortgage-results" element={<MortgageSubmissionResults />} />
           <Route path="co-buying-scenario" element={<CoBuyingScenario />} />
           <Route path="co-ownership-profile" element={<CoOwnershipProfile />} />
-          <Route path="tax-intelligence" element={<ErrorBoundary componentName="TaxIntelligencePage"><TaxIntelligencePage /></ErrorBoundary>} />
+          <Route path="tax-intelligence" element={<Suspense fallback={<DashboardPageSkeleton />}><ErrorBoundary componentName="TaxIntelligencePage"><TaxIntelligencePage /></ErrorBoundary></Suspense>} />
           
           {/* Communication */}
           <Route path="chats" element={<ChatsPage />} />
@@ -350,8 +359,8 @@ function AppRoutes() {
           <Route path="tenancy-legal-ai" element={<TenancyLegalAIPage />} />
           
           {/* Forms & Legal */}
-          <Route path="property-compliance-ai" element={<ErrorBoundary componentName="PropertyCompliancePage"><PropertyCompliancePage /></ErrorBoundary>} />
-          <Route path="eviction-assistant" element={<ErrorBoundary componentName="EvictionAssistantPage"><EvictionAssistantPage /></ErrorBoundary>} />
+          <Route path="property-compliance-ai" element={<Suspense fallback={<DashboardPageSkeleton />}><ErrorBoundary componentName="PropertyCompliancePage"><PropertyCompliancePage /></ErrorBoundary></Suspense>} />
+          <Route path="eviction-assistant" element={<Suspense fallback={<DashboardPageSkeleton />}><ErrorBoundary componentName="EvictionAssistantPage"><EvictionAssistantPage /></ErrorBoundary></Suspense>} />
           <Route path="forms/n4" element={<ErrorBoundary componentName="N4FormPage"><N4FormPage /></ErrorBoundary>} />
           <Route path="forms/n5" element={<ErrorBoundary componentName="N5FormPage"><N5FormPage /></ErrorBoundary>} />
           <Route path="forms/n8" element={<ErrorBoundary componentName="N8FormPage"><N8FormPage /></ErrorBoundary>} />
@@ -447,7 +456,7 @@ function AppRoutes() {
           <Route path="profile" element={<RenovatorProfile />} />
           <Route path="availability" element={<Availability />} />
           <Route path="service-area" element={<ServiceArea />} />
-          <Route path="tax-intelligence" element={<ErrorBoundary componentName="TaxIntelligencePage"><TaxIntelligencePage /></ErrorBoundary>} />
+          <Route path="tax-intelligence" element={<Suspense fallback={<DashboardPageSkeleton />}><ErrorBoundary componentName="TaxIntelligencePage"><TaxIntelligencePage /></ErrorBoundary></Suspense>} />
           <Route path="settings" element={<RenovatorSettings />} />
           <Route path="public-page" element={<PublicPageDashboard />} />
         </Route>

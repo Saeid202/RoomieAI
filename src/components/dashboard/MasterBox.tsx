@@ -1,7 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { LucideIcon } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { LucideIcon, ChevronRight } from "lucide-react";
 
 interface MasterBoxProps {
   title: string;
@@ -20,29 +19,49 @@ export function MasterBox({
   className,
   children 
 }: MasterBoxProps) {
+  // Split "1. Profile" into number "01" and label "Profile"
+  const match = title.match(/^(\d+)\.\s*(.+)$/);
+  const number = match ? String(parseInt(match[1])).padStart(2, "0") : null;
+  const label = match ? match[2] : title;
+
   return (
     <Card 
       className={cn(
-        "group cursor-pointer transition-all duration-300 hover:shadow-2xl hover:scale-[1.02] border-2 hover:border-white/60 bg-gradient-to-br from-pink-500/20 via-purple-500/20 to-indigo-500/20 hover:from-pink-500/30 hover:via-purple-500/30 hover:to-indigo-500/30 relative overflow-hidden h-full min-h-[160px]",
+        "group cursor-pointer transition-all duration-200 border border-gray-200 hover:border-violet-300 bg-white shadow-md hover:shadow-lg relative overflow-hidden h-full min-h-[180px]",
         className
       )}
       onClick={onClick}
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/20 via-pink-400/20 to-purple-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-      <CardContent className="p-3 relative z-10 h-full flex flex-col">
-        <div className="flex items-start gap-2 mb-2">
-          <div className="p-1.5 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 group-hover:from-yellow-400 group-hover:to-orange-500 transition-all duration-300 group-hover:scale-110 shadow-lg">
-            <Icon className="h-5 w-5 text-white group-hover:text-white transition-colors" />
+      {/* Top accent line */}
+      <div className="h-0.5 w-full bg-violet-100 group-hover:bg-violet-500 transition-colors duration-200" />
+
+      <CardContent className="p-6 relative z-10 h-full flex flex-col">
+        {/* Header row: icon + number/title */}
+        <div className="flex items-start gap-4 mb-3">
+          <div className="p-3 rounded-xl bg-violet-600 flex-shrink-0 shadow-sm group-hover:bg-violet-700 transition-colors duration-200">
+            <Icon className="h-5 w-5 text-white" />
           </div>
-          <div className="flex-1">
-            <h3 className="text-base font-bold text-gray-900 mb-1 group-hover:text-purple-600 transition-colors leading-tight">{title}</h3>
-            <p className="text-gray-600 text-xs leading-relaxed group-hover:text-gray-700 transition-colors line-clamp-2">{description}</p>
+          <div className="flex-1 min-w-0">
+            {number && (
+              <p className="text-[10px] font-bold text-violet-400 uppercase tracking-widest mb-1">
+                {number}
+              </p>
+            )}
+            <h3 className="text-base font-bold text-gray-900 leading-tight">{label}</h3>
+            <p className="text-gray-600 text-sm leading-relaxed mt-1 line-clamp-2">{description}</p>
           </div>
         </div>
-        
+
         {children && (
-          <div className="mt-auto space-y-1 pt-1">
+          <div className="mt-2 space-y-1">
             {children}
+          </div>
+        )}
+
+        {/* Arrow indicator — bottom right */}
+        {!children && (
+          <div className="mt-auto flex justify-end pt-2">
+            <ChevronRight className="h-4 w-4 text-gray-300 group-hover:text-violet-500 transition-colors duration-200" />
           </div>
         )}
       </CardContent>

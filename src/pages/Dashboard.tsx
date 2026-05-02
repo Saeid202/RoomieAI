@@ -5,7 +5,7 @@ import { RouteGuard } from "@/components/dashboard/RouteGuard";
 import { RoleInitializer } from "@/components/dashboard/RoleInitializer";
 import { useRole } from "@/contexts/RoleContext";
 import { useAuth } from "@/hooks/useAuth";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useState } from "react";
 import { RoleSelectionDialog } from "@/components/auth/RoleSelectionDialog";
 import { GeminiChat } from "@/components/chat/GeminiChat";
 import { Button } from "@/components/ui/button";
@@ -19,13 +19,7 @@ export default function Dashboard() {
   // State for the AI Chat dialog
   const [chatOpen, setChatOpen] = useState(false);
 
-  useEffect(() => {
-    console.log("📍 Dashboard - Current state:", {
-      path: location.pathname,
-      role: role,
-      loading: loading
-    });
-  }, [location.pathname, role, loading]);
+
 
   // Show loading state only if auth is loading
   if (loading) {

@@ -807,29 +807,26 @@ export default function BuyingOpportunitiesPage() {
                                             </div>
 
                                             {/* Financial Highlight - Modern Card */}
-                                            <div className="relative bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 rounded-2xl p-6 overflow-hidden shadow-xl border border-white/20">
-                                                <div className="absolute inset-0 bg-white/5 backdrop-blur-[2px]" />
-                                                <div className="relative z-10 space-y-2">
+                                            <div className="bg-gray-100 rounded-2xl p-6 border border-gray-200">
+                                                <div className="space-y-2">
                                                     <div className="flex items-center gap-2 mb-1">
-                                                        <Wallet className="h-5 w-5 text-white/90" />
-                                                        <span className="text-xs font-bold text-white/80 uppercase tracking-widest">Investment Capital</span>
+                                                        <Wallet className="h-5 w-5 text-gray-500" />
+                                                        <span className="text-sm font-bold text-gray-900 uppercase tracking-widest">Investment Capital</span>
                                                     </div>
-                                                    <div className="text-4xl font-black text-white tracking-tight drop-shadow-md">
+                                                    <div className="text-4xl font-black text-gray-900 tracking-tight">
                                                         {formatCapital(signal.capital_available)}
                                                     </div>
-                                                    <p className="text-sm font-semibold text-white/90 flex items-center gap-1.5">
-                                                        <CheckCircle className="h-4 w-4 text-emerald-300" />
+                                                    <p className="text-sm font-semibold text-gray-600 flex items-center gap-1.5">
+                                                        <CheckCircle className="h-4 w-4 text-emerald-500" />
                                                         Ready to invest immediately
                                                     </p>
                                                 </div>
-                                                {/* Decorative patterns */}
-                                                <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/10 rounded-full blur-3xl overflow-hidden" />
                                             </div>
 
                                             {/* Partnership Goals */}
                                             <div className="space-y-4 flex-grow">
                                                 <div className="flex items-center gap-2">
-                                                    <div className="w-1 h-6 bg-gradient-to-b from-indigo-500 to-violet-600 rounded-full" />
+                                                    <div className="w-1 h-6 bg-slate-300 rounded-full" />
                                                     <h4 className="text-sm font-bold text-slate-500 uppercase tracking-widest">Partnership Goals</h4>
                                                 </div>
                                                 <p className="text-lg font-bold text-slate-800 leading-snug">

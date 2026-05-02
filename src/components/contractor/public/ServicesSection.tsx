@@ -1,14 +1,17 @@
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
+import { ServiceDescription } from "./ServiceDescription";
 
 interface Service {
   id: string;
   contractor_id: string;
   service_name: string;
   description: string | null;
+  description_html: string | null;
   icon_name: string | null;
   image_url: string | null;
   sort_order: number;
+  title_bold?: boolean;
 }
 
 interface ServicesSectionProps {
@@ -101,14 +104,16 @@ export function ServicesSection({
 
               {/* ── Text content ── */}
               <div className="flex flex-col flex-1 p-6">
-                <h3 className="text-gray-900 font-semibold text-xl mb-2 leading-snug">
+                <h3 className={`text-gray-900 text-xl mb-2 leading-snug ${service.title_bold ? 'font-bold' : 'font-semibold'}`}>
                   {service.service_name}
                 </h3>
-                <p className="text-gray-500 text-sm leading-relaxed flex-1 line-clamp-3">
-                  {service.description ||
-                    "Professional service with quality craftsmanship and attention to detail."}
-                </p>
-
+                <div className="flex-1">
+                  <ServiceDescription
+                    descriptionHtml={service.description_html ?? null}
+                    description={service.description || "Professional service with quality craftsmanship and attention to detail."}
+                    brandColor={brandColor}
+                  />
+                </div>
                 {/* ── Learn more link ── */}
                 <Link
                   to={`/pro/${slug}/services/${service.id}`}

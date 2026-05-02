@@ -7,7 +7,7 @@ import { LawyerProfileCard } from "@/components/lawyer/LawyerProfileCard";
 import { MessagingService } from "@/services/messagingService";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { Loader2 } from "lucide-react";
+import { Loader2, Scale } from "lucide-react";
 
 export default function FindLawyer() {
   const [loading, setLoading] = useState(true);
@@ -82,7 +82,7 @@ export default function FindLawyer() {
   }
 
   return (
-    <div className="w-full min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-indigo-50">
+    <div className="w-full min-h-screen">
       {/* Loading Overlay */}
       {startingConversation && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
@@ -93,38 +93,22 @@ export default function FindLawyer() {
           </div>
         </div>
       )}
-      {/* Luxury Header Section */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-purple-900 via-pink-800 to-indigo-900 text-white">
-        {/* Decorative Background Pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-0 left-0 w-96 h-96 bg-white rounded-full blur-3xl transform -translate-x-1/2 -translate-y-1/2"></div>
-          <div className="absolute bottom-0 right-0 w-96 h-96 bg-white rounded-full blur-3xl transform translate-x-1/2 translate-y-1/2"></div>
-        </div>
-
-        <div className="relative max-w-screen-xl mx-auto px-4 py-16 text-center">
-          <div className="inline-block mb-4 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full border border-white/20">
-            <span className="text-sm font-semibold tracking-wide">LEGAL SERVICES</span>
+      {/* Header */}
+      <div className="border-b border-gray-200 -mx-6 px-6 py-5 mb-6">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-purple-100 rounded-xl">
+            <Scale className="h-6 w-6 text-purple-600" />
           </div>
-          
-          <h1 className="text-5xl md:text-6xl font-black mb-6 leading-tight">
-            Meet Your Real Estate Lawyer
-          </h1>
-          
-          <p className="text-xl md:text-2xl text-purple-100 max-w-3xl mx-auto font-light leading-relaxed">
-            Expert legal guidance for your property journey
-          </p>
-
-          {/* Decorative Divider */}
-          <div className="mt-8 flex items-center justify-center gap-2">
-            <div className="h-px w-16 bg-gradient-to-r from-transparent to-white/50"></div>
-            <div className="w-2 h-2 rounded-full bg-white/50"></div>
-            <div className="h-px w-16 bg-gradient-to-l from-transparent to-white/50"></div>
+          <div>
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-0.5">Legal Services</p>
+            <h1 className="text-xl font-bold text-gray-900 leading-tight">Meet Your Real Estate Lawyer</h1>
+            <p className="text-sm text-gray-500">Expert legal guidance for your property journey</p>
           </div>
         </div>
       </div>
 
       {/* Content Section */}
-      <div className="max-w-screen-xl mx-auto px-4 py-12">
+      <div className="pb-6">
         {/* Lawyer Cards */}
         {lawyers.length === 0 ? (
         <Card>
@@ -143,7 +127,7 @@ export default function FindLawyer() {
           ))}
         </div>
       )}
-    </div>
+      </div>
     </div>
   );
 }

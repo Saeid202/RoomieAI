@@ -25,24 +25,15 @@ export function EnhancedHeader({
 }) {
   return (
     <div
-      className={`relative overflow-hidden rounded-2xl 
-                  bg-gradient-to-r from-primary via-purple-500 to-purple-600
-                  p-8 text-white shadow-xl ${className}`}
+      className={`rounded-2xl bg-gradient-to-r from-purple-600 to-pink-400 border border-purple-500 p-6 shadow-sm ${className}`}
     >
-      {/* Overlay for depth */}
-      <div className="absolute inset-0 bg-white/5 pointer-events-none"></div>
-
-      <div className="relative z-10 flex items-center justify-between">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight mb-2">{title}</h1>
-          <p className="text-white/90 text-sm">{subtitle}</p>
+          <h1 className="text-2xl font-bold text-white mb-1">{title}</h1>
+          <p className="text-sm text-white/80">{subtitle}</p>
         </div>
         {actionButton}
       </div>
-
-      {/* Decorative floating circles */}
-      <div className="absolute -top-6 -right-6 w-28 h-28 bg-white/10 rounded-full pointer-events-none"></div>
-      <div className="absolute -bottom-4 -left-4 w-20 h-20 bg-white/5 rounded-full pointer-events-none"></div>
     </div>
   );
 }

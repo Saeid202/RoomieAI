@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,15 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 // @ts-ignore
 import html2pdf from "html2pdf.js";
+
+const SectionHeader = ({ num, title }: { num: number; title: React.ReactNode }) => (
+    <div className="flex items-center gap-3 mb-4">
+        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-700 text-white text-xs font-bold flex-shrink-0">
+            {num}
+        </div>
+        <h2 className="text-sm font-semibold uppercase tracking-widest text-slate-500">{title}</h2>
+    </div>
+);
 
 export default function N12FormPage() {
     const navigate = useNavigate();
@@ -166,36 +175,21 @@ export default function N12FormPage() {
     };
 
     return (
-        <div className="container mx-auto py-8 max-w-5xl">
-            <div className="flex items-center justify-between mb-6">
-                <Button variant="ghost" onClick={() => navigate(-1)} className="gap-2">
-                    <ArrowLeft className="h-4 w-4" /> Back
-                </Button>
-                <div className="flex gap-2">
-                    <Button variant="outline" onClick={handleDownload} className="gap-2">
-                        <Download className="h-4 w-4" /> Download PDF
-                    </Button>
-                    <Button variant="outline" onClick={() => window.print()} className="gap-2">
-                        <Printer className="h-4 w-4" /> Print
-                    </Button>
-                    <Button onClick={handleSave} disabled={isLoading} className="gap-2 bg-roomie-purple hover:bg-roomie-purple/90">
-                        <Save className="h-4 w-4" /> {isLoading ? "Saving..." : "Save Draft"}
-                    </Button>
-                </div>
-            </div>
-
-            <div id="n12-form-content" className="bg-white shadow-lg border rounded-xl overflow-hidden print:shadow-none print:border-none">
-                {/* Header */}
-                <div className="bg-slate-50 border-b p-6 flex justify-between items-start print:bg-white print:border-none print:p-0 print:mb-4">
+        <div className="min-h-screen w-full -mx-6 -mt-6">
+            {/* Page background */}
+            <div className="bg-gradient-to-b from-slate-100 via-slate-100 to-slate-200 px-6 py-8 print:bg-white print:p-0">
+            <div id="n12-form-content" className="w-full bg-slate-50 shadow-[0_2px_24px_0_rgba(0,0,0,0.07)] border border-slate-200/60 rounded-2xl overflow-hidden print:shadow-none print:border-none print:rounded-none">
+                {/* Form header */}
+                <div className="bg-gradient-to-r from-slate-50 to-white border-b border-slate-200 px-8 py-6 flex justify-between items-start">
                     <div>
-                        <h1 className="text-2xl font-bold text-slate-900 border-none outline-none">Notice to End your Tenancy</h1>
+                        <h1 className="text-2xl font-bold text-slate-900">Notice to End your Tenancy</h1>
                         <p className="text-slate-500 text-sm mt-1">Because the Landlord, a Purchaser or a Family Member Requires the Rental Unit</p>
                         <p className="text-slate-400 text-xs">Form N12 (Residential Tenancies Act, 2006)</p>
                     </div>
-                    <div className="bg-slate-200 text-slate-700 px-3 py-1 rounded-full text-sm font-bold print:border print:bg-transparent">LTB - N12</div>
+                    <div className="bg-slate-200 text-slate-700 px-3 py-1 rounded-full text-sm font-bold">LTB - N12</div>
                 </div>
 
-                <div className="p-8 space-y-8 print:p-0">
+                <div className="px-8 py-8 space-y-10 print:p-0">
 
                     {/* Warning Box */}
                     <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex items-start gap-3">
@@ -209,131 +203,146 @@ export default function N12FormPage() {
                         </div>
                     </div>
 
-                    {/* Parties */}
-                    <div className="grid md:grid-cols-2 gap-6">
+                    {/* Section 1 — Parties Involved */}
+                    <div>
+                        <SectionHeader num={1} title="Parties Involved" />
+                        <div className="grid md:grid-cols-2 gap-6">
+                            <Card>
+                                <CardHeader className="py-3 bg-slate-100 border-b">
+                                    <CardTitle className="text-sm font-medium uppercase text-slate-500">To (Tenant)</CardTitle>
+                                </CardHeader>
+                                <CardContent className="py-4">
+                                    <Label htmlFor="tenantNames">Tenant's Name(s)</Label>
+                                    <Input
+                                        id="tenantNames"
+                                        placeholder="e.g. John Doe, Jane Doe"
+                                        value={formData.tenantNames}
+                                        onChange={(e) => handleInputChange("tenantNames", e.target.value)}
+                                        className="mt-1.5"
+                                    />
+                                    <p className="text-xs text-slate-400 mt-1">Include full names of all tenants sitting on the lease.</p>
+                                </CardContent>
+                            </Card>
+                            <Card>
+                                <CardHeader className="py-3 bg-slate-100 border-b">
+                                    <CardTitle className="text-sm font-medium uppercase text-slate-500">From (Landlord)</CardTitle>
+                                </CardHeader>
+                                <CardContent className="py-4">
+                                    <Label htmlFor="landlordName">Landlord's Name</Label>
+                                    <Input
+                                        id="landlordName"
+                                        placeholder="e.g. ABC Properties Inc."
+                                        value={formData.landlordName}
+                                        onChange={(e) => handleInputChange("landlordName", e.target.value)}
+                                        className="mt-1.5"
+                                    />
+                                </CardContent>
+                            </Card>
+                        </div>
+                    </div>
+
+                    {/* Section 2 — Address of Rental Unit */}
+                    <div>
+                        <SectionHeader num={2} title="Address of Rental Unit" />
                         <Card>
-                            <CardHeader className="py-3 bg-slate-50 border-b">
-                                <CardTitle className="text-sm font-medium uppercase text-slate-500">To (Tenant)</CardTitle>
+                            <CardHeader className="py-3 bg-slate-100 border-b">
+                                <CardTitle className="text-base font-semibold">Address of Rental Unit</CardTitle>
                             </CardHeader>
                             <CardContent className="py-4">
-                                <Label htmlFor="tenantNames">Tenant's Name(s)</Label>
-                                <Input
-                                    id="tenantNames"
-                                    placeholder="e.g. John Doe, Jane Doe"
-                                    value={formData.tenantNames}
-                                    onChange={(e) => handleInputChange("tenantNames", e.target.value)}
-                                    className="mt-1.5"
-                                />
-                                <p className="text-xs text-slate-400 mt-1">Include full names of all tenants sitting on the lease.</p>
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardHeader className="py-3 bg-slate-50 border-b">
-                                <CardTitle className="text-sm font-medium uppercase text-slate-500">From (Landlord)</CardTitle>
-                            </CardHeader>
-                            <CardContent className="py-4">
-                                <Label htmlFor="landlordName">Landlord's Name</Label>
-                                <Input
-                                    id="landlordName"
-                                    placeholder="e.g. ABC Properties Inc."
-                                    value={formData.landlordName}
-                                    onChange={(e) => handleInputChange("landlordName", e.target.value)}
+                                <Label>Full Address</Label>
+                                <Textarea
+                                    placeholder="Street, Unit, City, Postal Code"
+                                    value={formData.rentalAddress}
+                                    onChange={(e) => handleInputChange("rentalAddress", e.target.value)}
                                     className="mt-1.5"
                                 />
                             </CardContent>
                         </Card>
                     </div>
 
-                    {/* Rental Unit */}
-                    <Card>
-                        <CardHeader className="py-3 bg-slate-50 border-b">
-                            <CardTitle className="text-base font-semibold">Address of Rental Unit</CardTitle>
-                        </CardHeader>
-                        <CardContent className="py-4">
-                            <Label>Full Address</Label>
-                            <Textarea
-                                placeholder="Street, Unit, City, Postal Code"
-                                value={formData.rentalAddress}
-                                onChange={(e) => handleInputChange("rentalAddress", e.target.value)}
-                                className="mt-1.5"
-                            />
-                        </CardContent>
-                    </Card>
-
-                    {/* Termination Date */}
-                    <Card className="border-l-4 border-l-roomie-purple">
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-base font-semibold">Termination Date</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="flex flex-col md:flex-row gap-4 items-start md:items-end">
-                                <div className="w-full md:w-1/3">
-                                    <Label>I want you to move out by:</Label>
-                                    <Input type="date" value={formData.terminationDate} onChange={(e) => handleInputChange("terminationDate", e.target.value)} className="mt-1.5" />
-                                </div>
-                                <div className="text-sm text-slate-500 bg-slate-50 p-3 rounded-md flex-1">
-                                    <strong>Requirement:</strong>
-                                    <p className="mt-1">Must be at least <strong>60 days</strong> after the notice is given and be the <strong>last day of a rental period</strong>.</p>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    {/* Reason 1: Landlord's Own Use */}
-                    <Card>
-                        <CardHeader className="py-3 border-b bg-slate-50">
-                            <CardTitle className="text-base font-bold">Reason 1: Landlord's Own Use</CardTitle>
-                        </CardHeader>
-                        <CardContent className="pt-4">
-                            <p className="text-sm text-slate-600 mb-4">
-                                A person listed below intends to move in and occupy the rental unit for at least one year.
-                            </p>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-y-3 gap-x-8">
-                                {[
-                                    ['r1_me', 'Me'],
-                                    ['r1_spouse', 'My spouse'],
-                                    ['r1_child', 'My child'],
-                                    ['r1_parent', 'My parent'],
-                                    ['r1_spouse_child', "My spouse's child"],
-                                    ['r1_spouse_parent', "My spouse's parent"],
-                                    ['r1_caregiver', 'A person who will provide care services to one of the above']
-                                ].map(([key, label]) => (
-                                    <div key={key} className="flex items-center space-x-2">
-                                        <Checkbox id={key} checked={(formData as any)[key]} onCheckedChange={(c) => handleInputChange(key, c === true)} />
-                                        <Label htmlFor={key} className="font-normal cursor-pointer">{label}</Label>
+                    {/* Section 3 — Termination Date */}
+                    <div>
+                        <SectionHeader num={3} title="Termination Date" />
+                        <Card className="border-l-4 border-l-roomie-purple">
+                            <CardHeader className="pb-2">
+                                <CardTitle className="text-base font-semibold">Termination Date</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="flex flex-col md:flex-row gap-4 items-start md:items-end">
+                                    <div className="w-full md:w-1/3">
+                                        <Label>I want you to move out by:</Label>
+                                        <Input type="date" value={formData.terminationDate} onChange={(e) => handleInputChange("terminationDate", e.target.value)} className="mt-1.5" />
                                     </div>
-                                ))}
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    {/* Reason 2: Purchaser's Use */}
-                    <Card>
-                        <CardHeader className="py-3 border-b bg-slate-50">
-                            <CardTitle className="text-base font-bold">Reason 2: Purchaser's Own Use</CardTitle>
-                        </CardHeader>
-                        <CardContent className="pt-4">
-                            <p className="text-sm text-slate-600 mb-4">
-                                I have signed an Agreement of Purchase and Sale and the following person intends to move in for at least one year.
-                            </p>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-y-3 gap-x-8">
-                                {[
-                                    ['r2_purchaser', 'The purchaser'],
-                                    ['r2_spouse', "The purchaser's spouse"],
-                                    ['r2_child', "The purchaser's child"],
-                                    ['r2_parent', "The purchaser's parent"],
-                                    ['r2_spouse_child', "The purchaser's spouse's child"],
-                                    ['r2_spouse_parent', "The purchaser's spouse's parent"],
-                                    ['r2_caregiver', 'A person who will provide care services to one of the above']
-                                ].map(([key, label]) => (
-                                    <div key={key} className="flex items-center space-x-2">
-                                        <Checkbox id={key} checked={(formData as any)[key]} onCheckedChange={(c) => handleInputChange(key, c === true)} />
-                                        <Label htmlFor={key} className="font-normal cursor-pointer">{label}</Label>
+                                    <div className="text-sm text-slate-500 bg-slate-50 p-3 rounded-md flex-1">
+                                        <strong>Requirement:</strong>
+                                        <p className="mt-1">Must be at least <strong>60 days</strong> after the notice is given and be the <strong>last day of a rental period</strong>.</p>
                                     </div>
-                                ))}
-                            </div>
-                        </CardContent>
-                    </Card>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+
+                    {/* Section 4 — Landlord's Own Use */}
+                    <div>
+                        <SectionHeader num={4} title="Landlord's Own Use" />
+                        <Card>
+                            <CardHeader className="py-3 border-b bg-slate-100">
+                                <CardTitle className="text-base font-bold">Reason 1: Landlord's Own Use</CardTitle>
+                            </CardHeader>
+                            <CardContent className="pt-4">
+                                <p className="text-sm text-slate-600 mb-4">
+                                    A person listed below intends to move in and occupy the rental unit for at least one year.
+                                </p>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-y-3 gap-x-8">
+                                    {[
+                                        ['r1_me', 'Me'],
+                                        ['r1_spouse', 'My spouse'],
+                                        ['r1_child', 'My child'],
+                                        ['r1_parent', 'My parent'],
+                                        ['r1_spouse_child', "My spouse's child"],
+                                        ['r1_spouse_parent', "My spouse's parent"],
+                                        ['r1_caregiver', 'A person who will provide care services to one of the above']
+                                    ].map(([key, label]) => (
+                                        <div key={key} className="flex items-center space-x-2">
+                                            <Checkbox id={key} checked={(formData as any)[key]} onCheckedChange={(c) => handleInputChange(key, c === true)} />
+                                            <Label htmlFor={key} className="font-normal cursor-pointer">{label}</Label>
+                                        </div>
+                                    ))}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+
+                    {/* Section 5 — Purchaser's Own Use */}
+                    <div>
+                        <SectionHeader num={5} title="Purchaser's Own Use" />
+                        <Card>
+                            <CardHeader className="py-3 border-b bg-slate-100">
+                                <CardTitle className="text-base font-bold">Reason 2: Purchaser's Own Use</CardTitle>
+                            </CardHeader>
+                            <CardContent className="pt-4">
+                                <p className="text-sm text-slate-600 mb-4">
+                                    I have signed an Agreement of Purchase and Sale and the following person intends to move in for at least one year.
+                                </p>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-y-3 gap-x-8">
+                                    {[
+                                        ['r2_purchaser', 'The purchaser'],
+                                        ['r2_spouse', "The purchaser's spouse"],
+                                        ['r2_child', "The purchaser's child"],
+                                        ['r2_parent', "The purchaser's parent"],
+                                        ['r2_spouse_child', "The purchaser's spouse's child"],
+                                        ['r2_spouse_parent', "The purchaser's spouse's parent"],
+                                        ['r2_caregiver', 'A person who will provide care services to one of the above']
+                                    ].map(([key, label]) => (
+                                        <div key={key} className="flex items-center space-x-2">
+                                            <Checkbox id={key} checked={(formData as any)[key]} onCheckedChange={(c) => handleInputChange(key, c === true)} />
+                                            <Label htmlFor={key} className="font-normal cursor-pointer">{label}</Label>
+                                        </div>
+                                    ))}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
 
                     {/* Info/Compensate */}
                     <div className="bg-blue-50 border border-blue-100 rounded-lg p-4">
@@ -344,94 +353,119 @@ export default function N12FormPage() {
                         </ul>
                     </div>
 
-                    {/* Signature */}
-                    <div className="grid md:grid-cols-2 gap-6">
-                        <Card>
-                            <CardHeader className="py-3 border-b bg-slate-50">
-                                <CardTitle className="text-base">Signature</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4 pt-4">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-1">
-                                        <Label>First Name</Label>
-                                        <Input value={formData.sigFirstName} onChange={(e) => handleInputChange("sigFirstName", e.target.value)} />
+                    {/* Section 6 — Signature & Delivery */}
+                    <div>
+                        <SectionHeader num={6} title="Signature & Delivery" />
+                        <div className="grid md:grid-cols-2 gap-6">
+                            <Card>
+                                <CardHeader className="py-3 border-b bg-slate-100">
+                                    <CardTitle className="text-base">Signature</CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-4 pt-4">
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-1">
+                                            <Label>First Name</Label>
+                                            <Input value={formData.sigFirstName} onChange={(e) => handleInputChange("sigFirstName", e.target.value)} />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <Label>Last Name</Label>
+                                            <Input value={formData.sigLastName} onChange={(e) => handleInputChange("sigLastName", e.target.value)} />
+                                        </div>
                                     </div>
                                     <div className="space-y-1">
-                                        <Label>Last Name</Label>
-                                        <Input value={formData.sigLastName} onChange={(e) => handleInputChange("sigLastName", e.target.value)} />
+                                        <Label>Phone</Label>
+                                        <Input value={formData.sigPhone} onChange={(e) => handleInputChange("sigPhone", e.target.value)} />
                                     </div>
-                                </div>
-                                <div className="space-y-1">
-                                    <Label>Phone</Label>
-                                    <Input value={formData.sigPhone} onChange={(e) => handleInputChange("sigPhone", e.target.value)} />
-                                </div>
-                                <div className="space-y-1">
-                                    <Label>Date Signed</Label>
-                                    <Input type="date" value={formData.sigDate} onChange={(e) => handleInputChange("sigDate", e.target.value)} />
-                                </div>
-                                <div className="space-y-1">
-                                    <Label>Signature (Type Name)</Label>
-                                    <Input value={formData.sigTyped} onChange={(e) => handleInputChange("sigTyped", e.target.value)} placeholder="Type full name" />
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader className="py-3 border-b bg-slate-50">
-                                <CardTitle className="text-base">Office Use / Delivery</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4 pt-4">
-                                <div className="space-y-1">
-                                    <Label>File Number</Label>
-                                    <Input value={formData.officeFileNumber} onChange={(e) => handleInputChange("officeFileNumber", e.target.value)} placeholder="Optional" />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label>Method of Service</Label>
-                                    <div className="flex flex-wrap gap-3">
-                                        {['inPerson', 'mail', 'courier', 'email', 'fax'].map((m) => (
-                                            <div key={m} className="flex items-center gap-2">
-                                                <Checkbox
-                                                    id={`del-${m}`}
-                                                    checked={(formData.deliveryMethods as any)[m]}
-                                                    onCheckedChange={(c) => handleNestedChange("deliveryMethods", m, c)}
-                                                />
-                                                <Label htmlFor={`del-${m}`} className="capitalize">{m.replace(/([A-Z])/g, ' $1')}</Label>
-                                            </div>
-                                        ))}
+                                    <div className="space-y-1">
+                                        <Label>Date Signed</Label>
+                                        <Input type="date" value={formData.sigDate} onChange={(e) => handleInputChange("sigDate", e.target.value)} />
                                     </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
+                                    <div className="space-y-1">
+                                        <Label>Signature (Type Name)</Label>
+                                        <Input value={formData.sigTyped} onChange={(e) => handleInputChange("sigTyped", e.target.value)} placeholder="Type full name" />
+                                    </div>
+                                </CardContent>
+                            </Card>
 
-                    {/* Representative Info - Optional */}
-                    <div className="border rounded-md p-4 bg-slate-50">
-                        <h3 className="text-sm font-semibold mb-3 text-slate-600 uppercase">Representative Information (Optional)</h3>
-                        <div className="grid md:grid-cols-2 gap-4">
-                            <div>
-                                <Label>Representative Name</Label>
-                                <Input value={formData.repName} onChange={(e) => handleInputChange("repName", e.target.value)} className="mt-1" />
-                            </div>
-                            <div>
-                                <Label>LSUC #</Label>
-                                <Input value={formData.repLsuc} onChange={(e) => handleInputChange("repLsuc", e.target.value)} className="mt-1" />
-                            </div>
-                            <div className="md:col-span-2">
-                                <Label>Mailing Address</Label>
-                                <Input value={formData.repAddress} onChange={(e) => handleInputChange("repAddress", e.target.value)} className="mt-1" />
-                            </div>
-                            <div>
-                                <Label>City</Label>
-                                <Input value={formData.repCity} onChange={(e) => handleInputChange("repCity", e.target.value)} className="mt-1" />
-                            </div>
-                            <div>
-                                <Label>Postal</Label>
-                                <Input value={formData.repPostal} onChange={(e) => handleInputChange("repPostal", e.target.value)} className="mt-1" />
-                            </div>
+                            <Card>
+                                <CardHeader className="py-3 border-b bg-slate-100">
+                                    <CardTitle className="text-base">Office Use / Delivery</CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-4 pt-4">
+                                    <div className="space-y-1">
+                                        <Label>File Number</Label>
+                                        <Input value={formData.officeFileNumber} onChange={(e) => handleInputChange("officeFileNumber", e.target.value)} placeholder="Optional" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label>Method of Service</Label>
+                                        <div className="flex flex-wrap gap-3">
+                                            {['inPerson', 'mail', 'courier', 'email', 'fax'].map((m) => (
+                                                <div key={m} className="flex items-center gap-2">
+                                                    <Checkbox
+                                                        id={`del-${m}`}
+                                                        checked={(formData.deliveryMethods as any)[m]}
+                                                        onCheckedChange={(c) => handleNestedChange("deliveryMethods", m, c)}
+                                                    />
+                                                    <Label htmlFor={`del-${m}`} className="capitalize">{m.replace(/([A-Z])/g, ' $1')}</Label>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
                         </div>
                     </div>
 
+                    {/* Section 7 — Representative Information */}
+                    <div>
+                        <SectionHeader
+                            num={7}
+                            title={<>Representative Information <span className="text-slate-400 normal-case font-normal">(Optional)</span></>}
+                        />
+                        <Card>
+                            <CardContent className="py-4 grid md:grid-cols-2 gap-4">
+                                <div>
+                                    <Label>Representative Name</Label>
+                                    <Input value={formData.repName} onChange={(e) => handleInputChange("repName", e.target.value)} className="mt-1" />
+                                </div>
+                                <div>
+                                    <Label>LSUC #</Label>
+                                    <Input value={formData.repLsuc} onChange={(e) => handleInputChange("repLsuc", e.target.value)} className="mt-1" />
+                                </div>
+                                <div className="md:col-span-2">
+                                    <Label>Mailing Address</Label>
+                                    <Input value={formData.repAddress} onChange={(e) => handleInputChange("repAddress", e.target.value)} className="mt-1" />
+                                </div>
+                                <div>
+                                    <Label>City</Label>
+                                    <Input value={formData.repCity} onChange={(e) => handleInputChange("repCity", e.target.value)} className="mt-1" />
+                                </div>
+                                <div>
+                                    <Label>Postal</Label>
+                                    <Input value={formData.repPostal} onChange={(e) => handleInputChange("repPostal", e.target.value)} className="mt-1" />
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+
+
+                    {/* Bottom action bar */}
+                    <div className="flex items-center justify-center gap-3 px-8 py-5 border-t border-slate-200 bg-white print:hidden">
+                        <Button variant="ghost" onClick={() => navigate(-1)} className="gap-2 text-slate-600 hover:text-slate-900">
+                            <ArrowLeft className="h-4 w-4" /> Back
+                        </Button>
+                        <Button variant="outline" onClick={handleDownload} className="gap-2">
+                            <Download className="h-4 w-4" /> Download PDF
+                        </Button>
+                        <Button variant="outline" onClick={() => window.print()} className="gap-2">
+                            <Printer className="h-4 w-4" /> Print
+                        </Button>
+                        <Button onClick={handleSave} disabled={isLoading} className="gap-2 bg-roomie-purple hover:bg-roomie-purple/90">
+                            <Save className="h-4 w-4" /> {isLoading ? "Saving..." : "Save Draft"}
+                        </Button>
+                    </div>
                 </div>
+            </div>
             </div>
         </div>
     );

@@ -137,24 +137,6 @@ export default function T3FormPage() {
 
     return (
         <div className="min-h-screen bg-slate-50 py-12 px-4">
-            {/* Controls */}
-            <div className="max-w-[1200px] mx-auto mb-8 flex items-center justify-between no-print">
-                <Button variant="ghost" onClick={() => navigate(-1)} className="gap-2 font-bold text-slate-600 hover:text-slate-900 transition-colors">
-                    <ArrowLeft className="h-5 w-5" /> Back to Dashboard
-                </Button>
-                <div className="flex gap-3">
-                    <Button variant="outline" onClick={handleDownload} className="gap-2 font-bold border-2 bg-white hover:bg-slate-50 transition-all shadow-sm">
-                        <Download className="h-5 w-5" /> Export PDF
-                    </Button>
-                    <Button variant="outline" onClick={() => window.print()} className="gap-2 font-bold border-2 bg-white hover:bg-slate-50 transition-all shadow-sm">
-                        <Printer className="h-5 w-5" /> Print
-                    </Button>
-                    <Button onClick={handleSave} disabled={isLoading} className="gap-2 bg-slate-900 hover:bg-slate-800 text-white font-black px-8 py-6 rounded-xl shadow-xl transition-all active:scale-95">
-                        <Save className="h-5 w-5" /> {isLoading ? "Saving..." : "Save Draft"}
-                    </Button>
-                </div>
-            </div>
-
             <style>{`
                 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
@@ -1000,6 +982,22 @@ export default function T3FormPage() {
                         <div className="text-slate-200 font-black text-6xl tracking-tighter italic">T3 COMPLETED</div>
                     </div>
                 </div>
+
+            {/* Bottom action bar */}
+            <div className="max-w-[1200px] mx-auto mt-8 flex items-center justify-center gap-3 no-print">
+                <Button variant="ghost" onClick={() => navigate(-1)} className="gap-2 font-bold text-slate-600 hover:text-slate-900 transition-colors">
+                    <ArrowLeft className="h-5 w-5" /> Back
+                </Button>
+                <Button variant="outline" onClick={handleDownload} className="gap-2 font-bold border-2 bg-white hover:bg-slate-50 transition-all shadow-sm">
+                    <Download className="h-5 w-5" /> Export PDF
+                </Button>
+                <Button variant="outline" onClick={() => window.print()} className="gap-2 font-bold border-2 bg-white hover:bg-slate-50 transition-all shadow-sm">
+                    <Printer className="h-5 w-5" /> Print
+                </Button>
+                <Button onClick={handleSave} disabled={isLoading} className="gap-2 bg-roomie-purple hover:bg-roomie-purple/90 text-white font-bold px-6 shadow-lg transition-all active:scale-95">
+                    <Save className="h-5 w-5" /> {isLoading ? "Saving..." : "Save Draft"}
+                </Button>
+            </div>
             </div>
         </div>
     );

@@ -1,7 +1,6 @@
 import { ReactNode } from "react";
 import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarFooter } from "@/components/ui/sidebar";
 import { MobileNavigation } from "@/components/dashboard/MobileNavigation";
-import Footer from "@/components/Footer";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { UserMenu } from "@/components/dashboard/UserMenu";
 import { RenovatorSidebar } from "@/components/dashboard/sidebar/RenovatorSidebar";
@@ -34,7 +33,7 @@ export function RenovatorLayout({ children }: RenovatorLayoutProps) {
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <SidebarProvider defaultOpen={!isMobile}>
-        <div className="flex flex-1">
+        <div className="flex flex-1 min-w-0 overflow-hidden">
           {/* Fixed sidebar - hidden on mobile */}
           <Sidebar className="hidden md:flex">
             <SidebarHeader className="border-b p-4">
@@ -98,19 +97,16 @@ export function RenovatorLayout({ children }: RenovatorLayoutProps) {
           </Sidebar>
 
           {/* Main content container with header and scrollable area */}
-          <div className="flex flex-col w-full min-h-screen">
+          <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
             {/* Fixed top navbar */}
             <div className="sticky top-0 z-10 bg-background border-b">
               <UserMenu />
             </div>
 
             {/* Scrollable content area - optimized for mobile */}
-            <main className="flex-1 overflow-y-auto md:px-6 pb-32 md:pb-6 bg-background">
+            <main className="flex-1 overflow-y-auto overflow-x-hidden pb-32 md:pb-6 bg-background min-w-0">
               {children || <Outlet />}
             </main>
-
-            {/* Footer that spans full width under content - hidden on mobile */}
-            <Footer className="w-full mt-auto hidden md:block" />
           </div>
         </div>
 

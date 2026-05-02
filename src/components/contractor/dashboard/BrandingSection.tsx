@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { uploadImage } from "@/services/contractorPublicPageService";
-import { Loader2, X, Palette, Image, Layout, Plus, Trash2, ImagePlus, Monitor } from "lucide-react";
+import { Loader2, X, Palette, Image, Layout, Plus, Trash2, ImagePlus, Monitor, Copy, Check } from "lucide-react";
 import type { ContractorPublicProfile, NavLink } from "@/types/contractor";
 
 interface BrandingSectionProps {
@@ -30,6 +30,14 @@ export function BrandingSection({ profile, onSave }: BrandingSectionProps) {
   const [coverImages, setCoverImages] = useState<string[]>(profile.cover_images || []);
   const [primaryColor, setPrimaryColor] = useState(profile.primary_color || "#7C3AED");
   const [accentColor, setAccentColor] = useState(profile.accent_color || "#F59E0B");
+  const [copiedColor, setCopiedColor] = useState<string | null>(null);
+
+  function copyColor(color: string) {
+    navigator.clipboard.writeText(color).then(() => {
+      setCopiedColor(color);
+      setTimeout(() => setCopiedColor(null), 1500);
+    });
+  }
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [uploadingCover, setUploadingCover] = useState(false);
 
@@ -152,18 +160,21 @@ export function BrandingSection({ profile, onSave }: BrandingSectionProps) {
           <div
             onClick={() => !uploadingCover && coverInputRef.current?.click()}
             className={`relative w-full rounded-2xl border-2 border-dashed transition-all cursor-pointer group
-              ${uploadingCover ? "border-violet-300 bg-violet-50 cursor-wait" : "border-gray-200 hover:border-violet-400 hover:bg-violet-50/40"}`}
-            style={{ minHeight: 160 }}
+              ${uploadingCover ? "border-violet-300 bg-violet-50 cursor-wait" : "border-gray-200 hover:border-violet-400"}`}
+            style={{ minHeight: coverImages[0] ? 0 : 280 }}
           >
             {/* Preview of first image as background */}
             {coverImages[0] && (
               <img
                 src={coverImages[0]}
                 alt="Hero preview"
-                className="absolute inset-0 w-full h-full object-cover rounded-2xl opacity-30"
+                className="w-full h-auto block rounded-2xl"
               />
             )}
-            <div className="relative z-10 flex flex-col items-center justify-center py-10 gap-3">
+
+            {/* Overlay — always visible when no image, hover-only when image exists */}
+            <div className={`${coverImages[0] ? 'absolute inset-0' : 'relative'} z-10 flex flex-col items-center justify-center py-10 gap-3 rounded-2xl transition-all
+              ${coverImages[0] ? 'opacity-0 group-hover:opacity-100 bg-black/40' : ''}`}>
               {uploadingCover ? (
                 <>
                   <Loader2 className="h-8 w-8 animate-spin text-violet-500" />
@@ -171,14 +182,15 @@ export function BrandingSection({ profile, onSave }: BrandingSectionProps) {
                 </>
               ) : (
                 <>
-                  <div className="h-14 w-14 rounded-2xl bg-violet-100 flex items-center justify-center group-hover:bg-violet-200 transition-colors">
-                    <ImagePlus className="h-7 w-7 text-violet-500" />
+                  <div className={`h-14 w-14 rounded-2xl flex items-center justify-center transition-colors
+                    ${coverImages[0] ? 'bg-white/20' : 'bg-violet-100 group-hover:bg-violet-200'}`}>
+                    <ImagePlus className={`h-7 w-7 ${coverImages[0] ? 'text-white' : 'text-violet-500'}`} />
                   </div>
                   <div className="text-center">
-                    <p className="text-sm font-bold text-gray-700">
+                    <p className={`text-sm font-bold ${coverImages[0] ? 'text-white' : 'text-gray-700'}`}>
                       {coverImages.length === 0 ? "Upload header pictures" : "Add more pictures"}
                     </p>
-                    <p className="text-xs text-gray-400 mt-0.5">
+                    <p className={`text-xs mt-0.5 ${coverImages[0] ? 'text-white/70' : 'text-gray-400'}`}>
                       Click to browse · JPG, PNG, WebP · Max 10 MB each
                     </p>
                   </div>
@@ -211,7 +223,7 @@ export function BrandingSection({ profile, onSave }: BrandingSectionProps) {
               </div>
               <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
                 {coverImages.map((url, i) => (
-                  <div key={url} className="relative group aspect-video rounded-xl overflow-hidden border border-gray-200 shadow-sm">
+                  <div key={url} className="relative group aspect-video rounded-xl overflow-hidden border border-gray-200">
                     <img
                       src={url}
                       alt={`Slide ${i + 1}`}
@@ -268,7 +280,7 @@ export function BrandingSection({ profile, onSave }: BrandingSectionProps) {
             <Label>Logo</Label>
             <div className="flex items-center gap-4">
               {logoUrl ? (
-                <img src={logoUrl} alt="Logo preview" className="h-16 w-16 rounded-full object-cover border-2 border-gray-200 shadow-sm" />
+                <img src={logoUrl} alt="Logo preview" className="h-16 w-16 rounded-full object-cover border-2 border-gray-200" />
               ) : (
                 <div className="h-16 w-16 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 border-2 border-dashed border-gray-300">
                   <Image className="h-6 w-6" />
@@ -384,7 +396,27 @@ export function BrandingSection({ profile, onSave }: BrandingSectionProps) {
                 onChange={(e) => setPrimaryColor(e.target.value)}
                 className="h-10 w-16 rounded cursor-pointer border border-gray-200"
               />
-              <span className="text-sm font-mono text-gray-600">{primaryColor}</span>
+              <input
+                type="text"
+                value={primaryColor}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (/^#[0-9A-Fa-f]{0,6}$/.test(val)) setPrimaryColor(val);
+                }}
+                onBlur={(e) => {
+                  if (!/^#[0-9A-Fa-f]{6}$/.test(e.target.value)) setPrimaryColor(profile.primary_color || "#7C3AED");
+                }}
+                className="w-28 text-sm font-mono text-gray-700 border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-violet-400 focus:border-violet-400"
+                placeholder="#000000"
+                maxLength={7}
+              />
+              <button
+                onClick={() => copyColor(primaryColor)}
+                className="flex items-center gap-1 text-xs text-gray-400 hover:text-violet-600 transition-colors focus:outline-none"
+                title="Copy color code"
+              >
+                {copiedColor === primaryColor ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5" />}
+              </button>
               <button
                 onClick={() => setPrimaryColor("#7C3AED")}
                 className="text-xs text-violet-600 hover:underline focus:outline-none"
@@ -406,7 +438,27 @@ export function BrandingSection({ profile, onSave }: BrandingSectionProps) {
                 onChange={(e) => setAccentColor(e.target.value)}
                 className="h-10 w-16 rounded cursor-pointer border border-gray-200"
               />
-              <span className="text-sm font-mono text-gray-600">{accentColor}</span>
+              <input
+                type="text"
+                value={accentColor}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (/^#[0-9A-Fa-f]{0,6}$/.test(val)) setAccentColor(val);
+                }}
+                onBlur={(e) => {
+                  if (!/^#[0-9A-Fa-f]{6}$/.test(e.target.value)) setAccentColor(profile.accent_color || "#F59E0B");
+                }}
+                className="w-28 text-sm font-mono text-gray-700 border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-violet-400 focus:border-violet-400"
+                placeholder="#000000"
+                maxLength={7}
+              />
+              <button
+                onClick={() => copyColor(accentColor)}
+                className="flex items-center gap-1 text-xs text-gray-400 hover:text-violet-600 transition-colors focus:outline-none"
+                title="Copy color code"
+              >
+                {copiedColor === accentColor ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5" />}
+              </button>
               <button
                 onClick={() => setAccentColor("#F59E0B")}
                 className="text-xs text-violet-600 hover:underline focus:outline-none"

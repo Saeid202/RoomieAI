@@ -43,17 +43,17 @@ export function SidebarMenuSection({
   }
 
   return (
-    <div className="mb-0.5">
+    <div>
       <button
         onClick={() => setExpanded(!expanded)}
         className={cn(
-          "w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-all duration-150",
+          "w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-[17px] font-semibold transition-all duration-150",
           anyActive && !expanded
             ? "text-violet-700 bg-violet-50"
-            : "text-slate-500 hover:bg-violet-50 hover:text-violet-700"
+            : "text-black hover:bg-violet-50 hover:text-violet-700"
         )}
       >
-        <span className={cn("shrink-0 text-[17px] leading-none", anyActive ? "opacity-100" : "opacity-70")}>
+        <span className={cn("shrink-0 text-[18px] leading-none", anyActive ? "opacity-100" : "opacity-100")}>
           {typeof Icon === "function" ? <Icon size={17} /> : Icon}
         </span>
         {shouldShowLabel && (
@@ -68,7 +68,7 @@ export function SidebarMenuSection({
       </button>
 
       {expanded && shouldShowLabel && (
-        <div className="mt-1 ml-4 pl-3 border-l-2 border-violet-100 flex flex-col gap-0.5">
+        <div className="ml-4 flex flex-col gap-0.5">
           {subItems.map((item) => {
             const active = isActive(item.path);
             return (
@@ -77,10 +77,10 @@ export function SidebarMenuSection({
                 href={item.path}
                 onClick={(e) => handleNavClick(e, item.path)}
                 className={cn(
-                  "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150",
+                  "flex items-center gap-2.5 rounded-lg px-3 py-2 text-[16px] transition-all duration-150",
                   active
                     ? "bg-violet-100 text-violet-700 font-semibold"
-                    : "text-slate-500 hover:bg-violet-50 hover:text-violet-600"
+                    : "text-gray-900 hover:bg-violet-50 hover:text-violet-600"
                 )}
               >
                 {item.icon && (

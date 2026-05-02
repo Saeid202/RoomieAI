@@ -1,4 +1,5 @@
 import { useState } from "react";
+import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -12,6 +13,15 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 // @ts-ignore
 import html2pdf from "html2pdf.js";
+
+const SectionHeader = ({ num, title }: { num: number; title: React.ReactNode }) => (
+    <div className="flex items-center gap-3 mb-4">
+        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-700 text-white text-xs font-bold flex-shrink-0">
+            {num}
+        </div>
+        <h2 className="text-sm font-semibold uppercase tracking-widest text-slate-500">{title}</h2>
+    </div>
+);
 
 interface WorkDetail {
     planned: string;
@@ -162,27 +172,13 @@ export default function N13FormPage() {
     };
 
     return (
-        <div className="container mx-auto py-8 max-w-5xl">
-            <div className="flex items-center justify-between mb-6">
-                <Button variant="ghost" onClick={() => navigate(-1)} className="gap-2">
-                    <ArrowLeft className="h-4 w-4" /> Back
-                </Button>
-                <div className="flex gap-2">
-                    <Button variant="outline" onClick={handleDownload} className="gap-2">
-                        <Download className="h-4 w-4" /> Download PDF
-                    </Button>
-                    <Button variant="outline" onClick={() => window.print()} className="gap-2">
-                        <Printer className="h-4 w-4" /> Print
-                    </Button>
-                    <Button onClick={handleSave} disabled={isLoading} className="gap-2 bg-roomie-purple hover:bg-roomie-purple/90">
-                        <Save className="h-4 w-4" /> {isLoading ? "Saving..." : "Save Draft"}
-                    </Button>
-                </div>
-            </div>
+        <div className="min-h-screen w-full -mx-6 -mt-6">
+            {/* Page background */}
+            <div className="bg-gradient-to-b from-slate-100 via-slate-100 to-slate-200 px-6 py-8 print:bg-white print:p-0">
+                <div id="n13-form-content" className="w-full bg-slate-50 shadow-[0_2px_24px_0_rgba(0,0,0,0.07)] border border-slate-200/60 rounded-2xl overflow-hidden print:shadow-none print:border-none print:rounded-none">
 
-            <div id="n13-form-content" className="bg-white shadow-lg border rounded-xl overflow-hidden print:shadow-none print:border-none">
-                {/* Header */}
-                <div className="bg-slate-50 border-b p-6 flex justify-between items-start print:bg-white print:border-none print:p-0 print:mb-4">
+                    {/* Form header */}
+                    <div className="bg-gradient-to-r from-slate-50 to-white border-b border-slate-200 px-8 py-6 flex justify-between items-start">
                     <div>
                         <h1 className="text-2xl font-bold text-slate-900 border-none outline-none">Notice to End your Tenancy</h1>
                         <p className="text-slate-500 text-sm mt-1">Because the Landlord Wants to Demolish the Rental Unit, Repair it or Convert it to Another Use</p>
@@ -191,7 +187,7 @@ export default function N13FormPage() {
                     <div className="bg-slate-200 text-slate-700 px-3 py-1 rounded-full text-sm font-bold print:border print:bg-transparent">LTB - N13</div>
                 </div>
 
-                <div className="p-8 space-y-8 print:p-0">
+                    <div className="px-8 py-8 space-y-10 print:p-0">
 
                     {/* Warning Box */}
                     <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex items-start gap-3">
@@ -204,80 +200,91 @@ export default function N13FormPage() {
                         </div>
                     </div>
 
-                    {/* Parties */}
-                    <div className="grid md:grid-cols-2 gap-6">
+                    {/* Section 1 — Parties */}
+                    <div>
+                        <SectionHeader num={1} title="Parties Involved" />
+                        <div className="grid md:grid-cols-2 gap-6">
+                            <Card>
+                                <CardHeader className="py-3 bg-slate-100 border-b">
+                                    <CardTitle className="text-sm font-medium uppercase text-slate-500">To (Tenant)</CardTitle>
+                                </CardHeader>
+                                <CardContent className="py-4">
+                                    <Label htmlFor="tenantNames">Tenant's Name(s)</Label>
+                                    <Input
+                                        id="tenantNames"
+                                        placeholder="e.g. John Doe, Jane Doe"
+                                        value={formData.tenantNames}
+                                        onChange={(e) => handleInputChange("tenantNames", e.target.value)}
+                                        className="mt-1.5"
+                                    />
+                                </CardContent>
+                            </Card>
+                            <Card>
+                                <CardHeader className="py-3 bg-slate-100 border-b">
+                                    <CardTitle className="text-sm font-medium uppercase text-slate-500">From (Landlord)</CardTitle>
+                                </CardHeader>
+                                <CardContent className="py-4">
+                                    <Label htmlFor="landlordName">Landlord's Name</Label>
+                                    <Input
+                                        id="landlordName"
+                                        placeholder="e.g. ABC Properties Inc."
+                                        value={formData.landlordName}
+                                        onChange={(e) => handleInputChange("landlordName", e.target.value)}
+                                        className="mt-1.5"
+                                    />
+                                </CardContent>
+                            </Card>
+                        </div>
+                    </div>
+
+                    {/* Section 2 — Address */}
+                    <div>
+                        <SectionHeader num={2} title="Address of Rental Unit" />
                         <Card>
-                            <CardHeader className="py-3 bg-slate-50 border-b">
-                                <CardTitle className="text-sm font-medium uppercase text-slate-500">To (Tenant)</CardTitle>
+                            <CardHeader className="py-3 bg-slate-100 border-b">
+                                <CardTitle className="text-base font-semibold">Rental Unit</CardTitle>
                             </CardHeader>
                             <CardContent className="py-4">
-                                <Label htmlFor="tenantNames">Tenant's Name(s)</Label>
-                                <Input
-                                    id="tenantNames"
-                                    placeholder="e.g. John Doe, Jane Doe"
-                                    value={formData.tenantNames}
-                                    onChange={(e) => handleInputChange("tenantNames", e.target.value)}
-                                    className="mt-1.5"
-                                />
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardHeader className="py-3 bg-slate-50 border-b">
-                                <CardTitle className="text-sm font-medium uppercase text-slate-500">From (Landlord)</CardTitle>
-                            </CardHeader>
-                            <CardContent className="py-4">
-                                <Label htmlFor="landlordName">Landlord's Name</Label>
-                                <Input
-                                    id="landlordName"
-                                    placeholder="e.g. ABC Properties Inc."
-                                    value={formData.landlordName}
-                                    onChange={(e) => handleInputChange("landlordName", e.target.value)}
+                                <Label>Full Address</Label>
+                                <Textarea
+                                    placeholder="Street, Unit, City, Postal Code"
+                                    value={formData.rentalAddress}
+                                    onChange={(e) => handleInputChange("rentalAddress", e.target.value)}
                                     className="mt-1.5"
                                 />
                             </CardContent>
                         </Card>
                     </div>
 
-                    {/* Rental Unit */}
-                    <Card>
-                        <CardHeader className="py-3 bg-slate-50 border-b">
-                            <CardTitle className="text-base font-semibold">Address of Rental Unit</CardTitle>
-                        </CardHeader>
-                        <CardContent className="py-4">
-                            <Label>Full Address</Label>
-                            <Textarea
-                                placeholder="Street, Unit, City, Postal Code"
-                                value={formData.rentalAddress}
-                                onChange={(e) => handleInputChange("rentalAddress", e.target.value)}
-                                className="mt-1.5"
-                            />
-                        </CardContent>
-                    </Card>
-
-                    {/* Termination Date */}
-                    <Card className="border-l-4 border-l-roomie-purple">
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-base font-semibold">Termination Date</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="flex flex-col md:flex-row gap-4 items-start md:items-end">
-                                <div className="w-full md:w-1/3">
-                                    <Label>I want you to move out by:</Label>
-                                    <Input type="date" value={formData.terminationDate} onChange={(e) => handleInputChange("terminationDate", e.target.value)} className="mt-1.5" />
+                    {/* Section 3 — Termination Date */}
+                    <div>
+                        <SectionHeader num={3} title="Termination Date" />
+                        <Card className="border-l-4 border-l-roomie-purple">
+                            <CardHeader className="pb-2 bg-slate-100 border-b">
+                                <CardTitle className="text-base font-semibold">Termination Date</CardTitle>
+                            </CardHeader>
+                            <CardContent className="pt-4">
+                                <div className="flex flex-col md:flex-row gap-4 items-start md:items-end">
+                                    <div className="w-full md:w-1/3">
+                                        <Label>I want you to move out by:</Label>
+                                        <Input type="date" value={formData.terminationDate} onChange={(e) => handleInputChange("terminationDate", e.target.value)} className="mt-1.5" />
+                                    </div>
+                                    <div className="text-sm text-slate-500 bg-slate-50 p-3 rounded-md flex-1">
+                                        <strong>Requirement:</strong>
+                                        <p className="mt-1">Must be at least <strong>120 days</strong> after notice and be the <strong>last day of a rental period</strong>.</p>
+                                    </div>
                                 </div>
-                                <div className="text-sm text-slate-500 bg-slate-50 p-3 rounded-md flex-1">
-                                    <strong>Requirement:</strong>
-                                    <p className="mt-1">Must be at least <strong>120 days</strong> after notice and be the <strong>last day of a rental period</strong>.</p>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
+                            </CardContent>
+                        </Card>
+                    </div>
 
-                    {/* Reasons */}
-                    <Card>
-                        <CardHeader className="py-3 border-b bg-slate-50">
-                            <CardTitle className="text-base font-bold">Reason for Ending Tenancy</CardTitle>
-                        </CardHeader>
+                    {/* Section 4 — Reasons */}
+                    <div>
+                        <SectionHeader num={4} title="Reason for Ending Tenancy" />
+                        <Card>
+                            <CardHeader className="py-3 border-b bg-slate-100">
+                                <CardTitle className="text-base font-bold">Select Reason</CardTitle>
+                            </CardHeader>
                         <CardContent className="pt-6">
                             <RadioGroup value={formData.reason} onValueChange={(val) => handleInputChange("reason", val)} className="space-y-4">
                                 <div className="flex items-start space-x-3">
@@ -308,13 +315,16 @@ export default function N13FormPage() {
                                 </div>
                             </RadioGroup>
                         </CardContent>
-                    </Card>
+                        </Card>
+                    </div>
 
-                    {/* Work Details */}
-                    <Card>
-                        <CardHeader className="py-3 border-b bg-slate-50">
-                            <CardTitle className="text-base font-bold">Details About the Work</CardTitle>
-                        </CardHeader>
+                    {/* Section 5 — Work Details */}
+                    <div>
+                        <SectionHeader num={5} title="Details About the Work" />
+                        <Card>
+                            <CardHeader className="py-3 border-b bg-slate-100">
+                                <CardTitle className="text-base font-bold">Details About the Work</CardTitle>
+                            </CardHeader>
                         <CardContent className="pt-4">
                             <div className="space-y-4">
                                 {formData.workDetails.map((row, idx) => (
@@ -467,7 +477,25 @@ export default function N13FormPage() {
                         </div>
                     </div>
 
+
+                    {/* Bottom action bar */}
+                    <div className="flex items-center justify-center gap-3 px-8 py-5 border-t border-slate-200 bg-white print:hidden">
+                        <Button variant="ghost" onClick={() => navigate(-1)} className="gap-2 text-slate-600 hover:text-slate-900">
+                            <ArrowLeft className="h-4 w-4" /> Back
+                        </Button>
+                        <Button variant="outline" onClick={handleDownload} className="gap-2">
+                            <Download className="h-4 w-4" /> Download PDF
+                        </Button>
+                        <Button variant="outline" onClick={() => window.print()} className="gap-2">
+                            <Printer className="h-4 w-4" /> Print
+                        </Button>
+                        <Button onClick={handleSave} disabled={isLoading} className="gap-2 bg-roomie-purple hover:bg-roomie-purple/90">
+                            <Save className="h-4 w-4" /> {isLoading ? "Saving..." : "Save Draft"}
+                        </Button>
+                    </div>
                 </div>
+                </div>
+            </div>
             </div>
         </div>
     );

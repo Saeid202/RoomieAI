@@ -50,7 +50,7 @@ const Navbar = ({ hideMobileMenu = false, onMobileMenuToggle }: NavbarProps) => 
   }, []);
 
   return (
-    <nav className="w-full py-4 bg-gradient-to-r from-slate-900 via-purple-900 to-slate-900 backdrop-blur-xl fixed top-0 z-50 shadow-2xl border-b border-white/10">
+    <nav className="w-full py-4 bg-white/95 backdrop-blur-xl fixed top-0 z-50 shadow-sm border-b border-gray-100">
       <div className="w-full px-6 lg:px-8 flex justify-between items-center relative">
         
         {/* Left side: logo only */}
@@ -90,7 +90,7 @@ const Navbar = ({ hideMobileMenu = false, onMobileMenuToggle }: NavbarProps) => 
               <Button 
                 variant="outline" 
                 onClick={() => setIsLoginOpen(true)}
-                className="border-white/20 text-white/80 hover:text-white hover:bg-white/10 hover:border-white/30 backdrop-blur-sm transition-all duration-300 font-light tracking-wide"
+                className="border-gray-200 text-gray-700 hover:text-gray-900 hover:bg-gray-50 hover:border-gray-300 transition-all duration-300 font-medium"
               >
                 Log in
               </Button>

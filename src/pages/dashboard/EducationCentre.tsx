@@ -189,7 +189,7 @@ export default function EducationCentre() {
                                         </CardContent>
 
                                         <CardFooter className="p-6 pt-4">
-                                            <Button className="w-full bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-700 hover:via-purple-700 hover:to-pink-700 text-white rounded-xl h-11 text-sm font-bold shadow-lg transition-all" asChild>
+                                            <Button variant="outline" className="w-full h-11 px-5 rounded-xl border-gray-200 text-gray-600 hover:text-violet-700 hover:border-violet-300 hover:bg-violet-50 text-sm font-medium transition-colors" asChild>
                                                 <a href={item.link} target="_blank" rel="noopener noreferrer">
                                                     Read Guide <ExternalLink className="ml-2 h-4 w-4" />
                                                 </a>

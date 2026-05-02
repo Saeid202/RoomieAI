@@ -17,14 +17,14 @@ export function LawyerProfileCard({ lawyer, onStartConversation }: LawyerProfile
   };
 
   return (
-    <Card className="overflow-hidden border-2 hover:border-purple-300 transition-all duration-300 hover:shadow-xl">
-      <div className="bg-gradient-to-r from-purple-600 via-pink-600 to-indigo-600 h-24"></div>
+    <Card className="overflow-hidden border border-gray-200 hover:border-gray-300 transition-all duration-300 hover:shadow-md">
+      <div className="bg-violet-900 h-16"></div>
       
       <CardContent className="p-6 -mt-12">
         {/* Profile Header */}
         <div className="flex items-start gap-4 mb-6">
-          <Avatar className="h-24 w-24 border-4 border-white shadow-lg">
-            <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white text-2xl font-bold">
+          <Avatar className="h-24 w-24 border-4 border-white shadow-md">
+            <AvatarFallback className="bg-gray-100 text-gray-600 text-2xl font-bold border border-gray-200">
               {getInitials(lawyer.full_name)}
             </AvatarFallback>
           </Avatar>
@@ -40,20 +40,20 @@ export function LawyerProfileCard({ lawyer, onStartConversation }: LawyerProfile
         {/* Contact Info */}
         <div className="space-y-2 mb-6">
           {lawyer.email && (
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <Mail className="h-4 w-4" />
+            <div className="flex items-center gap-2 text-base text-gray-900">
+              <Mail className="h-4 w-4 text-gray-400" />
               <span>{lawyer.email}</span>
             </div>
           )}
           {lawyer.phone_number && (
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <Phone className="h-4 w-4" />
+            <div className="flex items-center gap-2 text-base text-gray-900">
+              <Phone className="h-4 w-4 text-gray-400" />
               <span>{lawyer.phone_number}</span>
             </div>
           )}
           {lawyer.city && lawyer.province && (
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <MapPin className="h-4 w-4" />
+            <div className="flex items-center gap-2 text-base text-gray-900">
+              <MapPin className="h-4 w-4 text-gray-400" />
               <span>{lawyer.city}, {lawyer.province}</span>
             </div>
           )}
@@ -79,20 +79,20 @@ export function LawyerProfileCard({ lawyer, onStartConversation }: LawyerProfile
         <div className="mb-6">
           <h3 className="text-sm font-bold text-gray-900 mb-3">Our Legal Services:</h3>
           <div className="space-y-2">
-            <div className="flex items-center gap-2 text-sm text-gray-700">
-              <span className="text-lg">📄</span>
+            <div className="flex items-center gap-2 text-base text-gray-900">
+              <span>📄</span>
               <span>Contract Review (Sales & Rental)</span>
             </div>
-            <div className="flex items-center gap-2 text-sm text-gray-700">
-              <span className="text-lg">💼</span>
+            <div className="flex items-center gap-2 text-base text-gray-900">
+              <span>💼</span>
               <span>Legal Consultation</span>
             </div>
-            <div className="flex items-center gap-2 text-sm text-gray-700">
-              <span className="text-lg">🏛️</span>
+            <div className="flex items-center gap-2 text-base text-gray-900">
+              <span>🏛️</span>
               <span>Real Estate Law</span>
             </div>
-            <div className="flex items-center gap-2 text-sm text-gray-700">
-              <span className="text-lg">✍️</span>
+            <div className="flex items-center gap-2 text-base text-gray-900">
+              <span>✍️</span>
               <span>Document Notarization</span>
             </div>
           </div>
@@ -131,7 +131,8 @@ export function LawyerProfileCard({ lawyer, onStartConversation }: LawyerProfile
         {/* Action Button */}
         <Button
           onClick={() => onStartConversation(lawyer)}
-          className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold shadow-lg"
+          variant="outline"
+          className="w-full h-11 rounded-xl border-gray-200 text-gray-600 hover:text-violet-700 hover:border-violet-300 hover:bg-violet-50 text-sm font-medium transition-colors"
           size="lg"
         >
           <MessageCircle className="h-5 w-5 mr-2" />

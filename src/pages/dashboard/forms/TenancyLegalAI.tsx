@@ -1,9 +1,6 @@
 import { useState, useRef, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Send,
   Bot,
@@ -15,10 +12,7 @@ import {
   Loader2,
   Copy,
   Check,
-  Home,
   DollarSign,
-  CheckSquare,
-  CalendarClock,
   AlertTriangle,
   ArrowRight,
   ShieldAlert
@@ -85,6 +79,15 @@ const tenancyTopics: LegalTopic[] = [
     question: 'What if my landlord gave me an eviction notice in bad faith?'
   }
 ];
+
+// Color theme per form — drives the sidebar card dynamically
+const formColorTheme: Record<string, { bg: string; border: string; text: string; subtext: string; btn: string; btnHover: string }> = {
+  t2: { bg: 'bg-blue-50',    border: 'border-blue-200',   text: 'text-blue-900',   subtext: 'text-blue-700',   btn: 'bg-blue-600',    btnHover: 'hover:bg-blue-700'    },
+  t6: { bg: 'bg-purple-50',  border: 'border-purple-200', text: 'text-purple-900', subtext: 'text-purple-700', btn: 'bg-purple-600',  btnHover: 'hover:bg-purple-700'  },
+  t1: { bg: 'bg-emerald-50', border: 'border-emerald-200',text: 'text-emerald-900',subtext: 'text-emerald-700',btn: 'bg-emerald-600', btnHover: 'hover:bg-emerald-700' },
+  t3: { bg: 'bg-orange-50',  border: 'border-orange-200', text: 'text-orange-900', subtext: 'text-orange-700', btn: 'bg-orange-500',  btnHover: 'hover:bg-orange-600'  },
+  t5: { bg: 'bg-red-50',     border: 'border-red-200',    text: 'text-red-900',    subtext: 'text-red-700',    btn: 'bg-red-600',     btnHover: 'hover:bg-red-700'     },
+};
 
 interface TenantForm {
   id: string;
@@ -672,314 +675,234 @@ I can help you with questions about:
   };
 
   return (
-    <div className="w-full p-4 md:p-6">
+    <div className="flex flex-col min-h-[calc(100vh-130px)] -mx-6 bg-gray-100">
+
       {/* Header */}
-      <div className="mb-6">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="p-2 bg-primary/10 rounded-lg">
-            <Scale className="h-6 w-6 text-primary" />
+      <div className="flex-shrink-0 px-6 py-4 bg-white border-b border-gray-200">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-violet-100 rounded-xl">
+            <Scale className="h-5 w-5 text-violet-600" />
           </div>
           <div>
-            <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight">AI Legal Assistant</h1>
-            <p className="text-slate-600 text-base md:text-lg font-medium">
-              Get instant answers about tenancy law and your rights
-            </p>
-          </div>
-        </div>
-        <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-          <div className="flex gap-2">
-            <AlertCircle className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-0.5" />
-            <div className="text-base text-yellow-900 leading-relaxed font-medium">
-              <strong>Disclaimer:</strong> This AI provides general information about tenancy law for educational purposes only.
-              It is not legal advice. Laws vary by state and jurisdiction. For specific legal matters, please consult with a qualified attorney.
-            </div>
+            <h1 className="text-lg font-bold text-gray-900 leading-tight">AI Legal Assistant</h1>
+            <p className="text-xs text-gray-500">Get instant answers about tenancy law and your rights</p>
           </div>
         </div>
       </div>
 
-      {/* Quick Topics */}
-      {messages.length === 0 && (
-        <div className="mb-8">
-          <h2 className="text-xl font-black mb-4 flex items-center gap-2 text-slate-800">
-            <Lightbulb className="h-6 w-6 text-amber-500" />
-            Popular Topics
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-            {tenancyTopics.map((topic) => (
-              <Card
+      {/* Topic selector */}
+      <div className="flex-shrink-0 px-6 py-5 bg-white border-b border-gray-200">
+        <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-4">Select Your Case Type</p>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+          {tenancyTopics.map((topic) => {
+            const formId = topic.id === 'maintenance' ? 't6' :
+              topic.id === 'tenant-rights' ? 't2' :
+              topic.id === 'eviction' ? 't5' :
+              topic.id === 'illegal-rent' ? 't1' :
+              topic.id === 'lost-services' ? 't3' : undefined;
+            const isSelected = selectedForm === formId;
+            return (
+              <button
                 key={topic.id}
-                className="cursor-pointer hover:shadow-md transition-all border-slate-200 hover:border-primary/50 group"
-                onClick={() => handleTopicClick(
-                  topic.question,
-                  topic.id === 'maintenance' ? 't6' :
-                    topic.id === 'tenant-rights' ? 't2' :
-                      topic.id === 'eviction' ? 't5' :
-                        topic.id === 'illegal-rent' ? 't1' :
-                          topic.id === 'lost-services' ? 't3' :
-                            topic.id === 'deposits' ? 't1' :
-                              undefined
-                )}
+                onClick={() => handleTopicClick(topic.question, formId)}
+                className={`group relative flex flex-col items-center gap-2 rounded-2xl border-2 px-3 py-4 text-center transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 ${
+                  isSelected
+                    ? `${topic.color.split(' ')[0]} border-current shadow-md -translate-y-0.5`
+                    : "bg-white border-gray-200 hover:border-gray-300"
+                }`}
               >
-                <CardContent className="p-3 text-center flex flex-col items-center">
-                  <div className={`p-2 rounded-xl mb-2 transition-colors ${topic.color.replace('text-', 'group-hover:bg-opacity-80 text-')}`}>
-                    {topic.icon}
-                  </div>
-                  <h3 className="font-black text-sm leading-tight text-slate-800">{topic.title}</h3>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Main Chat Interface */}
-        <div className="lg:col-span-8">
-          <Card className="shadow-md border-slate-200 h-[650px] flex flex-col overflow-hidden bg-white">
-            <CardHeader className="border-b bg-white py-4">
-              <CardTitle className="flex items-center gap-2 text-xl font-black text-slate-900">
-                <Bot className="h-6 w-6 text-primary" />
-                Legal Assistant Chat
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="flex-1 flex flex-col p-0 relative min-h-0">
-              {/* Messages Area */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-6 bg-slate-50/50 custom-scrollbar">
-                {messages.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-full text-center px-6">
-                    <div className="bg-white rounded-full w-20 h-20 flex items-center justify-center border border-slate-100 shadow-sm mb-6">
-                      <Scale className="h-10 w-10 text-slate-300" />
-                    </div>
-                    <h3 className="text-xl font-bold text-slate-800 mb-2">Welcome to your Tenant Advocacy AI</h3>
-                    <p className="text-slate-500 max-w-md text-sm leading-relaxed">
-                      Protect your rights. Ask about maintenance, illegal rent increases, privacy violations, or how to file with the LTB.
-                    </p>
-                  </div>
-                ) : (
-                  messages.map((message) => (
-                    <div
-                      key={message.id}
-                      className={`flex gap-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                    >
-                      {message.role === 'assistant' && (
-                        <div className="flex-shrink-0 mt-1">
-                          <div className="w-8 h-8 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center">
-                            <Bot className="h-4 w-4 text-slate-600" />
-                          </div>
-                        </div>
-                      )}
-                      <div
-                        className={`max-w-[85%] rounded-2xl p-5 shadow-sm ${message.role === 'user'
-                          ? 'bg-slate-900 text-white'
-                          : 'bg-white border-2 border-slate-200 text-slate-900'
-                          }`}
-                      >
-                        <div className="prose prose-sm max-w-none">
-                          <pre className="whitespace-pre-wrap font-sans text-base font-medium leading-relaxed">
-                            {message.content}
-                          </pre>
-                        </div>
-                        <div className={`flex items-center gap-3 mt-4 pt-3 border-t ${message.role === 'user' ? 'border-white/10' : 'border-slate-100'}`}>
-                          <span className={`text-xs font-bold opacity-60`}>
-                            {message.timestamp.toLocaleTimeString([], {
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })}
-                          </span>
-                          {message.role === 'assistant' && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-6 px-2 ml-auto text-slate-400 hover:text-slate-600"
-                              onClick={() => handleCopyMessage(message.id, message.content)}
-                            >
-                              {copiedMessageId === message.id ? (
-                                <Check className="h-3 w-3 text-green-500" />
-                              ) : (
-                                <Copy className="h-3 w-3" />
-                              )}
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                      {message.role === 'user' && (
-                        <div className="flex-shrink-0 mt-1">
-                          <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center">
-                            <User className="h-4 w-4 text-white" />
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  ))
-                )}
-                {isLoading && (
-                  <div className="flex gap-3">
-                    <div className="flex-shrink-0">
-                      <div className="w-8 h-8 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center">
-                        <Bot className="h-4 w-4 text-slate-600" />
-                      </div>
-                    </div>
-                    <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
-                      <div className="flex items-center gap-2">
-                        <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                        <span className="text-sm font-medium text-slate-500">Reviewing RTA protocols...</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                <div ref={messagesEndRef} />
-              </div>
-
-              {/* Professional Input Area */}
-              <div className="p-4 bg-white border-t border-slate-100">
-                <div className="relative flex items-end gap-2 bg-slate-50 border border-slate-200 rounded-xl focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary/50 transition-all p-2">
-                  <Input
-                    value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    placeholder="Describe your situation (e.g., Landlord won't fix my leaking sink)..."
-                    disabled={isLoading}
-                    className="flex-1 border-none shadow-none focus-visible:ring-0 bg-transparent py-4 px-3 text-base font-medium placeholder:text-slate-400"
-                  />
-                  <Button
-                    onClick={handleSendMessage}
-                    disabled={!inputValue.trim() || isLoading}
-                    className="rounded-xl bg-slate-900 hover:bg-slate-800 text-white shadow-lg transition-all h-12 px-6 font-bold"
-                  >
-                    <Send className="h-5 w-5 mr-1" /> Send
-                  </Button>
+                <div className={`flex h-10 w-10 items-center justify-center rounded-xl transition-colors ${
+                  isSelected ? topic.color : "bg-gray-100 text-gray-500"
+                }`}>
+                  {topic.icon}
                 </div>
-                <p className="text-sm font-bold text-center text-slate-500 mt-3">
-                  AI Tenant Assistant provides information only. Always verify with the Landlord and Tenant Board.
+                <div>
+                  <p className={`text-xs font-semibold leading-tight ${isSelected ? topic.color.split(' ')[1] || "text-gray-900" : "text-gray-700"}`}>
+                    {topic.title}
+                  </p>
+                  <p className="text-[10px] text-gray-400 mt-0.5 leading-tight">{topic.description}</p>
+                </div>
+                {isSelected && (
+                  <div className="absolute top-2 right-2 h-2 w-2 rounded-full bg-current" />
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Body */}
+      <div className="flex flex-1 min-h-0 bg-white">
+
+        {/* Chat column */}
+        <div className="flex flex-col flex-1 min-w-0">
+
+          {/* Messages */}
+          <div className="flex-1 px-6 py-6 min-h-[400px]">
+            {messages.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full pb-16">
+                <div className="w-14 h-14 rounded-2xl bg-violet-100 flex items-center justify-center mb-4">
+                  <Scale className="h-7 w-7 text-violet-600" />
+                </div>
+                <h2 className="text-xl font-bold text-gray-900 mb-2">Tenant Advocacy AI</h2>
+                <p className="text-gray-500 text-center max-w-md text-sm">
+                  Protect your rights. Ask about maintenance, illegal rent increases, privacy violations, or how to file with the LTB.
                 </p>
               </div>
-            </CardContent>
-          </Card>
+            ) : (
+              <div className="max-w-2xl mx-auto space-y-6">
+                {messages.map((message) => (
+                  <div key={message.id} className={`flex gap-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                    {message.role === 'assistant' && (
+                      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-violet-100 flex items-center justify-center">
+                        <Bot className="h-4 w-4 text-violet-600" />
+                      </div>
+                    )}
+                    <div className="max-w-[78%]">
+                      <div className={`rounded-2xl px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap ${
+                        message.role === 'user'
+                          ? 'bg-violet-600 text-white rounded-br-sm'
+                          : 'bg-gray-100/80 border border-gray-200 text-gray-900 rounded-bl-sm'
+                      }`}>
+                        {message.content}
+                      </div>
+                      <div className="flex items-center gap-2 mt-1 px-1">
+                        <span className="text-xs text-gray-400">
+                          {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                        {message.role === 'assistant' && (
+                          <button
+                            className="text-gray-400 hover:text-gray-600 transition-colors"
+                            onClick={() => handleCopyMessage(message.id, message.content)}
+                          >
+                            {copiedMessageId === message.id ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    {message.role === 'user' && (
+                      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-violet-600 flex items-center justify-center">
+                        <User className="h-4 w-4 text-white" />
+                      </div>
+                    )}
+                  </div>
+                ))}
+                <div className="min-h-[60px]">
+                  {isLoading && (
+                    <div className="flex gap-3 justify-start">
+                      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-violet-100 flex items-center justify-center">
+                        <Bot className="h-4 w-4 text-violet-600" />
+                      </div>
+                      <div className="bg-gray-100/80 border border-gray-200 rounded-2xl rounded-bl-sm px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <Loader2 className="h-4 w-4 animate-spin text-violet-600" />
+                          <span className="text-sm text-gray-500">Reviewing RTA protocols...</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <div ref={messagesEndRef} />
+              </div>
+            )}
+          </div>
+
+          {/* Input bar */}
+          <div className="border-t border-gray-200 px-6 py-4">
+            <div className="max-w-2xl mx-auto">
+              <div className="flex gap-3 items-end bg-white rounded-2xl border border-gray-200 shadow-sm px-4 py-3">
+                <Textarea
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyDown={handleKeyPress}
+                  placeholder="Describe your situation (e.g., Landlord won't fix my leaking sink)..."
+                  disabled={isLoading}
+                  rows={1}
+                  className="flex-1 resize-none border-0 shadow-none focus-visible:ring-0 bg-transparent text-gray-900 placeholder:text-gray-400 min-h-[44px] max-h-[160px] py-2 text-sm"
+                  onInput={(e) => {
+                    const el = e.currentTarget;
+                    el.style.height = "auto";
+                    el.style.height = Math.min(el.scrollHeight, 160) + "px";
+                  }}
+                />
+                <Button
+                  onClick={handleSendMessage}
+                  disabled={!inputValue.trim() || isLoading}
+                  size="icon"
+                  className="flex-shrink-0 bg-violet-600 hover:bg-violet-700 rounded-xl h-10 w-10"
+                >
+                  <Send className="h-4 w-4" />
+                </Button>
+              </div>
+              <p className="text-xs text-gray-400 text-center mt-2">
+                General guidance only — not a substitute for professional legal advice.
+              </p>
+            </div>
+          </div>
         </div>
 
-        {/* Right Panel: Tenant Toolkit */}
-        <div className="lg:col-span-4 space-y-4">
-          <Tabs defaultValue="toolkit" className="w-full">
-            <div className="grid grid-cols-2 bg-slate-100/50 p-1 rounded-xl mb-4">
-              <TabsList className="bg-transparent h-9 w-full">
-                <TabsTrigger value="toolkit" className="flex-1 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm text-base font-black">Toolkit</TabsTrigger>
-                <TabsTrigger value="timeline" className="flex-1 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm text-base font-black">Timeline</TabsTrigger>
-              </TabsList>
-            </div>
+        {/* Right sidebar */}
+        <div className="w-72 flex-shrink-0 border-l border-gray-200 px-4 py-6 space-y-6">
 
-            <TabsContent value="toolkit" className="mt-0 space-y-4">
-              <Card className="border-l-4 border-l-blue-500 shadow-sm overflow-hidden">
-                <CardHeader className="py-3 px-4 bg-blue-50/30">
-                  <CardTitle className="text-base font-black uppercase text-blue-700 flex items-center gap-2">
-                    <CheckSquare className="h-3.5 w-3.5" /> Next Best Action
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="py-4 px-4">
-                  {selectedForm ? (
-                    <div className="space-y-4">
-                      {commonTenantForms.find(f => f.id === selectedForm) && (
-                        <div>
-                          <div className="font-black text-lg text-slate-900 mb-1">
-                            File Form {commonTenantForms.find(f => f.id === selectedForm)?.formType}
-                          </div>
-                          <p className="text-base text-slate-600 font-medium leading-relaxed">
-                            {commonTenantForms.find(f => f.id === selectedForm)?.description}
-                          </p>
-                        </div>
-                      )}
-
-                      <Button
-                        size="lg"
-                        className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl h-12 font-black gap-2 text-base shadow-md"
-                        onClick={() => navigate(`/dashboard/forms/${selectedForm}`)}
-                      >
-                        <FileText className="h-5 w-5" /> Start Application
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="text-center py-4 bg-slate-50 rounded-xl border border-dashed border-slate-200">
-                      <p className="text-sm text-slate-500 font-bold px-4 leading-relaxed">
-                        Describe your issue in the chat to see recommended LTB applications.
+          {/* Next Best Action */}
+          <div>
+            <h2 className="text-sm font-bold text-gray-900 uppercase tracking-widest mb-3">Next Best Action</h2>
+            {selectedForm ? (() => {
+              const theme = formColorTheme[selectedForm] ?? formColorTheme['t2'];
+              const form = commonTenantForms.find(f => f.id === selectedForm);
+              return (
+                <div className={`rounded-2xl border-2 ${theme.border} ${theme.bg} overflow-hidden`}>
+                  <div className="px-4 pt-4 pb-3">
+                    <div className="flex items-center gap-2 mb-1">
+                      <FileText className={`h-4 w-4 flex-shrink-0 ${theme.text}`} />
+                      <p className={`text-sm font-bold ${theme.text}`}>
+                        File Form {form?.formType}
                       </p>
                     </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              <Card className="shadow-sm border-slate-200">
-                <CardHeader className="py-3 px-4 border-b border-slate-100">
-                  <CardTitle className="text-base font-black uppercase text-slate-600 flex items-center gap-2">
-                    <ShieldAlert className="h-3.5 w-3.5" /> Required Evidence
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="py-5 px-5 text-base font-medium space-y-4">
-                  {selectedForm === 't6' ? (
-                    <ul className="space-y-2">
-                      <li className="flex gap-2">
-                        <div className="mt-1 h-1 w-1 rounded-full bg-blue-500 shrink-0" />
-                        <span>Photos/videos of the maintenance issue dated.</span>
-                      </li>
-                      <li className="flex gap-2">
-                        <div className="mt-1 h-1 w-1 rounded-full bg-blue-500 shrink-0" />
-                        <span>Copies of written requests to the landlord (Email/Text).</span>
-                      </li>
-                    </ul>
-                  ) : selectedForm === 't2' ? (
-                    <ul className="space-y-2">
-                      <li className="flex gap-2">
-                        <div className="mt-1 h-1 w-1 rounded-full bg-blue-500 shrink-0" />
-                        <span>Log of dates/times of unauthorized entry or harassment.</span>
-                      </li>
-                    </ul>
-                  ) : (
-                    <p className="text-slate-400 italic">Select a topic for evidence checklist.</p>
-                  )}
-                </CardContent>
-              </Card>
-
-              <Card className="bg-amber-50/50 border-amber-100 shadow-sm">
-                <CardHeader className="py-3 px-4">
-                  <CardTitle className="text-base font-black uppercase text-amber-800 flex items-center gap-2">
-                    <AlertTriangle className="h-3.5 w-3.5" /> Avoid These Mistakes
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="py-5 px-5 text-sm font-bold items-start flex flex-col gap-3 text-amber-900">
-                  <div className="flex gap-2">
-                    <span className="font-bold">❌</span>
-                    <span><strong className="text-amber-900">Do not withhold rent</strong> without a court order.</span>
+                    <p className={`text-xs leading-snug ${theme.subtext}`}>
+                      {form?.description}
+                    </p>
                   </div>
-                  <div className="flex gap-2">
-                    <span className="font-bold">❌</span>
-                    <span>Don't rely on verbal agreements. Get everything in writing.</span>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
+                  <button
+                    onClick={() => navigate(`/dashboard/forms/${selectedForm}`)}
+                    className={`w-full flex items-center justify-between px-4 py-3 ${theme.btn} ${theme.btnHover} transition-colors text-left`}
+                  >
+                    <span className="text-sm font-bold text-white">Start Application →</span>
+                    <ArrowRight className="h-4 w-4 text-white" />
+                  </button>
+                </div>
+              );
+            })() : (
+              <p className="text-xs text-gray-500">Select a case type above.</p>
+            )}
+          </div>
 
-            <TabsContent value="timeline" className="mt-0">
-              <Card className="shadow-sm border-slate-200">
-                <CardHeader className="py-3 px-4 border-b border-slate-100">
-                  <CardTitle className="text-base font-black uppercase text-slate-600 flex items-center gap-2">
-                    <CalendarClock className="h-3.5 w-3.5" /> LTB Case Flow
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="py-6 px-4">
-                  <div className="relative border-l-2 border-slate-100 ml-2 pl-6 space-y-8">
-                    <div className="relative">
-                      <div className="absolute -left-[33px] top-0 h-4 w-4 rounded-full bg-blue-600 border-4 border-white shadow-sm ring-1 ring-slate-100"></div>
-                      <h4 className="text-base font-black text-slate-900">Notice to Landlord</h4>
-                      <p className="text-sm text-slate-600 font-medium">Provide written notice first.</p>
-                    </div>
-                    <div className="relative">
-                      <div className="absolute -left-[33px] top-0 h-4 w-4 rounded-full bg-slate-200 border-4 border-white"></div>
-                      <h4 className="text-base font-black text-slate-900">File with LTB</h4>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
+          {/* Required Forms */}
+          <div>
+            <h2 className="text-sm font-bold text-gray-900 uppercase tracking-widest mb-3">Required Forms</h2>
+            <p className="text-sm text-gray-800">
+              {selectedForm
+                ? `Form ${commonTenantForms.find(f => f.id === selectedForm)?.formType} — ${commonTenantForms.find(f => f.id === selectedForm)?.description}`
+                : 'Waiting for selection...'}
+            </p>
+          </div>
 
+          {/* Mistakes to Avoid */}
+          <div>
+            <h2 className="text-sm font-bold text-gray-900 uppercase tracking-widest mb-3">Mistakes to Avoid</h2>
+            <div className="space-y-2">
+              <p className="text-sm text-gray-800">• Don't use email unless consent is in writing.</p>
+              <p className="text-sm text-gray-800">• Don't count the day of service in the notice period.</p>
+              <p className="text-sm text-gray-800">• Ensure all tenant names match the lease exactly.</p>
+            </div>
+          </div>
+
+          {/* Disclaimer */}
+          <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl">
+            <p className="text-xs text-amber-800">
+              Timelines are estimates only. LTB delays typically range 4–8 months. Not legal advice.
+            </p>
+          </div>
 
         </div>
       </div>

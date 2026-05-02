@@ -1,4 +1,5 @@
 import { useState } from "react";
+import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,15 @@ interface Incident {
     date: string;
     details: string;
 }
+
+const SectionHeader = ({ num, title }: { num: number; title: React.ReactNode }) => (
+    <div className="flex items-center gap-3 mb-4">
+        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-700 text-white text-xs font-bold flex-shrink-0">
+            {num}
+        </div>
+        <h2 className="text-sm font-semibold uppercase tracking-widest text-slate-500">{title}</h2>
+    </div>
+);
 
 export default function N8FormPage() {
     const navigate = useNavigate();
@@ -167,27 +177,12 @@ export default function N8FormPage() {
     };
 
     return (
-        <div className="container mx-auto py-8 max-w-5xl">
-            <div className="flex items-center justify-between mb-6">
-                <Button variant="ghost" onClick={() => navigate(-1)} className="gap-2">
-                    <ArrowLeft className="h-4 w-4" /> Back
-                </Button>
-                <div className="flex gap-2">
-                    <Button variant="outline" onClick={handleDownload} className="gap-2">
-                        <Download className="h-4 w-4" /> Download PDF
-                    </Button>
-                    <Button variant="outline" onClick={() => window.print()} className="gap-2">
-                        <Printer className="h-4 w-4" /> Print
-                    </Button>
-                    <Button onClick={handleSave} disabled={isLoading} className="gap-2 bg-roomie-purple hover:bg-roomie-purple/90">
-                        <Save className="h-4 w-4" /> {isLoading ? "Saving..." : "Save Draft"}
-                    </Button>
-                </div>
-            </div>
-
-            <div id="n8-form-content" className="bg-white shadow-lg border rounded-xl overflow-hidden print:shadow-none print:border-none">
-                {/* Header */}
-                <div className="bg-slate-50 border-b p-6 flex justify-between items-start print:bg-white print:border-none print:p-0 print:mb-4">
+        <div className="min-h-screen w-full -mx-6 -mt-6">
+            {/* Page background */}
+            <div className="bg-gradient-to-b from-slate-100 via-slate-100 to-slate-200 px-6 py-8 print:bg-white print:p-0">
+            <div id="n8-form-content" className="w-full bg-slate-50 shadow-[0_2px_24px_0_rgba(0,0,0,0.07)] border border-slate-200/60 rounded-2xl overflow-hidden print:shadow-none print:border-none print:rounded-none">
+                {/* Form header */}
+                <div className="bg-gradient-to-r from-slate-50 to-white border-b border-slate-200 px-8 py-6 flex justify-between items-start">
                     <div>
                         <h1 className="text-2xl font-bold text-slate-900 border-none outline-none">Notice to End your Tenancy at the End of the Term</h1>
                         <p className="text-slate-500 text-sm mt-1">Form N8 (Residential Tenancies Act, 2006)</p>
@@ -195,7 +190,7 @@ export default function N8FormPage() {
                     <div className="bg-slate-200 text-slate-700 px-3 py-1 rounded-full text-sm font-bold print:border print:bg-transparent">LTB - N8</div>
                 </div>
 
-                <div className="p-8 space-y-8 print:p-0">
+                <div className="px-8 py-8 space-y-10 print:p-0">
 
                     {/* Warning Box */}
                     <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex items-start gap-3">
@@ -206,10 +201,12 @@ export default function N8FormPage() {
                         </div>
                     </div>
 
-                    {/* Parties */}
-                    <div className="grid md:grid-cols-2 gap-6">
+                    {/* Section 1 — Parties */}
+                    <div>
+                        <SectionHeader num={1} title="Parties Involved" />
+                        <div className="grid md:grid-cols-2 gap-6">
                         <Card>
-                            <CardHeader className="py-3 bg-slate-50 border-b">
+                            <CardHeader className="py-3 bg-slate-100 border-b">
                                 <CardTitle className="text-sm font-medium uppercase text-slate-500">To (Tenant)</CardTitle>
                             </CardHeader>
                             <CardContent className="py-4">
@@ -225,7 +222,7 @@ export default function N8FormPage() {
                             </CardContent>
                         </Card>
                         <Card>
-                            <CardHeader className="py-3 bg-slate-50 border-b">
+                            <CardHeader className="py-3 bg-slate-100 border-b">
                                 <CardTitle className="text-sm font-medium uppercase text-slate-500">From (Landlord)</CardTitle>
                             </CardHeader>
                             <CardContent className="py-4">
@@ -239,13 +236,13 @@ export default function N8FormPage() {
                                 />
                             </CardContent>
                         </Card>
+                        </div>
                     </div>
 
-                    {/* Rental Unit */}
+                    {/* Section 2 — Address */}
+                    <div>
+                        <SectionHeader num={2} title="Address of Rental Unit" />
                     <Card>
-                        <CardHeader className="py-3 bg-slate-50 border-b">
-                            <CardTitle className="text-base font-semibold">Address of Rental Unit</CardTitle>
-                        </CardHeader>
                         <CardContent className="py-4 grid md:grid-cols-2 gap-4">
                             <div className="md:col-span-2">
                                 <Label>Street Address / Unit #</Label>
@@ -257,7 +254,7 @@ export default function N8FormPage() {
                             </div>
                             <div>
                                 <Label>Province</Label>
-                                <Input value="Ontario" readOnly className="bg-slate-50" />
+                                <Input value="Ontario" readOnly className="bg-slate-100" />
                             </div>
                             <div>
                                 <Label>Postal Code</Label>
@@ -265,8 +262,11 @@ export default function N8FormPage() {
                             </div>
                         </CardContent>
                     </Card>
+                    </div>
 
-                    {/* Termination Date */}
+                    {/* Section 3 — Termination Date */}
+                    <div>
+                        <SectionHeader num={3} title="Termination Date" />
                     <Card className="border-l-4 border-l-roomie-purple">
                         <CardHeader className="pb-2">
                             <CardTitle className="text-base font-semibold">Termination Date</CardTitle>
@@ -284,10 +284,11 @@ export default function N8FormPage() {
                             </div>
                         </CardContent>
                     </Card>
+                    </div>
 
-                    {/* Reasons Section */}
+                    {/* Section 4 — Reasons for Ending Tenancy */}
                     <div>
-                        <h2 className="text-xl font-bold mb-4 border-b pb-2">Reasons for Ending Tenancy</h2>
+                        <SectionHeader num={4} title="Reasons for Ending Tenancy" />
                         <p className="text-sm text-slate-500 mb-4">Select the reason(s) for ending the tenancy.</p>
 
                         {/* Reason 1 */}
@@ -381,9 +382,11 @@ export default function N8FormPage() {
                         </Card>
                     </div>
 
-                    {/* Details/Events */}
+                    {/* Section 5 — Details of Events */}
+                    <div>
+                        <SectionHeader num={5} title="Details of Events" />
                     <Card>
-                        <CardHeader>
+                        <CardHeader className="bg-slate-100 border-b">
                             <CardTitle>Details of Events</CardTitle>
                         </CardHeader>
                         <CardContent>
@@ -416,11 +419,14 @@ export default function N8FormPage() {
                             </div>
                         </CardContent>
                     </Card>
+                    </div>
 
-                    {/* Signature */}
-                    <div className="grid md:grid-cols-2 gap-6">
+                    {/* Section 6 — Signature & Delivery */}
+                    <div>
+                        <SectionHeader num={6} title="Signature &amp; Delivery" />
+                        <div className="grid md:grid-cols-2 gap-6">
                         <Card>
-                            <CardHeader className="py-3 border-b bg-slate-50">
+                            <CardHeader className="py-3 border-b bg-slate-100">
                                 <CardTitle className="text-base">Signature</CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4 pt-4">
@@ -446,7 +452,7 @@ export default function N8FormPage() {
                         </Card>
 
                         <Card>
-                            <CardHeader className="py-3 border-b bg-slate-50">
+                            <CardHeader className="py-3 border-b bg-slate-100">
                                 <CardTitle className="text-base">Office Use Only / Delivery</CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4 pt-4">
@@ -471,9 +477,27 @@ export default function N8FormPage() {
                                 </div>
                             </CardContent>
                         </Card>
+                        </div>
                     </div>
 
+
+                    {/* Bottom action bar */}
+                    <div className="flex items-center justify-center gap-3 px-8 py-5 border-t border-slate-200 bg-white print:hidden">
+                        <Button variant="ghost" onClick={() => navigate(-1)} className="gap-2 text-slate-600 hover:text-slate-900">
+                            <ArrowLeft className="h-4 w-4" /> Back
+                        </Button>
+                        <Button variant="outline" onClick={handleDownload} className="gap-2">
+                            <Download className="h-4 w-4" /> Download PDF
+                        </Button>
+                        <Button variant="outline" onClick={() => window.print()} className="gap-2">
+                            <Printer className="h-4 w-4" /> Print
+                        </Button>
+                        <Button onClick={handleSave} disabled={isLoading} className="gap-2 bg-roomie-purple hover:bg-roomie-purple/90">
+                            <Save className="h-4 w-4" /> {isLoading ? "Saving..." : "Save Draft"}
+                        </Button>
+                    </div>
                 </div>
+            </div>
             </div>
         </div>
     );

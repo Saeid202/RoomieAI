@@ -217,12 +217,18 @@ export default function TaxIntelligencePage() {
     // Check if we have valid data to show report (both income AND expense must be entered)
     const hasValidDataForReport = totals.income > 0 && totals.expense > 0;
 
-    // Scroll to bottom of chat
+    // Scroll to bottom of chat — skip the initial render so the page doesn't
+    // jump to the chat panel on load
+    const isFirstRender = useRef(true);
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
 
     useEffect(() => {
+        if (isFirstRender.current) {
+            isFirstRender.current = false;
+            return;
+        }
         scrollToBottom();
     }, [messages]);
 

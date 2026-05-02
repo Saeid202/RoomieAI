@@ -33,15 +33,15 @@ export function SidebarSimpleMenuItem({ icon, label, to, isActive, showLabel }: 
           href={to}
           onClick={handleClick}
           className={cn(
-            "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-all duration-150 group",
+            "flex items-center gap-3 rounded-xl px-3 py-2.5 text-[17px] font-semibold transition-all duration-150 group",
             isActive
               ? "bg-gradient-to-r from-violet-500 to-purple-600 text-white shadow-md shadow-violet-200"
-              : "text-slate-500 hover:bg-violet-50 hover:text-violet-700"
+              : "text-black hover:bg-violet-50 hover:text-violet-700"
           )}
         >
           <span className={cn(
-            "shrink-0 text-[17px] leading-none transition-all",
-            isActive ? "opacity-100 drop-shadow-sm" : "opacity-70 group-hover:opacity-100"
+            "shrink-0 text-[18px] leading-none transition-all",
+            isActive ? "opacity-100 drop-shadow-sm" : "opacity-100 group-hover:opacity-100"
           )}>
             {icon}
           </span>

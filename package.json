@@ -9,7 +9,9 @@
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
-    "proxy": "node deepseek-proxy-server.js"
+    "proxy": "node deepseek-proxy-server.js",
+    "test": "vitest",
+    "test:run": "vitest --run"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -48,6 +50,12 @@
     "@stripe/stripe-js": "^8.1.0",
     "@supabase/supabase-js": "^2.50.5",
     "@tanstack/react-query": "^5.74.3",
+    "@tiptap/extension-bubble-menu": "^3.22.5",
+    "@tiptap/extension-character-count": "^3.22.5",
+    "@tiptap/extension-placeholder": "^3.22.5",
+    "@tiptap/pm": "^3.22.5",
+    "@tiptap/react": "^3.22.5",
+    "@tiptap/starter-kit": "^3.22.5",
     "@types/jspdf": "^1.3.3",
     "@types/react-signature-canvas": "^1.0.7",
     "class-variance-authority": "^0.7.1",
@@ -55,6 +63,7 @@
     "cmdk": "^1.0.0",
     "cors": "^2.8.5",
     "date-fns": "^3.6.0",
+    "dompurify": "^3.4.2",
     "embla-carousel-react": "^8.3.0",
     "express": "^5.2.1",
     "framer-motion": "^12.6.3",
@@ -89,18 +98,24 @@
   "devDependencies": {
     "@eslint/js": "^9.9.0",
     "@tailwindcss/typography": "^0.5.15",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
     "@types/deno": "^2.5.0",
+    "@types/dompurify": "^3.0.5",
     "@types/jszip": "^3.4.0",
     "@types/mapbox-gl": "^1.13.10",
     "@types/node": "^22.5.5",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.6.0",
+    "@vitest/ui": "^4.1.5",
     "autoprefixer": "^10.4.20",
     "eslint": "^9.9.0",
     "eslint-plugin-react-hooks": "^5.1.0-rc.0",
     "eslint-plugin-react-refresh": "^0.4.9",
+    "fast-check": "^4.7.0",
     "globals": "^15.9.0",
+    "jsdom": "^29.1.1",
     "lovable-tagger": "^1.1.7",
     "postcss": "^8.4.47",
     "sharp": "^0.34.5",
@@ -108,6 +123,7 @@
     "typescript": "^5.5.3",
     "typescript-eslint": "^8.0.1",
     "vite": "^5.4.1",
-    "vite-plugin-pwa": "^1.2.0"
+    "vite-plugin-pwa": "^1.2.0",
+    "vitest": "^4.1.5"
   }
 }

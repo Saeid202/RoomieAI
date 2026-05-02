@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/providers/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { User, Building, Phone, Mail, MapPin, Edit2, Save, Loader2, Globe, ShieldCheck, CheckCircle2, FileText, Upload } from "lucide-react";
+import { User, Building, Phone, Mail, MapPin, Edit2, Save, Loader2, Globe, ShieldCheck, CheckCircle2, FileText, Upload, Camera, ImageIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { generateSlug } from "@/utils/slugUtils";
 
@@ -25,6 +25,7 @@ interface RenovatorProfileData {
     business_scope?: string;
     license_url?: string;
     government_id_url?: string;
+    image_url?: string;
     verified?: boolean;
 }
 
@@ -35,6 +36,8 @@ export default function RenovatorProfile() {
     const [saving, setSaving] = useState(false);
     const [profile, setProfile] = useState<RenovatorProfileData | null>(null);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [uploadingLogo, setUploadingLogo] = useState(false);
+    const logoInputRef = useRef<HTMLInputElement>(null);
 
     // Metadata from signup
     const [joinedDate, setJoinedDate] = useState<string>("");
@@ -49,7 +52,8 @@ export default function RenovatorProfile() {
         description: "",
         specialties: [],
         website_url: "",
-        business_scope: ""
+        business_scope: "",
+        image_url: ""
     });
 
     useEffect(() => {
@@ -88,7 +92,8 @@ export default function RenovatorProfile() {
                     website_url: data.website_url || "",
                     business_scope: data.business_scope || "",
                     license_url: data.license_url,
-                    government_id_url: data.government_id_url
+                    government_id_url: data.government_id_url,
+                    image_url: data.image_url || ""
                 });
             } else {
                 setProfile(null);
@@ -136,8 +141,30 @@ export default function RenovatorProfile() {
         }
     };
 
-    const handleSave = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !user) return;
+        setUploadingLogo(true);
+        try {
+            const ext = file.name.split('.').pop();
+            const filePath = `${user.id}/logo_${Date.now()}.${ext}`;
+            const { error: uploadError } = await supabase.storage
+                .from('renovation-partner-images')
+                .upload(filePath, file, { upsert: true });
+            if (uploadError) throw uploadError;
+            const { data: { publicUrl } } = supabase.storage
+                .from('renovation-partner-images')
+                .getPublicUrl(filePath);
+            setFormData(prev => ({ ...prev, image_url: publicUrl }));
+            toast({ title: "Logo uploaded", description: "Your logo will appear on your card." });
+        } catch (error: any) {
+            toast({ variant: "destructive", title: "Upload failed", description: error.message });
+        } finally {
+            setUploadingLogo(false);
+        }
+    };
+
+    const handleSave = async (e: React.FormEvent) => {        e.preventDefault();
         setSaving(true);
 
         try {
@@ -154,6 +181,7 @@ export default function RenovatorProfile() {
                 business_scope: formData.business_scope,
                 license_url: formData.license_url,
                 government_id_url: formData.government_id_url,
+                image_url: formData.image_url || null,
                 updated_at: new Date().toISOString()
             };
 
@@ -201,11 +229,24 @@ export default function RenovatorProfile() {
             <div className="p-6 space-y-8 max-w-5xl">
                 {/* Header */}
                 <div className="flex items-start justify-between">
-                    <div className="text-left">
-                        <h1 className="text-3xl font-bold text-gray-900">{profile.company}</h1>
-                        <p className="text-gray-500 flex items-center gap-1 mt-1 font-medium">
-                            <User className="h-4 w-4" /> {profile.name}
-                        </p>
+                    <div className="flex items-center gap-4">
+                        {profile.image_url ? (
+                            <img
+                                src={profile.image_url}
+                                alt={profile.company}
+                                className="w-16 h-16 rounded-2xl object-cover border-2 border-slate-200 shadow-md"
+                            />
+                        ) : (
+                            <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center border-2 border-dashed border-slate-200">
+                                <Building className="h-7 w-7 text-slate-400" />
+                            </div>
+                        )}
+                        <div className="text-left">
+                            <h1 className="text-3xl font-bold text-gray-900">{profile.company}</h1>
+                            <p className="text-gray-500 flex items-center gap-1 mt-1 font-medium">
+                                <User className="h-4 w-4" /> {profile.name}
+                            </p>
+                        </div>
                     </div>
                     <div>
                         <Button onClick={() => setIsDialogOpen(true)} className="gap-2 shadow-lg hover:shadow-xl transition-all">
@@ -404,7 +445,10 @@ export default function RenovatorProfile() {
                     setFormData={setFormData}
                     onSave={handleSave}
                     onFileUpload={handleFileUpload}
+                    onLogoUpload={handleLogoUpload}
                     uploadingDoc={uploadingDoc}
+                    uploadingLogo={uploadingLogo}
+                    logoInputRef={logoInputRef}
                     saving={saving}
                     isCreate={false}
                 />
@@ -455,7 +499,10 @@ export default function RenovatorProfile() {
                 setFormData={setFormData}
                 onSave={handleSave}
                 onFileUpload={handleFileUpload}
+                onLogoUpload={handleLogoUpload}
                 uploadingDoc={uploadingDoc}
+                uploadingLogo={uploadingLogo}
+                logoInputRef={logoInputRef}
                 saving={saving}
                 isCreate={true}
             />
@@ -464,7 +511,7 @@ export default function RenovatorProfile() {
 }
 
 // Sub-component for the Form Dialog to keep main clean
-function EditDialog({ open, onOpenChange, formData, setFormData, onSave, onFileUpload, uploadingDoc, saving, isCreate }: any) {
+function EditDialog({ open, onOpenChange, formData, setFormData, onSave, onFileUpload, onLogoUpload, uploadingDoc, uploadingLogo, logoInputRef, saving, isCreate }: any) {
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-2xl max-h-[95vh] overflow-y-auto p-0 border-none shadow-2xl">
@@ -475,6 +522,42 @@ function EditDialog({ open, onOpenChange, formData, setFormData, onSave, onFileU
                     </DialogTitle>
                 </DialogHeader>
                 <form onSubmit={onSave} className="space-y-6 px-8 pb-8">
+                    {/* Logo Upload */}
+                    <div className="flex items-center gap-6 py-4 border-b border-slate-100">
+                        <div className="relative flex-shrink-0">
+                            {formData.image_url ? (
+                                <img
+                                    src={formData.image_url}
+                                    alt="Company logo"
+                                    className="w-20 h-20 rounded-2xl object-cover border-2 border-slate-200 shadow-md"
+                                />
+                            ) : (
+                                <div className="w-20 h-20 rounded-2xl bg-slate-100 border-2 border-dashed border-slate-300 flex items-center justify-center">
+                                    <ImageIcon className="h-8 w-8 text-slate-400" />
+                                </div>
+                            )}
+                            <button
+                                type="button"
+                                onClick={() => logoInputRef.current?.click()}
+                                className="absolute -bottom-2 -right-2 w-7 h-7 bg-primary rounded-full flex items-center justify-center shadow-md hover:bg-primary/90 transition-colors"
+                            >
+                                {uploadingLogo ? <Loader2 className="h-3.5 w-3.5 text-white animate-spin" /> : <Camera className="h-3.5 w-3.5 text-white" />}
+                            </button>
+                            <input ref={logoInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={onLogoUpload} />
+                        </div>
+                        <div>
+                            <p className="text-sm font-bold text-slate-900">Company Logo</p>
+                            <p className="text-xs text-slate-500 mt-0.5">Shown on your card in the landlord directory</p>
+                            <button
+                                type="button"
+                                onClick={() => logoInputRef.current?.click()}
+                                className="mt-2 text-xs font-semibold text-primary hover:underline"
+                            >
+                                {formData.image_url ? "Change logo" : "Upload logo"}
+                            </button>
+                        </div>
+                    </div>
+
                     {/* Basic Context */}
                     <div className="space-y-4">
                         <h3 className="text-[10px] uppercase font-black text-primary tracking-widest flex items-center gap-2">
