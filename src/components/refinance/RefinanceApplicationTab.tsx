@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
@@ -18,6 +19,7 @@ interface RefinanceApplicationTabProps {
 }
 
 export function RefinanceApplicationTab({ mortgageProfileId }: RefinanceApplicationTabProps) {
+  const navigate = useNavigate();
   const [documents, setDocuments] = useState<RefinanceDocument[]>([]);
   const [stats, setStats] = useState<DocumentCompletionStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -260,9 +262,9 @@ export function RefinanceApplicationTab({ mortgageProfileId }: RefinanceApplicat
         </Card>
       </div>
 
-      {/* Save Button at bottom of re-finance application */}
+      {/* Action bar */}
       <div className="sticky bottom-0 left-0 right-0 bg-white border-t-2 border-purple-200 p-4 shadow-lg z-10 mt-8">
-        <div className="flex justify-center">
+        <div className="flex justify-between items-center">
           <Button
             onClick={() => {
               toast({
@@ -274,6 +276,13 @@ export function RefinanceApplicationTab({ mortgageProfileId }: RefinanceApplicat
           >
             <FileText className="h-4 w-4 mr-2" />
             Save Re-finance Application
+          </Button>
+          <Button
+            type="button"
+            onClick={() => navigate('/dashboard/mortgage-consent')}
+            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6 h-12 text-base font-semibold shadow-md"
+          >
+            Submit Mortgage Package
           </Button>
         </div>
       </div>

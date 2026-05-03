@@ -45,16 +45,16 @@ export function DashboardSidebar() {
   return (
     <Sidebar collapsible="offcanvas" defaultOpen={!isMobile} className="border-r border-slate-200 shadow-[2px_0_16px_rgba(139,92,246,0.08)]">
       {/* Header */}
-      <SidebarHeader className="px-5 py-5 border-b border-slate-100 bg-slate-50">
+      <SidebarHeader className="px-5 py-4 border-b border-slate-100 bg-slate-50">
         <div className="flex items-center gap-3">
-          <div className="bg-gradient-to-br from-orange-400 to-violet-600 p-2.5 rounded-xl shadow-md shadow-violet-200 shrink-0">
-            <Home className="h-5 w-5 text-white" />
+          <div className="bg-gradient-to-br from-orange-400 to-violet-600 p-3 rounded-xl shadow-md shadow-violet-200 shrink-0">
+            <Home className="h-7 w-7 text-white" />
           </div>
           <div>
-            <h2 className="text-base font-black tracking-tight leading-none mb-0.5 bg-gradient-to-r from-orange-500 to-violet-600 bg-clip-text text-transparent">
+            <h2 className="text-xl font-black tracking-tight leading-none mb-1 bg-gradient-to-r from-orange-500 to-violet-600 bg-clip-text text-transparent">
               Homie AI
             </h2>
-            <p className="text-[10px] uppercase tracking-widest font-bold text-slate-400">
+            <p className="text-[11px] uppercase tracking-widest font-extrabold text-slate-500">
               {role?.replace('_', ' ') || 'Dashboard'}
             </p>
           </div>
@@ -108,29 +108,29 @@ export function DashboardSidebar() {
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
-              className="w-full justify-start px-3 h-auto py-2.5 gap-3 rounded-xl hover:bg-violet-50 text-slate-600 hover:text-violet-700 transition-all"
+              className="w-full justify-start px-4 h-auto py-3 gap-3 rounded-2xl hover:bg-violet-50 text-slate-600 hover:text-violet-700 transition-all bg-white shadow-sm border border-slate-100"
             >
-              <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-orange-400 to-violet-600 flex items-center justify-center text-white font-black shrink-0 text-sm shadow-md shadow-violet-200">
+              <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-orange-400 to-violet-600 flex items-center justify-center text-white font-black shrink-0 text-lg shadow-md shadow-violet-200">
                 {user?.email?.[0].toUpperCase() || 'U'}
               </div>
               <div className="flex flex-col items-start text-left min-w-0 flex-1 overflow-hidden">
-                <span className="text-sm font-semibold truncate w-full text-slate-700">{user?.email?.split('@')[0]}</span>
-                <span className="text-[11px] text-slate-400 truncate w-full">{user?.email}</span>
+                <span className="text-sm font-bold truncate w-full text-slate-800">{user?.email?.split('@')[0]}</span>
+                <span className="text-xs text-slate-500 truncate w-full">{user?.email}</span>
               </div>
-              <ChevronUp className="h-4 w-4 shrink-0 text-slate-300" />
+              <ChevronUp className="h-4 w-4 shrink-0 text-slate-400" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56" align="start" side="top" sideOffset={8}>
-            <DropdownMenuLabel className="font-semibold">My Account</DropdownMenuLabel>
+          <DropdownMenuContent className="w-[400px]" align="start" side="top" sideOffset={8}>
+            <DropdownMenuLabel className="font-semibold text-base px-4 py-3">My Account</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
+            <DropdownMenuItem asChild className="px-4 py-3 text-sm cursor-pointer">
               <Link to="/dashboard/settings" className="w-full cursor-pointer">
-                <Settings className="mr-2 h-4 w-4" />
+                <Settings className="mr-3 h-5 w-5" />
                 <span>Settings</span>
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={signOut} className="text-destructive focus:text-destructive cursor-pointer">
-              <LogOut className="mr-2 h-4 w-4" />
+            <DropdownMenuItem onClick={signOut} className="px-4 py-3 text-sm text-destructive focus:text-destructive cursor-pointer">
+              <LogOut className="mr-3 h-5 w-5" />
               <span>Log out</span>
             </DropdownMenuItem>
           </DropdownMenuContent>

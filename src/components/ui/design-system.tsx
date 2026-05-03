@@ -16,16 +16,21 @@ export function EnhancedHeader({
   title,
   subtitle,
   actionButton,
+  gradient,
+  padding = "p-6",
   className = ""
 }: {
   title: string;
   subtitle: string;
   actionButton?: React.ReactNode;
+  gradient?: string;
+  padding?: string;
   className?: string;
 }) {
+  const gradientClass = gradient ?? "from-purple-600 to-pink-400";
   return (
     <div
-      className={`rounded-2xl bg-gradient-to-r from-purple-600 to-pink-400 border border-purple-500 p-6 shadow-sm ${className}`}
+      className={`rounded-2xl bg-gradient-to-r ${gradientClass} border border-purple-500 shadow-sm ${padding} ${className}`}
     >
       <div className="flex items-center justify-between">
         <div>

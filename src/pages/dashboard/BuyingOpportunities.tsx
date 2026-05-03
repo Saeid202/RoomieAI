@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -62,7 +62,7 @@ const createSignalSchema = z.object({
     capital_available: z.string().min(1, "Capital available is required"),
     household_type: z.enum(["Single", "Couple", "Family", "Investor group"]),
     intended_use: z.enum(["Live-in", "Investment", "Mixed"]),
-    time_horizon: z.enum(["1�2 years", "3�5 years", "Flexible"]),
+    time_horizon: z.enum(["1\u20132 years", "3\u20135 years", "Flexible"]),
     notes: z.string().optional(),
     disclaimer: z.boolean().refine(val => val === true, "You must agree to the non-binding confirmation"),
 });
@@ -496,9 +496,10 @@ export default function BuyingOpportunitiesPage() {
             setEditingSignal(null);
         } catch (error) {
             console.error("Failed to submit signal:", error);
+            const message = error instanceof Error ? error.message : (error as any)?.message || "Please try again.";
             toast({
                 title: "Error",
-                description: "Failed to save co-ownership signal. Please try again.",
+                description: `Failed to save co-ownership signal. ${message}`,
                 variant: "destructive",
             });
         }
@@ -659,31 +660,31 @@ export default function BuyingOpportunitiesPage() {
 
                 <Tabs value={activeTab} className="w-full" onValueChange={handleTabChange}>
                     {(activeTab === 'mortgage-profile' || activeTab === 'documents' || activeTab === 'refinance-application' || activeTab === 'broker-feedback' || activeTab === 'mortgage-hub') && (
-                        <TabsList className="grid w-full grid-cols-5 mb-8 bg-gradient-to-r from-purple-100 to-pink-100 p-2 rounded-xl">
+                        <TabsList className="grid w-full grid-cols-5 mb-8 bg-gray-100 p-1.5 rounded-xl border border-gray-200">
                             <TabsTrigger
                                 value="mortgage-profile"
-                                className="data-[state=active]:bg-white data-[state=active]:text-purple-600 font-bold"
+                                className="data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm text-slate-500 font-semibold rounded-lg"
                             >
                                 <User className="h-4 w-4 mr-2" />
                                 Profile
                             </TabsTrigger>
                             <TabsTrigger
                                 value="documents"
-                                className="data-[state=active]:bg-white data-[state=active]:text-purple-600 font-bold"
+                                className="data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm text-slate-500 font-semibold rounded-lg"
                             >
                                 <FileText className="h-4 w-4 mr-2" />
                                 Documents
                             </TabsTrigger>
                             <TabsTrigger
                                 value="refinance-application"
-                                className="data-[state=active]:bg-white data-[state=active]:text-purple-600 font-bold"
+                                className="data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm text-slate-500 font-semibold rounded-lg"
                             >
                                 <RefreshCw className="h-4 w-4 mr-2" />
                                 Re-finance
                             </TabsTrigger>
                             <TabsTrigger
                                 value="broker-feedback"
-                                className="data-[state=active]:bg-white data-[state=active]:text-purple-600 font-bold relative"
+                                className="data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm text-slate-500 font-semibold rounded-lg relative"
                             >
                                 <MessageSquare className="h-4 w-4 mr-2" />
                                 Broker Feedback
@@ -695,7 +696,7 @@ export default function BuyingOpportunitiesPage() {
                             </TabsTrigger>
                             <TabsTrigger
                                 value="mortgage-hub"
-                                className="data-[state=active]:bg-white data-[state=active]:text-purple-600 font-bold"
+                                className="data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm text-slate-500 font-semibold rounded-lg"
                             >
                                 <DollarSign className="h-4 w-4 mr-2" />
                                 Mortgage Hub
@@ -707,11 +708,13 @@ export default function BuyingOpportunitiesPage() {
                         <EnhancedHeader
                             title="Co-ownership Hub"
                             subtitle="Explore real estate opportunities tailored for co-ownership and direct sales."
+                            gradient="from-blue-600 to-orange-500"
+                            padding="py-2 px-4"
+                            className="mb-8"
                             actionButton={
                                 <EnhancedButton
                                     onClick={handleOpenCreateModal}
-                                    variant="secondary"
-                                    className="font-bold flex items-center gap-2"
+                                    className="font-bold flex items-center gap-2 bg-gradient-to-r from-orange-600 to-purple-600 hover:from-orange-700 hover:to-purple-700 text-white shadow-md"
                                 >
                                     <PlusCircle className="h-5 w-5" /> Create Signal
                                 </EnhancedButton>
@@ -776,7 +779,7 @@ export default function BuyingOpportunitiesPage() {
                                             <div className="flex items-start justify-between">
                                                 <div
                                                     className="flex items-center gap-3 cursor-pointer group/profile"
-                                                    onClick={() => navigate(`/dashboard/user/${signal.user_id}`)}
+                                                    onClick={() => navigate(`/dashboard/user/${signal.user_id}?context=seeker`)}
                                                 >
                                                     {/* Avatar Placeholder */}
                                                     <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white font-bold text-lg shadow-lg ring-2 ring-white">
@@ -994,22 +997,14 @@ export default function BuyingOpportunitiesPage() {
 
                     <TabsContent value="sales">
                         {/* Buy Unit Header */}
-                        <div className="relative mb-8 rounded-xl overflow-hidden shadow-lg" style={{background: 'linear-gradient(to right, #8B5CF6, #A855F7, #FF6B35)'}}>
-                            <div className="absolute inset-0 opacity-10">
-                                <div className="absolute top-0 right-0 w-48 h-48 bg-white rounded-full -translate-y-1/2 translate-x-1/2" />
-                                <div className="absolute bottom-0 left-0 w-32 h-32 bg-white rounded-full translate-y-1/2 -translate-x-1/2" />
-                            </div>
-                            <div className="relative px-6 py-5 flex items-center gap-4">
-                                <div className="flex-shrink-0 bg-white/20 backdrop-blur-sm rounded-xl p-2.5">
-                                    <Home className="h-7 w-7 text-white" />
+                        <div className="rounded-2xl bg-gradient-to-r from-blue-600 to-orange-500 border border-slate-200 py-2 px-4 shadow-sm mb-8">
+                            <div className="flex items-center gap-3">
+                                <div className="p-1.5 rounded-lg bg-white/20">
+                                    <Home className="h-5 w-5 text-white" />
                                 </div>
                                 <div>
-                                    <h1 className="text-2xl font-black text-white tracking-tight leading-tight">
-                                        Buy a Property
-                                    </h1>
-                                    <p className="text-purple-100 text-sm font-medium mt-0.5">
-                                        Browse properties available for direct purchase.
-                                    </p>
+                                    <h1 className="text-lg font-bold text-white">Buy a Property</h1>
+                                    <p className="text-xs text-white/80">Browse properties available for direct purchase.</p>
                                 </div>
                             </div>
                         </div>
@@ -1132,26 +1127,17 @@ export default function BuyingOpportunitiesPage() {
                     <TabsContent value="mortgage-profile">
                         {activeTab === 'mortgage-profile' && (
                             <div className="max-w-4xl">
-                                {/* Page Header with Organizational Style */}
-                                <div className="relative bg-gradient-to-br from-pink-500/30 via-purple-500/30 to-indigo-500/30 rounded-3xl p-4 border-2 border-white/50 shadow-2xl backdrop-blur-sm overflow-hidden mb-8">
-                                    {/* Animated Background Elements */}
-                                    <div className="absolute inset-0">
-                                        <div className="absolute top-4 left-4 w-32 h-32 bg-gradient-to-br from-yellow-400/40 to-pink-400/40 rounded-full blur-3xl animate-pulse"></div>
-                                        <div className="absolute bottom-4 right-4 w-24 h-24 bg-gradient-to-br from-purple-400/40 to-indigo-400/40 rounded-full blur-2xl animate-pulse delay-1000"></div>
-                                    </div>
-
-                                    {/* Header Content - Left Aligned */}
-                                    <div className="relative z-10 flex items-center gap-3">
-                                        <div className="p-2 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 shadow-lg">
-                                            <User className="h-6 w-6 text-white" />
-                                        </div>
-                                        <div>
-                                            <h1 className="text-2xl md:text-3xl font-black text-gray-900 bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
-                                                Mortgage Profile
-                                            </h1>
-                                            <p className="text-sm text-gray-700 font-medium">
-                                                Complete your basic information to start your mortgage pre-qualification journey
-                                            </p>
+                                {/* Page Header */}
+                                <div className="rounded-2xl bg-gradient-to-r from-blue-600 to-orange-500 border border-slate-200 py-2 px-4 shadow-sm mb-8">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <div className="p-1.5 rounded-lg bg-white/20">
+                                                <User className="h-5 w-5 text-white" />
+                                            </div>
+                                            <div>
+                                                <h1 className="text-lg font-bold text-white">Mortgage Profile</h1>
+                                                <p className="text-xs text-white/80">Complete your basic information to start your mortgage pre-qualification journey</p>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -2709,7 +2695,7 @@ export default function BuyingOpportunitiesPage() {
                                                 </Button>
                                                 <Button
                                                     type="button"
-                                                    onClick={() => navigate('/mortgage-consent')}
+                                                    onClick={() => navigate('/dashboard/mortgage-consent')}
                                                     className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6 h-12 text-base font-semibold shadow-md"
                                                     disabled={!mortgageProfile}
                                                 >
@@ -2730,7 +2716,7 @@ export default function BuyingOpportunitiesPage() {
                                 
                                 {/* Save Button at bottom of documents tab */}
                                 <div className="sticky bottom-0 left-0 right-0 bg-white border-t-2 border-blue-200 p-4 shadow-lg z-10 mt-8">
-                                    <div className="flex justify-center">
+                                    <div className="flex justify-between items-center">
                                         <Button
                                             onClick={() => {
                                                 toast({
@@ -2742,6 +2728,14 @@ export default function BuyingOpportunitiesPage() {
                                         >
                                             <FileText className="h-4 w-4 mr-2" />
                                             Save Documents
+                                        </Button>
+                                        <Button
+                                            type="button"
+                                            onClick={() => navigate('/dashboard/mortgage-consent')}
+                                            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6 h-12 text-base font-semibold shadow-md"
+                                            disabled={!mortgageProfile}
+                                        >
+                                            Submit Mortgage Package
                                         </Button>
                                     </div>
                                 </div>
@@ -2764,7 +2758,9 @@ export default function BuyingOpportunitiesPage() {
 
                     <TabsContent value="refinance-application">
                         {activeTab === 'refinance-application' && mortgageProfile?.id && (
-                            <RefinanceApplicationTab mortgageProfileId={mortgageProfile.id} />
+                            <div className="max-w-4xl">
+                                <RefinanceApplicationTab mortgageProfileId={mortgageProfile.id} />
+                            </div>
                         )}
                         {activeTab === 'refinance-application' && !mortgageProfile?.id && (
                             <div className="max-w-4xl">
@@ -2960,8 +2956,8 @@ export default function BuyingOpportunitiesPage() {
                                                                 </SelectTrigger>
                                                             </FormControl>
                                                             <SelectContent className="rounded-xl border-slate-200">
-                                                                <SelectItem value="1�2 years">1�2 years</SelectItem>
-                                                                <SelectItem value="3�5 years">3�5 years</SelectItem>
+                                                                <SelectItem value="1–2 years">1–2 years</SelectItem>
+                                                                <SelectItem value="3–5 years">3–5 years</SelectItem>
                                                                 <SelectItem value="Flexible">Flexible</SelectItem>
                                                             </SelectContent>
                                                         </Select>
@@ -3046,4 +3042,6 @@ export default function BuyingOpportunitiesPage() {
         </EnhancedPageLayout>
     );
 };
+
+
 

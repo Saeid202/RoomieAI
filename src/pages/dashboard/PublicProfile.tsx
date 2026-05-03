@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { User, Linkedin, Globe, Calendar, GripHorizontal, ArrowLeft, Building, Mail, Phone } from "lucide-react";
@@ -31,20 +31,24 @@ interface RenovatorProfile {
 
 export default function PublicProfilePage() {
     const { userId } = useParams<{ userId: string }>();
+    const [searchParams] = useSearchParams();
     const navigate = useNavigate();
     const [profile, setProfile] = useState<PublicProfile | null>(null);
     const [renovator, setRenovator] = useState<RenovatorProfile | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
+    // If context=seeker, always show the seeker profile, never the renovator view
+    const seekerContext = searchParams.get('context') === 'seeker';
+
     useEffect(() => {
         const fetchProfile = async () => {
             if (!userId) return;
             setLoading(true);
             try {
-                // Fetch basic profile
+                // Fetch basic profile from user_profiles (correct table)
                 const { data: profileData, error: profileError } = await supabase
-                    .from('profiles')
+                    .from('user_profiles')
                     .select('*')
                     .eq('id', userId)
                     .single();
@@ -53,24 +57,25 @@ export default function PublicProfilePage() {
                     setProfile(profileData as any);
                 }
 
-                // Fetch potential Renovator profile
-                const { data: renovatorData } = await supabase
-                    .from('renovation_partners' as any)
-                    .select('*')
-                    .eq('user_id', userId)
-                    .maybeSingle();
+                // Only fetch renovator profile if not in seeker context
+                if (!seekerContext) {
+                    const { data: renovatorData } = await supabase
+                        .from('renovation_partners' as any)
+                        .select('*')
+                        .eq('user_id', userId)
+                        .maybeSingle();
 
-                if (renovatorData) {
-                    setRenovator(renovatorData as any);
+                    if (renovatorData) {
+                        setRenovator(renovatorData as any);
+                    }
                 }
 
-                if (profileError && !renovatorData) {
+                if (profileError && !seekerContext) {
                     throw profileError;
                 }
 
             } catch (err: any) {
                 console.error("Error fetching public profile:", err);
-                // Only set error if we found NOTHING
                 if (!profile && !renovator) {
                     setError("Could not load profile. It may not exist or is private.");
                 }
@@ -80,7 +85,7 @@ export default function PublicProfilePage() {
         };
 
         fetchProfile();
-    }, [userId]);
+    }, [userId, seekerContext]);
 
     if (loading) {
         return (
@@ -109,8 +114,8 @@ export default function PublicProfilePage() {
         );
     }
 
-    // Renovator View
-    if (renovator) {
+    // Renovator View — only when not in seeker context
+    if (renovator && !seekerContext) {
         return (
             <div className="p-4 md:p-8 max-w-4xl space-y-6">
                 <Button
@@ -194,9 +199,10 @@ export default function PublicProfilePage() {
 
     if (!profile) return null; // Should be handled by error check above
 
-    const displayName = profile.first_name
-        ? `${profile.first_name} ${profile.last_name || ''}`.trim()
-        : profile.full_name || "Anonymous User";
+    const displayName = profile.full_name?.trim() ||
+        (profile.first_name
+            ? `${profile.first_name} ${profile.last_name || ''}`.trim()
+            : "Member");
 
     return (
         <div className="p-4 md:p-8 max-w-3xl space-y-6">

@@ -21,6 +21,7 @@ export interface APSContractData {
   // Property
   propertyAddress: string
   propertyCity: string
+  propertyProvince: string
   propertyPostalCode: string
   propertyType: string
   propertyPin: string
@@ -35,6 +36,7 @@ export interface APSContractData {
   annualPropertyTax?: number
   platformFee?: number
   mortgageAmount?: number
+  hstApplicable?: 'yes' | 'no' | 'new_build'
 
   // Conditions
   hasFinancingCondition: boolean
@@ -75,6 +77,14 @@ export interface APSContractData {
 
   // Platform
   transactionId: string
+
+  // Document Delivery confirmations
+  docDeedDelivered?: boolean
+  docStatusCertDelivered?: boolean
+  docTaxAssessDelivered?: boolean
+  docUtilityBillsDelivered?: boolean
+  docInspectionDelivered?: boolean
+  docDisclosureDelivered?: boolean
 
   // Signatures (filled after signing)
   buyerSignature?: string
@@ -153,6 +163,7 @@ export function buildContractData(
     sellerUserId: seller?.id || '',
     propertyAddress: property?.address || '',
     propertyCity: property?.city || '',
+    propertyProvince: property?.province || 'Ontario',
     propertyPostalCode: property?.postal_code || '',
     propertyType: property?.property_type || '',
     propertyPin: property?.pin_number || '',
@@ -165,6 +176,7 @@ export function buildContractData(
     annualPropertyTax: property?.annual_tax || 0,
     platformFee: purchasePrice * 0.01,
     mortgageAmount: purchasePrice * 0.80,
+    hstApplicable: 'no',
     hasFinancingCondition: true,
     financingDeadline: financingDeadline.toISOString().split('T')[0],
     hasInspectionCondition: true,
@@ -193,5 +205,11 @@ export function buildContractData(
     lawyerName: lawyer?.full_name || '',
     lawyerLicense: lawyer?.license_number || '',
     transactionId: propertyId,
+    docDeedDelivered: false,
+    docStatusCertDelivered: false,
+    docTaxAssessDelivered: false,
+    docUtilityBillsDelivered: false,
+    docInspectionDelivered: false,
+    docDisclosureDelivered: false,
   }
 }

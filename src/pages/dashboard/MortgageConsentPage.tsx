@@ -47,7 +47,7 @@ export default function MortgageConsentPage() {
   const [ipAddress, setIpAddress] = useState<string>("");
   
   // Form state
-  const [submissionChannel, setSubmissionChannel] = useState<"homie" | "newton" | "both">("both");
+  const [submissionChannel, setSubmissionChannel] = useState<"homie" | "newton" | "both">("homie");
   const [consentChecks, setConsentChecks] = useState({
     creditCheck: false,
     informationAccuracy: false,
@@ -227,6 +227,14 @@ export default function MortgageConsentPage() {
 
   return (
     <div className="w-full max-w-4xl mx-auto px-4 py-8 space-y-8">
+      {/* Back button */}
+      <button
+        onClick={() => navigate('/dashboard/buying-opportunities?tab=mortgage-profile')}
+        className="flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-slate-800 transition-colors"
+      >
+        <ArrowRight className="h-4 w-4 rotate-180" />
+        Back to Mortgage Profile
+      </button>
       {/* Header */}
       <div className="text-center space-y-4">
         <h1 className="text-4xl font-black text-gray-900 bg-gradient-to-r from-purple-600 via-pink-600 to-indigo-600 bg-clip-text text-transparent">
@@ -266,44 +274,6 @@ export default function MortgageConsentPage() {
                 </div>
                 <p className="text-sm text-gray-600">
                   Your profile is shared with verified brokers inside HomieAI only. Documents stay inside HomieAI secure platform.
-                </p>
-              </div>
-            </Label>
-          </div>
-
-          {/* Option 2: Newton Velocity Network Only */}
-          <div className={`relative p-6 rounded-2xl border-2 transition-all cursor-pointer ${submissionChannel === "newton" ? "border-purple-600 bg-purple-50/50" : "border-gray-200 hover:border-purple-300 bg-white"}`}>
-            <RadioGroupItem value="newton" id="option-newton" className="absolute top-6 right-6" />
-            <Label htmlFor="option-newton" className="flex items-start gap-4 cursor-pointer w-full">
-              <div className="p-3 bg-blue-100 rounded-xl">
-                <Globe className="h-6 w-6 text-blue-600" />
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="font-bold text-lg text-gray-900">Newton Velocity Network Only</span>
-                  {submissionChannel === "newton" && <span className="px-2 py-0.5 bg-blue-600 text-white text-xs rounded-full">Selected</span>}
-                </div>
-                <p className="text-sm text-gray-600">
-                  Your profile is shared with 200+ lenders and brokers on Newton's national network.
-                </p>
-              </div>
-            </Label>
-          </div>
-
-          {/* Option 3: Both (Recommended) */}
-          <div className={`relative p-6 rounded-2xl border-2 transition-all cursor-pointer ${submissionChannel === "both" ? "border-purple-600 bg-purple-50/50" : "border-gray-200 hover:border-purple-300 bg-white"}`}>
-            <RadioGroupItem value="both" id="option-both" className="absolute top-6 right-6" />
-            <Label htmlFor="option-both" className="flex items-start gap-4 cursor-pointer w-full">
-              <div className="p-3 bg-green-100 rounded-xl">
-                <Star className="h-6 w-6 text-green-600" />
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="font-bold text-lg text-gray-900">Both (Recommended ⭐)</span>
-                  {submissionChannel === "both" && <span className="px-2 py-0.5 bg-green-600 text-white text-xs rounded-full">Selected</span>}
-                </div>
-                <p className="text-sm text-gray-600">
-                  Maximum exposure. Best chance of fastest approval and lowest rate. 87% of users choose this option.
                 </p>
               </div>
             </Label>

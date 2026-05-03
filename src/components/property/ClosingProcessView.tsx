@@ -85,7 +85,7 @@ export function ClosingProcessView({ propertyId }: ClosingProcessViewProps) {
         console.error('Error fetching user:', userError);
       } else {
         const { data: buyerProfile, error: buyerError } = await supabase
-          .from('profiles')
+          .from('user_profiles')
           .select('*')
           .eq('id', user.id)
           .single();
@@ -105,7 +105,7 @@ export function ClosingProcessView({ propertyId }: ClosingProcessViewProps) {
       let sellerData = null;
       if (propertyData?.user_id) {
         const { data: sellerProfile, error: sellerError } = await supabase
-          .from('profiles')
+          .from('user_profiles')
           .select('*')
           .eq('id', propertyData.user_id)
           .single();
@@ -472,9 +472,9 @@ export function ClosingProcessView({ propertyId }: ClosingProcessViewProps) {
       {/* Offer Acceptance Contract Modal */}
       {showContract && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-start justify-center overflow-y-auto py-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl mx-4 relative min-h-screen">
+          <div className="bg-gray-100 rounded-2xl shadow-2xl w-full max-w-7xl mx-4 relative min-h-screen">
             {/* Modal Header */}
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-2xl flex items-center justify-between z-10">
+            <div className="sticky top-0 bg-gray-100 border-b border-gray-200 px-6 py-4 rounded-t-2xl flex items-center justify-between z-10">
               <div>
                 <h2 className="text-2xl font-bold text-gray-900">
                   Agreement of Purchase and Sale
@@ -500,7 +500,7 @@ export function ClosingProcessView({ propertyId }: ClosingProcessViewProps) {
             </div>
 
             {/* Contract Document */}
-            <div className="overflow-y-auto max-h-[70vh]">
+            <div className="overflow-y-auto max-h-[70vh] bg-gray-100 px-4 py-4">
               {contractData ? (
                 <APSContractDocument
                   data={contractData}

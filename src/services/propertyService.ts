@@ -1157,10 +1157,24 @@ export const fetchCoOwnershipSignals = async (): Promise<CoOwnershipSignal[]> =>
     const signals = data as CoOwnershipSignal[];
     if (signals.length === 0) return signals;
 
-    // Add creator names from the signals themselves (no need to fetch profiles)
+    // Fetch real names from user_profiles for all signal creators
+    const userIds = Array.from(new Set(signals.map(s => s.user_id).filter(Boolean)));
+    const { data: profiles } = await sb
+      .from('user_profiles')
+      .select('id, full_name')
+      .in('id', userIds);
+
+    const nameMap: Record<string, string> = {};
+    if (profiles) {
+      for (const p of profiles) {
+        const name = p.full_name?.trim();
+        if (name) nameMap[p.id] = name;
+      }
+    }
+
     const signalsWithNames = signals.map(signal => ({
       ...signal,
-      creator_name: signal.user_id ? 'Signal User' : 'Anonymous'
+      creator_name: nameMap[signal.user_id] || 'Member'
     }));
 
     return signalsWithNames;
@@ -1184,7 +1198,17 @@ export const createCoOwnershipSignal = async (signal: Omit<CoOwnershipSignal, 'i
     console.error('Error creating signal:', error);
     throw error;
   }
-  return data;
+
+  // Fetch the creator's real name to attach immediately
+  const { data: profile } = await sb
+    .from('user_profiles')
+    .select('full_name')
+    .eq('id', user.id)
+    .single();
+
+  const creatorName = profile?.full_name?.trim() || 'Member';
+
+  return { ...data, creator_name: creatorName };
 };
 
 export const updateCoOwnershipSignal = async (id: string, updates: Partial<CoOwnershipSignal>) => {

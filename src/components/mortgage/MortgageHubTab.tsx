@@ -93,22 +93,14 @@ export function MortgageHubTab() {
   return (
     <div className="max-w-4xl space-y-6">
       {/* Header */}
-      <div className="relative bg-gradient-to-br from-pink-500/30 via-purple-500/30 to-indigo-500/30 rounded-3xl p-4 border-2 border-white/50 shadow-2xl backdrop-blur-sm overflow-hidden">
-        <div className="absolute inset-0">
-          <div className="absolute top-4 left-4 w-32 h-32 bg-gradient-to-br from-yellow-400/40 to-pink-400/40 rounded-full blur-3xl animate-pulse" />
-          <div className="absolute bottom-4 right-4 w-24 h-24 bg-gradient-to-br from-purple-400/40 to-indigo-400/40 rounded-full blur-2xl animate-pulse delay-1000" />
-        </div>
-        <div className="relative z-10 flex items-center gap-3">
-          <div className="p-2 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 shadow-lg">
-            <Percent className="h-6 w-6 text-white" />
+      <div className="rounded-2xl bg-gradient-to-r from-blue-600 to-orange-500 border border-slate-200 py-2 px-4 shadow-sm">
+        <div className="flex items-center gap-3">
+          <div className="p-1.5 rounded-lg bg-white/20">
+            <Percent className="h-5 w-5 text-white" />
           </div>
           <div>
-            <h1 className="text-2xl md:text-3xl font-black text-gray-900 bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
-              Mortgage Hub
-            </h1>
-            <p className="text-sm text-gray-700 font-medium">
-              Compare live mortgage rates from our verified lenders
-            </p>
+            <h1 className="text-lg font-bold text-white">Mortgage Hub</h1>
+            <p className="text-xs text-white/80">Compare live mortgage rates from our verified lenders</p>
           </div>
         </div>
       </div>
